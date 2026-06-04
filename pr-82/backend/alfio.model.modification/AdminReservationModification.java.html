@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminReservationModification.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.modification</a> &gt; <span class="el_source">AdminReservationModification.java</span></div><h1>AdminReservationModification.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.modification;
+
+import alfio.model.TicketCategory;
+import alfio.model.TicketReservationInvoicingAdditionalInfo;
+import alfio.model.transaction.PaymentProxy;
+import alfio.util.ClockProvider;
+import alfio.util.Json;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+
+@Getter
+public class AdminReservationModification implements Serializable {
+
+    private final DateTimeModification expiration;
+    private final CustomerData customerData;
+    private final List&lt;TicketsInfo&gt; ticketsInfo;
+    private final String language;
+    private final boolean updateContactData;
+    private final boolean updateAdvancedBillingOptions;
+    private final AdvancedBillingOptions advancedBillingOptions;
+    private final Notification notification;
+    private final SubscriptionDetails subscriptionDetails;
+    private final UUID linkedSubscriptionId;
+
+    @JsonCreator
+    public AdminReservationModification(@JsonProperty(&quot;expiration&quot;) DateTimeModification expiration,
+                                        @JsonProperty(&quot;customerData&quot;) CustomerData customerData,
+                                        @JsonProperty(&quot;ticketsInfo&quot;) List&lt;TicketsInfo&gt; ticketsInfo,
+                                        @JsonProperty(&quot;language&quot;) String language,
+                                        @JsonProperty(&quot;updateContactData&quot;) Boolean updateContactData,
+                                        @JsonProperty(&quot;updateAdvancedBillingOptions&quot;) Boolean updateAdvancedBillingOptions,
+                                        @JsonProperty(&quot;advancedBillingOptions&quot;) AdvancedBillingOptions advancedBillingOptions,
+                                        @JsonProperty(&quot;notification&quot;) Notification notification,
+                                        @JsonProperty(&quot;subscriptionDetails&quot;) SubscriptionDetails subscriptionDetails,
+<span class="fc" id="L63">                                        @JsonProperty(&quot;linkedSubscriptionId&quot;) UUID linkedSubscriptionId) {</span>
+<span class="fc" id="L64">        this.expiration = expiration;</span>
+<span class="fc" id="L65">        this.customerData = customerData;</span>
+<span class="fc" id="L66">        this.ticketsInfo = ticketsInfo;</span>
+<span class="fc" id="L67">        this.language = language;</span>
+<span class="fc" id="L68">        this.updateContactData = Boolean.TRUE.equals(updateContactData);</span>
+<span class="fc" id="L69">        this.updateAdvancedBillingOptions = Boolean.TRUE.equals(updateAdvancedBillingOptions);</span>
+<span class="fc" id="L70">        this.advancedBillingOptions = advancedBillingOptions;</span>
+<span class="fc" id="L71">        this.notification = notification;</span>
+<span class="fc" id="L72">        this.subscriptionDetails = subscriptionDetails;</span>
+<span class="fc" id="L73">        this.linkedSubscriptionId = linkedSubscriptionId;</span>
+<span class="fc" id="L74">    }</span>
+
+    @Getter
+    public static class CustomerData {
+        private final String firstName;
+        private final String lastName;
+        private final String emailAddress;
+        private final String billingAddress;
+        private final String userLanguage;
+        private final String customerReference;
+        private final String vatNr;
+        private final String vatCountryCode;
+        private final TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo;
+
+        @JsonCreator
+        public CustomerData(@JsonProperty(&quot;firstName&quot;) String firstName,
+                            @JsonProperty(&quot;lastName&quot;) String lastName,
+                            @JsonProperty(&quot;emailAddress&quot;) String emailAddress,
+                            @JsonProperty(&quot;billingAddress&quot;) String billingAddress,
+                            @JsonProperty(&quot;userLanguage&quot;) String userLanguage,
+                            @JsonProperty(&quot;customerReference&quot;) String customerReference,
+                            @JsonProperty(&quot;vatNr&quot;) String vatNr,
+                            @JsonProperty(&quot;vatCountryCode&quot;) String vatCountryCode,
+<span class="fc" id="L97">                            @JsonProperty(&quot;invoicingAdditionalInfo&quot;) TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo) {</span>
+<span class="fc" id="L98">            this.firstName = trimToEmpty(firstName);</span>
+<span class="fc" id="L99">            this.lastName = trimToEmpty(lastName);</span>
+<span class="fc" id="L100">            this.emailAddress = trimToEmpty(emailAddress);</span>
+<span class="fc" id="L101">            this.billingAddress = billingAddress;</span>
+<span class="fc" id="L102">            this.userLanguage = userLanguage;</span>
+<span class="fc" id="L103">            this.customerReference = customerReference;</span>
+<span class="fc" id="L104">            this.vatNr = vatNr;</span>
+<span class="fc" id="L105">            this.vatCountryCode = vatCountryCode;</span>
+<span class="fc" id="L106">            this.invoicingAdditionalInfo = invoicingAdditionalInfo;</span>
+<span class="fc" id="L107">        }</span>
+
+        public String getFullName() {
+<span class="fc" id="L110">            return firstName + &quot; &quot; + lastName;</span>
+        }
+    }
+
+    @Getter
+    public static class AdvancedBillingOptions {
+        private final boolean vatApplied;
+
+        @JsonCreator
+<span class="nc" id="L119">        public AdvancedBillingOptions(@JsonProperty(&quot;vatApplied&quot;) String vatApplied) {</span>
+<span class="nc" id="L120">            this.vatApplied = &quot;Y&quot;.equals(vatApplied);</span>
+<span class="nc" id="L121">        }</span>
+    }
+
+    @Getter
+    public static class TicketsInfo {
+        private final Category category;
+        private final List&lt;Attendee&gt; attendees;
+        private final boolean addSeatsIfNotAvailable;
+        private final boolean updateAttendees;
+
+        @JsonCreator
+        public TicketsInfo(@JsonProperty(&quot;category&quot;) Category category,
+                           @JsonProperty(&quot;attendees&quot;) List&lt;Attendee&gt; attendees,
+                           @JsonProperty(&quot;addSeatsIfNotAvailable&quot;) boolean addSeatsIfNotAvailable,
+<span class="fc" id="L135">                           @JsonProperty(&quot;updateAttendees&quot;) Boolean updateAttendees) {</span>
+<span class="fc" id="L136">            this.category = category;</span>
+<span class="fc" id="L137">            this.attendees = attendees;</span>
+<span class="fc" id="L138">            this.addSeatsIfNotAvailable = addSeatsIfNotAvailable;</span>
+<span class="fc" id="L139">            this.updateAttendees = Optional.ofNullable(updateAttendees).orElse(false);</span>
+<span class="fc" id="L140">        }</span>
+    }
+
+    @Getter
+    public static class Category {
+        private final Integer existingCategoryId;
+        private final String name;
+        private final BigDecimal price;
+        private final TicketCategory.TicketAccessType ticketAccessType;
+
+        @JsonCreator
+        public Category(@JsonProperty(&quot;existingCategoryId&quot;) Integer existingCategoryId,
+                        @JsonProperty(&quot;name&quot;) String name,
+                        @JsonProperty(&quot;price&quot;) BigDecimal price,
+<span class="fc" id="L154">                        @JsonProperty(&quot;ticketAccessType&quot;) TicketCategory.TicketAccessType ticketAccessType) {</span>
+<span class="fc" id="L155">            this.existingCategoryId = existingCategoryId;</span>
+<span class="fc" id="L156">            this.name = name;</span>
+<span class="fc" id="L157">            this.price = price;</span>
+<span class="fc" id="L158">            this.ticketAccessType = Objects.requireNonNullElse(ticketAccessType, TicketCategory.TicketAccessType.INHERIT);</span>
+<span class="fc" id="L159">        }</span>
+
+        public boolean isExisting() {
+<span class="fc bfc" id="L162" title="All 2 branches covered.">            return existingCategoryId != null;</span>
+        }
+    }
+
+    @Getter
+    public static class Attendee {
+        private final Integer ticketId;
+        private final String firstName;
+        private final String lastName;
+        private final String emailAddress;
+        private final String language;
+        private final boolean reassignmentForbidden;
+        private final String reference;
+        private final UUID subscriptionId;
+        private final Map&lt;String, List&lt;String&gt;&gt; additionalInfo;
+        private final Map&lt;String, String&gt; metadata;
+
+        @JsonCreator
+        public Attendee(@JsonProperty(&quot;ticketId&quot;) Integer ticketId,
+                        @JsonProperty(&quot;firstName&quot;) String firstName,
+                        @JsonProperty(&quot;lastName&quot;) String lastName,
+                        @JsonProperty(&quot;emailAddress&quot;) String emailAddress,
+                        @JsonProperty(&quot;language&quot;) String language,
+                        @JsonProperty(&quot;forbidReassignment&quot;) Boolean reassignmentForbidden,
+                        @JsonProperty(&quot;reference&quot;) String reference,
+                        @JsonProperty(&quot;subscriptionId&quot;) UUID subscriptionId,
+                        @JsonProperty(&quot;additionalInfo&quot;) Map&lt;String, List&lt;String&gt;&gt; additionalInfo,
+<span class="fc" id="L189">                        @JsonProperty(&quot;metadata&quot;) Map&lt;String, String&gt; metadata) {</span>
+<span class="fc" id="L190">            this.ticketId = ticketId;</span>
+<span class="fc" id="L191">            this.firstName = trimToEmpty(firstName);</span>
+<span class="fc" id="L192">            this.lastName = trimToEmpty(lastName);</span>
+<span class="fc" id="L193">            this.emailAddress = trimToEmpty(emailAddress);</span>
+<span class="fc" id="L194">            this.language = language;</span>
+<span class="fc" id="L195">            this.reassignmentForbidden = Objects.requireNonNullElse(reassignmentForbidden, false);</span>
+<span class="fc" id="L196">            this.reference = reference;</span>
+<span class="fc" id="L197">            this.subscriptionId = subscriptionId;</span>
+<span class="fc" id="L198">            this.additionalInfo = Objects.requireNonNullElse(additionalInfo, Map.of());</span>
+<span class="fc" id="L199">            this.metadata = Objects.requireNonNullElse(metadata, Map.of());</span>
+<span class="fc" id="L200">        }</span>
+
+        public boolean isEmpty() {
+<span class="fc" id="L203">            return StringUtils.isAnyBlank(firstName, lastName, emailAddress);</span>
+        }
+
+        public String getFullName() {
+<span class="fc" id="L207">            return firstName + &quot; &quot; + lastName;</span>
+        }
+    }
+
+    @Getter
+    public static class Update {
+        private final DateTimeModification expiration;
+        private final Notification notification;
+
+        public Update(@JsonProperty(&quot;expiration&quot;) DateTimeModification expiration,
+<span class="nc" id="L217">                      @JsonProperty(&quot;notification&quot;) Notification notification) {</span>
+<span class="nc" id="L218">            this.expiration = expiration;</span>
+<span class="nc" id="L219">            this.notification = notification;</span>
+<span class="nc" id="L220">        }</span>
+    }
+
+    @Getter
+    public static class Notification {
+
+<span class="fc" id="L226">        public static final Notification EMPTY = new Notification(false, false);</span>
+
+        private final boolean customer;
+        private final boolean attendees;
+
+        @JsonCreator
+        public Notification(@JsonProperty(&quot;customer&quot;) boolean customer,
+<span class="fc" id="L233">                            @JsonProperty(&quot;attendees&quot;) boolean attendees) {</span>
+<span class="fc" id="L234">            this.customer = customer;</span>
+<span class="fc" id="L235">            this.attendees = attendees;</span>
+<span class="fc" id="L236">        }</span>
+
+        public static Notification orEmpty(Notification notification) {
+<span class="fc bfc" id="L239" title="All 2 branches covered.">            return notification != null ? notification : EMPTY;</span>
+        }
+    }
+
+    public static class TransactionDetails {
+
+        private final String id;
+        private final BigDecimal paidAmount;
+        private final LocalDateTime timestamp;
+        private final String notes;
+        private final PaymentProxy paymentProvider;
+
+        @JsonCreator
+        public TransactionDetails(@JsonProperty(&quot;id&quot;) String id,
+                                  @JsonProperty(&quot;paidAmount&quot;) BigDecimal paidAmount,
+                                  @JsonProperty(&quot;timestamp&quot;) LocalDateTime timestamp,
+                                  @JsonProperty(&quot;notes&quot;) String notes,
+<span class="fc" id="L256">                                  @JsonProperty(&quot;paymentProvider&quot;) PaymentProxy paymentProvider) {</span>
+<span class="fc" id="L257">            this.id = id;</span>
+<span class="fc" id="L258">            this.paidAmount = paidAmount;</span>
+<span class="fc" id="L259">            this.timestamp = timestamp;</span>
+<span class="fc" id="L260">            this.notes = notes;</span>
+<span class="fc" id="L261">            this.paymentProvider = paymentProvider;</span>
+<span class="fc" id="L262">        }</span>
+
+        public String getId() {
+<span class="fc" id="L265">            return id;</span>
+        }
+
+        public BigDecimal getPaidAmount() {
+<span class="fc" id="L269">            return paidAmount;</span>
+        }
+
+        public LocalDateTime getTimestamp() {
+<span class="fc" id="L273">            return timestamp;</span>
+        }
+
+        public String getNotes() {
+<span class="fc" id="L277">            return notes;</span>
+        }
+
+        public PaymentProxy getPaymentProvider() {
+<span class="fc" id="L281">            return paymentProvider;</span>
+        }
+
+        public static TransactionDetails admin() {
+<span class="fc" id="L285">            return new TransactionDetails(null, null, LocalDateTime.now(ClockProvider.clock()), null, PaymentProxy.ADMIN);</span>
+        }
+    }
+
+    @Getter
+    public static class SubscriptionDetails {
+        private final String firstName;
+        private final String lastName;
+        private final String email;
+        private final Integer maxAllowed;
+        private final DateTimeModification validityFrom;
+        private final DateTimeModification validityTo;
+
+        public SubscriptionDetails(@JsonProperty(&quot;firstName&quot;) String firstName,
+                                   @JsonProperty(&quot;lastName&quot;) String lastName,
+                                   @JsonProperty(&quot;email&quot;) String email,
+                                   @JsonProperty(&quot;maxAllowed&quot;) Integer maxAllowed,
+                                   @JsonProperty(&quot;validityFrom&quot;) DateTimeModification validityFrom,
+<span class="nc" id="L303">                                   @JsonProperty(&quot;validityTo&quot;) DateTimeModification validityTo) {</span>
+<span class="nc" id="L304">            this.firstName = firstName;</span>
+<span class="nc" id="L305">            this.lastName = lastName;</span>
+<span class="nc" id="L306">            this.email = email;</span>
+<span class="nc" id="L307">            this.maxAllowed = maxAllowed;</span>
+<span class="nc" id="L308">            this.validityFrom = validityFrom;</span>
+<span class="nc" id="L309">            this.validityTo = validityTo;</span>
+<span class="nc" id="L310">        }</span>
+    }
+
+    public static String summary(AdminReservationModification src) {
+        try {
+<span class="fc" id="L315">            List&lt;TicketsInfo&gt; ticketsInfo = src.ticketsInfo.stream().map(ti -&gt; {</span>
+<span class="fc" id="L316">                List&lt;Attendee&gt; attendees = ti.getAttendees()</span>
+<span class="fc" id="L317">                    .stream()</span>
+<span class="fc" id="L318">                    .map(a -&gt; new Attendee(a.ticketId,</span>
+<span class="fc" id="L319">                        placeholderIfNotEmpty(a.firstName),</span>
+<span class="fc" id="L320">                        placeholderIfNotEmpty(a.lastName),</span>
+<span class="fc" id="L321">                        placeholderIfNotEmpty(a.emailAddress),</span>
+                        a.language,
+<span class="fc" id="L323">                        a.reassignmentForbidden,</span>
+                        a.reference,
+                        a.subscriptionId,
+<span class="fc" id="L326">                        singletonMap(&quot;hasAdditionalInfo&quot;, singletonList(String.valueOf(a.additionalInfo.isEmpty()))),</span>
+<span class="fc" id="L327">                        Map.of())).collect(toList());</span>
+<span class="fc" id="L328">                return new TicketsInfo(ti.getCategory(), attendees, ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees());</span>
+<span class="fc" id="L329">            }).collect(toList());</span>
+<span class="fc" id="L330">            return Json.toJson(new AdminReservationModification(src.expiration,</span>
+<span class="fc" id="L331">                summaryForCustomerData(src.customerData),</span>
+                ticketsInfo,
+<span class="fc" id="L333">                src.getLanguage(),</span>
+<span class="fc" id="L334">                src.updateContactData,</span>
+<span class="fc" id="L335">                src.updateAdvancedBillingOptions,</span>
+                src.advancedBillingOptions,
+                src.notification,
+                src.subscriptionDetails,
+                src.linkedSubscriptionId));
+<span class="nc" id="L340">        } catch(Exception e) {</span>
+<span class="nc" id="L341">            return e.toString();</span>
+        }
+    }
+
+    private static CustomerData summaryForCustomerData(CustomerData in) {
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">        if(in != null) {</span>
+<span class="fc" id="L347">            return new CustomerData(placeholderIfNotEmpty(in.firstName),</span>
+<span class="fc" id="L348">                placeholderIfNotEmpty(in.lastName),</span>
+<span class="fc" id="L349">                placeholderIfNotEmpty(in.emailAddress),</span>
+<span class="fc" id="L350">                placeholderIfNotEmpty(in.billingAddress),</span>
+<span class="fc" id="L351">                placeholderIfNotEmpty(in.userLanguage),</span>
+<span class="fc" id="L352">                placeholderIfNotEmpty(in.customerReference),</span>
+<span class="fc" id="L353">                placeholderIfNotEmpty(in.vatNr),</span>
+<span class="fc" id="L354">                placeholderIfNotEmpty(in.vatCountryCode),</span>
+                in.invoicingAdditionalInfo);
+        }
+<span class="nc" id="L357">        else return null;</span>
+    }
+
+    private static String placeholderIfNotEmpty(String in) {
+<span class="pc bpc" id="L361" title="1 of 2 branches missed.">        return StringUtils.isNotEmpty(in) ? &quot;xxx&quot; : null;</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
