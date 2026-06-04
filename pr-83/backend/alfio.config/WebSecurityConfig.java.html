@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebSecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config</a> &gt; <span class="el_source">WebSecurityConfig.java</span></div><h1>WebSecurityConfig.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config;
+
+import alfio.config.authentication.OpenIdUserSynchronizer;
+import alfio.manager.ExtensionManager;
+import alfio.manager.user.UserManager;
+import alfio.repository.user.AuthorityRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.repository.user.UserRepository;
+import alfio.repository.user.join.UserOrganizationRepository;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.transaction.PlatformTransactionManager;
+
+@Configuration(proxyBeanMethods = false)
+@EnableWebSecurity
+<span class="nc" id="L37">public class WebSecurityConfig {</span>
+
+    public static final String CSRF_PARAM_NAME = &quot;_csrf&quot;;
+    private static final String CSRF_SESSION_ATTRIBUTE = &quot;CSRF_SESSION_ATTRIBUTE&quot;;
+
+    @Bean
+    public CsrfTokenRepository getCsrfTokenRepository() {
+<span class="nc" id="L44">        HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();</span>
+<span class="nc" id="L45">        repository.setSessionAttributeName(CSRF_SESSION_ATTRIBUTE);</span>
+<span class="nc" id="L46">        repository.setParameterName(CSRF_PARAM_NAME);</span>
+<span class="nc" id="L47">        return repository;</span>
+    }
+
+    @Bean
+    public OpenIdUserSynchronizer openIdUserSynchronizer(PlatformTransactionManager transactionManager,
+                                                         PasswordEncoder passwordEncoder,
+                                                         UserManager userManager,
+                                                         UserRepository userRepository,
+                                                         UserOrganizationRepository userOrganizationRepository,
+                                                         NamedParameterJdbcTemplate jdbcTemplate,
+                                                         AuthorityRepository authorityRepository,
+                                                         OrganizationRepository organizationRepository,
+                                                         ExtensionManager extensionManager) {
+<span class="nc" id="L60">        return new OpenIdUserSynchronizer(transactionManager,</span>
+            passwordEncoder,
+            userManager,
+            userRepository,
+            userOrganizationRepository,
+            jdbcTemplate,
+            authorityRepository,
+            organizationRepository,
+            extensionManager);
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

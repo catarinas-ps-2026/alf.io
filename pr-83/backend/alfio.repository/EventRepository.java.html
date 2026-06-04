@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">EventRepository.java</span></div><h1>EventRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.manager.support.CheckInStatistics;
+import alfio.model.*;
+import alfio.model.metadata.AlfioMetadata;
+import alfio.model.support.JSONData;
+import ch.digitalfondue.npjt.*;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+
+@QueryRepository
+public interface EventRepository {
+
+    String STATISTICS_QUERY = &quot;select count(*) as total_attendees, COALESCE(SUM(CASE WHEN status = 'CHECKED_IN' THEN 1 ELSE 0 END), 0) as checked_in, CURRENT_TIMESTAMP as last_update from ticket where event_id = :eventId and status in(&quot;+TicketRepository.CONFIRMED+&quot;)&quot;;
+
+    @Query(&quot;select * from event where id = :eventId&quot;)
+    Event findById(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select id, org_id from event where id = :eventId&quot;)
+    EventAndOrganizationId findEventAndOrganizationIdById(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select * from event where id = :eventId&quot;)
+    Optional&lt;Event&gt; findOptionalById(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select exists(select 1 from event where id = :eventId)&quot;)
+    boolean existsById(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select exists(select 1 from event where short_name = :eventName)&quot;)
+    boolean existsByShortName(@Bind(&quot;eventName&quot;) String eventName);
+    
+    @Query(&quot;select org_id from event where id = :eventId&quot;)
+    int findOrganizationIdByEventId(@Bind(&quot;eventId&quot;) int eventId);
+
+
+    @Query(&quot;select org_id from event where short_name = :shortName&quot;)
+    int findOrganizationIdByShortName(@Bind(&quot;shortName&quot;) String eventShortName);
+
+    default ZoneId getZoneIdByEventId(int eventId) {
+<span class="nc" id="L60">        return TimeZone.getTimeZone(getTimeZoneByEventId(eventId)).toZoneId();</span>
+    }
+
+    @Query(&quot;select currency from event where id = :eventId&quot;)
+    String getEventCurrencyCode(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select time_zone from event where id = :eventId&quot;)
+    String getTimeZoneByEventId(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select * from event where short_name = :eventName&quot;)
+    Event findByShortName(@Bind(&quot;eventName&quot;) String eventName);
+
+    @Query(&quot;select * from event where short_name = :eventName&quot;)
+    Optional&lt;Event&gt; findOptionalByShortName(@Bind(&quot;eventName&quot;) String eventName);
+
+    @Query(&quot;select private_key from event where id = :eventId&quot;)
+    String getPrivateKey(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select id, org_id from event where short_name = :eventName&quot;)
+    Optional&lt;EventAndOrganizationId&gt; findOptionalEventAndOrganizationIdByShortName(@Bind(&quot;eventName&quot;) String eventName);
+
+    @Query(&quot;select locales from event where short_name = :eventName&quot;)
+    Optional&lt;Integer&gt; findLocalesByShortName(@Bind(&quot;eventName&quot;) String eventName);
+
+    @Query(&quot;select * from event order by start_ts, end_ts&quot;)
+    List&lt;Event&gt; findAll();
+
+    @Query(&quot;select * from event where id in(:ids) order by start_ts, end_ts&quot;)
+    List&lt;Event&gt; findByIds(@Bind(&quot;ids&quot;) Collection&lt;Integer&gt; ids);
+
+    @Query(&quot;select * from event where org_id in (:organizationIds) order by start_ts, end_ts&quot;)
+    List&lt;Event&gt; findByOrganizationIds(@Bind(&quot;organizationIds&quot;) Collection&lt;Integer&gt; organizationIds);
+
+    @Query(&quot;&quot;&quot;
+            insert into event(short_name, format, display_name, website_url, external_url, website_t_c_url, website_p_p_url, image_url, file_blob_id, location, latitude, longitude, start_ts, end_ts, time_zone, regular_price_cts, currency, available_seats, vat_included, vat, allowed_payment_proxies, private_key, org_id, locales, vat_status, src_price_cts, version, status, metadata) \
+            values(:shortName, :format::event_format, :displayName, :websiteUrl, :externalUrl, :termsUrl, :privacyUrl, :imageUrl, :fileBlobId, :location, :latitude, :longitude, :start_ts, :end_ts, :time_zone, 0, :currency, :available_seats, :vat_included, :vat, :paymentProxies, :privateKey, :organizationId, :locales, :vatStatus, :srcPriceCts, :version, :status, :metadata::jsonb)\
+            &quot;&quot;&quot;)
+    @AutoGeneratedKey(&quot;id&quot;)
+    AffectedRowCountAndKey&lt;Integer&gt; insert(@Bind(&quot;shortName&quot;) String shortName,
+                                           @Bind(&quot;format&quot;) Event.EventFormat format,
+                                           @Bind(&quot;displayName&quot;) String displayName,
+                                           @Bind(&quot;websiteUrl&quot;) String websiteUrl,
+                                           @Bind(&quot;externalUrl&quot;) String externalUrl,
+                                           @Bind(&quot;termsUrl&quot;) String termsUrl,
+                                           @Bind(&quot;privacyUrl&quot;) String privacyPolicyUrl,
+                                           @Bind(&quot;imageUrl&quot;) String imageUrl,
+                                           @Bind(&quot;fileBlobId&quot;) String fileBlobId,
+                                           @Bind(&quot;location&quot;) String location,
+                                           @Bind(&quot;latitude&quot;) String latitude,
+                                           @Bind(&quot;longitude&quot;) String longitude,
+                                           @Bind(&quot;start_ts&quot;) ZonedDateTime begin,
+                                           @Bind(&quot;end_ts&quot;) ZonedDateTime end,
+                                           @Bind(&quot;time_zone&quot;) String timeZone,
+                                           @Bind(&quot;currency&quot;) String currency,
+                                           @Bind(&quot;available_seats&quot;) int available_seats,
+                                           @Bind(&quot;vat_included&quot;) boolean vat_included,
+                                           @Bind(&quot;vat&quot;) BigDecimal vat,
+                                           @Bind(&quot;paymentProxies&quot;) String allowedPaymentProxies,
+                                           @Bind(&quot;privateKey&quot;) String privateKey,
+                                           @Bind(&quot;organizationId&quot;) int orgId,
+                                           @Bind(&quot;locales&quot;) int locales,
+                                           @Bind(&quot;vatStatus&quot;) PriceContainer.VatStatus vatStatus,
+                                           @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
+                                           @Bind(&quot;version&quot;) String version,
+                                           @Bind(&quot;status&quot;) Event.Status status,
+                                           @Bind(&quot;metadata&quot;) @JSONData AlfioMetadata alfioMetadata);
+
+    @Query(&quot;update event set status = :status where id = :id&quot;)
+    int updateEventStatus(@Bind(&quot;id&quot;) int id, @Bind(&quot;status&quot;) Event.Status status);
+
+    @Query(&quot;&quot;&quot;
+            update event set display_name = :displayName, website_url = :websiteUrl, external_url = :externalUrl, website_t_c_url = :termsUrl, website_p_p_url = :privacyUrl, image_url = :imageUrl, file_blob_id = :fileBlobId, \
+            location = :location, latitude = :latitude, longitude = :longitude, start_ts = :start_ts, \
+            end_ts = :end_ts, time_zone = :time_zone, org_id = :organizationId, locales = :locales, format = :format::event_format where id = :id\
+            &quot;&quot;&quot;)
+    int updateHeader(@Bind(&quot;id&quot;) int id,
+                     @Bind(&quot;displayName&quot;) String displayName,
+                     @Bind(&quot;websiteUrl&quot;) String websiteUrl,
+                     @Bind(&quot;externalUrl&quot;) String externalUrl,
+                     @Bind(&quot;termsUrl&quot;) String termsUrl,
+                     @Bind(&quot;privacyUrl&quot;) String privacyPolicyUrl,
+                     @Bind(&quot;imageUrl&quot;) String imageUrl,
+                     @Bind(&quot;fileBlobId&quot;) String fileBlobId,
+                     @Bind(&quot;location&quot;) String location,
+                     @Bind(&quot;latitude&quot;) String latitude,
+                     @Bind(&quot;longitude&quot;) String longitude,
+                     @Bind(&quot;start_ts&quot;) ZonedDateTime begin,
+                     @Bind(&quot;end_ts&quot;) ZonedDateTime end,
+                     @Bind(&quot;time_zone&quot;) String timeZone,
+                     @Bind(&quot;organizationId&quot;) int organizationId,
+                     @Bind(&quot;locales&quot;) int locales,
+                     @Bind(&quot;format&quot;) Event.EventFormat format);
+
+    @Query(&quot;update event set currency = :currency, available_seats = :available_seats, vat_included = :vat_included, vat = :vat, allowed_payment_proxies = :paymentProxies, vat_status = :vatStatus, src_price_cts = :srcPriceCts where id = :eventId&quot;)
+    int updatePrices(@Bind(&quot;currency&quot;) String currency,
+                     @Bind(&quot;available_seats&quot;) int available_seats, @Bind(&quot;vat_included&quot;) boolean vat_included,
+                     @Bind(&quot;vat&quot;) BigDecimal vat, @Bind(&quot;paymentProxies&quot;) String allowedPaymentProxies, @Bind(&quot;eventId&quot;) int eventId,
+                     @Bind(&quot;vatStatus&quot;) PriceContainer.VatStatus vatStatus,
+                     @Bind(&quot;srcPriceCts&quot;) int srcPriceCts);
+
+    @Query(&quot;select a.* from event a inner join tickets_reservation on event_id_fk = a.id where tickets_reservation.id = :reservationId&quot;)
+    Event findByReservationId(@Bind(&quot;reservationId&quot;) String reservationId);
+
+    @Query(&quot;update event set display_name = short_name where id = :eventId and display_name is null&quot;)
+    int fillDisplayNameIfRequired(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select * from event where end_ts &gt; :now order by start_ts, end_ts&quot;)
+    List&lt;Event&gt; findAllActives(@Bind(&quot;now&quot;) ZonedDateTime now);
+
+    @Query(&quot;update event set available_seats = :newValue where id = :eventId&quot;)
+    int updateAvailableSeats(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;newValue&quot;) int newValue);
+
+    @Query(&quot;select * from event where short_name = :name for update&quot;)
+    Optional&lt;Event&gt; findOptionalByShortNameForUpdate(@Bind(&quot;name&quot;) String shortName);
+
+    @Query(&quot;select * from events_statistics where id in (:ids)&quot;)
+    List&lt;EventStatisticView&gt; findStatisticsFor(@Bind(&quot;ids&quot;) Set&lt;Integer&gt; integers);
+
+    @Query(&quot;select * from events_statistics where id = :eventId&quot;)
+    EventStatisticView findStatisticsFor(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select available_seats from events_statistics where id = :eventId&quot;)
+    Integer countExistingTickets(@Bind(&quot;eventId&quot;) int eventId);
+    @Query(&quot;select count(*) from event&quot;)
+    Integer countEvents();
+    @Query(&quot;select count(*) from event where org_id = :organizationId and short_name in (:eventShortNames)&quot;)
+    Integer countEventsInOrganization(@Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;eventShortNames&quot;) Collection&lt;String&gt; shortNames);
+
+    @Query(&quot;select * from event where org_id = :organizationId and short_name in (:eventShortNames)&quot;)
+    List&lt;Event&gt; findEventsByShortNames(@Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;eventShortNames&quot;) Collection&lt;String&gt; shortNames);
+
+    @Query(value = &quot;update event set status = 'DISABLED' where org_id in (select org_id from j_user_organization where user_id in (:userIds)) returning id&quot;, type = QueryType.MODIFYING_WITH_RETURN)
+    List&lt;Integer&gt; disableEventsForUsers(@Bind(&quot;userIds&quot;) Collection&lt;Integer&gt; userIds);
+    @Query(value = &quot;update event set status = 'DISABLED' where org_id = :orgId returning id&quot;, type = QueryType.MODIFYING_WITH_RETURN)
+    List&lt;Integer&gt; disableEventsForOrganization(@Bind(&quot;orgId&quot;) int orgId);
+
+    @Query(&quot;select coalesce(sum(final_price_cts),0) from tickets_reservation where event_id_fk = :eventId and status = 'COMPLETE'&quot;)
+    long getGrossIncome(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(STATISTICS_QUERY)
+    CheckInStatistics retrieveCheckInStatisticsForEvent(@Bind(&quot;eventId&quot;) int eventId);
+
+    default CheckInStatistics retrieveCheckInStatisticsForEvent(int eventId, List&lt;Integer&gt; categories) {
+<span class="nc" id="L203">        var sqlParameterSource = new MapSqlParameterSource(&quot;eventId&quot;, eventId);</span>
+<span class="nc" id="L204">        var query = STATISTICS_QUERY;</span>
+<span class="nc bnc" id="L205" title="All 4 branches missed.">        if (categories != null &amp;&amp; !categories.isEmpty()) {</span>
+<span class="nc" id="L206">            query += &quot; and category_id in (:categories)&quot;;</span>
+<span class="nc" id="L207">            sqlParameterSource.addValue(&quot;categories&quot;, categories);</span>
+        }
+<span class="nc" id="L209">        return getJdbcTemplate().query(query, sqlParameterSource, rs -&gt; {</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            if (rs.next()) {</span>
+<span class="nc" id="L211">                return new CheckInStatistics(rs.getInt(1), rs.getInt(2), rs.getTimestamp(3));</span>
+            }
+<span class="nc" id="L213">            return null;</span>
+        });
+    }
+
+    NamedParameterJdbcTemplate getJdbcTemplate();
+
+    @Query(&quot;select id, short_name from event where id in (:eventIds)&quot;)
+    List&lt;EventIdShortName&gt; getEventNamesByIds(@Bind(&quot;eventIds&quot;) List&lt;Integer&gt; eventIds);
+
+    @Query(&quot;select id, short_name from event where org_id = :orgId order by short_name&quot;)
+    List&lt;EventIdShortName&gt; getEventsNameInOrganization(@Bind(&quot;orgId&quot;) int orgId);
+
+    @JSONData
+    @Query(&quot;select metadata from event where id = :eventId&quot;)
+    AlfioMetadata getMetadataForEvent(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;update event set metadata = :metadata::jsonb where id = :eventId&quot;)
+    int updateMetadata(@Bind(&quot;metadata&quot;) @JSONData AlfioMetadata metadata, @Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;&quot;&quot;
+        select * from event where id in (select distinct id from basic_event_with_optional_subscription where end_ts &gt; now() and status = 'PUBLIC'\
+         and (:subscriptionId::uuid is null or subscription_id = :subscriptionId::uuid)\
+         and (:organizer::integer is null or org_id = :organizer)\
+         and (:organizerSlug::text is null or org_slug = :organizerSlug)\
+         and (:tags::text[] is null or tags @&gt; ARRAY[ :tags ]::text[])) order by start_ts, end_ts\
+        &quot;&quot;&quot;)
+    List&lt;Event&gt; findVisibleBySearchOptions(@Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+                                           @Bind(&quot;organizer&quot;) Integer organizer,
+                                           @Bind(&quot;organizerSlug&quot;) String organizerSlug,
+                                           @Bind(&quot;tags&quot;) List&lt;String&gt; tags);
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

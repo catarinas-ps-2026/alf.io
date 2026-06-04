@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventLoader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.v2.user.support</a> &gt; <span class="el_source">EventLoader.java</span></div><h1>EventLoader.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.v2.user.support;
+
+import alfio.controller.api.v2.model.AnalyticsConfiguration;
+import alfio.controller.api.v2.model.EmbeddingConfiguration;
+import alfio.controller.api.v2.model.EventWithAdditionalInfo;
+import alfio.controller.api.v2.model.OfflinePaymentConfiguration;
+import alfio.controller.support.Formatters;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.Event;
+import alfio.model.modification.support.LocationDescriptor;
+import alfio.model.system.ConfigurationKeys;
+import alfio.repository.*;
+import alfio.repository.user.OrganizationRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import jakarta.servlet.http.HttpSession;
+import java.util.*;
+
+import static alfio.model.system.ConfigurationKeys.*;
+
+@Component
+@AllArgsConstructor
+public class EventLoader {
+
+    private final EventRepository eventRepository;
+    private final MessageSourceManager messageSourceManager;
+    private final EventDescriptionRepository eventDescriptionRepository;
+    private final OrganizationRepository organizationRepository;
+    private final ConfigurationManager configurationManager;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final TicketRepository ticketRepository;
+    private final PromoCodeDiscountRepository promoCodeRepository;
+    private final SubscriptionRepository subscriptionRepository;
+
+    public Optional&lt;EventWithAdditionalInfo&gt; loadEventInfo(String eventName, HttpSession session) {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        return eventRepository.findOptionalByShortName(eventName).filter(e -&gt; e.getStatus() != Event.Status.DISABLED)//</span>
+<span class="nc" id="L55">            .map(event -&gt; {</span>
+                //
+<span class="nc" id="L57">                var messageSourceAndOverride = messageSourceManager.getMessageSourceForPurchaseContextAndOverride(event);</span>
+<span class="nc" id="L58">                var messageSource = messageSourceAndOverride.getLeft();</span>
+<span class="nc" id="L59">                var i18nOverride = messageSourceAndOverride.getRight();</span>
+
+<span class="nc" id="L61">                var descriptions = Formatters.applyCommonMark(eventDescriptionRepository.findDescriptionByEventIdAsMap(event.getId()), messageSource);</span>
+
+<span class="nc" id="L63">                var organization = organizationRepository.getContactById(event.getOrganizationId());</span>
+
+<span class="nc" id="L65">                var configurationsValues = PurchaseContextInfoBuilder.configurationsValues(event, configurationManager);</span>
+
+<span class="nc" id="L67">                var locationDescriptor = LocationDescriptor.fromGeoData(event.getFormat(), event.getLatLong(), TimeZone.getTimeZone(event.getTimeZone()), configurationsValues);</span>
+
+                //
+<span class="nc" id="L70">                var captchaConf = PurchaseContextInfoBuilder.captchaConfiguration(configurationManager, configurationsValues);</span>
+
+
+                //
+<span class="nc" id="L74">                String bankAccount = configurationsValues.get(BANK_ACCOUNT_NR).getValueOrDefault(&quot;&quot;);</span>
+<span class="nc" id="L75">                List&lt;String&gt; bankAccountOwner = Arrays.asList(configurationsValues.get(BANK_ACCOUNT_OWNER).getValueOrDefault(&quot;&quot;).split(&quot;\n&quot;));</span>
+                //
+
+<span class="nc" id="L78">                var formattedDates = Formatters.getFormattedDates(event, messageSource, event.getContentLanguages());</span>
+
+                //invoicing information
+<span class="nc" id="L81">                var invoicingConf = PurchaseContextInfoBuilder.invoicingInfo(configurationManager, configurationsValues);</span>
+                //
+
+                //
+<span class="nc" id="L85">                boolean forceAssignment = configurationsValues.get(FORCE_TICKET_OWNER_ASSIGNMENT_AT_RESERVATION).getValueAsBooleanOrDefault();</span>
+<span class="nc" id="L86">                boolean enableAttendeeAutocomplete = configurationsValues.get(ENABLE_ATTENDEE_AUTOCOMPLETE).getValueAsBooleanOrDefault();</span>
+<span class="nc" id="L87">                boolean enableTicketTransfer = configurationsValues.get(ENABLE_TICKET_TRANSFER).getValueAsBooleanOrDefault();</span>
+<span class="nc" id="L88">                var assignmentConf = new EventWithAdditionalInfo.AssignmentConfiguration(forceAssignment, enableAttendeeAutocomplete, enableTicketTransfer);</span>
+                //
+
+
+                //promotion codes
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                boolean hasAccessPromotions = configurationsValues.get(DISPLAY_DISCOUNT_CODE_BOX).getValueAsBooleanOrDefault() &amp;&amp;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                    (ticketCategoryRepository.countAccessRestrictedRepositoryByEventId(event.getId()) &gt; 0 ||</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                        promoCodeRepository.countByEventAndOrganizationId(event.getId(), event.getOrganizationId()) &gt; 0);</span>
+<span class="nc" id="L96">                boolean usePartnerCode = configurationsValues.get(USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL).getValueAsBooleanOrDefault();</span>
+<span class="nc" id="L97">                var promoConf = new EventWithAdditionalInfo.PromotionsConfiguration(hasAccessPromotions, usePartnerCode);</span>
+                //
+
+                //analytics configuration
+<span class="nc" id="L101">                var analyticsConf = AnalyticsConfiguration.build(configurationsValues, session);</span>
+                //
+
+<span class="nc" id="L104">                Integer availableTicketsCount = null;</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                if (configurationsValues.get(DISPLAY_TICKETS_LEFT_INDICATOR).getValueAsBooleanOrDefault()) {</span>
+<span class="nc" id="L106">                    availableTicketsCount = ticketRepository.countFreeTicketsForPublicStatistics(event.getId());</span>
+                }
+
+<span class="nc" id="L109">                var customCss = configurationsValues.get(EVENT_CUSTOM_CSS).getValueOrNull();</span>
+
+<span class="nc" id="L111">                var hasLinkedSubscription = subscriptionRepository.hasLinkedSubscription(event.getId());</span>
+
+<span class="nc" id="L113">                var offlinePaymentConfiguration = new OfflinePaymentConfiguration(configurationsValues.get(SHOW_ONLY_BASIC_INSTRUCTIONS).getValueAsBooleanOrDefault());</span>
+
+<span class="nc" id="L115">                return new EventWithAdditionalInfo(event, locationDescriptor.mapUrl(), organization, descriptions,</span>
+                    bankAccount, bankAccountOwner,
+                    formattedDates.beginDate, formattedDates.beginTime,
+                    formattedDates.endDate, formattedDates.endTime,
+                    invoicingConf, captchaConf, assignmentConf, promoConf, analyticsConf, offlinePaymentConfiguration,
+<span class="nc" id="L120">                    new EmbeddingConfiguration(configurationsValues.get(EMBED_POST_MESSAGE_ORIGIN).getValueOrNull()),</span>
+<span class="nc" id="L121">                    MessageSourceManager.convertPlaceholdersForEachLanguage(i18nOverride), availableTicketsCount, customCss, hasLinkedSubscription);</span>
+            });
+    }
+
+    public boolean isRecaptchaForTicketSelectionEnabled(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; configurationValues) {
+<span class="nc" id="L126">        return PurchaseContextInfoBuilder.isRecaptchaForTicketSelectionEnabled(configurationValues);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
