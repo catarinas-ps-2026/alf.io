@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SpecialPriceTokenGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">SpecialPriceTokenGenerator.java</span></div><h1>SpecialPriceTokenGenerator.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.manager.system.ConfigurationLevel;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.EventAndOrganizationId;
+import alfio.model.SpecialPrice;
+import alfio.model.TicketCategory;
+import alfio.model.system.ConfigurationKeys;
+import alfio.repository.EventRepository;
+import alfio.repository.SpecialPriceRepository;
+import alfio.repository.TicketCategoryRepository;
+import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.text.RandomStringGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+
+/**
+ * Class SpecialPriceTokenGenerator.
+ * This class generates a bunch of tokens which will be used for
+ * granting a special price to a specific user category.
+ */
+@Component
+@Transactional
+public class SpecialPriceTokenGenerator {
+
+<span class="fc" id="L47">    private static final Logger log = LoggerFactory.getLogger(SpecialPriceTokenGenerator.class);</span>
+<span class="fc" id="L48">    private static final SecureRandom RANDOM = new SecureRandom();</span>
+<span class="fc" id="L49">    private static final char[] ADMITTED_CHARACTERS = new char[]{</span>
+            'A', 'B', 'C', 'D', 'E', 'F',
+            'G', 'H', 'J', 'K', 'M', 'N',
+            'P', 'Q', 'R', 'S', 'T', 'W',
+            'X', 'Y', 'Z', '2', '3', '4',
+            '5', '6', '7', '8', '9'
+    };
+<span class="fc" id="L56">    private static final RandomStringGenerator RANDOM_STRING_GENERATOR = new RandomStringGenerator.Builder()</span>
+<span class="fc" id="L57">        .selectFrom(ADMITTED_CHARACTERS)</span>
+<span class="fc" id="L58">        .usingRandom(RANDOM::nextInt)</span>
+<span class="fc" id="L59">        .get();</span>
+
+    private final SpecialPriceRepository specialPriceRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final EventRepository eventRepository;
+    private final ConfigurationManager configurationManager;
+
+    public SpecialPriceTokenGenerator(ConfigurationManager configurationManager,
+                                      SpecialPriceRepository specialPriceRepository,
+                                      TicketCategoryRepository ticketCategoryRepository,
+<span class="fc" id="L69">                                      EventRepository eventRepository) {</span>
+<span class="fc" id="L70">        this.specialPriceRepository = specialPriceRepository;</span>
+<span class="fc" id="L71">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L72">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L73">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L74">    }</span>
+
+    public void generatePendingCodes() {
+<span class="fc" id="L77">        StopWatch stopWatch = new StopWatch();</span>
+<span class="fc" id="L78">        log.trace(&quot;start pending codes generation&quot;);</span>
+<span class="fc" id="L79">        stopWatch.start();</span>
+<span class="fc" id="L80">        specialPriceRepository.findWaitingElements().forEach(this::generateCode);</span>
+<span class="fc" id="L81">        stopWatch.stop();</span>
+<span class="fc" id="L82">        log.trace(&quot;end. Took {} ms&quot;, stopWatch.getDuration().toMillis());</span>
+<span class="fc" id="L83">    }</span>
+
+    public void generatePendingCodesForCategory(int categoryId) {
+<span class="fc" id="L86">        specialPriceRepository.findWaitingElementsForCategory(categoryId).forEach(this::generateCode);</span>
+<span class="fc" id="L87">    }</span>
+
+    private void generateCode(SpecialPrice.SpecialPriceTicketCategoryId specialPrice) {
+
+<span class="fc" id="L91">        TicketCategory ticketCategory = ticketCategoryRepository.getByIdAndActive(specialPrice.getTicketCategoryId()).orElseThrow(IllegalStateException::new);</span>
+<span class="fc" id="L92">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(ticketCategory.getEventId());</span>
+<span class="fc" id="L93">        int maxLength = configurationManager.getFor(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH, ConfigurationLevel.ticketCategory(event, ticketCategory.getId())).getValueAsIntOrDefault(6);</span>
+
+        while (true) {
+            try {
+<span class="fc" id="L97">                log.trace(&quot;generate code for special price with id {}&quot;, specialPrice.getId());</span>
+<span class="fc" id="L98">                specialPriceRepository.updateCode(nextValidCode(maxLength), specialPrice.getId());</span>
+<span class="fc" id="L99">                log.trace(&quot;done.&quot;);</span>
+<span class="fc" id="L100">                return;</span>
+<span class="nc" id="L101">            } catch (DataAccessException e) {</span>
+<span class="nc" id="L102">                log.warn(&quot;got a duplicate. Retrying...&quot;, e);</span>
+<span class="nc" id="L103">            }</span>
+        }
+    }
+
+    private String nextValidCode(int maxLength) {
+        while (true) {
+<span class="fc" id="L109">            String code = generateRandomCode(maxLength);</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">            if (specialPriceRepository.countByCode(code) == 0) {</span>
+<span class="fc" id="L111">                return code;</span>
+            }
+<span class="nc" id="L113">        }</span>
+    }
+
+    private String generateRandomCode(int maxLength) {
+<span class="fc" id="L117">        return RANDOM_STRING_GENERATOR.generate(maxLength);</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

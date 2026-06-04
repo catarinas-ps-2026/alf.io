@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OpenIdUserSynchronizer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config.authentication</a> &gt; <span class="el_source">OpenIdUserSynchronizer.java</span></div><h1>OpenIdUserSynchronizer.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config.authentication;
+
+import alfio.config.authentication.support.OpenIdAlfioUser;
+import alfio.manager.ExtensionManager;
+import alfio.manager.openid.OpenIdConfiguration;
+import alfio.manager.user.UserManager;
+import alfio.model.user.Organization;
+import alfio.model.user.Role;
+import alfio.repository.user.AuthorityRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.repository.user.UserRepository;
+import alfio.repository.user.join.UserOrganizationRepository;
+import alfio.util.PasswordGenerator;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Transactional
+public class OpenIdUserSynchronizer {
+    private final TransactionTemplate transactionTemplate;
+    private final PasswordEncoder passwordEncoder;
+    private final UserManager userManager;
+    private final UserRepository userRepository;
+    private final UserOrganizationRepository userOrganizationRepository;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final AuthorityRepository authorityRepository;
+    private final OrganizationRepository organizationRepository;
+    private final ExtensionManager extensionManager;
+
+    public OpenIdUserSynchronizer(PlatformTransactionManager transactionManager,
+                                  PasswordEncoder passwordEncoder,
+                                  UserManager userManager,
+                                  UserRepository userRepository,
+                                  UserOrganizationRepository userOrganizationRepository,
+                                  NamedParameterJdbcTemplate jdbcTemplate,
+                                  AuthorityRepository authorityRepository,
+                                  OrganizationRepository organizationRepository,
+<span class="fc" id="L64">                                  ExtensionManager extensionManager) {</span>
+<span class="fc" id="L65">        this.transactionTemplate = new TransactionTemplate(transactionManager);</span>
+<span class="fc" id="L66">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L67">        this.userManager = userManager;</span>
+<span class="fc" id="L68">        this.userRepository = userRepository;</span>
+<span class="fc" id="L69">        this.userOrganizationRepository = userOrganizationRepository;</span>
+<span class="fc" id="L70">        this.jdbcTemplate = jdbcTemplate;</span>
+<span class="fc" id="L71">        this.authorityRepository = authorityRepository;</span>
+<span class="fc" id="L72">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L73">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L74">    }</span>
+
+    public boolean syncUser(OidcUser oidcUser,
+                         OpenIdAlfioUser internalUser,
+                         OpenIdConfiguration configuration) {
+<span class="nc" id="L79">        return Boolean.TRUE.equals(transactionTemplate.execute(tr -&gt; {</span>
+<span class="nc" id="L80">            String email = oidcUser.getEmail();</span>
+<span class="nc" id="L81">            boolean userSignedUp = false;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (!userManager.usernameExists(email)) {</span>
+<span class="nc" id="L83">                var result = userRepository.create(email,</span>
+<span class="nc" id="L84">                    passwordEncoder.encode(PasswordGenerator.generateRandomPassword()),</span>
+<span class="nc" id="L85">                    retrieveClaimOrBlank(configuration.givenNameClaim(), oidcUser),</span>
+<span class="nc" id="L86">                    retrieveClaimOrBlank(configuration.familyNameClaim(), oidcUser),</span>
+                    email,
+                    true,
+<span class="nc" id="L89">                    internalUser.userType(),</span>
+                    null,
+                    null);
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                Validate.isTrue(result.getAffectedRowCount() == 1, &quot;Error while creating user&quot;);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if (internalUser.isPublicUser()) {</span>
+<span class="nc" id="L94">                    extensionManager.handlePublicUserSignUp(userRepository.findById(result.getKey()));</span>
+                }
+<span class="nc" id="L96">                userSignedUp = true;</span>
+            }
+
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            if (!internalUser.isPublicUser()) {</span>
+<span class="nc" id="L100">                updateRoles(internalUser.alfioRoles(), email);</span>
+<span class="nc" id="L101">                updateOrganizations(internalUser);</span>
+            }
+<span class="nc" id="L103">            return userSignedUp;</span>
+        }));
+    }
+
+        private static String retrieveClaimOrBlank(String claim, OidcUser container) {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (claim == null) {</span>
+<span class="nc" id="L109">                return &quot;&quot;;</span>
+            }
+<span class="nc" id="L111">            return StringUtils.trimToEmpty(container.getClaim(claim));</span>
+        }
+
+    private void updateOrganizations(OpenIdAlfioUser alfioUser) {
+<span class="nc" id="L115">        int userId = userRepository.findIdByUserName(alfioUser.email()).orElseThrow();</span>
+<span class="nc" id="L116">        var databaseOrganizationIds = organizationRepository.findAllForUser(alfioUser.email()).stream()</span>
+<span class="nc" id="L117">            .map(Organization::getId).collect(Collectors.toSet());</span>
+
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (alfioUser.isAdmin()) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if(!databaseOrganizationIds.isEmpty()) {</span>
+<span class="nc" id="L121">                userOrganizationRepository.removeOrganizationUserLinks(userId, databaseOrganizationIds);</span>
+            }
+<span class="nc" id="L123">            return;</span>
+        }
+
+        List&lt;Integer&gt; organizationIds;
+<span class="nc" id="L127">        var userOrg = alfioUser.alfioOrganizationAuthorizations().keySet();</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if(!userOrg.isEmpty()) {</span>
+<span class="nc" id="L129">            organizationIds = organizationRepository.findOrganizationIdsByExternalId(userOrg);</span>
+        } else {
+<span class="nc" id="L131">            organizationIds = List.of();</span>
+        }
+
+<span class="nc" id="L134">        var organizationsToUnlink = databaseOrganizationIds.stream()</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            .filter(orgId -&gt; !organizationIds.contains(orgId))</span>
+<span class="nc" id="L136">            .collect(Collectors.toSet());</span>
+
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (!organizationsToUnlink.isEmpty()) {</span>
+<span class="nc" id="L139">            userOrganizationRepository.removeOrganizationUserLinks(userId, organizationsToUnlink);</span>
+        }
+
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (organizationIds.isEmpty()) {</span>
+<span class="nc" id="L143">            throw new IllegalStateException(&quot;The user needs to be ADMIN or have at least one organization linked&quot;);</span>
+        }
+
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        var params = organizationIds.stream().filter(orgId -&gt; !databaseOrganizationIds.contains(orgId))</span>
+<span class="nc" id="L147">            .map(id -&gt; new MapSqlParameterSource(&quot;userId&quot;, userId).addValue(&quot;organizationId&quot;, id))</span>
+<span class="nc" id="L148">            .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L149">        jdbcTemplate.batchUpdate(userOrganizationRepository.bulkCreate(), params);</span>
+<span class="nc" id="L150">    }</span>
+
+    private void updateRoles(Set&lt;Role&gt; roles, String username) {
+<span class="nc" id="L153">        authorityRepository.revokeAll(username);</span>
+<span class="nc" id="L154">        var rolesToAdd = roles.stream()</span>
+<span class="nc" id="L155">            .map(r -&gt; new MapSqlParameterSource(&quot;username&quot;, username).addValue(&quot;role&quot;, r.getRoleName()))</span>
+<span class="nc" id="L156">            .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L157">        jdbcTemplate.batchUpdate(authorityRepository.grantAll(), rolesToAdd);</span>
+<span class="nc" id="L158">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
