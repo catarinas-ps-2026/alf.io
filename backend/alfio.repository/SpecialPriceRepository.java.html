@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SpecialPriceRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">SpecialPriceRepository.java</span></div><h1>SpecialPriceRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.SpecialPrice;
+import alfio.model.TicketCategory;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryRepository;
+import ch.digitalfondue.npjt.QueryType;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+@QueryRepository
+public interface SpecialPriceRepository {
+
+    String IS_FREE = &quot; status = 'FREE' and recipient_name is null and recipient_email is null and access_code_id_fk is null&quot;;
+    String SELECT_FREE = &quot;select * from special_price where ticket_category_id = :ticketCategoryId and &quot; + IS_FREE;
+
+    @Query(&quot;select * from special_price where ticket_category_id = :ticketCategoryId&quot;)
+    List&lt;SpecialPrice&gt; findAllByCategoryId(@Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId);
+
+    @Query(&quot;select * from special_price where ticket_category_id in (:ticketCategoryIds)&quot;)
+    List&lt;SpecialPrice&gt; findAllByCategoriesIds(@Bind(&quot;ticketCategoryIds&quot;) Collection&lt;Integer&gt; ticketCategoryIds);
+
+    @Query(&quot;select * from special_price where ticket_category_id = :ticketCategoryId and &quot;+IS_FREE+&quot; for update skip locked limit :limitTo&quot;)
+    List&lt;SpecialPrice&gt; findActiveByCategoryIdForUpdate(@Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId, @Bind(&quot;limitTo&quot;) int limitTo);
+
+    @Query(SELECT_FREE + &quot; limit :limitTo for update skip locked&quot;)
+    List&lt;SpecialPrice&gt; findActiveNotAssignedByCategoryId(@Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId, @Bind(&quot;limitTo&quot;) int limitTo);
+
+    @Query(&quot;select count(*) from special_price where ticket_category_id = :ticketCategoryId and &quot; + IS_FREE)
+    Integer countFreeTokens(@Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId);
+
+    @Query(type= QueryType.MODIFYING_WITH_RETURN, value = &quot;update special_price set access_code_id_fk = :accessCodeId where id in (&quot; +
+        &quot;select id from special_price where ticket_category_id = :ticketCategoryId and &quot; +IS_FREE+ &quot; and access_code_id_fk is null limit :limitTo&quot; +
+        &quot;) returning *&quot;)
+    List&lt;SpecialPrice&gt; bindToAccessCode(@Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId, @Bind(&quot;accessCodeId&quot;) int accessCodeId, @Bind(&quot;limitTo&quot;) int limitTo);
+
+    @Query(&quot;update special_price set sent_ts = :timestamp, recipient_name = :recipientName, recipient_email = :recipientAddress where code = :code&quot;)
+    int markAsSent(@Bind(&quot;timestamp&quot;) ZonedDateTime timestamp, @Bind(&quot;recipientName&quot;) String recipientName, @Bind(&quot;recipientAddress&quot;) String recipientAddress, @Bind(&quot;code&quot;) String code);
+
+    @Query(&quot;update special_price set sent_ts = null, recipient_name = null, recipient_email = null where id = :id and ticket_category_id = :ticketCategoryId&quot;)
+    int clearRecipientData(@Bind(&quot;id&quot;) int id, @Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId);
+
+    @Query(&quot;select * from special_price where code = :code&quot;)
+    Optional&lt;SpecialPrice&gt; getByCode(@Bind(&quot;code&quot;) String code);
+
+    @Query(&quot;select * from special_price where code = :code for update skip locked&quot;)
+    Optional&lt;SpecialPrice&gt; getForUpdateByCode(@Bind(&quot;code&quot;) String code);
+
+    @Query(&quot;select count(*) from special_price where code = :code&quot;)
+    Integer countByCode(@Bind(&quot;code&quot;) String code);
+
+    @Query(&quot;update special_price set status = :status, session_id = null, access_code_id_fk = :accessCodeId where id in (:ids)&quot;)
+    int batchUpdateStatus(@Bind(&quot;ids&quot;) List&lt;Integer&gt; ids, @Bind(&quot;status&quot;) SpecialPrice.Status status, @Bind(&quot;accessCodeId&quot;) Integer accessCodeId);
+
+    @Query(&quot;update special_price set status = :status, session_id = :sessionId, access_code_id_fk = :accessCodeId where id = :id&quot;)
+    int updateStatus(@Bind(&quot;id&quot;) int id, @Bind(&quot;status&quot;) String status, @Bind(&quot;sessionId&quot;) String sessionIdentifier, @Bind(&quot;accessCodeId&quot;) Integer accessCodeId);
+
+    @Query(&quot;update special_price set status = :status where id in (select special_price_id_fk from ticket where tickets_reservation_id in (:reservationIds) and special_price_id_fk is not null)&quot;)
+    int updateStatusForReservation(@Bind(&quot;reservationIds&quot;) List&lt;String&gt; reservationIds, @Bind(&quot;status&quot;) String status);
+
+    @Query(&quot;&quot;&quot;
+        update special_price set status = 'FREE', session_id = null, sent_ts = null, recipient_name = null, recipient_email = null, access_code_id_fk = null \
+        where id in (select special_price_id_fk from ticket where tickets_reservation_id in (:reservationIds) and special_price_id_fk is not null)\
+        &quot;&quot;&quot;)
+    int resetToFreeAndCleanupForReservation(@Bind(&quot;reservationIds&quot;) List&lt;String&gt; reservationIds);
+
+
+    @Query(&quot;&quot;&quot;
+        update special_price set status = 'FREE', session_id = null, sent_ts = null, recipient_name = null, recipient_email = null, access_code_id_fk = null \
+         where id in (select special_price_id_fk from ticket where ticket.id in (:ticketIds) and special_price_id_fk is not null) \
+        &quot;&quot;&quot;)
+    int resetToFreeAndCleanupForTickets(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds);
+
+    @Query(&quot;update special_price set code = :code, status = 'FREE', sent_ts = null where id = :id&quot;)
+    int updateCode(@Bind(&quot;code&quot;) String code, @Bind(&quot;id&quot;) int id);
+
+    NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
+
+    default void bulkInsert(TicketCategory ticketCategory, int requiredTokens) {
+
+<span class="fc" id="L103">        MapSqlParameterSource[] params = Stream.generate(MapSqlParameterSource::new)</span>
+<span class="fc" id="L104">            .limit(requiredTokens)</span>
+<span class="fc" id="L105">            .peek(ps -&gt; {</span>
+<span class="fc" id="L106">                ps.addValue(&quot;code&quot;, UUID.randomUUID().toString());</span>
+<span class="fc" id="L107">                ps.addValue(&quot;priceInCents&quot;, ticketCategory.getSrcPriceCts());</span>
+<span class="fc" id="L108">                ps.addValue(&quot;ticketCategoryId&quot;, ticketCategory.getId());</span>
+<span class="fc" id="L109">                ps.addValue(&quot;status&quot;, SpecialPrice.Status.WAITING.name());</span>
+<span class="fc" id="L110">            }).toArray(MapSqlParameterSource[]::new);</span>
+
+<span class="fc" id="L112">        getNamedParameterJdbcTemplate()</span>
+<span class="fc" id="L113">            .batchUpdate(&quot;insert into special_price (code, price_cts, ticket_category_id, status, sent_ts) values(:code, :priceInCents, :ticketCategoryId, :status, null)&quot;, params);</span>
+<span class="fc" id="L114">    }</span>
+
+
+    @Query(&quot;update special_price set status = 'CANCELLED' where ticket_category_id = :categoryId and status in ('FREE', 'WAITING')&quot;)
+    int cancelExpiredTokens(@Bind(&quot;categoryId&quot;) int categoryId);
+
+    @Query(&quot;select id from special_price where ticket_category_id = :categoryId and status in ('FREE', 'WAITING') and sent_ts is null limit :limit for update&quot;)
+    List&lt;Integer&gt; lockNotSentTokens(@Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;limit&quot;) int limit);
+
+    @Query(&quot;select count(id) from special_price where ticket_category_id = :categoryId and status in ('FREE', 'WAITING') and sent_ts is null&quot;)
+    Integer countNotSentToken(@Bind(&quot;categoryId&quot;) int categoryId);
+
+    @Query(&quot;update special_price set status = 'CANCELLED' where id in (:ids)&quot;)
+    int cancelTokens(@Bind(&quot;ids&quot;) List&lt;Integer&gt; ids);
+
+    @Query(&quot;select id, ticket_category_id from special_price where status = 'WAITING' and ticket_category_id in (select id from ticket_category where tc_status = 'ACTIVE') for update skip locked&quot;)
+    List&lt;SpecialPrice.SpecialPriceTicketCategoryId&gt; findWaitingElements();
+
+    @Query(&quot;select id, ticket_category_id from special_price where status = 'WAITING' and ticket_category_id = :categoryId for update skip locked&quot;)
+    List&lt;SpecialPrice.SpecialPriceTicketCategoryId&gt; findWaitingElementsForCategory(@Bind(&quot;categoryId&quot;) int categoryId);
+
+
+    default Map&lt;Integer,List&lt;SpecialPrice&gt;&gt; findAllByCategoriesIdsMapped(Collection&lt;Integer&gt; ticketCategoriesIds) {
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if(ticketCategoriesIds.isEmpty()) {</span>
+<span class="nc" id="L138">            return Collections.emptyMap();</span>
+        }
+<span class="fc" id="L140">        return findAllByCategoriesIds(ticketCategoriesIds).stream().collect(Collectors.groupingBy(SpecialPrice::getTicketCategoryId));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractFormBasedWebSecurity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config.authentication</a> &gt; <span class="el_source">AbstractFormBasedWebSecurity.java</span></div><h1>AbstractFormBasedWebSecurity.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config.authentication;
+
+import alfio.config.Initializer;
+import alfio.config.authentication.support.*;
+import alfio.config.challenge.CFTurnstileVerificationFilter;
+import alfio.config.support.ContextAwareCookieSerializer;
+import alfio.manager.RecaptchaService;
+import alfio.manager.openid.OpenIdConfiguration;
+import alfio.manager.payment.MollieConnectManager;
+import alfio.manager.payment.StripeConnectManager;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.user.UserManager;
+import alfio.model.user.User;
+import alfio.util.Json;
+import alfio.util.TemplateManager;
+import alfio.model.system.ConfigurationKeys;
+import jakarta.servlet.Filter;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.*;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.sql.DataSource;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import static alfio.config.Initializer.API_V2_PUBLIC_PATH;
+import static alfio.config.Initializer.XSRF_TOKEN;
+import static alfio.config.WebSecurityConfig.CSRF_PARAM_NAME;
+import static alfio.config.authentication.support.AuthenticationConstants.*;
+import static alfio.config.authentication.support.PublicOpenIdRequestResolver.OPENID_AUTHENTICATION_PATH;
+import static alfio.config.authentication.support.UserProvidedClientRegistrationRepository.OPENID_CALLBACK_PATH;
+import static alfio.model.system.ConfigurationKeys.OPENID_CONFIGURATION_JSON;
+
+abstract class AbstractFormBasedWebSecurity {
+    public static final String AUTHENTICATE = &quot;/authenticate&quot;;
+<span class="fc" id="L92">    private static final Logger log = LoggerFactory.getLogger(AbstractFormBasedWebSecurity.class);</span>
+<span class="fc" id="L93">    private static final List&lt;String&gt; OWNERSHIP_REQUIRED = List.of(</span>
+        ADMIN_API + &quot;/overridable-template&quot;,
+        ADMIN_API + &quot;/additional-services&quot;,
+        ADMIN_API + &quot;/events/*/additional-field&quot;,
+        ADMIN_API + &quot;/event/*/additional-services/&quot;,
+        ADMIN_API + &quot;/overridable-template/&quot;,
+        ADMIN_API + &quot;/events/*/promo-code&quot;,
+        ADMIN_API + &quot;/reservation/event/*/reservations/list&quot;,
+        ADMIN_API + &quot;/event/*/email/&quot;,
+        ADMIN_API + &quot;/event/*/waiting-queue/load&quot;,
+        ADMIN_API + &quot;/events/*/pending-payments&quot;,
+        ADMIN_API + &quot;/events/*/export&quot;,
+        ADMIN_API + &quot;/events/*/sponsor-scan/export&quot;,
+        ADMIN_API + &quot;/events/*/invoices/**&quot;,
+        ADMIN_API + &quot;/reservation/*/*/*/audit&quot;,
+        ADMIN_API + &quot;/subscription/*/email/&quot;,
+        ADMIN_API + &quot;/organization/*/subscription/**&quot;,
+        ADMIN_API + &quot;/reservation/subscription/**&quot;
+    );
+
+    private final Environment environment;
+    protected final UserManager userManager;
+    private final RecaptchaService recaptchaService;
+    private final ConfigurationManager configurationManager;
+    private final CsrfTokenRepository csrfTokenRepository;
+    private final DataSource dataSource;
+    protected final PasswordEncoder passwordEncoder;
+    private final SpringSessionBackedSessionRegistry&lt;?&gt; sessionRegistry;
+    protected final OpenIdUserSynchronizer openIdUserSynchronizer;
+    protected final ContextAwareCookieSerializer cookieSerializer;
+    protected final TemplateManager templateManager;
+
+    protected AbstractFormBasedWebSecurity(Environment environment,
+                                           UserManager userManager,
+                                           RecaptchaService recaptchaService,
+                                           ConfigurationManager configurationManager,
+                                           CsrfTokenRepository csrfTokenRepository,
+                                           DataSource dataSource,
+                                           PasswordEncoder passwordEncoder,
+                                           SpringSessionBackedSessionRegistry&lt;?&gt; sessionRegistry,
+                                           OpenIdUserSynchronizer openIdUserSynchronizer,
+                                           CookieSerializer cookieSerializer,
+<span class="fc" id="L135">                                           TemplateManager templateManager) {</span>
+<span class="fc" id="L136">        this.environment = environment;</span>
+<span class="fc" id="L137">        this.userManager = userManager;</span>
+<span class="fc" id="L138">        this.recaptchaService = recaptchaService;</span>
+<span class="fc" id="L139">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L140">        this.csrfTokenRepository = csrfTokenRepository;</span>
+<span class="fc" id="L141">        this.dataSource = dataSource;</span>
+<span class="fc" id="L142">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L143">        this.sessionRegistry = sessionRegistry;</span>
+<span class="fc" id="L144">        this.openIdUserSynchronizer = openIdUserSynchronizer;</span>
+<span class="fc" id="L145">        this.cookieSerializer = (ContextAwareCookieSerializer) cookieSerializer;</span>
+<span class="fc" id="L146">        this.templateManager = templateManager;</span>
+<span class="fc" id="L147">    }</span>
+
+    @Bean
+    public SecurityFilterChain publicOpenId(HttpSecurity http) throws Exception {
+<span class="fc" id="L151">        configureExceptionHandling(http);</span>
+<span class="fc" id="L152">        configureCsrf(http, configurer -&gt; configurer.csrfTokenRepository(csrfTokenRepository));</span>
+<span class="fc" id="L153">        http.securityMatcher(antStyleMatcher(&quot;/openid/**&quot;))</span>
+<span class="fc" id="L154">            .headers(headers -&gt; headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))</span>
+<span class="fc" id="L155">            .authorizeHttpRequests(auth -&gt; auth.anyRequest().authenticated())</span>
+            // this allows us to sync between spring session and spring security, thus saving the principal name in the session table
+<span class="fc" id="L157">            .sessionManagement(management -&gt; management.maximumSessions(-1).sessionRegistry(sessionRegistry));</span>
+
+
+<span class="fc" id="L160">        var registrationRepository = new UserProvidedClientRegistrationRepository(configurationManager);</span>
+<span class="fc" id="L161">        http.oauth2Login(oauth -&gt; oauth</span>
+<span class="fc" id="L162">            .loginPage(OPENID_AUTHENTICATION_PATH)</span>
+<span class="fc" id="L163">            .loginProcessingUrl(OPENID_CALLBACK_PATH)</span>
+<span class="fc" id="L164">            .clientRegistrationRepository(registrationRepository)</span>
+<span class="fc" id="L165">            .authorizationEndpoint(auth -&gt; auth.authorizationRequestResolver(</span>
+                new PublicOpenIdRequestResolver(registrationRepository)
+            ))
+<span class="fc" id="L168">            .userInfoEndpoint(uie -&gt; uie.oidcUserService(publicOidcUserService(configurationManager)))</span>
+<span class="fc" id="L169">            .successHandler(new OpenIdLoginSuccessHandler(templateManager, cookieSerializer))</span>
+        );
+<span class="fc" id="L171">        http.addFilterBefore(new PreAuthCookieWriterFilter(cookieSerializer, antStyleMatcher(OPENID_AUTHENTICATION_PATH)), OAuth2AuthorizationRequestRedirectFilter.class);</span>
+
+<span class="fc" id="L173">        disableRequestCacheParameter(http);</span>
+
+<span class="fc" id="L175">        return http.build();</span>
+    }
+
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, StripeConnectManager stripeConnectManager, MollieConnectManager mollieConnectManager) throws Exception {
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">        if (configurationManager.getForSystem(ConfigurationKeys.HTTPS_FORCE_REDIRECT).getValue().map(Boolean::parseBoolean)</span>
+<span class="fc" id="L182">            .orElseGet(() -&gt; environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_LIVE)))) {</span>
+<span class="nc" id="L183">            http.redirectToHttps(customizer -&gt; customizer.requestMatchers(new NegatedRequestMatcher(antStyleMatcher(&quot;/healthz&quot;))));</span>
+        }
+
+<span class="fc" id="L186">        configureExceptionHandling(http);</span>
+<span class="fc" id="L187">        configureCsrf(http, configurer -&gt; configurer.csrfTokenRepository(csrfTokenRepository));</span>
+<span class="fc" id="L188">        http.securityMatcher(&quot;/**&quot;).headers(headers -&gt; headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))</span>
+<span class="fc" id="L189">            .authorizeHttpRequests(AbstractFormBasedWebSecurity::authorizeRequests)</span>
+            // this allows us to sync between spring session and spring security, thus saving the principal name in the session table
+<span class="fc" id="L191">            .sessionManagement(management -&gt; management.maximumSessions(-1).sessionRegistry(sessionRegistry));</span>
+
+<span class="fc" id="L193">        setupAuthenticationEndpoint(http);</span>
+        //
+<span class="fc" id="L195">        http.addFilterBefore(new RecaptchaLoginFilter(recaptchaService, AUTHENTICATE, &quot;/authentication?recaptchaFailed&quot;, configurationManager), UsernamePasswordAuthenticationFilter.class)</span>
+<span class="fc" id="L196">            .addFilterBefore(new CFTurnstileVerificationFilter(configurationManager, new OrRequestMatcher(</span>
+                // event
+<span class="fc" id="L198">                antStyleMatcher(HttpMethod.POST, &quot;/api/v2/public/event/{name}/reserve-tickets&quot;),</span>
+                // subscription
+<span class="fc" id="L200">                antStyleMatcher(HttpMethod.POST, &quot;/api/v2/public/subscription/{id}&quot;)</span>
+            )), RecaptchaLoginFilter.class)
+<span class="fc" id="L202">            .addFilterAfter(new PaymentProviderConnectFilter(templateManager, userManager, stripeConnectManager, mollieConnectManager), CFTurnstileVerificationFilter.class);</span>
+
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        if (environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
+<span class="nc" id="L205">            http.addFilterAfter(new UserCreatorBeforeLoginFilter(userManager, AUTHENTICATE), RecaptchaLoginFilter.class);</span>
+        }
+
+<span class="fc" id="L208">        disableRequestCacheParameter(http);</span>
+
+<span class="fc" id="L210">        return http.addFilterAfter(csrfPublisherFilter(), CsrfFilter.class).build();</span>
+    }
+
+    // see https://stackoverflow.com/questions/75222930/spring-boot-3-0-2-adds-continue-query-parameter-to-request-url-after-login
+    private static void disableRequestCacheParameter(HttpSecurity http) throws Exception {
+<span class="fc" id="L215">        HttpSessionRequestCache requestCache = new HttpSessionRequestCache();</span>
+<span class="fc" id="L216">        requestCache.setMatchingRequestParameterName(null);</span>
+<span class="fc" id="L217">        http.requestCache(cache -&gt; cache.requestCache(requestCache));</span>
+<span class="fc" id="L218">    }</span>
+
+    private OAuth2UserService&lt;OidcUserRequest, OidcUser&gt; publicOidcUserService(ConfigurationManager configurationManager) {
+<span class="fc" id="L221">        final OidcUserService delegate = new OidcUserService();</span>
+<span class="fc" id="L222">        return userRequest -&gt; {</span>
+<span class="nc" id="L223">            OidcUser oidcUser = delegate.loadUser(userRequest);</span>
+<span class="nc" id="L224">            var alfioUser = new OpenIdAlfioUser(null, oidcUser.getSubject(), oidcUser.getEmail(), User.Type.PUBLIC, Set.of(), Map.of());</span>
+<span class="nc" id="L225">            var configuration = Json.fromJson(configurationManager.getPublicOpenIdConfiguration().get(OPENID_CONFIGURATION_JSON).getRequiredValue(), OpenIdConfiguration.class);</span>
+<span class="nc" id="L226">            boolean signedUp = openIdUserSynchronizer.syncUser(oidcUser, alfioUser, configuration);</span>
+<span class="nc" id="L227">            return new OpenIdPrincipal(List.of(), oidcUser.getIdToken(), oidcUser.getUserInfo(), alfioUser, buildLogoutUrl(configuration), signedUp);</span>
+        };
+    }
+
+    protected void setupAuthenticationEndpoint(HttpSecurity http) throws Exception {
+<span class="fc" id="L232">        http.authenticationManager(createAuthenticationManager())</span>
+<span class="fc" id="L233">            .formLogin(login -&gt; login</span>
+<span class="fc" id="L234">                .loginPage(&quot;/authentication&quot;)</span>
+<span class="fc" id="L235">                .loginProcessingUrl(AUTHENTICATE)</span>
+<span class="fc" id="L236">                .defaultSuccessUrl(&quot;/admin&quot;)</span>
+<span class="fc" id="L237">                .failureUrl(&quot;/authentication?failed&quot;)).logout(LogoutConfigurer::permitAll);</span>
+<span class="fc" id="L238">    }</span>
+
+    private JdbcUserDetailsManager createUserDetailsManager() {
+<span class="fc" id="L241">        var userDetailsManager = new JdbcUserDetailsManager(dataSource);</span>
+<span class="fc" id="L242">        userDetailsManager.setUsersByUsernameQuery(&quot;select username, password, enabled from ba_user where username = ?&quot;);</span>
+<span class="fc" id="L243">        userDetailsManager.setAuthoritiesByUsernameQuery(&quot;select username, role from authority where username = ?&quot;);</span>
+<span class="fc" id="L244">        return userDetailsManager;</span>
+    }
+
+    protected final AuthenticationManager createAuthenticationManager() {
+<span class="fc" id="L248">        var userDetailsManager = createUserDetailsManager();</span>
+<span class="fc" id="L249">        var daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsManager);</span>
+<span class="fc" id="L250">        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);</span>
+<span class="fc" id="L251">        return new ProviderManager(List.of(daoAuthenticationProvider));</span>
+    }
+
+    private Filter csrfPublisherFilter() {
+<span class="fc" id="L255">        return (servletRequest, servletResponse, filterChain) -&gt; {</span>
+
+<span class="nc" id="L257">            HttpServletRequest req = (HttpServletRequest) servletRequest;</span>
+<span class="nc" id="L258">            HttpServletResponse res = (HttpServletResponse) servletResponse;</span>
+<span class="nc" id="L259">            var reqUri = req.getRequestURI();</span>
+<span class="nc bnc" id="L260" title="All 10 branches missed.">            if ((reqUri.startsWith(API_V2_PUBLIC_PATH) || reqUri.startsWith(ADMIN_API) || reqUri.startsWith(&quot;/api/v2/admin/&quot;) || reqUri.equals(AUTHENTICATION_STATUS)) &amp;&amp; &quot;GET&quot;.equalsIgnoreCase(req.getMethod())) {</span>
+<span class="nc" id="L261">                CsrfToken token = (CsrfToken) req.getAttribute(CSRF_PARAM_NAME);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                if (token != null) {</span>
+<span class="nc" id="L263">                    String csrfToken = token.getToken();</span>
+<span class="nc" id="L264">                    res.addHeader(XSRF_TOKEN, csrfToken);</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                    if (!reqUri.startsWith(API_V2_PUBLIC_PATH)) {</span>
+                        // FIXME remove this after the new admin is complete
+<span class="nc" id="L267">                        addCookie(res, csrfToken);</span>
+                    }
+<span class="nc" id="L269">                } else {</span>
+<span class="nc" id="L270">                    log.warn(&quot;Expected CSRF token for request {} but none found.&quot;, reqUri);</span>
+                }
+            }
+<span class="nc" id="L273">            filterChain.doFilter(servletRequest, servletResponse);</span>
+<span class="nc" id="L274">        };</span>
+    }
+
+    private static void authorizeRequests(AuthorizeHttpRequestsConfigurer&lt;HttpSecurity&gt;.AuthorizationManagerRequestMatcherRegistry auth) {
+<span class="fc" id="L278">        auth.requestMatchers(antStyleMatcher(ADMIN_PUBLIC_API + &quot;/**&quot;)).denyAll() // Admin public API requests must be authenticated using API-Keys</span>
+<span class="fc" id="L279">            .requestMatchers(antStyleMatcher(HttpMethod.GET, ADMIN_API + &quot;/users/current&quot;)).hasAnyRole(ADMIN, OWNER, SUPERVISOR)</span>
+<span class="fc" id="L280">            .requestMatchers(antStyleMatcher(HttpMethod.POST, ADMIN_API + &quot;/users/check&quot;), antStyleMatcher(HttpMethod.POST, ADMIN_API + &quot;/users/current/edit&quot;), antStyleMatcher(HttpMethod.POST, ADMIN_API + &quot;/users/current/update-password&quot;)).hasAnyRole(ADMIN, OWNER, SUPERVISOR)</span>
+<span class="fc" id="L281">            .requestMatchers(antStyleMatcher(ADMIN_API + &quot;/configuration/**&quot;), antStyleMatcher(ADMIN_API + &quot;/users/**&quot;)).hasAnyRole(ADMIN, OWNER)</span>
+<span class="fc" id="L282">            .requestMatchers(antStyleMatcher(ADMIN_API + &quot;/organizations/new&quot;), antStyleMatcher(ADMIN_API + &quot;/system/**&quot;)).hasRole(ADMIN)</span>
+<span class="fc" id="L283">            .requestMatchers(antStyleMatcher(ADMIN_API + &quot;/check-in/**&quot;)).hasAnyRole(ADMIN, OWNER, SUPERVISOR)</span>
+<span class="fc" id="L284">            .requestMatchers(OWNERSHIP_REQUIRED.stream().map(u -&gt; antStyleMatcher(HttpMethod.GET, u)).toArray(RequestMatcher[]::new)).hasAnyRole(ADMIN, OWNER)</span>
+<span class="fc" id="L285">            .requestMatchers(antStyleMatcher(HttpMethod.GET, ADMIN_API + &quot;/**&quot;)).hasAnyRole(ADMIN, OWNER, SUPERVISOR)</span>
+<span class="fc" id="L286">            .requestMatchers(antStyleMatcher(HttpMethod.POST, ADMIN_API + &quot;/reservation/event/*/new&quot;), antStyleMatcher(HttpMethod.POST,ADMIN_API + &quot;/reservation/event/*/*&quot;)).hasAnyRole(ADMIN, OWNER, SUPERVISOR)</span>
+<span class="fc" id="L287">            .requestMatchers(antStyleMatcher(HttpMethod.PUT, ADMIN_API + &quot;/reservation/event/*/*/notify&quot;), antStyleMatcher(HttpMethod.PUT, ADMIN_API + &quot;/reservation/event/*/*/notify-attendees&quot;), antStyleMatcher(HttpMethod.PUT,ADMIN_API + &quot;/reservation/event/*/*/confirm&quot;)).hasAnyRole(ADMIN, OWNER, SUPERVISOR)</span>
+<span class="fc" id="L288">            .requestMatchers(antStyleMatcher(ADMIN_API + &quot;/**&quot;)).hasAnyRole(ADMIN, OWNER)</span>
+<span class="fc" id="L289">            .requestMatchers(antStyleMatcher(&quot;/admin/**&quot;)).hasAnyRole(ADMIN, OWNER, SUPERVISOR)</span>
+<span class="fc" id="L290">            .requestMatchers(antStyleMatcher(&quot;/api/attendees/**&quot;)).denyAll()</span>
+<span class="fc" id="L291">            .requestMatchers(antStyleMatcher(&quot;/callback&quot;)).permitAll()</span>
+<span class="fc" id="L292">            .requestMatchers(antStyleMatcher(&quot;/**&quot;)).permitAll();</span>
+<span class="fc" id="L293">    }</span>
+
+    private static RequestMatcher antStyleMatcher(String pattern) {
+<span class="fc" id="L296">        return PathPatternRequestMatcher.withDefaults().matcher(pattern);</span>
+    }
+
+    private static RequestMatcher antStyleMatcher(HttpMethod method, String pattern) {
+<span class="fc" id="L300">        return PathPatternRequestMatcher.withDefaults().matcher(method, pattern);</span>
+    }
+
+    private static void configureExceptionHandling(HttpSecurity http) throws Exception {
+<span class="fc" id="L304">        http.exceptionHandling(handling -&gt; handling</span>
+<span class="fc" id="L305">                .accessDeniedHandler((request, response, accessDeniedException) -&gt; {</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                    if(!response.isCommitted()) {</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">                        if(&quot;XMLHttpRequest&quot;.equals(request.getHeader(AuthenticationConstants.X_REQUESTED_WITH))) {</span>
+<span class="nc" id="L308">                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                        } else if(!response.isCommitted()) {</span>
+<span class="nc" id="L310">                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);</span>
+<span class="nc" id="L311">                            RequestDispatcher dispatcher = request.getRequestDispatcher(&quot;/session-expired&quot;);</span>
+<span class="nc" id="L312">                            dispatcher.forward(request, response);</span>
+                        }
+                    }
+<span class="nc" id="L315">                })</span>
+<span class="pc" id="L316">                .defaultAuthenticationEntryPointFor((request, response, ex) -&gt; response.sendError(HttpServletResponse.SC_UNAUTHORIZED), new RequestHeaderRequestMatcher(AuthenticationConstants.X_REQUESTED_WITH, &quot;XMLHttpRequest&quot;)))</span>
+<span class="fc" id="L317">            .headers(headers -&gt; headers.cacheControl(HeadersConfigurer.CacheControlConfig::disable));</span>
+<span class="fc" id="L318">    }</span>
+
+    private static void configureCsrf(HttpSecurity http, Consumer&lt;CsrfConfigurer&lt;HttpSecurity&gt;&gt; additionalConfiguration) throws Exception {
+<span class="fc" id="L321">         http.csrf(c -&gt; {</span>
+<span class="fc" id="L322">            Pattern methodsPattern = Pattern.compile(&quot;^(GET|HEAD|TRACE|OPTIONS)$&quot;);</span>
+<span class="pc bnc" id="L323" title="All 2 branches missed.">            Predicate&lt;HttpServletRequest&gt; csrfAllowListPredicate = r -&gt; r.getRequestURI().startsWith(&quot;/api/webhook/&quot;)</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">                || r.getRequestURI().startsWith(&quot;/api/payment/webhook/&quot;)</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">                || methodsPattern.matcher(r.getMethod()).matches();</span>
+<span class="pc" id="L326">            csrfAllowListPredicate = csrfAllowListPredicate.or(r -&gt; r.getRequestURI().equals(&quot;/report-csp-violation&quot;));</span>
+<span class="fc" id="L327">            c.requireCsrfProtectionMatcher(new NegatedRequestMatcher(csrfAllowListPredicate::test));</span>
+<span class="fc" id="L328">            additionalConfiguration.accept(c);</span>
+<span class="fc" id="L329">        });</span>
+<span class="fc" id="L330">    }</span>
+
+    private void addCookie(HttpServletResponse res, String csrfToken) {
+<span class="nc" id="L333">        Cookie cookie = new Cookie(XSRF_TOKEN, csrfToken);</span>
+<span class="nc" id="L334">        cookie.setPath(&quot;/&quot;);</span>
+<span class="nc" id="L335">        boolean prod = environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_LIVE));</span>
+<span class="nc" id="L336">        cookie.setSecure(prod);</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (prod) {</span>
+<span class="nc" id="L338">            cookie.setAttribute(&quot;SameSite&quot;, &quot;Strict&quot;);</span>
+        }
+<span class="nc" id="L340">        res.addCookie(cookie);</span>
+<span class="nc" id="L341">    }</span>
+
+    protected Environment environment() {
+<span class="nc" id="L344">        return environment;</span>
+    }
+
+    protected ConfigurationManager configurationManager() {
+<span class="nc" id="L348">        return configurationManager;</span>
+    }
+
+    protected static String buildLogoutUrl(OpenIdConfiguration openIdConfiguration) {
+<span class="nc" id="L352">        UriComponents uri = UriComponentsBuilder.newInstance()</span>
+<span class="nc" id="L353">            .scheme(&quot;https&quot;)</span>
+<span class="nc" id="L354">            .host(openIdConfiguration.domain())</span>
+<span class="nc" id="L355">            .path(openIdConfiguration.logoutUrl())</span>
+<span class="nc" id="L356">            .queryParam(&quot;redirect_uri&quot;, openIdConfiguration.logoutRedirectUrl())</span>
+<span class="nc" id="L357">            .build();</span>
+<span class="nc" id="L358">        return uri.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

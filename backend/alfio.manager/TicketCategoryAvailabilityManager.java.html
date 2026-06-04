@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketCategoryAvailabilityManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">TicketCategoryAvailabilityManager.java</span></div><h1>TicketCategoryAvailabilityManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.controller.api.v2.model.AdditionalService;
+import alfio.controller.api.v2.model.ItemsByCategory;
+import alfio.controller.api.v2.model.TicketCategory;
+import alfio.controller.decorator.SaleableAdditionalService;
+import alfio.controller.decorator.SaleableTicketCategory;
+import alfio.controller.support.Formatters;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.support.response.ValidatedResponse;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.AdditionalServiceText;
+import alfio.model.Event;
+import alfio.model.PromoCodeDiscount;
+import alfio.model.SpecialPrice;
+import alfio.model.system.ConfigurationKeys;
+import alfio.repository.EventRepository;
+import alfio.repository.PromoCodeDiscountRepository;
+import alfio.repository.TicketCategoryDescriptionRepository;
+import alfio.repository.TicketCategoryRepository;
+import alfio.util.ClockProvider;
+import alfio.util.EventUtil;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static alfio.model.system.ConfigurationKeys.*;
+import static java.util.stream.Collectors.partitioningBy;
+import static java.util.stream.Collectors.toList;
+
+@Component
+@Transactional(readOnly = true)
+public class TicketCategoryAvailabilityManager {
+
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final EventRepository eventRepository;
+    private final ConfigurationManager configurationManager;
+    private final MessageSourceManager messageSourceManager;
+    private final PromoCodeRequestManager promoCodeRequestManager;
+    private final ClockProvider clockProvider;
+    private final PromoCodeDiscountRepository promoCodeRepository;
+    private final TicketReservationManager ticketReservationManager;
+    private final AdditionalServiceManager additionalServiceManager;
+    private final TicketCategoryDescriptionRepository ticketCategoryDescriptionRepository;
+    private final EventStatisticsManager eventStatisticsManager;
+
+<span class="fc" id="L68">    public TicketCategoryAvailabilityManager(TicketCategoryRepository ticketCategoryRepository, EventRepository eventRepository, ConfigurationManager configurationManager, MessageSourceManager messageSourceManager, PromoCodeRequestManager promoCodeRequestManager, ClockProvider clockProvider, PromoCodeDiscountRepository promoCodeRepository, TicketReservationManager ticketReservationManager, AdditionalServiceManager additionalServiceManager, TicketCategoryDescriptionRepository ticketCategoryDescriptionRepository, EventStatisticsManager eventStatisticsManager) {</span>
+<span class="fc" id="L69">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L70">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L71">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L72">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L73">        this.promoCodeRequestManager = promoCodeRequestManager;</span>
+<span class="fc" id="L74">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L75">        this.promoCodeRepository = promoCodeRepository;</span>
+<span class="fc" id="L76">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L77">        this.additionalServiceManager = additionalServiceManager;</span>
+<span class="fc" id="L78">        this.ticketCategoryDescriptionRepository = ticketCategoryDescriptionRepository;</span>
+<span class="fc" id="L79">        this.eventStatisticsManager = eventStatisticsManager;</span>
+<span class="fc" id="L80">    }</span>
+
+    public Optional&lt;ItemsByCategory&gt; getTicketCategories(String eventName, String code) {
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        return eventRepository.findOptionalByShortName(eventName).filter(e -&gt; e.getStatus() != Event.Status.DISABLED).map(event -&gt; {</span>
+<span class="fc" id="L84">            var configurations = configurationManager.getFor(List.of(</span>
+                DISPLAY_TICKETS_LEFT_INDICATOR, MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, DISPLAY_EXPIRED_CATEGORIES,
+                STOP_WAITING_QUEUE_SUBSCRIPTIONS, ENABLE_PRE_REGISTRATION, ENABLE_WAITING_QUEUE // used by EventUtil
+<span class="fc" id="L87">                ), event.getConfigurationLevel());</span>
+<span class="fc" id="L88">            var ticketCategoryLevelConfiguration = configurationManager.getAllCategoriesAndValueWith(event, MAX_AMOUNT_OF_TICKETS_BY_RESERVATION);</span>
+<span class="fc" id="L89">            var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="fc" id="L90">            var appliedPromoCode = promoCodeRequestManager.checkCode(event, code);</span>
+
+
+<span class="fc" id="L93">            Optional&lt;SpecialPrice&gt; specialCode = appliedPromoCode.getValue().getLeft();</span>
+<span class="fc" id="L94">            Optional&lt;PromoCodeDiscount&gt; promoCodeDiscount = appliedPromoCode.getValue().getRight();</span>
+
+<span class="fc" id="L96">            final ZonedDateTime now = event.now(clockProvider);</span>
+            //hide access restricted ticket categories
+<span class="fc" id="L98">            var ticketCategories = ticketCategoryRepository.findAllTicketCategories(event.getId());</span>
+
+<span class="fc" id="L100">            List&lt;SaleableTicketCategory&gt; saleableTicketCategories = ticketCategories.stream()</span>
+<span class="fc bfc" id="L101" title="All 4 branches covered.">                .filter((c) -&gt; !c.isAccessRestricted() || shouldDisplayRestrictedCategory(specialCode, c, promoCodeDiscount))</span>
+<span class="fc" id="L102">                .map((category) -&gt; {</span>
+<span class="fc" id="L103">                    int maxTickets = getMaxAmountOfTicketsPerReservation(configurations, ticketCategoryLevelConfiguration, category.getId());</span>
+<span class="fc" id="L104">                    PromoCodeDiscount filteredPromoCode = promoCodeDiscount.filter(promoCode -&gt; shouldApplyDiscount(promoCode, category)).orElse(null);</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                    if (specialCode.isPresent()) {</span>
+<span class="nc" id="L106">                        maxTickets = Math.min(1, maxTickets);</span>
+<span class="fc bfc" id="L107" title="All 4 branches covered.">                    } else if (filteredPromoCode != null &amp;&amp; filteredPromoCode.getMaxUsage() != null) {</span>
+<span class="fc" id="L108">                        maxTickets = filteredPromoCode.getMaxUsage() - promoCodeRepository.countConfirmedPromoCode(filteredPromoCode.getId());</span>
+                    }
+<span class="fc" id="L110">                    return new SaleableTicketCategory(category,</span>
+<span class="fc" id="L111">                        now, event, ticketReservationManager.countAvailableTickets(event, category), maxTickets,</span>
+                        filteredPromoCode);
+                })
+<span class="fc" id="L114">                .collect(Collectors.toList());</span>
+
+
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">            var valid = saleableTicketCategories.stream().filter(tc -&gt; !tc.getExpired()).collect(Collectors.toList());</span>
+
+            //
+
+<span class="fc" id="L121">            var ticketCategoryIds = valid.stream().map(SaleableTicketCategory::getId).collect(Collectors.toList());</span>
+<span class="fc" id="L122">            var ticketCategoryDescriptions = ticketCategoryDescriptionRepository.descriptionsByTicketCategory(ticketCategoryIds);</span>
+<span class="fc" id="L123">            var categoriesNoTax = configurationManager.getCategoriesWithNoTaxes(ticketCategoryIds);</span>
+
+<span class="fc" id="L125">            boolean displayTicketsLeft = configurations.get(DISPLAY_TICKETS_LEFT_INDICATOR).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L126">            var categoriesByExpiredFlag = saleableTicketCategories.stream()</span>
+<span class="fc" id="L127">                .map(stc -&gt; {</span>
+<span class="fc" id="L128">                    var description = Formatters.applyCommonMark(ticketCategoryDescriptions.getOrDefault(stc.getId(), Collections.emptyMap()), messageSource);</span>
+<span class="fc" id="L129">                    var expiration = Formatters.getFormattedDate(event, stc.getZonedExpiration(), &quot;common.ticket-category.date-format&quot;, messageSource);</span>
+<span class="fc" id="L130">                    var inception = Formatters.getFormattedDate(event, stc.getZonedInception(), &quot;common.ticket-category.date-format&quot;, messageSource);</span>
+<span class="pc bpc" id="L131" title="4 of 6 branches missed.">                    return new TicketCategory(stc, description, inception, expiration, displayTicketsLeft &amp;&amp; !stc.isAccessRestricted(), !categoriesNoTax.contains(stc.getId()));</span>
+                })
+<span class="fc" id="L133">                .sorted(Comparator.comparingInt(TicketCategory::getOrdinal))</span>
+<span class="fc" id="L134">                .collect(partitioningBy(TicketCategory::isExpired));</span>
+
+
+<span class="fc" id="L137">            var promoCode = Optional.of(appliedPromoCode).filter(ValidatedResponse::isSuccess)</span>
+<span class="fc" id="L138">                .map(ValidatedResponse::getValue)</span>
+<span class="fc" id="L139">                .flatMap(Pair::getRight);</span>
+
+            //
+<span class="fc" id="L142">            var saleableAdditionalServices = additionalServiceManager.loadAllForEvent(event.getId())</span>
+<span class="fc" id="L143">                .stream()</span>
+<span class="fc" id="L144">                .map(as -&gt; new SaleableAdditionalService(event, as, promoCode.orElse(null)))</span>
+<span class="fc" id="L145">                .filter(Predicate.not(SaleableAdditionalService::isExpired))</span>
+<span class="fc" id="L146">                .collect(Collectors.toList());</span>
+
+            // will be used for fetching descriptions and titles for all the languages
+<span class="fc" id="L149">            var saleableAdditionalServicesIds = saleableAdditionalServices.stream().map(SaleableAdditionalService::id).collect(Collectors.toList());</span>
+
+<span class="fc" id="L151">            var additionalServiceTexts = additionalServiceManager.getDescriptionsByAdditionalServiceIds(saleableAdditionalServicesIds);</span>
+
+<span class="fc" id="L153">            var additionalServicesRes = saleableAdditionalServices.stream().map(as -&gt; {</span>
+<span class="fc" id="L154">                var expiration = Formatters.getFormattedDate(event, as.getZonedExpiration(), &quot;common.ticket-category.date-format&quot;, messageSource);</span>
+<span class="fc" id="L155">                var inception = Formatters.getFormattedDate(event, as.getZonedInception(), &quot;common.ticket-category.date-format&quot;, messageSource);</span>
+<span class="fc" id="L156">                var title = additionalServiceTexts.getOrDefault(as.id(), Collections.emptyMap()).getOrDefault(AdditionalServiceText.TextType.TITLE, Collections.emptyMap());</span>
+<span class="fc" id="L157">                var description = Formatters.applyCommonMark(additionalServiceTexts.getOrDefault(as.id(), Collections.emptyMap()).getOrDefault(AdditionalServiceText.TextType.DESCRIPTION, Collections.emptyMap()), messageSource);</span>
+<span class="fc" id="L158">                return new AdditionalService(as.id(), as.type(), as.supplementPolicy(),</span>
+<span class="fc" id="L159">                    as.fixPrice(), as.availableItems(), as.maxQtyPerOrder(),</span>
+<span class="fc" id="L160">                    as.getFree(), as.getFormattedFinalPrice(), as.getSupportsDiscount(), as.getDiscountedPrice(), as.getVatApplies(), as.getVatIncluded(), as.getVatPercentage().toString(),</span>
+<span class="fc" id="L161">                    as.isExpired(), as.getSaleInFuture(),</span>
+                    inception, expiration, title, description);
+<span class="fc" id="L163">            }).collect(Collectors.toList());</span>
+            //
+
+            // waiting queue parameters
+<span class="fc" id="L167">            boolean displayWaitingQueueForm = EventUtil.displayWaitingQueueForm(event, saleableTicketCategories, configurations, eventStatisticsManager.noSeatsAvailable());</span>
+<span class="fc" id="L168">            boolean preSales = EventUtil.isPreSales(event, saleableTicketCategories);</span>
+<span class="pc bpc" id="L169" title="1 of 4 branches missed.">            Predicate&lt;SaleableTicketCategory&gt; waitingQueueTargetCategory = tc -&gt; !tc.getExpired() &amp;&amp; !tc.isBounded();</span>
+<span class="fc" id="L170">            List&lt;SaleableTicketCategory&gt; unboundedCategories = saleableTicketCategories.stream().filter(waitingQueueTargetCategory).collect(Collectors.toList());</span>
+<span class="fc" id="L171">            var tcForWaitingList = unboundedCategories.stream().map(stc -&gt; new ItemsByCategory.TicketCategoryForWaitingList(stc.getId(), stc.getName())).collect(toList());</span>
+            //
+<span class="fc" id="L173">            var activeCategories = categoriesByExpiredFlag.get(false);</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">            var expiredCategories = configurations.get(DISPLAY_EXPIRED_CATEGORIES).getValueAsBooleanOrDefault() ? categoriesByExpiredFlag.get(true) : List.&lt;TicketCategory&gt;of();</span>
+
+<span class="fc" id="L176">            return new ItemsByCategory(activeCategories, expiredCategories, additionalServicesRes, displayWaitingQueueForm, preSales, tcForWaitingList);</span>
+        });
+    }
+
+    private static boolean shouldDisplayRestrictedCategory(Optional&lt;SpecialPrice&gt; specialCode, alfio.model.TicketCategory c, Optional&lt;PromoCodeDiscount&gt; optionalPromoCode) {
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        if(optionalPromoCode.isPresent()) {</span>
+<span class="fc" id="L182">            var promoCode = optionalPromoCode.get();</span>
+<span class="pc bpc" id="L183" title="1 of 4 branches missed.">            if(promoCode.getCodeType() == PromoCodeDiscount.CodeType.ACCESS &amp;&amp; c.getId() == promoCode.getHiddenCategoryId()) {</span>
+<span class="fc" id="L184">                return true;</span>
+            }
+        }
+<span class="pc bnc" id="L187" title="All 2 branches missed.">        return specialCode.filter(sc -&gt; sc.getTicketCategoryId() == c.getId()).isPresent();</span>
+    }
+
+    private static int getMaxAmountOfTicketsPerReservation(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; eventLevelConf,
+                                                           Map&lt;Integer, String&gt; ticketCategoryLevelConf,
+                                                           int ticketCategory) {
+
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        if (ticketCategoryLevelConf.containsKey(ticketCategory)) {</span>
+<span class="nc" id="L195">            return Integer.parseInt(ticketCategoryLevelConf.get(ticketCategory));</span>
+        }
+<span class="fc" id="L197">        return eventLevelConf.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getValueAsIntOrDefault(5);</span>
+    }
+
+    private static boolean shouldApplyDiscount(PromoCodeDiscount promoCodeDiscount, alfio.model.TicketCategory ticketCategory) {
+<span class="fc bfc" id="L201" title="All 2 branches covered.">        if(promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT) {</span>
+<span class="pc bpc" id="L202" title="3 of 4 branches missed.">            return promoCodeDiscount.getCategories().isEmpty() || promoCodeDiscount.getCategories().contains(ticketCategory.getId());</span>
+        }
+<span class="pc bpc" id="L204" title="1 of 4 branches missed.">        return ticketCategory.isAccessRestricted() &amp;&amp; ticketCategory.getId() == promoCodeDiscount.getHiddenCategoryId();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

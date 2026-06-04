@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">GroupApiController.java</span></div><h1>GroupApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.admin;
+
+import alfio.manager.AccessService;
+import alfio.manager.EventManager;
+import alfio.manager.GroupManager;
+import alfio.manager.GroupManager.DuplicateGroupItemException;
+import alfio.model.EventAndOrganizationId;
+import alfio.model.group.Group;
+import alfio.model.group.LinkedGroup;
+import alfio.model.modification.GroupModification;
+import alfio.model.modification.LinkedGroupModification;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+@RestController
+@RequestMapping(&quot;/admin/api/group&quot;)
+public class GroupApiController {
+
+    private final GroupManager groupManager;
+    private final EventManager eventManager;
+    private final AccessService accessService;
+
+<span class="fc" id="L48">    public GroupApiController(GroupManager groupManager, EventManager eventManager, AccessService accessService) {</span>
+<span class="fc" id="L49">        this.groupManager = groupManager;</span>
+<span class="fc" id="L50">        this.eventManager = eventManager;</span>
+<span class="fc" id="L51">        this.accessService = accessService;</span>
+<span class="fc" id="L52">    }</span>
+
+    @ExceptionHandler(DuplicateGroupItemException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleDuplicateGroupItemException(DuplicateGroupItemException exc) {
+<span class="nc" id="L57">        return exc.getMessage();</span>
+    }
+
+    @GetMapping(&quot;/for/{organizationId}&quot;)
+    public ResponseEntity&lt;List&lt;Group&gt;&gt; loadAllGroupsForOrganization(@PathVariable int organizationId, @RequestParam(name = &quot;showAll&quot;, defaultValue = &quot;false&quot;, required = false) boolean showAll, Principal principal) {
+<span class="nc" id="L62">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (showAll) {</span>
+<span class="nc" id="L64">            return ResponseEntity.ok(groupManager.getAllForOrganization(organizationId));</span>
+        } else {
+<span class="nc" id="L66">            return ResponseEntity.ok(groupManager.getAllActiveForOrganization(organizationId));</span>
+        }
+    }
+
+    @GetMapping(&quot;/for/{organizationId}/detail/{listId}&quot;)
+    public ResponseEntity&lt;GroupModification&gt; loadDetail(@PathVariable int organizationId, @PathVariable int listId, Principal principal) {
+<span class="nc" id="L72">        accessService.checkGroupOwnership(principal, listId, organizationId);</span>
+<span class="nc" id="L73">        return groupManager.loadComplete(listId).map(ResponseEntity::ok).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @PostMapping(&quot;/for/{organizationId}/update/{groupId}&quot;)
+    public ResponseEntity&lt;GroupModification&gt; updateGroup(@PathVariable int organizationId,
+                                                         @PathVariable(&quot;groupId&quot;) int listId,
+                                                         @RequestBody GroupModification modification,
+                                                         Principal principal) {
+<span class="nc" id="L81">        accessService.checkGroupUpdateRequest(principal, listId, organizationId, modification);</span>
+<span class="nc" id="L82">        return groupManager.update(listId, modification).map(ResponseEntity::ok).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @PostMapping(&quot;/for/{organizationId}/new&quot;)
+    public ResponseEntity&lt;String&gt; createNew(@PathVariable int organizationId, @RequestBody GroupModification request, Principal principal) {
+<span class="nc" id="L87">        accessService.checkGroupCreateRequest(principal, organizationId, request);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if(request.getOrganizationId() != organizationId) {</span>
+<span class="nc" id="L89">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="nc" id="L91">        Result&lt;Integer&gt; result = groupManager.createNew(request);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if(result.isSuccess()) {</span>
+<span class="nc" id="L93">            return ResponseEntity.ok(String.valueOf(result.getData()));</span>
+        }
+
+<span class="nc" id="L96">        ErrorCode error = result.getFirstErrorOrNull();</span>
+<span class="nc bnc" id="L97" title="All 4 branches missed.">        if(error != null &amp;&amp; error.getCode().equals(&quot;value.duplicate&quot;)) {</span>
+<span class="nc" id="L98">            return ResponseEntity.badRequest().body(error.getDescription());</span>
+        }
+<span class="nc" id="L100">        return ResponseEntity.badRequest().build();</span>
+    }
+
+    @GetMapping(&quot;/for/event/{eventName}/all&quot;)
+    public ResponseEntity&lt;List&lt;LinkedGroup&gt;&gt; findLinked(@PathVariable String eventName,
+                                                        Principal principal) {
+<span class="nc" id="L106">        accessService.checkEventMembership(principal, eventName, AccessService.MEMBERSHIP_ROLES);</span>
+<span class="nc" id="L107">        return eventManager.getOptionalEventAndOrganizationIdByName(eventName, principal.getName())</span>
+<span class="nc" id="L108">            .map(event -&gt; ResponseEntity.ok(groupManager.getLinksForEvent(event.getId())))</span>
+<span class="nc" id="L109">            .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @GetMapping(&quot;/for/event/{eventName}&quot;)
+    public ResponseEntity&lt;LinkedGroup&gt; findActiveGroup(@PathVariable String eventName,
+                                                       Principal principal) {
+<span class="nc" id="L115">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="nc" id="L116">        return eventManager.getOptionalEventAndOrganizationIdByName(eventName, principal.getName())</span>
+<span class="nc" id="L117">            .map(event -&gt; {</span>
+<span class="nc" id="L118">                Optional&lt;LinkedGroup&gt; configuration = groupManager.getLinksForEvent(event.getId()).stream()</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                    .filter(c -&gt; c.getTicketCategoryId() == null)</span>
+<span class="nc" id="L120">                    .findFirst();</span>
+<span class="nc" id="L121">                return configuration.map(ResponseEntity::ok).orElseGet(() -&gt; ResponseEntity.noContent().build());</span>
+            })
+<span class="nc" id="L123">            .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @GetMapping(&quot;/for/event/{eventName}/category/{categoryId}&quot;)
+    public ResponseEntity&lt;LinkedGroup&gt; findActiveGroup(@PathVariable String eventName,
+                                                       @PathVariable int categoryId,
+                                                       Principal principal) {
+<span class="nc" id="L130">        accessService.checkCategoryOwnership(principal, eventName, categoryId);</span>
+<span class="nc" id="L131">        return eventManager.getOptionalEventAndOrganizationIdByName(eventName, principal.getName())</span>
+<span class="nc" id="L132">            .map(event -&gt; {</span>
+<span class="nc" id="L133">                Optional&lt;LinkedGroup&gt; configuration = groupManager.findLinks(event.getId(), categoryId)</span>
+<span class="nc" id="L134">                    .stream()</span>
+<span class="nc bnc" id="L135" title="All 4 branches missed.">                    .filter(c -&gt; c.getTicketCategoryId() != null &amp;&amp; c.getTicketCategoryId() == categoryId)</span>
+<span class="nc" id="L136">                    .findFirst();</span>
+<span class="nc" id="L137">                return configuration.map(ResponseEntity::ok).orElseGet(() -&gt; ResponseEntity.noContent().build());</span>
+            })
+<span class="nc" id="L139">            .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @PostMapping(&quot;/{groupId}/link&quot;)
+    public ResponseEntity&lt;Integer&gt; linkGroup(@PathVariable int groupId, @RequestBody LinkedGroupModification body, Principal principal) {
+<span class="nc bnc" id="L144" title="All 4 branches missed.">        if(body == null || groupId != body.getGroupId()) {</span>
+<span class="nc" id="L145">            return ResponseEntity.badRequest().build();</span>
+        }
+
+        EventAndOrganizationId event;
+
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (body.getTicketCategoryId() != null) {</span>
+<span class="nc" id="L151">            event = accessService.checkCategoryOwnership(principal, body.getEventId(), body.getTicketCategoryId());</span>
+        } else {
+<span class="nc" id="L153">            event = accessService.checkEventOwnership(principal, body.getEventId());</span>
+        }
+
+<span class="nc" id="L156">        Optional&lt;LinkedGroup&gt; existing = groupManager.getLinksForEvent(event.getId())</span>
+<span class="nc" id="L157">            .stream()</span>
+<span class="nc" id="L158">            .filter(c -&gt; Objects.equals(body.getTicketCategoryId(), c.getTicketCategoryId()))</span>
+<span class="nc" id="L159">            .findFirst();</span>
+        LinkedGroup link;
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if(existing.isPresent()) {</span>
+<span class="nc" id="L162">            link = groupManager.updateLink(existing.get().getId(), body);</span>
+        } else {
+<span class="nc" id="L164">            link = groupManager.createLink(groupId, event.getId(), body);</span>
+        }
+<span class="nc" id="L166">        return ResponseEntity.ok(link.getId());</span>
+    }
+
+    @DeleteMapping(&quot;/for/{organizationId}/event/{eventId}/link/{configurationId}&quot;)
+    public ResponseEntity&lt;String&gt; unlinkGroup(@PathVariable int organizationId,
+                                              @PathVariable int configurationId,
+                                              @PathVariable int eventId,
+                                              @RequestParam(name = &quot;categoryId&quot;, required = false) Integer categoryId,
+                                              Principal principal) {
+<span class="nc" id="L175">        accessService.checkGroupLinkOwnership(principal, configurationId, organizationId, eventId, categoryId);</span>
+<span class="nc" id="L176">        groupManager.disableLink(configurationId);</span>
+<span class="nc" id="L177">        return ResponseEntity.ok(&quot;OK&quot;);</span>
+    }
+
+    @DeleteMapping(&quot;/for/{organizationId}/id/{groupId}/member/{memberId}&quot;)
+    public ResponseEntity&lt;Boolean&gt; deactivateMember(@PathVariable int groupId,
+                                                    @PathVariable int memberId,
+                                                    @PathVariable int organizationId,
+                                                    Principal principal) {
+<span class="nc" id="L185">        accessService.checkGroupOwnership(principal, groupId, organizationId);</span>
+<span class="nc" id="L186">        return ResponseEntity.ok(groupManager.deactivateMembers(Collections.singletonList(memberId), groupId));</span>
+    }
+
+    @DeleteMapping(&quot;/for/{organizationId}/id/{groupId}&quot;)
+    public ResponseEntity&lt;Boolean&gt; deactivateGroup(@PathVariable int groupId,
+                                                   @PathVariable int organizationId,
+                                                   Principal principal) {
+<span class="nc" id="L193">        accessService.checkGroupOwnership(principal, groupId, organizationId);</span>
+<span class="nc" id="L194">        return ResponseEntity.ok(groupManager.deactivateGroup(groupId));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
