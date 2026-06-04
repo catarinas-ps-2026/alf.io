@@ -65,7 +65,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
-class RetryFailedExtensionJobExecutorTest {
+class RetryFailedExtensionJobExecutorIntegrationTest {
 
     private static final Map<String, String> DESCRIPTION = Collections.singletonMap("en", "desc");
     private static final String FIRST_CATEGORY_NAME = "default";
@@ -80,7 +80,7 @@ class RetryFailedExtensionJobExecutorTest {
     private final AdminJobManager adminJobManager;
 
     @Autowired
-    RetryFailedExtensionJobExecutorTest(EventManager eventManager,
+    RetryFailedExtensionJobExecutorIntegrationTest(EventManager eventManager,
                                         UserManager userManager,
                                         ExtensionService extensionService,
                                         ConfigurationRepository configurationRepository,
