@@ -7,6 +7,8 @@ on:
 permissions:
     pull-requests: write
     contents: write
+    checks: write
+    statuses: write
 
 jobs:
     metadata:
@@ -28,6 +30,7 @@ jobs:
                       });
                       core.setOutput('head_sha', pr.data.head.sha);
                       core.setOutput('head_repo', pr.data.head.repo.full_name);
+
             - name: Add reaction to comment
               uses: actions/github-script@v7
               with:
@@ -47,6 +50,21 @@ jobs:
             matrix:
                 postgresql: ["10", "15", "16"]
         steps:
+            - name: Create PR Check Run
+              id: create_check
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const check = await github.rest.checks.create({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        name: `Full Test (PostgreSQL ${matrix.postgresql})`,
+                        head_sha: '${{ needs.metadata.outputs.head_sha }}',
+                        status: 'in_progress',
+                        details_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+                      });
+                      core.setOutput('check_run_id', check.data.id);
+
             - uses: actions/checkout@v4
               with:
                   repository: ${{ needs.metadata.outputs.head_repo }}
@@ -115,22 +133,28 @@ jobs:
                   destination_dir: full-test-pr-${{ github.event.issue.number }}
                   keep_files: true
 
-    approve:
-        needs: test
-        runs-on: ubuntu-latest
-        steps:
-            - name: Approve PR
+            - name: Update PR Check Run Status
+              if: always()
               uses: actions/github-script@v7
               with:
                   script: |
+                      const conclusion = '${{ job.status }}' === 'success' ? 'success' : 'failure';
                       const prNumber = context.issue.number;
-                      const repo = context.repo.repo;
-                      const owner = context.repo.owner;
-                      const link = `https://${owner}.github.io/${repo}/full-test-pr-${prNumber}/`;
-                      await github.rest.pulls.createReview({
-                        owner: owner,
-                        repo: repo,
-                        pull_number: prNumber,
-                        event: 'APPROVE',
-                        body: `Aprobado en base a la solicitud de tests /full-test.\n\n[Reportes de Cobertura](${link})`
+                      const link = `https://${context.repo.owner}.github.io/${context.repo.repo}/full-test-pr-${prNumber}/`;
+
+                      let summary = `Tests finished with status: ${conclusion}.`;
+                      if ('${{ matrix.postgresql }}' === '16' && conclusion === 'success') {
+                        summary += `\n\n[View Coverage Report](${link})`;
+                      }
+
+                      await github.rest.checks.update({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        check_run_id: ${{ steps.create_check.outputs.check_run_id }},
+                        status: 'completed',
+                        conclusion: conclusion,
+                        output: {
+                          title: `Full Test Matrix: PostgreSQL ${matrix.postgresql}`,
+                          summary: summary
+                        }
                       });
