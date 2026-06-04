@@ -63,7 +63,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
-class TicketReservationManagerConcurrentTest {
+class TicketReservationManagerConcurrentIntegrationTest {
 
     private static final String ACCESS_CODE = "MY_ACCESS_CODE";
 

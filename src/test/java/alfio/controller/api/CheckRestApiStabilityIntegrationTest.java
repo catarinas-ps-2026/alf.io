@@ -59,13 +59,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     DataSourceConfiguration.class,
     TestConfiguration.class,
     ControllerConfiguration.class,
-    TestCheckRestApiStability.DisableSecurity.class,
+    CheckRestApiStabilityIntegrationTest.DisableSecurity.class,
     SpringDocConfiguration.class,
     SpringDocConfigProperties.class,
     SpringDocWebMvcConfiguration.class
 })
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
-class TestCheckRestApiStability {
+class CheckRestApiStabilityIntegrationTest {
 
     private static final String DESCRIPTOR_JSON_PATH = "src/test/resources/api/descriptor.json";
     @Autowired

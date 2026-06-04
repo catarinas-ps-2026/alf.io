@@ -73,7 +73,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
-class ReservationApiV1ControllerTest {
+class ReservationApiV1ControllerIntegrationTest {
 
     private static final String DEFAULT_CATEGORY_NAME = "default";
     private static final String ANONYMOUS_RESERVATION_URL_PREFIX = BASE_URL + "/event";

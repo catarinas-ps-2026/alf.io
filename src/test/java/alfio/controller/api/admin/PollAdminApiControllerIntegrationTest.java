@@ -58,7 +58,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
-class PollAdminApiControllerTest {
+class PollAdminApiControllerIntegrationTest {
 
     @Autowired
     private PollAdminApiController controller;
