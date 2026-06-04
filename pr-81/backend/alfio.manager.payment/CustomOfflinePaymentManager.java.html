@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomOfflinePaymentManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.payment</a> &gt; <span class="el_source">CustomOfflinePaymentManager.java</span></div><h1>CustomOfflinePaymentManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.payment;
+
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.Map;
+import java.util.OptionalInt;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager;
+import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager.CustomOfflinePaymentMethodDoesNotExistException;
+import alfio.manager.support.PaymentResult;
+import alfio.model.transaction.PaymentContext;
+import alfio.model.transaction.PaymentMethod;
+import alfio.model.transaction.PaymentProvider;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.transaction.Transaction;
+import alfio.model.transaction.TransactionRequest;
+import alfio.model.transaction.UserDefinedOfflinePaymentMethod;
+import alfio.repository.EventRepository;
+import alfio.repository.TicketReservationRepository;
+import alfio.repository.TransactionRepository;
+import alfio.util.ClockProvider;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
+import static alfio.model.TicketReservation.TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT;
+
+@Component
+public class CustomOfflinePaymentManager implements PaymentProvider {
+
+<span class="fc" id="L52">    private static final Logger log = LoggerFactory.getLogger(CustomOfflinePaymentManager.class);</span>
+    private final ClockProvider clockProvider;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final TransactionRepository transactionRepository;
+    private final EventRepository eventRepository;
+    private final CustomOfflineConfigurationManager customOfflineConfigurationManager;
+
+    public CustomOfflinePaymentManager(
+        ClockProvider clockProvider,
+        TicketReservationRepository ticketReservationRepository,
+        TransactionRepository transactionRepository,
+        EventRepository eventRepository,
+        CustomOfflineConfigurationManager customOfflineConfigurationManager
+<span class="fc" id="L65">    ) {</span>
+<span class="fc" id="L66">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L67">        this.ticketReservationRepository = ticketReservationRepository;</span>
+<span class="fc" id="L68">        this.transactionRepository = transactionRepository;</span>
+<span class="fc" id="L69">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L70">        this.customOfflineConfigurationManager = customOfflineConfigurationManager;</span>
+<span class="fc" id="L71">    }</span>
+
+    @Override
+    public Set&lt;? extends PaymentMethod&gt; getSupportedPaymentMethods(
+        PaymentContext paymentContext,
+        TransactionRequest transactionRequest
+    ) {
+<span class="fc" id="L78">        OptionalInt maybeOrgId = paymentContext.getConfigurationLevel().getOrganizationId();</span>
+
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (!maybeOrgId.isPresent()) {</span>
+<span class="fc" id="L81">            return Set.of();</span>
+        }
+
+<span class="fc" id="L84">        var orgId = maybeOrgId.getAsInt();</span>
+
+<span class="fc" id="L86">        return customOfflineConfigurationManager</span>
+<span class="fc" id="L87">            .getOrganizationCustomOfflinePaymentMethods(orgId)</span>
+<span class="fc" id="L88">            .stream()</span>
+<span class="fc" id="L89">            .collect(Collectors.toSet());</span>
+    }
+
+    @Override
+    public PaymentProxy getPaymentProxy() {
+<span class="fc" id="L94">        return PaymentProxy.CUSTOM_OFFLINE;</span>
+    }
+
+    @Override
+    public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
+        try {
+<span class="fc" id="L100">            customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodById(</span>
+<span class="fc" id="L101">                context.getPurchaseContext().getOrganizationId(),</span>
+<span class="fc" id="L102">                paymentMethod.getPaymentMethodId()</span>
+            );
+
+<span class="fc" id="L105">            return isActive(context);</span>
+<span class="fc" id="L106">        } catch (CustomOfflinePaymentMethodDoesNotExistException e) {</span>
+<span class="fc" id="L107">            return false;</span>
+        }
+    }
+
+    @Override
+    public boolean accept(Transaction transaction) {
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        return transaction.getPaymentProxy() == PaymentProxy.CUSTOM_OFFLINE;</span>
+    }
+
+    @Override
+    public PaymentMethod getPaymentMethodForTransaction(Transaction transaction) {
+<span class="fc" id="L118">        var transMetadata = transaction.getMetadata();</span>
+
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        if(!transMetadata.containsKey(Transaction.SELECTED_PAYMENT_METHOD_KEY)) {</span>
+<span class="fc" id="L121">            log.warn(</span>
+                &quot;Transaction '{}' using 'CUSTOM_OFFLINE' has no {} metadata field. This should not happen.&quot;,
+<span class="fc" id="L123">                transaction.getId(),</span>
+                Transaction.SELECTED_PAYMENT_METHOD_KEY
+            );
+<span class="fc" id="L126">            return null;</span>
+        }
+
+<span class="fc" id="L129">        var paymentMethodId = transMetadata.get(Transaction.SELECTED_PAYMENT_METHOD_KEY);</span>
+
+<span class="fc" id="L131">        var reservationId = transaction.getReservationId();</span>
+<span class="fc" id="L132">        var event = eventRepository.findByReservationId(reservationId);</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">        if(event == null) {</span>
+<span class="fc" id="L134">            log.warn(</span>
+                &quot;Transaction '{}' using 'CUSTOM_OFFLINE' is not associated with an event, so we cannot find the payment method.&quot;,
+<span class="fc" id="L136">                transaction.getId()</span>
+            );
+<span class="fc" id="L138">            return null;</span>
+        }
+
+        UserDefinedOfflinePaymentMethod paymentMethod;
+        try {
+<span class="fc" id="L143">            paymentMethod = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodById(</span>
+<span class="fc" id="L144">                event.getOrganizationId(),</span>
+                paymentMethodId
+            );
+<span class="nc" id="L147">        } catch (CustomOfflinePaymentMethodDoesNotExistException e) {</span>
+<span class="nc" id="L148">            log.warn(</span>
+                &quot;Transaction '{}' using 'CUSTOM_OFFLINE' has a payment method id of '{}', which does not exist in the event organization.&quot;,
+<span class="nc" id="L150">                transaction.getId(),</span>
+                paymentMethodId
+            );
+<span class="nc" id="L153">            return null;</span>
+<span class="fc" id="L154">        }</span>
+
+<span class="fc" id="L156">        return paymentMethod;</span>
+    }
+
+    @Override
+    public boolean isActive(PaymentContext paymentContext) {
+<span class="fc" id="L161">        return</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">            paymentContext.getPurchaseContext() != null</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">            &amp;&amp; paymentContext.getPurchaseContext().event().isPresent();</span>
+    }
+
+    @Override
+    public PaymentResult doPayment(PaymentSpecification spec) {
+        // GET EVENT END TIME AS DEADLINE
+<span class="fc" id="L169">        ZonedDateTime deadline = spec.getPurchaseContext().event().get().getEnd();</span>
+
+        // POST PONE
+<span class="fc" id="L172">        int updatedReservation = ticketReservationRepository.postponePayment(</span>
+<span class="fc" id="L173">                spec.getReservationId(),</span>
+                CUSTOM_OFFLINE_PAYMENT,
+<span class="fc" id="L175">                this.getPaymentProxy().name(),</span>
+<span class="fc" id="L176">                Date.from(deadline.toInstant()),</span>
+<span class="fc" id="L177">                spec.getEmail(),</span>
+<span class="fc" id="L178">                spec.getCustomerName().getFullName(),</span>
+<span class="fc" id="L179">                spec.getCustomerName().getFirstName(),</span>
+<span class="fc" id="L180">                spec.getCustomerName().getLastName(),</span>
+<span class="fc" id="L181">                spec.getBillingAddress(),</span>
+<span class="fc" id="L182">                spec.getCustomerReference());</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">        Validate.isTrue(updatedReservation == 1, &quot;expected exactly one updated reservation, got &quot; + updatedReservation);</span>
+
+        // OVERRIDE EXISTING TRANSACTION
+<span class="fc" id="L186">        PaymentManagerUtils.invalidateExistingTransactions(spec.getReservationId(), transactionRepository);</span>
+<span class="fc" id="L187">        transactionRepository.insert(</span>
+<span class="fc" id="L188">                UUID.randomUUID().toString(),</span>
+                null,
+<span class="fc" id="L190">                spec.getReservationId(),</span>
+<span class="fc" id="L191">                ZonedDateTime.now(clockProvider.getClock()),</span>
+<span class="fc" id="L192">                spec.getPriceWithVAT(),</span>
+<span class="fc" id="L193">                spec.getCurrencyCode(),</span>
+                &quot;&quot;,
+<span class="fc" id="L195">                PaymentProxy.CUSTOM_OFFLINE.name(),</span>
+                0L,
+                0L,
+                Transaction.Status.PENDING,
+<span class="fc" id="L199">                Map.of(Transaction.SELECTED_PAYMENT_METHOD_KEY, spec.getSelectedPaymentMethod().getPaymentMethodId()));</span>
+
+        // RETURN RESULT
+<span class="fc" id="L202">        return PaymentResult.successful(NOT_YET_PAID_TRANSACTION_ID);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PollAdminApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">PollAdminApiController.java</span></div><h1>PollAdminApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.admin;
+
+import alfio.manager.AccessService;
+import alfio.manager.PollManager;
+import alfio.model.modification.PollModification;
+import alfio.model.poll.Poll;
+import alfio.model.poll.PollParticipant;
+import alfio.model.poll.PollStatistics;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/admin/api/{eventName}/poll&quot;)
+public class PollAdminApiController {
+
+    private final PollManager pollManager;
+    private final AccessService accessService;
+
+<span class="fc" id="L42">    public PollAdminApiController(PollManager pollManager, AccessService accessService) {</span>
+<span class="fc" id="L43">        this.pollManager = pollManager;</span>
+<span class="fc" id="L44">        this.accessService = accessService;</span>
+<span class="fc" id="L45">    }</span>
+
+    @GetMapping
+    ResponseEntity&lt;List&lt;PollModification&gt;&gt; getAllForEvent(@PathVariable String eventName,
+                                                          Principal principal) {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if(StringUtils.isEmpty(eventName)) {</span>
+<span class="nc" id="L51">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="nc" id="L53">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="nc" id="L54">        return ResponseEntity.ok(pollManager.getAllForEvent(eventName).stream().map(PollModification::from).toList());</span>
+    }
+
+    @GetMapping(&quot;/{pollId}&quot;)
+    ResponseEntity&lt;PollModification&gt; getPollDetail(@PathVariable String eventName,
+                                                   @PathVariable Long pollId,
+                                                   Principal principal) {
+<span class="pc bpc" id="L61" title="2 of 4 branches missed.">        if(StringUtils.isEmpty(eventName) || pollId == null) {</span>
+<span class="nc" id="L62">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="fc" id="L64">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L65">        return ResponseEntity.of(pollManager.getSingleForEvent(pollId, eventName).map(PollModification::from));</span>
+    }
+
+    @PostMapping
+    ResponseEntity&lt;Long&gt; createNewPoll(@PathVariable String eventName,
+                                       @RequestBody PollModification form,
+                                       Principal principal) {
+<span class="pc bpc" id="L72" title="2 of 4 branches missed.">        if(form == null || !form.isValid()) {</span>
+<span class="nc" id="L73">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="fc" id="L75">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L76">        return ResponseEntity.of(pollManager.createNewPoll(eventName, form));</span>
+    }
+
+    @PostMapping(&quot;/{pollId}&quot;)
+    ResponseEntity&lt;PollModification&gt; updatePoll(@PathVariable String eventName,
+                                                @PathVariable Long pollId,
+                                                @RequestBody PollModification form,
+                                                Principal principal) {
+<span class="pc bpc" id="L84" title="2 of 4 branches missed.">        if(form == null || !form.isValid(pollId)) {</span>
+<span class="nc" id="L85">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="fc" id="L87">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L88">        return ResponseEntity.of(pollManager.updatePoll(eventName, form).map(PollModification::from));</span>
+    }
+
+    @DeleteMapping(&quot;/{pollId}&quot;)
+    ResponseEntity&lt;Boolean&gt; deletePoll(@PathVariable String eventName,
+                                       @PathVariable Long pollId,
+                                       Principal principal) {
+<span class="fc" id="L95">        var eventAndOrganizationId = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L96">        return ResponseEntity.ok(pollManager.deletePoll(eventAndOrganizationId, pollId));</span>
+    }
+
+    @DeleteMapping(&quot;/{pollId}/option/{optionId}&quot;)
+    ResponseEntity&lt;PollModification&gt; removeOption(@PathVariable String eventName,
+                                                 @PathVariable Long pollId,
+                                                 @PathVariable Long optionId,
+                                                 Principal principal) {
+<span class="fc" id="L104">        var event = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L105">        return ResponseEntity.of(pollManager.removeOption(event, pollId, optionId).map(PollModification::from));</span>
+    }
+
+    @PutMapping(&quot;/{pollId}&quot;)
+    ResponseEntity&lt;PollModification&gt; updateStatus(@PathVariable String eventName,
+                                                  @PathVariable Long pollId,
+                                                  @RequestBody UpdatePollStatusForm form,
+                                                  Principal principal) {
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if(form.status == Poll.PollStatus.DRAFT) {</span>
+<span class="nc" id="L114">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="fc" id="L116">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L117">        return ResponseEntity.of(pollManager.updateStatus(pollId, eventAndOrgId, form.status).map(PollModification::from));</span>
+    }
+
+    @GetMapping(&quot;/{pollId}/filter-tickets&quot;)
+    ResponseEntity&lt;List&lt;PollParticipant&gt;&gt; findAdditionalAttendees(@PathVariable String eventName,
+                                                                  @PathVariable Long pollId,
+                                                                  @RequestParam(&quot;filter&quot;) String filter,
+                                                                  Principal principal) {
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if(StringUtils.isBlank(filter)) {</span>
+<span class="nc" id="L126">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="fc" id="L128">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L129">        return ResponseEntity.of(pollManager.searchTicketsToAllow(eventAndOrgId, pollId, filter));</span>
+    }
+
+    @PostMapping(&quot;/{pollId}/allow&quot;)
+    ResponseEntity&lt;Boolean&gt; allowAttendees(@PathVariable String eventName,
+                                           @PathVariable Long pollId,
+                                           @RequestBody UpdateParticipantsForm form,
+                                           Principal principal) {
+
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if(CollectionUtils.isEmpty(form.ticketIds)) {</span>
+<span class="nc" id="L139">            return ResponseEntity.badRequest().build();</span>
+        }
+<span class="fc" id="L141">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L142">        return ResponseEntity.ok(pollManager.allowTicketsToVote(eventAndOrgId, form.ticketIds, pollId));</span>
+    }
+
+    @GetMapping(&quot;/{pollId}/allowed&quot;)
+    ResponseEntity&lt;List&lt;PollParticipant&gt;&gt; getAllowedAttendees(@PathVariable String eventName,
+                                                              @PathVariable Long pollId,
+                                                              Principal principal) {
+<span class="fc" id="L149">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L150">        return ResponseEntity.ok(pollManager.fetchAllowedTickets(eventAndOrgId, pollId));</span>
+    }
+
+    @DeleteMapping(&quot;/{pollId}/allowed&quot;)
+    ResponseEntity&lt;List&lt;PollParticipant&gt;&gt; forbidAttendees(@PathVariable String eventName,
+                                                          @PathVariable Long pollId,
+                                                          @RequestBody UpdateParticipantsForm form,
+                                                          Principal principal) {
+<span class="fc" id="L158">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L159">        return ResponseEntity.ok(pollManager.removeParticipants(eventAndOrgId, form.ticketIds, pollId));</span>
+    }
+
+    @GetMapping(&quot;/{pollId}/stats&quot;)
+    ResponseEntity&lt;PollStatistics&gt; getStatisticsForEvent(@PathVariable String eventName,
+                                                         @PathVariable Long pollId,
+                                                         Principal principal) {
+<span class="fc" id="L166">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L167">        return ResponseEntity.of(pollManager.getStatisticsFor(eventAndOrgId, pollId));</span>
+    }
+
+    static class UpdatePollStatusForm {
+        private final Poll.PollStatus status;
+
+        @JsonCreator
+<span class="fc" id="L174">        UpdatePollStatusForm(@JsonProperty(&quot;status&quot;) Poll.PollStatus status) {</span>
+<span class="fc" id="L175">            this.status = status;</span>
+<span class="fc" id="L176">        }</span>
+    }
+
+    static class UpdateParticipantsForm {
+        private final List&lt;Integer&gt; ticketIds;
+
+        @JsonCreator
+<span class="fc" id="L183">        UpdateParticipantsForm(@JsonProperty(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds) {</span>
+<span class="fc" id="L184">            this.ticketIds = ticketIds;</span>
+<span class="fc" id="L185">        }</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

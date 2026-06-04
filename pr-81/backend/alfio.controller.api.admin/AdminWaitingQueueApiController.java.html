@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminWaitingQueueApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">AdminWaitingQueueApiController.java</span></div><h1>AdminWaitingQueueApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.admin;
+
+import alfio.controller.decorator.SaleableTicketCategory;
+import alfio.manager.*;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.Event;
+import alfio.model.WaitingQueueSubscription;
+import alfio.model.modification.ConfigurationModification;
+import alfio.model.system.ConfigurationKeys;
+import alfio.util.ClockProvider;
+import alfio.util.EventUtil;
+import alfio.util.ExportUtils;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.security.Principal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static alfio.model.system.ConfigurationKeys.STOP_WAITING_QUEUE_SUBSCRIPTIONS;
+import static java.util.Collections.singletonList;
+
+@RestController
+@RequestMapping(&quot;/admin/api/event/{eventName}/waiting-queue&quot;)
+@AllArgsConstructor
+public class AdminWaitingQueueApiController {
+
+    private final WaitingQueueManager waitingQueueManager;
+    private final EventManager eventManager;
+    private final TicketReservationManager ticketReservationManager;
+    private final ConfigurationManager configurationManager;
+    private final EventStatisticsManager eventStatisticsManager;
+    private final ClockProvider clockProvider;
+    private final AccessService accessService;
+
+    @GetMapping(&quot;/status&quot;)
+    public Map&lt;String, Boolean&gt; getStatusForEvent(@PathVariable String eventName, Principal principal) {
+<span class="nc" id="L60">        accessService.checkEventMembership(principal, eventName, AccessService.MEMBERSHIP_ROLES);</span>
+<span class="nc" id="L61">        return eventManager.getOptionalByName(eventName, principal.getName())</span>
+<span class="nc" id="L62">            .map(this::loadStatus)</span>
+<span class="nc" id="L63">            .orElse(Collections.emptyMap());</span>
+    }
+
+    private Map&lt;String, Boolean&gt; loadStatus(Event event) {
+<span class="nc" id="L67">        ZonedDateTime now = ZonedDateTime.now(clockProvider.getClock().withZone(event.getZoneId()));</span>
+<span class="nc" id="L68">        List&lt;SaleableTicketCategory&gt; stcList = eventManager.loadTicketCategories(event)</span>
+<span class="nc" id="L69">            .stream()</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            .filter(tc -&gt; !tc.isAccessRestricted())</span>
+<span class="nc" id="L71">            .map(tc -&gt; {</span>
+<span class="nc" id="L72">                var categoryAvailability = ticketReservationManager.countAvailableTickets(event, tc);</span>
+<span class="nc" id="L73">                return new SaleableTicketCategory(tc, now, event, categoryAvailability, tc.getMaxTickets(), null);</span>
+            })
+<span class="nc" id="L75">            .toList();</span>
+<span class="nc" id="L76">        boolean active = EventUtil.checkWaitingQueuePreconditions(event, stcList, configurationManager, eventStatisticsManager.noSeatsAvailable());</span>
+<span class="nc bnc" id="L77" title="All 4 branches missed.">        boolean paused = active &amp;&amp; configurationManager.getFor(STOP_WAITING_QUEUE_SUBSCRIPTIONS, event.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
+<span class="nc" id="L78">        Map&lt;String, Boolean&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L79">        result.put(&quot;active&quot;, active);</span>
+<span class="nc" id="L80">        result.put(&quot;paused&quot;, paused);</span>
+<span class="nc" id="L81">        return result;</span>
+    }
+
+    @PutMapping(&quot;/status&quot;)
+    public Map&lt;String, Boolean&gt; setStatusForEvent(@PathVariable String eventName, @RequestBody SetStatusForm form, Principal principal) {
+<span class="nc" id="L86">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="nc" id="L87">        return eventManager.getOptionalByName(eventName, principal.getName())</span>
+<span class="nc" id="L88">            .map(event -&gt; {</span>
+<span class="nc" id="L89">                configurationManager.saveAllEventConfiguration(event.getId(), event.getOrganizationId(),</span>
+<span class="nc" id="L90">                    singletonList(new ConfigurationModification(null, ConfigurationKeys.STOP_WAITING_QUEUE_SUBSCRIPTIONS.name(), String.valueOf(form.status))),</span>
+<span class="nc" id="L91">                    principal.getName());</span>
+<span class="nc" id="L92">                return loadStatus(event);</span>
+<span class="nc" id="L93">            }).orElse(Collections.emptyMap());</span>
+    }
+
+    @GetMapping(&quot;/count&quot;)
+    public Integer countWaitingPeople(@PathVariable String eventName, Principal principal, HttpServletResponse response) {
+<span class="nc" id="L98">        accessService.checkEventMembership(principal, eventName, AccessService.MEMBERSHIP_ROLES);</span>
+<span class="nc" id="L99">        Optional&lt;Integer&gt; count = eventManager.getOptionalEventAndOrganizationIdByName(eventName, principal.getName())</span>
+<span class="nc" id="L100">            .map(e -&gt; waitingQueueManager.countSubscribers(e.getId()));</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if(count.isPresent()) {</span>
+<span class="nc" id="L102">            return count.get();</span>
+        }
+<span class="nc" id="L104">        response.setStatus(HttpServletResponse.SC_NOT_FOUND);</span>
+<span class="nc" id="L105">        return 0;</span>
+    }
+
+    @GetMapping(&quot;/load&quot;)
+    public List&lt;WaitingQueueSubscription&gt; loadAllSubscriptions(@PathVariable String eventName, Principal principal, HttpServletResponse response) {
+<span class="nc" id="L110">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="nc" id="L111">        Optional&lt;List&lt;WaitingQueueSubscription&gt;&gt; count = eventManager.getOptionalEventAndOrganizationIdByName(eventName, principal.getName())</span>
+<span class="nc" id="L112">            .map(e -&gt; waitingQueueManager.loadAllSubscriptionsForEvent(e.getId()));</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if(count.isPresent()) {</span>
+<span class="nc" id="L114">            return count.get();</span>
+        }
+<span class="nc" id="L116">        response.setStatus(HttpServletResponse.SC_NOT_FOUND);</span>
+<span class="nc" id="L117">        return Collections.emptyList();</span>
+    }
+
+    @GetMapping(&quot;/download&quot;)
+    public void downloadAllSubscriptions(@PathVariable String eventName,
+                                         @RequestParam(name = &quot;format&quot;, defaultValue = &quot;excel&quot;) String format,
+                                         Principal principal, HttpServletResponse response) throws IOException {
+<span class="nc" id="L124">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="nc" id="L125">        var event = eventManager.getSingleEvent(eventName, principal.getName());</span>
+<span class="nc" id="L126">        var found = waitingQueueManager.loadAllSubscriptionsForEvent(event.getId());</span>
+
+<span class="nc" id="L128">        var header = new String[] {&quot;Type&quot;, &quot;Firstname&quot;, &quot;Lastname&quot;, &quot;Email&quot;, &quot;Language&quot;, &quot;Status&quot;, &quot;Date&quot;};</span>
+<span class="nc" id="L129">        var lines = convertSubscriptions(found, event);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (&quot;excel&quot;.equals(format)) {</span>
+<span class="nc" id="L131">            ExportUtils.exportExcel(event.getShortName() + &quot;-waiting-queue.xlsx&quot;, &quot;waiting-queue&quot;,</span>
+                header,
+                lines, response);
+        } else {
+<span class="nc" id="L135">            ExportUtils.exportCsv(event.getShortName() + &quot;-waiting-queue.csv&quot;, header, lines, response);</span>
+        }
+<span class="nc" id="L137">    }</span>
+
+    private static Stream&lt;String[]&gt; convertSubscriptions(List&lt;WaitingQueueSubscription&gt; l, Event event) {
+<span class="nc" id="L140">        return l.stream().map(s -&gt; new String[] {s.getSubscriptionType().toString(),</span>
+<span class="nc" id="L141">            s.getFirstName(), s.getLastName(), s.getEmailAddress(),</span>
+<span class="nc" id="L142">            s.getLocale().toLanguageTag(), s.getStatus().name(),</span>
+<span class="nc" id="L143">            s.getCreation().withZoneSameInstant(event.getZoneId()).toString()});</span>
+    }
+
+    @DeleteMapping(&quot;/subscriber/{subscriberId}&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; removeSubscriber(@PathVariable String eventName,
+                                                                @PathVariable int subscriberId,
+                                                                Principal principal) {
+<span class="nc" id="L150">        return performStatusModification(eventName, subscriberId, principal, WaitingQueueSubscription.Status.CANCELLED, WaitingQueueSubscription.Status.WAITING);</span>
+    }
+
+    @PutMapping(&quot;/subscriber/{subscriberId}/restore&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; restoreSubscriber(@PathVariable String eventName,
+                                                                 @PathVariable int subscriberId,
+                                                                 Principal principal) {
+<span class="nc" id="L157">        return performStatusModification(eventName, subscriberId, principal, WaitingQueueSubscription.Status.WAITING, WaitingQueueSubscription.Status.CANCELLED);</span>
+    }
+
+    private ResponseEntity&lt;Map&lt;String, Object&gt;&gt; performStatusModification(String eventName, int subscriberId,
+                                                                          Principal principal, WaitingQueueSubscription.Status newStatus,
+                                                                          WaitingQueueSubscription.Status currentStatus) {
+<span class="nc" id="L163">        var eventAndOrgId = accessService.checkWaitingQueueSubscriberInEvent(principal, subscriberId, eventName);</span>
+<span class="nc" id="L164">        return waitingQueueManager.updateSubscriptionStatus(subscriberId, newStatus, currentStatus)</span>
+<span class="nc" id="L165">            .map(result -&gt; {</span>
+<span class="nc" id="L166">                Map&lt;String, Object&gt; out = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L167">                out.put(&quot;modified&quot;, result);</span>
+<span class="nc" id="L168">                out.put(&quot;list&quot;, waitingQueueManager.loadAllSubscriptionsForEvent(eventAndOrgId.getId()));</span>
+<span class="nc" id="L169">                return out;</span>
+            })
+<span class="nc" id="L171">            .map(ResponseEntity::ok)</span>
+<span class="nc" id="L172">            .orElseGet(() -&gt; new ResponseEntity&lt;&gt;(HttpStatus.BAD_REQUEST));</span>
+    }
+
+    @Data
+    private static class SetStatusForm {
+        private boolean status;
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

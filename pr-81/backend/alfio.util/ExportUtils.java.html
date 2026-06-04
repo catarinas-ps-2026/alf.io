@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExportUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">ExportUtils.java</span></div><h1>ExportUtils.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import ch.digitalfondue.basicxlsx.Cell;
+import ch.digitalfondue.basicxlsx.StreamingWorkbook;
+import ch.digitalfondue.basicxlsx.Style;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class ExportUtils {
+
+<span class="fc" id="L36">    private static final int[] BOM_MARKERS = new int[] {0xEF, 0xBB, 0xBF};</span>
+    public static final String X_ROBOTS_TAG = &quot;X-Robots-Tag&quot;;
+
+    private ExportUtils() {}
+
+    public static void exportExcel(String fileName, String sheetName, String[] header, Stream&lt;String[]&gt; data, HttpServletResponse response) throws IOException {
+<span class="nc" id="L42">        exportExcel(fileName, response, workbook -&gt; addSheetToWorkbook(sheetName, header, data, workbook, workbook.defineStyle().font().bold(true).build()));</span>
+<span class="nc" id="L43">    }</span>
+
+    public static void exportExcel(String fileName,
+                                   HttpServletResponse response,
+                                   Consumer&lt;StreamingWorkbook&gt; workbookConsumer) throws IOException {
+<span class="nc" id="L48">        response.setContentType(&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;);</span>
+<span class="nc" id="L49">        response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; + fileName);</span>
+<span class="nc" id="L50">        markAsNoIndex(response);</span>
+
+<span class="nc" id="L52">        try (ServletOutputStream out = response.getOutputStream(); StreamingWorkbook workbook = new StreamingWorkbook(out)) {</span>
+<span class="nc" id="L53">            workbookConsumer.accept(workbook);</span>
+        }
+<span class="nc" id="L55">    }</span>
+
+    public static void addSheetToWorkbook(String sheetName,
+                                          String[] header,
+                                          Stream&lt;String[]&gt; data,
+                                          StreamingWorkbook workbook,
+                                          Style headerStyle) {
+        try {
+<span class="nc" id="L63">            var headerRow = StreamingWorkbook.row(Arrays.stream(header)</span>
+<span class="nc" id="L64">                .map(v -&gt; Cell.cell(v).withStyle(headerStyle))</span>
+<span class="nc" id="L65">                .collect(Collectors.toList()));</span>
+
+<span class="nc" id="L67">            var dataStream = data</span>
+<span class="nc" id="L68">                .map(rowData -&gt; Arrays.stream(rowData).map(Cell::cell).collect(Collectors.toList()))</span>
+<span class="nc" id="L69">                .map(StreamingWorkbook::row);</span>
+
+<span class="nc" id="L71">            workbook.withSheet(sheetName, Stream.concat(Stream.of(headerRow), dataStream));</span>
+
+<span class="nc" id="L73">        } catch (IOException e) {</span>
+<span class="nc" id="L74">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L75">        }</span>
+<span class="nc" id="L76">    }</span>
+
+    // https://owasp.org/www-community/attacks/CSV_Injection
+    private static String escapeFormulaChar(String s) {
+<span class="fc" id="L80">        var trimmed = StringUtils.trimToEmpty(s);</span>
+        // tab and carriage return are removed by the trimming
+<span class="fc" id="L82">        var res = trimmed;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (StringUtils.startsWithAny(trimmed, &quot;=&quot;, &quot;+&quot;, &quot;-&quot;, &quot;@&quot;)) {</span>
+<span class="nc" id="L84">            res = &quot;\t&quot; + trimmed; // http://georgemauer.net/2017/10/07/csv-injection.html starting with a tab seems to be enough?</span>
+        }
+<span class="fc" id="L86">        return res;</span>
+    }
+
+    public static void exportCsv(String fileName, String[] header, Stream&lt;String[]&gt; data, HttpServletResponse response) throws IOException {
+<span class="fc" id="L90">        response.setContentType(&quot;text/csv;charset=UTF-8&quot;);</span>
+<span class="fc" id="L91">        response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; + fileName);</span>
+<span class="fc" id="L92">        markAsNoIndex(response);</span>
+
+<span class="fc" id="L94">        var headerBuilder = CsvSchema.builder().setUseHeader(true).setQuoteChar('&quot;');</span>
+<span class="fc" id="L95">        Arrays.stream(header).forEach(headerBuilder::addColumn);</span>
+
+<span class="fc" id="L97">        try (ServletOutputStream out = response.getOutputStream()) {</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            for (int marker : ExportUtils.BOM_MARKERS) {</span>
+<span class="fc" id="L99">                out.write(marker);</span>
+            }
+<span class="fc" id="L101">            var writer = new CsvMapper().writer().with(headerBuilder.build()).writeValues(out);</span>
+<span class="fc" id="L102">            data.forEachOrdered(d -&gt; {</span>
+<span class="fc" id="L103">                var copy = Arrays.copyOf(d, d.length);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">                for (var i = 0; i &lt; copy.length; i++) {</span>
+<span class="fc" id="L105">                    var res = copy[i];</span>
+<span class="fc" id="L106">                    copy[i] = escapeFormulaChar(res);</span>
+                }
+                try {
+<span class="fc" id="L109">                    writer.write(copy);</span>
+<span class="nc" id="L110">                } catch (IOException e) {</span>
+<span class="nc" id="L111">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L112">                }</span>
+<span class="fc" id="L113">            });</span>
+<span class="fc" id="L114">            writer.flush();</span>
+<span class="fc" id="L115">            out.flush();</span>
+        }
+<span class="fc" id="L117">    }</span>
+
+    public static void markAsNoIndex(HttpServletResponse response) {
+<span class="fc" id="L120">        response.setHeader(X_ROBOTS_TAG, &quot;noindex&quot;);</span>
+<span class="fc" id="L121">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

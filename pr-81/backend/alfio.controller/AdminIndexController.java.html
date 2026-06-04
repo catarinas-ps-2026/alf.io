@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminIndexController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller</a> &gt; <span class="el_source">AdminIndexController.java</span></div><h1>AdminIndexController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller;
+
+import alfio.config.authentication.support.OpenIdPrincipal;
+import alfio.controller.support.CSPConfigurer;
+import alfio.manager.i18n.I18nManager;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.user.Role;
+import alfio.util.Json;
+import alfio.util.TemplateManager;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samskivert.mustache.Mustache;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import static alfio.controller.Constants.*;
+import static alfio.model.system.ConfigurationKeys.BASE_URL;
+import static alfio.model.system.ConfigurationKeys.SHOW_PROJECT_BANNER;
+
+@Controller
+public class AdminIndexController {
+
+<span class="nc" id="L55">    public record ManifestEntry(List&lt;String&gt; css, String file) {</span>
+    }
+
+    private final ConfigurationManager configurationManager;
+    private final Environment environment;
+    private final CSPConfigurer cspConfigurer;
+    private final TemplateManager templateManager;
+    private final ManifestEntry manifestEntry;
+    private final I18nManager i18nManager;
+
+    public AdminIndexController(ConfigurationManager configurationManager,
+                                Environment environment,
+                                CSPConfigurer cspConfigurer,
+                                TemplateManager templateManager,
+                                ObjectMapper objectMapper,
+<span class="fc" id="L70">                                I18nManager i18nManager) throws IOException {</span>
+<span class="fc" id="L71">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L72">        this.environment = environment;</span>
+<span class="fc" id="L73">        this.cspConfigurer = cspConfigurer;</span>
+<span class="fc" id="L74">        this.templateManager = templateManager;</span>
+<span class="fc" id="L75">        this.i18nManager = i18nManager;</span>
+<span class="fc" id="L76">        var cpr = new ClassPathResource(&quot;/resources/alfio-admin-frontend/.vite/manifest.json&quot;);</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (cpr.exists()) {</span>
+<span class="nc" id="L78">            try (var descriptor = cpr.getInputStream()) {</span>
+<span class="nc" id="L79">                this.manifestEntry = objectMapper.readValue(descriptor, new TypeReference&lt;Map&lt;String, ManifestEntry&gt;&gt;() {}).get(&quot;src/main.ts&quot;);</span>
+            }
+        } else {
+<span class="fc" id="L82">            manifestEntry = null;</span>
+        }
+<span class="fc" id="L84">    }</span>
+
+    @GetMapping({&quot;/admin&quot;, &quot;/admin/&quot;})
+    public void adminHome(Model model, @Value(&quot;${alfio.version}&quot;) String version, HttpServletRequest request, HttpServletResponse response, Principal principal) throws IOException {
+<span class="nc" id="L88">        model.addAttribute(&quot;alfioVersion&quot;, version);</span>
+<span class="nc" id="L89">        model.addAttribute(&quot;basicConfigurationNeeded&quot;, configurationManager.isBasicConfigurationNeeded());</span>
+
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        boolean isDBAuthentication = !(principal instanceof OAuth2AuthenticationToken);</span>
+<span class="nc" id="L92">        model.addAttribute(&quot;isDBAuthentication&quot;, isDBAuthentication);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (!isDBAuthentication) {</span>
+<span class="nc" id="L94">            var openIdPrincipal = ((OpenIdPrincipal)((OAuth2AuthenticationToken) principal).getPrincipal());</span>
+<span class="nc" id="L95">            String idpLogoutRedirectionUrl = openIdPrincipal.idpLogoutRedirectionUrl();</span>
+<span class="nc" id="L96">            model.addAttribute(&quot;idpLogoutRedirectionUrl&quot;, idpLogoutRedirectionUrl);</span>
+<span class="nc" id="L97">            model.addAttribute(&quot;username&quot;, openIdPrincipal.user().email());</span>
+<span class="nc" id="L98">        } else {</span>
+<span class="nc" id="L99">            model.addAttribute(&quot;idpLogoutRedirectionUrl&quot;, null);</span>
+<span class="nc" id="L100">            model.addAttribute(&quot;username&quot;, principal.getName());</span>
+        }
+
+<span class="nc" id="L103">        Collection&lt;String&gt; authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()</span>
+<span class="nc" id="L104">            .stream().map(GrantedAuthority::getAuthority).toList();</span>
+
+<span class="nc" id="L106">        boolean isAdmin = authorities.contains(Role.ADMIN.getRoleName());</span>
+<span class="nc bnc" id="L107" title="All 4 branches missed.">        model.addAttribute(&quot;isOwner&quot;, isAdmin || authorities.contains(Role.OWNER.getRoleName()));</span>
+<span class="nc" id="L108">        model.addAttribute(&quot;isAdmin&quot;, isAdmin);</span>
+<span class="nc" id="L109">        model.addAttribute(&quot;supportedLanguages&quot;, i18nManager.getAvailableLanguages());</span>
+        //
+<span class="nc" id="L111">        addCommonModelAttributes(model, request, version, environment);</span>
+<span class="nc bnc" id="L112" title="All 4 branches missed.">        model.addAttribute(&quot;displayProjectBanner&quot;, isAdmin &amp;&amp; configurationManager.getForSystem(SHOW_PROJECT_BANNER).getValueAsBooleanOrDefault());</span>
+<span class="nc" id="L113">        model.addAttribute(&quot;baseUrl&quot;, configurationManager.getForSystem(BASE_URL).getValueOrDefault(&quot;&quot;));</span>
+        //
+
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        model.addAttribute(&quot;litAdminStatic&quot;, manifestEntry != null);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (manifestEntry != null) {</span>
+<span class="nc" id="L118">            model.addAttribute(&quot;lit-css&quot;, manifestEntry.css);</span>
+<span class="nc" id="L119">            model.addAttribute(&quot;lit-js&quot;, manifestEntry.file);</span>
+        }
+
+<span class="nc" id="L122">        try (var os = response.getOutputStream()) {</span>
+<span class="nc" id="L123">            response.setContentType(TEXT_HTML_CHARSET_UTF_8);</span>
+<span class="nc" id="L124">            response.setCharacterEncoding(UTF_8);</span>
+<span class="nc" id="L125">            var nonce = cspConfigurer.addCspHeader(response, false);</span>
+<span class="nc" id="L126">            model.addAttribute(NONCE, nonce);</span>
+<span class="nc" id="L127">            model.addAttribute(&quot;render-json&quot;, RENDER_JSON.apply(model.asMap()));</span>
+<span class="nc" id="L128">            templateManager.renderHtml(new ClassPathResource(&quot;alfio/web-templates/admin-index.ms&quot;), model.asMap(), os);</span>
+        }
+<span class="nc" id="L130">    }</span>
+
+    /**
+     * {{#render-json}}property-to-render{{/render-json}}
+     * If the property does not exist, we render it as 'null'
+     */
+<span class="pc" id="L136">    static final Function&lt;Map&lt;String, Object&gt;, Mustache.Lambda&gt; RENDER_JSON = model -&gt; (frag, out) -&gt; {</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (model == null) {</span>
+<span class="nc" id="L138">            out.write(&quot;null&quot;);</span>
+<span class="nc" id="L139">            return;</span>
+        }
+
+<span class="nc" id="L142">        var property = frag.execute().strip();</span>
+
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (model.containsKey(property)) {</span>
+<span class="nc" id="L145">            out.write(&quot;'&quot; + Json.toJson(model.get(property)) + &quot;'&quot;);</span>
+        } else {
+<span class="nc" id="L147">            out.write(&quot;null&quot;);</span>
+        }
+<span class="nc" id="L149">    };</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

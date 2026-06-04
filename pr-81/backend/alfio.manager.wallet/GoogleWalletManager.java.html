@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GoogleWalletManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.wallet</a> &gt; <span class="el_source">GoogleWalletManager.java</span></div><h1>GoogleWalletManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.wallet;
+
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.metadata.TicketMetadata;
+import alfio.model.metadata.TicketMetadataContainer;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.system.command.InvalidateAccess;
+import alfio.repository.*;
+import alfio.util.HttpUtils;
+import alfio.util.MustacheCustomTag;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPrivateKey;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static alfio.config.Initializer.*;
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+
+@Component
+@AllArgsConstructor
+@Transactional
+public class GoogleWalletManager {
+
+<span class="fc" id="L64">    private static final Logger log = LoggerFactory.getLogger(GoogleWalletManager.class);</span>
+    private static final String WALLET_OBJECT_ID = &quot;gWalletObjectId&quot;;
+    private static final String AUTHORIZATION = &quot;Authorization&quot;;
+    private static final String BEARER_PLACEHOLDER = &quot;Bearer %s&quot;;
+    private final EventRepository eventRepository;
+    private final ConfigurationManager configurationManager;
+    private final EventDescriptionRepository eventDescriptionRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final TicketRepository ticketRepository;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final Environment environment;
+    private final AuditingRepository auditingRepository;
+
+    public Optional&lt;Pair&lt;EventAndOrganizationId, Ticket&gt;&gt; validateTicket(String eventName, String ticketUuid) {
+<span class="nc" id="L79">        var eventOptional = eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (eventOptional.isEmpty()) {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L82">                log.trace(&quot;event {} not found&quot;, removeTabsAndNewlines(eventName));</span>
+            }
+<span class="nc" id="L84">            return Optional.empty();</span>
+        }
+
+<span class="nc" id="L87">        var event = eventOptional.get();</span>
+<span class="nc" id="L88">        return ticketRepository.findOptionalByPublicUUID(UUID.fromString(ticketUuid))</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            .filter(t -&gt; t.getEventId() == event.getId())</span>
+<span class="nc" id="L90">            .map(t -&gt; Pair.of(event, t));</span>
+    }
+
+    public String createAddToWalletUrl(Ticket ticket, EventAndOrganizationId event) {
+<span class="nc" id="L94">        Map&lt;ConfigurationKeys, String&gt; passConf = getConfigurationKeys(event);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (!passConf.isEmpty()) {</span>
+<span class="nc" id="L96">            return buildWalletPassUrl(ticket, eventRepository.findById(event.getId()), passConf);</span>
+        } else {
+<span class="nc" id="L98">            throw new GoogleWalletException(&quot;Google Wallet integration is not enabled.&quot;);</span>
+        }
+    }
+
+    @EventListener
+    public void invalidateAccessForTicket(InvalidateAccess invalidateAccess) {
+        try {
+<span class="fc" id="L105">            Map&lt;ConfigurationKeys, String&gt; passConf = getConfigurationKeys(invalidateAccess.event());</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">            if (!passConf.isEmpty()) {</span>
+<span class="nc" id="L107">                invalidateAccess.ticketMetadataContainer()</span>
+<span class="nc" id="L108">                    .getMetadataForKey(TicketMetadataContainer.GENERAL)</span>
+<span class="nc" id="L109">                    .map(m -&gt; m.getAttributes().get(WALLET_OBJECT_ID))</span>
+<span class="nc" id="L110">                    .ifPresent(s -&gt; invalidateObject(invalidateAccess.ticket().getUuid(), s, passConf));</span>
+            }
+<span class="nc" id="L112">        } catch (Exception e) {</span>
+<span class="nc" id="L113">            log.warn(&quot;Error while invalidating access for ticket &quot; + invalidateAccess.ticket().getUuid(), e);</span>
+<span class="fc" id="L114">        }</span>
+<span class="fc" id="L115">    }</span>
+
+    private void invalidateObject(String ticketId, String objectId, Map&lt;ConfigurationKeys, String&gt; passConf) {
+        try {
+<span class="nc" id="L119">            log.trace(&quot;Invalidating access to object ID: {}&quot;, objectId);</span>
+<span class="nc" id="L120">            var credentials = retrieveCredentials(passConf.get(WALLET_SERVICE_ACCOUNT_KEY));</span>
+<span class="nc" id="L121">            URI uriWithId = URI.create(&quot;%s/%s&quot;.formatted(EventTicketObject.WALLET_URL, objectId));</span>
+<span class="nc" id="L122">            HttpRequest expireRequest = HttpRequest.newBuilder()</span>
+<span class="nc" id="L123">                .uri(uriWithId)</span>
+<span class="nc" id="L124">                .header(AUTHORIZATION, BEARER_PLACEHOLDER.formatted(credentials.refreshAccessToken().getTokenValue()))</span>
+<span class="nc" id="L125">                .method(&quot;PATCH&quot;, HttpRequest.BodyPublishers.ofString(&quot;{\&quot;state\&quot;:\&quot;INACTIVE\&quot;}&quot;))</span>
+<span class="nc" id="L126">                .build();</span>
+<span class="nc" id="L127">            var response = httpClient.send(expireRequest, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            if (HttpUtils.callSuccessful(response)) {</span>
+<span class="nc" id="L129">                log.debug(&quot;Access invalidated for ticket {}&quot;, ticketId);</span>
+            } else {
+<span class="nc" id="L131">                logIfWarnEnabled(() -&gt; log.warn(&quot;Cannot invalidate access for ticket {}, response: {}&quot;, ticketId, response.body()));</span>
+            }
+<span class="nc" id="L133">        } catch (IOException e) {</span>
+<span class="nc" id="L134">            throw new GoogleWalletException(e.getMessage(), e);</span>
+<span class="nc" id="L135">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L136">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L137">            throw new GoogleWalletException(e.getMessage(), e);</span>
+<span class="nc" id="L138">        }</span>
+<span class="nc" id="L139">    }</span>
+
+    private Map&lt;ConfigurationKeys, String&gt; getConfigurationKeys(EventAndOrganizationId event) {
+<span class="fc" id="L142">        var conf = configurationManager.getFor(Set.of(</span>
+                ENABLE_WALLET,
+                WALLET_ISSUER_IDENTIFIER,
+                WALLET_SERVICE_ACCOUNT_KEY,
+                WALLET_OVERWRITE_PREVIOUS_CLASSES_AND_EVENTS,
+                BASE_URL),
+<span class="fc" id="L148">            event.getConfigurationLevel());</span>
+
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">        if (!conf.get(ENABLE_WALLET).getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L151">            return Map.of();</span>
+        }
+<span class="nc" id="L153">        var configValues = Map.of(</span>
+<span class="nc" id="L154">            WALLET_ISSUER_IDENTIFIER, conf.get(WALLET_ISSUER_IDENTIFIER).getValue(),</span>
+<span class="nc" id="L155">            WALLET_SERVICE_ACCOUNT_KEY, conf.get(WALLET_SERVICE_ACCOUNT_KEY).getValue(),</span>
+<span class="nc" id="L156">            WALLET_OVERWRITE_PREVIOUS_CLASSES_AND_EVENTS, conf.get(WALLET_OVERWRITE_PREVIOUS_CLASSES_AND_EVENTS).getValue(),</span>
+<span class="nc" id="L157">            BASE_URL, conf.get(BASE_URL).getValue());</span>
+
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (configValues.values().stream().anyMatch(Optional::isEmpty)) {</span>
+<span class="nc" id="L160">            return Map.of();</span>
+        }
+
+<span class="nc" id="L163">        return configValues</span>
+<span class="nc" id="L164">            .entrySet()</span>
+<span class="nc" id="L165">            .stream()</span>
+<span class="nc" id="L166">            .collect(Collectors.toMap(Map.Entry::getKey, e -&gt; e.getValue().orElseThrow()));</span>
+    }
+
+    private String buildWalletPassUrl(Ticket ticket,
+                                      Event event,
+                                      Map&lt;ConfigurationKeys, String&gt; config) {
+<span class="nc" id="L172">        String baseUrl = config.get(BASE_URL);</span>
+<span class="nc" id="L173">        String issuerId = config.get(WALLET_ISSUER_IDENTIFIER);</span>
+<span class="nc" id="L174">        String serviceAccountKey = config.get(WALLET_SERVICE_ACCOUNT_KEY);</span>
+<span class="nc" id="L175">        boolean overwritePreviousClassesAndEvents = Boolean.parseBoolean(config.get(WALLET_OVERWRITE_PREVIOUS_CLASSES_AND_EVENTS));</span>
+
+<span class="nc" id="L177">        String eventDescription = MustacheCustomTag.renderToTextCommonmark(</span>
+<span class="nc" id="L178">            eventDescriptionRepository.findDescriptionByEventIdTypeAndLocale(event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, ticket.getUserLanguage()).orElse(&quot;&quot;));</span>
+<span class="nc" id="L179">        TicketCategory category = ticketCategoryRepository.getById(ticket.getCategoryId());</span>
+<span class="nc" id="L180">        var ticketValidityStart = Optional.ofNullable(category.getTicketValidityStart(event.getZoneId())).orElse(event.getBegin());</span>
+<span class="nc" id="L181">        var ticketValidityEnd = Optional.ofNullable(category.getTicketValidityEnd(event.getZoneId())).orElse(event.getEnd());</span>
+
+<span class="nc" id="L183">        EventTicketClass.LatitudeLongitudePoint latitudeLongitudePoint = null;</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">        if (event.getLatitude() != null &amp;&amp; event.getLongitude() != null) {</span>
+<span class="nc" id="L185">            latitudeLongitudePoint = EventTicketClass.LatitudeLongitudePoint.of(Double.parseDouble(event.getLatitude()), Double.parseDouble(event.getLongitude()));</span>
+        }
+
+<span class="nc" id="L188">        var host = URI.create(baseUrl).getHost().replace(&quot;.&quot;, &quot;-&quot;);</span>
+<span class="nc" id="L189">        var eventTicketClass = new EventTicketClass(</span>
+<span class="nc" id="L190">            formatEventTicketClassId(event, issuerId, category, host),</span>
+<span class="nc" id="L191">            event.getDisplayName(),</span>
+<span class="nc" id="L192">            Integer.toString(event.getId()),</span>
+            eventDescription,
+<span class="nc" id="L194">            event.getLocation(),</span>
+            latitudeLongitudePoint,
+<span class="nc" id="L196">            category.getName(),</span>
+<span class="nc" id="L197">            baseUrl + &quot;/file/&quot; + event.getFileBlobId(),</span>
+            ticketValidityStart,
+            ticketValidityEnd
+        );
+
+<span class="nc" id="L202">        String walletTicketId = formatEventTicketObjectId(ticket, event, issuerId, host);</span>
+<span class="nc" id="L203">        var eventTicketObject = new EventTicketObject(</span>
+            walletTicketId,
+<span class="nc" id="L205">            eventTicketClass.getId(),</span>
+<span class="nc" id="L206">            ticket.getFullName(),</span>
+<span class="nc" id="L207">            ticket.getUuid(),</span>
+<span class="nc" id="L208">            ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive())</span>
+        );
+
+<span class="nc" id="L211">        GoogleCredentials credentials = retrieveCredentials(serviceAccountKey);</span>
+
+<span class="nc" id="L213">        createEventClass(credentials, eventTicketClass, overwritePreviousClassesAndEvents);</span>
+<span class="nc" id="L214">        String eventObjectId = createEventObject(credentials, eventTicketObject, overwritePreviousClassesAndEvents);</span>
+<span class="nc" id="L215">        String walletPassUrl = generateWalletPassUrl(credentials, eventObjectId, baseUrl);</span>
+<span class="nc" id="L216">        persistPassId(ticket, eventObjectId);</span>
+<span class="nc" id="L217">        return walletPassUrl;</span>
+    }
+
+    private static GoogleCredentials retrieveCredentials(String serviceAccountKey) {
+        try {
+<span class="nc" id="L222">            return GoogleCredentials</span>
+<span class="nc" id="L223">                .fromStream(new ByteArrayInputStream(serviceAccountKey.getBytes(StandardCharsets.UTF_8)))</span>
+<span class="nc" id="L224">                .createScoped(Collections.singleton(&quot;https://www.googleapis.com/auth/wallet_object.issuer&quot;));</span>
+<span class="nc" id="L225">        } catch (IOException e) {</span>
+<span class="nc" id="L226">            throw new GoogleWalletException(&quot;Unable to retrieve Service Account Credentials from configuration&quot;, e);</span>
+        }
+    }
+
+    private void persistPassId(Ticket ticket, String eventObjectId) {
+<span class="nc" id="L231">        var metadataContainer = Objects.requireNonNullElseGet(ticketRepository.getTicketMetadata(ticket.getId()), TicketMetadataContainer::empty);</span>
+<span class="nc" id="L232">        var existingMetadata = metadataContainer.getMetadataForKey(TicketMetadataContainer.GENERAL);</span>
+<span class="nc" id="L233">        var attributesMap = existingMetadata.map(ticketMetadata -&gt; new HashMap&lt;&gt;(ticketMetadata.getAttributes()))</span>
+<span class="nc" id="L234">            .orElseGet(HashMap::new);</span>
+<span class="nc" id="L235">        attributesMap.put(WALLET_OBJECT_ID, eventObjectId);</span>
+<span class="nc" id="L236">        metadataContainer.putMetadata(TicketMetadataContainer.GENERAL, existingMetadata.map(tm -&gt; tm.withAttributes(attributesMap)).orElseGet(() -&gt; new TicketMetadata(null, null, attributesMap)));</span>
+<span class="nc" id="L237">        ticketRepository.updateTicketMetadata(ticket.getId(), metadataContainer);</span>
+<span class="nc" id="L238">    }</span>
+
+    private String formatEventTicketObjectId(Ticket ticket, Event event, String issuerId, String host) {
+<span class="nc" id="L241">        return String.format(&quot;%s.%s-%s-object.%s-%s&quot;,</span>
+            issuerId,
+<span class="nc" id="L243">            walletIdPrefix(),</span>
+            host,
+<span class="nc" id="L245">            event.getShortName().replaceAll(&quot;[^\\w.-]&quot;, &quot;_&quot;),</span>
+            // if the attendee gives their ticket to somebody else, the new ticket holder must be able to add their ticket to the wallet
+            // therefore we add count(audit(UPDATE_TICKET)) as suffix for the ticket UUID
+<span class="nc" id="L248">            ticket.getUuid()+ &quot;_&quot; + auditingRepository.countAuditsOfTypeForTicket(ticket.getTicketsReservationId(), ticket.getId(), Audit.EventType.TICKET_HOLDER_CHANGED));</span>
+    }
+
+    private String formatEventTicketClassId(Event event, String issuerId, TicketCategory category, String host) {
+<span class="nc" id="L252">        return String.format(&quot;%s.%s-%s-class.%s-%d&quot;, issuerId, walletIdPrefix(), host, event.getShortName().replaceAll(&quot;[^\\w.-]&quot;, &quot;_&quot;), category.getId());</span>
+    }
+
+    private String generateWalletPassUrl(GoogleCredentials credentials, String eventObjectId, String url) {
+<span class="nc" id="L256">        var objectIdMap = Map.of(&quot;id&quot;, eventObjectId);</span>
+<span class="nc" id="L257">        var payload = Map.of(&quot;genericObjects&quot;, List.of(objectIdMap));</span>
+<span class="nc" id="L258">        var claims = Map.of(</span>
+<span class="nc" id="L259">            &quot;iss&quot;, ((ServiceAccountCredentials) credentials).getClientEmail(),</span>
+            &quot;aud&quot;, &quot;google&quot;,
+<span class="nc" id="L261">            &quot;origins&quot;, List.of(url),</span>
+            &quot;typ&quot;, &quot;savetowallet&quot;,
+            &quot;payload&quot;, payload
+        );
+
+<span class="nc" id="L266">        Algorithm algorithm = Algorithm.RSA256(</span>
+            null,
+<span class="nc" id="L268">            (RSAPrivateKey) ((ServiceAccountCredentials) credentials).getPrivateKey());</span>
+<span class="nc" id="L269">        String token = JWT.create()</span>
+<span class="nc" id="L270">            .withPayload(claims)</span>
+<span class="nc" id="L271">            .sign(algorithm);</span>
+<span class="nc" id="L272">        return &quot;https://pay.google.com/gp/v/save/%s&quot;.formatted(token);</span>
+    }
+
+    private String createEventClass(GoogleCredentials credentials, EventTicketClass eventTicketClass, boolean overwritePreviousClassesAndEvents) {
+<span class="nc" id="L276">        return createOnWallet(EventTicketClass.WALLET_URL, credentials, eventTicketClass, overwritePreviousClassesAndEvents);</span>
+    }
+
+    private String createEventObject(GoogleCredentials credentials, EventTicketObject eventTicketObject, boolean overwritePreviousClassesAndEvents) {
+<span class="nc" id="L280">        return createOnWallet(EventTicketObject.WALLET_URL, credentials, eventTicketObject, overwritePreviousClassesAndEvents);</span>
+    }
+
+    private String createOnWallet(String uri, GoogleCredentials credentials, WalletEntity entity, boolean overwritePreviousClassesAndEvents) {
+        try {
+<span class="nc" id="L285">            URI uriWithId = URI.create(&quot;%s/%s&quot;.formatted(uri, entity.getId()));</span>
+<span class="nc" id="L286">            HttpRequest getRequest = HttpRequest.newBuilder()</span>
+<span class="nc" id="L287">                .uri(uriWithId)</span>
+<span class="nc" id="L288">                .header(AUTHORIZATION, BEARER_PLACEHOLDER.formatted(credentials.refreshAccessToken().getTokenValue()))</span>
+<span class="nc" id="L289">                .GET()</span>
+<span class="nc" id="L290">                .build();</span>
+<span class="nc" id="L291">            log.debug(&quot;GET Request: {}&quot;, getRequest);</span>
+
+<span class="nc" id="L293">            HttpResponse&lt;String&gt; getResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc" id="L294">            log.debug(&quot;GET Response: {}&quot;, getResponse);</span>
+<span class="nc bnc" id="L295" title="All 4 branches missed.">            if (getResponse.statusCode() != 200 &amp;&amp; getResponse.statusCode() != 404) {</span>
+<span class="nc" id="L296">                logIfWarnEnabled(() -&gt; log.warn(&quot;Received {} status code when creating entity but 200 or 404 were expected: {}&quot;, getResponse.statusCode(), getResponse.body()));</span>
+<span class="nc" id="L297">                throw new GoogleWalletException(&quot;Cannot create Wallet class. Response status: &quot; + getResponse.statusCode());</span>
+            }
+
+<span class="nc bnc" id="L300" title="All 4 branches missed.">            if (getResponse.statusCode() == 404 || overwritePreviousClassesAndEvents) {</span>
+<span class="nc" id="L301">                HttpRequest.Builder builder = HttpRequest.newBuilder()</span>
+<span class="nc" id="L302">                    .header(AUTHORIZATION, BEARER_PLACEHOLDER.formatted(credentials.refreshAccessToken().getTokenValue()));</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                if (getResponse.statusCode() == 404) {</span>
+<span class="nc" id="L304">                    builder = builder</span>
+<span class="nc" id="L305">                        .uri(URI.create(uri))</span>
+<span class="nc" id="L306">                        .POST(HttpRequest.BodyPublishers.ofString(entity.build(objectMapper)));</span>
+                } else {
+<span class="nc" id="L308">                    builder = builder</span>
+<span class="nc" id="L309">                        .uri(uriWithId)</span>
+<span class="nc" id="L310">                        .PUT(HttpRequest.BodyPublishers.ofString(entity.build(objectMapper)));</span>
+                }
+<span class="nc" id="L312">                HttpRequest postOrPutRequest = builder.build();</span>
+<span class="nc" id="L313">                log.debug(&quot;POST or PUT Request: {}&quot;, postOrPutRequest);</span>
+<span class="nc" id="L314">                HttpResponse&lt;String&gt; postOrPutResponse = httpClient.send(postOrPutRequest, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc" id="L315">                log.debug(&quot;POST or PUT Response: {}&quot;, postOrPutResponse);</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                if (postOrPutResponse.statusCode() != 200) {</span>
+<span class="nc" id="L317">                    logIfWarnEnabled(() -&gt; log.warn(&quot;Received {} status code when creating entity: {}&quot;, postOrPutResponse.statusCode(), postOrPutResponse.body()));</span>
+<span class="nc" id="L318">                    throw new GoogleWalletException(&quot;Cannot create wallet. Response status: &quot; + postOrPutResponse.statusCode());</span>
+                }
+            }
+<span class="nc" id="L321">            return entity.getId();</span>
+<span class="nc" id="L322">        } catch (IOException e) {</span>
+<span class="nc" id="L323">            throw new GoogleWalletException(&quot;Error while communicating with the Google Wallet API&quot;, e);</span>
+<span class="nc" id="L324">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L325">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L326">            throw new GoogleWalletException(&quot;Error while communicating with the Google Wallet API&quot;, e);</span>
+        }
+    }
+
+    private String walletIdPrefix() {
+<span class="nc" id="L331">        var profile = Stream.of(PROFILE_DEMO, PROFILE_DEV, PROFILE_LIVE)</span>
+<span class="nc" id="L332">            .filter(p -&gt; environment.acceptsProfiles(Profiles.of(p)))</span>
+<span class="nc" id="L333">            .findFirst()</span>
+<span class="nc" id="L334">            .orElseThrow(() -&gt; new NoSuchElementException(&quot;No suitable Spring Profile found to create a Wallet ID prefix for classes and objects. Must have one of PROFILE_DEMO, PROFILE_DEV, or PROFILE_LIVE&quot;));</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        if (profile.equals(PROFILE_LIVE)) {</span>
+<span class="nc" id="L336">            return &quot;live&quot;;</span>
+        }
+<span class="nc" id="L338">        return profile;</span>
+    }
+
+    private void logIfWarnEnabled(ConditionalLogger logger) {
+<span class="nc bnc" id="L342" title="All 2 branches missed.">        if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L343">            logger.log();</span>
+        }
+<span class="nc" id="L345">    }</span>
+
+    @FunctionalInterface
+    private interface ConditionalLogger {
+        void log();
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

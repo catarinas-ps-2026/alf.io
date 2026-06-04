@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SubscriptionApiV1Controller.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.v1.admin</a> &gt; <span class="el_source">SubscriptionApiV1Controller.java</span></div><h1>SubscriptionApiV1Controller.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.v1.admin;
+
+import alfio.controller.api.admin.SubscriptionApiController;
+import alfio.manager.*;
+import alfio.manager.user.UserManager;
+import alfio.model.api.v1.admin.LinkedEvent;
+import alfio.model.api.v1.admin.SubscriptionDescriptorModificationRequest;
+import alfio.model.modification.SubscriptionDescriptorModification;
+import alfio.model.subscription.EventSubscriptionLink;
+import alfio.model.subscription.LinkEventsToSubscriptionRequest;
+import alfio.model.subscription.SubscriptionDescriptorWithStatistics;
+import alfio.util.Json;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static java.util.stream.Collectors.toList;
+
+@RestController
+@RequestMapping(&quot;/api/v1/admin/subscription&quot;)
+@Transactional
+public class SubscriptionApiV1Controller {
+<span class="fc" id="L48">    private static final Logger log = LoggerFactory.getLogger(SubscriptionApiV1Controller.class);</span>
+    private final SubscriptionManager subscriptionManager;
+    private final FileUploadManager fileUploadManager;
+    private final FileDownloadManager fileDownloadManager;
+    private final UserManager userManager;
+    private final AccessService accessService;
+    private final PurchaseContextFieldManager purchaseContextFieldManager;
+
+    public SubscriptionApiV1Controller(SubscriptionManager subscriptionManager,
+                                       FileUploadManager fileUploadManager,
+                                       FileDownloadManager fileDownloadManager,
+                                       UserManager userManager,
+                                       AccessService accessService,
+<span class="fc" id="L61">                                       PurchaseContextFieldManager purchaseContextFieldManager) {</span>
+<span class="fc" id="L62">        this.subscriptionManager = subscriptionManager;</span>
+<span class="fc" id="L63">        this.fileUploadManager = fileUploadManager;</span>
+<span class="fc" id="L64">        this.fileDownloadManager = fileDownloadManager;</span>
+<span class="fc" id="L65">        this.userManager = userManager;</span>
+<span class="fc" id="L66">        this.accessService = accessService;</span>
+<span class="fc" id="L67">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+<span class="fc" id="L68">    }</span>
+
+    @PostMapping(&quot;/create&quot;)
+    public ResponseEntity&lt;String&gt; create(@RequestBody SubscriptionDescriptorModificationRequest request, Principal principal) {
+<span class="fc" id="L72">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L73">        String imageRef = null;</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if(StringUtils.isNotEmpty(request.getImageUrl())) {</span>
+<span class="fc" id="L75">            imageRef = fetchImage(request.getImageUrl());</span>
+        }
+<span class="fc" id="L77">        var modification = request.toDescriptorModification(null, organization.getId(), imageRef)</span>
+<span class="fc" id="L78">            .flatMap(SubscriptionDescriptorModification::validate);</span>
+<span class="fc" id="L79">        var additionalFields = request.toAdditionalFieldsRequest();</span>
+<span class="pc bpc" id="L80" title="2 of 4 branches missed.">        if (modification.isSuccess() &amp;&amp; additionalFields.isSuccess()) {</span>
+            // request is valid
+<span class="fc" id="L82">            var optionalId = subscriptionManager.createSubscriptionDescriptor(modification.getData());</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (optionalId.isPresent()) {</span>
+<span class="fc" id="L84">                var id = optionalId.get();</span>
+<span class="fc" id="L85">                purchaseContextFieldManager.addAdditionalFields(subscriptionManager.getSubscriptionById(id).orElseThrow(), additionalFields.getData());</span>
+            }
+<span class="fc" id="L87">            return optionalId.map(uuid -&gt; ResponseEntity.ok(uuid.toString()))</span>
+<span class="pc" id="L88">                .orElseGet(() -&gt; ResponseEntity.internalServerError().build());</span>
+        }
+<span class="nc" id="L90">        var errors = new ArrayList&lt;&gt;(modification.getErrors());</span>
+<span class="nc" id="L91">        errors.addAll(additionalFields.getErrors());</span>
+<span class="nc" id="L92">        return ResponseEntity.badRequest().body(Json.toJson(errors));</span>
+    }
+
+    @PostMapping(&quot;/{subscriptionId}/update&quot;)
+    public ResponseEntity&lt;String&gt; update(@PathVariable UUID subscriptionId,
+                                         @RequestBody SubscriptionDescriptorModificationRequest request, Principal principal) {
+<span class="fc" id="L98">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId.toString());</span>
+<span class="fc" id="L99">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L100">        String imageRef = null;</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if(StringUtils.isNotEmpty(request.getImageUrl())) {</span>
+<span class="fc" id="L102">            imageRef = fetchImage(request.getImageUrl());</span>
+        }
+<span class="fc" id="L104">        var modification = request.toDescriptorModification(subscriptionId, organization.getId(), imageRef)</span>
+<span class="fc" id="L105">            .flatMap(SubscriptionDescriptorModification::validate);</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (modification.isSuccess()) {</span>
+            // request is valid
+<span class="fc" id="L108">            var optionalId = subscriptionManager.updateSubscriptionDescriptor(modification.getData());</span>
+<span class="fc" id="L109">            return optionalId.map(uuid -&gt; ResponseEntity.ok(uuid.toString()))</span>
+<span class="pc" id="L110">                .orElseGet(() -&gt; ResponseEntity.internalServerError().build());</span>
+        }
+<span class="nc" id="L112">        return ResponseEntity.badRequest().body(Json.toJson(modification.getErrors()));</span>
+    }
+
+    @GetMapping(&quot;/{subscriptionId}&quot;)
+    public ResponseEntity&lt;SubscriptionDescriptorWithStatistics&gt; get(@PathVariable UUID subscriptionId,
+                                                                    Principal principal) {
+<span class="nc" id="L118">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId.toString());</span>
+<span class="nc" id="L119">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="nc" id="L120">        return ResponseEntity.of(subscriptionManager.loadSubscriptionWithStatistics(subscriptionId, organization.getId()));</span>
+    }
+
+    @GetMapping(&quot;/{subscriptionId}/events&quot;)
+    public ResponseEntity&lt;List&lt;LinkedEvent&gt;&gt; getLinkedEvents(@PathVariable UUID subscriptionId,
+                                                       Principal principal) {
+<span class="fc" id="L126">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId.toString());</span>
+<span class="fc" id="L127">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L128">        return ResponseEntity.ok(toLinkedEvents(subscriptionManager.getLinkedEvents(organization.getId(), subscriptionId)));</span>
+    }
+
+    @PostMapping(&quot;/{subscriptionId}/events&quot;)
+    public ResponseEntity&lt;List&lt;LinkedEvent&gt;&gt; updateLinkedEvents(@PathVariable UUID subscriptionId,
+                                                                @RequestBody List&lt;LinkEventsToSubscriptionRequest&gt; linkedEvents,
+                                                                Principal principal) {
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (linkedEvents == null) {</span>
+<span class="nc" id="L136">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+        }
+<span class="fc" id="L138">        accessService.checkEventLinkRequest(principal, subscriptionId.toString(), linkedEvents);</span>
+<span class="fc" id="L139">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L140">        int organizationId = organization.getId();</span>
+<span class="fc" id="L141">        var result = subscriptionManager.updateLinkedEvents(organizationId, subscriptionId, linkedEvents);</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        if (result.isSuccess()) {</span>
+<span class="fc" id="L143">            return ResponseEntity.ok(toLinkedEvents(result.getData()));</span>
+        } else {
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L146">                log.warn(&quot;Cannot update linked events {}&quot;, Json.toJson(result.getErrors()));</span>
+            }
+<span class="nc" id="L148">            return ResponseEntity.badRequest().build();</span>
+        }
+    }
+
+    @DeleteMapping(&quot;/{subscriptionId}/deactivate&quot;)
+    public ResponseEntity&lt;Void&gt; deactivate(@PathVariable(&quot;subscriptionId&quot;) UUID descriptorId, Principal principal) {
+<span class="fc" id="L154">        accessService.checkSubscriptionDescriptorOwnership(principal, descriptorId.toString());</span>
+<span class="fc" id="L155">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L156">        int organizationId = organization.getId();</span>
+<span class="fc" id="L157">        return SubscriptionApiController.deactivateSubscriptionDescriptor(organizationId, descriptorId, subscriptionManager);</span>
+    }
+
+    private String fetchImage(String url) {
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if(url != null) {</span>
+<span class="fc" id="L162">            FileDownloadManager.DownloadedFile file = fileDownloadManager.downloadFile(url);</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">            return file != null ? fileUploadManager.insertFile(file.toUploadBase64FileModification()) : null;</span>
+        } else {
+<span class="nc" id="L165">            return null;</span>
+        }
+    }
+
+    private static List&lt;LinkedEvent&gt; toLinkedEvents(List&lt;EventSubscriptionLink&gt; links) {
+<span class="fc" id="L170">        return links.stream()</span>
+<span class="fc" id="L171">            .map(l -&gt; new LinkedEvent(l.getEventShortName(), l.getCompatibleCategories()))</span>
+<span class="fc" id="L172">            .collect(toList());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
