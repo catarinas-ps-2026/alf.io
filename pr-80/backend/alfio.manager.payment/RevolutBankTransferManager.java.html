@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RevolutBankTransferManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.payment</a> &gt; <span class="el_source">RevolutBankTransferManager.java</span></div><h1>RevolutBankTransferManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.payment;
+
+import alfio.manager.support.PaymentResult;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.PaymentInformation;
+import alfio.model.PurchaseContext;
+import alfio.model.TicketReservationWithTransaction;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import alfio.model.transaction.*;
+import alfio.model.transaction.capabilities.OfflineProcessor;
+import alfio.model.transaction.capabilities.PaymentInfo;
+import alfio.model.transaction.provider.RevolutTransactionDescriptor;
+import alfio.repository.TransactionRepository;
+import alfio.util.ClockProvider;
+import alfio.util.Json;
+import alfio.util.MonetaryUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.EventUtil.JSON_DATETIME_FORMATTER;
+
+@Component
+@Order(1)
+@Transactional
+@AllArgsConstructor
+public class RevolutBankTransferManager implements PaymentProvider, OfflineProcessor, PaymentInfo {
+
+<span class="fc" id="L66">    private static final Logger log = LoggerFactory.getLogger(RevolutBankTransferManager.class);</span>
+    private static final String GENERIC_ERROR = &quot;error&quot;;
+    private final BankTransferManager bankTransferManager;
+    private final ConfigurationManager configurationManager;
+    private final TransactionRepository transactionRepository;
+    private final HttpClient client;
+    private final ClockProvider clockProvider;
+<span class="fc" id="L73">    private static final Cache&lt;String, List&lt;String&gt;&gt; accountsCache = Caffeine.newBuilder()</span>
+<span class="fc" id="L74">        .expireAfterWrite(Duration.ofHours(1))</span>
+<span class="fc" id="L75">        .build();</span>
+
+    @Override
+    public Set&lt;? extends PaymentMethod&gt; getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
+<span class="fc" id="L79">        return bankTransferManager.getSupportedPaymentMethods(paymentContext, transactionRequest);</span>
+    }
+
+    @Override
+    public PaymentProxy getPaymentProxy() {
+<span class="fc" id="L84">        return bankTransferManager.getPaymentProxy();</span>
+    }
+
+    @Override
+    public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
+<span class="pc bpc" id="L89" title="3 of 4 branches missed.">        return paymentMethod == StaticPaymentMethods.BANK_TRANSFER &amp;&amp; isActive(context);</span>
+    }
+
+    @Override
+    public boolean isActive(PaymentContext paymentContext) {
+<span class="fc" id="L94">        var options = bankTransferManager.options(paymentContext);</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        return bankTransferManager.bankTransferActive(paymentContext, options)</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">            &amp;&amp; options.get(REVOLUT_ENABLED).getValueAsBooleanOrDefault()</span>
+<span class="pc bnc" id="L97" title="All 2 branches missed.">            &amp;&amp; options.get(REVOLUT_API_KEY).isPresent();</span>
+    }
+
+    @Override
+    public PaymentResult doPayment(PaymentSpecification spec) {
+<span class="nc" id="L102">        return bankTransferManager.doPayment(spec);</span>
+    }
+
+    @Override
+    public Map&lt;String, ?&gt; getModelOptions(PaymentContext context) {
+<span class="nc" id="L107">        return bankTransferManager.getModelOptions(context);</span>
+    }
+
+    @Override
+    public Result&lt;List&lt;String&gt;&gt; checkPendingReservations(Collection&lt;TicketReservationWithTransaction&gt; reservations,
+                                                                                   PaymentContext context,
+                                                                                   ZonedDateTime lastCheck) {
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if(reservations.isEmpty()) {</span>
+<span class="nc" id="L115">            return Result.success(List.of());</span>
+        }
+<span class="nc" id="L117">        var options = bankTransferManager.options(context);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        var host = options.get(REVOLUT_LIVE_MODE).getValueAsBooleanOrDefault() ? &quot;https://b2b.revolut.com&quot; : &quot;https://sandbox-b2b.revolut.com&quot;;</span>
+<span class="nc" id="L119">        var revolutKeyOptional = options.get(REVOLUT_API_KEY).getValue();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if(revolutKeyOptional.isEmpty()) {</span>
+<span class="nc" id="L121">            return Result.error(ErrorCode.custom(&quot;unavailable&quot;, &quot;cannot retrieve Revolut API KEY. Please fix configuration&quot;));</span>
+        }
+<span class="nc" id="L123">        var revolutKey = revolutKeyOptional.get();</span>
+
+<span class="nc" id="L125">        return loadAccounts(revolutKey, host)</span>
+<span class="nc" id="L126">            .flatMap(accounts -&gt; loadTransactions(lastCheck, revolutKey, host, accounts))</span>
+<span class="nc" id="L127">            .flatMap(revolutTransactions -&gt; matchTransactions(reservations, revolutTransactions, context, options.get(REVOLUT_MANUAL_REVIEW).getValueAsBooleanOrDefault()));</span>
+    }
+
+    Result&lt;List&lt;String&gt;&gt; matchTransactions(Collection&lt;TicketReservationWithTransaction&gt; pendingReservations,
+                                           List&lt;RevolutTransactionDescriptor&gt; transactions,
+                                           PaymentContext context,
+                                           boolean manualReviewRequired) {
+<span class="fc" id="L134">        List&lt;Pair&lt;TicketReservationWithTransaction, RevolutTransactionDescriptor&gt;&gt; matched = pendingReservations.stream()</span>
+<span class="fc" id="L135">            .map(reservation -&gt; Pair.of(reservation, transactions.stream().filter(transactionMatches(reservation, context)).findFirst()))</span>
+<span class="fc" id="L136">            .filter(pair -&gt; pair.getRight().isPresent())</span>
+<span class="fc" id="L137">            .map(pair -&gt; Pair.of(pair.getLeft(), pair.getRight().orElseThrow()))</span>
+<span class="fc" id="L138">            .collect(Collectors.toList());</span>
+
+<span class="fc" id="L140">        return Result.success(matched.stream().map(pair -&gt; {</span>
+<span class="fc" id="L141">                var reservationId = pair.getLeft().getTicketReservation().getId();</span>
+<span class="fc" id="L142">                var transaction = pair.getLeft().getTransaction();</span>
+<span class="fc" id="L143">                Optional&lt;Transaction&gt; latestTransaction = transactionRepository.lockLatestForUpdate(reservationId);</span>
+<span class="pc bpc" id="L144" title="3 of 6 branches missed.">                if(latestTransaction.isEmpty() || latestTransaction.get().getId() != transaction.getId() || latestTransaction.get().getStatus() != transaction.getStatus()) {</span>
+<span class="nc" id="L145">                    log.trace(&quot;transaction {} has been modified while processing. Current status is: {}&quot;, transaction.getId(), latestTransaction.map(t -&gt; t.getStatus().name()).orElse(&quot;N/A&quot;));</span>
+<span class="nc" id="L146">                    return null;</span>
+                }
+<span class="fc" id="L148">                var revolutTransaction = pair.getRight();</span>
+
+<span class="fc" id="L150">                transactionRepository.update(transaction.getId(),</span>
+<span class="fc" id="L151">                    revolutTransaction.getId(),</span>
+<span class="fc" id="L152">                    revolutTransaction.getRequestId(),</span>
+<span class="fc" id="L153">                    revolutTransaction.getCompletedAt(),</span>
+                    0L,
+                    0L,
+<span class="fc bfc" id="L156" title="All 2 branches covered.">                    manualReviewRequired ? Transaction.Status.OFFLINE_PENDING_REVIEW : Transaction.Status.OFFLINE_MATCHING_PAYMENT_FOUND,</span>
+<span class="fc" id="L157">                    revolutTransaction.getMetadata());</span>
+<span class="fc" id="L158">                return reservationId;</span>
+            })
+<span class="fc" id="L160">            .filter(Objects::nonNull)</span>
+<span class="fc" id="L161">            .collect(Collectors.toList()));</span>
+    }
+
+    private Predicate&lt;RevolutTransactionDescriptor&gt; transactionMatches(TicketReservationWithTransaction reservationWithTransaction, PaymentContext context) {
+<span class="fc" id="L165">        var reservation = reservationWithTransaction.getTicketReservation();</span>
+<span class="fc" id="L166">        var transaction = reservationWithTransaction.getTransaction();</span>
+<span class="fc" id="L167">        String reservationId = reservation.getId().toLowerCase();</span>
+<span class="fc" id="L168">        var shortReservationId = configurationManager.getShortReservationID(context.getPurchaseContext(), reservation).toLowerCase();</span>
+        String[] terms;
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">        if(reservation.getHasInvoiceNumber()) {</span>
+<span class="nc" id="L171">            terms = new String[] {reservation.getInvoiceNumber().toLowerCase(), shortReservationId, reservationId};</span>
+        } else {
+<span class="fc" id="L173">            terms = new String[] {shortReservationId, reservationId};</span>
+        }
+
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        return revolutTransaction -&gt; revolutTransaction.getTransactionBalance().compareTo(BigDecimal.ZERO) &gt; 0</span>
+<span class="fc bfc" id="L177" title="All 2 branches covered.">            &amp;&amp; Arrays.stream(terms).anyMatch(s -&gt; revolutTransaction.getReference().toLowerCase().contains(s))</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">            &amp;&amp; transaction.getCurrency().equals(revolutTransaction.getLegs().get(0).getCurrency())</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">            &amp;&amp; transaction.getPriceInCents() == MonetaryUtil.unitToCents(revolutTransaction.getTransactionBalance(), transaction.getCurrency());</span>
+    }
+
+    private Result&lt;List&lt;RevolutTransactionDescriptor&gt;&gt; loadTransactions(ZonedDateTime lastCheck, String revolutKey, String revolutUrl, List&lt;String&gt; accounts) {
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if(accounts.isEmpty()) {</span>
+<span class="nc" id="L184">            return Result.error(ErrorCode.custom(&quot;no-account&quot;, &quot;No active accounts found.&quot;));</span>
+        }
+        try {
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            var from = lastCheck != null ? lastCheck.withZoneSameInstant(clockProvider.getClock().getZone()) : ZonedDateTime.now(clockProvider.getClock()).minusDays(1);//defaults to now - 24h</span>
+<span class="nc" id="L188">            var request = HttpRequest.newBuilder(URI.create(revolutUrl + &quot;/api/1.0/transactions?from=&quot; + from.format(JSON_DATETIME_FORMATTER)))</span>
+<span class="nc" id="L189">                .GET()</span>
+<span class="nc" id="L190">                .header(&quot;Authorization&quot;, &quot;Bearer &quot;+revolutKey)</span>
+<span class="nc" id="L191">                .build();</span>
+<span class="nc" id="L192">            var response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">            if(response.statusCode() == HttpStatus.OK.value()) {</span>
+<span class="nc" id="L194">                List&lt;RevolutTransactionDescriptor&gt; result = Json.fromJson(response.body(), new TypeReference&lt;&gt;() {});</span>
+<span class="nc" id="L195">                return Result.success(</span>
+<span class="nc" id="L196">                    result.stream()</span>
+<span class="nc bnc" id="L197" title="All 6 branches missed.">                        .filter(t -&gt; &quot;completed&quot;.equals(t.getState()) &amp;&amp; t.getLegs().size() == 1 &amp;&amp; accounts.contains(t.getLegs().get(0).getAccountId()))</span>
+<span class="nc" id="L198">                        .collect(Collectors.toList()));</span>
+            }
+<span class="nc" id="L200">            return Result.error(ErrorCode.custom(&quot;no data received&quot;, &quot;No data received from Revolut. Status code is &quot;+response.statusCode()));</span>
+<span class="nc" id="L201">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L202">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L203">            log.warn(&quot;Request interrupted while calling Revolut API&quot;, e);</span>
+<span class="nc" id="L204">            return Result.error(ErrorCode.custom(GENERIC_ERROR, &quot;Cannot call Revolut API&quot;));</span>
+<span class="nc" id="L205">        } catch (Exception e) {</span>
+<span class="nc" id="L206">            log.warn(&quot;cannot call Revolut APIs&quot;, e);</span>
+<span class="nc" id="L207">            return Result.error(ErrorCode.custom(GENERIC_ERROR, &quot;Cannot call Revolut API&quot;));</span>
+        }
+    }
+
+    private Result&lt;List&lt;String&gt;&gt; loadAccounts(String revolutKey, String baseUrl) {
+<span class="nc" id="L212">        var key = revolutKey + &quot;@&quot; + baseUrl;</span>
+        try {
+<span class="nc" id="L214">            return Result.success(accountsCache.get(key, k -&gt; loadAccountsFromAPI(revolutKey, baseUrl)));</span>
+<span class="nc" id="L215">        } catch (Exception e) {</span>
+<span class="nc" id="L216">            return Result.error(ErrorCode.custom(GENERIC_ERROR, e.getMessage()));</span>
+        }
+    }
+
+    private List&lt;String&gt; loadAccountsFromAPI(String revolutKey, String baseUrl) {
+<span class="nc" id="L221">        var request = HttpRequest.newBuilder(URI.create(baseUrl + &quot;/api/1.0/accounts&quot;))</span>
+<span class="nc" id="L222">            .GET()</span>
+<span class="nc" id="L223">            .header(&quot;Authorization&quot;, &quot;Bearer &quot;+revolutKey)</span>
+<span class="nc" id="L224">            .build();</span>
+        try {
+<span class="nc" id="L226">            var response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            if (response.statusCode() == HttpStatus.OK.value()) {</span>
+<span class="nc" id="L228">                List&lt;Map&lt;String, ?&gt;&gt; result = Json.fromJson(response.body(), new TypeReference&lt;&gt;() {</span>
+                });
+<span class="nc" id="L230">                return result.stream().filter(m -&gt; &quot;active&quot;.equals(m.get(&quot;state&quot;))).map(m -&gt; (String) m.get(&quot;id&quot;)).collect(Collectors.toList());</span>
+            }
+<span class="nc" id="L232">            throw new IllegalStateException(&quot;cannot retrieve accounts&quot;);</span>
+<span class="nc" id="L233">        } catch (IllegalStateException ex) {</span>
+<span class="nc" id="L234">            throw ex;</span>
+<span class="nc" id="L235">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L236">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L237">            log.warn(&quot;Request interrupted while retrieving accounts&quot;, e);</span>
+<span class="nc" id="L238">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L239">        } catch (Exception e) {</span>
+<span class="nc" id="L240">            log.warn(&quot;got error while retrieving accounts&quot;, e);</span>
+<span class="nc" id="L241">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+
+    @Override
+    public Optional&lt;PaymentInformation&gt; getInfo(Transaction transaction, PurchaseContext purchaseContext) {
+<span class="nc" id="L248">        var metadata = transaction.getMetadata();</span>
+<span class="nc bnc" id="L249" title="All 4 branches missed.">        if(metadata != null &amp;&amp; metadata.containsKey(&quot;counterpartyAccountId&quot;)) {</span>
+<span class="nc" id="L250">            return Optional.of(new PaymentInformation(MonetaryUtil.formatCents(transaction.getPriceInCents(), transaction.getCurrency()), null, String.valueOf(transaction.getGatewayFee()), String.valueOf(transaction.getPlatformFee())));</span>
+        }
+<span class="nc" id="L252">        return Optional.empty();</span>
+    }
+
+    @Override
+    public boolean accept(Transaction transaction) {
+<span class="nc" id="L257">        return false;</span>
+    }
+
+    @Override
+    public PaymentMethod getPaymentMethodForTransaction(Transaction transaction) {
+<span class="nc" id="L262">        return bankTransferManager.getPaymentMethodForTransaction(transaction);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

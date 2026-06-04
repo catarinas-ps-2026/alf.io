@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResourceController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">ResourceController.java</span></div><h1>ResourceController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.admin;
+
+import alfio.controller.support.TemplateProcessor;
+import alfio.manager.*;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.model.*;
+import alfio.model.modification.UploadBase64FileModification;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.user.Organization;
+import alfio.repository.EventRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.util.ClockProvider;
+import alfio.util.LocaleUtil;
+import alfio.util.TemplateManager;
+import alfio.util.TemplateResource;
+import com.samskivert.mustache.MustacheException;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+@RestController
+@RequestMapping(&quot;/admin/api&quot;)
+@AllArgsConstructor
+public class ResourceController {
+
+<span class="fc" id="L63">    private static final Logger log = LoggerFactory.getLogger(ResourceController.class);</span>
+    private static final String TIMEZONE = &quot;Europe/Zurich&quot;;
+    private final UploadedResourceManager uploadedResourceManager;
+    private final EventRepository eventRepository;
+    private final MessageSourceManager messageSourceManager;
+    private final TemplateManager templateManager;
+    private final OrganizationRepository organizationRepository;
+    private final FileUploadManager fileUploadManager;
+    private final ExtensionManager extensionManager;
+    private final ClockProvider clockProvider;
+    private final SubscriptionManager subscriptionManager;
+    private final AccessService accessService;
+
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleSyntaxError(Exception ex) {
+<span class="nc" id="L80">        log.warn(&quot;Exception in resource controller&quot;, ex);</span>
+<span class="nc" id="L81">        Optional&lt;String&gt; cause = Optional.ofNullable(ex.getCause())</span>
+<span class="nc bnc" id="L82" title="All 4 branches missed.">            .filter(e -&gt; e instanceof MustacheException || e instanceof TemplateProcessor.TemplateAccessException)</span>
+<span class="nc" id="L83">            .map(Throwable::getMessage);</span>
+<span class="nc" id="L84">        return cause.orElse(&quot;Something went wrong. Please check the syntax and retry&quot;);</span>
+    }
+
+    @GetMapping(&quot;/overridable-template&quot;)
+    public List&lt;TemplateResource&gt; getOverridableTemplates() {
+<span class="nc" id="L89">        return Stream.of(TemplateResource.values()).filter(TemplateResource::overridable).toList();</span>
+    }
+
+    @GetMapping(&quot;/overridable-template/{name}/{locale}&quot;)
+    public void getTemplate(@PathVariable TemplateResource name, @PathVariable String locale, HttpServletResponse response) throws IOException {
+<span class="nc" id="L94">        ByteArrayOutputStream os = new ByteArrayOutputStream();</span>
+<span class="nc" id="L95">        try (InputStream is = new ClassPathResource(name.classPath()).getInputStream()) {</span>
+<span class="nc" id="L96">            is.transferTo(os);</span>
+        }
+<span class="nc" id="L98">        Locale loc = LocaleUtil.forLanguageTag(locale);</span>
+<span class="nc" id="L99">        String template = os.toString(StandardCharsets.UTF_8);</span>
+
+<span class="nc" id="L101">        response.setContentType(MediaType.TEXT_PLAIN_VALUE);</span>
+<span class="nc" id="L102">        response.getWriter().print(TemplateManager.translate(template, loc, messageSourceManager.getRootMessageSource()));</span>
+<span class="nc" id="L103">    }</span>
+
+    @PostMapping(&quot;/overridable-template/{name}/{locale}/preview&quot;)
+    public void previewTemplate(@PathVariable TemplateResource name, @PathVariable String locale,
+                                @RequestParam(required = false, value = &quot;organizationId&quot;) Integer organizationId,
+                                @RequestParam(required = false, value = &quot;eventId&quot;) Integer eventId,
+                                @RequestParam(required = false, value = &quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId,
+                                @RequestBody UploadBase64FileModification template,
+                                Principal principal,
+                                HttpServletResponse response) throws IOException {
+
+
+<span class="nc" id="L115">        Locale loc = LocaleUtil.forLanguageTag(locale);</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (organizationId != null) {</span>
+<span class="nc" id="L118">            PurchaseContext purchaseContext = getPurchaseContext(organizationId, eventId, subscriptionDescriptorId, principal, name);</span>
+<span class="nc bnc" id="L119" title="All 4 branches missed.">            if (eventId != null || subscriptionDescriptorId != null) {</span>
+<span class="nc" id="L120">                accessService.checkPurchaseContextOwnership(principal, organizationId, eventId, subscriptionDescriptorId);</span>
+            } else {
+<span class="nc" id="L122">                accessService.checkOrganizationOwnership(principal, organizationId);</span>
+            }
+<span class="nc" id="L124">            Organization organization = organizationRepository.getById(organizationId);</span>
+<span class="nc" id="L125">            Optional&lt;TemplateResource.ImageData&gt; image = TemplateProcessor.extractImageModel(purchaseContext, fileUploadManager);</span>
+<span class="nc" id="L126">            Map&lt;String, Object&gt; model = name.prepareSampleModel(organization, purchaseContext, image);</span>
+<span class="nc" id="L127">            String renderedTemplate = templateManager.renderString(purchaseContext, new String(name.replaceTokens(template.getFile())), model, loc, name.getTemplateOutput());</span>
+<span class="nc bnc" id="L128" title="All 4 branches missed.">            if(MediaType.TEXT_PLAIN_VALUE.equals(name.getRenderedContentType()) || TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE.equals(name.getRenderedContentType())) {</span>
+<span class="nc" id="L129">                response.addHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot;+name.name()+&quot;.txt&quot;);</span>
+<span class="nc" id="L130">                response.setContentType(MediaType.TEXT_PLAIN_VALUE);</span>
+<span class="nc" id="L131">                response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+<span class="nc" id="L132">                try(OutputStream os = response.getOutputStream()) {</span>
+<span class="nc" id="L133">                    StreamUtils.copy(renderedTemplate,StandardCharsets.UTF_8, os);</span>
+                }
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            } else if (MediaType.APPLICATION_PDF_VALUE.equals(name.getRenderedContentType())) {</span>
+<span class="nc" id="L136">                try (OutputStream os = response.getOutputStream()) {</span>
+<span class="nc" id="L137">                    response.setContentType(MediaType.APPLICATION_PDF_VALUE);</span>
+<span class="nc" id="L138">                    response.addHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot;+name.name()+&quot;.pdf&quot;);</span>
+<span class="nc" id="L139">                    TemplateProcessor.renderToPdf(renderedTemplate, os, extensionManager, purchaseContext, fileUploadManager);</span>
+                }
+            } else {
+<span class="nc" id="L142">                throw new IllegalStateException(&quot;cannot enter here!&quot;);</span>
+            }
+        }
+<span class="nc" id="L145">    }</span>
+
+    private PurchaseContext getPurchaseContext(int organizationId,
+                                               Integer eventId,
+                                               UUID subscriptionDescriptorId,
+                                               Principal principal,
+                                               TemplateResource templateResource) {
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (templateResource.getPurchaseContextType() == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="nc" id="L153">            return getEvent(organizationId, eventId, principal);</span>
+        }
+<span class="nc" id="L155">        return getSubscriptionDescriptor(organizationId, subscriptionDescriptorId, principal);</span>
+    }
+
+    private SubscriptionDescriptor getSubscriptionDescriptor(int organizationId, UUID subscriptionDescriptorId, Principal principal) {
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (subscriptionDescriptorId != null) {</span>
+<span class="nc" id="L160">            return subscriptionManager.getSubscriptionById(subscriptionDescriptorId).orElseThrow();</span>
+        }
+
+<span class="nc" id="L163">        Function&lt;String, Map&lt;String, String&gt;&gt; contentProducer = prefix -&gt; ContentLanguage.ALL_LANGUAGES.stream()</span>
+<span class="nc" id="L164">            .map(cl -&gt; Map.entry(cl.getLanguage(), cl.getDisplayLanguage() + &quot; &quot; + prefix))</span>
+<span class="nc" id="L165">            .reduce(new HashMap&lt;String, String&gt;(), (map, entry) -&gt; {</span>
+<span class="nc" id="L166">                map.put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L167">                return map;</span>
+            }, (map1, map2) -&gt; {
+<span class="nc" id="L169">                map1.putAll(map2);</span>
+<span class="nc" id="L170">                return map1;</span>
+            });
+<span class="nc" id="L172">        checkAccess(organizationId, principal);</span>
+<span class="nc" id="L173">        var zoneId = ZoneId.of(TIMEZONE);</span>
+<span class="nc" id="L174">        return new SubscriptionDescriptor(UUID.randomUUID(),</span>
+<span class="nc" id="L175">            contentProducer.apply(&quot;title&quot;),</span>
+<span class="nc" id="L176">            contentProducer.apply(&quot;description&quot;),</span>
+            -1,
+<span class="nc" id="L178">            ZonedDateTime.now(clockProvider.withZone(zoneId)),</span>
+<span class="nc" id="L179">            ZonedDateTime.now(clockProvider.withZone(zoneId)),</span>
+<span class="nc" id="L180">            ZonedDateTime.now(clockProvider.withZone(zoneId)).plusDays(1),</span>
+            100,
+            new BigDecimal(&quot;7.7&quot;),
+            PriceContainer.VatStatus.INCLUDED,
+            &quot;CHF&quot;,
+            true,
+            organizationId,
+            1,
+            SubscriptionDescriptor.SubscriptionValidityType.NOT_SET,
+            null,
+<span class="nc" id="L190">            -1,</span>
+<span class="nc" id="L191">            ZonedDateTime.now(clockProvider.withZone(zoneId)),</span>
+<span class="nc" id="L192">            ZonedDateTime.now(clockProvider.withZone(zoneId)).plusDays(1),</span>
+            SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT,
+            &quot;https://alf.io&quot;,
+            &quot;https://alf.io&quot;,
+            null,
+<span class="nc" id="L197">            List.of(PaymentProxy.STRIPE.name()),</span>
+            &quot;42&quot;,
+            TIMEZONE,
+<span class="nc" id="L200">            true</span>
+        );
+    }
+
+    private Event getEvent(Integer organizationId, Integer eventId, Principal principal) {
+        Event event;
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (eventId != null) {</span>
+<span class="nc" id="L207">            checkAccess(organizationId, eventId, principal);</span>
+<span class="nc" id="L208">            event = eventRepository.findById(eventId);</span>
+        } else {
+<span class="nc" id="L210">            checkAccess(organizationId, principal);</span>
+<span class="nc" id="L211">            var zoneId = ZoneId.of(TIMEZONE);</span>
+<span class="nc" id="L212">            event = new Event(-1, Event.EventFormat.IN_PERSON, &quot;TEST&quot;, &quot;TEST&quot;, &quot;TEST&quot;, &quot;0&quot;, &quot;0&quot;, ZonedDateTime.now(clockProvider.withZone(zoneId)),</span>
+<span class="nc" id="L213">                ZonedDateTime.now(clockProvider.withZone(zoneId)), TIMEZONE, &quot;http://localhost&quot;, &quot;http://localhost&quot;, null,</span>
+<span class="nc" id="L214">                &quot;http://localhost&quot;, null, null, &quot;CHF&quot;, BigDecimal.TEN, null, &quot;42&quot;, organizationId,</span>
+                ContentLanguage.ALL_LANGUAGES_IDENTIFIER, 0, PriceContainer.VatStatus.NONE, &quot;1&quot;, Event.Status.PUBLIC);
+        }
+<span class="nc" id="L217">        return event;</span>
+    }
+
+
+    //------------------
+
+    @GetMapping(&quot;/resource&quot;)
+    public List&lt;UploadedResource&gt; findAll(Principal principal) {
+<span class="nc" id="L225">        checkAccess(principal);</span>
+<span class="nc" id="L226">        return uploadedResourceManager.findAll();</span>
+    }
+
+    @GetMapping(&quot;/resource-organization/{organizationId}&quot;)
+    public List&lt;UploadedResource&gt; findAllForOrganization(@PathVariable int organizationId, Principal principal) {
+<span class="nc" id="L231">        checkAccess(organizationId, principal);</span>
+<span class="nc" id="L232">        return uploadedResourceManager.findAll(organizationId);</span>
+    }
+
+    @GetMapping(&quot;/resource-event/{organizationId}/{eventId}&quot;)
+    public List&lt;UploadedResource&gt; findAllForEvent(@PathVariable int organizationId, @PathVariable int eventId, Principal principal) {
+<span class="nc" id="L237">        checkAccess(organizationId, eventId, principal);</span>
+<span class="nc" id="L238">        return uploadedResourceManager.findAll(organizationId, eventId);</span>
+    }
+
+
+    //------------------
+
+    @GetMapping(&quot;/resource/{name}/metadata&quot;)
+    public ResponseEntity&lt;UploadedResource&gt; getMetadata(@PathVariable String name, Principal principal) {
+<span class="nc" id="L246">        checkAccess(principal);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        if (uploadedResourceManager.hasResource(name)) {</span>
+<span class="nc" id="L248">            return new ResponseEntity&lt;&gt;(uploadedResourceManager.get(name), HttpStatus.OK);</span>
+        } else {
+<span class="nc" id="L250">            return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
+        }
+    }
+
+    @GetMapping(&quot;/resource-organization/{organizationId}/{name}/metadata&quot;)
+    public ResponseEntity&lt;UploadedResource&gt; getMetadata(@PathVariable int organizationId, @PathVariable String name, Principal principal) {
+<span class="nc" id="L256">        checkAccess(organizationId, principal);</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        if (uploadedResourceManager.hasResource(organizationId, name)) {</span>
+<span class="nc" id="L258">            return new ResponseEntity&lt;&gt;(uploadedResourceManager.get(organizationId, name), HttpStatus.OK);</span>
+        } else {
+<span class="nc" id="L260">            return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
+        }
+    }
+
+    @GetMapping(&quot;/resource-event/{organizationId}/{eventId}/{name}/metadata&quot;)
+    public ResponseEntity&lt;UploadedResource&gt; getMetadata(@PathVariable int organizationId, @PathVariable int eventId, @PathVariable String name, Principal principal) {
+<span class="nc" id="L266">        checkAccess(organizationId, eventId, principal);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        if (uploadedResourceManager.hasResource(organizationId, eventId, name)) {</span>
+<span class="nc" id="L268">            return new ResponseEntity&lt;&gt;(uploadedResourceManager.get(organizationId, eventId, name), HttpStatus.OK);</span>
+        } else {
+<span class="nc" id="L270">            return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
+        }
+    }
+
+    //------------------
+
+    @PostMapping(&quot;/resource&quot;)
+    public void uploadFile(@RequestBody UploadBase64FileModification upload, Principal principal) {
+<span class="nc" id="L278">        checkAccess(principal);</span>
+<span class="nc" id="L279">        uploadedResourceManager.saveResource(upload).orElseThrow(IllegalArgumentException::new);</span>
+<span class="nc" id="L280">    }</span>
+
+    @PostMapping(&quot;/resource-organization/{organizationId}&quot;)
+    public void uploadFile(@PathVariable int organizationId, @RequestBody UploadBase64FileModification upload, Principal principal) {
+<span class="nc" id="L284">        checkAccess(organizationId, principal);</span>
+<span class="nc" id="L285">        uploadedResourceManager.saveResource(organizationId, upload).orElseThrow(IllegalArgumentException::new);</span>
+<span class="nc" id="L286">    }</span>
+
+    @PostMapping(&quot;/resource-event/{organizationId}/{eventId}&quot;)
+    public void uploadFile(@PathVariable int organizationId, @PathVariable int eventId, @RequestBody UploadBase64FileModification upload, Principal principal) {
+<span class="nc" id="L290">        checkAccess(organizationId, eventId, principal);</span>
+<span class="nc" id="L291">        uploadedResourceManager.saveResource(organizationId, eventId, upload).orElseThrow(IllegalArgumentException::new);</span>
+<span class="nc" id="L292">    }</span>
+
+    //------------------
+    @GetMapping(&quot;/resource/{name:.*}&quot;)
+    public void outputContent(@PathVariable String name, Principal principal, HttpServletResponse response) throws IOException {
+<span class="nc" id="L297">        checkAccess(principal);</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">        if (!uploadedResourceManager.hasResource(name)) {</span>
+<span class="nc" id="L299">            response.sendError(HttpServletResponse.SC_NOT_FOUND);</span>
+<span class="nc" id="L300">            return;</span>
+        }
+<span class="nc" id="L302">        UploadedResource metadata = uploadedResourceManager.get(name);</span>
+<span class="nc" id="L303">        try (OutputStream os = response.getOutputStream()) {</span>
+<span class="nc" id="L304">            response.setContentType(metadata.getContentType());</span>
+<span class="nc" id="L305">            response.setContentLength(metadata.getContentSize());</span>
+<span class="nc" id="L306">            uploadedResourceManager.outputResource(name, os);</span>
+        }
+<span class="nc" id="L308">    }</span>
+
+    @GetMapping(&quot;/resource-organization/{organizationId}/{name:.*}&quot;)
+    public void outputContent(@PathVariable int organizationId, @PathVariable String name, Principal principal, HttpServletResponse response) throws IOException {
+<span class="nc" id="L312">        checkAccess(organizationId, principal);</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        if (!uploadedResourceManager.hasResource(organizationId, name)) {</span>
+<span class="nc" id="L314">            response.sendError(HttpServletResponse.SC_NOT_FOUND);</span>
+<span class="nc" id="L315">            return;</span>
+        }
+<span class="nc" id="L317">        UploadedResource metadata = uploadedResourceManager.get(organizationId, name);</span>
+<span class="nc" id="L318">        try (OutputStream os = response.getOutputStream()) {</span>
+<span class="nc" id="L319">            response.setContentType(metadata.getContentType());</span>
+<span class="nc" id="L320">            response.setContentLength(metadata.getContentSize());</span>
+<span class="nc" id="L321">            uploadedResourceManager.outputResource(organizationId, name, os);</span>
+        }
+<span class="nc" id="L323">    }</span>
+
+    @GetMapping(&quot;/resource-event/{organizationId}/{eventId}/{name:.*}&quot;)
+    public void outputContent(@PathVariable int organizationId, @PathVariable int eventId, @PathVariable String name, Principal principal, HttpServletResponse response) throws IOException {
+<span class="nc" id="L327">        checkAccess(organizationId, eventId, principal);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (!uploadedResourceManager.hasResource(organizationId, eventId, name)) {</span>
+<span class="nc" id="L329">            response.sendError(HttpServletResponse.SC_NOT_FOUND);</span>
+<span class="nc" id="L330">            return;</span>
+        }
+<span class="nc" id="L332">        UploadedResource metadata = uploadedResourceManager.get(organizationId, eventId, name);</span>
+<span class="nc" id="L333">        try (OutputStream os = response.getOutputStream()) {</span>
+<span class="nc" id="L334">            response.setContentType(metadata.getContentType());</span>
+<span class="nc" id="L335">            response.setContentLength(metadata.getContentSize());</span>
+<span class="nc" id="L336">            uploadedResourceManager.outputResource(organizationId, eventId, name, os);</span>
+        }
+<span class="nc" id="L338">    }</span>
+
+    //------------------
+
+    @DeleteMapping(&quot;/resource/{name:.*}&quot;)
+    public void delete(@PathVariable String name, Principal principal) {
+<span class="nc" id="L344">        checkAccess(principal);</span>
+<span class="nc" id="L345">        uploadedResourceManager.deleteResource(name);</span>
+<span class="nc" id="L346">    }</span>
+
+    @DeleteMapping(&quot;/resource-organization/{organizationId}/{name:.*}&quot;)
+    public void delete(@PathVariable int organizationId, @PathVariable String name, Principal principal) {
+<span class="nc" id="L350">        checkAccess(organizationId, principal);</span>
+<span class="nc" id="L351">        uploadedResourceManager.deleteResource(organizationId, name);</span>
+<span class="nc" id="L352">    }</span>
+
+    @DeleteMapping(&quot;/resource-event/{organizationId}/{eventId}/{name:.*}&quot;)
+    public void delete(@PathVariable int organizationId, @PathVariable int eventId, @PathVariable String name, Principal principal) {
+<span class="nc" id="L356">        checkAccess(organizationId, eventId, principal);</span>
+<span class="nc" id="L357">        uploadedResourceManager.deleteResource(organizationId, eventId, name);</span>
+<span class="nc" id="L358">    }</span>
+
+    //------------------
+
+    private void checkAccess(Principal principal) {
+<span class="nc" id="L363">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L364">    }</span>
+
+    private void checkAccess(int organizationId, Principal principal) {
+<span class="nc" id="L367">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L368">    }</span>
+
+    private void checkAccess(int organizationId, int eventId, Principal principal) {
+<span class="nc" id="L371">        accessService.checkEventOwnership(principal, eventId, organizationId);</span>
+<span class="nc" id="L372">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

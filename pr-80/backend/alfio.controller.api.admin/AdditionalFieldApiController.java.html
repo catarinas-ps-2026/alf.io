@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdditionalFieldApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">AdditionalFieldApiController.java</span></div><h1>AdditionalFieldApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.admin;
+
+import alfio.manager.AccessService;
+import alfio.manager.PurchaseContextFieldManager;
+import alfio.manager.PurchaseContextManager;
+import alfio.model.*;
+import alfio.model.modification.AdditionalFieldRequest;
+import alfio.model.modification.EventModification;
+import alfio.model.modification.TicketFieldDescriptionModification;
+import alfio.model.result.ValidationResult;
+import alfio.repository.DynamicFieldTemplateRepository;
+import alfio.util.JsonViews;
+import com.fasterxml.jackson.annotation.JsonView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+
+@RestController
+@RequestMapping(&quot;/admin/api/{purchaseContextType}/{publicIdentifier}/additional-field&quot;)
+@JsonView(JsonViews.AdminApi.class)
+public class AdditionalFieldApiController {
+
+<span class="fc" id="L49">    private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalFieldApiController.class);</span>
+    private final PurchaseContextManager purchaseContextManager;
+    private final PurchaseContextFieldManager purchaseContextFieldManager;
+    private final AccessService accessService;
+    private final DynamicFieldTemplateRepository dynamicFieldTemplateRepository;
+
+    public AdditionalFieldApiController(PurchaseContextManager purchaseContextManager,
+                                        PurchaseContextFieldManager purchaseContextFieldManager,
+                                        AccessService accessService,
+<span class="fc" id="L58">                                        DynamicFieldTemplateRepository dynamicFieldTemplateRepository) {</span>
+<span class="fc" id="L59">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L60">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+<span class="fc" id="L61">        this.accessService = accessService;</span>
+<span class="fc" id="L62">        this.dynamicFieldTemplateRepository = dynamicFieldTemplateRepository;</span>
+<span class="fc" id="L63">    }</span>
+
+    @GetMapping(&quot;/templates&quot;)
+    public List&lt;DynamicFieldTemplate&gt; loadTemplates(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                                    @PathVariable String publicIdentifier) {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (LOGGER.isTraceEnabled()) {</span>
+<span class="nc" id="L69">            LOGGER.trace(&quot;Loading templates for {} {}&quot;, purchaseContextType, removeTabsAndNewlines(publicIdentifier));</span>
+        }
+<span class="nc" id="L71">        return dynamicFieldTemplateRepository.loadAll();</span>
+    }
+
+    @GetMapping()
+    public List&lt;FieldConfigurationAndAllDescriptions&gt; getAllAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                                                            @PathVariable String publicIdentifier,
+                                                                            Principal principal) {
+<span class="nc" id="L78">        accessService.checkPurchaseContextOwnership(principal, purchaseContextType, publicIdentifier);</span>
+<span class="nc" id="L79">        var purchaseContext = purchaseContextManager.findBy(purchaseContextType, publicIdentifier).orElseThrow();</span>
+<span class="nc" id="L80">        final Map&lt;Long, List&lt;PurchaseContextFieldDescription&gt;&gt; descById = purchaseContextFieldManager.findDescriptionsGroupedByFieldId(purchaseContext);</span>
+<span class="nc" id="L81">        return purchaseContextFieldManager.findAdditionalFields(purchaseContext).stream()</span>
+<span class="nc" id="L82">            .map(field -&gt; new FieldConfigurationAndAllDescriptions(field, descById.getOrDefault(field.getId(), Collections.emptyList())))</span>
+<span class="nc" id="L83">            .toList();</span>
+    }
+
+    @GetMapping(&quot;/{id}/stats&quot;)
+    public List&lt;RestrictedValueStats&gt; getStats(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                               @PathVariable String publicIdentifier,
+                                               @PathVariable long id,
+                                               Principal principal) {
+        //
+<span class="nc" id="L92">        accessService.checkAccessToAdditionalField(principal, purchaseContextType, publicIdentifier, id);</span>
+        //
+<span class="nc" id="L94">        return purchaseContextFieldManager.retrieveStats(id);</span>
+    }
+
+    @PostMapping(
+        &quot;/new&quot;
+    )
+    public ValidationResult addAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                               @PathVariable String publicIdentifier,
+                                               @RequestBody AdditionalFieldRequest field,
+                                               Principal principal,
+                                               Errors errors) {
+        //
+<span class="nc" id="L106">        accessService.checkPurchaseContextOwnership(principal, purchaseContextType, publicIdentifier);</span>
+        //
+
+<span class="nc" id="L109">        var purchaseContext = purchaseContextManager.findBy(purchaseContextType, publicIdentifier).orElseThrow();</span>
+<span class="nc" id="L110">        return purchaseContextFieldManager.validateAndAddField(purchaseContext, field, errors);</span>
+    }
+
+    @PostMapping(
+        // &quot;/events/{eventName}/additional-field/descriptions&quot; // old
+        &quot;/descriptions&quot;
+    )
+    public void saveAdditionalFieldDescriptions(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                                @PathVariable String publicIdentifier,
+                                                @RequestBody Map&lt;String, TicketFieldDescriptionModification&gt; descriptions, Principal principal) {
+        //
+<span class="nc" id="L121">        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, descriptions.values().stream().map(TicketFieldDescriptionModification::getTicketFieldConfigurationId).collect(Collectors.toSet()));</span>
+        //
+<span class="nc" id="L123">        purchaseContextFieldManager.updateFieldDescriptions(descriptions, purchaseContextManager.getOrganizationId(purchaseContextType, publicIdentifier));</span>
+<span class="nc" id="L124">    }</span>
+
+    @PostMapping(
+        // &quot;/events/{eventName}/additional-field/swap-position/{id1}/{id2}&quot; // old
+        &quot;/swap-position/{id1}/{id2}&quot;
+    )
+    public void swapAdditionalFieldPosition(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                            @PathVariable String publicIdentifier,
+                                            @PathVariable long id1,
+                                            @PathVariable long id2,
+                                            Principal principal) {
+        //
+<span class="nc" id="L136">        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id1, id2));</span>
+        //
+<span class="nc" id="L138">        purchaseContextFieldManager.swapAdditionalFieldPosition(id1, id2);</span>
+<span class="nc" id="L139">    }</span>
+
+    @PostMapping(
+        // &quot;/events/{eventName}/additional-field/set-position/{id}&quot; // old
+        &quot;/set-position/{id}&quot;
+    )
+    public void setAdditionalFieldPosition(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                           @PathVariable String publicIdentifier,
+                                           @PathVariable long id,
+                                           @RequestParam(&quot;newPosition&quot;) int newPosition,
+                                           Principal principal) {
+        //
+<span class="nc" id="L151">        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id));</span>
+        //
+<span class="nc" id="L153">        purchaseContextFieldManager.setAdditionalFieldPosition(id, newPosition);</span>
+<span class="nc" id="L154">    }</span>
+
+    @DeleteMapping(
+        // &quot;/events/{eventName}/additional-field/{id}&quot; // old
+        &quot;/{id}&quot;
+    )
+    public void deleteAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                      @PathVariable String publicIdentifier,
+                                      @PathVariable long id,
+                                      Principal principal) {
+        //
+<span class="nc" id="L165">        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id));</span>
+        //
+<span class="nc" id="L167">        purchaseContextFieldManager.deleteAdditionalField(id);</span>
+<span class="nc" id="L168">    }</span>
+
+    @PostMapping(&quot;/{id}&quot;)
+    public void updateAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                      @PathVariable String publicIdentifier,
+                                      @PathVariable long id,
+                                      @RequestBody EventModification.UpdateAdditionalField field,
+                                      Principal principal) {
+        //
+<span class="nc" id="L177">        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id));</span>
+        //
+<span class="nc" id="L179">        purchaseContextFieldManager.updateAdditionalField(id, field, purchaseContextManager.getOrganizationId(purchaseContextType, publicIdentifier));</span>
+<span class="nc" id="L180">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
