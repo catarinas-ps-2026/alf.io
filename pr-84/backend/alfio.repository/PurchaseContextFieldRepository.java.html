@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PurchaseContextFieldRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">PurchaseContextFieldRepository.java</span></div><h1>PurchaseContextFieldRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.*;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.util.Json;
+import alfio.util.MonetaryUtil;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryRepository;
+import ch.digitalfondue.npjt.QueryType;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.ResultSet;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@QueryRepository
+public interface PurchaseContextFieldRepository extends FieldRepository {
+
+    String INSERT_VALUE = &quot;insert into purchase_context_field_value(ticket_id_fk, subscription_id_fk, organization_id_fk, field_configuration_id_fk, field_value, context) values (:ticketId, :subscriptionId::uuid, :organizationId, :fieldConfigurationId, :value, :context::ADDITIONAL_FIELD_CONTEXT)&quot;;
+    String ADDITIONAL_SERVICE_FIELD_VALUE_COLS = &quot;field_name, field_value, additional_service_id_fk, ticket_id_fk, field_configuration_id_fk, additional_service_item_id_fk&quot;;
+    String FIELD_VALUE_COLUMNS = &quot;ticket_id_fk, subscription_id_fk, additional_service_item_id_fk, field_configuration_id_fk, field_name, field_value, context&quot;;
+    String FIND_ALL = &quot;select &quot;+ FIELD_VALUE_COLUMNS +&quot; from field_value_w_additional&quot;;
+    String FIND_ALL_BY_TICKET_ID = FIND_ALL + &quot; where ticket_id_fk = :ticketId&quot;;
+    String PURCHASE_CONTEXT_MATCHER = &quot;(:eventId is null or event_id_fk = :eventId) and (:subscriptionId::uuid is null or subscription_descriptor_id_fk = :subscriptionId::uuid)&quot;;
+    String TICKET_ID_OR_SUBSCRIPTION_ID = &quot;((:ticketId::integer is not null or :subscriptionId::uuid is not null) and (:ticketId::integer is null or ticket_id_fk = :ticketId) and (:subscriptionId::uuid is null or subscription_id_fk = :subscriptionId::uuid))&quot;;
+
+    @Query(&quot;select count(*) from field_value_w_additional where ticket_id_fk = :ticketId and field_value is not null and field_value &lt;&gt; ''&quot;)
+    Integer countFilledOptionalData(@Bind(&quot;ticketId&quot;) int id);
+
+    @Query(FIND_ALL_BY_TICKET_ID)
+    List&lt;PurchaseContextFieldValue&gt; findAllByTicketId(@Bind(&quot;ticketId&quot;) int id);
+
+    @Query(FIND_ALL_BY_TICKET_ID + &quot; and context = :context::ADDITIONAL_FIELD_CONTEXT&quot;)
+    List&lt;PurchaseContextFieldValue&gt; findAllForContextByTicketId(@Bind(&quot;ticketId&quot;) int id,
+                                                                @Bind(&quot;context&quot;) PurchaseContextFieldConfiguration.Context context);
+
+    @Query(&quot;select &quot;+FIELD_VALUE_COLUMNS+&quot;, description from all_ticket_field_values &quot; +
+        &quot; where ticket_id_fk = :ticketId and field_name in (:fieldNames)&quot;)
+    List&lt;FieldValueAndDescription&gt; findValueForTicketId(@Bind(&quot;ticketId&quot;) int id, @Bind(&quot;fieldNames&quot;) Set&lt;String&gt; fieldNames);
+
+    /**
+     * Returns **only** info that don't belong already to an additional item.
+     * @param id ticketId
+     * @return List of FieldValueAndDescription
+     */
+    @Query(&quot;select &quot;+FIELD_VALUE_COLUMNS+&quot;, description from all_ticket_field_values &quot; +
+        &quot; where ticket_id_fk = :ticketId and display_at_check_in = true and additional_service_item_id_fk is null&quot;)
+    List&lt;FieldValueAndDescription&gt; findValuesForTicketAtCheckIn(@Bind(&quot;ticketId&quot;) int id);
+
+    @Query(&quot;update purchase_context_field_value set field_value = :value where &quot; + TICKET_ID_OR_SUBSCRIPTION_ID +
+        &quot; and field_configuration_id_fk = :fieldConfigurationId&quot;)
+    int updateValue(@Bind(&quot;ticketId&quot;) Integer ticketId,
+                    @Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+                    @Bind(&quot;fieldConfigurationId&quot;) long fieldConfigurationId,
+                    @Bind(&quot;value&quot;) String value);
+
+    @Query(INSERT_VALUE)
+    int insertValue(@Bind(&quot;ticketId&quot;) Integer ticketId,
+                    @Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+                    @Bind(&quot;organizationId&quot;) int organizationId,
+                    @Bind(&quot;fieldConfigurationId&quot;) long fieldConfigurationId,
+                    @Bind(&quot;value&quot;) String value,
+                    @Bind(&quot;context&quot;) PurchaseContextFieldConfiguration.Context context);
+
+    @Query(type = QueryType.TEMPLATE,
+        value = &quot;&quot;&quot;
+            insert into purchase_context_field_value(context, additional_service_item_id_fk, field_configuration_id_fk, field_value, organization_id_fk)\
+             values ('ADDITIONAL_SERVICE'::ADDITIONAL_FIELD_CONTEXT, :additionalServiceItemId, :fieldConfigurationId, :value, :organizationId)\
+            &quot;&quot;&quot;)
+    String batchInsertAdditionalItemsFields();
+
+    @Query(&quot;delete from purchase_context_field_value where &quot; + TICKET_ID_OR_SUBSCRIPTION_ID +&quot; and field_configuration_id_fk = :fieldConfigurationId&quot;)
+    int deleteValue(@Bind(&quot;ticketId&quot;) Integer ticketId, @Bind(&quot;subscriptionId&quot;) UUID subscriptionId, @Bind(&quot;fieldConfigurationId&quot;) long fieldConfigurationId);
+
+    @Query(&quot;delete from purchase_context_field_value where ticket_id_fk = :ticketId&quot;)
+    int deleteAllValuesForTicket(@Bind(&quot;ticketId&quot;) int ticketId);
+
+    @Query(&quot;delete from purchase_context_field_value where ticket_id_fk in (:ticketIds)&quot;)
+    int deleteAllValuesForTicketIds(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds);
+
+    @Query(&quot;&quot;&quot;
+        delete from purchase_context_field_value fv using ticket t, additional_service_item ai\
+         where fv.context = 'ADDITIONAL_SERVICE' and fv.additional_service_item_id_fk = ai.id\
+         and ai.ticket_id_fk = t.id and t.id in (:ticketIds) and t.event_id = :eventId\
+        &quot;&quot;&quot;)
+    int deleteAllValuesForAdditionalItems(@Bind(&quot;ticketIds&quot;) Collection&lt;Integer&gt; ticketIds,
+                                          @Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;delete from purchase_context_field_value fv using ticket t where t.id = fv.ticket_id_fk and t.tickets_reservation_id in(:reservationIds)&quot;)
+    int deleteAllTicketValuesForReservations(@Bind(&quot;reservationIds&quot;) List&lt;String&gt; reservationIds);
+
+    @Query(&quot;delete from purchase_context_field_value fv using additional_service_item asi where asi.id = fv.additional_service_item_id_fk and asi.tickets_reservation_uuid in(:reservationIds)&quot;)
+    int deleteAllAdditionalItemsValuesForReservations(@Bind(&quot;reservationIds&quot;) List&lt;String&gt; reservationIds);
+
+    @Query(&quot;delete from purchase_context_field_value fv using subscription s where s.id = fv.subscription_id_fk and s.reservation_id_fk in(:reservationIds)&quot;)
+    int deleteAllSubscriptionValuesForReservations(@Bind(&quot;reservationIds&quot;) List&lt;String&gt; reservationIds);
+
+    default int deleteAllValuesForReservations(List&lt;String&gt; reservationIds) {
+<span class="nc" id="L122">        return deleteAllTicketValuesForReservations(reservationIds) + deleteAllAdditionalItemsValuesForReservations(reservationIds) + deleteAllSubscriptionValuesForReservations(reservationIds);</span>
+    }
+
+    @Query(&quot;&quot;&quot;
+        select field_configuration_id_fk, field_locale, description, purchase_context_field_configuration.field_name as field_name from purchase_context_field_description\
+         inner join purchase_context_field_configuration on field_configuration_id_fk = id where field_locale = :locale and event_id_fk = :eventId\
+        &quot;&quot;&quot;)
+    List&lt;PurchaseContextFieldDescription&gt; findDescriptionsForLocale(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;locale&quot;) String locale);
+
+    @Query(&quot;select field_configuration_id_fk, field_locale, description, purchase_context_field_configuration.field_name as field_name from purchase_context_field_description&quot; +
+        &quot; inner join purchase_context_field_configuration on field_configuration_id_fk = id&quot; +
+        &quot; where &quot;+ PURCHASE_CONTEXT_MATCHER)
+    List&lt;PurchaseContextFieldDescription&gt; findAllDescriptions(@Bind(&quot;eventId&quot;) Integer eventId, @Bind(&quot;subscriptionId&quot;) UUID subscriptionDescriptorId);
+
+    @Query(&quot;&quot;&quot;
+        SELECT field_name FROM purchase_context_field_configuration\
+         inner join event on event.id = event_id_fk\
+         where short_name = :eventShortName order by field_order asc \
+        &quot;&quot;&quot;)
+    List&lt;String&gt; findFieldsForEvent(@Bind(&quot;eventShortName&quot;) String eventShortName);
+
+    @Query(&quot;select field_name, field_value from field_value_w_additional where ticket_id_fk = :ticketId&quot;)
+    List&lt;FieldNameAndValue&gt; findNameAndValue(@Bind(&quot;ticketId&quot;) int ticketId);
+
+    @Query(&quot;select field_name, field_value from field_value_w_additional where subscription_id_fk = :subscriptionId&quot;)
+    List&lt;FieldNameAndValue&gt; findNameAndValue(@Bind(&quot;subscriptionId&quot;) UUID subscriptionId);
+
+    @Query(FIND_ALL + &quot; where ticket_id_fk in (:ticketIds)&quot;)
+    List&lt;PurchaseContextFieldValue&gt; findAllValuesByTicketIds(@Bind(&quot;ticketIds&quot;) Collection&lt;Integer&gt; ticketIds);
+
+    @Query(FIND_ALL + &quot; where ticket_id_fk in (select id from ticket where event_id = :eventId and status = 'ACQUIRED')&quot;)
+    List&lt;PurchaseContextFieldValue&gt; findAllValuesForConfirmedTicketsByEventId(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(FIND_ALL + &quot; where subscription_id_fk in (:subscriptionIds)&quot;)
+    List&lt;PurchaseContextFieldValue&gt; findAllValuesBySubscriptionIds(@Bind(&quot;subscriptionIds&quot;) Collection&lt;UUID&gt; subscriptionIds);
+
+    default void updateOrInsert(Map&lt;String, List&lt;String&gt;&gt; values, PurchaseContext purchaseContext, Integer ticketId, UUID subscriptionId) {
+        Map&lt;String, PurchaseContextFieldValue&gt; toUpdate;
+<span class="nc" id="L160">        values = Optional.ofNullable(values).orElseGet(Collections::emptyMap);</span>
+        List&lt;PurchaseContextFieldConfiguration&gt; additionalFields;
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (purchaseContext instanceof Event event) {</span>
+<span class="nc" id="L163">            additionalFields = findAdditionalFieldsForEvent(event.getId());</span>
+<span class="nc" id="L164">            toUpdate = findAllByTicketIdGroupedByName(ticketId, event.supportsLinkedAdditionalServices());</span>
+        } else {
+<span class="nc" id="L166">            additionalFields = findAdditionalFieldsForSubscriptionDescriptor(((SubscriptionDescriptor)purchaseContext).getId());</span>
+<span class="nc" id="L167">            toUpdate = collectByName(findAllValuesBySubscriptionIds(List.of(subscriptionId)));</span>
+        }
+<span class="nc" id="L169">        var readOnlyFields = additionalFields.stream().filter(PurchaseContextFieldConfiguration::isReadOnly).map(PurchaseContextFieldConfiguration::getName).collect(Collectors.toSet());</span>
+<span class="nc" id="L170">        Map&lt;String, Long&gt; fieldNameToId = additionalFields.stream().collect(Collectors.toMap(PurchaseContextFieldConfiguration::getName, PurchaseContextFieldConfiguration::getId));</span>
+
+<span class="nc" id="L172">        values.forEach((fieldName, fieldValues) -&gt; {</span>
+<span class="nc" id="L173">            var fieldValue = getFieldValueJson(fieldValues);</span>
+
+<span class="nc" id="L175">            boolean isNotBlank = StringUtils.isNotBlank(fieldValue);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            if(toUpdate.containsKey(fieldName)) {</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                if(!readOnlyFields.contains(fieldName)) {</span>
+<span class="nc" id="L178">                    PurchaseContextFieldValue field = toUpdate.get(fieldName);</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                    if(isNotBlank) {</span>
+<span class="nc" id="L180">                        updateValue(field.getTicketId(), field.getSubscriptionId(), field.getFieldConfigurationId(), fieldValue);</span>
+                    } else {
+<span class="nc" id="L182">                        deleteValue(field.getTicketId(), field.getSubscriptionId(), field.getFieldConfigurationId());</span>
+                    }
+<span class="nc" id="L184">                }</span>
+<span class="nc bnc" id="L185" title="All 4 branches missed.">            } else if(fieldNameToId.containsKey(fieldName) &amp;&amp; isNotBlank) {</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                var context = ticketId != null ? PurchaseContextFieldConfiguration.Context.ATTENDEE : PurchaseContextFieldConfiguration.Context.SUBSCRIPTION;</span>
+<span class="nc" id="L187">                insertValue(ticketId, subscriptionId, purchaseContext.getOrganizationId(), fieldNameToId.get(fieldName), fieldValue, context);</span>
+            }
+<span class="nc" id="L189">        });</span>
+<span class="nc" id="L190">    }</span>
+
+    default String getFieldValueJson(List&lt;String&gt; fieldValues) {
+        String fieldValue;
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if(fieldValues.size() == 1) {</span>
+<span class="nc" id="L195">            fieldValue = fieldValues.get(0);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        } else if(fieldValues.stream().anyMatch(StringUtils::isNotBlank)) {</span>
+<span class="nc" id="L197">            fieldValue = Json.toJson(fieldValues);</span>
+        } else {
+<span class="nc" id="L199">            fieldValue = &quot;&quot;;</span>
+        }
+<span class="nc" id="L201">        return fieldValue;</span>
+    }
+
+    default Map&lt;String, PurchaseContextFieldValue&gt; findAllByTicketIdGroupedByName(Integer id, boolean eventSupportsLink) {
+        List&lt;PurchaseContextFieldValue&gt; values;
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (eventSupportsLink) {</span>
+<span class="nc" id="L207">            values = findAllForContextByTicketId(id, PurchaseContextFieldConfiguration.Context.ATTENDEE);</span>
+        } else {
+<span class="nc" id="L209">            values = findAllByTicketId(id);</span>
+        }
+<span class="nc" id="L211">        return collectByName(values);</span>
+    }
+
+    private Map&lt;String, PurchaseContextFieldValue&gt; collectByName(List&lt;PurchaseContextFieldValue&gt; values) {
+<span class="nc" id="L215">        return values.stream()</span>
+<span class="nc" id="L216">            .collect(Collectors.toMap(PurchaseContextFieldValue::getName, Function.identity()));</span>
+    }
+
+    default boolean hasOptionalData(int ticketId) {
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        return countFilledOptionalData(ticketId) &gt; 0;</span>
+    }
+
+
+    @Query(&quot;select * from purchase_context_field_configuration where event_id_fk = :eventId order by field_order asc&quot;)
+    List&lt;PurchaseContextFieldConfiguration&gt; findAdditionalFieldsForEvent(@Bind(&quot;eventId&quot;) int eventId);
+
+    default Map&lt;Integer, Set&lt;String&gt;&gt; findAdditionalFieldNamesForEvents(Collection&lt;Integer&gt; eventIds) {
+<span class="nc" id="L228">        return getJdbcTemplate().query(&quot;select event_id_fk, field_name from purchase_context_field_configuration where event_id_fk = :eventIds&quot;,</span>
+            new MapSqlParameterSource(&quot;eventIds&quot;, eventIds),
+            (ResultSet rs) -&gt; {
+<span class="nc" id="L231">                var result = new HashMap&lt;Integer, Set&lt;String&gt;&gt;();</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                while (rs.next()) {</span>
+<span class="nc" id="L233">                    Integer eventId = rs.getInt(1);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">                    if (!result.containsKey(eventId)) {</span>
+<span class="nc" id="L235">                        result.put(eventId, new HashSet&lt;&gt;());</span>
+                    }
+<span class="nc" id="L237">                    result.get(eventId).add(rs.getString(2));</span>
+<span class="nc" id="L238">                }</span>
+<span class="nc" id="L239">                return result;</span>
+            });
+    }
+
+    @Query(&quot;select * from purchase_context_field_configuration where subscription_descriptor_id_fk = :subscriptionId::uuid order by field_order asc&quot;)
+    List&lt;PurchaseContextFieldConfiguration&gt; findAdditionalFieldsForSubscriptionDescriptor(@Bind(&quot;subscriptionId&quot;) UUID subscriptionDescriptorId);
+
+    @Query(&quot;&quot;&quot;
+        select * from purchase_context_field_configuration where event_id_fk = :eventId\
+         and field_type = :type order by field_order asc\
+        &quot;&quot;&quot;)
+    List&lt;PurchaseContextFieldConfiguration&gt; findAdditionalFieldsOfTypeForEvent(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;type&quot;) String type);
+
+    @Query(&quot;select * from purchase_context_field_configuration where id = :id&quot;)
+    PurchaseContextFieldConfiguration findById(@Bind(&quot;id&quot;) long id);
+
+    @Query(&quot;update purchase_context_field_configuration set field_order = :order where id = :id&quot;)
+    int updateFieldOrder(@Bind(&quot;id&quot;) long id, @Bind(&quot;order&quot;) int order);
+
+    @Query(&quot;select count(*) from purchase_context_field_configuration where event_id_fk = :eventId&quot;)
+    Integer countAdditionalFieldsForEvent(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select max(field_order) from purchase_context_field_configuration where &quot; + PURCHASE_CONTEXT_MATCHER)
+    Integer findMaxOrderValue(@Bind(&quot;eventId&quot;) Integer eventId, @Bind(&quot;subscriptionId&quot;) UUID subscriptionId);
+
+    default Map&lt;Long, PurchaseContextFieldDescription&gt; findTranslationsFor(Locale locale, int eventId) {
+<span class="nc" id="L265">        return findDescriptionsForLocale(eventId, locale.getLanguage()).stream().collect(Collectors.toMap(PurchaseContextFieldDescription::getFieldConfigurationId, Function.identity()));</span>
+    }
+
+    default Map&lt;String, List&lt;String&gt;&gt; findAllValuesForTicketId(int ticketId) {
+<span class="nc" id="L269">        return findNameAndValue(ticketId)</span>
+<span class="nc" id="L270">            .stream()</span>
+<span class="nc bnc" id="L271" title="All 4 branches missed.">            .filter(t -&gt; t.getName() != null &amp;&amp; t.getValue() != null)</span>
+<span class="nc" id="L272">            .collect(Collectors.groupingBy(FieldNameAndValue::getName, Collectors.mapping(FieldNameAndValue::getValue, Collectors.toList())));</span>
+    }
+
+    // required for deleting a field
+
+    @Query(&quot;delete from purchase_context_field_value where field_configuration_id_fk = :fieldConfigurationId&quot;)
+	int deleteValues(@Bind(&quot;fieldConfigurationId&quot;) long ticketFieldConfigurationId);
+
+    @Query(&quot;delete from purchase_context_field_description where field_configuration_id_fk = :fieldConfigurationId&quot;)
+	int deleteDescription(@Bind(&quot;fieldConfigurationId&quot;) long ticketFieldConfigurationId);
+
+    @Query(&quot;delete from purchase_context_field_configuration where id = :fieldConfigurationId&quot;)
+	int deleteField(@Bind(&quot;fieldConfigurationId&quot;) long ticketFieldConfigurationId);
+
+    @Query(&quot;select field_value as name, count(*) as count from field_value_w_additional where field_configuration_id_fk = :configurationId group by field_value&quot;)
+    List&lt;RestrictedValueStats.RestrictedValueCount&gt; getValueStats(@Bind(&quot;configurationId&quot;) long configurationId);
+
+    default List&lt;RestrictedValueStats&gt; retrieveStats(long configurationId) {
+<span class="nc" id="L290">        PurchaseContextFieldConfiguration configuration = findById(configurationId);</span>
+<span class="nc" id="L291">        Map&lt;String, Integer&gt; valueStats = getValueStats(configurationId).stream().collect(Collectors.toMap(RestrictedValueStats.RestrictedValueCount::getName, RestrictedValueStats.RestrictedValueCount::getCount));</span>
+<span class="nc" id="L292">        int total = valueStats.values().stream().mapToInt(i -&gt; i).sum();</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (configuration.isCountryField()) {</span>
+            // no restricted values
+<span class="nc" id="L295">            var descComparator = Entry.&lt;String, Integer&gt;comparingByValue().reversed();</span>
+<span class="nc" id="L296">            return valueStats.entrySet().stream()</span>
+<span class="nc" id="L297">                .sorted(descComparator)</span>
+<span class="nc" id="L298">                .map(entry -&gt; {</span>
+<span class="nc" id="L299">                    int count = entry.getValue();</span>
+<span class="nc" id="L300">                    return new RestrictedValueStats(entry.getKey(),</span>
+                        count,
+<span class="nc" id="L302">                        new BigDecimal(count).divide(new BigDecimal(total), 2, RoundingMode.HALF_UP).multiply(MonetaryUtil.HUNDRED).intValue()</span>
+                    );
+<span class="nc" id="L304">                }).collect(Collectors.toList());</span>
+        }
+<span class="nc" id="L306">        return configuration.getRestrictedValues().stream()</span>
+<span class="nc" id="L307">            .map(name -&gt; {</span>
+<span class="nc" id="L308">                int count = valueStats.getOrDefault(name, 0);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                return new RestrictedValueStats(name, count, total == 0 ? 0 : new BigDecimal(count).divide(new BigDecimal(total), 2, RoundingMode.HALF_UP).multiply(MonetaryUtil.HUNDRED).intValue());</span>
+<span class="nc" id="L310">            }).collect(Collectors.toList());</span>
+
+    }
+
+    @Query(&quot;select &quot; + ADDITIONAL_SERVICE_FIELD_VALUE_COLS +
+        &quot; from additional_item_field_value_with_ticket_id&quot; +
+        &quot;  where ticket_id_fk = :ticketId&quot; +
+        &quot;  and additional_service_id_fk in (:additionalServiceIds)&quot;)
+    List&lt;AdditionalServiceFieldValue&gt; loadTicketFieldsForAdditionalService(@Bind(&quot;ticketId&quot;) int ticketId,
+                                                                           @Bind(&quot;additionalServiceIds&quot;) List&lt;Integer&gt; additionalServiceIds);
+
+    @Query(&quot;select &quot; + ADDITIONAL_SERVICE_FIELD_VALUE_COLS + &quot; from additional_item_field_value_with_ticket_id where ticket_id_fk in(:ticketIds)&quot;)
+    List&lt;AdditionalServiceFieldValue&gt; findAdditionalServicesValueByTicketIds(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds);
+
+    @Query(&quot;select &quot; + ADDITIONAL_SERVICE_FIELD_VALUE_COLS + &quot; from additional_item_field_value_with_ticket_id where additional_service_item_id_fk in (:itemIds)&quot;)
+    List&lt;AdditionalServiceFieldValue&gt; findAdditionalServicesValueByItemIds(@Bind(&quot;itemIds&quot;) List&lt;Integer&gt; itemIds);
+
+    @Query(&quot;select count(*) from purchase_context_field_configuration where id in (:additionalFieldIds) and &quot;+PURCHASE_CONTEXT_MATCHER)
+    int countMatchingAdditionalFieldsForPurchaseContext(@Bind(&quot;eventId&quot;) Integer eventId,
+                                                        @Bind(&quot;subscriptionId&quot;) UUID subscriptionDescriptorId,
+                                                        @Bind(&quot;additionalFieldIds&quot;) Set&lt;Long&gt; additionalFieldIds);
+
+    NamedParameterJdbcTemplate getJdbcTemplate();
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

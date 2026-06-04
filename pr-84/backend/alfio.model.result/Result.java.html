@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Result.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.result</a> &gt; <span class="el_source">Result.java</span></div><h1>Result.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.result;
+
+import alfio.model.result.ValidationResult.ErrorDescriptor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.validation.ObjectError;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+@AllArgsConstructor
+@Getter
+public class Result&lt;T&gt; {
+
+    private final ResultStatus status;
+    private final T data;
+    private final List&lt;ErrorCode&gt; errors;
+
+    public static &lt;T&gt; Result&lt;T&gt; success(T data) {
+<span class="fc" id="L41">        return new Result&lt;&gt;(ResultStatus.OK, data, Collections.emptyList());</span>
+    }
+
+    public static &lt;T&gt; Result&lt;T&gt; validationError(List&lt;ObjectError&gt; errors) {
+<span class="nc" id="L45">        return new Result&lt;&gt;(ResultStatus.VALIDATION_ERROR, null, errors.stream().map(ErrorDescriptor::fromObjectError).collect(Collectors.toList()));</span>
+    }
+
+    public static &lt;T&gt; Result&lt;T&gt; error(List&lt;ErrorCode&gt; errorDescriptors) {
+<span class="nc" id="L49">        return new Result&lt;&gt;(ResultStatus.ERROR, null, errorDescriptors);</span>
+    }
+
+    public static &lt;T&gt; Result&lt;T&gt; error(ErrorCode errorDescriptor) {
+<span class="nc" id="L53">        return error(Collections.singletonList(errorDescriptor));</span>
+    }
+
+    public boolean isSuccess() {
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        return status == ResultStatus.OK;</span>
+    }
+
+    public void ifSuccess(Consumer&lt;T&gt; consumer) {
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if(isSuccess()) {</span>
+<span class="nc" id="L62">            consumer.accept(data);</span>
+        }
+<span class="nc" id="L64">    }</span>
+
+    public &lt;K&gt; Result&lt;K&gt; map(Function&lt;T, K&gt; mapper) {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if(isSuccess()) {</span>
+<span class="nc" id="L68">            return Result.success(mapper.apply(data));</span>
+        }
+<span class="nc" id="L70">        return Result.error(this.errors);</span>
+    }
+
+    public &lt;K&gt; Result&lt;K&gt; flatMap(Function&lt;T, Result&lt;K&gt;&gt; mapper) {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if(isSuccess()) {</span>
+<span class="nc" id="L75">            return Objects.requireNonNull(mapper.apply(data), &quot;this method does not allow null values&quot;);</span>
+        }
+<span class="nc" id="L77">        return Result.error(this.errors);</span>
+    }
+
+    public ErrorCode getFirstErrorOrNull() {
+<span class="nc bnc" id="L81" title="All 4 branches missed.">        if(isSuccess() || CollectionUtils.size(errors) == 0) {</span>
+<span class="nc" id="L82">            return null;</span>
+        }
+<span class="nc" id="L84">        return errors.get(0);</span>
+    }
+
+    public String getFormattedErrors() {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if(isSuccess()) {</span>
+<span class="nc" id="L89">            return null;</span>
+        }
+<span class="nc" id="L91">        return getErrors().stream().map(ErrorCode::getDescription)</span>
+<span class="nc" id="L92">            .collect(Collectors.joining(&quot;\n&quot;));</span>
+    }
+
+<span class="fc" id="L95">    public enum ResultStatus {</span>
+<span class="fc" id="L96">        OK, VALIDATION_ERROR, ERROR</span>
+    }
+
+<span class="nc" id="L99">    public static final class Builder&lt;T&gt; {</span>
+<span class="nc" id="L100">        private final List&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; validators = new ArrayList&lt;&gt;();</span>
+
+        public Builder&lt;T&gt; checkPrecondition(ConditionValidator validator, ErrorCode error) {
+<span class="nc" id="L103">            this.validators.add(Pair.of(validator, error));</span>
+<span class="nc" id="L104">            return this;</span>
+        }
+
+        public Result&lt;T&gt; build(Supplier&lt;T&gt; valueSupplier) {
+<span class="nc" id="L108">            Optional&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; validationError = performValidation();</span>
+<span class="nc" id="L109">            return validationError.map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))</span>
+<span class="nc" id="L110">                .orElseGet(() -&gt; Result.success(valueSupplier.get()));</span>
+        }
+
+        public Result&lt;T&gt; buildAndEvaluate(Supplier&lt;Result&lt;T&gt;&gt; resultSupplier) {
+<span class="nc" id="L114">            return performValidation().map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))</span>
+<span class="nc" id="L115">                .orElseGet(resultSupplier);</span>
+        }
+
+        private Optional&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; performValidation() {
+<span class="nc" id="L119">            return this.validators.stream()</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                .filter(p -&gt; !p.getLeft().isValid())</span>
+<span class="nc" id="L121">                .findFirst();</span>
+        }
+
+    }
+
+    public static &lt;T&gt; Result&lt;T&gt; fromNullable(T nullable, ErrorCode justInCase) {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if(nullable == null) {</span>
+<span class="nc" id="L128">            return Result.error(justInCase);</span>
+        }
+<span class="nc" id="L130">        return Result.success(nullable);</span>
+    }
+
+    @FunctionalInterface
+    public interface ConditionValidator {
+        boolean isValid();
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
