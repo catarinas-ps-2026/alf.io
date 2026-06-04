@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FieldConfigurationDescriptionAndValue.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model</a> &gt; <span class="el_source">FieldConfigurationDescriptionAndValue.java</span></div><h1>FieldConfigurationDescriptionAndValue.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model;
+
+import alfio.util.Json;
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Delegate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
+
+import java.beans.ConstructorProperties;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+@AllArgsConstructor
+public class FieldConfigurationDescriptionAndValue {
+
+    @Delegate
+    private final PurchaseContextFieldConfiguration purchaseContextFieldConfiguration;
+    @Delegate
+    private final PurchaseContextFieldDescription purchaseContextFieldDescription;
+    private final int count;
+    private final String value;
+
+<span class="fc" id="L47">    private static final List&lt;String&gt; TEXT_FIELD_TYPES = List.of(</span>
+        &quot;input:text&quot;,
+        &quot;input:tel&quot;,
+        &quot;textarea&quot;,
+        &quot;vat:eu&quot;,
+        &quot;dateOfBirth&quot;
+    );
+<span class="fc" id="L54">    private static final Pattern CHECKBOX_VALUES_PATTERN = Pattern.compile(&quot;\&quot;(.*?)\&quot;,?&quot;);</span>
+
+    public String getTranslatedValue() {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if(StringUtils.isBlank(value)) {</span>
+<span class="nc" id="L58">            return value;</span>
+        }
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if(isSelectField()) {</span>
+<span class="nc" id="L61">            return purchaseContextFieldDescription.getRestrictedValuesDescription().getOrDefault(value, &quot;MISSING_DESCRIPTION&quot;);</span>
+        }
+<span class="nc" id="L63">        return value;</span>
+    }
+
+    public List&lt;Triple&lt;String, String, Boolean&gt;&gt; getTranslatedRestrictedValue() {
+<span class="fc" id="L67">        Map&lt;String, String&gt; description = purchaseContextFieldDescription.getRestrictedValuesDescription();</span>
+<span class="fc" id="L68">        return purchaseContextFieldConfiguration.getRestrictedValues()</span>
+<span class="fc" id="L69">            .stream()</span>
+<span class="fc" id="L70">            .map(val -&gt; Triple.of(val, description.getOrDefault(val, &quot;MISSING_DESCRIPTION&quot;), isFieldValueEnabled(purchaseContextFieldConfiguration, val)))</span>
+<span class="fc" id="L71">            .collect(Collectors.toList());</span>
+    }
+
+    public List&lt;TicketFieldValue&gt; getFields() {
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if(count == 1) {</span>
+<span class="fc" id="L76">            return Collections.singletonList(new TicketFieldValue(0, 1, value, isAcceptingValues()));</span>
+        }
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        List&lt;String&gt; values = StringUtils.isBlank(value) ? Collections.emptyList() : Json.fromJson(value, new TypeReference&lt;&gt;() {});</span>
+<span class="nc" id="L79">        return IntStream.range(0, count)</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            .mapToObj(i -&gt; new TicketFieldValue(i, i+1, i &lt; values.size() ? values.get(i) : &quot;&quot;, isAcceptingValues()))</span>
+<span class="nc" id="L81">            .collect(Collectors.toList());</span>
+
+    }
+
+    private boolean isText() {
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        return purchaseContextFieldConfiguration.isTextField()</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">            || TEXT_FIELD_TYPES.contains(purchaseContextFieldConfiguration.getType());</span>
+    }
+
+    public String getValueDescription() {
+<span class="pc bpc" id="L91" title="1 of 4 branches missed.">        if(isText() || isCountryField()) {</span>
+<span class="fc" id="L92">            return value;</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        } else if(isCheckboxField()) {</span>
+<span class="fc" id="L94">            var matches = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L95">            var matcher = CHECKBOX_VALUES_PATTERN.matcher(value);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">            while(matcher.find()) {</span>
+<span class="fc" id="L97">                matches.add(matcher.group(1));</span>
+            }
+<span class="fc" id="L99">            var restrictedValues = getTranslatedRestrictedValue();</span>
+<span class="fc" id="L100">            return matches.stream()</span>
+<span class="fc" id="L101">                .map(v -&gt; findValueDescription(restrictedValues, v))</span>
+<span class="fc" id="L102">                .filter(StringUtils::isNotBlank)</span>
+<span class="fc" id="L103">                .collect(Collectors.joining(&quot;, &quot;));</span>
+        } else {
+<span class="fc" id="L105">            return findValueDescription(getTranslatedRestrictedValue(), value);</span>
+        }
+    }
+
+    private String findValueDescription(List&lt;Triple&lt;String, String, Boolean&gt;&gt; translateRestrictedValues,
+                                        String value) {
+<span class="fc" id="L111">        return translateRestrictedValues.stream()</span>
+<span class="fc" id="L112">            .filter(t -&gt; StringUtils.equals(t.getLeft(), value))</span>
+<span class="fc" id="L113">            .map(Triple::getMiddle)</span>
+<span class="fc" id="L114">            .findFirst()</span>
+<span class="fc" id="L115">            .orElse(&quot;&quot;);</span>
+    }
+
+    public String getValue() {
+<span class="fc" id="L119">        return value;</span>
+    }
+
+    private boolean isAcceptingValues() {
+<span class="pc bpc" id="L123" title="3 of 4 branches missed.">        return isEditable() || StringUtils.isBlank(value);</span>
+    }
+
+    public boolean isBeforeStandardFields() {
+<span class="fc" id="L127">        return isBeforeStandardFields(purchaseContextFieldConfiguration);</span>
+    }
+
+    private static boolean isFieldValueEnabled(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration, String value) {
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        return !purchaseContextFieldConfiguration.isSelectField()</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            || CollectionUtils.isEmpty(purchaseContextFieldConfiguration.getDisabledValues())</span>
+<span class="pc bnc" id="L133" title="All 2 branches missed.">            || !purchaseContextFieldConfiguration.getDisabledValues().contains(value);</span>
+    }
+
+
+    @Getter
+    public static class TicketFieldValue {
+        private final int fieldIndex;
+        private final int fieldCounter;
+        private final String fieldValue;
+        private final Boolean editable;
+
+        @ConstructorProperties({&quot;fieldIndex&quot;, &quot;fieldCounter&quot;, &quot;fieldValue&quot;, &quot;editable&quot;})
+<span class="fc" id="L145">        public TicketFieldValue(int fieldIndex, int fieldCounter, String fieldValue, Boolean editable) {</span>
+<span class="fc" id="L146">            this.fieldIndex = fieldIndex;</span>
+<span class="fc" id="L147">            this.fieldCounter = fieldCounter;</span>
+<span class="fc" id="L148">            this.fieldValue = fieldValue;</span>
+<span class="fc" id="L149">            this.editable = editable;</span>
+<span class="fc" id="L150">        }</span>
+    }
+
+    public static boolean isBeforeStandardFields(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration) {
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        return purchaseContextFieldConfiguration.getOrder() &lt; 0;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
