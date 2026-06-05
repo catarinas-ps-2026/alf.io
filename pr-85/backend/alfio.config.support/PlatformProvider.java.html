@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlatformProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config.support</a> &gt; <span class="el_source">PlatformProvider.java</span></div><h1>PlatformProvider.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config.support;
+
+import alfio.config.Initializer;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+import static java.util.Optional.ofNullable;
+
+/**
+ * For handling the various differences between the cloud providers.
+ * &lt;p&gt;
+ * Supported:
+ * - Openshift : pgsql only
+ * - Cloud Foundry: postgres
+ * - Heroku
+ * - AWS
+ * - local use with system properties
+ */
+<span class="fc" id="L40">public enum PlatformProvider {</span>
+<span class="fc" id="L41">    DEFAULT,</span>
+
+<span class="fc" id="L43">    DRY_RUN {</span>
+        @Override
+        public boolean isHosting(Environment env) {
+<span class="fc" id="L46">            return env.acceptsProfiles(Profiles.of(Initializer.PROFILE_APP_CDS));</span>
+        }
+    },
+
+    /**
+     * See https://developers.openshift.com/en/managing-environment-variables.html
+     **/
+<span class="fc" id="L53">    OPENSHIFT {</span>
+
+        @Override
+        public String getUrl(Environment env) {
+<span class="nc" id="L57">            String dbHost = env.getRequiredProperty(&quot;OPENSHIFT_POSTGRESQL_DB_HOST&quot;);</span>
+<span class="nc" id="L58">            String port = env.getRequiredProperty(&quot;OPENSHIFT_POSTGRESQL_DB_PORT&quot;);</span>
+<span class="nc" id="L59">            String dbName = env.getRequiredProperty(&quot;OPENSHIFT_APP_NAME&quot;);</span>
+
+<span class="nc" id="L61">            return &quot;jdbc:postgresql://&quot; + dbHost + &quot;:&quot; + port + &quot;/&quot; + dbName;</span>
+        }
+
+        @Override
+        public String getUsername(Environment env) {
+<span class="nc" id="L66">            return env.getRequiredProperty(&quot;OPENSHIFT_POSTGRESQL_DB_USERNAME&quot;);</span>
+        }
+
+
+        @Override
+        public String getPassword(Environment env) {
+<span class="nc" id="L72">            return env.getRequiredProperty(&quot;OPENSHIFT_POSTGRESQL_DB_PASSWORD&quot;);</span>
+        }
+
+        @Override
+        public boolean isHosting(Environment env) {
+<span class="fc" id="L77">            return ofNullable(env.getProperty(&quot;OPENSHIFT_APP_NAME&quot;)).isPresent();</span>
+        }
+    },
+
+    /**
+     * Cloud Foundry configuration.
+     * see https://docs.cloudfoundry.org/buildpacks/java/spring-service-bindings.html
+     * Anyway, since we use Spring, the Cloud Foundry engine should replace the &quot;DataSource&quot; bean with the right one.
+     */
+<span class="fc" id="L86">    CLOUD_FOUNDRY {</span>
+
+        @Override
+<span class="nc" id="L89">        public String getUrl(Environment env) { return &quot;url&quot;; }</span>
+
+        @Override
+        public String getUsername(Environment env) {
+<span class="nc" id="L93">            return &quot;&quot;;</span>
+        }
+
+        @Override
+        public String getPassword(Environment env) {
+<span class="nc" id="L98">            return &quot;&quot;;</span>
+        }
+
+        @Override
+        public boolean isHosting(Environment env) {
+            //check if json object for services is returned
+            //example payload
+            //{
+            //&quot;staging_env_json&quot;: {},
+            //&quot;running_env_json&quot;: {},
+            //&quot;system_env_json&quot;: {
+            //    &quot;VCAP_SERVICES&quot;: {
+            //        &quot;p-mysql&quot;: [
+            //        {
+            //            &quot;name&quot;: &quot;alfio-db&quot;,
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            return env.getProperty(&quot;VCAP_SERVICES&quot;) != null;</span>
+        }
+    },
+
+<span class="fc" id="L117">    HEROKU {</span>
+
+        @Override
+        public String getUrl(Environment env) {
+<span class="nc" id="L121">            URI uri = resolveURI(env);</span>
+<span class="nc" id="L122">            return &quot;%s://%s:%s%s&quot;.formatted(&quot;jdbc:postgresql&quot;, uri.getHost(), uri.getPort(), uri.getPath());</span>
+        }
+
+        @Override
+        public String getUsername(Environment env) {
+<span class="nc" id="L127">            return Pattern.compile(&quot;:&quot;).split(resolveURI(env).getUserInfo())[0];</span>
+        }
+
+
+        @Override
+        public String getPassword(Environment env) {
+<span class="nc" id="L133">            return Pattern.compile(&quot;:&quot;).split(resolveURI(env).getUserInfo())[1];</span>
+        }
+
+        @Override
+        public boolean isHosting(Environment env) {
+<span class="fc" id="L138">            return ofNullable(env.getProperty(&quot;DYNO&quot;)).isPresent();</span>
+        }
+
+        private URI resolveURI(Environment env) {
+<span class="nc" id="L142">            return resolveURI(env, &quot;DATABASE_URL&quot;);</span>
+        }
+
+    },
+
+<span class="fc" id="L147">    DOCKER { // we assume that the db container has been linked using the `postgres` alias (e.g. --link alfio-db:postgres)</span>
+
+        @Override
+        public String getUrl(Environment env) {
+<span class="nc" id="L151">            String dbHost = env.getRequiredProperty(&quot;POSTGRES_PORT_5432_TCP_ADDR&quot;);</span>
+<span class="nc" id="L152">            String port = env.getRequiredProperty(&quot;POSTGRES_PORT_5432_TCP_PORT&quot;);</span>
+<span class="nc" id="L153">            String dbName = env.getRequiredProperty(&quot;POSTGRES_ENV_POSTGRES_DB&quot;);</span>
+<span class="nc" id="L154">            return &quot;jdbc:postgresql://&quot; + dbHost + &quot;:&quot; + port + &quot;/&quot; + dbName;</span>
+        }
+
+        @Override
+        public String getUsername(Environment env) {
+<span class="nc" id="L159">            return env.getRequiredProperty(&quot;POSTGRES_ENV_POSTGRES_USERNAME&quot;);</span>
+        }
+
+
+        @Override
+        public String getPassword(Environment env) {
+<span class="nc" id="L165">            return env.getRequiredProperty(&quot;POSTGRES_ENV_POSTGRES_PASSWORD&quot;);</span>
+        }
+
+        @Override
+        public boolean isHosting(Environment env) {
+<span class="fc" id="L170">            return ofNullable(env.getProperty(&quot;POSTGRES_ENV_POSTGRES_DB&quot;)).isPresent();</span>
+        }
+    },
+
+<span class="fc" id="L174">    AWS_BEANSTALK {</span>
+
+        @Override
+        public String getUrl(Environment env) {
+<span class="fc" id="L178">            String dbType = &quot;postgresql&quot;;</span>
+<span class="fc" id="L179">            String host = env.getRequiredProperty(&quot;RDS_HOSTNAME&quot;);</span>
+<span class="fc" id="L180">            String port = env.getRequiredProperty(&quot;RDS_PORT&quot;);</span>
+<span class="fc" id="L181">            String db = env.getRequiredProperty(&quot;RDS_DB_NAME&quot;);</span>
+<span class="fc" id="L182">            return &quot;jdbc:%s://%s:%s/%s&quot;.formatted(dbType, host, port, db);</span>
+        }
+
+        @Override
+        public String getUsername(Environment env) {
+<span class="fc" id="L187">            return env.getRequiredProperty(&quot;RDS_USERNAME&quot;);</span>
+        }
+
+        @Override
+        public String getPassword(Environment env) {
+<span class="fc" id="L192">            return env.getRequiredProperty(&quot;RDS_PASSWORD&quot;);</span>
+        }
+
+        @Override
+        public boolean isHosting(Environment env) {
+<span class="fc" id="L197">            return ofNullable(env.getProperty(&quot;RDS_HOSTNAME&quot;)).isPresent();</span>
+        }
+
+    },
+
+<span class="fc" id="L202">    CLEVER_CLOUD {</span>
+        @Override
+        public String getUrl(Environment env) {
+<span class="nc" id="L205">            return &quot;jdbc:postgresql://%s:%s/%s&quot;.formatted(env.getRequiredProperty(&quot;POSTGRESQL_ADDON_HOST&quot;),</span>
+<span class="nc" id="L206">                env.getRequiredProperty(&quot;POSTGRESQL_ADDON_PORT&quot;), env.getRequiredProperty(&quot;POSTGRESQL_ADDON_DB&quot;));</span>
+        }
+
+        @Override
+        public String getUsername(Environment env) {
+<span class="nc" id="L211">            return env.getRequiredProperty(&quot;POSTGRESQL_ADDON_USER&quot;);</span>
+        }
+
+        @Override
+        public String getPassword(Environment env) {
+<span class="nc" id="L216">            return env.getRequiredProperty(&quot;POSTGRESQL_ADDON_PASSWORD&quot;);</span>
+        }
+
+        @Override
+        public int getMaxActive(Environment env) {
+            //default limit to 5, to be on the safe side
+<span class="nc" id="L222">            return Integer.parseInt(env.getProperty(&quot;POSTGRESQL_ADDON_MAXCONN&quot;, &quot;5&quot;));</span>
+        }
+
+        @Override
+        public boolean isHosting(Environment env) {
+<span class="fc" id="L227">            return ofNullable(env.getProperty(&quot;CC_DEPLOYMENT_ID&quot;)).isPresent();</span>
+        }
+    };
+
+    public String getUrl(Environment env) {
+<span class="nc" id="L232">        return env.getRequiredProperty(&quot;datasource.url&quot;);</span>
+    }
+
+    public String getUsername(Environment env) {
+<span class="nc" id="L236">        return env.getRequiredProperty(&quot;datasource.username&quot;);</span>
+    }
+
+    public String getPassword(Environment env) {
+<span class="nc" id="L240">        return env.getRequiredProperty(&quot;datasource.password&quot;);</span>
+    }
+
+    public int getMaxActive(Environment env) {
+<span class="nc" id="L244">        return ofNullable(env.getProperty(&quot;datasource.connections.max-active&quot;))</span>
+<span class="nc" id="L245">            .map(Integer::parseInt)</span>
+<span class="nc" id="L246">            .orElse(10);//</span>
+    }
+
+    public int getMinIdle(Environment env) {
+<span class="nc" id="L250">        return ofNullable(env.getProperty(&quot;datasource.connections.min-idle&quot;))</span>
+<span class="nc" id="L251">            .map(Integer::parseInt)</span>
+<span class="nc" id="L252">            .orElse(5);//</span>
+    }
+
+    public boolean isHosting(Environment env) {
+<span class="nc" id="L256">        return true;</span>
+    }
+
+    static URI resolveURI(Environment env, String propertyName) {
+        try {
+<span class="nc" id="L261">            return new URI(env.getRequiredProperty(propertyName));</span>
+<span class="nc" id="L262">        } catch (URISyntaxException e) {</span>
+<span class="nc" id="L263">            throw new IllegalArgumentException(e);</span>
+        }
+    }
+
+    static boolean isCloudFoundry(Environment env) {
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        return env.getProperty(&quot;VCAP_SERVICES&quot;) != null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketCategoryModification.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.modification</a> &gt; <span class="el_source">TicketCategoryModification.java</span></div><h1>TicketCategoryModification.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.modification;
+
+import alfio.model.TicketCategory;
+import alfio.model.TicketCategory.TicketCheckInStrategy;
+import alfio.model.metadata.AlfioMetadata;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+
+import java.math.BigDecimal;
+import java.util.Map;
+
+@Getter
+public class TicketCategoryModification {
+
+    private final Integer id;
+    private final String name;
+    private final TicketCategory.TicketAccessType ticketAccessType;
+    private final int maxTickets;
+    private final DateTimeModification inception;
+    private final DateTimeModification expiration;
+    private final Map&lt;String, String&gt; description;
+    private final BigDecimal price;
+    private final boolean tokenGenerationRequested;
+    private final String dateString;
+    private final boolean bounded;
+    private final String code;
+
+    private final DateTimeModification validCheckInFrom;
+    private final DateTimeModification validCheckInTo;
+
+    private final DateTimeModification ticketValidityStart;
+    private final DateTimeModification ticketValidityEnd;
+    private final int ordinal;
+    private final TicketCheckInStrategy ticketCheckInStrategy;
+    private final String badgeColor;
+    private final AlfioMetadata metadata;
+    private final boolean skipWaitingList;
+
+    @JsonCreator
+    public TicketCategoryModification(@JsonProperty(&quot;id&quot;) Integer id,
+                                      @JsonProperty(&quot;name&quot;) String name,
+                                      @JsonProperty(&quot;ticketAccessType&quot;) TicketCategory.TicketAccessType ticketAccessType,
+                                      @JsonProperty(&quot;maxTickets&quot;) int maxTickets,
+                                      @JsonProperty(&quot;inception&quot;) DateTimeModification inception,
+                                      @JsonProperty(&quot;expiration&quot;) DateTimeModification expiration,
+                                      @JsonProperty(&quot;description&quot;) Map&lt;String, String&gt; description,
+                                      @JsonProperty(&quot;price&quot;) BigDecimal price,
+                                      @JsonProperty(&quot;tokenGenerationRequested&quot;) boolean tokenGenerationRequested,
+                                      @JsonProperty(&quot;dateString&quot;) String dateString,
+                                      @JsonProperty(&quot;bounded&quot;) boolean bounded,
+                                      @JsonProperty(&quot;code&quot;) String code,
+                                      @JsonProperty(&quot;validCheckInFrom&quot;) DateTimeModification validCheckInFrom,
+                                      @JsonProperty(&quot;validCheckInTo&quot;) DateTimeModification validCheckInTo,
+                                      @JsonProperty(&quot;ticketValidityStart&quot;) DateTimeModification ticketValidityStart,
+                                      @JsonProperty(&quot;ticketValidityEnd&quot;) DateTimeModification ticketValidityEnd,
+                                      @JsonProperty(&quot;ordinal&quot;) Integer ordinal,
+                                      @JsonProperty(&quot;ticketCheckInStrategy&quot;) TicketCheckInStrategy ticketCheckInStrategy,
+                                      @JsonProperty(&quot;badgeColor&quot;) String badgeColor,
+                                      @JsonProperty(&quot;metadata&quot;) AlfioMetadata metadata) {
+<span class="nc" id="L77">        this(id,</span>
+            name,
+            ticketAccessType,
+            maxTickets,
+            inception,
+            expiration,
+            description,
+            price,
+            tokenGenerationRequested,
+            dateString,
+            bounded,
+            code,
+            validCheckInFrom,
+            validCheckInTo,
+            ticketValidityStart,
+            ticketValidityEnd,
+            ordinal,
+            ticketCheckInStrategy,
+            badgeColor,
+            metadata,
+<span class="nc" id="L97">            false);</span>
+<span class="nc" id="L98">    }</span>
+
+    public TicketCategoryModification(Integer id,
+                                      String name,
+                                      TicketCategory.TicketAccessType ticketAccessType,
+                                      int maxTickets,
+                                      DateTimeModification inception,
+                                      DateTimeModification expiration,
+                                      Map&lt;String, String&gt; description,
+                                      BigDecimal price,
+                                      boolean tokenGenerationRequested,
+                                      String dateString,
+                                      boolean bounded,
+                                      String code,
+                                      DateTimeModification validCheckInFrom,
+                                      DateTimeModification validCheckInTo,
+                                      DateTimeModification ticketValidityStart,
+                                      DateTimeModification ticketValidityEnd,
+                                      Integer ordinal,
+                                      TicketCheckInStrategy ticketCheckInStrategy,
+                                      String badgeColor,
+                                      AlfioMetadata metadata,
+<span class="nc" id="L120">                                      Boolean skipWaitingList) {</span>
+<span class="nc" id="L121">        this.id = id;</span>
+<span class="nc" id="L122">        this.name = name;</span>
+<span class="nc" id="L123">        this.ticketAccessType = ticketAccessType;</span>
+<span class="nc" id="L124">        this.maxTickets = maxTickets;</span>
+<span class="nc" id="L125">        this.inception = inception;</span>
+<span class="nc" id="L126">        this.expiration = expiration;</span>
+<span class="nc" id="L127">        this.description = description;</span>
+<span class="nc" id="L128">        this.price = price;</span>
+<span class="nc" id="L129">        this.tokenGenerationRequested = tokenGenerationRequested;</span>
+<span class="nc" id="L130">        this.dateString = dateString;</span>
+<span class="nc" id="L131">        this.bounded = bounded;</span>
+<span class="nc" id="L132">        this.code = code;</span>
+<span class="nc" id="L133">        this.validCheckInFrom = validCheckInFrom;</span>
+<span class="nc" id="L134">        this.validCheckInTo = validCheckInTo;</span>
+<span class="nc" id="L135">        this.ticketValidityStart = ticketValidityStart;</span>
+<span class="nc" id="L136">        this.ticketValidityEnd = ticketValidityEnd;</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        this.ordinal = ordinal != null ? ordinal : 0;</span>
+<span class="nc" id="L138">        this.ticketCheckInStrategy = ticketCheckInStrategy;</span>
+<span class="nc" id="L139">        this.badgeColor = badgeColor;</span>
+<span class="nc" id="L140">        this.metadata = metadata;</span>
+<span class="nc" id="L141">        this.skipWaitingList = Boolean.TRUE.equals(skipWaitingList);</span>
+<span class="nc" id="L142">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
