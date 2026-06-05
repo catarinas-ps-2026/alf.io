@@ -328,31 +328,6 @@ tasks.withType(Test).configureEach {
     }
 }
 
-tasks.register('unitTest', Test) {
-    group = 'verification'
-    description = 'Runs the unit tests.'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    exclude '**/*IntegrationTest.class'
-    exclude '**/*E2ETest.class'
-}
-
-tasks.named('test') {
-    description = 'Runs all tests.'
-    dependsOn 'unitTest', 'integrationTest'
-    enabled = false
-}
-
-tasks.register('integrationTest', Test) {
-    group = 'verification'
-    description = 'Runs the integration tests.'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    include '**/*IntegrationTest.class'
-    include '**/*E2ETest.class'
-    shouldRunAfter unitTest
-}
-
 springBoot {
     mainClass = 'alfio.config.SpringBootLauncher'
 }
@@ -387,8 +362,6 @@ tasks.register('copyFrontendDev', Copy) {
 jacocoTestReport {
     group = 'Reporting'
     description = 'Generate Jacoco coverage reports after running tests.'
-    dependsOn(tasks.withType(Test))
-    executionData.setFrom(fileTree(dir: layout.buildDirectory.dir("jacoco"), include: "*.exec"))
     additionalSourceDirs.from(project.files(sourceSets.main.allSource.srcDirs))
     sourceDirectories.from(project.files(sourceSets.main.allSource.srcDirs))
     classDirectories.from(project.files(sourceSets.main.output))
