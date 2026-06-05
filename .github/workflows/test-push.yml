@@ -39,7 +39,7 @@ jobs:
                   cache-dependency-path: frontend/pnpm-lock.yaml
 
             - name: Run Backend Tests
-              run: ./gradlew check jacocoTestReport -Dpgsql.version=${{ matrix.postgresql }}
+              run: ./gradlew test jacocoTestReport -Dpgsql.version=${{ matrix.postgresql }}
 
             - name: Run Frontend Tests
               if: matrix.postgresql == '16'
