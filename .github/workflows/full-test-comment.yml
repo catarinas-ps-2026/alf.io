@@ -144,7 +144,7 @@ jobs:
 
                       let summary = `Tests finished with status: ${conclusion}.`;
                       if ('${{ matrix.postgresql }}' === '16' && conclusion === 'success') {
-                        summary += `\n\n[View Coverage Report](${link})`;
+                          summary += `\n\n[View Coverage Report](${link})`;
                       }
 
                       await github.rest.checks.update({
@@ -154,7 +154,7 @@ jobs:
                         status: 'completed',
                         conclusion: conclusion,
                         output: {
-                          title: `Full Test Matrix: PostgreSQL ${matrix.postgresql}`,
-                          summary: summary
+                            title: `Full Test Matrix: PostgreSQL ${{ matrix.postgresql }}`,
+                            summary: summary
                         }
                       });
