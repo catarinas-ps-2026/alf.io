@@ -270,11 +270,15 @@ public class AdminReservationManager {
                     status.rollbackToSavepoint(savepoint);
                 }
                 return result;
+            } catch (DuplicateReferenceException e) {
+                log.warn("Duplicate reference detected: {}", e.getMessage());
+                status.rollbackToSavepoint(savepoint);
+                return Result.error(singletonList(ErrorCode.custom("duplicate-reference", e.getMessage())));
             } catch (Exception e) {
                 log.error("Error during update of reservation eventName: {}, username: {}, reservation: {}", eventName, username, AdminReservationModification.summary(input));
                 log.debug("Error detail:", e);
                 status.rollbackToSavepoint(savepoint);
-                return Result.error(singletonList(ErrorCode.custom(e instanceof DuplicateReferenceException ? "duplicate-reference" : "", e.getMessage())));
+                return Result.error(singletonList(ErrorCode.custom("", e.getMessage())));
             }
         });
     }
