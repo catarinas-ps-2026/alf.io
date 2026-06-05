@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventTicketObject.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.wallet</a> &gt; <span class="el_source">EventTicketObject.java</span></div><h1>EventTicketObject.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.wallet;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Getter;
+
+@Getter
+public class EventTicketObject implements WalletEntity {
+
+    public static final String WALLET_URL = &quot;https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject&quot;;
+
+    private String id;
+
+    private String classId;
+
+    private String ticketHolderName;
+
+    private String ticketNumber;
+
+    private String barcode;
+
+<span class="nc" id="L39">    public EventTicketObject() {</span>
+<span class="nc" id="L40">    }</span>
+
+<span class="fc" id="L42">    public EventTicketObject(String id, String classId, String ticketHolderName, String ticketNumber, String barcode) {</span>
+<span class="fc" id="L43">        this.id = id;</span>
+<span class="fc" id="L44">        this.classId = classId;</span>
+<span class="fc" id="L45">        this.ticketHolderName = ticketHolderName;</span>
+<span class="fc" id="L46">        this.ticketNumber = ticketNumber;</span>
+<span class="fc" id="L47">        this.barcode = barcode;</span>
+<span class="fc" id="L48">    }</span>
+
+    public String build(ObjectMapper mapper) {
+<span class="fc" id="L51">        ObjectNode object = mapper.createObjectNode();</span>
+<span class="fc" id="L52">        object.put(&quot;id&quot;, id);</span>
+<span class="fc" id="L53">        object.put(&quot;classId&quot;, classId);</span>
+<span class="fc" id="L54">        object.put(&quot;state&quot;, &quot;ACTIVE&quot;);</span>
+<span class="fc" id="L55">        object.put(&quot;ticketHolderName&quot;, ticketHolderName);</span>
+<span class="fc" id="L56">        object.put(&quot;ticketNumber&quot;, ticketNumber);</span>
+<span class="fc" id="L57">        object.set(&quot;barcode&quot;, mapper.createObjectNode()</span>
+<span class="fc" id="L58">            .put(&quot;type&quot;, &quot;QR_CODE&quot;)</span>
+<span class="fc" id="L59">            .put(&quot;value&quot;, barcode));</span>
+
+        try {
+<span class="fc" id="L62">            return mapper.writeValueAsString(object);</span>
+<span class="nc" id="L63">        } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L64">            throw new RuntimeException(e);</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

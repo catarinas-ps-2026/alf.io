@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.user</a> &gt; <span class="el_source">UserManager.java</span></div><h1>UserManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.user;
+
+import alfio.config.authentication.support.APITokenAuthentication;
+import alfio.manager.AccessService;
+import alfio.model.modification.OrganizationModification;
+import alfio.model.result.ValidationResult;
+import alfio.model.user.*;
+import alfio.model.user.join.UserOrganization;
+import alfio.repository.InvoiceSequencesRepository;
+import alfio.repository.user.AuthorityRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.repository.user.UserRepository;
+import alfio.repository.user.join.UserOrganizationRepository;
+import alfio.util.PasswordGenerator;
+import alfio.util.RequestUtils;
+import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.security.Principal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+
+@Component
+@Transactional
+public class UserManager {
+
+    public static final String ADMIN_USERNAME = &quot;admin&quot;;
+<span class="fc" id="L61">    private static final Logger log = LoggerFactory.getLogger(UserManager.class);</span>
+<span class="fc" id="L62">    private static final Pattern SLUG_VALIDATOR = Pattern.compile(&quot;^[A-Za-z-_0-9]+$&quot;);</span>
+    private final AuthorityRepository authorityRepository;
+    private final OrganizationRepository organizationRepository;
+    private final UserOrganizationRepository userOrganizationRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final InvoiceSequencesRepository invoiceSequencesRepository;
+    private final FindByIndexNameSessionRepository&lt;?&gt; sessionsByPrincipalFinder;
+    private final AccessService accessService;
+
+<span class="fc" id="L72">    public UserManager(AuthorityRepository authorityRepository, OrganizationRepository organizationRepository, UserOrganizationRepository userOrganizationRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, InvoiceSequencesRepository invoiceSequencesRepository, FindByIndexNameSessionRepository&lt;?&gt; sessionsByPrincipalFinder, AccessService accessService) {</span>
+<span class="fc" id="L73">        this.authorityRepository = authorityRepository;</span>
+<span class="fc" id="L74">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L75">        this.userOrganizationRepository = userOrganizationRepository;</span>
+<span class="fc" id="L76">        this.userRepository = userRepository;</span>
+<span class="fc" id="L77">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L78">        this.invoiceSequencesRepository = invoiceSequencesRepository;</span>
+<span class="fc" id="L79">        this.sessionsByPrincipalFinder = sessionsByPrincipalFinder;</span>
+<span class="fc" id="L80">        this.accessService = accessService;</span>
+<span class="fc" id="L81">    }</span>
+
+
+    private List&lt;Authority&gt; getUserAuthorities(User user) {
+<span class="fc" id="L85">        return authorityRepository.findGrantedAuthorities(user.getUsername());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;UserWithOrganizations&gt; findAllUsers(String username) {
+<span class="nc" id="L90">        List&lt;Organization&gt; organizations = findUserOrganizations(username);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        Predicate&lt;Collection&lt;?&gt;&gt; isNotEmpty = ks -&gt; !ks.isEmpty();</span>
+<span class="nc" id="L92">        return Optional.of(organizations)</span>
+<span class="nc" id="L93">            .filter(isNotEmpty)</span>
+<span class="nc" id="L94">            .flatMap(org -&gt; {</span>
+<span class="nc" id="L95">                Map&lt;Integer, List&lt;UserOrganization&gt;&gt; usersAndOrganizations = userOrganizationRepository.findByOrganizationIdsOrderByUserId(organizations.stream().map(Organization::getId).collect(toList()))</span>
+<span class="nc" id="L96">                    .stream()</span>
+<span class="nc" id="L97">                    .collect(Collectors.groupingBy(UserOrganization::getUserId));</span>
+<span class="nc" id="L98">                return Optional.of(usersAndOrganizations.keySet())</span>
+<span class="nc" id="L99">                    .filter(isNotEmpty)</span>
+<span class="nc" id="L100">                    .map(ks -&gt; userRepository.findByIds(ks)</span>
+<span class="nc" id="L101">                        .stream()</span>
+<span class="nc" id="L102">                        .map(u -&gt; {</span>
+<span class="nc" id="L103">                            List&lt;UserOrganization&gt; userOrganizations = usersAndOrganizations.get(u.getId());</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                            List&lt;Organization&gt; filteredOrganizations = organizations.stream().filter(o -&gt; userOrganizations.stream().anyMatch(uo -&gt; uo.getOrganizationId() == o.getId())).collect(toList());</span>
+<span class="nc" id="L105">                            List&lt;Role&gt; roles = authorityRepository.findRoles(u.getUsername()).stream().map(Role::fromRoleName).collect(toList());</span>
+<span class="nc" id="L106">                            return new UserWithOrganizations(u, filteredOrganizations, roles);</span>
+<span class="nc" id="L107">                        }).collect(toList()));</span>
+<span class="nc" id="L108">            }).orElseGet(Collections::emptyList);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;User&gt; findAllEnabledUsers(String username) {
+<span class="fc" id="L113">        return findUserOrganizations(username)</span>
+<span class="fc" id="L114">                .stream()</span>
+<span class="fc" id="L115">                .flatMap(o -&gt; userOrganizationRepository.findByOrganizationId(o.getId()).stream())</span>
+<span class="fc" id="L116">                .map(uo -&gt; userRepository.findById(uo.getUserId()))</span>
+<span class="fc" id="L117">                .filter(User::isEnabled)</span>
+<span class="fc" id="L118">                .collect(toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;User&gt; findAllApiKeysFor(int organizationId) {
+<span class="nc" id="L123">        return userRepository.findAllApiKeysForOrganization(organizationId);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public User findUserByUsername(String username) {
+<span class="fc" id="L128">        return userRepository.findEnabledByUsername(username).orElseThrow(IllegalArgumentException::new);</span>
+    }
+
+    public Optional&lt;Integer&gt; findUserIdByApiKey(String apiKey, int organizationId) {
+<span class="nc" id="L132">        return userRepository.findUserIdForApiKey(organizationId, apiKey);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Optional&lt;User&gt; findOptionalEnabledUserByUsername(String username) {
+<span class="fc" id="L137">        return userRepository.findEnabledByUsername(username);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public boolean usernameExists(String username) {
+<span class="nc" id="L142">        return userRepository.findIdByUserName(username).isPresent();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public User findUser(int id, Principal principal) {
+<span class="fc" id="L147">        checkAccessToUserId(principal, id);</span>
+<span class="fc" id="L148">        return internalFindUser(id);</span>
+    }
+
+    private User internalFindUser(int id) {
+<span class="fc" id="L152">        return userRepository.findById(id);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Collection&lt;Role&gt; getAvailableRoles(String username) {
+<span class="fc" id="L157">        User user = findUserByUsername(username);</span>
+<span class="pc bpc" id="L158" title="2 of 4 branches missed.">        return isAdmin(user) || isOwner(user) ? EnumSet.of(Role.OWNER, Role.OPERATOR, Role.SUPERVISOR, Role.SPONSOR, Role.API_CONSUMER) : Collections.emptySet();</span>
+    }
+
+    /**
+     * Return the most privileged role of a user
+     * @param user
+     * @return user role
+     */
+    @Transactional(readOnly = true)
+    public Role getUserRole(User user) {
+<span class="fc" id="L168">        return getUserAuthorities(user).stream().map(Authority::getRole).sorted().findFirst().orElse(Role.OPERATOR);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;Organization&gt; findUserOrganizations(String username) {
+<span class="fc" id="L173">        return organizationRepository.findAllForUser(username);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Organization findOrganizationById(int id, String username) {
+<span class="fc" id="L178">        return findOptionalOrganizationById(id, username).orElseThrow(IllegalArgumentException::new);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Optional&lt;Organization&gt; findOptionalOrganizationById(int id, String username) {
+<span class="fc" id="L183">        return findUserOrganizations(username)</span>
+<span class="fc" id="L184">            .stream()</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">            .filter(o -&gt; o.getId() == id)</span>
+<span class="fc" id="L186">            .findFirst();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isAdmin(User user) {
+<span class="fc" id="L191">        return checkRole(user, Collections.singleton(Role.ADMIN));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isOwner(User user) {
+<span class="fc" id="L196">        return checkRole(user, EnumSet.of(Role.ADMIN, Role.OWNER, Role.API_CONSUMER));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isOwnerOfOrganization(User user, int organizationId) {
+<span class="pc bpc" id="L201" title="4 of 8 branches missed.">        return isAdmin(user) || (isOwner(user) &amp;&amp; userOrganizationRepository.findByUserId(user.getId()).stream().anyMatch(uo -&gt; uo.getOrganizationId() == organizationId));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isOwnerOfOrganization(String username, int organizationId) {
+<span class="nc" id="L206">        return userRepository.findByUsername(username)</span>
+<span class="nc" id="L207">            .filter(user -&gt; isOwnerOfOrganization(user, organizationId))</span>
+<span class="nc" id="L208">            .isPresent();</span>
+    }
+
+    private boolean checkRole(User user, Set&lt;Role&gt; expectedRoles) {
+<span class="fc" id="L212">        Set&lt;String&gt; roleNames = expectedRoles.stream().map(Role::getRoleName).collect(Collectors.toSet());</span>
+<span class="fc" id="L213">        return authorityRepository.checkRole(user.getUsername(), roleNames);</span>
+    }
+
+    public int createOrganization(OrganizationModification om, Principal principal) {
+        //
+<span class="fc" id="L218">        checkIsAdmin(principal);</span>
+        //
+<span class="fc" id="L220">        var affectedRowNumAndKey = organizationRepository.create(om.getName(), om.getDescription(), om.getEmail(), om.getExternalId(), om.getSlug());</span>
+<span class="fc" id="L221">        int orgId = affectedRowNumAndKey.getKey();</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">        Validate.isTrue(invoiceSequencesRepository.initFor(orgId) == 2);</span>
+<span class="fc" id="L223">        return orgId;</span>
+    }
+
+    public void updateOrganization(OrganizationModification om, Principal principal) {
+        //
+<span class="fc" id="L228">        int orgId = requireNonNull(om.getId());</span>
+<span class="fc" id="L229">        checkAccessToOrganizationId(principal, orgId);</span>
+        //
+<span class="pc bpc" id="L231" title="3 of 4 branches missed.">        boolean isAdmin = RequestUtils.isAdmin(principal) || RequestUtils.isSystemApiKey(principal);</span>
+<span class="fc" id="L232">        var currentOrg = organizationRepository.getById(orgId);</span>
+<span class="fc" id="L233">        organizationRepository.update(om.getId(),</span>
+<span class="fc" id="L234">            om.getName(),</span>
+<span class="fc" id="L235">            om.getDescription(),</span>
+<span class="fc" id="L236">            om.getEmail(),</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">            isAdmin ? om.getExternalId() : currentOrg.getExternalId(),</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">            isAdmin ? om.getSlug() : currentOrg.getSlug());</span>
+<span class="fc" id="L239">    }</span>
+
+    @Transactional(readOnly = true)
+    public ValidationResult validateOrganizationSlug(OrganizationModification om, Principal principal) {
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        if(!RequestUtils.isAdmin(principal)) {</span>
+<span class="nc" id="L244">            return ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;slug&quot;, &quot;Cannot update Organizer URL.&quot;));</span>
+        }
+<span class="nc" id="L246">        var slug = om.getSlug();</span>
+<span class="nc bnc" id="L247" title="All 4 branches missed.">        if(StringUtils.isBlank(slug) || !SLUG_VALIDATOR.matcher(om.getSlug()).matches()) {</span>
+<span class="nc" id="L248">            return ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;slug&quot;, &quot;Invalid value&quot;));</span>
+        }
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if(organizationRepository.countBySlug(slug, om.getId()) &gt; 0) {</span>
+<span class="nc" id="L251">            return ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;slug&quot;, &quot;URL is already taken&quot;, &quot;value_already_in_use&quot;));</span>
+        }
+<span class="nc" id="L253">        return ValidationResult.success();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public ValidationResult validateOrganization(OrganizationModification om, Principal principal) {
+<span class="nc bnc" id="L258" title="All 4 branches missed.">        if(om.getId() == null &amp;&amp; organizationRepository.findByName(om.getName()).isPresent()) {</span>
+<span class="nc" id="L259">            return ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;name&quot;, &quot;There is already another organization with the same name.&quot;));</span>
+        }
+<span class="nc" id="L261">        Validate.notBlank(om.getName(), &quot;name can't be empty&quot;);</span>
+<span class="nc" id="L262">        Validate.notBlank(om.getEmail(), &quot;email can't be empty&quot;);</span>
+<span class="nc" id="L263">        Validate.notBlank(om.getDescription(), &quot;description can't be empty&quot;);</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        if(!RequestUtils.isAdmin(principal)) {</span>
+<span class="nc" id="L265">            Validate.isTrue(StringUtils.isBlank(om.getExternalId()), &quot;cannot update external id&quot;);</span>
+<span class="nc" id="L266">            Validate.isTrue(StringUtils.isBlank(om.getSlug()), &quot;cannot update slug&quot;);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        } else if(StringUtils.isNotBlank(om.getSlug())) {</span>
+<span class="nc" id="L268">            Validate.isTrue(SLUG_VALIDATOR.matcher(om.getSlug()).matches(), &quot;Organizer address is not valid&quot;);</span>
+        }
+<span class="nc" id="L270">        return ValidationResult.success();</span>
+    }
+
+    public void editUser(int id, int organizationId, String username, String firstName, String lastName, String emailAddress, String description, Role role, Principal principal) {
+        //
+<span class="nc" id="L275">        checkAccessToUserIdAndNewOrganization(principal, id, organizationId);</span>
+        //
+<span class="nc" id="L277">        String currentUsername = principal.getName();</span>
+<span class="nc bnc" id="L278" title="All 4 branches missed.">        boolean admin = ADMIN_USERNAME.equals(username) &amp;&amp; Role.ADMIN == role;</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">        if(!admin) {</span>
+<span class="nc" id="L280">            int userOrganizationResult = userOrganizationRepository.updateUserOrganization(id, organizationId);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">            Assert.isTrue(userOrganizationResult == 1, &quot;unexpected error during organization update&quot;);</span>
+        }
+<span class="nc" id="L283">        int userResult = userRepository.update(id, username, firstName, lastName, emailAddress, description);</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        Assert.isTrue(userResult == 1, &quot;unexpected error during user update&quot;);</span>
+<span class="nc bnc" id="L285" title="All 4 branches missed.">        if(!admin &amp;&amp; !username.equals(currentUsername)) {</span>
+<span class="nc" id="L286">            Assert.isTrue(getAvailableRoles(currentUsername).contains(role), &quot;cannot assign role &quot;+role);</span>
+<span class="nc" id="L287">            authorityRepository.revokeAll(username);</span>
+<span class="nc" id="L288">            authorityRepository.create(username, role.getRoleName());</span>
+        }
+<span class="nc" id="L290">    }</span>
+
+    public void updateCurrentUserContactInfo(String firstName, String lastName, String emailAddress, Principal principal) {
+<span class="nc" id="L293">        var id = userRepository.findIdByUserName(principal.getName()).orElseThrow();</span>
+<span class="nc" id="L294">        userRepository.updateContactInfo(id, firstName, lastName, emailAddress);</span>
+<span class="nc" id="L295">    }</span>
+
+    public UserWithPassword insertUser(int organizationId, String username, String firstName, String lastName, String emailAddress, Role role, User.Type userType, Principal principal) {
+<span class="fc" id="L298">        return insertUser(organizationId, username, firstName, lastName, emailAddress, role, userType, null, null, principal);</span>
+    }
+
+
+    public UserWithPassword insertUser(int organizationId, String username, String firstName, String lastName, String emailAddress, Role role, User.Type userType, ZonedDateTime validTo, String description, Principal principal) {
+<span class="pc bpc" id="L303" title="1 of 2 branches missed.">        if (userType == User.Type.API_KEY) {</span>
+<span class="nc" id="L304">            username = UUID.randomUUID().toString();</span>
+<span class="nc" id="L305">            firstName = &quot;apikey&quot;;</span>
+<span class="nc" id="L306">            lastName = &quot;&quot;;</span>
+<span class="nc" id="L307">            emailAddress = &quot;&quot;;</span>
+        }
+
+<span class="fc" id="L310">        String userPassword = PasswordGenerator.generateRandomPassword();</span>
+<span class="fc" id="L311">        return insertUser(organizationId, username, firstName, lastName, emailAddress, role, userType, userPassword, validTo, description, principal);</span>
+    }
+
+    public void bulkInsertApiKeys(int organizationId, Role role, List&lt;String&gt; descriptions, Principal principal) {
+<span class="nc bnc" id="L315" title="All 2 branches missed.">        for (String description : descriptions) {</span>
+<span class="nc" id="L316">            insertUser(organizationId, null, null, null, null, role, User.Type.API_KEY, null, description, principal);</span>
+<span class="nc" id="L317">        }</span>
+<span class="nc" id="L318">    }</span>
+
+
+    public UserWithPassword insertUser(int organizationId, String username, String firstName, String lastName, String emailAddress, Role role, User.Type userType, String userPassword, ZonedDateTime validTo, String description, Principal principal) {
+        //
+<span class="fc" id="L323">        checkAccessToOrganizationId(principal, organizationId);</span>
+        //
+<span class="fc" id="L325">        Organization organization = organizationRepository.getById(organizationId);</span>
+<span class="fc" id="L326">        AffectedRowCountAndKey&lt;Integer&gt; result = userRepository.create(username, passwordEncoder.encode(userPassword), firstName, lastName, emailAddress, true, userType, validTo, description);</span>
+<span class="fc" id="L327">        userOrganizationRepository.create(result.getKey(), organization.getId());</span>
+<span class="fc" id="L328">        authorityRepository.create(username, role.getRoleName());</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">        return new UserWithPassword(userRepository.findById(result.getKey()), userType != User.Type.API_KEY ? userPassword : &quot;&quot;, UUID.randomUUID().toString());</span>
+    }
+
+
+    public UserWithPassword resetPassword(int userId, Principal principal) {
+        //
+<span class="nc" id="L335">        checkAccessToUserId(principal, userId);</span>
+        //
+<span class="nc" id="L337">        User user = internalFindUser(userId);</span>
+
+<span class="nc bnc" id="L339" title="All 2 branches missed.">        if (!principal.getName().equals(user.getUsername())) {</span>
+<span class="nc" id="L340">            invalidateSessionsForUser(user.getUsername());</span>
+        }
+
+<span class="nc" id="L343">        String password = PasswordGenerator.generateRandomPassword();</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        Validate.isTrue(userRepository.resetPassword(userId, passwordEncoder.encode(password)) == 1, &quot;error during password reset&quot;);</span>
+<span class="nc" id="L345">        return new UserWithPassword(user, password, UUID.randomUUID().toString());</span>
+    }
+
+
+    public void updateCurrentUserPassword(String newPassword, Principal principal) {
+<span class="nc" id="L350">        var username = principal.getName();</span>
+<span class="nc" id="L351">        User user = userRepository.findByUsername(username).orElseThrow(IllegalStateException::new);</span>
+<span class="nc" id="L352">        Validate.isTrue(PasswordGenerator.isValid(newPassword), &quot;invalid password&quot;);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        Validate.isTrue(userRepository.resetPassword(user.getId(), passwordEncoder.encode(newPassword)) == 1, &quot;error during password update&quot;);</span>
+<span class="nc" id="L354">    }</span>
+
+
+    public void deleteUser(int userId, Principal principal) {
+        //
+<span class="nc" id="L359">        checkAccessToUserId(principal, userId);</span>
+        //
+<span class="nc bnc" id="L361" title="All 2 branches missed.">        if (!isSystemApiUser(principal)) {</span>
+<span class="nc" id="L362">            var currentUsername = principal.getName();</span>
+<span class="nc" id="L363">            User currentUser = userRepository.findEnabledByUsername(currentUsername).orElseThrow(IllegalArgumentException::new);</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">            Assert.isTrue(userId != currentUser.getId(), &quot;sorry but you cannot delete your own account.&quot;);</span>
+        }
+
+<span class="nc" id="L367">        var userToDelete = userRepository.findById(userId);</span>
+<span class="nc" id="L368">        userRepository.deleteUserAndReferences(userId);</span>
+<span class="nc" id="L369">        invalidateSessionsForUser(userToDelete.getUsername());</span>
+<span class="nc" id="L370">        log.warn(&quot;Deleted user (id: {}, username: {}) as requested by {}&quot;, userId, userToDelete.getUsername(), principal.getName());</span>
+<span class="nc" id="L371">    }</span>
+
+    private void invalidateSessionsForUser(String username) {
+<span class="nc" id="L374">        var sessionsToInvalidate = sessionsByPrincipalFinder.findByPrincipalName(username).keySet();</span>
+<span class="nc" id="L375">        sessionsToInvalidate.forEach(sessionsByPrincipalFinder::deleteById);</span>
+<span class="nc" id="L376">    }</span>
+
+    public void enable(int userId, boolean status, Principal principal) {
+        //
+<span class="nc" id="L380">        checkAccessToUserId(principal, userId);</span>
+        //
+<span class="nc" id="L382">        var currentUsername = principal.getName();</span>
+<span class="nc" id="L383">        User currentUser = userRepository.findEnabledByUsername(currentUsername).orElseThrow(IllegalArgumentException::new);</span>
+<span class="nc bnc" id="L384" title="All 2 branches missed.">        Assert.isTrue(userId != currentUser.getId(), &quot;sorry but you cannot commit suicide&quot;);</span>
+
+<span class="nc" id="L386">        userRepository.toggleEnabled(userId, status);</span>
+
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (!status) { // disable user</span>
+<span class="nc" id="L389">            var userToDisable = userRepository.findById(userId);</span>
+<span class="nc" id="L390">            invalidateSessionsForUser(userToDisable.getUsername());</span>
+        }
+<span class="nc" id="L392">    }</span>
+
+    @Transactional(readOnly = true)
+    public ValidationResult validateUser(Integer id, String username, String firstName, String lastName, String emailAddress) {
+
+<span class="nc" id="L397">        Optional&lt;User&gt; existing = Optional.ofNullable(id).flatMap(userRepository::findOptionalById);</span>
+
+<span class="nc bnc" id="L399" title="All 4 branches missed.">        if(existing.filter(e -&gt; e.getUsername().equals(username)).isEmpty() &amp;&amp; usernameExists(username)) {</span>
+<span class="nc" id="L400">            return ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;username&quot;, &quot;There is already another user with the same username.&quot;));</span>
+        }
+<span class="nc" id="L402">        return ValidationResult.of(Stream.of(Pair.of(firstName, &quot;firstName&quot;), Pair.of(lastName, &quot;lastName&quot;), Pair.of(emailAddress, &quot;emailAddress&quot;))</span>
+<span class="nc" id="L403">            .filter(p -&gt; StringUtils.isEmpty(p.getKey()))</span>
+<span class="nc" id="L404">            .map(p -&gt; new ValidationResult.ErrorDescriptor(p.getKey(), p.getValue() + &quot; is required&quot;))</span>
+<span class="nc" id="L405">            .collect(toList()));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public ValidationResult validateNewPassword(String username, String oldPassword, String newPassword, String newPasswordConfirm) {
+<span class="nc" id="L410">        return userRepository.findByUsername(username)</span>
+<span class="nc" id="L411">            .map(u -&gt; {</span>
+<span class="nc" id="L412">                List&lt;ValidationResult.ErrorDescriptor&gt; errors = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L413">                Optional&lt;String&gt; password = userRepository.findPasswordByUsername(username);</span>
+<span class="nc bnc" id="L414" title="All 6 branches missed.">                if(password.filter(p -&gt; oldPassword == null || passwordEncoder.matches(oldPassword, p)).isEmpty()) {</span>
+<span class="nc" id="L415">                    errors.add(new ValidationResult.ErrorDescriptor(&quot;alfio.old-password-invalid&quot;, &quot;wrong password&quot;));</span>
+                }
+<span class="nc bnc" id="L417" title="All 2 branches missed.">                if(!PasswordGenerator.isValid(newPassword)) {</span>
+<span class="nc" id="L418">                    errors.add(new ValidationResult.ErrorDescriptor(&quot;alfio.new-password-invalid&quot;, &quot;new password is not strong enough&quot;));</span>
+                }
+<span class="nc bnc" id="L420" title="All 2 branches missed.">                if(!StringUtils.equals(newPassword, newPasswordConfirm)) {</span>
+<span class="nc" id="L421">                    errors.add(new ValidationResult.ErrorDescriptor(&quot;alfio.new-password-does-not-match&quot;, &quot;new password has not been confirmed&quot;));</span>
+                }
+<span class="nc" id="L423">                return ValidationResult.of(errors);</span>
+            })
+<span class="nc" id="L425">            .orElseGet(ValidationResult::failed);</span>
+    }
+
+    public Integer createPublicUserIfNotExists(String username, String email, String firstName, String lastName) {
+<span class="fc" id="L429">        int result = userRepository.createPublicUserIfNotExists(username,</span>
+<span class="fc" id="L430">            passwordEncoder.encode(PasswordGenerator.generateRandomPassword()),</span>
+            firstName,
+            lastName,
+            email,
+            true);
+<span class="pc bpc" id="L435" title="1 of 2 branches missed.">        if (result == 1) {</span>
+<span class="fc" id="L436">            log.info(&quot;Created public user&quot;);</span>
+        } else {
+<span class="nc" id="L438">            log.info(&quot;User was not created because already existed&quot;);</span>
+        }
+<span class="fc" id="L440">        return userRepository.findIdByUserName(username).orElse(null);</span>
+    }
+
+
+    private void checkIsAdmin(Principal principal) {
+<span class="fc bfc" id="L445" title="All 2 branches covered.">        if (principal == null) {</span>
+<span class="fc" id="L446">            return;</span>
+        }
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">        if (isSystemApiUser(principal)) {</span>
+<span class="nc" id="L449">            log.trace(&quot;Allowing call for System API Key&quot;);</span>
+<span class="nc" id="L450">            return;</span>
+        }
+<span class="pc bpc" id="L452" title="1 of 2 branches missed.">        if (isAdmin(findUserByUsername(principal.getName()))) {</span>
+<span class="fc" id="L453">            return;</span>
+        }
+<span class="nc" id="L455">        log.warn(&quot;User {} is not an admin&quot;, principal.getName());</span>
+<span class="nc" id="L456">        throw new IllegalArgumentException(&quot;User &quot; + principal.getName() + &quot; is not an admin&quot;);</span>
+    }
+
+    private void checkAccessToUserId(Principal principal, int userId) {
+<span class="pc bpc" id="L460" title="2 of 4 branches missed.">        if (principal == null || isSystemApiUser(principal)) {</span>
+<span class="nc" id="L461">            return;</span>
+        }
+<span class="fc" id="L463">        accessService.checkAccessToUser(principal, userId);</span>
+<span class="fc" id="L464">    }</span>
+
+    private void checkAccessToUserIdAndNewOrganization(Principal principal, int userId, int newOrganization) {
+<span class="nc" id="L467">        checkAccessToUserId(principal, userId);</span>
+<span class="nc" id="L468">        checkAccessToOrganizationId(principal, newOrganization);</span>
+<span class="nc" id="L469">    }</span>
+
+    private void checkAccessToOrganizationId(Principal principal, int organizationId) {
+<span class="fc" id="L472">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="fc" id="L473">    }</span>
+
+    private boolean isSystemApiUser(Principal principal) {
+<span class="pc" id="L476">        return principal instanceof APITokenAuthentication apita</span>
+<span class="pc bpc" id="L477" title="1 of 2 branches missed.">            &amp;&amp; apita.getAuthorities().stream()</span>
+<span class="pc bnc" id="L478" title="All 2 branches missed.">            .allMatch(authority -&gt; authority.getAuthority().equals(&quot;ROLE_&quot; + SYSTEM_API_CLIENT));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

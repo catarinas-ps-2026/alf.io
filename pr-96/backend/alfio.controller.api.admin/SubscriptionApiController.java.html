@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SubscriptionApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">SubscriptionApiController.java</span></div><h1>SubscriptionApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.admin;
+
+import alfio.manager.AccessService;
+import alfio.manager.SubscriptionManager;
+import alfio.model.modification.SubscriptionDescriptorModification;
+import alfio.model.subscription.EventSubscriptionLink;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.subscription.SubscriptionDescriptorWithStatistics;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/admin/api/organization/{organizationId}/subscription&quot;)
+public class SubscriptionApiController {
+
+    private final SubscriptionManager subscriptionManager;
+    private final AccessService accessService;
+
+    public SubscriptionApiController(SubscriptionManager subscriptionManager,
+<span class="fc" id="L42">                                     AccessService accessService) {</span>
+<span class="fc" id="L43">        this.subscriptionManager = subscriptionManager;</span>
+<span class="fc" id="L44">        this.accessService = accessService;</span>
+<span class="fc" id="L45">    }</span>
+
+    @GetMapping(&quot;/list&quot;)
+    ResponseEntity&lt;List&lt;SubscriptionDescriptorWithStatistics&gt;&gt; findAll(@PathVariable int organizationId, Principal principal) {
+<span class="nc" id="L49">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L50">        return ResponseEntity.ok(subscriptionManager.loadSubscriptionsWithStatistics(organizationId));</span>
+    }
+
+    @GetMapping(&quot;/active&quot;)
+    ResponseEntity&lt;List&lt;SubscriptionDescriptor&gt;&gt; findActive(@PathVariable int organizationId, Principal principal) {
+<span class="nc" id="L55">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L56">        return ResponseEntity.ok(subscriptionManager.loadActiveSubscriptionDescriptors(organizationId));</span>
+    }
+
+    @GetMapping(&quot;/{subscriptionId}&quot;)
+    ResponseEntity&lt;SubscriptionDescriptorModification&gt; getSingle(@PathVariable int organizationId,
+                                                                 @PathVariable UUID subscriptionId,
+                                                                 Principal principal) {
+<span class="nc" id="L63">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L64">        return ResponseEntity.of(subscriptionManager.findOne(subscriptionId, organizationId).map(SubscriptionDescriptorModification::fromModel));</span>
+    }
+
+    @PostMapping()
+    ResponseEntity&lt;UUID&gt; create(@PathVariable int organizationId,
+                                @RequestBody SubscriptionDescriptorModification subscriptionDescriptor,
+                                Principal principal) {
+
+<span class="nc" id="L72">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (organizationId != subscriptionDescriptor.getOrganizationId()) {</span>
+<span class="nc" id="L75">            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();</span>
+        }
+
+<span class="nc" id="L78">        var result = SubscriptionDescriptorModification.validate(subscriptionDescriptor);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (result.isSuccess()) {</span>
+<span class="nc" id="L80">            return ResponseEntity.of(subscriptionManager.createSubscriptionDescriptor(subscriptionDescriptor));</span>
+        } else {
+<span class="nc" id="L82">            return ResponseEntity.badRequest().build();</span>
+        }
+    }
+
+    @PostMapping(&quot;/{subscriptionId}&quot;)
+    ResponseEntity&lt;UUID&gt; update(@PathVariable int organizationId,
+                                @PathVariable UUID subscriptionId,
+                                @RequestBody SubscriptionDescriptorModification subscriptionDescriptor,
+                                Principal principal) {
+<span class="nc" id="L91">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc bnc" id="L92" title="All 4 branches missed.">        if (organizationId == subscriptionDescriptor.getOrganizationId() &amp;&amp; subscriptionId.equals(subscriptionDescriptor.getId())) {</span>
+<span class="nc" id="L93">            return ResponseEntity.of(subscriptionManager.updateSubscriptionDescriptor(subscriptionDescriptor));</span>
+        } else {
+<span class="nc" id="L95">            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();</span>
+        }
+    }
+
+    @PatchMapping(&quot;/{subscriptionId}/is-public&quot;)
+    ResponseEntity&lt;Boolean&gt; setPublicState(@PathVariable int organizationId,
+                                           @PathVariable UUID subscriptionId,
+                                           @RequestParam(&quot;status&quot;) boolean status,
+                                           Principal principal) {
+<span class="nc" id="L104">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L105">        return ResponseEntity.ok(subscriptionManager.setPublicStatus(subscriptionId, organizationId, status));</span>
+    }
+
+    @GetMapping(&quot;/{subscriptionId}/events&quot;)
+    ResponseEntity&lt;List&lt;EventSubscriptionLink&gt;&gt; getLinkedEvents(@PathVariable int organizationId,
+                                                                @PathVariable UUID subscriptionId,
+                                                                Principal principal) {
+<span class="nc" id="L112">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L113">        return ResponseEntity.ok(subscriptionManager.getLinkedEvents(organizationId, subscriptionId));</span>
+    }
+
+    /**
+     * Deactivates a subscription descriptor and removes the link with events, if any.
+     *
+     * This will ensure that existing reservations made or ticket registered using this subscription won't have
+     * to be deleted.
+     *
+     * @param organizationId
+     * @param descriptorId
+     * @param principal
+     * @return
+     */
+    @DeleteMapping(&quot;/{subscriptionId}&quot;)
+    ResponseEntity&lt;Void&gt; deactivate(@PathVariable int organizationId,
+                                    @PathVariable(&quot;subscriptionId&quot;) UUID descriptorId,
+                                    Principal principal) {
+<span class="nc" id="L131">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L132">        return deactivateSubscriptionDescriptor(organizationId, descriptorId, subscriptionManager);</span>
+    }
+
+    public static ResponseEntity&lt;Void&gt; deactivateSubscriptionDescriptor(int organizationId,
+                                                                         UUID descriptorId,
+                                                                         SubscriptionManager subscriptionManager) {
+<span class="fc" id="L138">        var result = subscriptionManager.deactivateDescriptor(organizationId, descriptorId);</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if (result.isSuccess()) {</span>
+<span class="fc" id="L140">            return ResponseEntity.ok().build();</span>
+        } else {
+<span class="nc" id="L142">            return ResponseEntity.badRequest().build();</span>
+        }
+    }
+
+    public static List&lt;String&gt; loadLinkedEvents(List&lt;EventSubscriptionLink&gt; eventSubscriptionLinks) {
+<span class="nc" id="L147">        return eventSubscriptionLinks.stream()</span>
+<span class="nc" id="L148">            .map(EventSubscriptionLink::getEventShortName)</span>
+<span class="nc" id="L149">            .collect(Collectors.toList());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

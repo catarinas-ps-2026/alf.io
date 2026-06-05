@@ -1,0 +1,1136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminReservationManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">AdminReservationManager.java</span></div><h1>AdminReservationManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.controller.support.TemplateProcessor;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.payment.PaymentSpecification;
+import alfio.manager.support.DuplicateReferenceException;
+import alfio.manager.support.IncompatibleStateException;
+import alfio.manager.support.reservation.ReservationEmailContentHelper;
+import alfio.manager.system.ReservationPriceCalculator;
+import alfio.model.*;
+import alfio.model.PurchaseContext.PurchaseContextType;
+import alfio.model.TicketReservation.TicketReservationStatus;
+import alfio.model.api.v1.admin.ReservationBillingData;
+import alfio.model.decorator.TicketPriceContainer;
+import alfio.model.metadata.AlfioMetadata;
+import alfio.model.metadata.SubscriptionMetadata;
+import alfio.model.metadata.TicketMetadata;
+import alfio.model.metadata.TicketMetadataContainer;
+import alfio.model.modification.AdminReservationModification;
+import alfio.model.modification.AdminReservationModification.*;
+import alfio.model.modification.DateTimeModification;
+import alfio.model.modification.TicketCategoryModification;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import alfio.model.result.Result.ResultStatus;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.transaction.Transaction;
+import alfio.model.user.Organization;
+import alfio.model.user.User;
+import alfio.repository.*;
+import alfio.repository.user.UserRepository;
+import alfio.util.*;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.Assert;
+import org.springframework.validation.MapBindingResult;
+import org.springframework.validation.ObjectError;
+
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static alfio.model.Audit.EntityType.RESERVATION;
+import static alfio.model.Audit.EntityType.TICKET;
+import static alfio.model.Audit.EventType.CANCEL_TICKET;
+import static alfio.model.Audit.EventType.UPDATE_TICKET;
+import static alfio.model.modification.DateTimeModification.fromZonedDateTime;
+import static alfio.util.EventUtil.generateEmptyTickets;
+import static alfio.util.MonetaryUtil.unitToCents;
+import static alfio.util.Wrappers.optionally;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
+import static java.util.stream.Collectors.*;
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+
+@Component
+public class AdminReservationManager {
+
+<span class="fc" id="L99">    private static final ErrorCode ERROR_CANNOT_CANCEL_CHECKED_IN_TICKETS = ErrorCode.custom(&quot;remove-reservation.failed&quot;, &quot;This reservation contains checked-in tickets. Unable to cancel it.&quot;);</span>
+<span class="fc" id="L100">    private static final Logger log = LoggerFactory.getLogger(AdminReservationManager.class);</span>
+    private final PurchaseContextManager purchaseContextManager;
+    private final EventManager eventManager;
+    private final TicketReservationManager ticketReservationManager;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final TicketRepository ticketRepository;
+    private final SpecialPriceRepository specialPriceRepository;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final EventRepository eventRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final SpecialPriceTokenGenerator specialPriceTokenGenerator;
+    private final PurchaseContextFieldRepository purchaseContextFieldRepository;
+    private final PaymentManager paymentManager;
+    private final NotificationManager notificationManager;
+    private final MessageSourceManager messageSourceManager;
+    private final TemplateManager templateManager;
+    private final AdditionalServiceItemRepository additionalServiceItemRepository;
+    private final AuditingRepository auditingRepository;
+    private final UserRepository userRepository;
+    private final ExtensionManager extensionManager;
+    private final BillingDocumentRepository billingDocumentRepository;
+    private final FileUploadManager fileUploadManager;
+    private final PromoCodeDiscountRepository promoCodeDiscountRepository;
+    private final AdditionalServiceRepository additionalServiceRepository;
+    private final BillingDocumentManager billingDocumentManager;
+    private final ClockProvider clockProvider;
+    private final SubscriptionRepository subscriptionRepository;
+    private final ReservationEmailContentHelper reservationEmailContentHelper;
+    private final TransactionRepository transactionRepository;
+    private final AccessService accessService;
+
+<span class="fc" id="L131">    public AdminReservationManager(PurchaseContextManager purchaseContextManager, EventManager eventManager, TicketReservationManager ticketReservationManager, TicketCategoryRepository ticketCategoryRepository, TicketRepository ticketRepository, SpecialPriceRepository specialPriceRepository, TicketReservationRepository ticketReservationRepository, EventRepository eventRepository, PlatformTransactionManager transactionManager, SpecialPriceTokenGenerator specialPriceTokenGenerator, PurchaseContextFieldRepository purchaseContextFieldRepository, PaymentManager paymentManager, NotificationManager notificationManager, MessageSourceManager messageSourceManager, TemplateManager templateManager, AdditionalServiceItemRepository additionalServiceItemRepository, AuditingRepository auditingRepository, UserRepository userRepository, ExtensionManager extensionManager, BillingDocumentRepository billingDocumentRepository, FileUploadManager fileUploadManager, PromoCodeDiscountRepository promoCodeDiscountRepository, AdditionalServiceRepository additionalServiceRepository, BillingDocumentManager billingDocumentManager, ClockProvider clockProvider, SubscriptionRepository subscriptionRepository, ReservationEmailContentHelper reservationEmailContentHelper, TransactionRepository transactionRepository, AccessService accessService) {</span>
+<span class="fc" id="L132">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L133">        this.eventManager = eventManager;</span>
+<span class="fc" id="L134">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L135">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L136">        this.ticketRepository = ticketRepository;</span>
+<span class="fc" id="L137">        this.specialPriceRepository = specialPriceRepository;</span>
+<span class="fc" id="L138">        this.ticketReservationRepository = ticketReservationRepository;</span>
+<span class="fc" id="L139">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L140">        this.transactionManager = transactionManager;</span>
+<span class="fc" id="L141">        this.specialPriceTokenGenerator = specialPriceTokenGenerator;</span>
+<span class="fc" id="L142">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
+<span class="fc" id="L143">        this.paymentManager = paymentManager;</span>
+<span class="fc" id="L144">        this.notificationManager = notificationManager;</span>
+<span class="fc" id="L145">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L146">        this.templateManager = templateManager;</span>
+<span class="fc" id="L147">        this.additionalServiceItemRepository = additionalServiceItemRepository;</span>
+<span class="fc" id="L148">        this.auditingRepository = auditingRepository;</span>
+<span class="fc" id="L149">        this.userRepository = userRepository;</span>
+<span class="fc" id="L150">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L151">        this.billingDocumentRepository = billingDocumentRepository;</span>
+<span class="fc" id="L152">        this.fileUploadManager = fileUploadManager;</span>
+<span class="fc" id="L153">        this.promoCodeDiscountRepository = promoCodeDiscountRepository;</span>
+<span class="fc" id="L154">        this.additionalServiceRepository = additionalServiceRepository;</span>
+<span class="fc" id="L155">        this.billingDocumentManager = billingDocumentManager;</span>
+<span class="fc" id="L156">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L157">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="fc" id="L158">        this.reservationEmailContentHelper = reservationEmailContentHelper;</span>
+<span class="fc" id="L159">        this.transactionRepository = transactionRepository;</span>
+<span class="fc" id="L160">        this.accessService = accessService;</span>
+<span class="fc" id="L161">    }</span>
+
+    //the following methods have an explicit transaction handling, therefore the @Transactional annotation is not helpful here
+    Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, PurchaseContext&gt;&gt; confirmReservation(PurchaseContextType purchaseContextType,
+                                                                                        String eventName,
+                                                                                        String reservationId,
+                                                                                        String username,
+                                                                                        Notification notification,
+                                                                                        TransactionDetails transactionDetails,
+                                                                                        UUID subscriptionId) {
+<span class="fc" id="L171">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition();</span>
+<span class="fc" id="L172">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
+<span class="fc" id="L173">        Result&lt;String&gt; result = template.execute(status -&gt; {</span>
+            try {
+<span class="fc" id="L175">                Result&lt;String&gt; confirmationResult = purchaseContextManager.findBy(purchaseContextType, eventName)</span>
+<span class="fc" id="L176">                    .map(purchaseContext -&gt; ticketReservationRepository.findOptionalReservationById(reservationId)</span>
+<span class="pc bpc" id="L177" title="1 of 4 branches missed.">                        .filter(r -&gt; r.getStatus() == TicketReservationStatus.PENDING || r.getStatus() == TicketReservationStatus.STUCK)</span>
+<span class="fc" id="L178">                        .map(r -&gt; performConfirmation(reservationId, purchaseContext, r, notification, transactionDetails, username, subscriptionId))</span>
+<span class="fc" id="L179">                        .orElseGet(() -&gt; Result.error(ErrorCode.ReservationError.UPDATE_FAILED))</span>
+<span class="fc" id="L180">                    ).orElseGet(() -&gt; Result.error(ErrorCode.ReservationError.NOT_FOUND));</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">                if(!confirmationResult.isSuccess()) {</span>
+<span class="fc" id="L182">                    log.debug(&quot;Reservation confirmation failed for eventName: {} reservationId: {}, username: {}&quot;, eventName, reservationId, username);</span>
+<span class="fc" id="L183">                    status.setRollbackOnly();</span>
+                }
+<span class="fc" id="L185">                return confirmationResult;</span>
+<span class="nc" id="L186">            } catch (Exception e) {</span>
+<span class="nc" id="L187">                log.error(&quot;Error during confirmation of reservation eventName: {} reservationId: {}, username: {}&quot;, eventName, reservationId, username);</span>
+<span class="nc" id="L188">                status.setRollbackOnly();</span>
+<span class="nc" id="L189">                return Result.error(singletonList(ErrorCode.custom(&quot;&quot;, e.getMessage())));</span>
+            }
+        });
+<span class="fc" id="L192">        return requireNonNull(result).flatMap(this::loadReservation);</span>
+    }
+    public Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, PurchaseContext&gt;&gt; confirmReservation(PurchaseContextType purchaseContextType,
+                                                                                               String eventName,
+                                                                                               String reservationId,
+                                                                                               String username,
+                                                                                               Notification notification) {
+<span class="fc" id="L199">        return confirmReservation(purchaseContextType, eventName, reservationId, username, notification, TransactionDetails.admin(), null);</span>
+    }
+
+    public Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, PurchaseContext&gt;&gt; confirmReservation(String reservationId,
+                                                                                               Principal principal,
+                                                                                               TransactionDetails transaction,
+                                                                                               Notification notification,
+                                                                                               ReservationBillingData billingData) {
+<span class="fc" id="L207">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition();</span>
+<span class="fc" id="L208">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
+<span class="fc" id="L209">        return template.execute(t -&gt; {</span>
+<span class="fc" id="L210">            var purchaseContextOptional = purchaseContextManager.findByReservationId(reservationId);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">            if (purchaseContextOptional.isEmpty()) {</span>
+<span class="nc" id="L212">                return Result.error(ErrorCode.ReservationError.NOT_FOUND);</span>
+            }
+<span class="fc" id="L214">            var purchaseContext = purchaseContextOptional.get();</span>
+<span class="fc" id="L215">            accessService.checkOrganizationOwnership(principal, purchaseContext.getOrganizationId());</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">            if (billingData != null) {</span>
+<span class="fc" id="L217">                log.debug(&quot;Setting billing address to reservation {}&quot;, reservationId);</span>
+<span class="fc" id="L218">                var billingAddress = TicketReservationManager.buildCompleteBillingAddress(</span>
+<span class="fc" id="L219">                    new CustomerName(billingData.fullName(), null, null, false),</span>
+<span class="fc" id="L220">                    billingData.company(),</span>
+<span class="fc" id="L221">                    billingData.line1(),</span>
+<span class="fc" id="L222">                    billingData.line2(),</span>
+<span class="fc" id="L223">                    billingData.zip(),</span>
+<span class="fc" id="L224">                    billingData.city(),</span>
+<span class="fc" id="L225">                    billingData.state(),</span>
+<span class="fc" id="L226">                    billingData.countryCode(),</span>
+<span class="fc" id="L227">                    Locale.forLanguageTag(ticketReservationRepository.loadUserLanguage(reservationId))</span>
+                );
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">                Validate.isTrue( 1 == ticketReservationRepository.updateBillingAddress(billingAddress, reservationId));</span>
+            }
+<span class="fc" id="L231">            return confirmReservation(purchaseContext.getType(), purchaseContext.getPublicIdentifier(), reservationId, principal.getName(), notification, transaction, null);</span>
+        });
+    }
+
+    public Result&lt;Boolean&gt; updateReservation(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, AdminReservationModification adminReservationModification, String username) {
+<span class="fc" id="L236">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition();</span>
+<span class="fc" id="L237">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
+<span class="fc" id="L238">        return template.execute(status -&gt; {</span>
+            try {
+<span class="fc" id="L240">                Result&lt;Boolean&gt; result = purchaseContextManager.findBy(purchaseContextType, publicIdentifier)</span>
+<span class="fc" id="L241">                    .map(event -&gt; ticketReservationRepository.findOptionalReservationById(reservationId)</span>
+<span class="fc" id="L242">                        .map(r -&gt; performUpdate(reservationId, event, r, adminReservationModification, username))</span>
+<span class="fc" id="L243">                        .orElseGet(() -&gt; Result.error(ErrorCode.ReservationError.UPDATE_FAILED))</span>
+<span class="pc" id="L244">                    ).orElseGet(() -&gt; Result.error(ErrorCode.ReservationError.NOT_FOUND));</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">                if(!result.isSuccess()) {</span>
+<span class="fc" id="L246">                    log.debug(&quot;Application error detected eventName: {} reservationId: {}, username: {}, reservation: {}&quot;, publicIdentifier, reservationId, username, AdminReservationModification.summary(adminReservationModification));</span>
+<span class="fc" id="L247">                    status.setRollbackOnly();</span>
+                }
+<span class="fc" id="L249">                return result;</span>
+<span class="nc" id="L250">            } catch (Exception e) {</span>
+<span class="nc" id="L251">                log.error(&quot;Error during update of reservation eventName: {} reservationId: {}, username: {}, reservation: {}&quot;, publicIdentifier, reservationId, username, AdminReservationModification.summary(adminReservationModification));</span>
+<span class="nc" id="L252">                status.setRollbackOnly();</span>
+<span class="nc" id="L253">                return Result.error(singletonList(ErrorCode.custom(&quot;&quot;, e.getMessage())));</span>
+            }
+        });
+    }
+
+    public Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; createReservation(AdminReservationModification input, String eventName, String username) {
+<span class="fc" id="L259">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED);</span>
+<span class="fc" id="L260">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
+<span class="fc" id="L261">        return template.execute(status -&gt; {</span>
+<span class="fc" id="L262">            var savepoint = status.createSavepoint();</span>
+            try {
+<span class="fc" id="L264">                Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; result = eventRepository.findOptionalByShortNameForUpdate(eventName)</span>
+<span class="fc" id="L265">                    .map(e -&gt; validateTickets(input, e))</span>
+<span class="fc" id="L266">                    .map(r -&gt; r.flatMap(p -&gt; transactionalCreateReservation(p.getRight(), p.getLeft(), username)))</span>
+<span class="fc" id="L267">                    .orElse(Result.error(ErrorCode.EventError.NOT_FOUND));</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">                if (!result.isSuccess()) {</span>
+<span class="fc" id="L269">                    log.warn(&quot;Error during update of reservation eventName: {}, username: {}, reservation: {}&quot;, eventName, username, AdminReservationModification.summary(input));</span>
+<span class="fc" id="L270">                    status.rollbackToSavepoint(savepoint);</span>
+                }
+<span class="fc" id="L272">                return result;</span>
+<span class="nc" id="L273">            } catch (DuplicateReferenceException e) {</span>
+<span class="nc" id="L274">                log.warn(&quot;Duplicate reference detected: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L275">                status.rollbackToSavepoint(savepoint);</span>
+<span class="nc" id="L276">                return Result.error(singletonList(ErrorCode.custom(&quot;duplicate-reference&quot;, e.getMessage())));</span>
+<span class="fc" id="L277">            } catch (Exception e) {</span>
+<span class="fc" id="L278">                log.error(&quot;Error during update of reservation eventName: {}, username: {}, reservation: {}&quot;, eventName, username, AdminReservationModification.summary(input));</span>
+<span class="fc" id="L279">                log.debug(&quot;Error detail:&quot;, e);</span>
+<span class="fc" id="L280">                status.rollbackToSavepoint(savepoint);</span>
+<span class="fc" id="L281">                return Result.error(singletonList(ErrorCode.custom(&quot;&quot;, e.getMessage())));</span>
+            }
+        });
+    }
+
+    //end - the public / package protected methods below must be annotated with @Transactional
+
+    @Transactional
+    public Result&lt;Boolean&gt; notifyAttendees(String eventName, String reservationId, List&lt;Integer&gt; ids, String username) {
+<span class="fc" id="L290">        return getEventTicketReservationPair(PurchaseContextType.event, eventName, reservationId, username)</span>
+<span class="fc" id="L291">            .map(pair -&gt; {</span>
+<span class="fc" id="L292">                Event event = pair.getLeft().event().orElseThrow();</span>
+<span class="fc" id="L293">                TicketReservation reservation = pair.getRight();</span>
+<span class="pc bpc" id="L294" title="2 of 4 branches missed.">                sendTicketToAttendees(event, reservation, t -&gt; t.getAssigned() &amp;&amp; ids.contains(t.getId()));</span>
+<span class="fc" id="L295">                return Result.success(true);</span>
+<span class="pc" id="L296">            }).orElseGet(() -&gt; Result.error(ErrorCode.EventError.NOT_FOUND));</span>
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; notify(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, AdminReservationModification arm, String username) {
+<span class="fc" id="L301">        Notification notification = arm.getNotification();</span>
+<span class="fc" id="L302">        return getEventTicketReservationPair(purchaseContextType, publicIdentifier, reservationId, username)</span>
+<span class="fc" id="L303">            .map(pair -&gt; {</span>
+<span class="fc" id="L304">                var purchaseContext = pair.getLeft();</span>
+<span class="fc" id="L305">                TicketReservation reservation = pair.getRight();</span>
+<span class="pc bpc" id="L306" title="1 of 2 branches missed.">                if(notification.isCustomer()) {</span>
+<span class="fc" id="L307">                    ticketReservationManager.sendConfirmationEmail(purchaseContext, reservation, LocaleUtil.forLanguageTag(reservation.getUserLanguage()), username);</span>
+                }
+<span class="pc bpc" id="L309" title="3 of 4 branches missed.">                if(notification.isAttendees() &amp;&amp; purchaseContextType == PurchaseContextType.event) {</span>
+<span class="nc" id="L310">                    sendTicketToAttendees(purchaseContext.event().orElseThrow(), reservation, Ticket::getAssigned);</span>
+                }
+<span class="fc" id="L312">                return Result.success(true);</span>
+<span class="pc" id="L313">            }).orElseGet(() -&gt; Result.error(ErrorCode.EventError.NOT_FOUND));</span>
+
+    }
+
+    private Optional&lt;Pair&lt;PurchaseContext, TicketReservation&gt;&gt; getEventTicketReservationPair(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, String username) {
+<span class="fc" id="L318">        return purchaseContextManager.findBy(purchaseContextType, publicIdentifier)</span>
+<span class="fc" id="L319">            .flatMap(ev -&gt; ticketReservationRepository.findOptionalReservationById(reservationId).map(r -&gt; Pair.of(ev, r)));</span>
+    }
+
+    private void sendTicketToAttendees(Event event, TicketReservation reservation, Predicate&lt;Ticket&gt; matcher) {
+<span class="fc" id="L323">        ticketRepository.findTicketsInReservation(reservation.getId())</span>
+<span class="fc" id="L324">            .stream()</span>
+<span class="fc" id="L325">            .filter(matcher)</span>
+<span class="fc" id="L326">            .forEach(t -&gt; {</span>
+<span class="fc" id="L327">                Locale locale = LocaleUtil.forLanguageTag(t.getUserLanguage());</span>
+<span class="fc" id="L328">                var additionalInfo = ticketReservationManager.retrieveAttendeeAdditionalInfoForTicket(t);</span>
+<span class="fc" id="L329">                reservationEmailContentHelper.sendTicketByEmail(t, locale, event, ticketReservationManager.getTicketEmailGenerator(event, reservation, locale, additionalInfo));</span>
+<span class="fc" id="L330">            });</span>
+<span class="fc" id="L331">    }</span>
+
+    private Result&lt;Boolean&gt; performUpdate(String reservationId, PurchaseContext purchaseContext, TicketReservation r, AdminReservationModification arm, String username) {
+<span class="pc" id="L334">        billingDocumentManager.ensureBillingDocumentIsPresent(purchaseContext, r, username, () -&gt; ticketReservationManager.orderSummaryForReservationId(reservationId, purchaseContext));</span>
+<span class="fc" id="L335">        ticketReservationRepository.updateValidity(reservationId, Date.from(arm.getExpiration().toZonedDateTime(purchaseContext.getZoneId()).toInstant()));</span>
+<span class="pc bpc" id="L336" title="1 of 2 branches missed.">        if(arm.isUpdateContactData()) {</span>
+<span class="nc" id="L337">            AdminReservationModification.CustomerData customerData = arm.getCustomerData();</span>
+<span class="nc" id="L338">            ticketReservationRepository.updateTicketReservation(reservationId, r.getStatus().name(), customerData.getEmailAddress(),</span>
+<span class="nc" id="L339">                customerData.getFullName(), customerData.getFirstName(), customerData.getLastName(), customerData.getUserLanguage(),</span>
+<span class="nc" id="L340">                customerData.getBillingAddress(), r.getConfirmationTimestamp(),</span>
+<span class="nc" id="L341">                Optional.ofNullable(r.getPaymentMethod()).map(PaymentProxy::name).orElse(null), customerData.getCustomerReference());</span>
+
+<span class="nc bnc" id="L343" title="All 4 branches missed.">            if(StringUtils.isNotBlank(customerData.getVatNr()) || StringUtils.isNotBlank(customerData.getVatCountryCode())) {</span>
+<span class="nc" id="L344">                ticketReservationRepository.updateBillingData(r.getVatStatus(), r.getSrcPriceCts(), r.getFinalPriceCts(), r.getVatCts(),</span>
+<span class="nc" id="L345">                    r.getDiscountCts(), r.getCurrencyCode(), customerData.getVatNr(), customerData.getVatCountryCode(),</span>
+<span class="nc" id="L346">                    r.isInvoiceRequested(), reservationId);</span>
+            }
+
+<span class="nc" id="L349">            ticketReservationRepository.updateInvoicingAdditionalInformation(reservationId, Json.toJson(arm.getCustomerData().getInvoicingAdditionalInfo()));</span>
+
+        }
+
+<span class="pc bpc" id="L353" title="1 of 4 branches missed.">        if(arm.isUpdateAdvancedBillingOptions() &amp;&amp; purchaseContext.getVatStatus() != PriceContainer.VatStatus.NONE) {</span>
+<span class="fc" id="L354">            boolean vatApplicationRequested = arm.getAdvancedBillingOptions().isVatApplied();</span>
+            PriceContainer.VatStatus newVatStatus;
+<span class="pc bpc" id="L356" title="1 of 2 branches missed.">            if(vatApplicationRequested) {</span>
+<span class="nc" id="L357">                newVatStatus = purchaseContext.getVatStatus();</span>
+            } else {
+<span class="pc bpc" id="L359" title="1 of 2 branches missed.">                newVatStatus = purchaseContext.getVatStatus() == PriceContainer.VatStatus.INCLUDED ? PriceContainer.VatStatus.INCLUDED_EXEMPT : PriceContainer.VatStatus.NOT_INCLUDED_EXEMPT;</span>
+            }
+
+<span class="pc bpc" id="L362" title="1 of 2 branches missed.">            if(newVatStatus != ObjectUtils.firstNonNull(r.getVatStatus(), purchaseContext.getVatStatus())) {</span>
+<span class="fc" id="L363">                auditingRepository.insert(reservationId, userRepository.getByUsername(username).getId(), purchaseContext, Audit.EventType.FORCE_VAT_APPLICATION, new Date(), Audit.EntityType.RESERVATION, reservationId, singletonList(singletonMap(&quot;vatStatus&quot;, newVatStatus)));</span>
+<span class="fc" id="L364">                ticketReservationRepository.addReservationInvoiceOrReceiptModel(reservationId, null);</span>
+<span class="fc" id="L365">                var newPrice = ticketReservationManager.totalReservationCostWithVAT(r.withVatStatus(newVatStatus)).getLeft();</span>
+<span class="fc" id="L366">                ticketReservationRepository.resetVat(reservationId, r.isInvoiceRequested(), newVatStatus, r.getSrcPriceCts(), newPrice.getPriceWithVAT(),</span>
+<span class="fc" id="L367">                    newPrice.getVAT(), Math.abs(newPrice.getDiscount()), r.getCurrencyCode());</span>
+                // propagate status to tickets
+<span class="fc" id="L369">                ticketRepository.updateVatStatusForReservation(reservationId, newVatStatus);</span>
+            }
+        }
+
+<span class="fc" id="L373">        Date d = new Date();</span>
+<span class="fc" id="L374">        arm.getTicketsInfo().stream()</span>
+<span class="fc" id="L375">            .filter(TicketsInfo::isUpdateAttendees)</span>
+<span class="pc" id="L376">            .flatMap(ti -&gt; ti.getAttendees().stream())</span>
+<span class="fc" id="L377">            .forEach(a -&gt; {</span>
+<span class="nc" id="L378">                String email = trimToNull(a.getEmailAddress());</span>
+<span class="nc" id="L379">                String firstName = trimToNull(a.getFirstName());</span>
+<span class="nc" id="L380">                String lastName = trimToNull(a.getLastName());</span>
+<span class="nc" id="L381">                String fullName = trimToNull(a.getFullName());</span>
+<span class="nc" id="L382">                ticketRepository.updateTicketOwnerById(a.getTicketId(), email, fullName, firstName, lastName);</span>
+<span class="nc" id="L383">                Integer userId = userRepository.findByUsername(username).map(User::getId).orElse(null);</span>
+<span class="nc" id="L384">                Map&lt;String, Object&gt; modifications = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L385">                modifications.put(&quot;firstName&quot;, firstName);</span>
+<span class="nc" id="L386">                modifications.put(&quot;lastName&quot;, lastName);</span>
+<span class="nc" id="L387">                modifications.put(&quot;fullName&quot;, fullName);</span>
+<span class="nc" id="L388">                auditingRepository.insert(reservationId, userId, purchaseContext, UPDATE_TICKET, d, TICKET, Integer.toString(a.getTicketId()), singletonList(modifications));</span>
+<span class="nc" id="L389">            });</span>
+
+<span class="pc bpc" id="L391" title="3 of 4 branches missed.">        if(purchaseContext.getType() == PurchaseContextType.subscription &amp;&amp; arm.getSubscriptionDetails() != null) {</span>
+<span class="nc" id="L392">            var subscriptionDetailsModification = arm.getSubscriptionDetails();</span>
+            // update subscription details
+<span class="nc" id="L394">            var subscription = subscriptionRepository.findFirstSubscriptionByReservationIdForUpdate(reservationId).orElseThrow();</span>
+<span class="nc" id="L395">            subscriptionRepository.updateSubscription(subscription.getId(),</span>
+<span class="nc" id="L396">                firstNonBlank(subscriptionDetailsModification.getFirstName(), subscription.getFirstName()),</span>
+<span class="nc" id="L397">                firstNonBlank(subscriptionDetailsModification.getLastName(), subscription.getLastName()),</span>
+<span class="nc" id="L398">                firstNonBlank(subscriptionDetailsModification.getEmail(), subscription.getEmail()),</span>
+<span class="nc" id="L399">                requireNonNullElse(subscriptionDetailsModification.getMaxAllowed(), subscription.getMaxEntries()),</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">                subscriptionDetailsModification.getValidityFrom() != null ? subscriptionDetailsModification.getValidityFrom().toZonedDateTime(subscription.getZoneId()) : null,</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">                subscriptionDetailsModification.getValidityTo() != null ? subscriptionDetailsModification.getValidityTo().toZonedDateTime(subscription.getZoneId()) : null</span>
+            );
+        }
+
+<span class="fc" id="L405">        return Result.success(true);</span>
+    }
+
+    @Transactional
+    public Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, PurchaseContext&gt;&gt; loadReservation(PurchaseContextType purchaseContextType,
+                                                                                            String publicIdentifier,
+                                                                                            String reservationId,
+                                                                                            String username) {
+<span class="fc" id="L413">        return purchaseContextManager.findBy(purchaseContextType, publicIdentifier).map(r -&gt; loadReservation(reservationId))</span>
+<span class="pc" id="L414">            .orElseGet(() -&gt; Result.error(ErrorCode.ReservationError.NOT_FOUND));</span>
+    }
+
+    @Transactional
+    public List&lt;Integer&gt; getTicketIdsWithAdditionalData(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId) {
+<span class="fc bfc" id="L419" title="All 2 branches covered.">        if(purchaseContextType != PurchaseContextType.event) {</span>
+<span class="fc" id="L420">            return List.of();</span>
+        }
+<span class="fc" id="L422">        return ticketRepository.findTicketsWithAdditionalData(reservationId, publicIdentifier);</span>
+    }
+
+    @Transactional
+    public Optional&lt;Pair&lt;Event, Ticket&gt;&gt; loadFullTicketInfo(String reservationId, String eventShortName, String ticketUUID) {
+<span class="nc" id="L427">        return purchaseContextManager.findBy(PurchaseContextType.event, eventShortName)</span>
+<span class="nc" id="L428">            .flatMap(event -&gt; ticketRepository.findOptionalByUUID(ticketUUID)</span>
+<span class="nc" id="L429">                .filter(ticket -&gt; reservationId.equals(ticket.getTicketsReservationId()))</span>
+<span class="nc" id="L430">                .map(ticket -&gt; Pair.of((Event) event, ticket)));</span>
+    }
+
+
+    private Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, PurchaseContext&gt;&gt; loadReservation(String reservationId) {
+<span class="fc" id="L435">        return ticketReservationRepository.findOptionalReservationById(reservationId)</span>
+<span class="fc" id="L436">            .map(r -&gt; Triple.of(r, ticketRepository.findTicketsInReservation(reservationId), purchaseContextManager.findByReservationId(reservationId).orElseThrow()))</span>
+<span class="fc" id="L437">            .map(Result::success)</span>
+<span class="pc" id="L438">            .orElseGet(() -&gt; Result.error(ErrorCode.ReservationError.NOT_FOUND));</span>
+    }
+
+    private Result&lt;String&gt; performConfirmation(String reservationId,
+                                               PurchaseContext purchaseContext,
+                                               TicketReservation original,
+                                               Notification notification,
+                                               TransactionDetails transactionDetails,
+                                               String username,
+                                               UUID subscriptionId) {
+        try {
+
+<span class="fc" id="L450">            var reservation = original;</span>
+
+<span class="pc bpc" id="L452" title="1 of 4 branches missed.">            if (subscriptionId != null &amp;&amp; purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="pc bpc" id="L453" title="1 of 4 branches missed.">                if (reservation.getVatStatus() == null &amp;&amp; purchaseContext.getVatStatus() != null) {</span>
+                    // set default vatStatus if not present
+<span class="fc" id="L455">                    ticketReservationRepository.updateVatStatus(reservationId, purchaseContext.getVatStatus());</span>
+<span class="fc" id="L456">                    reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
+                }
+<span class="fc" id="L458">                var subscriptionDetails = subscriptionRepository.findSubscriptionById(subscriptionId);</span>
+<span class="fc" id="L459">                var bindingResult = new MapBindingResult(new HashMap&lt;&gt;(), &quot;&quot;);</span>
+<span class="fc" id="L460">                boolean result = ticketReservationManager.validateAndApplySubscriptionCode(purchaseContext,</span>
+                    reservation,
+<span class="fc" id="L462">                    Optional.of(subscriptionId),</span>
+<span class="fc" id="L463">                    subscriptionId.toString(),</span>
+<span class="fc" id="L464">                    subscriptionDetails.getEmail(),</span>
+                    bindingResult);
+<span class="pc bpc" id="L466" title="1 of 2 branches missed.">                if (!result) {</span>
+<span class="nc" id="L467">                    var message = bindingResult.getGlobalErrors().stream()</span>
+<span class="nc" id="L468">                        .findFirst()</span>
+<span class="nc" id="L469">                        .map(DefaultMessageSourceResolvable::getCode)</span>
+<span class="nc" id="L470">                        .orElse(&quot;Unknown error&quot;);</span>
+<span class="nc" id="L471">                    log.warn(&quot;Unable to apply subscription {}: {}&quot;, subscriptionId,</span>
+<span class="nc" id="L472">                        bindingResult.getAllErrors().stream().map(ObjectError::getCode).collect(joining(&quot;, &quot;)));</span>
+<span class="nc" id="L473">                    return Result.error(ErrorCode.custom(message, &quot;Cannot assign subscription %s to Reservation %s&quot;.formatted(subscriptionId, reservationId)));</span>
+                }
+
+<span class="fc" id="L476">                reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
+            }
+
+<span class="fc" id="L479">            PaymentSpecification spec = new PaymentSpecification(reservationId,</span>
+                null,
+                null,
+<span class="fc" id="L482">                reservation.getFinalPriceCts(),</span>
+                purchaseContext,
+<span class="fc" id="L484">                reservation.getEmail(),</span>
+<span class="fc" id="L485">                new CustomerName(reservation.getFullName(), reservation.getFirstName(), reservation.getLastName(), purchaseContext.mustUseFirstAndLastName()),</span>
+<span class="fc" id="L486">                reservation.getBillingAddress(),</span>
+<span class="fc" id="L487">                reservation.getCustomerReference(),</span>
+<span class="fc" id="L488">                LocaleUtil.forLanguageTag(reservation.getUserLanguage()),</span>
+                false,
+                false,
+                null,
+<span class="fc" id="L492">                reservation.getVatCountryCode(),</span>
+<span class="fc" id="L493">                reservation.getVatNr(),</span>
+<span class="fc" id="L494">                reservation.getVatStatus(),</span>
+                false,
+                false);
+
+<span class="fc bfc" id="L498" title="All 2 branches covered.">            if (transactionDetails.getPaymentProvider() != PaymentProxy.ADMIN) {</span>
+<span class="pc" id="L499">                var timestamp = Objects.requireNonNullElseGet(transactionDetails.getTimestamp(), () -&gt; LocalDateTime.now(clockProvider.getClock())).atZone(purchaseContext.getZoneId());</span>
+<span class="pc bpc" id="L500" title="1 of 2 branches missed.">                if (transactionRepository.transactionExists(reservationId)) {</span>
+<span class="nc" id="L501">                    paymentManager.updateTransactionDetails(reservationId, transactionDetails.getNotes(), timestamp, null);</span>
+                } else {
+<span class="fc" id="L503">                    var paidAmount = Objects.requireNonNullElse(transactionDetails.getPaidAmount(), BigDecimal.ZERO);</span>
+<span class="fc" id="L504">                    transactionRepository.insert(</span>
+<span class="fc" id="L505">                        StringUtils.trimToEmpty(transactionDetails.getId()),</span>
+                        &quot;&quot;,
+                        reservationId,
+                        timestamp,
+<span class="fc" id="L509">                        MonetaryUtil.unitToCents(paidAmount, reservation.getCurrencyCode()),</span>
+<span class="fc" id="L510">                        reservation.getCurrencyCode(),</span>
+                        &quot;&quot;,
+<span class="fc" id="L512">                        transactionDetails.getPaymentProvider().name(),</span>
+                        0L,
+                        0L,
+                        Transaction.Status.COMPLETE,
+<span class="fc" id="L516">                        Map.of(Transaction.NOTES_KEY, StringUtils.trimToEmpty(transactionDetails.getNotes()))</span>
+                    );
+                }
+            }
+
+<span class="fc" id="L521">            ticketReservationManager.completeReservation(spec,</span>
+<span class="fc" id="L522">                transactionDetails.getPaymentProvider(),</span>
+<span class="fc" id="L523">                notification.isCustomer(),</span>
+<span class="fc" id="L524">                notification.isAttendees(),</span>
+                username);
+
+<span class="fc" id="L527">            return Result.success(reservationId);</span>
+<span class="nc" id="L528">        } catch(Exception e) {</span>
+<span class="nc" id="L529">            return Result.error(ErrorCode.ReservationError.UPDATE_FAILED);</span>
+        }
+    }
+
+    @Transactional
+    Result&lt;Pair&lt;Event, AdminReservationModification&gt;&gt; validateTickets(AdminReservationModification input, Event event) {
+<span class="fc" id="L535">        Set&lt;String&gt; keys = input.getTicketsInfo().stream().flatMap(ti -&gt; ti.getAttendees().stream())</span>
+<span class="fc" id="L536">            .flatMap(a -&gt; a.getAdditionalInfo().keySet().stream())</span>
+<span class="fc" id="L537">            .map(String::toLowerCase)</span>
+<span class="fc" id="L538">            .collect(toSet());</span>
+
+<span class="fc bfc" id="L540" title="All 2 branches covered.">        if(keys.isEmpty()) {</span>
+<span class="fc" id="L541">            return Result.success(Pair.of(event, input));</span>
+        }
+
+<span class="fc" id="L544">        List&lt;String&gt; existing = purchaseContextFieldRepository.getExistingFields(event.getId(), keys);</span>
+<span class="pc bpc" id="L545" title="1 of 2 branches missed.">        if(existing.size() == keys.size()) {</span>
+<span class="nc" id="L546">            return Result.success(Pair.of(event, input));</span>
+        }
+
+<span class="fc" id="L549">        return Result.error(keys.stream()</span>
+<span class="pc bpc" id="L550" title="1 of 2 branches missed.">                     .filter(k -&gt; !existing.contains(k))</span>
+<span class="fc" id="L551">                     .map(k -&gt; ErrorCode.custom(&quot;error.notfound.&quot;+k, k+&quot; not found&quot;))</span>
+<span class="fc" id="L552">                     .collect(toList()));</span>
+    }
+
+    private Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; transactionalCreateReservation(AdminReservationModification input, Event event, String username) {
+<span class="fc" id="L556">        return optionally(() -&gt; {</span>
+<span class="fc" id="L557">                eventManager.checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="fc" id="L558">                return event;</span>
+<span class="fc" id="L559">            }).map(e -&gt; processReservation(input, username, e))</span>
+<span class="pc" id="L560">            .orElseGet(() -&gt; Result.error(singletonList(ErrorCode.EventError.NOT_FOUND)));</span>
+    }
+
+    private Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; processReservation(AdminReservationModification input, String username, Event event) {
+<span class="fc" id="L564">        return input.getTicketsInfo().stream()</span>
+<span class="fc" id="L565">            .map(ti -&gt; checkCategoryCapacity(ti, event, input, username))</span>
+<span class="fc" id="L566">            .reduce((r1, r2) -&gt; reduceResults(r1, r2, this::joinData))</span>
+<span class="fc" id="L567">            .map(r -&gt; createReservation(r, event, input))</span>
+<span class="pc" id="L568">            .orElseGet(() -&gt; Result.error(singletonList(ErrorCode.custom(&quot;&quot;, &quot;something went wrong...&quot;))));</span>
+    }
+
+    private List&lt;TicketsInfo&gt; joinData(List&lt;TicketsInfo&gt; t1, List&lt;TicketsInfo&gt; t2) {
+<span class="fc" id="L572">        List&lt;TicketsInfo&gt; join = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L573">        join.addAll(t1);</span>
+<span class="fc" id="L574">        join.addAll(t2);</span>
+<span class="fc" id="L575">        return join;</span>
+    }
+
+    private Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; createReservation(Result&lt;List&lt;TicketsInfo&gt;&gt; input, Event event, AdminReservationModification arm) {
+<span class="fc" id="L579">        final TicketsInfo empty = new TicketsInfo(null, null, false, false);</span>
+<span class="fc" id="L580">        return input.flatMap(t -&gt; {</span>
+<span class="fc" id="L581">            String reservationId = UUID.randomUUID().toString();</span>
+<span class="fc" id="L582">            Date validity = Date.from(arm.getExpiration().toZonedDateTime(event.getZoneId()).toInstant());</span>
+<span class="fc" id="L583">            ticketReservationRepository.createNewReservation(reservationId, event.now(clockProvider), validity, null,</span>
+<span class="fc" id="L584">                arm.getLanguage(), event.getId(), event.getVat(), event.isVatIncluded(), event.getCurrency(), event.getOrganizationId(), null);</span>
+<span class="fc" id="L585">            AdminReservationModification.CustomerData customerData = arm.getCustomerData();</span>
+<span class="fc" id="L586">            ticketReservationRepository.updateTicketReservation(reservationId, TicketReservationStatus.PENDING.name(), customerData.getEmailAddress(),</span>
+<span class="fc" id="L587">                customerData.getFullName(), customerData.getFirstName(), customerData.getLastName(), arm.getLanguage(),</span>
+<span class="fc" id="L588">                customerData.getBillingAddress(), null, null, customerData.getCustomerReference());</span>
+
+<span class="fc" id="L590">            Result&lt;List&lt;Ticket&gt;&gt; result = flattenTicketsInfo(event, empty, t)</span>
+<span class="fc" id="L591">                .map(pair -&gt; reserveForTicketsInfo(event, arm, reservationId, pair))</span>
+<span class="fc" id="L592">                .reduce(this::reduceReservationResults)</span>
+<span class="pc" id="L593">                .orElseGet(() -&gt; Result.error(ErrorCode.custom(&quot;&quot;, &quot;unknown error&quot;)));</span>
+
+<span class="fc" id="L595">            return result.map(list -&gt; Pair.of(ticketReservationRepository.findReservationById(reservationId), list));</span>
+        });
+    }
+
+    private Result&lt;List&lt;Ticket&gt;&gt; reserveForTicketsInfo(Event event, AdminReservationModification arm, String reservationId, Pair&lt;TicketCategory, TicketsInfo&gt; pair) {
+<span class="fc" id="L600">        TicketCategory category = pair.getLeft();</span>
+<span class="fc" id="L601">        TicketsInfo ticketsInfo = pair.getRight();</span>
+<span class="fc" id="L602">        int categoryId = category.getId();</span>
+<span class="fc" id="L603">        List&lt;Attendee&gt; attendees = ticketsInfo.getAttendees();</span>
+<span class="fc" id="L604">        List&lt;Integer&gt; reservedForUpdate = ticketReservationManager.reserveTickets(event.getId(), categoryId, attendees.size(), singletonList(Ticket.TicketStatus.FREE));</span>
+<span class="fc bfc" id="L605" title="All 4 branches covered.">        if (reservedForUpdate.isEmpty()|| reservedForUpdate.size() != attendees.size()) {</span>
+<span class="fc" id="L606">            return Result.error(ErrorCode.CategoryError.NOT_ENOUGH_SEATS);</span>
+        }
+<span class="fc" id="L608">        var currencyCode = category.getCurrencyCode();</span>
+<span class="fc" id="L609">        ticketRepository.reserveTickets(reservationId, reservedForUpdate, category, arm.getLanguage(), event.getVatStatus(), i -&gt; null);</span>
+<span class="fc" id="L610">        Ticket ticket = ticketRepository.findById(reservedForUpdate.get(0), categoryId);</span>
+<span class="fc" id="L611">        TicketPriceContainer priceContainer = TicketPriceContainer.from(ticket, null, event.getVat(), event.getVatStatus(), null);</span>
+<span class="fc" id="L612">        ticketRepository.updateTicketPrice(reservedForUpdate,</span>
+            categoryId,
+<span class="fc" id="L614">            event.getId(),</span>
+<span class="fc" id="L615">            category.getSrcPriceCts(),</span>
+<span class="fc" id="L616">            unitToCents(priceContainer.getFinalPrice(), currencyCode),</span>
+<span class="fc" id="L617">            unitToCents(priceContainer.getVAT(), currencyCode),</span>
+<span class="fc" id="L618">            unitToCents(priceContainer.getAppliedDiscount(), currencyCode),</span>
+            currencyCode,
+<span class="fc" id="L620">            priceContainer.getVatStatus());</span>
+<span class="fc bfc" id="L621" title="All 2 branches covered.">        List&lt;SpecialPrice&gt; codes = category.isAccessRestricted() ? bindSpecialPriceTokens(categoryId, attendees) : Collections.emptyList();</span>
+<span class="pc bpc" id="L622" title="1 of 4 branches missed.">        if(category.isAccessRestricted() &amp;&amp; codes.size() &lt; attendees.size()) {</span>
+<span class="nc" id="L623">            return Result.error(ErrorCode.CategoryError.NOT_ENOUGH_SEATS);</span>
+        }
+<span class="fc" id="L625">        assignTickets(event, attendees, categoryId, reservedForUpdate, codes, reservationId, arm.getLanguage(), category.getSrcPriceCts());</span>
+<span class="fc" id="L626">        List&lt;Ticket&gt; tickets = reservedForUpdate.stream().map(id -&gt; ticketRepository.findById(id, categoryId)).collect(toList());</span>
+<span class="fc" id="L627">        return Result.success(tickets);</span>
+    }
+
+    private Result&lt;List&lt;Ticket&gt;&gt; reduceReservationResults(Result&lt;List&lt;Ticket&gt;&gt; r1, Result&lt;List&lt;Ticket&gt;&gt; r2) {
+<span class="fc" id="L631">        return reduceResults(r1, r2, this::joinCreateReservationResults);</span>
+    }
+
+    private List&lt;Ticket&gt; joinCreateReservationResults(List&lt;Ticket&gt; r1, List&lt;Ticket&gt; r2) {
+<span class="fc" id="L635">        List&lt;Ticket&gt; data = new ArrayList&lt;&gt;(r1);</span>
+<span class="fc" id="L636">        data.addAll(r2);</span>
+<span class="fc" id="L637">        return data;</span>
+    }
+
+    private &lt;T&gt; Result&lt;T&gt; reduceResults(Result&lt;T&gt; r1, Result&lt;T&gt; r2, BinaryOperator&lt;T&gt; processData) {
+<span class="pc bpc" id="L641" title="2 of 4 branches missed.">        boolean successful = r1.isSuccess() &amp;&amp; r2.isSuccess();</span>
+<span class="pc bpc" id="L642" title="1 of 2 branches missed.">        ResultStatus global = r1.isSuccess() ? r2.getStatus() : r1.getStatus();</span>
+<span class="fc" id="L643">        List&lt;ErrorCode&gt; errors = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L644" title="1 of 2 branches missed.">        if(!successful) {</span>
+<span class="nc" id="L645">            errors.addAll(r1.getErrors());</span>
+<span class="nc" id="L646">            errors.addAll(r2.getErrors());</span>
+<span class="nc" id="L647">            return new Result&lt;&gt;(global, null, errors);</span>
+        } else {
+<span class="fc" id="L649">            return new Result&lt;&gt;(global, processData.apply(r1.getData(), r2.getData()), errors);</span>
+        }
+    }
+
+    private Stream&lt;Pair&lt;TicketCategory, TicketsInfo&gt;&gt; flattenTicketsInfo(Event event, TicketsInfo empty, List&lt;TicketsInfo&gt; t) {
+<span class="fc" id="L654">        return t.stream()</span>
+<span class="fc" id="L655">            .collect(groupingBy(ti -&gt; ti.getCategory().getExistingCategoryId()))</span>
+<span class="fc" id="L656">            .entrySet()</span>
+<span class="fc" id="L657">            .stream()</span>
+<span class="fc" id="L658">            .map(entry -&gt; {</span>
+<span class="fc" id="L659">                TicketsInfo ticketsInfo = entry.getValue()</span>
+<span class="fc" id="L660">                    .stream()</span>
+<span class="fc" id="L661">                    .reduce((ti1, ti2) -&gt; {</span>
+<span class="fc" id="L662">                        List&lt;Attendee&gt; attendees = new ArrayList&lt;&gt;(ti1.getAttendees());</span>
+<span class="fc" id="L663">                        attendees.addAll(ti2.getAttendees());</span>
+<span class="pc bpc" id="L664" title="6 of 8 branches missed.">                        return new TicketsInfo(ti1.getCategory(), attendees, ti1.isAddSeatsIfNotAvailable() &amp;&amp; ti2.isAddSeatsIfNotAvailable(), ti1.isUpdateAttendees() &amp;&amp; ti2.isUpdateAttendees());</span>
+<span class="fc" id="L665">                    }).orElse(empty);</span>
+<span class="fc" id="L666">                return Pair.of(ticketCategoryRepository.getByIdAndActive(entry.getKey(), event.getId()), ticketsInfo);</span>
+            });
+    }
+
+    private List&lt;SpecialPrice&gt; bindSpecialPriceTokens(int categoryId, List&lt;Attendee&gt; attendees) {
+<span class="fc" id="L671">        specialPriceTokenGenerator.generatePendingCodesForCategory(categoryId);</span>
+<span class="fc" id="L672">        List&lt;SpecialPrice&gt; codes = specialPriceRepository.findActiveNotAssignedByCategoryId(categoryId, attendees.size());</span>
+
+<span class="fc" id="L674">        codes.forEach(c -&gt; specialPriceRepository.updateStatus(c.getId(), SpecialPrice.Status.PENDING.toString(), null, null));</span>
+<span class="fc" id="L675">        return codes;</span>
+    }
+
+    private void assignTickets(Event event,
+                               List&lt;Attendee&gt; attendees,
+                               int categoryId,
+                               List&lt;Integer&gt; reservedForUpdate,
+                               List&lt;SpecialPrice&gt; codes,
+                               String reservationId,
+                               String userLanguage,
+                               int srcPriceCts) {
+
+<span class="fc bfc" id="L687" title="All 2 branches covered.">        Optional&lt;Iterator&lt;SpecialPrice&gt;&gt; specialPriceIterator = Optional.of(codes).filter(c -&gt; !c.isEmpty()).map(Collection::iterator);</span>
+<span class="fc bfc" id="L688" title="All 2 branches covered.">        for(int i=0; i&lt;reservedForUpdate.size(); i++) {</span>
+<span class="fc" id="L689">            Attendee attendee = attendees.get(i);</span>
+<span class="fc" id="L690">            Integer ticketId = reservedForUpdate.get(i);</span>
+<span class="pc bpc" id="L691" title="1 of 2 branches missed.">            if(!attendee.isEmpty()) {</span>
+<span class="fc" id="L692">                ticketRepository.updateTicketOwnerById(ticketId, attendee.getEmailAddress(), attendee.getFullName(), attendee.getFirstName(), attendee.getLastName());</span>
+<span class="pc bpc" id="L693" title="1 of 4 branches missed.">                if(StringUtils.isNotBlank(attendee.getReference()) || attendee.isReassignmentForbidden()) {</span>
+<span class="fc" id="L694">                    updateExtRefAndLocking(categoryId, attendee, ticketId);</span>
+                }
+<span class="pc bpc" id="L696" title="1 of 2 branches missed.">                if(!attendee.getAdditionalInfo().isEmpty()) {</span>
+<span class="nc" id="L697">                    purchaseContextFieldRepository.updateOrInsert(attendee.getAdditionalInfo(), event, ticketId, null);</span>
+                }
+<span class="fc bfc" id="L699" title="All 2 branches covered.">                if (!attendee.getMetadata().isEmpty()) {</span>
+<span class="fc" id="L700">                    var ticketMetadata = new TicketMetadata(null, null, attendee.getMetadata());</span>
+<span class="fc" id="L701">                    ticketRepository.updateTicketMetadata(ticketId, TicketMetadataContainer.fromMetadata(ticketMetadata));</span>
+                }
+            }
+<span class="fc" id="L704">            specialPriceIterator.map(Iterator::next)</span>
+<span class="fc" id="L705">                .ifPresent(code -&gt; ticketRepository.reserveTicket(reservationId, ticketId, code.getId(), userLanguage, srcPriceCts, event.getCurrency(), event.getVatStatus(), null));</span>
+        }
+<span class="fc" id="L707">    }</span>
+
+    private void updateExtRefAndLocking(int categoryId, Attendee attendee, Integer ticketId) {
+        try {
+<span class="fc" id="L711">            ticketRepository.updateExternalReferenceAndLocking(ticketId, categoryId, StringUtils.trimToNull(attendee.getReference()), attendee.isReassignmentForbidden());</span>
+<span class="nc" id="L712">        } catch (DataIntegrityViolationException ex) {</span>
+<span class="nc" id="L713">            log.warn(&quot;Duplicate found for external reference: &quot;+attendee.getReference()+&quot; and ticketID: &quot; + ticketId);</span>
+<span class="nc" id="L714">            throw new DuplicateReferenceException(&quot;Duplicated Reference: &quot;+attendee.getReference(), ex);</span>
+<span class="fc" id="L715">        }</span>
+<span class="fc" id="L716">    }</span>
+
+    private Result&lt;List&lt;TicketsInfo&gt;&gt; checkCategoryCapacity(TicketsInfo ti, Event event, AdminReservationModification reservation, String username) {
+<span class="fc bfc" id="L719" title="All 2 branches covered.">        Result&lt;TicketCategory&gt; ticketCategoryResult = ti.getCategory().isExisting() ? checkExistingCategory(ti, event, username) : createCategory(ti, event, reservation, username);</span>
+<span class="fc" id="L720">        return ticketCategoryResult</span>
+<span class="fc" id="L721">            .map(tc -&gt; List.of(new TicketsInfo(new Category(tc.getId(), tc.getName(), tc.getPrice(), tc.getTicketAccessType()), ti.getAttendees(), ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees())));</span>
+    }
+
+    private Result&lt;TicketCategory&gt; createCategory(TicketsInfo ti, Event event, AdminReservationModification reservation, String username) {
+<span class="fc" id="L725">        Category category = ti.getCategory();</span>
+<span class="fc" id="L726">        List&lt;Attendee&gt; attendees = ti.getAttendees();</span>
+<span class="fc" id="L727">        DateTimeModification inception = fromZonedDateTime(event.now(clockProvider));</span>
+
+<span class="fc" id="L729">        int tickets = attendees.size();</span>
+<span class="pc bpc" id="L730" title="1 of 2 branches missed.">        var accessType = event.getFormat() != Event.EventFormat.HYBRID ? TicketCategory.TicketAccessType.INHERIT : Objects.requireNonNull(category.getTicketAccessType());</span>
+<span class="fc" id="L731">        TicketCategoryModification tcm = new TicketCategoryModification(category.getExistingCategoryId(), category.getName(), accessType, tickets,</span>
+<span class="fc" id="L732">            inception, reservation.getExpiration(), Collections.emptyMap(), category.getPrice(), true, &quot;&quot;,</span>
+<span class="fc" id="L733">            true, null, null, null, null, null, 0, null, null,</span>
+<span class="fc" id="L734">            AlfioMetadata.empty());</span>
+<span class="fc" id="L735">        int notAllocated = getNotAllocatedTickets(event);</span>
+<span class="fc" id="L736">        int missingTickets = Math.max(tickets - notAllocated, 0);</span>
+<span class="fc" id="L737">        Event modified = increaseSeatsIfNeeded(ti, event, missingTickets, event);</span>
+<span class="fc" id="L738">        return eventManager.insertCategory(modified, tcm, username).map(id -&gt; ticketCategoryRepository.getByIdAndActive(id, event.getId()));</span>
+    }
+
+    private Event increaseSeatsIfNeeded(TicketsInfo ti, Event event, int missingTickets, Event modified) {
+<span class="fc bfc" id="L742" title="All 4 branches covered.">        if(missingTickets &gt; 0 &amp;&amp; ti.isAddSeatsIfNotAvailable()) {</span>
+<span class="fc" id="L743">            int newTotal = eventRepository.countExistingTickets(event.getId()) + missingTickets;</span>
+<span class="fc" id="L744">            extensionManager.handleEventSeatsUpdateValidation(event, newTotal);</span>
+<span class="fc" id="L745">            createMissingTickets(event, missingTickets);</span>
+            //update seats and reload event
+<span class="fc" id="L747">            log.debug(&quot;adding {} extra seats to the event&quot;, missingTickets);</span>
+<span class="fc" id="L748">            eventRepository.updateAvailableSeats(event.getId(), newTotal);</span>
+<span class="fc" id="L749">            modified = eventRepository.findById(event.getId());</span>
+        }
+<span class="fc" id="L751">        return modified;</span>
+    }
+
+    private int getNotAllocatedTickets(EventAndOrganizationId event) {
+<span class="fc" id="L755">        return ticketRepository.countFreeTicketsForUnbounded(event.getId());</span>
+    }
+
+    private Result&lt;TicketCategory&gt; checkExistingCategory(TicketsInfo ti, Event event, String username) {
+<span class="fc" id="L759">        Category category = ti.getCategory();</span>
+<span class="fc" id="L760">        List&lt;Attendee&gt; attendees = ti.getAttendees();</span>
+<span class="fc" id="L761">        int tickets = attendees.size();</span>
+<span class="fc" id="L762">        int eventId = event.getId();</span>
+<span class="fc" id="L763">        TicketCategory existing = ticketCategoryRepository.getByIdAndActive(category.getExistingCategoryId(), eventId);</span>
+<span class="fc" id="L764">        int existingCategoryId = existing.getId();</span>
+<span class="fc" id="L765">        int freeTicketsInCategory = ticketRepository.countFreeTickets(eventId, existingCategoryId);</span>
+<span class="fc" id="L766">        int notAllocated = getNotAllocatedTickets(event);</span>
+<span class="fc" id="L767">        int missingTickets = Math.max(tickets - (freeTicketsInCategory + notAllocated), 0);</span>
+<span class="fc" id="L768">        Event modified = increaseSeatsIfNeeded(ti, event, missingTickets, event);</span>
+<span class="fc bfc" id="L769" title="All 4 branches covered.">        if(freeTicketsInCategory &lt; tickets &amp;&amp; existing.isBounded()) {</span>
+<span class="fc" id="L770">            int maxTickets = existing.getMaxTickets() + (tickets - freeTicketsInCategory);</span>
+<span class="fc" id="L771">            TicketCategoryModification tcm = new TicketCategoryModification(existingCategoryId, existing.getName(), existing.getTicketAccessType(), maxTickets,</span>
+<span class="fc" id="L772">                fromZonedDateTime(existing.getInception(modified.getZoneId())), fromZonedDateTime(existing.getExpiration(event.getZoneId())),</span>
+<span class="fc" id="L773">                Collections.emptyMap(), existing.getPrice(), existing.isAccessRestricted(), &quot;&quot;, true, existing.getCode(),</span>
+<span class="fc" id="L774">                fromZonedDateTime(existing.getValidCheckInFrom(modified.getZoneId())),</span>
+<span class="fc" id="L775">                fromZonedDateTime(existing.getValidCheckInTo(modified.getZoneId())),</span>
+<span class="fc" id="L776">                fromZonedDateTime(existing.getTicketValidityStart(modified.getZoneId())),</span>
+<span class="fc" id="L777">                fromZonedDateTime(existing.getTicketValidityEnd(modified.getZoneId())), 0,</span>
+<span class="fc" id="L778">                existing.getTicketCheckInStrategy(), null, AlfioMetadata.empty());</span>
+<span class="fc" id="L779">            return eventManager.updateCategory(existingCategoryId, modified, tcm, username, true);</span>
+        }
+<span class="fc" id="L781">        return Result.success(existing);</span>
+    }
+
+    private void createMissingTickets(Event event, int tickets) {
+<span class="fc" id="L785">        final MapSqlParameterSource[] params = generateEmptyTickets(event, Date.from(event.now(clockProvider).toInstant()), tickets, Ticket.TicketStatus.FREE).toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L786">        ticketRepository.bulkTicketInitialization(params);</span>
+<span class="fc" id="L787">    }</span>
+
+    @Transactional
+    public Optional&lt;Ticket&gt; findTicketWithReservationId(String ticketUUID, String eventSlug, String username) {
+<span class="nc" id="L791">        return eventManager.getOptionalEventAndOrganizationIdByName(eventSlug, username)</span>
+<span class="nc" id="L792">            .flatMap(eventAndOrganizationId -&gt; {</span>
+<span class="nc" id="L793">                var ticket = ticketRepository.findByUUID(ticketUUID);</span>
+                // check that ticket belongs to the event
+<span class="nc bnc" id="L795" title="All 4 branches missed.">                if (ticket.getEventId() != eventAndOrganizationId.getId() || StringUtils.isEmpty(ticket.getTicketsReservationId())) {</span>
+<span class="nc" id="L796">                    return Optional.empty();</span>
+                } else {
+<span class="nc" id="L798">                    return Optional.of(ticket);</span>
+                }
+            });
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; removeTickets(String publicIdentifier, String reservationId, List&lt;Integer&gt; ticketIds, List&lt;Integer&gt; toRefund, boolean notify, boolean creditNoteRequested, String username) {
+<span class="fc" id="L805">        return loadReservation(PurchaseContextType.event, publicIdentifier, reservationId, username).map(res -&gt; {</span>
+<span class="fc" id="L806">            Event e = res.getRight().event().orElseThrow();</span>
+<span class="fc" id="L807">            TicketReservation reservation = res.getLeft();</span>
+<span class="fc" id="L808">            List&lt;Ticket&gt; tickets = res.getMiddle();</span>
+<span class="fc" id="L809">            Map&lt;Integer, Ticket&gt; ticketsById = tickets.stream().collect(Collectors.toMap(Ticket::getId, Function.identity()));</span>
+<span class="fc" id="L810">            Set&lt;Integer&gt; ticketIdsInReservation = tickets.stream().map(Ticket::getId).collect(toSet());</span>
+            // ensure that all the tickets ids are present in tickets
+<span class="fc" id="L812">            Assert.isTrue(ticketIdsInReservation.containsAll(ticketIds), &quot;Some ticket ids are not contained in the reservation&quot;);</span>
+<span class="fc" id="L813">            Assert.isTrue(ticketIdsInReservation.containsAll(toRefund), &quot;Some ticket ids to refund are not contained in the reservation&quot;);</span>
+<span class="fc bfc" id="L814" title="All 2 branches covered.">            if (!ticketsStatusIsCompatibleWithCancellation(tickets.stream().filter(t -&gt; ticketIds.contains(t.getId())))) {</span>
+<span class="fc" id="L815">                throw new IncompatibleStateException(&quot;Cannot remove checked-in tickets&quot;);</span>
+            }
+            //
+
+<span class="fc" id="L819">            handleTicketsRefund(toRefund, e, reservation, ticketsById, username);</span>
+
+<span class="pc bpc" id="L821" title="1 of 2 branches missed.">            boolean removeReservation = tickets.size() - ticketIds.size() &lt;= 0;</span>
+<span class="fc bfc" id="L822" title="All 2 branches covered.">            boolean issueCreditNote = (creditNoteRequested &amp;&amp;</span>
+                // if payment method supports refund we require that the user has selected at least one ticket
+<span class="pc bpc" id="L824" title="2 of 4 branches missed.">                (!toRefund.isEmpty() || !reservation.getPaymentMethod().isSupportRefund())</span>
+            );
+<span class="fc" id="L826">            removeTicketsFromReservation(reservation, e, ticketIds, notify, username, removeReservation, issueCreditNote);</span>
+            //
+
+<span class="pc bpc" id="L829" title="1 of 2 branches missed.">            if(removeReservation) {</span>
+<span class="fc" id="L830">                markAsCancelled(reservation, username, e);</span>
+<span class="fc" id="L831">                additionalServiceItemRepository.updateItemsStatusWithReservationUUID(e.getId(), reservation.getId(), AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);</span>
+            } else {
+                // recalculate totals
+<span class="nc" id="L834">                var totalPrice = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();</span>
+<span class="nc" id="L835">                var currencyCode = totalPrice.getCurrencyCode();</span>
+<span class="nc" id="L836">                var updatedTickets = ticketRepository.findTicketsInReservation(reservationId);</span>
+<span class="nc bnc" id="L837" title="All 2 branches missed.">                var discount = reservation.getPromoCodeDiscountId() != null ? promoCodeDiscountRepository.findById(reservation.getPromoCodeDiscountId()) : null;</span>
+<span class="nc" id="L838">                List&lt;AdditionalServiceItem&gt; additionalServiceItems = additionalServiceItemRepository.findByReservationUuid(e.getId(), reservationId);</span>
+<span class="nc" id="L839">                var calculator = new ReservationPriceCalculator(reservation, discount, updatedTickets, additionalServiceItems, additionalServiceRepository.loadAllForEvent(e.getId()), e, List.of(), Optional.empty());</span>
+<span class="nc" id="L840">                ticketReservationRepository.updateBillingData(calculator.getVatStatus(),</span>
+<span class="nc" id="L841">                    calculator.getSrcPriceCts(), unitToCents(calculator.getFinalPrice(), currencyCode), unitToCents(calculator.getVAT(), currencyCode),</span>
+<span class="nc" id="L842">                    unitToCents(calculator.getAppliedDiscount(), currencyCode), calculator.getCurrencyCode(), reservation.getVatNr(), reservation.getVatCountryCode(),</span>
+<span class="nc" id="L843">                    reservation.isInvoiceRequested(), reservationId);</span>
+            }
+<span class="fc" id="L845">            return issueCreditNote;</span>
+        });
+    }
+
+    @Transactional
+    public Optional&lt;Pair&lt;SubscriptionDescriptor, String&gt;&gt; findReservationIdForSubscription(String subscriptionDescriptorId, UUID subscriptionId, Principal principal) {
+<span class="fc" id="L851">        return purchaseContextManager.findBy(PurchaseContextType.subscription, subscriptionDescriptorId)</span>
+<span class="fc" id="L852">                .flatMap(purchaseContext -&gt; {</span>
+<span class="fc" id="L853">                    accessService.checkOrganizationOwnership(principal, purchaseContext.getOrganizationId());</span>
+<span class="fc" id="L854">                    var subscription = subscriptionRepository.findSubscriptionById(subscriptionId);</span>
+<span class="fc" id="L855">                    var descriptor = (SubscriptionDescriptor) purchaseContext;</span>
+<span class="pc bpc" id="L856" title="2 of 4 branches missed.">                    if (subscription.getSubscriptionDescriptorId().equals(descriptor.getId()) &amp;&amp; StringUtils.isNotBlank(subscription.getReservationId())) {</span>
+<span class="fc" id="L857">                        return Optional.of(Pair.of(descriptor, subscription.getReservationId()));</span>
+                    }
+<span class="nc" id="L859">                    return Optional.empty();</span>
+                });
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; removeSubscription(SubscriptionDescriptor descriptor, String reservationId, UUID subscriptionId, String username) {
+<span class="fc" id="L865">        int result = subscriptionRepository.cancelSubscription(reservationId, subscriptionId, descriptor.getId());</span>
+<span class="fc" id="L866">        markAsCancelled(ticketReservationManager.findById(reservationId).orElseThrow(), username, descriptor);</span>
+<span class="pc bpc" id="L867" title="1 of 2 branches missed.">        return result == 1 ? Result.success(true) : Result.error(ErrorCode.custom(&quot;cannot-cancel-subscription&quot;, &quot;Cannot cancel subscription&quot;));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Result&lt;List&lt;Audit&gt;&gt; getAudit(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, String username) {
+        // FIXME modify query in order to validate if reservation is present for the PurchaseContext
+<span class="nc" id="L873">        return Result.success(auditingRepository.findAllForReservation(reservationId));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Result&lt;List&lt;BillingDocument&gt;&gt; getBillingDocuments(String eventName, String reservationId, String username) {
+        // FIXME modify query in order to validate if reservation is present for the PurchaseContext
+<span class="nc" id="L879">        return Result.success(billingDocumentRepository.findAllByReservationId(reservationId));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Result&lt;Pair&lt;BillingDocument, byte[]&gt;&gt; getSingleBillingDocumentAsPdf(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, long documentId, String username) {
+        // FIXME modify query in order to validate if reservation is present for the PurchaseContext
+<span class="pc" id="L885">        return loadReservation(purchaseContextType, publicIdentifier, reservationId, username)</span>
+<span class="nc" id="L886">            .map(res -&gt; {</span>
+<span class="nc" id="L887">                BillingDocument billingDocument = billingDocumentRepository.findByIdAndReservationId(documentId, reservationId).orElseThrow(IllegalArgumentException::new);</span>
+<span class="nc" id="L888">                Function&lt;Map&lt;String, Object&gt;, Optional&lt;byte[]&gt;&gt; pdfGenerator = model -&gt; TemplateProcessor.buildBillingDocumentPdf(billingDocument.getType(), res.getRight(), fileUploadManager, LocaleUtil.forLanguageTag(res.getLeft().getUserLanguage()), templateManager, model, extensionManager);</span>
+<span class="nc" id="L889">                Map&lt;String, Object&gt; billingModel = billingDocument.getModel();</span>
+<span class="nc" id="L890">                return Pair.of(billingDocument, pdfGenerator.apply(billingModel).orElse(null));</span>
+            });
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; invalidateBillingDocument(String reservationId, long documentId, String username) {
+<span class="fc" id="L896">        return updateBillingDocumentStatus(reservationId, documentId, username, BillingDocument.Status.NOT_VALID, Audit.EventType.BILLING_DOCUMENT_INVALIDATED);</span>
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; restoreBillingDocument(String reservationId, long documentId, String username) {
+<span class="nc" id="L901">        return updateBillingDocumentStatus(reservationId, documentId, username, BillingDocument.Status.VALID, Audit.EventType.BILLING_DOCUMENT_RESTORED);</span>
+    }
+
+    private Result&lt;Boolean&gt; updateBillingDocumentStatus(String reservationId, long documentId, String username, BillingDocument.Status status, Audit.EventType eventType) {
+<span class="fc" id="L905">        return loadReservation(reservationId).map(res -&gt; {</span>
+<span class="fc" id="L906">            Integer userId = userRepository.findIdByUserName(username).orElse(null);</span>
+<span class="fc" id="L907">            auditingRepository.insert(reservationId, userId, res.getRight(), eventType, new Date(), RESERVATION, String.valueOf(documentId));</span>
+<span class="pc bpc" id="L908" title="1 of 2 branches missed.">            return billingDocumentRepository.updateStatus(documentId, status, reservationId) == 1;</span>
+        });
+
+
+    }
+
+    @Transactional
+    public Result&lt;TransactionAndPaymentInfo&gt; getPaymentInfo(String reservationId) {
+<span class="nc" id="L916">        return loadReservation(reservationId)</span>
+<span class="nc" id="L917">            .map(res -&gt; paymentManager.getInfo(res.getLeft(), res.getRight()));</span>
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; removeReservation(PurchaseContextType purchaseContextType, String eventName, String reservationId, boolean refund, boolean notify, boolean creditNoteRequested, String username) {
+<span class="fc" id="L922">        return loadReservation(purchaseContextType, eventName, reservationId, username)</span>
+<span class="fc" id="L923">            .flatMap(result -&gt; new Result.Builder&lt;Pair&lt;PurchaseContext, TicketReservation&gt;&gt;()</span>
+<span class="fc" id="L924">                .checkPrecondition(() -&gt; ticketsStatusIsCompatibleWithCancellation(result.getMiddle()), ERROR_CANNOT_CANCEL_CHECKED_IN_TICKETS)</span>
+<span class="fc" id="L925">                .buildAndEvaluate(() -&gt; {</span>
+<span class="fc" id="L926">                    var reservation = result.getLeft();</span>
+<span class="fc" id="L927">                    var refundErrorCode = refundIfRequested(reservation, result.getRight(), username, refund);</span>
+<span class="pc bpc" id="L928" title="1 of 2 branches missed.">                    if(refundErrorCode != null) {</span>
+<span class="nc" id="L929">                        return Result.error(refundErrorCode);</span>
+                    }
+<span class="pc bpc" id="L931" title="1 of 4 branches missed.">                    if(creditNoteRequested &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L932">                        ticketReservationManager.issueCreditNoteForReservation(result.getRight(), reservation, username, false);</span>
+                    }
+                    // setting refund to false because we've already done it
+<span class="fc" id="L935">                    return removeReservation(result, false, notify, username, true, false);</span>
+                }))
+<span class="fc" id="L937">            .map(pair -&gt; {</span>
+<span class="fc" id="L938">                var purchaseContext = pair.getLeft();</span>
+<span class="fc" id="L939">                var ticketReservation = pair.getRight();</span>
+<span class="pc bpc" id="L940" title="1 of 4 branches missed.">                if(!creditNoteRequested || !ticketReservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L941">                    markAsCancelled(ticketReservation, username, purchaseContext);</span>
+                }
+<span class="pc bpc" id="L943" title="1 of 2 branches missed.">                if(purchaseContext.ofType(PurchaseContextType.subscription)) {</span>
+<span class="nc" id="L944">                    subscriptionRepository.cancelSubscriptions(reservationId);</span>
+                }
+<span class="fc" id="L946">                return true;</span>
+            });
+    }
+
+    @Transactional
+    public void creditReservation(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, boolean refund, boolean notify, String username) {
+<span class="fc" id="L952">        loadReservation(purchaseContextType, publicIdentifier, reservationId, username)</span>
+<span class="fc" id="L953">            .ifSuccess(res -&gt; {</span>
+<span class="fc" id="L954">                var offlinePaymentEnumValues = EnumSet.of(</span>
+                    TicketReservationStatus.OFFLINE_PAYMENT,
+                    TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT
+                );
+<span class="pc bpc" id="L958" title="1 of 2 branches missed.">                if (offlinePaymentEnumValues.contains(res.getLeft().getStatus())) {</span>
+<span class="fc" id="L959">                    ticketReservationManager.deleteOfflinePayment(res.getRight().event().orElseThrow(), reservationId, false, true, notify, username);</span>
+                } else {
+<span class="nc" id="L961">                    removeReservation(res, refund, notify, username, false, true);</span>
+                }
+<span class="fc" id="L963">            });</span>
+<span class="fc" id="L964">    }</span>
+
+    private Result&lt;Pair&lt;PurchaseContext, TicketReservation&gt;&gt; removeReservation(Triple&lt;TicketReservation, List&lt;Ticket&gt;, PurchaseContext&gt; triple,
+                                                                               boolean refund,
+                                                                               boolean notify,
+                                                                               String username,
+                                                                               boolean removeReservation,
+                                                                               boolean issueCreditNote) {
+<span class="fc" id="L972">        return new Result.Builder&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, PurchaseContext&gt;&gt;()</span>
+<span class="fc" id="L973">            .checkPrecondition(() -&gt; ticketsStatusIsCompatibleWithCancellation(triple.getMiddle()), ERROR_CANNOT_CANCEL_CHECKED_IN_TICKETS)</span>
+<span class="fc" id="L974">            .buildAndEvaluate(() -&gt; {</span>
+<span class="fc" id="L975">                var pc = triple.getRight();</span>
+<span class="fc" id="L976">                var reservation = triple.getLeft();</span>
+<span class="fc" id="L977">                var refundErrorCode = refundIfRequested(reservation, pc, username, refund);</span>
+<span class="pc bpc" id="L978" title="1 of 2 branches missed.">                if(refundErrorCode != null) {</span>
+<span class="nc" id="L979">                    return Result.error(refundErrorCode);</span>
+                }
+<span class="fc" id="L981">                return Result.success(triple);</span>
+<span class="fc" id="L982">            }).map(t -&gt; {</span>
+<span class="fc" id="L983">                var purchaseContext = t.getRight();</span>
+<span class="fc" id="L984">                TicketReservation reservation = t.getLeft();</span>
+<span class="fc" id="L985">                List&lt;Ticket&gt; tickets = t.getMiddle();</span>
+<span class="fc" id="L986">                specialPriceRepository.resetToFreeAndCleanupForReservation(List.of(reservation.getId()));</span>
+<span class="fc bfc" id="L987" title="All 2 branches covered.">                if(purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L988">                    var event = (Event) purchaseContext;</span>
+<span class="fc" id="L989">                    removeTicketsFromReservation(reservation, event, tickets.stream().map(Ticket::getId).collect(toList()), notify, username, removeReservation, issueCreditNote);</span>
+<span class="fc" id="L990">                    additionalServiceItemRepository.updateItemsStatusWithReservationUUID(event.getId(), reservation.getId(), AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);</span>
+                }
+<span class="fc" id="L992">                return Pair.of(purchaseContext, reservation);</span>
+            });
+    }
+
+    private ErrorCode refundIfRequested(TicketReservation reservation, PurchaseContext purchaseContext, String username, boolean requested) {
+<span class="pc bpc" id="L997" title="5 of 6 branches missed.">        if(requested &amp;&amp; reservation.getPaymentMethod() != null &amp;&amp; reservation.getPaymentMethod().isSupportRefund()) {</span>
+            //fully refund
+<span class="nc" id="L999">            boolean refundResult = paymentManager.refund(reservation, purchaseContext, null, username);</span>
+<span class="nc bnc" id="L1000" title="All 2 branches missed.">            if(!refundResult) {</span>
+<span class="nc" id="L1001">                return ErrorCode.custom(&quot;refund.failed&quot;, &quot;Cannot perform refund&quot;);</span>
+            }
+        }
+<span class="fc" id="L1004">        return null;</span>
+    }
+
+    private boolean ticketsStatusIsCompatibleWithCancellation(List&lt;Ticket&gt; tickets) {
+<span class="fc" id="L1008">        return ticketsStatusIsCompatibleWithCancellation(tickets.stream());</span>
+    }
+
+    private boolean ticketsStatusIsCompatibleWithCancellation(Stream&lt;Ticket&gt; ticketsStream) {
+<span class="fc bfc" id="L1012" title="All 2 branches covered.">        return ticketsStream.noneMatch(c -&gt; c.getStatus() == Ticket.TicketStatus.CHECKED_IN);</span>
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; refund(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, BigDecimal refundAmount, String username) {
+<span class="fc" id="L1017">        return loadReservation(purchaseContextType, publicIdentifier, reservationId, username).map(res -&gt; {</span>
+<span class="fc" id="L1018">            var reservation = res.getLeft();</span>
+<span class="fc" id="L1019">            var purchaseContext = res.getRight();</span>
+<span class="pc bpc" id="L1020" title="1 of 2 branches missed.">            if(reservation.getHasInvoiceNumber()) {</span>
+<span class="nc" id="L1021">                ticketReservationManager.issueCreditNoteForRefund(purchaseContext, reservation, refundAmount, username);</span>
+            }
+<span class="pc bpc" id="L1023" title="1 of 2 branches missed.">            return reservation.getPaymentMethod() != null</span>
+<span class="pc bpc" id="L1024" title="1 of 2 branches missed.">                &amp;&amp; reservation.getPaymentMethod().isSupportRefund()</span>
+<span class="pc bpc" id="L1025" title="1 of 2 branches missed.">                &amp;&amp; paymentManager.refund(reservation, purchaseContext, unitToCents(refundAmount, reservation.getCurrencyCode()), username);</span>
+        });
+    }
+
+    @Transactional
+    public Result&lt;Boolean&gt; regenerateBillingDocument(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, String username) {
+<span class="fc" id="L1031">        return loadReservation(purchaseContextType, publicIdentifier, reservationId, username).map(res -&gt; {</span>
+<span class="fc" id="L1032">            var event = res.getRight();</span>
+<span class="fc" id="L1033">            var reservation = res.getLeft();</span>
+<span class="fc" id="L1034">            var billingDocument = billingDocumentManager.createBillingDocument(event, reservation, username, ticketReservationManager.orderSummaryForReservation(reservation, event));</span>
+<span class="pc bpc" id="L1035" title="1 of 2 branches missed.">            if(billingDocument.getType() != BillingDocument.Type.CREDIT_NOTE) {</span>
+<span class="fc" id="L1036">                billingDocumentRepository.invalidateAllPreviousDocumentsOfType(billingDocument.getType(), billingDocument.getId(), reservationId);</span>
+            }
+<span class="fc" id="L1038">            return true;</span>
+        });
+    }
+
+
+    @Transactional
+    public Result&lt;List&lt;LightweightMailMessage&gt;&gt; getEmailsForReservation(PurchaseContextType purchaseContextType, String publicIdentifier, String reservationId, String username) {
+<span class="nc" id="L1045">        return loadReservation(purchaseContextType, publicIdentifier, reservationId, username)</span>
+<span class="nc" id="L1046">            .map(res -&gt; notificationManager.loadAllMessagesForReservationId(res.getRight(), reservationId));</span>
+    }
+
+    @Transactional
+    public List&lt;TicketWithMetadataAttributes&gt; findTicketsWithMetadata(String reservationId) {
+<span class="fc" id="L1051">        return ticketRepository.findTicketsInReservationWithMetadata(reservationId);</span>
+    }
+
+    @Transactional
+    public SubscriptionMetadata findSubscriptionMetadata(UUID subscriptionId) {
+<span class="fc" id="L1056">        return subscriptionRepository.getSubscriptionMetadata(subscriptionId);</span>
+    }
+
+    private void removeTicketsFromReservation(TicketReservation reservation,
+                                              Event purchaseContext,
+                                              List&lt;Integer&gt; ticketIds,
+                                              boolean notify,
+                                              String username,
+                                              boolean removeReservation,
+                                              boolean issueCreditNote) {
+<span class="fc" id="L1066">        String reservationId = reservation.getId();</span>
+<span class="pc bpc" id="L1067" title="2 of 6 branches missed.">        if(!ticketIds.isEmpty() &amp;&amp; issueCreditNote &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L1068">            ticketReservationManager.issuePartialCreditNoteForReservation(purchaseContext, reservation, username, ticketIds);</span>
+        }
+<span class="pc bpc" id="L1070" title="1 of 4 branches missed.">        if(notify &amp;&amp; !ticketIds.isEmpty()) {</span>
+<span class="fc" id="L1071">            Organization o = eventManager.loadOrganizer(purchaseContext, username);</span>
+<span class="fc" id="L1072">            ticketRepository.findByIds(ticketIds).forEach(t -&gt; {</span>
+<span class="nc bnc" id="L1073" title="All 2 branches missed.">                if(StringUtils.isNotBlank(t.getEmail())) {</span>
+<span class="nc" id="L1074">                    sendTicketHasBeenRemoved(purchaseContext, o, t);</span>
+                }
+<span class="nc" id="L1076">            });</span>
+        }
+
+<span class="pc bpc" id="L1079" title="1 of 4 branches missed.">        if(!issueCreditNote || !reservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L1080">            billingDocumentManager.ensureBillingDocumentIsPresent(purchaseContext, reservation, username, () -&gt; ticketReservationManager.orderSummaryForReservation(reservation, purchaseContext));</span>
+        }
+
+<span class="fc" id="L1083">        Integer userId = userRepository.findIdByUserName(username).orElse(null);</span>
+<span class="fc" id="L1084">        Date date = new Date();</span>
+
+<span class="fc" id="L1086">        ticketIds.forEach(id -&gt; auditingRepository.insert(reservationId, userId, purchaseContext.getId(), CANCEL_TICKET, date, TICKET, id.toString()));</span>
+
+<span class="fc" id="L1088">        ticketRepository.resetCategoryIdForUnboundedCategoriesWithTicketIds(ticketIds);</span>
+<span class="fc" id="L1089">        purchaseContextFieldRepository.deleteAllValuesForTicketIds(ticketIds);</span>
+<span class="fc" id="L1090">        specialPriceRepository.resetToFreeAndCleanupForTickets(ticketIds);</span>
+
+<span class="fc" id="L1092">        List&lt;String&gt; reservationIds = ticketRepository.findReservationIds(ticketIds);</span>
+<span class="fc" id="L1093">        List&lt;String&gt; ticketUUIDs = ticketRepository.findUUIDs(ticketIds);</span>
+<span class="fc" id="L1094">        int[] results = ticketRepository.batchReleaseTickets(reservationId, ticketIds, purchaseContext);</span>
+<span class="pc bpc" id="L1095" title="1 of 2 branches missed.">        Validate.isTrue(Arrays.stream(results).sum() == ticketIds.size(), &quot;Failed to update tickets&quot;);</span>
+<span class="pc bpc" id="L1096" title="1 of 2 branches missed.">        if(!removeReservation) {</span>
+<span class="nc" id="L1097">            extensionManager.handleTicketCancelledForEvent(purchaseContext, ticketUUIDs);</span>
+        } else {
+<span class="fc" id="L1099">            extensionManager.handleReservationsCancelled(purchaseContext, reservationIds);</span>
+        }
+<span class="fc" id="L1101">    }</span>
+
+    private void sendTicketHasBeenRemoved(Event event, Organization organization, Ticket ticket) {
+<span class="nc" id="L1104">        Map&lt;String, Object&gt; model = TemplateResource.buildModelForTicketHasBeenCancelled(organization, event, ticket);</span>
+<span class="nc" id="L1105">        Locale locale = LocaleUtil.forLanguageTag(Optional.ofNullable(ticket.getUserLanguage()).orElse(&quot;en&quot;));</span>
+<span class="nc" id="L1106">        notificationManager.sendSimpleEmail(event, ticket.getTicketsReservationId(), ticket.getEmail(),</span>
+<span class="nc" id="L1107">            messageSourceManager.getMessageSourceFor(event).getMessage(&quot;email-ticket-released.subject&quot;,</span>
+<span class="nc" id="L1108">            new Object[]{event.getDisplayName()}, locale),</span>
+<span class="nc" id="L1109">            () -&gt; templateManager.renderTemplate(event, TemplateResource.TICKET_HAS_BEEN_CANCELLED, model, locale));</span>
+<span class="nc" id="L1110">    }</span>
+
+    private void markAsCancelled(TicketReservation ticketReservation, String username, PurchaseContext purchaseContext) {
+<span class="fc" id="L1113">        markAsCancelled(ticketReservation.getId(), username, purchaseContext);</span>
+<span class="fc" id="L1114">    }</span>
+
+    private void markAsCancelled(String reservationId, String username, PurchaseContext purchaseContext) {
+<span class="fc" id="L1117">        ticketReservationRepository.updateReservationStatus(reservationId, TicketReservationStatus.CANCELLED.toString());</span>
+<span class="fc" id="L1118">        auditingRepository.insert(reservationId, userRepository.nullSafeFindIdByUserName(username).orElse(null),</span>
+            purchaseContext, Audit.EventType.CANCEL_RESERVATION, new Date(), Audit.EntityType.RESERVATION, reservationId);
+<span class="fc" id="L1120">    }</span>
+
+    private void handleTicketsRefund(List&lt;Integer&gt; toRefund, Event e, TicketReservation reservation, Map&lt;Integer, Ticket&gt; ticketsById, String username) {
+<span class="pc bpc" id="L1123" title="1 of 4 branches missed.">        if(reservation.getPaymentMethod() == null || !reservation.getPaymentMethod().isSupportRefund()) {</span>
+<span class="fc" id="L1124">            return;</span>
+        }
+        // refund each selected ticket
+<span class="nc bnc" id="L1127" title="All 2 branches missed.">        for(Integer toRefundId : toRefund) {</span>
+<span class="nc" id="L1128">            int toBeRefunded = ticketsById.get(toRefundId).getFinalPriceCts();</span>
+<span class="nc bnc" id="L1129" title="All 2 branches missed.">            if(toBeRefunded &gt; 0) {</span>
+<span class="nc" id="L1130">                paymentManager.refund(reservation, e, toBeRefunded, username);</span>
+            }
+<span class="nc" id="L1132">        }</span>
+        //
+<span class="nc" id="L1134">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

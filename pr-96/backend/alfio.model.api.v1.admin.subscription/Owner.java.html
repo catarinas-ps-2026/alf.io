@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Owner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.api.v1.admin.subscription</a> &gt; <span class="el_source">Owner.java</span></div><h1>Owner.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.api.v1.admin.subscription;
+
+import alfio.controller.form.ReadOnlyAdditionalFieldsContainer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.collections4.MapUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+
+public class Owner implements ReadOnlyAdditionalFieldsContainer {
+
+    private final UUID subscriptionId;
+    private final Map&lt;String, List&lt;String&gt;&gt; additional;
+    private final String firstName;
+    private final String lastName;
+    private final String email;
+    private final Map&lt;String, String&gt; metadata;
+
+    public Owner(@JsonProperty(&quot;additional&quot;) Map&lt;String, List&lt;String&gt;&gt; additional,
+                 @JsonProperty(&quot;subscriptionId&quot;) UUID subscriptionId,
+                 @JsonProperty(&quot;firstName&quot;) String firstName,
+                 @JsonProperty(&quot;lastName&quot;) String lastName,
+                 @JsonProperty(&quot;email&quot;) String email,
+<span class="fc" id="L42">                 @JsonProperty(&quot;metadata&quot;) Map&lt;String, String&gt; metadata) {</span>
+<span class="fc" id="L43">        this.additional = additional;</span>
+<span class="fc" id="L44">        this.subscriptionId = subscriptionId;</span>
+<span class="fc" id="L45">        this.firstName = firstName;</span>
+<span class="fc" id="L46">        this.lastName = lastName;</span>
+<span class="fc" id="L47">        this.email = email;</span>
+<span class="fc" id="L48">        this.metadata = Objects.requireNonNullElse(metadata, Map.of());</span>
+<span class="fc" id="L49">    }</span>
+
+    public Map&lt;String, List&lt;String&gt;&gt; getAdditional() {
+<span class="fc" id="L52">        return additional;</span>
+    }
+
+    public boolean hasAdditionalInfo() {
+<span class="fc" id="L56">        return MapUtils.isNotEmpty(additional);</span>
+    }
+
+    public UUID getSubscriptionId() {
+<span class="fc" id="L60">        return subscriptionId;</span>
+    }
+
+    public String getFirstName() {
+<span class="fc" id="L64">        return firstName;</span>
+    }
+
+    public String getLastName() {
+<span class="fc" id="L68">        return lastName;</span>
+    }
+
+    public String getEmail() {
+<span class="fc" id="L72">        return email;</span>
+    }
+
+    public Map&lt;String, String&gt; getMetadata() {
+<span class="fc" id="L76">        return metadata;</span>
+    }
+
+    public static Owner empty() {
+<span class="fc" id="L80">        return new Owner(Map.of(), null, null, null, null, null);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

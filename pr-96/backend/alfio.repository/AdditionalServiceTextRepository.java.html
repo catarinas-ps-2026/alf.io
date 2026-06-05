@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdditionalServiceTextRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">AdditionalServiceTextRepository.java</span></div><h1>AdditionalServiceTextRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.AdditionalServiceText;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryRepository;
+
+import java.util.*;
+
+@QueryRepository
+public interface AdditionalServiceTextRepository {
+
+    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId&quot;)
+    List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceId(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId);
+
+    @Query(&quot;delete from additional_service_description where additional_service_id_fk = :additionalServiceId&quot;)
+    int deleteAdditionalServiceTexts(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId);
+
+    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId and type = :type&quot;)
+    List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceIdAndType(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type);
+
+    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId and locale = :locale and type = :type&quot;)
+    Optional&lt;AdditionalServiceText&gt; findByLocaleAndType(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId, @Bind(&quot;locale&quot;) String locale, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type);
+
+    @Query(&quot;insert into additional_service_description(additional_service_id_fk, locale, type, value) values(:additionalServiceId, :locale, :type, :value)&quot;)
+    int insert(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId, @Bind(&quot;locale&quot;) String locale, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type, @Bind(&quot;value&quot;) String value);
+
+    @Query(&quot;update additional_service_description set locale = :locale, type = :type, value = :value where id = :id and additional_service_id_fk = :additionalServiceId&quot;)
+    int update(@Bind(&quot;id&quot;) int id, @Bind(&quot;locale&quot;) String locale, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type, @Bind(&quot;value&quot;) String value, @Bind(&quot;additionalServiceId&quot;) int additionalServiceId);
+
+
+    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk in (:additionalServiceIds)&quot;)
+    List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceIds(@Bind(&quot;additionalServiceIds&quot;) Collection&lt;Integer&gt; additionalServiceIds);
+
+
+    default Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; getDescriptionsByAdditionalServiceIds(Collection&lt;Integer&gt; additionalServiceIds) {
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (additionalServiceIds.isEmpty()) {</span>
+<span class="fc" id="L54">            return Collections.emptyMap();</span>
+        }
+
+<span class="fc" id="L57">        Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; res = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L58">        findAllByAdditionalServiceIds(additionalServiceIds).forEach(t -&gt; {</span>
+<span class="fc" id="L59">            var id = t.getAdditionalServiceId();</span>
+
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            if (!res.containsKey(id)) {</span>
+<span class="fc" id="L62">                res.put(id, new EnumMap&lt;&gt;(AdditionalServiceText.TextType.class));</span>
+            }
+
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">            if(!res.get(id).containsKey(t.getType())) {</span>
+<span class="fc" id="L66">                res.get(id).put(t.getType(), new HashMap&lt;&gt;());</span>
+            }
+
+<span class="fc" id="L69">            res.get(id).get(t.getType()).put(t.getLocale(), t.getValue());</span>
+<span class="fc" id="L70">        });</span>
+
+<span class="fc" id="L72">        return res;</span>
+
+    }
+
+    default AdditionalServiceText findBestMatchByLocaleAndType(int additionalServiceId, String locale, AdditionalServiceText.TextType type) {
+<span class="fc" id="L77">        return findByLocaleAndType(additionalServiceId, locale, type)</span>
+<span class="fc" id="L78">            .orElseGet(() -&gt; {</span>
+<span class="fc" id="L79">                List&lt;AdditionalServiceText&gt; texts = findAllByAdditionalServiceIdAndType(additionalServiceId, type);</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">                return !texts.isEmpty() ? texts.get(0) : new AdditionalServiceText(-1, additionalServiceId, locale, type, &quot;N/A&quot;);</span>
+            });
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
