@@ -294,4 +294,4 @@ Dado que todo el equipo actúa en el rol técnico de desarrollo para cumplir con
 
 El cronograma con las actividades detalladas para el ciclo de pruebas del proyecto se gestiona y centraliza a través de la sección de Roadmap de GitHub del equipo. Esta vista permite realizar un seguimiento dinámico del progreso, plazos y asignaciones durante las dos semanas planificadas, tal como se presenta en la figura.
 
-<img width="1579" height="450" alt="Cronograma de Actividades" src="images/cronograma.png">
+<img src="images/cronograma.png" alt="Cronograma de Actividades">
