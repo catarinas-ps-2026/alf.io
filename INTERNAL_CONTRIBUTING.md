@@ -79,3 +79,4 @@ You must name the branch according to the issue topic you are doing. For example
     - Currently is in Observation Mode due the technical debt.
     - you can see the report in `build/reports/checkstyle/`.
     - It is Highly recommended to install a Checkstyle plugin in your IDE.
+    - You can also use `./gradlew checkStyleMain`.
