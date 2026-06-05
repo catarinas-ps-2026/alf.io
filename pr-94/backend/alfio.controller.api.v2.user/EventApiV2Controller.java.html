@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventApiV2Controller.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.v2.user</a> &gt; <span class="el_source">EventApiV2Controller.java</span></div><h1>EventApiV2Controller.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.v2.user;
+
+import alfio.controller.api.v2.model.EventWithAdditionalInfo;
+import alfio.controller.api.v2.model.*;
+import alfio.controller.api.v2.user.support.EventLoader;
+import alfio.controller.form.ReservationForm;
+import alfio.controller.form.SearchOptions;
+import alfio.controller.form.WaitingQueueSubscriptionForm;
+import alfio.controller.support.Formatters;
+import alfio.manager.*;
+import alfio.manager.i18n.I18nManager;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.support.response.ValidatedResponse;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.modification.TicketReservationModification;
+import alfio.model.result.ValidationResult;
+import alfio.model.system.ConfigurationKeys;
+import alfio.repository.EventDescriptionRepository;
+import alfio.repository.EventRepository;
+import alfio.repository.TicketCategoryRepository;
+import alfio.repository.TicketRepository;
+import alfio.util.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.security.Principal;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static alfio.model.system.ConfigurationKeys.*;
+import static java.util.stream.Collectors.*;
+
+
+@RestController
+@RequestMapping(&quot;/api/v2/public/&quot;)
+public class EventApiV2Controller {
+
+    private final EventManager eventManager;
+    private final EventRepository eventRepository;
+    private final ConfigurationManager configurationManager;
+    private final EventDescriptionRepository eventDescriptionRepository;
+    private final TicketCategoryAvailabilityManager ticketCategoryAvailabilityManager;
+    private final MessageSourceManager messageSourceManager;
+    private final WaitingQueueManager waitingQueueManager;
+    private final I18nManager i18nManager;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final TicketRepository ticketRepository;
+    private final TicketReservationManager ticketReservationManager;
+    private final RecaptchaService recaptchaService;
+    private final PromoCodeRequestManager promoCodeRequestManager;
+    private final EventLoader eventLoader;
+    private final ExtensionManager extensionManager;
+    private final AdditionalServiceManager additionalServiceManager;
+
+    public EventApiV2Controller(EventManager eventManager,
+                                EventRepository eventRepository,
+                                ConfigurationManager configurationManager,
+                                EventDescriptionRepository eventDescriptionRepository,
+                                TicketCategoryAvailabilityManager ticketCategoryAvailabilityManager,
+                                MessageSourceManager messageSourceManager,
+                                WaitingQueueManager waitingQueueManager,
+                                I18nManager i18nManager,
+                                TicketCategoryRepository ticketCategoryRepository,
+                                TicketRepository ticketRepository,
+                                TicketReservationManager ticketReservationManager,
+                                RecaptchaService recaptchaService,
+                                PromoCodeRequestManager promoCodeRequestManager,
+                                EventLoader eventLoader,
+                                ExtensionManager extensionManager,
+<span class="fc" id="L101">                                AdditionalServiceManager additionalServiceManager) {</span>
+<span class="fc" id="L102">        this.eventManager = eventManager;</span>
+<span class="fc" id="L103">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L104">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L105">        this.eventDescriptionRepository = eventDescriptionRepository;</span>
+<span class="fc" id="L106">        this.ticketCategoryAvailabilityManager = ticketCategoryAvailabilityManager;</span>
+<span class="fc" id="L107">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L108">        this.waitingQueueManager = waitingQueueManager;</span>
+<span class="fc" id="L109">        this.i18nManager = i18nManager;</span>
+<span class="fc" id="L110">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L111">        this.ticketRepository = ticketRepository;</span>
+<span class="fc" id="L112">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L113">        this.recaptchaService = recaptchaService;</span>
+<span class="fc" id="L114">        this.promoCodeRequestManager = promoCodeRequestManager;</span>
+<span class="fc" id="L115">        this.eventLoader = eventLoader;</span>
+<span class="fc" id="L116">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L117">        this.additionalServiceManager = additionalServiceManager;</span>
+<span class="fc" id="L118">    }</span>
+
+
+    @GetMapping(&quot;events&quot;)
+    public ResponseEntity&lt;List&lt;BasicEventInfo&gt;&gt; listEvents(SearchOptions searchOptions) {
+
+<span class="fc" id="L124">        var contentLanguages = i18nManager.getAvailableLanguages();</span>
+
+<span class="fc" id="L126">        var events = eventManager.getPublishedEvents(searchOptions)</span>
+<span class="fc" id="L127">            .stream()</span>
+<span class="fc" id="L128">            .map(e -&gt; {</span>
+<span class="fc" id="L129">                var messageSource = messageSourceManager.getMessageSourceFor(e);</span>
+<span class="fc" id="L130">                var formattedDates = Formatters.getFormattedDates(e, messageSource, contentLanguages);</span>
+<span class="fc" id="L131">                return new BasicEventInfo(e.getShortName(), e.getFileBlobId(), e.getTitle(), e.getFormat(), e.getLocation(),</span>
+<span class="fc" id="L132">                    e.getTimeZone(), DatesWithTimeZoneOffset.fromEvent(e), e.getSameDay(), formattedDates.beginDate, formattedDates.beginTime,</span>
+                    formattedDates.endDate, formattedDates.endTime,
+<span class="fc" id="L134">                    e.getContentLanguages().stream().map(cl -&gt; new Language(cl.locale().getLanguage(), cl.getDisplayLanguage())).collect(toList()));</span>
+            })
+<span class="fc" id="L136">            .collect(Collectors.toList());</span>
+<span class="fc" id="L137">        return new ResponseEntity&lt;&gt;(events, getCorsHeaders(), HttpStatus.OK);</span>
+    }
+
+    @GetMapping(&quot;event/{eventName}&quot;)
+    public ResponseEntity&lt;EventWithAdditionalInfo&gt; getEvent(@PathVariable String eventName, HttpSession session) {
+<span class="fc" id="L142">        return eventLoader.loadEventInfo(eventName, session).map(eventWithAdditionalInfo -&gt; new ResponseEntity&lt;&gt;(eventWithAdditionalInfo, getCorsHeaders(), HttpStatus.OK))</span>
+<span class="fc" id="L143">            .orElseGet(() -&gt; ResponseEntity.notFound().headers(getCorsHeaders()).build());</span>
+    }
+
+    @PostMapping(&quot;event/{eventName}/waiting-list/subscribe&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;Boolean&gt;&gt; subscribeToWaitingList(@PathVariable String eventName,
+                                                                             @RequestBody WaitingQueueSubscriptionForm subscription,
+                                                                             BindingResult bindingResult) {
+
+<span class="fc" id="L151">        Optional&lt;ResponseEntity&lt;ValidatedResponse&lt;Boolean&gt;&gt;&gt; res = eventRepository.findOptionalByShortName(eventName).map(event -&gt; {</span>
+<span class="fc" id="L152">            Validator.validateWaitingQueueSubscription(subscription, bindingResult, event);</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">            if (bindingResult.hasErrors()) {</span>
+<span class="fc" id="L154">                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.toResponse(bindingResult, null));</span>
+            } else {
+<span class="fc" id="L156">                var subscriptionResult = waitingQueueManager.subscribe(event, subscription.toCustomerName(event), subscription.getEmail(), subscription.getSelectedCategory(), subscription.getUserLanguage());</span>
+<span class="fc" id="L157">                return ResponseEntity.ok(new ValidatedResponse&lt;&gt;(ValidationResult.success(), subscriptionResult));</span>
+            }
+        });
+
+<span class="pc" id="L161">        return res.orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @GetMapping(&quot;event/{eventName}/ticket-categories&quot;)
+    public ResponseEntity&lt;ItemsByCategory&gt; getTicketCategories(@PathVariable String eventName, @RequestParam(value = &quot;code&quot;, required = false) String code) {
+
+        //
+<span class="fc" id="L168">        return ticketCategoryAvailabilityManager</span>
+<span class="fc" id="L169">            .getTicketCategories(eventName, code).map(i -&gt; new ResponseEntity&lt;&gt;(i, getCorsHeaders(), HttpStatus.OK))</span>
+<span class="fc" id="L170">            .orElseGet(() -&gt; ResponseEntity.notFound().headers(getCorsHeaders()).build());</span>
+    }
+
+
+    @GetMapping(&quot;event/{eventName}/calendar/{locale}&quot;)
+    public void getCalendar(@PathVariable String eventName,
+                            @PathVariable String locale,
+                            @RequestParam(value = &quot;type&quot;, required = false) String calendarType,
+                            @RequestParam(value = &quot;ticketId&quot;, required = false) String ticketId,
+                            HttpServletResponse response) {
+
+<span class="fc" id="L181">        eventRepository.findOptionalByShortName(eventName).ifPresentOrElse(ev -&gt; {</span>
+<span class="fc" id="L182">            var description = eventDescriptionRepository.findDescriptionByEventIdTypeAndLocale(ev.getId(), EventDescription.EventDescriptionType.DESCRIPTION, locale).orElse(&quot;&quot;);</span>
+<span class="pc" id="L183">            var category = ticketRepository.findOptionalByUUID(ticketId).map(t -&gt; ticketCategoryRepository.getById(t.getCategoryId())).orElse(null);</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">            if (&quot;google&quot;.equals(calendarType)) {</span>
+                try {
+<span class="fc" id="L186">                    response.sendRedirect(EventUtil.getGoogleCalendarURL(ev, category, description));</span>
+<span class="nc" id="L187">                } catch (IOException e) {</span>
+<span class="nc" id="L188">                    throw new IllegalStateException(e);</span>
+<span class="fc" id="L189">                }</span>
+            } else {
+<span class="fc" id="L191">                EventUtil.getIcalForEvent(ev, category, description).ifPresentOrElse(ical -&gt; {</span>
+<span class="fc" id="L192">                    response.setContentType(&quot;text/calendar&quot;);</span>
+<span class="fc" id="L193">                    response.setHeader(&quot;Content-Disposition&quot;, &quot;inline; filename=\&quot;calendar.ics\&quot;&quot;);</span>
+<span class="fc" id="L194">                    try (var os = response.getOutputStream()){</span>
+<span class="fc" id="L195">                        os.write(ical);</span>
+<span class="nc" id="L196">                    } catch (IOException e) {</span>
+<span class="nc" id="L197">                        throw new IllegalStateException(e);</span>
+<span class="fc" id="L198">                    }</span>
+<span class="fc" id="L199">                }, () -&gt; {</span>
+<span class="nc" id="L200">                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);</span>
+<span class="nc" id="L201">                });</span>
+            }
+<span class="pc" id="L203">        }, () -&gt; response.setStatus(HttpServletResponse.SC_NOT_FOUND));</span>
+<span class="fc" id="L204">    }</span>
+
+    /**
+     * Create a new reservation.
+     *
+     * @param eventName
+     * @param lang
+     * @param reservation
+     * @param bindingResult
+     * @param request
+     * @return
+     */
+    @PostMapping(value = &quot;event/{eventName}/reserve-tickets&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;String&gt;&gt; reserveTickets(@PathVariable String eventName,
+                                                                    @RequestParam(&quot;lang&quot;) String lang,
+                                                                    @RequestBody ReservationForm reservation,
+                                                                    BindingResult bindingResult,
+                                                                    ServletWebRequest request,
+                                                                    Principal principal) {
+
+
+
+<span class="fc" id="L226">        Optional&lt;ResponseEntity&lt;ValidatedResponse&lt;String&gt;&gt;&gt; r = eventRepository.findOptionalByShortName(eventName).map(event -&gt; {</span>
+
+<span class="fc" id="L228">            Locale locale = LocaleUtil.forLanguageTag(lang, event);</span>
+
+<span class="fc" id="L230">            Optional&lt;String&gt; promoCodeDiscount = ReservationUtil.checkPromoCode(reservation, event, promoCodeRequestManager, bindingResult);</span>
+<span class="fc" id="L231">            var configurationValues = configurationManager.getFor(List.of(</span>
+                ENABLE_CAPTCHA_FOR_TICKET_SELECTION,
+<span class="fc" id="L233">                RECAPTCHA_API_KEY), event.getConfigurationLevel());</span>
+
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">            if (isCaptchaInvalid(reservation.getCaptcha(), request.getRequest(), configurationValues)) {</span>
+<span class="nc" id="L236">                bindingResult.reject(ErrorsCode.STEP_2_CAPTCHA_VALIDATION_FAILED);</span>
+            }
+
+<span class="fc" id="L239">            Optional&lt;String&gt; reservationIdRes = createTicketReservation(reservation, bindingResult, event, locale, promoCodeDiscount, principal);</span>
+
+<span class="fc bfc" id="L241" title="All 2 branches covered.">            if (bindingResult.hasErrors()) {</span>
+<span class="fc" id="L242">                return new ResponseEntity&lt;&gt;(ValidatedResponse.toResponse(bindingResult, null), getCorsHeaders(), HttpStatus.UNPROCESSABLE_ENTITY);</span>
+            } else {
+<span class="fc" id="L244">                var reservationIdentifier = reservationIdRes.orElseThrow(IllegalStateException::new);</span>
+<span class="fc" id="L245">                return ResponseEntity.ok(new ValidatedResponse&lt;&gt;(ValidationResult.success(), reservationIdentifier));</span>
+            }
+        });
+
+<span class="pc" id="L249">        return r.orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    private Optional&lt;String&gt; createTicketReservation(ReservationForm reservation,
+                                                     BindingResult bindingResult,
+                                                     Event event,
+                                                     Locale locale,
+                                                     Optional&lt;String&gt; promoCodeDiscount,
+                                                     Principal principal) {
+<span class="fc" id="L258">        return ReservationUtil.validateCreateRequest(reservation, bindingResult, ticketReservationManager, eventManager, additionalServiceManager, promoCodeDiscount.orElse(null), event)</span>
+<span class="fc" id="L259">            .flatMap(selected -&gt; ReservationUtil.handleReservationCreationErrors(() -&gt; ticketReservationManager.createTicketReservation(event, selected.getLeft(), selected.getRight(), promoCodeDiscount, locale, principal), bindingResult, event.getType()));</span>
+    }
+
+    @GetMapping(&quot;event/{eventName}/validate-code&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;EventCode&gt;&gt; validateCode(@PathVariable String eventName,
+                                                                     @RequestParam(&quot;code&quot;) String code) {
+
+<span class="fc" id="L266">        var res = promoCodeRequestManager.checkCode(eventName, code);</span>
+<span class="fc bfc" id="L267" title="All 2 branches covered.">        if(res.isSuccess()) {</span>
+<span class="fc" id="L268">            var value = res.getValue();</span>
+<span class="fc" id="L269">            var eventCode = value.getLeft()</span>
+<span class="pc" id="L270">                .map(sp -&gt; new EventCode(code, EventCode.EventCodeType.SPECIAL_PRICE, PromoCodeDiscount.DiscountType.NONE, null))</span>
+<span class="fc" id="L271">                .orElseGet(() -&gt; {</span>
+<span class="fc" id="L272">                    var promoCodeDiscount = value.getRight().orElseThrow();</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">                    var type = promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.ACCESS ? EventCode.EventCodeType.ACCESS : EventCode.EventCodeType.DISCOUNT;</span>
+<span class="fc" id="L274">                    String formattedDiscountAmount = PromoCodeDiscount.format(promoCodeDiscount, value.getMiddle().getCurrency());</span>
+<span class="fc" id="L275">                    return new EventCode(code, type, promoCodeDiscount.getDiscountType(), formattedDiscountAmount);</span>
+                });
+
+<span class="fc" id="L278">            return ResponseEntity.ok(res.withValue(eventCode));</span>
+        } else {
+<span class="fc" id="L280">            return new ResponseEntity&lt;&gt;(res.withValue(new EventCode(code,null, null, null)), HttpStatus.UNPROCESSABLE_ENTITY);</span>
+        }
+    }
+
+    @PostMapping(&quot;event/{eventName}/check-discount&quot;)
+    public ResponseEntity&lt;DynamicDiscount&gt; checkDiscount(@PathVariable String eventName, @RequestBody ReservationForm reservation) {
+<span class="nc" id="L286">        return eventRepository.findOptionalByShortName(eventName)</span>
+<span class="nc" id="L287">            .flatMap(event -&gt; {</span>
+<span class="nc" id="L288">                Map&lt;Integer, Long&gt; quantityByCategory = reservation.getReservation().stream()</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                    .filter(trm -&gt; trm.getQuantity() &gt; 0)</span>
+<span class="nc" id="L290">                    .collect(groupingBy(TicketReservationModification::getTicketCategoryId, summingLong(TicketReservationModification::getQuantity)));</span>
+<span class="nc bnc" id="L291" title="All 4 branches missed.">                if(quantityByCategory.isEmpty() || ticketCategoryRepository.countPaidCategoriesInReservation(quantityByCategory.keySet()) == 0) {</span>
+<span class="nc" id="L292">                    return Optional.empty();</span>
+                }
+<span class="nc" id="L294">                return extensionManager.handleDynamicDiscount(event, quantityByCategory, null)</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">                    .filter(d -&gt; d.getDiscountType() != PromoCodeDiscount.DiscountType.NONE)</span>
+<span class="nc" id="L296">                    .map(d -&gt; {</span>
+                        String formattedDiscount;
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                        if(d.getDiscountType() == PromoCodeDiscount.DiscountType.PERCENTAGE) {</span>
+<span class="nc" id="L299">                           formattedDiscount = String.valueOf(d.getDiscountAmount());</span>
+                        } else {
+<span class="nc" id="L301">                            formattedDiscount = MonetaryUtil.formatCents(d.getDiscountAmount(), event.getCurrency());</span>
+                        }
+<span class="nc" id="L303">                        return new DynamicDiscount(formattedDiscount, d.getDiscountType(), formatDynamicCodeMessage(event, d));</span>
+                    });
+            })
+<span class="nc bnc" id="L306" title="All 2 branches missed.">            .filter(d -&gt; d.getDiscountType() != PromoCodeDiscount.DiscountType.NONE)</span>
+<span class="nc" id="L307">            .map(ResponseEntity::ok)</span>
+<span class="nc" id="L308">            .orElseGet(() -&gt; ResponseEntity.noContent().build());</span>
+    }
+
+    @GetMapping(&quot;event/{eventName}/code/{code}&quot;)
+    public ResponseEntity&lt;Void&gt; handleCode(@PathVariable String eventName, @PathVariable String code, ServletWebRequest request, Principal principal) {
+<span class="fc" id="L313">        String trimmedCode = StringUtils.trimToNull(code);</span>
+<span class="fc" id="L314">        Map&lt;String, String&gt; queryStrings = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L316">        Function&lt;Pair&lt;Optional&lt;String&gt;, BindingResult&gt;, Optional&lt;String&gt;&gt; handleErrors = (res) -&gt; {</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">            if (res.getRight().hasErrors()) {</span>
+<span class="nc" id="L318">                queryStrings.put(&quot;errors&quot;, res.getRight().getAllErrors().stream().map(DefaultMessageSourceResolvable::getCode).collect(Collectors.joining(&quot;,&quot;)));</span>
+            }
+<span class="fc" id="L320">            return res.getLeft();</span>
+        };
+
+<span class="fc" id="L323">        var url = promoCodeRequestManager.createReservationFromPromoCode(eventName, trimmedCode, queryStrings::put, handleErrors, request, principal).map(reservationId -&gt;</span>
+<span class="fc" id="L324">            UriComponentsBuilder.fromPath(&quot;/event/{eventShortName}/reservation/{reservationId}/book&quot;)</span>
+<span class="fc" id="L325">                .build(Map.of(&quot;eventShortName&quot;, eventName, &quot;reservationId&quot;, reservationId))</span>
+<span class="fc" id="L326">                .toString())</span>
+<span class="fc" id="L327">            .orElseGet(() -&gt; {</span>
+<span class="fc" id="L328">                    var backToEvent = UriComponentsBuilder.fromPath(&quot;/event/{eventShortName}&quot;);</span>
+<span class="fc" id="L329">                    queryStrings.forEach(backToEvent::queryParam);</span>
+<span class="fc" id="L330">                    return backToEvent.build(Map.of(&quot;eventShortName&quot;, eventName)).toString();</span>
+                }
+            );
+<span class="fc" id="L333">        return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT).header(HttpHeaders.LOCATION, url).build();</span>
+    }
+
+    private static HttpHeaders getCorsHeaders() {
+<span class="fc" id="L337">        HttpHeaders headers = new HttpHeaders();</span>
+<span class="fc" id="L338">        headers.add(&quot;Access-Control-Allow-Origin&quot;, &quot;*&quot;);</span>
+<span class="fc" id="L339">        return headers;</span>
+    }
+
+
+    private boolean isCaptchaInvalid(String recaptchaResponse, HttpServletRequest request, Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; configurationValues) {
+<span class="pc bpc" id="L344" title="1 of 2 branches missed.">        return eventLoader.isRecaptchaForTicketSelectionEnabled(configurationValues)</span>
+<span class="pc bnc" id="L345" title="All 2 branches missed.">            &amp;&amp; !recaptchaService.checkRecaptcha(recaptchaResponse, request);</span>
+    }
+
+    private Map&lt;String, String&gt; formatDynamicCodeMessage(Event event, PromoCodeDiscount promoCodeDiscount) {
+<span class="nc bnc" id="L349" title="All 4 branches missed.">        Validate.isTrue(promoCodeDiscount != null &amp;&amp; promoCodeDiscount.getDiscountType() != PromoCodeDiscount.DiscountType.NONE);</span>
+<span class="nc" id="L350">        var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="nc" id="L351">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
+        String code;
+        String amount;
+<span class="nc bnc" id="L354" title="All 4 branches missed.">        switch(promoCodeDiscount.getDiscountType()) {</span>
+            case PERCENTAGE:
+<span class="nc" id="L356">                code = &quot;reservation.dynamic.discount.confirmation.percentage.message&quot;;</span>
+<span class="nc" id="L357">                amount = String.valueOf(promoCodeDiscount.getDiscountAmount());</span>
+<span class="nc" id="L358">                break;</span>
+            case FIXED_AMOUNT:
+<span class="nc" id="L360">                amount = event.getCurrency() + &quot; &quot; + MonetaryUtil.formatCents(promoCodeDiscount.getDiscountAmount(), event.getCurrency());</span>
+<span class="nc" id="L361">                code = &quot;reservation.dynamic.discount.confirmation.fix-per-ticket.message&quot;;</span>
+<span class="nc" id="L362">                break;</span>
+            case FIXED_AMOUNT_RESERVATION:
+<span class="nc" id="L364">                amount = event.getCurrency() + &quot; &quot; + MonetaryUtil.formatCents(promoCodeDiscount.getDiscountAmount(), event.getCurrency());</span>
+<span class="nc" id="L365">                code = &quot;reservation.dynamic.discount.confirmation.fix-per-reservation.message&quot;;</span>
+<span class="nc" id="L366">                break;</span>
+            default:
+<span class="nc" id="L368">                throw new IllegalStateException(&quot;Unexpected discount code type&quot;);</span>
+        }
+
+<span class="nc bnc" id="L371" title="All 2 branches missed.">        for (ContentLanguage cl : event.getContentLanguages()) {</span>
+<span class="nc" id="L372">            res.put(cl.locale().getLanguage(), messageSource.getMessage(code, new Object[]{amount}, cl.locale()));</span>
+<span class="nc" id="L373">        }</span>
+<span class="nc" id="L374">        return res;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
