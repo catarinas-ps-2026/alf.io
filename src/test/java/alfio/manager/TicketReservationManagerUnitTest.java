@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.mockito.Mockito.*;
+
+import alfio.controller.form.UpdateTicketOwnerForm;
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager;
 import alfio.manager.support.reservation.OrderSummaryGenerator;
@@ -25,12 +28,18 @@ import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
 import alfio.model.*;
 import alfio.model.modification.TicketReservationWithOptionalCodeModification;
+import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.repository.*;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
 import alfio.test.util.TestUtil;
 import alfio.util.Json;
 import alfio.util.TemplateManager;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -40,19 +49,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
-
 class TicketReservationManagerUnitTest {
+
     private static final String TICKET_RESERVATION_ID = "abcdef";
 
     private TicketReservationManager manager;
-    
+
     private PromoCodeDiscountRepository promoCodeDiscountRepository;
     private TicketRepository ticketRepository;
     private TicketReservationRepository ticketReservationRepository;
@@ -78,12 +80,12 @@ class TicketReservationManagerUnitTest {
     private AdditionalServiceRepository additionalServiceRepository;
     private AdditionalServiceItemRepository additionalServiceItemRepository;
     private AdditionalServiceTextRepository additionalServiceTextRepository;
-    private InvoiceSequencesRepository invoiceSequencesRepository;
     private AuditingRepository auditingRepository;
     private UserRepository userRepository;
     private ExtensionManager extensionManager;
     private GroupManager groupManager;
     private Json json;
+    private InvoiceSequencesRepository invoiceSequencesRepository;
     private ReservationCostCalculator reservationCostCalculator;
 
     @BeforeEach
@@ -103,7 +105,9 @@ class TicketReservationManagerUnitTest {
         when(ticketCategory.getId()).thenReturn(1);
         organizationRepository = mock(OrganizationRepository.class);
         ticketCategoryRepository = mock(TicketCategoryRepository.class);
-        ticketCategoryDescriptionRepository = mock(TicketCategoryDescriptionRepository.class);
+        ticketCategoryDescriptionRepository = mock(
+            TicketCategoryDescriptionRepository.class
+        );
         configurationManager = mock(ConfigurationManager.class);
         paymentManager = mock(PaymentManager.class);
         specialPriceRepository = mock(SpecialPriceRepository.class);
@@ -114,25 +118,48 @@ class TicketReservationManagerUnitTest {
         templateManager = mock(TemplateManager.class);
         transactionManager = mock(PlatformTransactionManager.class);
         waitingQueueManager = mock(WaitingQueueManager.class);
-        purchaseContextFieldRepository = mock(PurchaseContextFieldRepository.class);
+        purchaseContextFieldRepository = mock(
+            PurchaseContextFieldRepository.class
+        );
         additionalServiceRepository = mock(AdditionalServiceRepository.class);
-        additionalServiceItemRepository = mock(AdditionalServiceItemRepository.class);
-        additionalServiceTextRepository = mock(AdditionalServiceTextRepository.class);
+        additionalServiceItemRepository = mock(
+            AdditionalServiceItemRepository.class
+        );
+        additionalServiceTextRepository = mock(
+            AdditionalServiceTextRepository.class
+        );
         invoiceSequencesRepository = mock(InvoiceSequencesRepository.class);
         auditingRepository = mock(AuditingRepository.class);
         userRepository = mock(UserRepository.class);
         extensionManager = mock(ExtensionManager.class);
         groupManager = mock(GroupManager.class);
-        BillingDocumentRepository billingDocumentRepository = mock(BillingDocumentRepository.class);
+        BillingDocumentRepository billingDocumentRepository = mock(
+            BillingDocumentRepository.class
+        );
         json = mock(Json.class);
-        var additionalServiceManager = new AdditionalServiceManager(additionalServiceRepository, additionalServiceTextRepository, additionalServiceItemRepository, mock(NamedParameterJdbcTemplate.class), mock(TicketRepository.class), purchaseContextFieldRepository, reservationCostCalculator);
+        var additionalServiceManager = new AdditionalServiceManager(
+            additionalServiceRepository,
+            additionalServiceTextRepository,
+            additionalServiceItemRepository,
+            mock(NamedParameterJdbcTemplate.class),
+            mock(TicketRepository.class),
+            purchaseContextFieldRepository,
+            reservationCostCalculator
+        );
 
-        when(messageSourceManager.getMessageSourceFor(any())).thenReturn(messageSource);
-        when(messageSourceManager.getRootMessageSource()).thenReturn(messageSource);
+        when(messageSourceManager.getMessageSourceFor(any())).thenReturn(
+            messageSource
+        );
+        when(messageSourceManager.getRootMessageSource()).thenReturn(
+            messageSource
+        );
         var purchaseContextManager = mock(PurchaseContextManager.class);
-        when(purchaseContextManager.findByReservationId(anyString())).thenReturn(Optional.of(event));
+        when(
+            purchaseContextManager.findByReservationId(anyString())
+        ).thenReturn(Optional.of(event));
         reservationCostCalculator = mock(ReservationCostCalculator.class);
-        manager = new TicketReservationManager(eventRepository,
+        manager = new TicketReservationManager(
+            eventRepository,
             organizationRepository,
             ticketRepository,
             ticketReservationRepository,
@@ -148,7 +175,7 @@ class TicketReservationManagerUnitTest {
             templateManager,
             transactionManager,
             waitingQueueManager,
-                purchaseContextFieldRepository,
+            purchaseContextFieldRepository,
             additionalServiceManager,
             auditingRepository,
             userRepository,
@@ -168,19 +195,24 @@ class TicketReservationManagerUnitTest {
             mock(ReservationEmailContentHelper.class),
             mock(ReservationFinalizer.class),
             mock(OrderSummaryGenerator.class),
-            mock(CustomOfflineConfigurationManager.class));
+            mock(CustomOfflineConfigurationManager.class)
+        );
     }
 
     @Test
     void totalReservationCostByID() {
         manager.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
-        verify(reservationCostCalculator).totalReservationCostWithVAT(TICKET_RESERVATION_ID);
+        verify(reservationCostCalculator).totalReservationCostWithVAT(
+            TICKET_RESERVATION_ID
+        );
     }
 
     @Test
     void totalReservationCost() {
         manager.totalReservationCostWithVAT(reservation);
-        verify(reservationCostCalculator).totalReservationCostWithVAT(reservation);
+        verify(reservationCostCalculator).totalReservationCostWithVAT(
+            reservation
+        );
     }
 
     @Nested
@@ -191,14 +223,39 @@ class TicketReservationManagerUnitTest {
         @BeforeEach
         void setUp() {
             var subscriptionRepository = mock(SubscriptionRepository.class);
-            generator = new OrderSummaryGenerator(ticketReservationRepository, auditingRepository, paymentManager, ticketCategoryRepository, additionalServiceTextRepository, subscriptionRepository, ticketRepository, messageSourceManager,
-                new ReservationCostCalculator(ticketReservationRepository, mock(PurchaseContextManager.class), promoCodeDiscountRepository, subscriptionRepository, ticketRepository, additionalServiceRepository, additionalServiceItemRepository), transactionRepository);
+            generator = new OrderSummaryGenerator(
+                ticketReservationRepository,
+                auditingRepository,
+                paymentManager,
+                ticketCategoryRepository,
+                additionalServiceTextRepository,
+                subscriptionRepository,
+                ticketRepository,
+                messageSourceManager,
+                new ReservationCostCalculator(
+                    ticketReservationRepository,
+                    mock(PurchaseContextManager.class),
+                    promoCodeDiscountRepository,
+                    subscriptionRepository,
+                    ticketRepository,
+                    additionalServiceRepository,
+                    additionalServiceItemRepository
+                ),
+                transactionRepository
+            );
         }
 
         @Test
         void testExtractSummaryVatNotIncluded() {
             initReservationWithTicket(1000, false);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, null, event, Locale.ENGLISH, null, new TotalPrice(1100, 100, 0, 0, "CHF"));
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                null,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(1100, 100, 0, 0, "CHF")
+            );
             Assertions.assertEquals(1, summaryRows.size());
             Assertions.assertEquals("10.00", summaryRows.get(0).getPrice());
         }
@@ -206,7 +263,14 @@ class TicketReservationManagerUnitTest {
         @Test
         void testExtractSummaryVatIncluded() {
             initReservationWithTicket(1000, true);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, null,  event, Locale.ENGLISH, null, new TotalPrice(1000, 100, 0, 0, "CHF"));
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                null,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(1000, 100, 0, 0, "CHF")
+            );
             Assertions.assertEquals(1, summaryRows.size());
             Assertions.assertEquals("10.00", summaryRows.get(0).getPrice());
         }
@@ -214,9 +278,18 @@ class TicketReservationManagerUnitTest {
         @Test
         void testExtractSummaryVatIncludedExempt() {
             initReservationWithTicket(1000, true);
-            when(ticket.getVatStatus()).thenReturn(PriceContainer.VatStatus.INCLUDED_EXEMPT);
+            when(ticket.getVatStatus()).thenReturn(
+                PriceContainer.VatStatus.INCLUDED_EXEMPT
+            );
             when(ticket.getFinalPriceCts()).thenReturn(909);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, PriceContainer.VatStatus.INCLUDED_EXEMPT,  event, Locale.ENGLISH, null, new TotalPrice(1000, 100, 0, 0, "CHF"));
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                PriceContainer.VatStatus.INCLUDED_EXEMPT,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(1000, 100, 0, 0, "CHF")
+            );
             Assertions.assertEquals(1, summaryRows.size());
             Assertions.assertEquals("9.09", summaryRows.get(0).getPrice());
         }
@@ -224,121 +297,429 @@ class TicketReservationManagerUnitTest {
         @Test
         void testExtractSummaryVatNotIncludedExempt() {
             initReservationWithTicket(1000, false);
-            when(ticket.getVatStatus()).thenReturn(PriceContainer.VatStatus.NOT_INCLUDED_EXEMPT);
+            when(ticket.getVatStatus()).thenReturn(
+                PriceContainer.VatStatus.NOT_INCLUDED_EXEMPT
+            );
             when(ticket.getFinalPriceCts()).thenReturn(1000);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, PriceContainer.VatStatus.NOT_INCLUDED_EXEMPT,  event, Locale.ENGLISH, null, new TotalPrice(1000, 100, 0, 0, "CHF"));
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                PriceContainer.VatStatus.NOT_INCLUDED_EXEMPT,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(1000, 100, 0, 0, "CHF")
+            );
             Assertions.assertEquals(1, summaryRows.size());
             Assertions.assertEquals("10.00", summaryRows.get(0).getPrice());
         }
 
         @Test
         void testExtractSummaryVatNotIncludedASInherited() {
-            initReservationWithAdditionalServices(false, AdditionalService.VatType.INHERITED, 1000, 1000);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, null,  event, Locale.ENGLISH, null, new TotalPrice(2200, 200, 0, 0, "CHF"));
+            initReservationWithAdditionalServices(
+                false,
+                AdditionalService.VatType.INHERITED,
+                1000,
+                1000
+            );
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                null,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(2200, 200, 0, 0, "CHF")
+            );
             Assertions.assertEquals(2, summaryRows.size());
-            summaryRows.forEach(r -> Assertions.assertEquals("10.00", r.getPrice(), "%s failed".formatted(r.getType())));
+            summaryRows.forEach(r ->
+                Assertions.assertEquals(
+                    "10.00",
+                    r.getPrice(),
+                    "%s failed".formatted(r.getType())
+                )
+            );
         }
 
         @Test
         void testExtractSummaryVatIncludedASInherited() {
-            initReservationWithAdditionalServices(true, AdditionalService.VatType.INHERITED, 1000, 1000);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, null, event, Locale.ENGLISH, null, new TotalPrice(2000, 182, 0, 0, "CHF"));
+            initReservationWithAdditionalServices(
+                true,
+                AdditionalService.VatType.INHERITED,
+                1000,
+                1000
+            );
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                null,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(2000, 182, 0, 0, "CHF")
+            );
             Assertions.assertEquals(2, summaryRows.size());
-            summaryRows.forEach(r -> Assertions.assertEquals("10.00", r.getPrice(), "%s failed".formatted(r.getType())));
+            summaryRows.forEach(r ->
+                Assertions.assertEquals(
+                    "10.00",
+                    r.getPrice(),
+                    "%s failed".formatted(r.getType())
+                )
+            );
         }
 
         @Test
         void testExtractSummaryVatNotIncludedASNone() {
-            initReservationWithAdditionalServices(false, AdditionalService.VatType.NONE, 1000, 1000);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, null, event, Locale.ENGLISH, null, new TotalPrice(1000, 100, 0, 0, "CHF"));
+            initReservationWithAdditionalServices(
+                false,
+                AdditionalService.VatType.NONE,
+                1000,
+                1000
+            );
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                null,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(1000, 100, 0, 0, "CHF")
+            );
             Assertions.assertEquals(2, summaryRows.size());
-            summaryRows.forEach(r -> Assertions.assertEquals("10.00", r.getPrice(), "%s failed".formatted(r.getType())));
+            summaryRows.forEach(r ->
+                Assertions.assertEquals(
+                    "10.00",
+                    r.getPrice(),
+                    "%s failed".formatted(r.getType())
+                )
+            );
         }
 
         @Test
         void testExtractSummaryVatIncludedASNone() {
-            initReservationWithAdditionalServices(true, AdditionalService.VatType.NONE, 1000, 1000);
-            List<SummaryRow> summaryRows = generator.extractSummary(TICKET_RESERVATION_ID, null, event, Locale.ENGLISH, null, new TotalPrice(2000, 100, 0, 0, "CHF"));
+            initReservationWithAdditionalServices(
+                true,
+                AdditionalService.VatType.NONE,
+                1000,
+                1000
+            );
+            List<SummaryRow> summaryRows = generator.extractSummary(
+                TICKET_RESERVATION_ID,
+                null,
+                event,
+                Locale.ENGLISH,
+                null,
+                new TotalPrice(2000, 100, 0, 0, "CHF")
+            );
             Assertions.assertEquals(2, summaryRows.size());
             Assertions.assertEquals("10.00", summaryRows.get(0).getPrice());
             Assertions.assertEquals("10.00", summaryRows.get(1).getPrice());
         }
     }
 
-    private void initReservationWithTicket(int ticketPaidPrice, boolean eventVatIncluded) {
+    private void initReservationWithTicket(
+        int ticketPaidPrice,
+        boolean eventVatIncluded
+    ) {
         when(event.isVatIncluded()).thenReturn(eventVatIncluded);
-        when(event.getVatStatus()).thenReturn(eventVatIncluded ? PriceContainer.VatStatus.INCLUDED : PriceContainer.VatStatus.NOT_INCLUDED);
+        when(event.getVatStatus()).thenReturn(
+            eventVatIncluded
+                ? PriceContainer.VatStatus.INCLUDED
+                : PriceContainer.VatStatus.NOT_INCLUDED
+        );
         when(event.getVat()).thenReturn(BigDecimal.TEN);
         when(event.getId()).thenReturn(1);
-        when(eventRepository.findByReservationId(eq(TICKET_RESERVATION_ID))).thenReturn(event);
-        when(ticketReservationRepository.findReservationById(eq(TICKET_RESERVATION_ID))).thenReturn(reservation);
+        when(
+            eventRepository.findByReservationId(eq(TICKET_RESERVATION_ID))
+        ).thenReturn(event);
+        when(
+            ticketReservationRepository.findReservationById(
+                eq(TICKET_RESERVATION_ID)
+            )
+        ).thenReturn(reservation);
         when(ticket.getSrcPriceCts()).thenReturn(ticketPaidPrice);
         when(ticket.getCategoryId()).thenReturn(1);
-        when(ticketRepository.findTicketsInReservation(eq(TICKET_RESERVATION_ID))).thenReturn(Collections.singletonList(ticket));
-        when(ticketCategoryRepository.getByIdAndActive(eq(1), eq(1))).thenReturn(ticketCategory);
-        when(ticketCategoryRepository.getByIdsAndActive(anyCollection(), eq(1))).thenReturn(List.of(ticketCategory));
+        when(
+            ticketRepository.findTicketsInReservation(eq(TICKET_RESERVATION_ID))
+        ).thenReturn(Collections.singletonList(ticket));
+        when(
+            ticketCategoryRepository.getByIdAndActive(eq(1), eq(1))
+        ).thenReturn(ticketCategory);
+        when(
+            ticketCategoryRepository.getByIdsAndActive(anyCollection(), eq(1))
+        ).thenReturn(List.of(ticketCategory));
         when(reservation.getId()).thenReturn(TICKET_RESERVATION_ID);
     }
 
-    private void initReservationWithAdditionalServices(boolean eventVatIncluded, AdditionalService.VatType additionalServiceVatType, int ticketSrcPrice, int asSrcPrice) {
-
+    private void initReservationWithAdditionalServices(
+        boolean eventVatIncluded,
+        AdditionalService.VatType additionalServiceVatType,
+        int ticketSrcPrice,
+        int asSrcPrice
+    ) {
         initReservationWithTicket(ticketSrcPrice, eventVatIncluded);
 
-        AdditionalServiceItem additionalServiceItem = mock(AdditionalServiceItem.class);
+        AdditionalServiceItem additionalServiceItem = mock(
+            AdditionalServiceItem.class
+        );
         when(additionalServiceItem.getCurrencyCode()).thenReturn("CHF");
         AdditionalService additionalService = mock(AdditionalService.class);
         when(additionalService.currencyCode()).thenReturn("CHF");
         when(additionalService.id()).thenReturn(1);
 
-        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID))).thenReturn(Collections.singletonList(additionalServiceItem));
+        when(
+            additionalServiceItemRepository.findByReservationUuid(
+                anyInt(),
+                eq(TICKET_RESERVATION_ID)
+            )
+        ).thenReturn(Collections.singletonList(additionalServiceItem));
         when(additionalServiceItem.getAdditionalServiceId()).thenReturn(1);
-        when(additionalServiceRepository.loadAllForEvent(eq(1))).thenReturn(List.of(additionalService));
-        when(additionalServiceRepository.getById(eq(1), eq(1))).thenReturn(additionalService);
+        when(additionalServiceRepository.loadAllForEvent(eq(1))).thenReturn(
+            List.of(additionalService)
+        );
+        when(additionalServiceRepository.getById(eq(1), eq(1))).thenReturn(
+            additionalService
+        );
         when(additionalServiceItem.getSrcPriceCts()).thenReturn(asSrcPrice);
         when(additionalService.vatType()).thenReturn(additionalServiceVatType);
-        AdditionalServiceItemRepository additionalServiceItemRepository = mock(AdditionalServiceItemRepository.class);
-        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID))).thenReturn(Collections.emptyList());
+        AdditionalServiceItemRepository additionalServiceItemRepository = mock(
+            AdditionalServiceItemRepository.class
+        );
+        when(
+            additionalServiceItemRepository.findByReservationUuid(
+                anyInt(),
+                eq(TICKET_RESERVATION_ID)
+            )
+        ).thenReturn(Collections.emptyList());
         AdditionalServiceText text = mock(AdditionalServiceText.class);
         when(text.getId()).thenReturn(1);
         when(text.getLocale()).thenReturn("en");
-        when(additionalServiceTextRepository.findBestMatchByLocaleAndType(anyInt(), eq("en"), eq(AdditionalServiceText.TextType.TITLE))).thenReturn(text);
+        when(
+            additionalServiceTextRepository.findBestMatchByLocaleAndType(
+                anyInt(),
+                eq("en"),
+                eq(AdditionalServiceText.TextType.TITLE)
+            )
+        ).thenReturn(text);
     }
 
     @Test
     void doNotCallExtensionIfTicketsAreFreeOfCharge() {
-        var ticketReservationMock = mock(TicketReservationWithOptionalCodeModification.class);
+        var ticketReservationMock = mock(
+            TicketReservationWithOptionalCodeModification.class
+        );
         when(ticketReservationMock.getTicketCategoryId()).thenReturn(1);
-        when(ticketCategoryRepository.countPaidCategoriesInReservation(anyCollection())).thenReturn(0);
-        Optional<String> result = manager.createDynamicPromoCodeIfNeeded(event, List.of(ticketReservationMock), TICKET_RESERVATION_ID);
+        when(
+            ticketCategoryRepository.countPaidCategoriesInReservation(
+                anyCollection()
+            )
+        ).thenReturn(0);
+        Optional<String> result = manager.createDynamicPromoCodeIfNeeded(
+            event,
+            List.of(ticketReservationMock),
+            TICKET_RESERVATION_ID
+        );
         Assertions.assertTrue(result.isEmpty());
         verifyNoInteractions(extensionManager);
     }
 
     @Test
     void callExtensionIfTicketsMustBePaid() {
-        var ticketReservationMock = mock(TicketReservationWithOptionalCodeModification.class);
+        var ticketReservationMock = mock(
+            TicketReservationWithOptionalCodeModification.class
+        );
         when(ticketReservationMock.getTicketCategoryId()).thenReturn(1);
-        when(ticketCategoryRepository.countPaidCategoriesInReservation(anyCollection())).thenReturn(1);
+        when(
+            ticketCategoryRepository.countPaidCategoriesInReservation(
+                anyCollection()
+            )
+        ).thenReturn(1);
         var promoCode = mock(PromoCodeDiscount.class);
         when(promoCode.getPromoCode()).thenReturn("abcd");
-        when(extensionManager.handleDynamicDiscount(eq(event), anyMap(), eq(TICKET_RESERVATION_ID))).thenReturn(Optional.of(promoCode));
-        when(promoCodeDiscountRepository.addPromoCodeIfNotExists(eq("abcd"), any(), anyInt(), any(), any(), anyInt(), any(), any(), any(), isNull(), isNull(), any(), isNull())).thenReturn(0);
-        Optional<String> result = manager.createDynamicPromoCodeIfNeeded(event, List.of(ticketReservationMock), TICKET_RESERVATION_ID);
+        when(
+            extensionManager.handleDynamicDiscount(
+                eq(event),
+                anyMap(),
+                eq(TICKET_RESERVATION_ID)
+            )
+        ).thenReturn(Optional.of(promoCode));
+        when(
+            promoCodeDiscountRepository.addPromoCodeIfNotExists(
+                eq("abcd"),
+                any(),
+                anyInt(),
+                any(),
+                any(),
+                anyInt(),
+                any(),
+                any(),
+                any(),
+                isNull(),
+                isNull(),
+                any(),
+                isNull()
+            )
+        ).thenReturn(0);
+        Optional<String> result = manager.createDynamicPromoCodeIfNeeded(
+            event,
+            List.of(ticketReservationMock),
+            TICKET_RESERVATION_ID
+        );
         Assertions.assertFalse(result.isEmpty());
         verifyNoInteractions(auditingRepository);
     }
 
     @Test
     void addAuditingIfPromoCodeHasBeenCreated() {
-        var ticketReservationMock = mock(TicketReservationWithOptionalCodeModification.class);
+        var ticketReservationMock = mock(
+            TicketReservationWithOptionalCodeModification.class
+        );
         when(ticketReservationMock.getTicketCategoryId()).thenReturn(1);
-        when(ticketCategoryRepository.countPaidCategoriesInReservation(anyCollection())).thenReturn(1);
+        when(
+            ticketCategoryRepository.countPaidCategoriesInReservation(
+                anyCollection()
+            )
+        ).thenReturn(1);
         var promoCode = mock(PromoCodeDiscount.class);
         when(promoCode.getPromoCode()).thenReturn("abcd");
-        when(extensionManager.handleDynamicDiscount(eq(event), anyMap(), eq(TICKET_RESERVATION_ID))).thenReturn(Optional.of(promoCode));
-        when(promoCodeDiscountRepository.addPromoCodeIfNotExists(eq("abcd"), any(), anyInt(), any(), any(), anyInt(), any(), any(), any(), isNull(), isNull(), any(), isNull())).thenReturn(1);
-        Optional<String> result = manager.createDynamicPromoCodeIfNeeded(event, List.of(ticketReservationMock), TICKET_RESERVATION_ID);
+        when(
+            extensionManager.handleDynamicDiscount(
+                eq(event),
+                anyMap(),
+                eq(TICKET_RESERVATION_ID)
+            )
+        ).thenReturn(Optional.of(promoCode));
+        when(
+            promoCodeDiscountRepository.addPromoCodeIfNotExists(
+                eq("abcd"),
+                any(),
+                anyInt(),
+                any(),
+                any(),
+                anyInt(),
+                any(),
+                any(),
+                any(),
+                isNull(),
+                isNull(),
+                any(),
+                isNull()
+            )
+        ).thenReturn(1);
+        Optional<String> result = manager.createDynamicPromoCodeIfNeeded(
+            event,
+            List.of(ticketReservationMock),
+            TICKET_RESERVATION_ID
+        );
         Assertions.assertFalse(result.isEmpty());
-        verify(auditingRepository).insert(eq(TICKET_RESERVATION_ID), any(), anyInt(), eq(Audit.EventType.DYNAMIC_DISCOUNT_CODE_CREATED), any(), eq(Audit.EntityType.RESERVATION), eq(TICKET_RESERVATION_ID));
+        verify(auditingRepository).insert(
+            eq(TICKET_RESERVATION_ID),
+            any(),
+            anyInt(),
+            eq(Audit.EventType.DYNAMIC_DISCOUNT_CODE_CREATED),
+            any(),
+            eq(Audit.EntityType.RESERVATION),
+            eq(TICKET_RESERVATION_ID)
+        );
+    }
+
+    @Test
+    void testUpdateTicketOwner() {
+        UpdateTicketOwnerForm form = new UpdateTicketOwnerForm();
+        form.setEmail("new@test.com");
+        form.setFullName("New Owner");
+
+        when(ticket.getUuid()).thenReturn("uuid");
+        when(ticket.getId()).thenReturn(123);
+        when(ticket.getLockedAssignment()).thenReturn(false);
+        when(ticketRepository.findByUUID("uuid")).thenReturn(ticket);
+        when(event.mustUseFirstAndLastName()).thenReturn(false);
+
+        var config = new ConfigurationKeyValuePathLevel(
+            alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY.name(),
+            "false",
+            alfio.model.system.ConfigurationPathLevel.SYSTEM
+        );
+        when(
+            configurationManager.getFor(
+                any(alfio.model.system.ConfigurationKeys.class),
+                any()
+            )
+        ).thenReturn(
+            new ConfigurationManager.MaybeConfiguration(
+                alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY,
+                config
+            )
+        );
+
+        manager.updateTicketOwner(
+            ticket,
+            Locale.ENGLISH,
+            event,
+            form,
+            null,
+            null,
+            Optional.empty()
+        );
+
+        verify(ticketRepository).updateTicketOwner(
+            eq("uuid"),
+            eq("new@test.com"),
+            eq("New Owner"),
+            any(),
+            any()
+        );
+        verify(purchaseContextFieldRepository).updateOrInsert(
+            any(),
+            eq(event),
+            eq(123),
+            isNull()
+        );
+    }
+
+    @Test
+    void testUpdateTicketOwnerLocked() {
+        UpdateTicketOwnerForm form = new UpdateTicketOwnerForm();
+        form.setEmail("new@test.com");
+        form.setFullName("New Owner");
+
+        when(ticket.getUuid()).thenReturn("uuid");
+        when(ticket.getId()).thenReturn(123);
+        when(ticket.getLockedAssignment()).thenReturn(true);
+        when(ticket.getEmail()).thenReturn("old@test.com");
+        when(ticket.getFullName()).thenReturn("Old Owner");
+        when(ticketRepository.findByUUID("uuid")).thenReturn(ticket);
+        when(event.mustUseFirstAndLastName()).thenReturn(false);
+
+        var config = new ConfigurationKeyValuePathLevel(
+            alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY.name(),
+            "false",
+            alfio.model.system.ConfigurationPathLevel.SYSTEM
+        );
+        when(
+            configurationManager.getFor(
+                any(alfio.model.system.ConfigurationKeys.class),
+                any()
+            )
+        ).thenReturn(
+            new ConfigurationManager.MaybeConfiguration(
+                alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY,
+                config
+            )
+        );
+
+        manager.updateTicketOwner(
+            ticket,
+            Locale.ENGLISH,
+            event,
+            form,
+            null,
+            null,
+            Optional.empty()
+        );
+
+        verify(ticketRepository, never()).updateTicketOwner(
+            anyString(),
+            anyString(),
+            anyString(),
+            any(),
+            any()
+        );
     }
 }
