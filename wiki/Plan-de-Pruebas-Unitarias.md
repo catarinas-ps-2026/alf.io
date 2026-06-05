@@ -43,8 +43,7 @@ A continuación se definen los términos y siglas técnicas clave utilizados a l
 - **JUnit 5:** Framework estándar de pruebas unitarias para el lenguaje de programación Java, utilizado para validar la lógica del backend de alf.io.
 - **Mock / Mocking:** Objeto o componente simulado que imita el comportamiento de un objeto real para aislar la unidad de código que se está probando.
 - **Cobertura de Código (Code Coverage):** Métrica de software que describe el porcentaje de líneas de código fuente que han sido ejecutadas al menos una vez por la suite de pruebas.
-- **Pruebas de Caja Blanca (White-Box Testing):** Método de diseño de pruebas que examina la estructura interna, el flujo de control y la lógica del código fuente (e.g., pruebas de cobertura de sentencias).
-- **Pruebas de Caja Negra (Black-Box Testing):** Método de pruebas centrado en la validación funcional de entradas y salidas, sin requerir visibilidad ni conocimiento de la estructura interna del código (e.g., partición de equivalencia y análisis de valores límite).
+- **Pruebas de Caja Negra (Black-Box Testing):** Método de pruebas centrado en la validación funcional de entradas y salidas, sin requerir visibilidad ni conocimiento de la estructura interna del código.
 
 ## 2. Especificaciones de las Pruebas
 
@@ -202,10 +201,10 @@ Para el proceso de pruebas unitarias de `alf.io`, se generarán los siguientes a
 Para asegurar la calidad y el cumplimiento de la cobertura en las pruebas unitarias de alf.io, se aplicarán las siguientes técnicas basadas en el estándar ISTQB:
 
 - **Caja negra:** Se utilizarán para diseñar casos de prueba basados en las especificaciones funcionales sin considerar la estructura interna del código:
-    - *Partición de Equivalencia:* Para dividir los rangos de entrada en clases que se comportan de manera similar y reducir el número de casos.
-    - *Análisis de Valores Límite:* Para probar el comportamiento del sistema en los extremos de los rangos de entrada (ej. fechas, cantidades de tickets).
-- **Caja blanca:** Se aplicarán para garantizar que se alcancen los objetivos de cobertura estructural:
-    - *Pruebas de Sentencias:* Técnica principal utilizada para verificar que cada línea de código sea ejecutada al menos una vez, permitiendo alcanzar el objetivo del 85% de cobertura agregada.
+    - *Partición por equivalencia:* Los datos de entrada se agrupan en clases válidas e inválidas. Por ejemplo, los roles de usuario (administrador, organizador, operador de check-in) se prueban para verificar que cada uno tenga acceso exclusivo a las operaciones permitidas.
+    - *Análisis de valores límite:* Se prueban valores en los extremos de los rangos permitidos, como límites de caracteres en campos de texto, fechas próximas al evento, cupos mínimos y máximos de entradas, y montos de dinero en los límites de precisión de BigDecimal.
+    - *Pruebas de casos de uso:* Se recorren paso a paso los flujos principales del sistema: creación de un evento, configuración de categorías de entradas, proceso de compra, generación de entradas (incluyendo Apple Wallet), check-in y reporting.
+    - *Tablas de decisión:* Se aplican para validar reglas complejas de negocio, como el cálculo de precios con descuentos, impuestos (IVA), tarifas de servicio y promociones combinadas, donde múltiples condiciones booleanas determinan el resultado final.
 
 ### 5.3 Criterio de Finalización y Prueba
 El proceso de pruebas unitarias se dará por concluido únicamente cuando se cumplan satisfactoriamente los siguientes criterios:
