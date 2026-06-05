@@ -74,3 +74,8 @@ You must name the branch according to the issue topic you are doing. For example
 - Do not reduce the overall test coverage.
 - Use descriptive PR titles and link the related issue.
 - Respect the project's code style and conventions.
+    - We enforce code quality and stylistic consistency using Checkstyle plugin in
+      grandlew.
+    - Currently is in Observation Mode due the technical debt.
+    - you can see the report in `build/reports/checkstyle/`.
+    - It is Highly recommended to install a Checkstyle plugin in your IDE.
