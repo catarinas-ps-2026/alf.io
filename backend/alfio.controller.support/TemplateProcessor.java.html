@@ -179,20 +179,20 @@ public final class TemplateProcessor {
 
         @Override
         public FSStream getUrl(String url) {
-<span class="fc" id="L182">            return new FSStream() {</span>
+            return new FSStream() {
                 @Override
                 public InputStream getStream() {
-<span class="fc" id="L185">                    String urlWithoutProtocol = url.substring(&quot;alfio-internal:/&quot;.length());</span>
+                    String urlWithoutProtocol = url.substring(&quot;alfio-internal:/&quot;.length());
                     try {
-<span class="fc" id="L187">                        return new ClassPathResource(&quot;/alfio/font/&quot; + urlWithoutProtocol).getInputStream();</span>
-<span class="nc" id="L188">                    } catch (IOException e) {</span>
-<span class="nc" id="L189">                        throw new IllegalStateException(e);</span>
+                        return new ClassPathResource(&quot;/alfio/font/&quot; + urlWithoutProtocol).getInputStream();
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
                     }
                 }
 
                 @Override
                 public Reader getReader() {
-<span class="nc" id="L195">                    return new InputStreamReader(getStream(), StandardCharsets.UTF_8);</span>
+                    return new InputStreamReader(getStream(), StandardCharsets.UTF_8);
                 }
             };
         }
@@ -202,14 +202,14 @@ public final class TemplateProcessor {
 
         @Override
         public FSStream getUrl(String url) {
-<span class="nc" id="L205">            throw new IllegalStateException(new TemplateAccessException(&quot;Protocol for resource '&quot; + url + &quot;' is not supported&quot;));</span>
+            throw new IllegalStateException(new TemplateAccessException(&quot;Protocol for resource '&quot; + url + &quot;' is not supported&quot;));
         }
     }
 
     public static class TemplateAccessException  extends IllegalStateException {
         TemplateAccessException(String message) {
-<span class="nc" id="L211">            super(message);</span>
-<span class="nc" id="L212">        }</span>
+            super(message);
+        }
     }
 
     public static Optional&lt;TemplateResource.ImageData&gt; extractImageModel(PurchaseContext purchaseContext, FileUploadManager fileUploadManager) {
@@ -301,4 +301,4 @@ public final class TemplateProcessor {
 <span class="nc" id="L301">        return buildFrom(purchaseContext, fileUploadManager, language, templateManager, model, TemplateResource.CREDIT_NOTE_PDF, extensionManager);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

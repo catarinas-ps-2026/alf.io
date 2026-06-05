@@ -123,24 +123,24 @@ public interface UploadedResourceRepository {
         }
 
 <span class="fc" id="L125">        return Objects.requireNonNullElse(getNamedParameterJdbcTemplate().getJdbcOperations().execute(query,</span>
-<span class="fc" id="L126">            new AbstractLobCreatingPreparedStatementCallback(lobHandler) {</span>
+            new AbstractLobCreatingPreparedStatementCallback(lobHandler) {
                 @Override
                 protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
-<span class="fc" id="L129">                    ps.setString(1, file.getName());</span>
-<span class="fc" id="L130">                    ps.setLong(2, file.getFile().length);</span>
-<span class="fc" id="L131">                    lobCreator.setBlobAsBytes(ps, 3, file.getFile());</span>
-<span class="fc" id="L132">                    ps.setString(4, file.getType());</span>
-<span class="fc" id="L133">                    ps.setString(5, Json.GSON.toJson(attributes));</span>
-<span class="fc bfc" id="L134" title="All 2 branches covered.">                    if (organizationId != null) {</span>
-<span class="fc" id="L135">                        ps.setInt(6, organizationId);</span>
+                    ps.setString(1, file.getName());
+                    ps.setLong(2, file.getFile().length);
+                    lobCreator.setBlobAsBytes(ps, 3, file.getFile());
+                    ps.setString(4, file.getType());
+                    ps.setString(5, Json.GSON.toJson(attributes));
+                    if (organizationId != null) {
+                        ps.setInt(6, organizationId);
                     }
-<span class="fc bfc" id="L137" title="All 2 branches covered.">                    if (eventId != null) {</span>
-<span class="fc" id="L138">                        ps.setInt(7, eventId);</span>
+                    if (eventId != null) {
+                        ps.setInt(7, eventId);
                     }
-<span class="fc" id="L140">                }</span>
+                }
             }
 <span class="fc" id="L142">        ), 0);</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

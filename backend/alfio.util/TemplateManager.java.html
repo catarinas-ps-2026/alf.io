@@ -60,8 +60,8 @@ public class TemplateManager {
     public static final String MAIL_FOOTER = &quot;mailFooter&quot;;
 <span class="fc" id="L61">    private static final Logger log = LoggerFactory.getLogger(TemplateManager.class);</span>
 
-<span class="fc" id="L63">    public enum TemplateOutput {</span>
-<span class="fc" id="L64">        TEXT, HTML</span>
+    public enum TemplateOutput {
+        TEXT, HTML
     }
 
     private final MessageSourceManager messageSourceManager;
@@ -246,158 +246,158 @@ public class TemplateManager {
         private final Locale locale;
         private final MessageSource messageSource;
 
-<span class="fc" id="L249">        private CustomLocalizationMessageInterceptor(Locale locale, MessageSource messageSource) {</span>
-<span class="fc" id="L250">            this.locale = locale;</span>
-<span class="fc" id="L251">            this.messageSource = messageSource;</span>
-<span class="fc" id="L252">        }</span>
+        private CustomLocalizationMessageInterceptor(Locale locale, MessageSource messageSource) {
+            this.locale = locale;
+            this.messageSource = messageSource;
+        }
 
         protected Mustache.Lambda createTranslator() {
-<span class="fc" id="L255">            return (frag, out) -&gt; {</span>
-<span class="fc" id="L256">                String template = frag.execute();</span>
-<span class="fc" id="L257">                final String key = extractKey(template);</span>
-<span class="fc" id="L258">                final List&lt;String&gt; args = extractParameters(template);</span>
-<span class="fc" id="L259">                final String text = messageSource.getMessage(key, args.toArray(), locale);</span>
-<span class="fc" id="L260">                out.write(text);</span>
-<span class="fc" id="L261">            };</span>
+            return (frag, out) -&gt; {
+                String template = frag.execute();
+                final String key = extractKey(template);
+                final List&lt;String&gt; args = extractParameters(template);
+                final String text = messageSource.getMessage(key, args.toArray(), locale);
+                out.write(text);
+            };
         }
     }
 
     private static final String START_TAG = &quot;{{#i18n}}&quot;;
     private static final String END_TAG = &quot;{{/i18n}}&quot;;
 
-<span class="fc" id="L268">    private enum ParserState {</span>
-<span class="fc" id="L269">        START {</span>
+    private enum ParserState {
+        START {
             @Override
             public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
-<span class="fc" id="L272">                int startTagIdx = template.indexOf(START_TAG, idx);</span>
-<span class="fc bfc" id="L273" title="All 2 branches covered.">                if (startTagIdx == -1) {</span>
-<span class="fc" id="L274">                    ast.addText(template);</span>
-<span class="fc" id="L275">                    return Pair.of(END, idx);</span>
+                int startTagIdx = template.indexOf(START_TAG, idx);
+                if (startTagIdx == -1) {
+                    ast.addText(template);
+                    return Pair.of(END, idx);
                 } else {
-<span class="fc" id="L277">                    ast.addText(template.substring(0, startTagIdx));</span>
-<span class="fc" id="L278">                    ast.addI18NNode();</span>
-<span class="fc" id="L279">                    return Pair.of(OPEN_TAG, startTagIdx + START_TAG.length());</span>
+                    ast.addText(template.substring(0, startTagIdx));
+                    ast.addI18NNode();
+                    return Pair.of(OPEN_TAG, startTagIdx + START_TAG.length());
                 }
             }
-<span class="fc" id="L282">        }, OPEN_TAG {</span>
+        }, OPEN_TAG {
             @Override
             public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
-<span class="fc" id="L285">                int startTagIdx = template.indexOf(START_TAG, idx);</span>
-<span class="fc" id="L286">                int endTagIdx = template.indexOf(END_TAG, idx);</span>
+                int startTagIdx = template.indexOf(START_TAG, idx);
+                int endTagIdx = template.indexOf(END_TAG, idx);
 
-<span class="fc bfc" id="L288" title="All 6 branches covered.">                if (endTagIdx != -1 &amp;&amp; startTagIdx != -1 &amp;&amp; startTagIdx &lt; endTagIdx) {</span>
-<span class="fc" id="L289">                    ast.addText(template.substring(idx, startTagIdx));</span>
-<span class="fc" id="L290">                    int startTagIdxBoundary = startTagIdx + START_TAG.length();</span>
-<span class="fc" id="L291">                    ast.addI18NNode();</span>
-<span class="fc" id="L292">                    return Pair.of(OPEN_TAG, startTagIdxBoundary);</span>
-<span class="pc bpc" id="L293" title="1 of 4 branches missed.">                } else if (endTagIdx == -1 &amp;&amp; startTagIdx == -1) {</span>
-<span class="fc" id="L294">                    ast.addText(template.substring(idx));</span>
-<span class="fc" id="L295">                    return Pair.of(END, idx);</span>
-<span class="pc bpc" id="L296" title="1 of 2 branches missed.">                } else if (endTagIdx != -1) {</span>
-<span class="fc" id="L297">                    ast.addText(template.substring(idx, endTagIdx));</span>
-<span class="fc" id="L298">                    return Pair.of(CLOSE_TAG, endTagIdx);</span>
+                if (endTagIdx != -1 &amp;&amp; startTagIdx != -1 &amp;&amp; startTagIdx &lt; endTagIdx) {
+                    ast.addText(template.substring(idx, startTagIdx));
+                    int startTagIdxBoundary = startTagIdx + START_TAG.length();
+                    ast.addI18NNode();
+                    return Pair.of(OPEN_TAG, startTagIdxBoundary);
+                } else if (endTagIdx == -1 &amp;&amp; startTagIdx == -1) {
+                    ast.addText(template.substring(idx));
+                    return Pair.of(END, idx);
+                } else if (endTagIdx != -1) {
+                    ast.addText(template.substring(idx, endTagIdx));
+                    return Pair.of(CLOSE_TAG, endTagIdx);
                 } else {
-<span class="nc" id="L300">                    throw new IllegalStateException(&quot;should not be reached&quot;);</span>
+                    throw new IllegalStateException(&quot;should not be reached&quot;);
                 }
             }
-<span class="fc" id="L303">        }, CLOSE_TAG {</span>
+        }, CLOSE_TAG {
             @Override
             public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
 
                 //
-<span class="fc" id="L308">                ast.focusToParent();</span>
+                ast.focusToParent();
                 //
-<span class="fc" id="L310">                return Pair.of(OPEN_TAG, idx + END_TAG.length());</span>
+                return Pair.of(OPEN_TAG, idx + END_TAG.length());
             }
-<span class="fc" id="L312">        }, END {</span>
+        }, END {
             @Override
             public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
 
-<span class="nc bnc" id="L316" title="All 2 branches missed.">                if (ast.currentLevel != ast.root) {</span>
-<span class="nc" id="L317">                    throw new IllegalStateException(&quot;unbalanced tags&quot;);</span>
+                if (ast.currentLevel != ast.root) {
+                    throw new IllegalStateException(&quot;unbalanced tags&quot;);
                 }
 
-<span class="nc" id="L320">                return Pair.of(END, idx);</span>
+                return Pair.of(END, idx);
             }
         };
 
         public abstract Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast);
     }
 
-<span class="fc" id="L327">    static class AST {</span>
-<span class="fc" id="L328">        Node root = new Node();</span>
-<span class="fc" id="L329">        Node currentLevel = root;</span>
+    static class AST {
+        Node root = new Node();
+        Node currentLevel = root;
 
         void addChild(Node node) {
-<span class="fc" id="L332">            node.parent = currentLevel;</span>
-<span class="fc" id="L333">            currentLevel.addChild(node);</span>
-<span class="fc" id="L334">        }</span>
+            node.parent = currentLevel;
+            currentLevel.addChild(node);
+        }
 
         void addText(String text) {
-<span class="fc bfc" id="L337" title="All 2 branches covered.">            if (text.length() &gt; 0) {</span>
-<span class="fc" id="L338">                addChild(new TextNode(text));</span>
+            if (text.length() &gt; 0) {
+                addChild(new TextNode(text));
             }
-<span class="fc" id="L340">        }</span>
+        }
 
         void addI18NNode() {
-<span class="fc" id="L343">            addChild(new I18NNode());</span>
-<span class="fc" id="L344">            currentLevel = currentLevel.children.get(currentLevel.children.size() - 1);</span>
-<span class="fc" id="L345">        }</span>
+            addChild(new I18NNode());
+            currentLevel = currentLevel.children.get(currentLevel.children.size() - 1);
+        }
 
         void focusToParent() {
-<span class="fc" id="L348">            currentLevel = currentLevel.parent;</span>
-<span class="fc" id="L349">        }</span>
+            currentLevel = currentLevel.parent;
+        }
 
         public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
-<span class="fc" id="L352">            root.visit(sb, locale, messageSource);</span>
-<span class="fc" id="L353">        }</span>
+            root.visit(sb, locale, messageSource);
+        }
     }
 
-<span class="fc" id="L356">    static class Node {</span>
+    static class Node {
 
         Node parent;
-<span class="fc" id="L359">        List&lt;Node&gt; children = new ArrayList&lt;&gt;(1);</span>
+        List&lt;Node&gt; children = new ArrayList&lt;&gt;(1);
 
         void addChild(Node node) {
-<span class="fc" id="L362">            children.add(node);</span>
-<span class="fc" id="L363">        }</span>
+            children.add(node);
+        }
 
         public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
-<span class="fc bfc" id="L366" title="All 2 branches covered.">            for (Node node : children) {</span>
-<span class="fc" id="L367">                node.visit(sb, locale, messageSource);</span>
-<span class="fc" id="L368">            }</span>
-<span class="fc" id="L369">        }</span>
+            for (Node node : children) {
+                node.visit(sb, locale, messageSource);
+            }
+        }
     }
 
     static class TextNode extends Node {
         String text;
 
-<span class="fc" id="L375">        TextNode(String text) {</span>
-<span class="fc" id="L376">            this.text = text;</span>
-<span class="fc" id="L377">        }</span>
+        TextNode(String text) {
+            this.text = text;
+        }
 
         @Override
         public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
-<span class="fc" id="L381">            sb.append(text);</span>
-<span class="fc" id="L382">        }</span>
+            sb.append(text);
+        }
     }
 
-<span class="fc" id="L385">    static class I18NNode extends Node {</span>
+    static class I18NNode extends Node {
 
         @Override
         public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
-<span class="fc" id="L389">            StringBuilder internal = new StringBuilder();</span>
-<span class="fc bfc" id="L390" title="All 2 branches covered.">            for (Node node : children) {</span>
-<span class="fc" id="L391">                node.visit(internal, locale, messageSource);</span>
-<span class="fc" id="L392">            }</span>
+            StringBuilder internal = new StringBuilder();
+            for (Node node : children) {
+                node.visit(internal, locale, messageSource);
+            }
 
-<span class="fc" id="L394">            String childTemplate = internal.toString();</span>
-<span class="fc" id="L395">            String key = extractKey(childTemplate);</span>
-<span class="fc" id="L396">            List&lt;String&gt; args = extractParameters(childTemplate);</span>
-<span class="fc" id="L397">            String text = messageSource.getMessage(key, args.toArray(), locale);</span>
+            String childTemplate = internal.toString();
+            String key = extractKey(childTemplate);
+            List&lt;String&gt; args = extractParameters(childTemplate);
+            String text = messageSource.getMessage(key, args.toArray(), locale);
 
-<span class="fc" id="L399">            sb.append(text);</span>
-<span class="fc" id="L400">        }</span>
+            sb.append(text);
+        }
     }
 
     public static String translate(String template, Locale locale, MessageSource messageSource) {
@@ -419,4 +419,4 @@ public class TemplateManager {
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

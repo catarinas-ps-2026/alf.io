@@ -32,18 +32,18 @@ public class TicketCategory {
 
 <span class="fc" id="L33">    public static final Comparator&lt;TicketCategory&gt; COMPARATOR = (tc1, tc2) -&gt; new CompareToBuilder().append(tc1.utcInception, tc2.utcInception).append(tc1.utcExpiration, tc2.utcExpiration).toComparison();</span>
 
-<span class="fc" id="L35">    public enum Status {</span>
-<span class="fc" id="L36">        ACTIVE, NOT_ACTIVE</span>
+    public enum Status {
+        ACTIVE, NOT_ACTIVE
     }
 
     /**
      * Defines the check-in strategy that must be adopted for this TicketCategory
      */
-<span class="fc" id="L42">    public enum TicketCheckInStrategy {</span>
+    public enum TicketCheckInStrategy {
         /**
          * Default, retro-compatible. Attendees can check-in only once, using their ticket
          */
-<span class="fc" id="L46">        ONCE_PER_EVENT,</span>
+        ONCE_PER_EVENT,
         /**
          * Extends ONCE_PER_EVENT by adding the possibility to re-enter the event by using the printed badge.
          * If an attendee tries to enter more than once in a single day, the operator will receive a warning.
@@ -51,28 +51,28 @@ public class TicketCategory {
          * additional check-ins can be done only using the printed badge.
          * This ensures that a badge is printed only once
          */
-<span class="fc" id="L54">        ONCE_PER_DAY</span>
+        ONCE_PER_DAY
     }
 
     /**
      * Defines the category access type. It will impact how tickets are generated/sent/checked-in.
      */
-<span class="fc" id="L60">    public enum TicketAccessType {</span>
+    public enum TicketAccessType {
         /**
          * Inherit the access type from the Event format (default)
          */
-<span class="fc" id="L64">        INHERIT,</span>
+        INHERIT,
 
         /**
          * Attendees of this category will receive a ticket and Wallet Pass, and will be allowed to access
          * the event venue.
          */
-<span class="fc" id="L70">        IN_PERSON,</span>
+        IN_PERSON,
 
         /**
          * Attendees of this category can only access the event online.
          */
-<span class="fc" id="L75">        ONLINE</span>
+        ONLINE
     }
 
     private final int id;
@@ -174,4 +174,4 @@ public class TicketCategory {
 <span class="pc bpc" id="L174" title="6 of 8 branches missed.">        return (validCheckInFrom == null || !getValidCheckInFrom(eventZoneId).isAfter(now)) &amp;&amp; (validCheckInTo == null || !getValidCheckInTo(eventZoneId).isBefore(now));</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

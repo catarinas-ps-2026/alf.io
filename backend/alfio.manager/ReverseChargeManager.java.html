@@ -382,51 +382,51 @@ public class ReverseChargeManager {
                                              String currencyCode,
                                              BigDecimal vatPercentage,
                                              VatStatus vatStatus,
-<span class="fc" id="L385">                                             PromoCodeDiscount promoCodeDiscount) {</span>
-<span class="fc" id="L386">            this.categoryId = categoryId;</span>
-<span class="fc" id="L387">            this.srcPriceCts = srcPriceCts;</span>
-<span class="fc" id="L388">            this.currencyCode = currencyCode;</span>
-<span class="fc" id="L389">            this.vatPercentage = vatPercentage;</span>
-<span class="fc" id="L390">            this.vatStatus = vatStatus;</span>
-<span class="fc" id="L391">            this.promoCodeDiscount = promoCodeDiscount;</span>
-<span class="fc" id="L392">        }</span>
+                                             PromoCodeDiscount promoCodeDiscount) {
+            this.categoryId = categoryId;
+            this.srcPriceCts = srcPriceCts;
+            this.currencyCode = currencyCode;
+            this.vatPercentage = vatPercentage;
+            this.vatStatus = vatStatus;
+            this.promoCodeDiscount = promoCodeDiscount;
+        }
 
         @Override
         public int getSrcPriceCts() {
-<span class="fc" id="L396">            return srcPriceCts;</span>
+            return srcPriceCts;
         }
 
         @Override
         public String getCurrencyCode() {
-<span class="fc" id="L401">            return currencyCode;</span>
+            return currencyCode;
         }
 
         @Override
         public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="fc" id="L406">            return Optional.ofNullable(vatPercentage);</span>
+            return Optional.ofNullable(vatPercentage);
         }
 
         @Override
         public VatStatus getVatStatus() {
-<span class="fc" id="L411">            return vatStatus;</span>
+            return vatStatus;
         }
 
         public int getFinalPriceCts() {
-<span class="nc" id="L415">            return unitToCents(getFinalPrice(), currencyCode);</span>
+            return unitToCents(getFinalPrice(), currencyCode);
         }
 
         public int getVatCts() {
-<span class="nc" id="L419">            return unitToCents(getVAT(), currencyCode);</span>
+            return unitToCents(getVAT(), currencyCode);
         }
 
         public int getDiscountCts() {
-<span class="nc" id="L423">            return unitToCents(getAppliedDiscount(), currencyCode);</span>
+            return unitToCents(getAppliedDiscount(), currencyCode);
         }
 
         @Override
         public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
-<span class="fc" id="L428">            return Optional.ofNullable(promoCodeDiscount);</span>
+            return Optional.ofNullable(promoCodeDiscount);
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

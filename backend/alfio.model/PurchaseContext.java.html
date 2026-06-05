@@ -57,25 +57,25 @@ public interface PurchaseContext extends Configurable, TimeZoneInfo, LocalizedCo
     ZonedDateTime getBegin();
 
 
-<span class="fc" id="L60">    enum PurchaseContextType {</span>
-<span class="fc" id="L61">        subscription(&quot;subscription&quot;), event(&quot;event&quot;);</span>
+    enum PurchaseContextType {
+        subscription(&quot;subscription&quot;), event(&quot;event&quot;);
 
         private final String urlComponent;
 
-<span class="fc" id="L65">        PurchaseContextType(String urlComponent) {</span>
-<span class="fc" id="L66">            this.urlComponent = urlComponent;</span>
-<span class="fc" id="L67">        }</span>
+        PurchaseContextType(String urlComponent) {
+            this.urlComponent = urlComponent;
+        }
 
         public static PurchaseContextType from(String purchaseContextType) {
-<span class="pc bpc" id="L70" title="2 of 3 branches missed.">            return switch (purchaseContextType) {</span>
-<span class="nc" id="L71">                case &quot;subscription&quot; -&gt; subscription;</span>
-<span class="fc" id="L72">                case &quot;event&quot; -&gt; event;</span>
-<span class="nc" id="L73">                default -&gt; throw new IllegalStateException(&quot;Purchase type not supported:&quot; + purchaseContextType);</span>
+            return switch (purchaseContextType) {
+                case &quot;subscription&quot; -&gt; subscription;
+                case &quot;event&quot; -&gt; event;
+                default -&gt; throw new IllegalStateException(&quot;Purchase type not supported:&quot; + purchaseContextType);
             };
         }
 
         public String getUrlComponent() {
-<span class="fc" id="L78">            return urlComponent;</span>
+            return urlComponent;
         }
     }
 
@@ -93,4 +93,4 @@ public interface PurchaseContext extends Configurable, TimeZoneInfo, LocalizedCo
 <span class="fc bfc" id="L93" title="All 2 branches covered.">        return getType() == purchaseContextType;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

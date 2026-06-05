@@ -247,51 +247,51 @@ public class MustacheCustomTag {
     //Open in a new window if the link contains an absolute url
     private static class TargetBlankProvider implements AttributeProvider {
 
-<span class="fc" id="L250">        private static final Set&lt;String&gt; ALLOWED_SCHEMES = Set.of(&quot;http&quot;, &quot;https&quot;, &quot;mailto&quot;, &quot;tel&quot;);</span>
-<span class="fc" id="L251">        private static final Set&lt;String&gt; TARGET_BLANK_SCHEMES = Set.of(&quot;http&quot;, &quot;https&quot;);</span>
+        private static final Set&lt;String&gt; ALLOWED_SCHEMES = Set.of(&quot;http&quot;, &quot;https&quot;, &quot;mailto&quot;, &quot;tel&quot;);
+        private static final Set&lt;String&gt; TARGET_BLANK_SCHEMES = Set.of(&quot;http&quot;, &quot;https&quot;);
 
         @Override
         public void setAttributes(Node node, String tagName, Map&lt;String, String&gt; attributes) {
-<span class="fc bfc" id="L255" title="All 2 branches covered.">            if (node instanceof Link l) {</span>
-<span class="fc" id="L256">                String destination = StringUtils.trimToEmpty(l.getDestination());</span>
-<span class="fc" id="L257">                var scheme = getScheme(destination);</span>
-<span class="fc" id="L258">                scheme.ifPresent(resolvedScheme -&gt; {</span>
-<span class="fc bfc" id="L259" title="All 2 branches covered.">                    if (!ALLOWED_SCHEMES.contains(resolvedScheme)) {</span>
-<span class="fc" id="L260">                        log.info(&quot;User tried to set an url with scheme {}, only http/https/mailto are accepted, href has been removed&quot;, resolvedScheme);</span>
-<span class="fc" id="L261">                        attributes.remove(&quot;href&quot;);</span>
+            if (node instanceof Link l) {
+                String destination = StringUtils.trimToEmpty(l.getDestination());
+                var scheme = getScheme(destination);
+                scheme.ifPresent(resolvedScheme -&gt; {
+                    if (!ALLOWED_SCHEMES.contains(resolvedScheme)) {
+                        log.info(&quot;User tried to set an url with scheme {}, only http/https/mailto are accepted, href has been removed&quot;, resolvedScheme);
+                        attributes.remove(&quot;href&quot;);
                     }
-<span class="fc" id="L263">                });</span>
-<span class="pc bpc" id="L264" title="1 of 4 branches missed.">                if (scheme.filter(TARGET_BLANK_SCHEMES::contains).isPresent() &amp;&amp; UrlUtils.isAbsoluteUrl(destination)) {</span>
+                });
+                if (scheme.filter(TARGET_BLANK_SCHEMES::contains).isPresent() &amp;&amp; UrlUtils.isAbsoluteUrl(destination)) {
                     // accept only http or https protocols if we have an absolute link, else we override with an empty string
-<span class="fc" id="L266">                    attributes.put(&quot;target&quot;, &quot;_blank&quot;);</span>
-<span class="fc" id="L267">                    attributes.put(&quot;rel&quot;, &quot;nofollow noopener noreferrer&quot;);</span>
-<span class="fc" id="L268">                    addAriaLabel(node.getFirstChild(), attributes);</span>
+                    attributes.put(&quot;target&quot;, &quot;_blank&quot;);
+                    attributes.put(&quot;rel&quot;, &quot;nofollow noopener noreferrer&quot;);
+                    addAriaLabel(node.getFirstChild(), attributes);
                 }
             }
-<span class="fc" id="L271">        }</span>
+        }
 
         private static void addAriaLabel(Node content, Map&lt;String, String&gt; attributes) {
-<span class="fc" id="L274">            var newTabLabel = A11Y_NEW_TAB_LABEL.get();</span>
-<span class="fc bfc" id="L275" title="All 2 branches covered.">            if (newTabLabel == null) {</span>
-<span class="fc" id="L276">                return;</span>
+            var newTabLabel = A11Y_NEW_TAB_LABEL.get();
+            if (newTabLabel == null) {
+                return;
             }
             String ariaLabel;
-<span class="pc bpc" id="L279" title="1 of 2 branches missed.">            if (content instanceof Text text) {</span>
-<span class="fc" id="L280">                ariaLabel = text.getLiteral() + &quot; &quot; + newTabLabel;</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">            } else if (content instanceof Image image) {</span>
-<span class="nc" id="L282">                ariaLabel = image.getTitle() + &quot; &quot; + newTabLabel;</span>
+            if (content instanceof Text text) {
+                ariaLabel = text.getLiteral() + &quot; &quot; + newTabLabel;
+            } else if (content instanceof Image image) {
+                ariaLabel = image.getTitle() + &quot; &quot; + newTabLabel;
             } else {
-<span class="nc" id="L284">                ariaLabel = newTabLabel;</span>
+                ariaLabel = newTabLabel;
             }
-<span class="fc" id="L286">            attributes.put(&quot;aria-label&quot;, ariaLabel);</span>
-<span class="fc" id="L287">        }</span>
+            attributes.put(&quot;aria-label&quot;, ariaLabel);
+        }
 
         /**
          * return a lowercase scheme if present
          */
         private static Optional&lt;String&gt; getScheme(String uri) {
-<span class="fc" id="L293">            var s = StringUtils.trimToEmpty(uri).toLowerCase(Locale.ROOT);</span>
-<span class="fc bfc" id="L294" title="All 2 branches covered.">            return s.indexOf(':') &gt;= 0 ? Optional.of(StringUtils.substringBefore(s, ':')) : Optional.empty();</span>
+            var s = StringUtils.trimToEmpty(uri).toLowerCase(Locale.ROOT);
+            return s.indexOf(':') &gt;= 0 ? Optional.of(StringUtils.substringBefore(s, ':')) : Optional.empty();
         }
     }
     public static String renderToHtmlCommonmarkEscaped(String input) {
@@ -317,4 +317,4 @@ public class MustacheCustomTag {
 <span class="fc" id="L317">        return COMMONMARK_TEXT_RENDERER.render(document);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

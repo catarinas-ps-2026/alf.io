@@ -40,10 +40,10 @@ public class TicketReservationInvoicingAdditionalInfo {
     @AllArgsConstructor
     public static class ItalianEInvoicing {
 
-<span class="fc" id="L43">        public enum ReferenceType {</span>
-<span class="fc" id="L44">            ADDRESSEE_CODE, /* Codice destinatario */</span>
-<span class="fc" id="L45">            PEC, /* (pec = email) */</span>
-<span class="fc" id="L46">            NONE</span>
+        public enum ReferenceType {
+            ADDRESSEE_CODE, /* Codice destinatario */
+            PEC, /* (pec = email) */
+            NONE
         }
 
         private final String fiscalCode;
@@ -53,24 +53,24 @@ public class TicketReservationInvoicingAdditionalInfo {
         private final boolean splitPayment;
 
         public String getReferenceTypeAsString() {
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">            return referenceType == null ? &quot;&quot; : referenceType.toString();</span>
+            return referenceType == null ? &quot;&quot; : referenceType.toString();
         }
 
         public String getReference() {
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">            if(referenceType == ReferenceType.ADDRESSEE_CODE) {</span>
-<span class="nc" id="L61">                return addresseeCode;</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            } else if(referenceType == ReferenceType.PEC) {</span>
-<span class="nc" id="L63">                return pec;</span>
+            if(referenceType == ReferenceType.ADDRESSEE_CODE) {
+                return addresseeCode;
+            } else if(referenceType == ReferenceType.PEC) {
+                return pec;
             }
-<span class="fc" id="L65">            return null;</span>
+            return null;
         }
 
         public boolean isEmpty() {
-<span class="pc bpc" id="L69" title="7 of 8 branches missed.">            return fiscalCode == null</span>
+            return fiscalCode == null
                 &amp;&amp; referenceType == null
                 &amp;&amp; addresseeCode == null
                 &amp;&amp; pec == null;
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

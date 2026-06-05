@@ -74,53 +74,53 @@ public final class HttpUtils {
     }
 
     // https://stackoverflow.com/a/54675316
-<span class="fc" id="L77">    public static class MultiPartBodyPublisher {</span>
-<span class="fc" id="L78">        private final List&lt;PartsSpecification&gt; partsSpecificationList = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L79">        private final String boundary = UUID.randomUUID().toString();</span>
+    public static class MultiPartBodyPublisher {
+        private final List&lt;PartsSpecification&gt; partsSpecificationList = new ArrayList&lt;&gt;();
+        private final String boundary = UUID.randomUUID().toString();
 
         public HttpRequest.BodyPublisher build() {
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            if (partsSpecificationList.size() == 0) {</span>
-<span class="nc" id="L83">                throw new IllegalStateException(&quot;Must have at least one part to build multipart message.&quot;);</span>
+            if (partsSpecificationList.size() == 0) {
+                throw new IllegalStateException(&quot;Must have at least one part to build multipart message.&quot;);
             }
-<span class="fc" id="L85">            addFinalBoundaryPart();</span>
-<span class="fc" id="L86">            return HttpRequest.BodyPublishers.ofByteArrays(PartsIterator::new);</span>
+            addFinalBoundaryPart();
+            return HttpRequest.BodyPublishers.ofByteArrays(PartsIterator::new);
         }
 
         public String getBoundary() {
-<span class="fc" id="L90">            return boundary;</span>
+            return boundary;
         }
 
         public MultiPartBodyPublisher addPart(String name, String value) {
-<span class="nc" id="L94">            PartsSpecification newPart = new PartsSpecification();</span>
-<span class="nc" id="L95">            newPart.type = PartsSpecification.TYPE.STRING;</span>
-<span class="nc" id="L96">            newPart.name = name;</span>
-<span class="nc" id="L97">            newPart.value = value;</span>
-<span class="nc" id="L98">            partsSpecificationList.add(newPart);</span>
-<span class="nc" id="L99">            return this;</span>
+            PartsSpecification newPart = new PartsSpecification();
+            newPart.type = PartsSpecification.TYPE.STRING;
+            newPart.name = name;
+            newPart.value = value;
+            partsSpecificationList.add(newPart);
+            return this;
         }
 
         public MultiPartBodyPublisher addPart(String name, Supplier&lt;InputStream&gt; value, String filename, String contentType) {
-<span class="fc" id="L103">            PartsSpecification newPart = new PartsSpecification();</span>
-<span class="fc" id="L104">            newPart.type = PartsSpecification.TYPE.STREAM;</span>
-<span class="fc" id="L105">            newPart.name = name;</span>
-<span class="fc" id="L106">            newPart.stream = value;</span>
-<span class="fc" id="L107">            newPart.filename = filename;</span>
-<span class="fc" id="L108">            newPart.contentType = contentType;</span>
-<span class="fc" id="L109">            partsSpecificationList.add(newPart);</span>
-<span class="fc" id="L110">            return this;</span>
+            PartsSpecification newPart = new PartsSpecification();
+            newPart.type = PartsSpecification.TYPE.STREAM;
+            newPart.name = name;
+            newPart.stream = value;
+            newPart.filename = filename;
+            newPart.contentType = contentType;
+            partsSpecificationList.add(newPart);
+            return this;
         }
 
         private void addFinalBoundaryPart() {
-<span class="fc" id="L114">            PartsSpecification newPart = new PartsSpecification();</span>
-<span class="fc" id="L115">            newPart.type = PartsSpecification.TYPE.FINAL_BOUNDARY;</span>
-<span class="fc" id="L116">            newPart.value = &quot;--&quot; + boundary + &quot;--&quot;;</span>
-<span class="fc" id="L117">            partsSpecificationList.add(newPart);</span>
-<span class="fc" id="L118">        }</span>
+            PartsSpecification newPart = new PartsSpecification();
+            newPart.type = PartsSpecification.TYPE.FINAL_BOUNDARY;
+            newPart.value = &quot;--&quot; + boundary + &quot;--&quot;;
+            partsSpecificationList.add(newPart);
+        }
 
-<span class="fc" id="L120">        static class PartsSpecification {</span>
+        static class PartsSpecification {
 
-<span class="fc" id="L122">            public enum TYPE {</span>
-<span class="fc" id="L123">                STRING, STREAM, FINAL_BOUNDARY</span>
+            public enum TYPE {
+                STRING, STREAM, FINAL_BOUNDARY
             }
 
             PartsSpecification.TYPE type;
@@ -139,83 +139,83 @@ public final class HttpUtils {
             private boolean done;
             private byte[] next;
 
-<span class="fc" id="L142">            PartsIterator() {</span>
-<span class="fc" id="L143">                iter = partsSpecificationList.iterator();</span>
-<span class="fc" id="L144">            }</span>
+            PartsIterator() {
+                iter = partsSpecificationList.iterator();
+            }
 
             @Override
             public boolean hasNext() {
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">                if (done) {</span>
-<span class="nc" id="L149">                    return false;</span>
+                if (done) {
+                    return false;
                 }
-<span class="fc bfc" id="L151" title="All 2 branches covered.">                if (next != null) {</span>
-<span class="fc" id="L152">                    return true;</span>
+                if (next != null) {
+                    return true;
                 }
                 try {
-<span class="fc" id="L155">                    next = computeNext();</span>
-<span class="nc" id="L156">                } catch (IOException e) {</span>
-<span class="nc" id="L157">                    throw new UncheckedIOException(e);</span>
-<span class="fc" id="L158">                }</span>
-<span class="fc bfc" id="L159" title="All 2 branches covered.">                if (next == null) {</span>
-<span class="fc" id="L160">                    done = true;</span>
-<span class="fc" id="L161">                    return false;</span>
+                    next = computeNext();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
-<span class="fc" id="L163">                return true;</span>
+                if (next == null) {
+                    done = true;
+                    return false;
+                }
+                return true;
             }
 
             @Override
             public byte[] next() {
-<span class="pc bpc" id="L168" title="1 of 2 branches missed.">                if (!hasNext()) {</span>
-<span class="nc" id="L169">                    throw new NoSuchElementException();</span>
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
                 }
-<span class="fc" id="L171">                byte[] res = next;</span>
-<span class="fc" id="L172">                next = null;</span>
-<span class="fc" id="L173">                return res;</span>
+                byte[] res = next;
+                next = null;
+                return res;
             }
 
             private byte[] computeNext() throws IOException {
-<span class="fc bfc" id="L177" title="All 2 branches covered.">                if (currentFileInput == null) {</span>
-<span class="fc bfc" id="L178" title="All 2 branches covered.">                    if (!iter.hasNext()) return null;</span>
-<span class="fc" id="L179">                    PartsSpecification nextPart = iter.next();</span>
-<span class="pc bpc" id="L180" title="1 of 2 branches missed.">                    if (PartsSpecification.TYPE.STRING.equals(nextPart.type)) {</span>
-<span class="nc" id="L181">                        String part =</span>
+                if (currentFileInput == null) {
+                    if (!iter.hasNext()) return null;
+                    PartsSpecification nextPart = iter.next();
+                    if (PartsSpecification.TYPE.STRING.equals(nextPart.type)) {
+                        String part =
                             &quot;--&quot; + boundary + &quot;\r\n&quot; +
                                 &quot;Content-Disposition: form-data; name=&quot; + nextPart.name + &quot;\r\n&quot; +
                                 &quot;Content-Type: text/plain; charset=UTF-8\r\n\r\n&quot; +
                                 nextPart.value + &quot;\r\n&quot;;
-<span class="nc" id="L186">                        return part.getBytes(StandardCharsets.UTF_8);</span>
+                        return part.getBytes(StandardCharsets.UTF_8);
                     }
-<span class="fc bfc" id="L188" title="All 2 branches covered.">                    if (PartsSpecification.TYPE.FINAL_BOUNDARY.equals(nextPart.type)) {</span>
-<span class="fc" id="L189">                        return nextPart.value.getBytes(StandardCharsets.UTF_8);</span>
+                    if (PartsSpecification.TYPE.FINAL_BOUNDARY.equals(nextPart.type)) {
+                        return nextPart.value.getBytes(StandardCharsets.UTF_8);
                     }
-<span class="fc" id="L191">                    String filename = nextPart.filename;</span>
-<span class="fc" id="L192">                    String contentType = nextPart.contentType;</span>
+                    String filename = nextPart.filename;
+                    String contentType = nextPart.contentType;
 
-<span class="pc bpc" id="L194" title="1 of 2 branches missed.">                    if (contentType == null) {</span>
-<span class="nc" id="L195">                        contentType = &quot;application/octet-stream&quot;;</span>
+                    if (contentType == null) {
+                        contentType = &quot;application/octet-stream&quot;;
                     }
-<span class="fc" id="L197">                    currentFileInput = nextPart.stream.get();</span>
+                    currentFileInput = nextPart.stream.get();
 
-<span class="fc" id="L199">                    String partHeader =</span>
+                    String partHeader =
                         &quot;--&quot; + boundary + &quot;\r\n&quot; +
                             &quot;Content-Disposition: form-data; name=&quot; + nextPart.name + &quot;; filename=&quot; + filename + &quot;\r\n&quot; +
                             &quot;Content-Type: &quot; + contentType + &quot;\r\n\r\n&quot;;
-<span class="fc" id="L203">                    return partHeader.getBytes(StandardCharsets.UTF_8);</span>
+                    return partHeader.getBytes(StandardCharsets.UTF_8);
                 } else {
-<span class="fc" id="L205">                    byte[] buf = new byte[8192];</span>
-<span class="fc" id="L206">                    int r = currentFileInput.read(buf);</span>
-<span class="fc bfc" id="L207" title="All 2 branches covered.">                    if (r &gt; 0) {</span>
-<span class="fc" id="L208">                        byte[] actualBytes = new byte[r];</span>
-<span class="fc" id="L209">                        System.arraycopy(buf, 0, actualBytes, 0, r);</span>
-<span class="fc" id="L210">                        return actualBytes;</span>
+                    byte[] buf = new byte[8192];
+                    int r = currentFileInput.read(buf);
+                    if (r &gt; 0) {
+                        byte[] actualBytes = new byte[r];
+                        System.arraycopy(buf, 0, actualBytes, 0, r);
+                        return actualBytes;
                     } else {
-<span class="fc" id="L212">                        currentFileInput.close();</span>
-<span class="fc" id="L213">                        currentFileInput = null;</span>
-<span class="fc" id="L214">                        return &quot;\r\n&quot;.getBytes(StandardCharsets.UTF_8);</span>
+                        currentFileInput.close();
+                        currentFileInput = null;
+                        return &quot;\r\n&quot;.getBytes(StandardCharsets.UTF_8);
                     }
                 }
             }
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -53,66 +53,66 @@ import java.util.stream.Collectors;
                                 @Column(&quot;price_max_cts&quot;) Integer maxPriceCts) {
 
 
-<span class="fc" id="L56">    public enum VatType {</span>
-<span class="fc" id="L57">        INHERITED,</span>
-<span class="fc" id="L58">        NONE,</span>
-<span class="fc" id="L59">        CUSTOM_INCLUDED,</span>
-<span class="fc" id="L60">        CUSTOM_EXCLUDED</span>
+    public enum VatType {
+        INHERITED,
+        NONE,
+        CUSTOM_INCLUDED,
+        CUSTOM_EXCLUDED
     }
 
-<span class="fc" id="L63">    public enum AdditionalServiceType {</span>
-<span class="fc" id="L64">        DONATION, SUPPLEMENT</span>
+    public enum AdditionalServiceType {
+        DONATION, SUPPLEMENT
     }
 
-<span class="fc" id="L67">    public enum SupplementPolicy {</span>
-<span class="fc" id="L68">        MANDATORY_ONE_FOR_TICKET(true),</span>
+    public enum SupplementPolicy {
+        MANDATORY_ONE_FOR_TICKET(true),
         /**
          * Will be calculated from the total reservation price, excluding any other mandatory fee
          */
-<span class="fc" id="L72">        MANDATORY_PERCENTAGE_RESERVATION(true),</span>
+        MANDATORY_PERCENTAGE_RESERVATION(true),
         /**
          * Will be calculated from the total price of the tickets, excluding any additional items
          */
-<span class="fc" id="L76">        MANDATORY_PERCENTAGE_FOR_TICKET(true),</span>
-<span class="fc" id="L77">        OPTIONAL_UNLIMITED_AMOUNT,</span>
-<span class="fc" id="L78">        OPTIONAL_MAX_AMOUNT_PER_TICKET {</span>
+        MANDATORY_PERCENTAGE_FOR_TICKET(true),
+        OPTIONAL_UNLIMITED_AMOUNT,
+        OPTIONAL_MAX_AMOUNT_PER_TICKET {
             @Override
             public boolean isValid(int quantity, AdditionalService as, int ticketsCount) {
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">                return quantity &lt;= ticketsCount * as.maxQtyPerOrder();</span>
+                return quantity &lt;= ticketsCount * as.maxQtyPerOrder();
             }
         },
-<span class="fc" id="L84">        OPTIONAL_MAX_AMOUNT_PER_RESERVATION {</span>
+        OPTIONAL_MAX_AMOUNT_PER_RESERVATION {
             @Override
             public boolean isValid(int quantity, AdditionalService as, int selectionCount) {
-<span class="nc bnc" id="L87" title="All 2 branches missed.">                return quantity &lt;= as.maxQtyPerOrder();</span>
+                return quantity &lt;= as.maxQtyPerOrder();
             }
         };
 
         private final boolean mandatory;
 
         SupplementPolicy() {
-<span class="fc" id="L94">            this(false);</span>
-<span class="fc" id="L95">        }</span>
+            this(false);
+        }
 
-<span class="fc" id="L97">        SupplementPolicy(boolean mandatory) {</span>
-<span class="fc" id="L98">            this.mandatory = mandatory;</span>
-<span class="fc" id="L99">        }</span>
+        SupplementPolicy(boolean mandatory) {
+            this.mandatory = mandatory;
+        }
 
 
         public boolean isValid(int quantity, AdditionalService as, int selectionCount) {
-<span class="nc" id="L103">            return true;</span>
+            return true;
         }
 
         public boolean isMandatory() {
-<span class="fc" id="L107">            return mandatory;</span>
+            return mandatory;
         }
 
         public static Set&lt;SupplementPolicy&gt; userSelected() {
-<span class="fc" id="L111">            return Arrays.stream(values()).filter(Predicate.not(SupplementPolicy::isMandatory)).collect(Collectors.toSet());</span>
+            return Arrays.stream(values()).filter(Predicate.not(SupplementPolicy::isMandatory)).collect(Collectors.toSet());
         }
 
         public static boolean isMandatoryPercentage(SupplementPolicy policy) {
-<span class="fc bfc" id="L115" title="All 4 branches covered.">            return policy == SupplementPolicy.MANDATORY_PERCENTAGE_RESERVATION</span>
+            return policy == SupplementPolicy.MANDATORY_PERCENTAGE_RESERVATION
                 || policy == SupplementPolicy.MANDATORY_PERCENTAGE_FOR_TICKET;
         }
     }
@@ -174,4 +174,4 @@ import java.util.stream.Collectors;
         };
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

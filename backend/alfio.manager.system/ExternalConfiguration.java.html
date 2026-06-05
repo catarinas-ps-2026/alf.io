@@ -135,30 +135,30 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
         private List&lt;ExtensionCapabilityDetailsOverride&gt; capabilityDetails;
 
         boolean isValid() {
-<span class="nc bnc" id="L138" title="All 2 branches missed.">            return isNotBlank(id)</span>
-<span class="nc bnc" id="L139" title="All 4 branches missed.">                &amp;&amp; isNotBlank(file)</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">                &amp;&amp; events != null &amp;&amp; !events.isEmpty();</span>
+            return isNotBlank(id)
+                &amp;&amp; isNotBlank(file)
+                &amp;&amp; events != null &amp;&amp; !events.isEmpty();
         }
 
         Map&lt;String, String&gt; getParams() {
-<span class="nc" id="L144">            return requireNonNullElse(params, Map.of());</span>
+            return requireNonNullElse(params, Map.of());
         }
 
         String getContent() {
-<span class="nc bnc" id="L148" title="All 4 branches missed.">            if(&quot;base64&quot;.equals(type) &amp;&amp; isNotBlank(file)) {</span>
-<span class="nc" id="L149">                return new String(Base64.getDecoder().decode(file), StandardCharsets.UTF_8);</span>
+            if(&quot;base64&quot;.equals(type) &amp;&amp; isNotBlank(file)) {
+                return new String(Base64.getDecoder().decode(file), StandardCharsets.UTF_8);
             }
-<span class="nc" id="L151">            return file;</span>
+            return file;
         }
 
         Set&lt;String&gt; getCapabilities() {
-<span class="nc" id="L155">            return getCapabilityDetails().stream()</span>
-<span class="nc" id="L156">                .map(ec -&gt; ec.key.name())</span>
-<span class="nc" id="L157">                .collect(Collectors.toSet());</span>
+            return getCapabilityDetails().stream()
+                .map(ec -&gt; ec.key.name())
+                .collect(Collectors.toSet());
         }
 
         List&lt;ExtensionCapabilityDetailsOverride&gt; getCapabilityDetails() {
-<span class="nc" id="L161">            return requireNonNullElse(capabilityDetails, List.of());</span>
+            return requireNonNullElse(capabilityDetails, List.of());
         }
     }
 
@@ -176,4 +176,4 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

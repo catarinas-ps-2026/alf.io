@@ -39,20 +39,20 @@ public class ExportUtils {
     private ExportUtils() {}
 
     public static void exportExcel(String fileName, String sheetName, String[] header, Stream&lt;String[]&gt; data, HttpServletResponse response) throws IOException {
-<span class="nc" id="L42">        exportExcel(fileName, response, workbook -&gt; addSheetToWorkbook(sheetName, header, data, workbook, workbook.defineStyle().font().bold(true).build()));</span>
-<span class="nc" id="L43">    }</span>
+<span class="fc" id="L42">        exportExcel(fileName, response, workbook -&gt; addSheetToWorkbook(sheetName, header, data, workbook, workbook.defineStyle().font().bold(true).build()));</span>
+<span class="fc" id="L43">    }</span>
 
     public static void exportExcel(String fileName,
                                    HttpServletResponse response,
                                    Consumer&lt;StreamingWorkbook&gt; workbookConsumer) throws IOException {
-<span class="nc" id="L48">        response.setContentType(&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;);</span>
-<span class="nc" id="L49">        response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; + fileName);</span>
-<span class="nc" id="L50">        markAsNoIndex(response);</span>
+<span class="fc" id="L48">        response.setContentType(&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;);</span>
+<span class="fc" id="L49">        response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; + fileName);</span>
+<span class="fc" id="L50">        markAsNoIndex(response);</span>
 
-<span class="nc" id="L52">        try (ServletOutputStream out = response.getOutputStream(); StreamingWorkbook workbook = new StreamingWorkbook(out)) {</span>
-<span class="nc" id="L53">            workbookConsumer.accept(workbook);</span>
+<span class="fc" id="L52">        try (ServletOutputStream out = response.getOutputStream(); StreamingWorkbook workbook = new StreamingWorkbook(out)) {</span>
+<span class="fc" id="L53">            workbookConsumer.accept(workbook);</span>
         }
-<span class="nc" id="L55">    }</span>
+<span class="fc" id="L55">    }</span>
 
     public static void addSheetToWorkbook(String sheetName,
                                           String[] header,
@@ -60,20 +60,20 @@ public class ExportUtils {
                                           StreamingWorkbook workbook,
                                           Style headerStyle) {
         try {
-<span class="nc" id="L63">            var headerRow = StreamingWorkbook.row(Arrays.stream(header)</span>
-<span class="nc" id="L64">                .map(v -&gt; Cell.cell(v).withStyle(headerStyle))</span>
-<span class="nc" id="L65">                .collect(Collectors.toList()));</span>
+<span class="fc" id="L63">            var headerRow = StreamingWorkbook.row(Arrays.stream(header)</span>
+<span class="fc" id="L64">                .map(v -&gt; Cell.cell(v).withStyle(headerStyle))</span>
+<span class="fc" id="L65">                .collect(Collectors.toList()));</span>
 
-<span class="nc" id="L67">            var dataStream = data</span>
-<span class="nc" id="L68">                .map(rowData -&gt; Arrays.stream(rowData).map(Cell::cell).collect(Collectors.toList()))</span>
-<span class="nc" id="L69">                .map(StreamingWorkbook::row);</span>
+<span class="fc" id="L67">            var dataStream = data</span>
+<span class="fc" id="L68">                .map(rowData -&gt; Arrays.stream(rowData).map(Cell::cell).collect(Collectors.toList()))</span>
+<span class="fc" id="L69">                .map(StreamingWorkbook::row);</span>
 
-<span class="nc" id="L71">            workbook.withSheet(sheetName, Stream.concat(Stream.of(headerRow), dataStream));</span>
+<span class="fc" id="L71">            workbook.withSheet(sheetName, Stream.concat(Stream.of(headerRow), dataStream));</span>
 
 <span class="nc" id="L73">        } catch (IOException e) {</span>
 <span class="nc" id="L74">            throw new IllegalStateException(e);</span>
-<span class="nc" id="L75">        }</span>
-<span class="nc" id="L76">    }</span>
+<span class="fc" id="L75">        }</span>
+<span class="fc" id="L76">    }</span>
 
     // https://owasp.org/www-community/attacks/CSV_Injection
     private static String escapeFormulaChar(String s) {
@@ -120,4 +120,4 @@ public class ExportUtils {
 <span class="fc" id="L120">        response.setHeader(X_ROBOTS_TAG, &quot;noindex&quot;);</span>
 <span class="fc" id="L121">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

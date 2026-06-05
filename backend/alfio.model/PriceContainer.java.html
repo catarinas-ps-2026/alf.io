@@ -33,44 +33,44 @@ public interface PriceContainer {
 <span class="fc" id="L33">    BinaryOperator&lt;BigDecimal&gt; includedVatExtractor = MonetaryUtil::extractVAT;</span>
 <span class="fc" id="L34">    BinaryOperator&lt;BigDecimal&gt; notIncludedVatCalculator = MonetaryUtil::calcVat;</span>
 
-<span class="fc" id="L36">    enum VatStatus {</span>
-<span class="fc" id="L37">        NONE((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),</span>
-<span class="fc" id="L38">        INCLUDED(includedVatExtractor, UnaryOperator.identity()),</span>
-<span class="fc" id="L39">        NOT_INCLUDED(notIncludedVatCalculator, UnaryOperator.identity()),</span>
-<span class="fc" id="L40">        INCLUDED_EXEMPT(includedVatExtractor, BigDecimal::negate),</span>
-<span class="fc" id="L41">        NOT_INCLUDED_EXEMPT((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),</span>
+    enum VatStatus {
+        NONE((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),
+        INCLUDED(includedVatExtractor, UnaryOperator.identity()),
+        NOT_INCLUDED(notIncludedVatCalculator, UnaryOperator.identity()),
+        INCLUDED_EXEMPT(includedVatExtractor, BigDecimal::negate),
+        NOT_INCLUDED_EXEMPT((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),
         // tax exemption was granted by custom rules (extension CUSTOM_TAX_POLICY_APPLICATION)
-<span class="fc" id="L43">        CUSTOM_INCLUDED_EXEMPT(includedVatExtractor, BigDecimal::negate),</span>
-<span class="fc" id="L44">        CUSTOM_NOT_INCLUDED_EXEMPT((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),</span>
+        CUSTOM_INCLUDED_EXEMPT(includedVatExtractor, BigDecimal::negate),
+        CUSTOM_NOT_INCLUDED_EXEMPT((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),
         // The following two are dedicated for handling italian-specific cases, &quot;split payment&quot;
         // VAT has to be shown on the invoice, but not charged
-<span class="fc" id="L47">        INCLUDED_NOT_CHARGED(includedVatExtractor, UnaryOperator.identity()),</span>
-<span class="fc" id="L48">        NOT_INCLUDED_NOT_CHARGED(notIncludedVatCalculator, UnaryOperator.identity());</span>
+        INCLUDED_NOT_CHARGED(includedVatExtractor, UnaryOperator.identity()),
+        NOT_INCLUDED_NOT_CHARGED(notIncludedVatCalculator, UnaryOperator.identity());
 
         private final UnaryOperator&lt;BigDecimal&gt; transformer;
         private final BinaryOperator&lt;BigDecimal&gt; extractor;
 
         VatStatus(BinaryOperator&lt;BigDecimal&gt; extractor,
-<span class="fc" id="L54">                  UnaryOperator&lt;BigDecimal&gt; transformer) {</span>
-<span class="fc" id="L55">            this.extractor = extractor;</span>
-<span class="fc" id="L56">            this.transformer = transformer;</span>
-<span class="fc" id="L57">        }</span>
+                  UnaryOperator&lt;BigDecimal&gt; transformer) {
+            this.extractor = extractor;
+            this.transformer = transformer;
+        }
 
         public BigDecimal extractVat(BigDecimal price, BigDecimal vatPercentage) {
-<span class="fc" id="L60">            return this.extractRawVAT(price, vatPercentage).setScale(2, RoundingMode.HALF_UP);</span>
+            return this.extractRawVAT(price, vatPercentage).setScale(2, RoundingMode.HALF_UP);
         }
 
         public BigDecimal extractRawVAT(BigDecimal price, BigDecimal vatPercentage) {
-<span class="fc" id="L64">            return this.extractor.andThen(transformer).apply(price, vatPercentage);</span>
+            return this.extractor.andThen(transformer).apply(price, vatPercentage);
         }
 
         public static boolean isVatExempt(VatStatus vatStatus) {
-<span class="fc bfc" id="L68" title="All 8 branches covered.">            return vatStatus == INCLUDED_EXEMPT || vatStatus == NOT_INCLUDED_EXEMPT</span>
+            return vatStatus == INCLUDED_EXEMPT || vatStatus == NOT_INCLUDED_EXEMPT
                 || vatStatus == CUSTOM_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
         }
 
         public static boolean isVatIncluded(VatStatus vatStatus) {
-<span class="pc bpc" id="L73" title="2 of 6 branches missed.">            return vatStatus == INCLUDED || vatStatus == INCLUDED_EXEMPT || vatStatus == CUSTOM_INCLUDED_EXEMPT;</span>
+            return vatStatus == INCLUDED || vatStatus == INCLUDED_EXEMPT || vatStatus == CUSTOM_INCLUDED_EXEMPT;
         }
 
         /**
@@ -79,14 +79,14 @@ public interface PriceContainer {
          * @return true if not included
          */
         public static boolean isVatNotIncluded(VatStatus vatStatus) {
-<span class="pc bpc" id="L82" title="2 of 6 branches missed.">            return vatStatus == NOT_INCLUDED || vatStatus == NOT_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;</span>
+            return vatStatus == NOT_INCLUDED || vatStatus == NOT_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
         }
 
         public static VatStatus forceExempt(VatStatus original) {
-<span class="pc bpc" id="L86" title="1 of 2 branches missed.">            if (isVatIncluded(original)) {</span>
-<span class="fc" id="L87">                return INCLUDED_EXEMPT;</span>
+            if (isVatIncluded(original)) {
+                return INCLUDED_EXEMPT;
             }
-<span class="nc" id="L89">            return NOT_INCLUDED_EXEMPT;</span>
+            return NOT_INCLUDED_EXEMPT;
         }
     }
 
@@ -210,4 +210,4 @@ public interface PriceContainer {
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -291,39 +291,39 @@ public enum ConfigurationKeys {
 <span class="fc" id="L291">    GENERATE_TICKETS_FOR_SUBSCRIPTIONS(&quot;Generate and send tickets automatically to subscription holders for compatible events (default: false)&quot;, false, SettingCategory.SUBSCRIPTIONS, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE)</span>
     ;
 
-<span class="fc" id="L294">    @Getter</span>
+    @Getter
     public enum SettingCategory {
-<span class="fc" id="L296">        GENERAL(&quot;General settings&quot;),</span>
-<span class="fc" id="L297">        RESERVATION_UI(&quot;Reservation Process UI&quot;),</span>
-<span class="fc" id="L298">        RESERVATION_EMBED(&quot;Embedding reservation process&quot;),</span>
-<span class="fc" id="L299">        PAYMENT(&quot;Payment&quot;),</span>
-<span class="fc" id="L300">        PAYMENT_STRIPE(&quot;Stripe.com settings&quot;),</span>
-<span class="fc" id="L301">        PAYMENT_SAFERPAY(&quot;Saferpay settings&quot;),</span>
-<span class="fc" id="L302">        PAYMENT_PAYPAL(&quot;PayPal settings&quot;),</span>
-<span class="fc" id="L303">        PAYMENT_OFFLINE(&quot;Offline payment settings&quot;),</span>
-<span class="fc" id="L304">        PAYMENT_MOLLIE(&quot;Mollie settings&quot;),</span>
-<span class="fc" id="L305">        INVOICE(&quot;Invoice settings&quot;),</span>
-<span class="fc" id="L306">        INVOICE_EU(&quot;Invoice VAT application settings&quot;),</span>
-<span class="fc" id="L307">        MAIL(&quot;E-Mail settings&quot;),</span>
-<span class="fc" id="L308">        ALFIO_PI(&quot;Offline check-in and badge printing&quot;),</span>
-<span class="fc" id="L309">        MAP(&quot;Maps settings&quot;),</span>
-<span class="fc" id="L310">        TRANSLATIONS(&quot;Translations&quot;),</span>
-<span class="fc" id="L311">        PASS_INTEGRATION(&quot;Pass Integration&quot;),</span>
-<span class="fc" id="L312">        WALLET_INTEGRATION(&quot;Google Wallet Integration&quot;),</span>
-<span class="fc" id="L313">        WAITING_LIST(&quot;Waiting List&quot;),</span>
-<span class="fc" id="L314">        IMPORT_ATTENDEE(&quot;Import Attendees&quot;),</span>
-<span class="fc" id="L315">        OPENID(&quot;Public users Authentication&quot;),</span>
-<span class="fc" id="L316">        SUBSCRIPTIONS(&quot;Subscriptions&quot;);</span>
+        GENERAL(&quot;General settings&quot;),
+        RESERVATION_UI(&quot;Reservation Process UI&quot;),
+        RESERVATION_EMBED(&quot;Embedding reservation process&quot;),
+        PAYMENT(&quot;Payment&quot;),
+        PAYMENT_STRIPE(&quot;Stripe.com settings&quot;),
+        PAYMENT_SAFERPAY(&quot;Saferpay settings&quot;),
+        PAYMENT_PAYPAL(&quot;PayPal settings&quot;),
+        PAYMENT_OFFLINE(&quot;Offline payment settings&quot;),
+        PAYMENT_MOLLIE(&quot;Mollie settings&quot;),
+        INVOICE(&quot;Invoice settings&quot;),
+        INVOICE_EU(&quot;Invoice VAT application settings&quot;),
+        MAIL(&quot;E-Mail settings&quot;),
+        ALFIO_PI(&quot;Offline check-in and badge printing&quot;),
+        MAP(&quot;Maps settings&quot;),
+        TRANSLATIONS(&quot;Translations&quot;),
+        PASS_INTEGRATION(&quot;Pass Integration&quot;),
+        WALLET_INTEGRATION(&quot;Google Wallet Integration&quot;),
+        WAITING_LIST(&quot;Waiting List&quot;),
+        IMPORT_ATTENDEE(&quot;Import Attendees&quot;),
+        OPENID(&quot;Public users Authentication&quot;),
+        SUBSCRIPTIONS(&quot;Subscriptions&quot;);
 
         private final String description;
-<span class="fc" id="L319">        SettingCategory(String description) {</span>
-<span class="fc" id="L320">            this.description = description;</span>
-<span class="fc" id="L321">        }</span>
+        SettingCategory(String description) {
+            this.description = description;
+        }
 
     }
 
-<span class="fc" id="L325">    public enum GeoInfoProvider {</span>
-<span class="fc" id="L326">        GOOGLE, HERE, NONE</span>
+    public enum GeoInfoProvider {
+        GOOGLE, HERE, NONE
     }
 
 <span class="fc" id="L329">    private static final Predicate&lt;ConfigurationKeys&gt; INTERNAL_PREDICATE = ConfigurationKeys::isInternal;</span>
@@ -410,4 +410,4 @@ public enum ConfigurationKeys {
 <span class="fc" id="L410">            .orElse(ConfigurationKeys.NOT_RECOGNIZED);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

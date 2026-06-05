@@ -515,24 +515,24 @@ public class NotificationManager {
 
         @Override
         public JsonElement serialize(Mailer.Attachment src, Type typeOfSrc, JsonSerializationContext context) {
-<span class="fc" id="L518">            JsonObject obj = new JsonObject();</span>
-<span class="fc" id="L519">            obj.addProperty(&quot;filename&quot;, src.getFilename());</span>
-<span class="pc bpc" id="L520" title="1 of 2 branches missed.">            obj.addProperty(SOURCE, src.getSource() != null ? Base64.getEncoder().encodeToString(src.getSource()) : null);</span>
-<span class="fc" id="L521">            obj.addProperty(&quot;contentType&quot;, src.getContentType());</span>
-<span class="pc bpc" id="L522" title="1 of 2 branches missed.">            obj.addProperty(IDENTIFIER, src.getIdentifier() != null ? src.getIdentifier().name() : null);</span>
-<span class="pc bpc" id="L523" title="1 of 2 branches missed.">            obj.addProperty(MODEL, src.getModel() != null ? Json.toJson(src.getModel()) : null);</span>
-<span class="fc" id="L524">            return obj;</span>
+            JsonObject obj = new JsonObject();
+            obj.addProperty(&quot;filename&quot;, src.getFilename());
+            obj.addProperty(SOURCE, src.getSource() != null ? Base64.getEncoder().encodeToString(src.getSource()) : null);
+            obj.addProperty(&quot;contentType&quot;, src.getContentType());
+            obj.addProperty(IDENTIFIER, src.getIdentifier() != null ? src.getIdentifier().name() : null);
+            obj.addProperty(MODEL, src.getModel() != null ? Json.toJson(src.getModel()) : null);
+            return obj;
         }
 
         @Override
         public Mailer.Attachment deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
-<span class="fc" id="L529">            JsonObject jsonObject = json.getAsJsonObject();</span>
-<span class="fc" id="L530">            String filename = jsonObject.getAsJsonPrimitive(&quot;filename&quot;).getAsString();</span>
-<span class="pc bpc" id="L531" title="1 of 2 branches missed.">            byte[] source =  jsonObject.has(SOURCE) ? Base64.getDecoder().decode(jsonObject.getAsJsonPrimitive(SOURCE).getAsString()) : null;</span>
-<span class="fc" id="L532">            String contentType = jsonObject.getAsJsonPrimitive(&quot;contentType&quot;).getAsString();</span>
-<span class="pc bpc" id="L533" title="1 of 2 branches missed.">            Mailer.AttachmentIdentifier identifier =  jsonObject.has(IDENTIFIER) ? Mailer.AttachmentIdentifier.valueOf(jsonObject.getAsJsonPrimitive(IDENTIFIER).getAsString()) : null;</span>
-<span class="pc bpc" id="L534" title="1 of 2 branches missed.">            Map&lt;String, String&gt; model = jsonObject.has(MODEL)  ? Json.fromJson(jsonObject.getAsJsonPrimitive(MODEL).getAsString(), new TypeReference&lt;&gt;() {}) : null;</span>
-<span class="fc" id="L535">            return new Mailer.Attachment(filename, source, contentType, model, identifier);</span>
+            JsonObject jsonObject = json.getAsJsonObject();
+            String filename = jsonObject.getAsJsonPrimitive(&quot;filename&quot;).getAsString();
+            byte[] source =  jsonObject.has(SOURCE) ? Base64.getDecoder().decode(jsonObject.getAsJsonPrimitive(SOURCE).getAsString()) : null;
+            String contentType = jsonObject.getAsJsonPrimitive(&quot;contentType&quot;).getAsString();
+            Mailer.AttachmentIdentifier identifier =  jsonObject.has(IDENTIFIER) ? Mailer.AttachmentIdentifier.valueOf(jsonObject.getAsJsonPrimitive(IDENTIFIER).getAsString()) : null;
+            Map&lt;String, String&gt; model = jsonObject.has(MODEL)  ? Json.fromJson(jsonObject.getAsJsonPrimitive(MODEL).getAsString(), new TypeReference&lt;&gt;() {}) : null;
+            return new Mailer.Attachment(filename, source, contentType, model, identifier);
         }
     }
 
@@ -577,4 +577,4 @@ public class NotificationManager {
 <span class="fc" id="L577">            + requireNonNullElse(message.getEventId(), message.getSubscriptionDescriptorId());</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

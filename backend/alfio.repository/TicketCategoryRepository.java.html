@@ -201,4 +201,4 @@ public interface TicketCategoryRepository {
     @Query(&quot;select count(*) from ticket_category tc join event e on tc.event_id = e.id where e.short_name = :shortName and tc.id in (:categoryIds)&quot;)
     int countCategoryForEvent(@Bind(&quot;categoryIds&quot;) Set&lt;Integer&gt; categoryIds, @Bind(&quot;shortName&quot;) String eventShortName);
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -80,29 +80,29 @@ public class ExtensionService {
 
         @Override
         public void logWarning(String msg) {
-<span class="fc" id="L83">            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.WARNING));</span>
-<span class="fc" id="L84">        }</span>
+            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.WARNING));
+        }
 
         @Override
         public void logSuccess(String msg) {
-<span class="fc" id="L88">            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.SUCCESS));</span>
-<span class="fc" id="L89">        }</span>
+            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.SUCCESS));
+        }
 
         @Override
         public void logError(String msg) {
-<span class="fc" id="L93">            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.ERROR));</span>
-<span class="fc" id="L94">        }</span>
+            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.ERROR));
+        }
 
         @Override
         public void logInfo(String msg) {
-<span class="fc" id="L98">            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.INFO));</span>
-<span class="fc" id="L99">        }</span>
+            executeInNewTransaction(s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.INFO));
+        }
 
         private void executeInNewTransaction(TransactionCallback&lt;Integer&gt; t) {
-<span class="fc" id="L102">            DefaultTransactionDefinition definition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);</span>
-<span class="fc" id="L103">            TransactionTemplate template = new TransactionTemplate(platformTransactionManager, definition);</span>
-<span class="fc" id="L104">            template.execute(t);</span>
-<span class="fc" id="L105">        }</span>
+            DefaultTransactionDefinition definition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            TransactionTemplate template = new TransactionTemplate(platformTransactionManager, definition);
+            template.execute(t);
+        }
     }
 
     private static final class NoopExtensionLogger implements ExtensionLogger {
@@ -464,4 +464,4 @@ public class ExtensionService {
 <span class="fc" id="L464">        return purchaseContext.event().map(e -&gt; toPath((EventAndOrganizationId) e)).orElseGet(() -&gt; &quot;-&quot; + organizationId);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

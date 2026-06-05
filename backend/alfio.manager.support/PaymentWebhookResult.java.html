@@ -24,14 +24,14 @@ import lombok.Getter;
 @Getter
 public class PaymentWebhookResult {
 
-<span class="fc" id="L27">    public enum Type {</span>
-<span class="fc" id="L28">        NOT_RELEVANT,</span>
-<span class="fc" id="L29">        REJECTED,</span>
-<span class="fc" id="L30">        TRANSACTION_INITIATED,</span>
-<span class="fc" id="L31">        SUCCESSFUL,</span>
-<span class="fc" id="L32">        FAILED,</span>
-<span class="fc" id="L33">        CANCELLED,</span>
-<span class="fc" id="L34">        ERROR</span>
+    public enum Type {
+        NOT_RELEVANT,
+        REJECTED,
+        TRANSACTION_INITIATED,
+        SUCCESSFUL,
+        FAILED,
+        CANCELLED,
+        ERROR
     }
 
     private final Type type;
@@ -79,4 +79,4 @@ public class PaymentWebhookResult {
 <span class="nc" id="L79">        return new PaymentWebhookResult(Type.TRANSACTION_INITIATED, null, null, redirectUrl);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

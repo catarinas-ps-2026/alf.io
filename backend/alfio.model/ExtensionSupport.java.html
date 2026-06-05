@@ -62,11 +62,11 @@ public class ExtensionSupport {
 
         public ScriptPathNameHash(@Column(&quot;path&quot;) String path,
                                   @Column(&quot;name&quot;) String name,
-<span class="fc" id="L65">                                  @Column(&quot;hash&quot;) String hash) {</span>
-<span class="fc" id="L66">            this.path = path;</span>
-<span class="fc" id="L67">            this.name = name;</span>
-<span class="fc" id="L68">            this.hash = hash;</span>
-<span class="fc" id="L69">        }</span>
+                                  @Column(&quot;hash&quot;) String hash) {
+            this.path = path;
+            this.name = name;
+            this.hash = hash;
+        }
     }
 
     @Getter
@@ -79,12 +79,12 @@ public class ExtensionSupport {
         public ExtensionParameterKeyValue(@Column(&quot;ecm_name&quot;) String name,
                                           @Column(&quot;ecm_configuration_level&quot;) String configurationLevel,
                                           @Column(&quot;conf_path&quot;) String configurationPath,
-<span class="nc" id="L82">                                          @Column(&quot;conf_value&quot;) String configurationValue) {</span>
-<span class="nc" id="L83">            this.name = name;</span>
-<span class="nc" id="L84">            this.configurationLevel = configurationLevel;</span>
-<span class="nc" id="L85">            this.configurationPath = configurationPath;</span>
-<span class="nc" id="L86">            this.configurationValue = configurationValue;</span>
-<span class="nc" id="L87">        }</span>
+                                          @Column(&quot;conf_value&quot;) String configurationValue) {
+            this.name = name;
+            this.configurationLevel = configurationLevel;
+            this.configurationPath = configurationPath;
+            this.configurationValue = configurationValue;
+        }
     }
 
     @Getter
@@ -114,32 +114,32 @@ public class ExtensionSupport {
                                                   @Column(&quot;name&quot;) String extensionName,
                                                   @Column(&quot;display_name&quot;) String extensionDisplayName,
                                                   @Column(&quot;conf_path&quot;) String configurationPath,
-<span class="nc" id="L117">                                                  @Column(&quot;conf_value&quot;) String configurationValue) {</span>
-<span class="nc" id="L118">            this.id = id;</span>
-<span class="nc" id="L119">            this.name = name;</span>
-<span class="nc" id="L120">            this.configurationLevel = configurationLevel;</span>
-<span class="nc" id="L121">            this.description = description;</span>
-<span class="nc" id="L122">            this.type = type;</span>
-<span class="nc" id="L123">            this.mandatory = mandatory;</span>
-<span class="nc" id="L124">            this.path = path;</span>
-<span class="nc" id="L125">            this.extensionId = extensionId;</span>
-<span class="nc" id="L126">            this.extensionName = extensionName;</span>
-<span class="nc" id="L127">            this.extensionDisplayName = extensionDisplayName;</span>
-<span class="nc" id="L128">            this.configurationPath = configurationPath;</span>
-<span class="nc" id="L129">            this.configurationValue = configurationValue;</span>
-<span class="nc" id="L130">        }</span>
+                                                  @Column(&quot;conf_value&quot;) String configurationValue) {
+            this.id = id;
+            this.name = name;
+            this.configurationLevel = configurationLevel;
+            this.description = description;
+            this.type = type;
+            this.mandatory = mandatory;
+            this.path = path;
+            this.extensionId = extensionId;
+            this.extensionName = extensionName;
+            this.extensionDisplayName = extensionDisplayName;
+            this.configurationPath = configurationPath;
+            this.configurationValue = configurationValue;
+        }
 
         //for compatibility
         public String getComponentType() {
-<span class="nc" id="L134">            return type;</span>
+            return type;
         }
 
         public String getValue() {
-<span class="nc" id="L138">            return configurationValue;</span>
+            return configurationValue;
         }
 
         public String getConfigurationPathLevel() {
-<span class="nc" id="L142">            return configurationLevel;</span>
+            return configurationLevel;
         }
     }
 
@@ -157,10 +157,10 @@ public class ExtensionSupport {
         private final String value;
 
         public NameAndValue(@Column(&quot;ecm_name&quot;) String name,
-<span class="nc" id="L160">                            @Column(&quot;conf_value&quot;) String value) {</span>
-<span class="nc" id="L161">            this.name = name;</span>
-<span class="nc" id="L162">            this.value = value;</span>
-<span class="nc" id="L163">        }</span>
+                            @Column(&quot;conf_value&quot;) String value) {
+            this.name = name;
+            this.value = value;
+        }
     }
 
     @Getter
@@ -169,10 +169,10 @@ public class ExtensionSupport {
         private final String name;
 
         public ExtensionMetadataIdAndName(@Column(&quot;ecm_id&quot;) int id,
-<span class="nc" id="L172">                                          @Column(&quot;ecm_name&quot;) String name) {</span>
-<span class="nc" id="L173">            this.id = id;</span>
-<span class="nc" id="L174">            this.name = name;</span>
-<span class="nc" id="L175">        }</span>
+                                          @Column(&quot;ecm_name&quot;) String name) {
+            this.id = id;
+            this.name = name;
+        }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

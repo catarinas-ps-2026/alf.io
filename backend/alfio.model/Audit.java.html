@@ -28,58 +28,58 @@ import java.util.Map;
 @Getter
 public class Audit {
 
-<span class="fc" id="L31">    public enum EntityType {</span>
-<span class="fc" id="L32">        EVENT, TICKET, RESERVATION, SUBSCRIPTION</span>
+    public enum EntityType {
+        EVENT, TICKET, RESERVATION, SUBSCRIPTION
     }
 
-<span class="fc" id="L35">    public enum EventType {</span>
-<span class="fc" id="L36">        RESERVATION_CREATE,</span>
-<span class="fc" id="L37">        RESERVATION_COMPLETE,</span>
-<span class="fc" id="L38">        RESERVATION_OFFLINE_PAYMENT_CONFIRMED,</span>
-<span class="fc" id="L39">        CANCEL_RESERVATION_EXPIRED,</span>
-<span class="fc" id="L40">        CANCEL_RESERVATION,</span>
-<span class="fc" id="L41">        RESET_PAYMENT,</span>
-<span class="fc" id="L42">        INIT_PAYMENT,</span>
-<span class="fc" id="L43">        UPDATE_EVENT,</span>
-<span class="fc" id="L44">        CANCEL_TICKET,</span>
-<span class="fc" id="L45">        PAYMENT_CONFIRMED,</span>
-<span class="fc" id="L46">        PAYMENT_ALREADY_CONFIRMED,</span>
-<span class="fc" id="L47">        REFUND,</span>
-<span class="fc" id="L48">        REFUND_ATTEMPT_FAILED,</span>
-<span class="fc" id="L49">        CHECK_IN,</span>
-<span class="fc" id="L50">        MANUAL_CHECK_IN,</span>
-<span class="fc" id="L51">        REVERT_CHECK_IN,</span>
-<span class="fc" id="L52">        BADGE_SCAN,</span>
-<span class="fc" id="L53">        UPDATE_TICKET,</span>
-<span class="fc" id="L54">        TICKET_HOLDER_CHANGED,</span>
-<span class="fc" id="L55">        TAG_TICKET,</span>
-<span class="fc" id="L56">        UNTAG_TICKET,</span>
-<span class="fc" id="L57">        UPDATE_TICKET_CATEGORY,</span>
-<span class="fc" id="L58">        UPDATE_INVOICE,</span>
-<span class="fc" id="L59">        FORCED_UPDATE_INVOICE,</span>
-<span class="fc" id="L60">        TERMS_CONDITION_ACCEPTED,</span>
-<span class="fc" id="L61">        PRIVACY_POLICY_ACCEPTED,</span>
-<span class="fc" id="L62">        EXTERNAL_INVOICE_NUMBER,</span>
-<span class="fc" id="L63">        EXTERNAL_CREDIT_NOTE_NUMBER,</span>
-<span class="fc" id="L64">        VAT_VALIDATION_SUCCESSFUL,</span>
-<span class="fc" id="L65">        VAT_FORMAL_VALIDATION_SUCCESSFUL,</span>
-<span class="fc" id="L66">        VAT_VALIDATION_SKIPPED,</span>
-<span class="fc" id="L67">        VAT_CUSTOM_CONFIGURATION_APPLIED,</span>
-<span class="fc" id="L68">        GROUP_MEMBER_ACQUIRED,</span>
-<span class="fc" id="L69">        CREDIT_NOTE_ISSUED,</span>
-<span class="fc" id="L70">        BILLING_DATA_UPDATED,</span>
-<span class="fc" id="L71">        BILLING_DOCUMENT_GENERATED,</span>
-<span class="fc" id="L72">        BILLING_DOCUMENT_INVALIDATED,</span>
-<span class="fc" id="L73">        BILLING_DOCUMENT_RESTORED,</span>
-<span class="fc" id="L74">        FORCE_VAT_APPLICATION,</span>
-<span class="fc" id="L75">        PAYMENT_FAILED,</span>
-<span class="fc" id="L76">        MATCHING_PAYMENT_FOUND,</span>
-<span class="fc" id="L77">        MATCHING_PAYMENT_DISCARDED,</span>
-<span class="fc" id="L78">        AUTOMATIC_PAYMENT_CONFIRMATION,</span>
-<span class="fc" id="L79">        AUTOMATIC_PAYMENT_CONFIRMATION_FAILED,</span>
-<span class="fc" id="L80">        DYNAMIC_DISCOUNT_CODE_CREATED,</span>
-<span class="fc" id="L81">        SUBSCRIPTION_ACQUIRED,</span>
-<span class="fc" id="L82">        UPDATE_TICKET_METADATA, WARNING_IGNORED</span>
+    public enum EventType {
+        RESERVATION_CREATE,
+        RESERVATION_COMPLETE,
+        RESERVATION_OFFLINE_PAYMENT_CONFIRMED,
+        CANCEL_RESERVATION_EXPIRED,
+        CANCEL_RESERVATION,
+        RESET_PAYMENT,
+        INIT_PAYMENT,
+        UPDATE_EVENT,
+        CANCEL_TICKET,
+        PAYMENT_CONFIRMED,
+        PAYMENT_ALREADY_CONFIRMED,
+        REFUND,
+        REFUND_ATTEMPT_FAILED,
+        CHECK_IN,
+        MANUAL_CHECK_IN,
+        REVERT_CHECK_IN,
+        BADGE_SCAN,
+        UPDATE_TICKET,
+        TICKET_HOLDER_CHANGED,
+        TAG_TICKET,
+        UNTAG_TICKET,
+        UPDATE_TICKET_CATEGORY,
+        UPDATE_INVOICE,
+        FORCED_UPDATE_INVOICE,
+        TERMS_CONDITION_ACCEPTED,
+        PRIVACY_POLICY_ACCEPTED,
+        EXTERNAL_INVOICE_NUMBER,
+        EXTERNAL_CREDIT_NOTE_NUMBER,
+        VAT_VALIDATION_SUCCESSFUL,
+        VAT_FORMAL_VALIDATION_SUCCESSFUL,
+        VAT_VALIDATION_SKIPPED,
+        VAT_CUSTOM_CONFIGURATION_APPLIED,
+        GROUP_MEMBER_ACQUIRED,
+        CREDIT_NOTE_ISSUED,
+        BILLING_DATA_UPDATED,
+        BILLING_DOCUMENT_GENERATED,
+        BILLING_DOCUMENT_INVALIDATED,
+        BILLING_DOCUMENT_RESTORED,
+        FORCE_VAT_APPLICATION,
+        PAYMENT_FAILED,
+        MATCHING_PAYMENT_FOUND,
+        MATCHING_PAYMENT_DISCARDED,
+        AUTOMATIC_PAYMENT_CONFIRMATION,
+        AUTOMATIC_PAYMENT_CONFIRMATION_FAILED,
+        DYNAMIC_DISCOUNT_CODE_CREATED,
+        SUBSCRIPTION_ACQUIRED,
+        UPDATE_TICKET_METADATA, WARNING_IGNORED
     }
 
     private final String reservationId;
@@ -111,4 +111,4 @@ public class Audit {
 <span class="nc" id="L111">        this.email = email;</span>
 <span class="nc" id="L112">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -34,17 +34,17 @@ import java.util.TreeSet;
 @Getter
 public class PromoCodeDiscount {
 
-<span class="fc" id="L37">    public enum CodeType {</span>
-<span class="fc" id="L38">        DISCOUNT,</span>
-<span class="fc" id="L39">        ACCESS,</span>
-<span class="fc" id="L40">        DYNAMIC</span>
+    public enum CodeType {
+        DISCOUNT,
+        ACCESS,
+        DYNAMIC
     }
     
-<span class="fc" id="L43">    public enum DiscountType {</span>
-<span class="fc" id="L44">        FIXED_AMOUNT, PERCENTAGE, FIXED_AMOUNT_RESERVATION, NONE;</span>
+    public enum DiscountType {
+        FIXED_AMOUNT, PERCENTAGE, FIXED_AMOUNT_RESERVATION, NONE;
 
         public static boolean isFixedAmount(DiscountType discountType) {
-<span class="pc bpc" id="L47" title="1 of 4 branches missed.">            return discountType == FIXED_AMOUNT || discountType == FIXED_AMOUNT_RESERVATION;</span>
+            return discountType == FIXED_AMOUNT || discountType == FIXED_AMOUNT_RESERVATION;
         }
     }
 
@@ -144,4 +144,4 @@ public class PromoCodeDiscount {
 <span class="fc bfc" id="L144" title="All 4 branches covered.">        return codeType == CodeType.DISCOUNT &amp;&amp; discountType != DiscountType.PERCENTAGE;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

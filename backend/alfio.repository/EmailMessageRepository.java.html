@@ -134,4 +134,4 @@ public interface EmailMessageRepository {
     @Query(&quot;update email_message set status = 'RETRY', attempts = coalesce(attempts, 0) +1 where status = 'IN_PROCESS' and request_ts &lt; :date&quot;)
     int setToRetryOldInProcess(@Bind(&quot;date&quot;) ZonedDateTime date);
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

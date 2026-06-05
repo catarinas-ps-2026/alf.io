@@ -126,21 +126,21 @@ public class MessageSourceManager {
         private final CustomResourceBundleMessageSource messageSource;
         private final Map&lt;String, Map&lt;String, String&gt;&gt; override;
 
-<span class="fc" id="L129">        private MessageSourceWithOverride(CustomResourceBundleMessageSource messageSource, Map&lt;String, Map&lt;String, String&gt;&gt; override) {</span>
-<span class="fc" id="L130">            this.messageSource = messageSource;</span>
-<span class="fc" id="L131">            this.override = override.entrySet().stream()</span>
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">                .filter(entry -&gt; entry.getValue() != null)</span>
-<span class="fc" id="L133">                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
-<span class="fc" id="L134">        }</span>
+        private MessageSourceWithOverride(CustomResourceBundleMessageSource messageSource, Map&lt;String, Map&lt;String, String&gt;&gt; override) {
+            this.messageSource = messageSource;
+            this.override = override.entrySet().stream()
+                .filter(entry -&gt; entry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
 
         @Override
         protected MessageFormat resolveCode(String s, Locale locale) {
-<span class="fc" id="L138">            var language = locale.getLanguage();</span>
-<span class="fc bfc" id="L139" title="All 4 branches covered.">            if (override.containsKey(language) &amp;&amp; override.get(language).containsKey(s)) {</span>
-<span class="fc" id="L140">                var pattern = cleanArguments(override.get(language).get(s), &quot;{$1}&quot;);</span>
-<span class="fc" id="L141">                return new MessageFormat(pattern, locale);</span>
+            var language = locale.getLanguage();
+            if (override.containsKey(language) &amp;&amp; override.get(language).containsKey(s)) {
+                var pattern = cleanArguments(override.get(language).get(s), &quot;{$1}&quot;);
+                return new MessageFormat(pattern, locale);
             }
-<span class="fc" id="L143">            return messageSource.getMessageFormatFor(s, locale);</span>
+            return messageSource.getMessageFormatFor(s, locale);
         }
     }
 
@@ -154,4 +154,4 @@ public class MessageSourceManager {
 <span class="fc" id="L154">            .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

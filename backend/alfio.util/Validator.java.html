@@ -223,10 +223,10 @@ public final class Validator {
 <span class="fc" id="L223">        return evaluateValidationResult(errors);</span>
     }
 
-<span class="fc" id="L226">    enum RangeValidationResultType {</span>
-<span class="fc" id="L227">        OK,</span>
-<span class="fc" id="L228">        FAILED_BEGIN,</span>
-<span class="fc" id="L229">        FAILED_END</span>
+    enum RangeValidationResultType {
+        OK,
+        FAILED_BEGIN,
+        FAILED_END
     }
 
     static RangeValidationResultType checkDateRange(
@@ -307,28 +307,28 @@ public final class Validator {
         public AdditionalFieldsFilterer(List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFields,
                                         List&lt;Ticket&gt; ticketsInReservation,
                                         boolean eventSupportsAdditionalFieldsLink,
-<span class="fc" id="L310">                                        List&lt;AdditionalServiceItem&gt; additionalServiceItems) {</span>
-<span class="fc" id="L311">            this.purchaseContextFields = purchaseContextFields;</span>
-<span class="fc" id="L312">            this.ticketsInReservation = ticketsInReservation;</span>
-<span class="fc" id="L313">            this.additionalFieldsForReservation = additionalServiceItems.stream().map(AdditionalServiceItem::getAdditionalServiceId).collect(Collectors.toSet());</span>
-<span class="fc" id="L314">            this.firstTicketInReservation = ticketsInReservation.stream().findFirst();</span>
-<span class="fc" id="L315">            this.eventSupportsAdditionalFieldsLink = eventSupportsAdditionalFieldsLink;</span>
-<span class="fc" id="L316">            this.additionalServiceItems = additionalServiceItems;</span>
-<span class="fc" id="L317">        }</span>
+                                        List&lt;AdditionalServiceItem&gt; additionalServiceItems) {
+            this.purchaseContextFields = purchaseContextFields;
+            this.ticketsInReservation = ticketsInReservation;
+            this.additionalFieldsForReservation = additionalServiceItems.stream().map(AdditionalServiceItem::getAdditionalServiceId).collect(Collectors.toSet());
+            this.firstTicketInReservation = ticketsInReservation.stream().findFirst();
+            this.eventSupportsAdditionalFieldsLink = eventSupportsAdditionalFieldsLink;
+            this.additionalServiceItems = additionalServiceItems;
+        }
 
 
         public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForTicket(UUID publicUuid, Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
-<span class="fc" id="L321">            var ticketOptional = ticketsInReservation.stream().filter(t -&gt; t.getPublicUuid().equals(publicUuid)).findFirst();</span>
-<span class="pc bpc" id="L322" title="1 of 2 branches missed.">            if (ticketOptional.isEmpty()) {</span>
-<span class="nc" id="L323">                return List.of();</span>
+            var ticketOptional = ticketsInReservation.stream().filter(t -&gt; t.getPublicUuid().equals(publicUuid)).findFirst();
+            if (ticketOptional.isEmpty()) {
+                return List.of();
             }
-<span class="fc" id="L325">            var ticket = ticketOptional.get();</span>
-<span class="fc bfc" id="L326" title="All 2 branches covered.">            var isFirstTicket = firstTicketInReservation.map(first -&gt; ticket.getId() == first.getId()).orElse(false);</span>
-<span class="fc" id="L327">            return filterFieldsForTicket(purchaseContextFields, ticket, additionalFieldsForReservation, isFirstTicket, eventSupportsAdditionalFieldsLink, additionalServiceItems, requestedContexts);</span>
+            var ticket = ticketOptional.get();
+            var isFirstTicket = firstTicketInReservation.map(first -&gt; ticket.getId() == first.getId()).orElse(false);
+            return filterFieldsForTicket(purchaseContextFields, ticket, additionalFieldsForReservation, isFirstTicket, eventSupportsAdditionalFieldsLink, additionalServiceItems, requestedContexts);
         }
 
         public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForSubscription() {
-<span class="nc" id="L331">            return purchaseContextFields;</span>
+            return purchaseContextFields;
         }
 
         private static List&lt;PurchaseContextFieldConfiguration&gt; filterFieldsForTicket(List&lt;PurchaseContextFieldConfiguration&gt; additionalFieldsForEvent,
@@ -338,34 +338,34 @@ public final class Validator {
                                                                                      boolean eventSupportsAdditionalFieldsLink,
                                                                                      List&lt;AdditionalServiceItem&gt; additionalServiceItems,
                                                                                      Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
-<span class="fc" id="L341">            return additionalFieldsForEvent.stream()</span>
-<span class="fc" id="L342">                .filter(field -&gt; field.rulesApply(ticket.getCategoryId()))</span>
-<span class="fc" id="L343">                .filter(f -&gt; {</span>
-<span class="fc bfc" id="L344" title="All 2 branches covered.">                    if (!requestedContexts.contains(f.getContext())) {</span>
-<span class="fc" id="L345">                        return false;</span>
+            return additionalFieldsForEvent.stream()
+                .filter(field -&gt; field.rulesApply(ticket.getCategoryId()))
+                .filter(f -&gt; {
+                    if (!requestedContexts.contains(f.getContext())) {
+                        return false;
                     }
-<span class="fc bfc" id="L347" title="All 2 branches covered.">                    if (f.getContext() == PurchaseContextFieldConfiguration.Context.ATTENDEE) {</span>
-<span class="fc" id="L348">                        return true;</span>
+                    if (f.getContext() == PurchaseContextFieldConfiguration.Context.ATTENDEE) {
+                        return true;
                     }
                     // field context is &quot;Additional Service&quot;
-<span class="pc bpc" id="L351" title="1 of 4 branches missed.">                    if (!isFirstTicket &amp;&amp; !eventSupportsAdditionalFieldsLink) {</span>
-<span class="nc" id="L352">                        return false;</span>
+                    if (!isFirstTicket &amp;&amp; !eventSupportsAdditionalFieldsLink) {
+                        return false;
                     }
-<span class="fc" id="L354">                    boolean included = isAdditionalServiceIncluded(f, additionalServiceIds);</span>
-<span class="pc bpc" id="L355" title="1 of 6 branches missed.">                    return included &amp;&amp; (!eventSupportsAdditionalFieldsLink || checkLinked(ticket, additionalServiceItems, f));</span>
-<span class="fc" id="L356">                }).toList();</span>
+                    boolean included = isAdditionalServiceIncluded(f, additionalServiceIds);
+                    return included &amp;&amp; (!eventSupportsAdditionalFieldsLink || checkLinked(ticket, additionalServiceItems, f));
+                }).toList();
         }
 
         private static boolean checkLinked(Ticket ticket, List&lt;AdditionalServiceItem&gt; additionalServiceItems, PurchaseContextFieldConfiguration tfc) {
-<span class="fc" id="L360">            return additionalServiceItems.stream()</span>
-<span class="pc bpc" id="L361" title="1 of 4 branches missed.">                .anyMatch(asi -&gt; tfc.getAdditionalServiceId() == asi.getAdditionalServiceId() &amp;&amp; Objects.equals(ticket.getId(), asi.getTicketId()));</span>
+            return additionalServiceItems.stream()
+                .anyMatch(asi -&gt; tfc.getAdditionalServiceId() == asi.getAdditionalServiceId() &amp;&amp; Objects.equals(ticket.getId(), asi.getTicketId()));
         }
 
         private static boolean isAdditionalServiceIncluded(PurchaseContextFieldConfiguration f, Set&lt;Integer&gt; additionalServiceIds) {
-<span class="pc bpc" id="L365" title="1 of 2 branches missed.">            if (f.getAdditionalServiceId() == null) {</span>
-<span class="nc" id="L366">                return false;</span>
+            if (f.getAdditionalServiceId() == null) {
+                return false;
             }
-<span class="fc" id="L368">            return additionalServiceIds.contains(f.getAdditionalServiceId());</span>
+            return additionalServiceIds.contains(f.getAdditionalServiceId());
         }
     }
 
@@ -748,27 +748,27 @@ public final class Validator {
         private final SameCountryValidator vatValidator;
         private final GroupManager.WhitelistValidator whitelistValidator;
 
-<span class="fc" id="L751">        public AdvancedTicketAssignmentValidator(SameCountryValidator vatValidator, GroupManager.WhitelistValidator whitelistValidator) {</span>
-<span class="fc" id="L752">            this.vatValidator = vatValidator;</span>
-<span class="fc" id="L753">            this.whitelistValidator = whitelistValidator;</span>
-<span class="fc" id="L754">        }</span>
+        public AdvancedTicketAssignmentValidator(SameCountryValidator vatValidator, GroupManager.WhitelistValidator whitelistValidator) {
+            this.vatValidator = vatValidator;
+            this.whitelistValidator = whitelistValidator;
+        }
 
 
         @Override
         public Result&lt;Void&gt; apply(AdvancedValidationContext context) {
 
-<span class="fc" id="L760">            Optional&lt;PurchaseContextFieldConfiguration&gt; vatField = context.purchaseContextFieldConfigurations.stream()</span>
-<span class="fc" id="L761">                .filter(PurchaseContextFieldConfiguration::isEuVat)</span>
-<span class="pc bnc" id="L762" title="All 4 branches missed.">                .filter(f -&gt; context.updateTicketOwnerForm.getAdditional() !=null &amp;&amp; context.updateTicketOwnerForm.getAdditional().containsKey(f.getName()))</span>
-<span class="fc" id="L763">                .findFirst();</span>
+            Optional&lt;PurchaseContextFieldConfiguration&gt; vatField = context.purchaseContextFieldConfigurations.stream()
+                .filter(PurchaseContextFieldConfiguration::isEuVat)
+                .filter(f -&gt; context.updateTicketOwnerForm.getAdditional() !=null &amp;&amp; context.updateTicketOwnerForm.getAdditional().containsKey(f.getName()))
+                .findFirst();
 
-<span class="pc" id="L765">            Optional&lt;String&gt; vatNr = vatField.map(c -&gt; Objects.requireNonNull(context.updateTicketOwnerForm.getAdditional()).get(c.getName()).get(0));</span>
-<span class="fc" id="L766">            String vatFieldName = vatField.map(PurchaseContextFieldConfiguration::getName).orElse(&quot;&quot;);</span>
+            Optional&lt;String&gt; vatNr = vatField.map(c -&gt; Objects.requireNonNull(context.updateTicketOwnerForm.getAdditional()).get(c.getName()).get(0));
+            String vatFieldName = vatField.map(PurchaseContextFieldConfiguration::getName).orElse(&quot;&quot;);
 
-<span class="fc" id="L768">            return new Result.Builder&lt;Void&gt;()</span>
-<span class="pc bpc" id="L769" title="3 of 4 branches missed.">                .checkPrecondition(() -&gt; vatNr.isEmpty() || vatValidator.test(vatNr.get()), ErrorCode.custom(ErrorsCode.STEP_2_INVALID_VAT, &quot;additional['&quot;+vatFieldName+&quot;']&quot;))</span>
-<span class="fc" id="L770">                .checkPrecondition(() -&gt; whitelistValidator.test(new GroupManager.WhitelistValidationItem(context.categoryId, context.updateTicketOwnerForm.getEmail())), ErrorCode.custom(ErrorsCode.STEP_2_WHITELIST_CHECK_FAILED, EMAIL_KEY))</span>
-<span class="fc" id="L771">                .build(() -&gt; null);</span>
+            return new Result.Builder&lt;Void&gt;()
+                .checkPrecondition(() -&gt; vatNr.isEmpty() || vatValidator.test(vatNr.get()), ErrorCode.custom(ErrorsCode.STEP_2_INVALID_VAT, &quot;additional['&quot;+vatFieldName+&quot;']&quot;))
+                .checkPrecondition(() -&gt; whitelistValidator.test(new GroupManager.WhitelistValidationItem(context.categoryId, context.updateTicketOwnerForm.getEmail())), ErrorCode.custom(ErrorsCode.STEP_2_WHITELIST_CHECK_FAILED, EMAIL_KEY))
+                .build(() -&gt; null);
         }
     }
 
@@ -780,14 +780,14 @@ public final class Validator {
         private final String ticketUuid;
         private final String prefix;
 
-<span class="fc" id="L783">        public AdvancedValidationContext(UpdateTicketOwnerForm updateTicketOwnerForm, List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFieldConfigurations, int categoryId, String ticketUuid, String prefix) {</span>
-<span class="fc" id="L784">            this.updateTicketOwnerForm = updateTicketOwnerForm;</span>
-<span class="fc" id="L785">            this.purchaseContextFieldConfigurations = purchaseContextFieldConfigurations;</span>
-<span class="fc" id="L786">            this.categoryId = categoryId;</span>
-<span class="fc" id="L787">            this.ticketUuid = ticketUuid;</span>
-<span class="fc" id="L788">            this.prefix = prefix;</span>
-<span class="fc" id="L789">        }</span>
+        public AdvancedValidationContext(UpdateTicketOwnerForm updateTicketOwnerForm, List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFieldConfigurations, int categoryId, String ticketUuid, String prefix) {
+            this.updateTicketOwnerForm = updateTicketOwnerForm;
+            this.purchaseContextFieldConfigurations = purchaseContextFieldConfigurations;
+            this.categoryId = categoryId;
+            this.ticketUuid = ticketUuid;
+            this.prefix = prefix;
+        }
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

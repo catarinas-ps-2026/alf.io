@@ -44,36 +44,36 @@ public class CustomTaxPolicy {
 
         @JsonCreator
         public TicketTaxPolicy(@JsonProperty(&quot;uuid&quot;) String uuid,
-<span class="fc" id="L47">                               @JsonProperty(&quot;taxPolicy&quot;) PriceContainer.VatStatus taxPolicy) {</span>
-<span class="fc" id="L48">            this.uuid = Objects.requireNonNull(uuid);</span>
-<span class="fc" id="L49">            this.taxPolicy = taxPolicy;</span>
-<span class="fc" id="L50">        }</span>
+                               @JsonProperty(&quot;taxPolicy&quot;) PriceContainer.VatStatus taxPolicy) {
+            this.uuid = Objects.requireNonNull(uuid);
+            this.taxPolicy = taxPolicy;
+        }
 
         public PriceContainer.VatStatus getTaxPolicy() {
-<span class="fc" id="L53">            return taxPolicy;</span>
+            return taxPolicy;
         }
 
         public String getUuid() {
-<span class="fc" id="L57">            return uuid;</span>
+            return uuid;
         }
 
         @Override
         public boolean equals(Object o) {
-<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (this == o) return true;</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (!(o instanceof TicketTaxPolicy)) return false;</span>
-<span class="nc" id="L64">            TicketTaxPolicy that = (TicketTaxPolicy) o;</span>
-<span class="nc" id="L65">            return Objects.equals(this.uuid, that.uuid);</span>
+            if (this == o) return true;
+            if (!(o instanceof TicketTaxPolicy)) return false;
+            TicketTaxPolicy that = (TicketTaxPolicy) o;
+            return Objects.equals(this.uuid, that.uuid);
         }
 
         @Override
         public int hashCode() {
-<span class="fc" id="L70">            return Objects.hash(uuid);</span>
+            return Objects.hash(uuid);
         }
 
         @Override
         public int compareTo(TicketTaxPolicy o) {
-<span class="nc bnc" id="L75" title="All 2 branches missed.">            return this.equals(o) ? 0 : this.uuid.compareTo(o.uuid);</span>
+            return this.equals(o) ? 0 : this.uuid.compareTo(o.uuid);
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

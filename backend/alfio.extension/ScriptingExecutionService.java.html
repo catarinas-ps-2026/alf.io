@@ -153,16 +153,16 @@ public class ScriptingExecutionService {
         private final Map&lt;String, Class&lt;?&gt;&gt; mapping;
         private final Scriptable scope;
 
-<span class="fc" id="L156">        JavaClassInterop(Map&lt;String, Class&lt;?&gt;&gt; mapping, Scriptable scope) {</span>
-<span class="fc" id="L157">            this.mapping = mapping;</span>
-<span class="fc" id="L158">            this.scope = scope;</span>
-<span class="fc" id="L159">        }</span>
+        JavaClassInterop(Map&lt;String, Class&lt;?&gt;&gt; mapping, Scriptable scope) {
+            this.mapping = mapping;
+            this.scope = scope;
+        }
 
         public NativeJavaClass type(String clazz) {
-<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (mapping.containsKey(clazz)) {</span>
-<span class="nc" id="L163">                return new NativeJavaClass(scope, mapping.get(clazz));</span>
+            if (mapping.containsKey(clazz)) {
+                return new NativeJavaClass(scope, mapping.get(clazz));
             } else {
-<span class="nc" id="L165">                throw new IllegalArgumentException(&quot;Type &quot;+clazz+&quot; is not recognized&quot;);</span>
+                throw new IllegalArgumentException(&quot;Type &quot;+clazz+&quot; is not recognized&quot;);
             }
         }
     }
@@ -253,4 +253,4 @@ public class ScriptingExecutionService {
 <span class="fc" id="L253">            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

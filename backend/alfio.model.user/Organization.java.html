@@ -89,34 +89,34 @@ public class Organization {
         private final String name;
         private final String email;
 
-<span class="fc" id="L92">        public OrganizationContact(@Column(&quot;name&quot;) String name, @Column(&quot;email&quot;) String email) {</span>
-<span class="fc" id="L93">            this.name = name;</span>
-<span class="fc" id="L94">            this.email = email;</span>
-<span class="fc" id="L95">        }</span>
+        public OrganizationContact(@Column(&quot;name&quot;) String name, @Column(&quot;email&quot;) String email) {
+            this.name = name;
+            this.email = email;
+        }
     }
 
-<span class="fc" id="L98">    public static class OrganizationSerializer extends JsonSerializer&lt;Organization&gt; {</span>
+    public static class OrganizationSerializer extends JsonSerializer&lt;Organization&gt; {
         @Override
         public void serialize(Organization value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">            if (value != null) {</span>
-<span class="fc" id="L102">                gen.writeStartObject();</span>
-<span class="fc" id="L103">                gen.writeNumberField(&quot;id&quot;, value.getId());</span>
-<span class="fc" id="L104">                gen.writeStringField(&quot;name&quot;, value.getName());</span>
-<span class="fc" id="L105">                gen.writeStringField(&quot;email&quot;, value.getEmail());</span>
-<span class="fc" id="L106">                gen.writeStringField(&quot;description&quot;, value.getDescription());</span>
-<span class="fc" id="L107">                var authentication = SecurityContextHolder.getContext().getAuthentication();</span>
-<span class="pc bpc" id="L108" title="2 of 4 branches missed.">                if(RequestUtils.isAdmin(authentication) || RequestUtils.isSystemApiKey(authentication)) {</span>
-<span class="nc" id="L109">                    gen.writeStringField(&quot;externalId&quot;, value.getExternalId());</span>
-<span class="nc" id="L110">                    gen.writeStringField(&quot;slug&quot;, value.getSlug());</span>
+            if (value != null) {
+                gen.writeStartObject();
+                gen.writeNumberField(&quot;id&quot;, value.getId());
+                gen.writeStringField(&quot;name&quot;, value.getName());
+                gen.writeStringField(&quot;email&quot;, value.getEmail());
+                gen.writeStringField(&quot;description&quot;, value.getDescription());
+                var authentication = SecurityContextHolder.getContext().getAuthentication();
+                if(RequestUtils.isAdmin(authentication) || RequestUtils.isSystemApiKey(authentication)) {
+                    gen.writeStringField(&quot;externalId&quot;, value.getExternalId());
+                    gen.writeStringField(&quot;slug&quot;, value.getSlug());
                 } else {
-<span class="fc" id="L112">                    gen.writeNullField(&quot;externalId&quot;);</span>
-<span class="fc" id="L113">                    gen.writeNullField(&quot;slug&quot;);</span>
+                    gen.writeNullField(&quot;externalId&quot;);
+                    gen.writeNullField(&quot;slug&quot;);
                 }
-<span class="fc" id="L115">                gen.writeEndObject();</span>
-<span class="fc" id="L116">            } else {</span>
-<span class="nc" id="L117">                serializers.defaultSerializeNull(gen);</span>
+                gen.writeEndObject();
+            } else {
+                serializers.defaultSerializeNull(gen);
             }
-<span class="fc" id="L119">        }</span>
+        }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

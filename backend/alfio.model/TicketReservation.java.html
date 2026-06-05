@@ -31,29 +31,29 @@ import java.util.*;
 @Getter
 public class TicketReservation implements PriceContainer {
 
-<span class="fc" id="L34">    public enum TicketReservationStatus {</span>
-<span class="fc" id="L35">        PENDING,</span>
-<span class="fc" id="L36">        IN_PAYMENT,</span>
-<span class="fc" id="L37">        EXTERNAL_PROCESSING_PAYMENT,</span>
-<span class="fc" id="L38">        WAITING_EXTERNAL_CONFIRMATION,</span>
+    public enum TicketReservationStatus {
+        PENDING,
+        IN_PAYMENT,
+        EXTERNAL_PROCESSING_PAYMENT,
+        WAITING_EXTERNAL_CONFIRMATION,
         /**
          * Used for organization defined offline payment methods
          */
-<span class="fc" id="L42">        CUSTOM_OFFLINE_PAYMENT,</span>
-<span class="fc" id="L43">        OFFLINE_PAYMENT,</span>
-<span class="fc" id="L44">        DEFERRED_OFFLINE_PAYMENT,</span>
+        CUSTOM_OFFLINE_PAYMENT,
+        OFFLINE_PAYMENT,
+        DEFERRED_OFFLINE_PAYMENT,
         /**
          * Reservation is in the process of being finalized
          */
-<span class="fc" id="L48">        FINALIZING,</span>
+        FINALIZING,
         /**
          * Special finalization status for OFFLINE payment
          */
-<span class="fc" id="L52">        OFFLINE_FINALIZING,</span>
-<span class="fc" id="L53">        COMPLETE,</span>
-<span class="fc" id="L54">        STUCK,</span>
-<span class="fc" id="L55">        CANCELLED,</span>
-<span class="fc" id="L56">        CREDIT_NOTE_ISSUED</span>
+        OFFLINE_FINALIZING,
+        COMPLETE,
+        STUCK,
+        CANCELLED,
+        CREDIT_NOTE_ISSUED
     }
 
     private final String id;
@@ -260,4 +260,4 @@ public class TicketReservation implements PriceContainer {
             currencyCode);
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

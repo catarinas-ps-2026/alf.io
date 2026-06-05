@@ -145,16 +145,16 @@ public class ExtensionUtils {
         @Override
         public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
 
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">            if(src == null) {</span>
-<span class="nc" id="L149">                return null;</span>
+            if(src == null) {
+                return null;
             }
 
-<span class="fc bfc" id="L152" title="All 2 branches covered.">            if(Math.floor(src) == src) {</span>
-<span class="fc" id="L153">                return new JsonPrimitive(src.longValue());</span>
+            if(Math.floor(src) == src) {
+                return new JsonPrimitive(src.longValue());
             } else {
-<span class="fc" id="L155">                return new JsonPrimitive(src);</span>
+                return new JsonPrimitive(src);
             }
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

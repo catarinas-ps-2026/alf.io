@@ -95,56 +95,56 @@ public final class ValidationResult {
         private final Object[] arguments;
 
         public ErrorDescriptor(String fieldName, String message) {
-<span class="nc" id="L98">            this(fieldName, message, null, null);</span>
-<span class="nc" id="L99">        }</span>
+            this(fieldName, message, null, null);
+        }
 
         public ErrorDescriptor(String fieldName, String message, String code) {
-<span class="fc" id="L102">            this(fieldName, message, code, null);</span>
-<span class="fc" id="L103">        }</span>
+            this(fieldName, message, code, null);
+        }
 
-<span class="fc" id="L105">        public ErrorDescriptor(String fieldName, String message, String code, Object[] arguments) {</span>
-<span class="fc" id="L106">            this.fieldName = fieldName;</span>
-<span class="fc" id="L107">            this.message = message;</span>
-<span class="fc" id="L108">            this.code = code;</span>
-<span class="fc" id="L109">            this.arguments = arguments;</span>
-<span class="fc" id="L110">        }</span>
+        public ErrorDescriptor(String fieldName, String message, String code, Object[] arguments) {
+            this.fieldName = fieldName;
+            this.message = message;
+            this.code = code;
+            this.arguments = arguments;
+        }
 
         @Override
         public String getLocation() {
-<span class="nc" id="L114">            return fieldName;</span>
+            return fieldName;
         }
 
         @Override
         public String getCode() {
-<span class="fc" id="L119">            return code;</span>
+            return code;
         }
 
         @Override
         public String getDescription() {
-<span class="nc" id="L124">            return message;</span>
+            return message;
         }
 
         @Override
         public Object[] getArguments() {
-<span class="fc" id="L129">            return arguments;</span>
+            return arguments;
         }
 
         @Override
         public String toString() {
-<span class="fc" id="L134">            return &quot;ValidationResult.ErrorDescriptor(&quot; +</span>
+            return &quot;ValidationResult.ErrorDescriptor(&quot; +
                 &quot;fieldName=&quot; + fieldName +
                 &quot;, message=&quot; + message +
                 &quot;, code=&quot; + code +
-<span class="fc" id="L138">                &quot;, arguments=&quot; + Arrays.toString(arguments) +</span>
+                &quot;, arguments=&quot; + Arrays.toString(arguments) +
                 ')';
         }
 
         public static ErrorDescriptor fromFieldError(FieldError fieldError) {
-<span class="fc" id="L143">            return new ErrorDescriptor(fieldError.getField(), &quot;&quot;, fieldError.getCode(), fieldError.getArguments());</span>
+            return new ErrorDescriptor(fieldError.getField(), &quot;&quot;, fieldError.getCode(), fieldError.getArguments());
         }
 
         public static ErrorDescriptor fromObjectError(ObjectError objectError) {
-<span class="nc" id="L147">            return new ErrorDescriptor(&quot;&quot;, objectError.getObjectName(), objectError.getCode(), objectError.getArguments());</span>
+            return new ErrorDescriptor(&quot;&quot;, objectError.getObjectName(), objectError.getCode(), objectError.getArguments());
         }
     }
 
@@ -154,4 +154,4 @@ public final class ValidationResult {
     }
 }
 
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -89,10 +89,10 @@ public interface ConfigurationRepository {
         final int ticketCategoryId;
         final String value;
 
-<span class="fc" id="L92">        public CategoryAndValue(@Column(&quot;ticket_category_id_fk&quot;) int ticketCategoryId, @Column(&quot;c_value&quot;) String value) {</span>
-<span class="fc" id="L93">            this.ticketCategoryId = ticketCategoryId;</span>
-<span class="fc" id="L94">            this.value = value;</span>
-<span class="fc" id="L95">        }</span>
+        public CategoryAndValue(@Column(&quot;ticket_category_id_fk&quot;) int ticketCategoryId, @Column(&quot;c_value&quot;) String value) {
+            this.ticketCategoryId = ticketCategoryId;
+            this.value = value;
+        }
     }
 
     default Map&lt;Integer, String&gt; getAllCategoriesAndValueWith(int organizationId, int eventId, ConfigurationKeys key) {
@@ -247,4 +247,4 @@ public interface ConfigurationRepository {
         &quot;&quot;&quot;)
     @JSONData Map&lt;String, Map&lt;String, String&gt;&gt; getEventOverrideMessages(@Bind(&quot;orgId&quot;) int orgId, @Bind(&quot;eventId&quot;) int eventId);
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

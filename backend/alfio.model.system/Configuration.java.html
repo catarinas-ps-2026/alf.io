@@ -94,39 +94,39 @@ public class Configuration implements Comparable&lt;Configuration&gt; {
         ConfigurationPathLevel pathLevel();
     }
 
-<span class="fc" id="L97">    public record SystemConfigurationPath() implements ConfigurationPath {</span>
+    public record SystemConfigurationPath() implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-<span class="fc" id="L100">            return ConfigurationPathLevel.SYSTEM;</span>
+            return ConfigurationPathLevel.SYSTEM;
         }
     }
 
-<span class="fc" id="L104">    public record OrganizationConfigurationPath(int id) implements ConfigurationPath {</span>
+    public record OrganizationConfigurationPath(int id) implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-<span class="fc" id="L107">            return ConfigurationPathLevel.ORGANIZATION;</span>
+            return ConfigurationPathLevel.ORGANIZATION;
         }
     }
 
-<span class="fc" id="L111">    public record EventConfigurationPath(int organizationId, int id) implements ConfigurationPath {</span>
+    public record EventConfigurationPath(int organizationId, int id) implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-<span class="fc" id="L114">                return ConfigurationPathLevel.PURCHASE_CONTEXT;</span>
+                return ConfigurationPathLevel.PURCHASE_CONTEXT;
             }
     }
 
-<span class="nc" id="L118">    public record SubscriptionDescriptorConfigurationPath(int organizationId, UUID id) implements ConfigurationPath {</span>
+    public record SubscriptionDescriptorConfigurationPath(int organizationId, UUID id) implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-<span class="nc" id="L121">                return ConfigurationPathLevel.PURCHASE_CONTEXT;</span>
+                return ConfigurationPathLevel.PURCHASE_CONTEXT;
             }
     }
 
 
-<span class="nc" id="L126">    public record TicketCategoryConfigurationPath(int organizationId, int eventId, int id) implements ConfigurationPath {</span>
+    public record TicketCategoryConfigurationPath(int organizationId, int eventId, int id) implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-<span class="nc" id="L129">                return ConfigurationPathLevel.TICKET_CATEGORY;</span>
+                return ConfigurationPathLevel.TICKET_CATEGORY;
             }
     }
 
@@ -144,7 +144,7 @@ public class Configuration implements Comparable&lt;Configuration&gt; {
 
 
     //
-<span class="fc" id="L147">    public record ConfigurationPathKey(ConfigurationPath path, ConfigurationKeys key) {}</span>
+    public record ConfigurationPathKey(ConfigurationPath path, ConfigurationKeys key) {}
     //
 
     private static ConfigurationPathKey getOrganizationConfiguration(int organizationId, ConfigurationKeys configurationKey) {
@@ -183,4 +183,4 @@ public class Configuration implements Comparable&lt;Configuration&gt; {
 <span class="nc" id="L183">        return getTicketCategoryConfiguration(organizationId, eventId, ticketCategoryId, key);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -301,8 +301,8 @@ public class PaymentManager {
     @Data
     public static final class PaymentMethodDTO {
 
-<span class="fc" id="L304">        public enum PaymentMethodStatus {</span>
-<span class="fc" id="L305">            ACTIVE, ERROR</span>
+        public enum PaymentMethodStatus {
+            ACTIVE, ERROR
         }
 
         private final PaymentProxy paymentProxy;
@@ -311,21 +311,21 @@ public class PaymentManager {
         private final PaymentMethodStatus status;
 
         public boolean isActive() {
-<span class="pc bpc" id="L314" title="1 of 2 branches missed.">            return status == PaymentMethodStatus.ACTIVE;</span>
+            return status == PaymentMethodStatus.ACTIVE;
         }
 
         @Deprecated
         public Set&lt;String&gt; getOnlyForCurrency() {
-<span class="nc" id="L319">            return paymentProxy.getOnlyForCurrency();</span>
+            return paymentProxy.getOnlyForCurrency();
         }
 
         public PaymentMethod getPaymentMethod() {
-<span class="fc" id="L323">            return paymentMethod;</span>
+            return paymentMethod;
         }
 
         public String getPaymentMethodId() {
-<span class="fc" id="L327">            return paymentMethod.getPaymentMethodId();</span>
+            return paymentMethod.getPaymentMethodId();
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

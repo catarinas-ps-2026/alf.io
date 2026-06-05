@@ -684,7 +684,7 @@ public class ConfigurationManager {
 <span class="fc bfc" id="L684" title="All 2 branches covered.">                if(orgCustomPaymentMethodsConfigJson != null) {</span>
 <span class="fc" id="L685">                    orgCustomPaymentMethods = Json.fromJson(</span>
                         orgCustomPaymentMethodsConfigJson,
-<span class="fc" id="L687">                        new TypeReference&lt;List&lt;UserDefinedOfflinePaymentMethod&gt;&gt;(){}</span>
+                        new TypeReference&lt;List&lt;UserDefinedOfflinePaymentMethod&gt;&gt;(){}
                     );
 <span class="pc bpc" id="L689" title="1 of 2 branches missed.">                    if(orgCustomPaymentMethods == null) {</span>
 <span class="nc" id="L690">                        orgCustomPaymentMethods = List.of();</span>
@@ -735,61 +735,61 @@ public class ConfigurationManager {
         private final Optional&lt;ConfigurationKeyValuePathLevel&gt; configuration;
         private final ConfigurationKeys key;
 
-<span class="fc" id="L738">        public MaybeConfiguration(ConfigurationKeys key) {</span>
-<span class="fc" id="L739">            this.key = key;</span>
-<span class="fc" id="L740">            this.configuration = Optional.empty();</span>
-<span class="fc" id="L741">        }</span>
+        public MaybeConfiguration(ConfigurationKeys key) {
+            this.key = key;
+            this.configuration = Optional.empty();
+        }
 
-<span class="fc" id="L743">        public MaybeConfiguration(ConfigurationKeys key, ConfigurationKeyValuePathLevel configuration) {</span>
-<span class="fc" id="L744">            this.configuration = Optional.ofNullable(configuration);</span>
-<span class="fc" id="L745">            this.key = key;</span>
-<span class="fc" id="L746">        }</span>
+        public MaybeConfiguration(ConfigurationKeys key, ConfigurationKeyValuePathLevel configuration) {
+            this.configuration = Optional.ofNullable(configuration);
+            this.key = key;
+        }
 
         void ifPresentOrElse(Consumer&lt;? super ConfigurationKeyValuePathLevel&gt; action, Runnable emptyAction) {
-<span class="fc" id="L749">            configuration.ifPresentOrElse(action, emptyAction);</span>
-<span class="fc" id="L750">        }</span>
+            configuration.ifPresentOrElse(action, emptyAction);
+        }
 
         public boolean isPresent() {
-<span class="fc" id="L753">            return configuration.isPresent();</span>
+            return configuration.isPresent();
         }
 
         public boolean isEmpty() {
-<span class="fc" id="L757">            return configuration.isEmpty();</span>
+            return configuration.isEmpty();
         }
 
         public Optional&lt;String&gt; getValue() {
-<span class="fc" id="L761">            return configuration.map(ConfigurationKeyValuePathLevel::getValue);</span>
+            return configuration.map(ConfigurationKeyValuePathLevel::getValue);
         }
 
         public String getValueOrNull() {
-<span class="fc" id="L765">            return getValue().orElse(null);</span>
+            return getValue().orElse(null);
         }
 
         public String getValueOrDefault(String defaultValue) {
-<span class="fc" id="L769">            return getValue().orElse(defaultValue);</span>
+            return getValue().orElse(defaultValue);
         }
 
         public boolean getValueAsBooleanOrDefault() {
-<span class="fc" id="L773">            return getValue().map(Boolean::parseBoolean)</span>
-<span class="fc" id="L774">                .orElseGet(() -&gt; Boolean.parseBoolean(Objects.requireNonNull(key.getDefaultValue())));</span>
+            return getValue().map(Boolean::parseBoolean)
+                .orElseGet(() -&gt; Boolean.parseBoolean(Objects.requireNonNull(key.getDefaultValue())));
         }
 
         public int getValueAsIntOrDefault(int defaultValue) {
-<span class="fc" id="L778">            return getValue().flatMap(v -&gt; {</span>
+            return getValue().flatMap(v -&gt; {
                 try {
-<span class="fc" id="L780">                    return Optional.of(Integer.parseInt(v));</span>
-<span class="fc" id="L781">                } catch(NumberFormatException ex) {</span>
-<span class="fc" id="L782">                    return Optional.empty();</span>
+                    return Optional.of(Integer.parseInt(v));
+                } catch(NumberFormatException ex) {
+                    return Optional.empty();
                 }
-<span class="fc" id="L784">            }).orElse(defaultValue);</span>
+            }).orElse(defaultValue);
         }
 
         public ConfigurationPathLevel getConfigurationPathLevelOrDefault(ConfigurationPathLevel defaultValue) {
-<span class="fc" id="L788">            return configuration.map(ConfigurationKeyValuePathLevel::getConfigurationPathLevel).orElse(defaultValue);</span>
+            return configuration.map(ConfigurationKeyValuePathLevel::getConfigurationPathLevel).orElse(defaultValue);
         }
 
         public String getRequiredValue() {
-<span class="fc" id="L792">            return getValue().orElseThrow(() -&gt; new IllegalArgumentException(&quot;Mandatory configuration key &quot; + key + &quot; not present&quot;));</span>
+            return getValue().orElseThrow(() -&gt; new IllegalArgumentException(&quot;Mandatory configuration key &quot; + key + &quot; not present&quot;));
         }
     }
 
@@ -905,4 +905,4 @@ public class ConfigurationManager {
 <span class="fc" id="L905">        return new BigInteger(1, bytes).toString(36);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

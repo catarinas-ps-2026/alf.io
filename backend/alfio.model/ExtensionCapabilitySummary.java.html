@@ -61,26 +61,26 @@ public class ExtensionCapabilitySummary {
         @JsonCreator
         public ExtensionCapabilityDetails(@JsonProperty(&quot;label&quot;) String label,
                                           @JsonProperty(&quot;description&quot;) String description,
-<span class="nc" id="L64">                                          @JsonProperty(&quot;selector&quot;) String selector) {</span>
-<span class="nc" id="L65">            this.label = label;</span>
-<span class="nc" id="L66">            this.description = description;</span>
-<span class="nc" id="L67">            this.selector = selector;</span>
-<span class="nc" id="L68">        }</span>
+                                          @JsonProperty(&quot;selector&quot;) String selector) {
+            this.label = label;
+            this.description = description;
+            this.selector = selector;
+        }
 
         @Override
         public boolean equals(Object o) {
-<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (this == o) return true;</span>
-<span class="nc bnc" id="L73" title="All 4 branches missed.">            if (o == null || getClass() != o.getClass()) return false;</span>
-<span class="nc" id="L74">            ExtensionCapabilityDetails that = (ExtensionCapabilityDetails) o;</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">            return label.equals(that.label)</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">                &amp;&amp; Objects.equals(description, that.description)</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">                &amp;&amp; Objects.equals(selector, that.selector);</span>
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ExtensionCapabilityDetails that = (ExtensionCapabilityDetails) o;
+            return label.equals(that.label)
+                &amp;&amp; Objects.equals(description, that.description)
+                &amp;&amp; Objects.equals(selector, that.selector);
         }
 
         @Override
         public int hashCode() {
-<span class="nc" id="L82">            return Objects.hash(label, description, selector);</span>
+            return Objects.hash(label, description, selector);
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

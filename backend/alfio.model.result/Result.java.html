@@ -92,33 +92,33 @@ public class Result&lt;T&gt; {
 <span class="nc" id="L92">            .collect(Collectors.joining(&quot;\n&quot;));</span>
     }
 
-<span class="fc" id="L95">    public enum ResultStatus {</span>
-<span class="fc" id="L96">        OK, VALIDATION_ERROR, ERROR</span>
+    public enum ResultStatus {
+        OK, VALIDATION_ERROR, ERROR
     }
 
-<span class="fc" id="L99">    public static final class Builder&lt;T&gt; {</span>
-<span class="fc" id="L100">        private final List&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; validators = new ArrayList&lt;&gt;();</span>
+    public static final class Builder&lt;T&gt; {
+        private final List&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; validators = new ArrayList&lt;&gt;();
 
         public Builder&lt;T&gt; checkPrecondition(ConditionValidator validator, ErrorCode error) {
-<span class="fc" id="L103">            this.validators.add(Pair.of(validator, error));</span>
-<span class="fc" id="L104">            return this;</span>
+            this.validators.add(Pair.of(validator, error));
+            return this;
         }
 
         public Result&lt;T&gt; build(Supplier&lt;T&gt; valueSupplier) {
-<span class="fc" id="L108">            Optional&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; validationError = performValidation();</span>
-<span class="fc" id="L109">            return validationError.map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))</span>
-<span class="fc" id="L110">                .orElseGet(() -&gt; Result.success(valueSupplier.get()));</span>
+            Optional&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; validationError = performValidation();
+            return validationError.map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))
+                .orElseGet(() -&gt; Result.success(valueSupplier.get()));
         }
 
         public Result&lt;T&gt; buildAndEvaluate(Supplier&lt;Result&lt;T&gt;&gt; resultSupplier) {
-<span class="fc" id="L114">            return performValidation().map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))</span>
-<span class="fc" id="L115">                .orElseGet(resultSupplier);</span>
+            return performValidation().map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))
+                .orElseGet(resultSupplier);
         }
 
         private Optional&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; performValidation() {
-<span class="fc" id="L119">            return this.validators.stream()</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">                .filter(p -&gt; !p.getLeft().isValid())</span>
-<span class="fc" id="L121">                .findFirst();</span>
+            return this.validators.stream()
+                .filter(p -&gt; !p.getLeft().isValid())
+                .findFirst();
         }
 
     }
@@ -135,4 +135,4 @@ public class Result&lt;T&gt; {
         boolean isValid();
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
