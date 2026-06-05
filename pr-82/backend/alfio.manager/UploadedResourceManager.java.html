@@ -112,16 +112,16 @@ public class UploadedResourceManager {
     }
 
     public void deleteResource(String name) {
-<span class="nc" id="L115">        uploadedResourceRepository.delete(name);</span>
-<span class="nc" id="L116">    }</span>
+<span class="fc" id="L115">        uploadedResourceRepository.delete(name);</span>
+<span class="fc" id="L116">    }</span>
 
     public void deleteResource(int organizationId, String name) {
-<span class="nc" id="L119">        uploadedResourceRepository.delete(organizationId, name);</span>
-<span class="nc" id="L120">    }</span>
+<span class="fc" id="L119">        uploadedResourceRepository.delete(organizationId, name);</span>
+<span class="fc" id="L120">    }</span>
 
     public void deleteResource(int organizationId, int eventId, String name) {
-<span class="nc" id="L123">        uploadedResourceRepository.delete(organizationId, eventId, name);</span>
-<span class="nc" id="L124">    }</span>
+<span class="fc" id="L123">        uploadedResourceRepository.delete(organizationId, eventId, name);</span>
+<span class="fc" id="L124">    }</span>
 
     public List&lt;UploadedResource&gt; findAll() {
 <span class="fc" id="L127">        return uploadedResourceRepository.findAll();</span>
@@ -136,16 +136,16 @@ public class UploadedResourceManager {
     }
 
     private static Map&lt;String, String&gt; getAttributes(UploadBase64FileModification file) {
-<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if (!StringUtils.startsWith(file.getType(), &quot;image/&quot;)) {</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        if (!StringUtils.startsWith(file.getType(), &quot;image/&quot;)) {</span>
 <span class="fc" id="L140">            return file.getAttributes();</span>
         }
 
         try {
-<span class="nc" id="L144">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getFile()));</span>
-<span class="nc" id="L145">            Map&lt;String, String&gt; attributes = new HashMap&lt;&gt;(file.getAttributes());</span>
-<span class="nc" id="L146">            attributes.put(ATTR_IMG_WIDTH, String.valueOf(image.getWidth()));</span>
-<span class="nc" id="L147">            attributes.put(ATTR_IMG_HEIGHT, String.valueOf(image.getHeight()));</span>
-<span class="nc" id="L148">            return attributes;</span>
+<span class="fc" id="L144">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getFile()));</span>
+<span class="fc" id="L145">            Map&lt;String, String&gt; attributes = new HashMap&lt;&gt;(file.getAttributes());</span>
+<span class="fc" id="L146">            attributes.put(ATTR_IMG_WIDTH, String.valueOf(image.getWidth()));</span>
+<span class="fc" id="L147">            attributes.put(ATTR_IMG_HEIGHT, String.valueOf(image.getHeight()));</span>
+<span class="fc" id="L148">            return attributes;</span>
 <span class="nc" id="L149">        } catch (IOException e) {</span>
 <span class="nc" id="L150">            log.error(&quot;error while processing image: &quot;, e);</span>
 <span class="nc" id="L151">            return file.getAttributes();</span>
@@ -154,15 +154,15 @@ public class UploadedResourceManager {
 
     public Optional&lt;byte[]&gt; findCascading(int organizationId, Integer eventId, String savedName) {
 <span class="fc" id="L156">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="pc bpc" id="L157" title="1 of 4 branches missed.">        if(eventId != null &amp;&amp; hasResource(organizationId, eventId, savedName)) {</span>
-<span class="nc" id="L158">            outputResource(organizationId, eventId, savedName, baos);</span>
-<span class="nc" id="L159">            return Optional.of(baos.toByteArray());</span>
-<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        } else if (hasResource(organizationId, savedName)) {</span>
-<span class="nc" id="L161">            outputResource(organizationId, savedName, baos);</span>
-<span class="nc" id="L162">            return Optional.of(baos.toByteArray());</span>
-<span class="pc bpc" id="L163" title="1 of 2 branches missed.">        } else if (hasResource(savedName)) {</span>
-<span class="nc" id="L164">            outputResource(savedName, baos);</span>
-<span class="nc" id="L165">            return Optional.of(baos.toByteArray());</span>
+<span class="fc bfc" id="L157" title="All 4 branches covered.">        if(eventId != null &amp;&amp; hasResource(organizationId, eventId, savedName)) {</span>
+<span class="fc" id="L158">            outputResource(organizationId, eventId, savedName, baos);</span>
+<span class="fc" id="L159">            return Optional.of(baos.toByteArray());</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">        } else if (hasResource(organizationId, savedName)) {</span>
+<span class="fc" id="L161">            outputResource(organizationId, savedName, baos);</span>
+<span class="fc" id="L162">            return Optional.of(baos.toByteArray());</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        } else if (hasResource(savedName)) {</span>
+<span class="fc" id="L164">            outputResource(savedName, baos);</span>
+<span class="fc" id="L165">            return Optional.of(baos.toByteArray());</span>
         } else {
 <span class="fc" id="L167">            return Optional.empty();</span>
         }

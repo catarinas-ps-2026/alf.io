@@ -143,10 +143,10 @@ public class ConfigurationManager {
 
     public void saveConfig(ConfigurationPathKey pathKey, String value) {
 <span class="fc" id="L145">        ConfigurationPath path = pathKey.path();</span>
-<span class="pc bpc" id="L146" title="2 of 4 branches missed.">        switch (path.pathLevel()) {</span>
+<span class="pc bpc" id="L146" title="1 of 4 branches missed.">        switch (path.pathLevel()) {</span>
             case SYSTEM:
-<span class="nc" id="L148">                saveSystemConfiguration(pathKey.key(), value);</span>
-<span class="nc" id="L149">                break;</span>
+<span class="fc" id="L148">                saveSystemConfiguration(pathKey.key(), value);</span>
+<span class="fc" id="L149">                break;</span>
             case ORGANIZATION:
 <span class="fc" id="L151">                OrganizationConfigurationPath orgPath = (OrganizationConfigurationPath) path;</span>
 <span class="fc" id="L152">                saveOrganizationConfiguration(orgPath.id(), pathKey.key().name(), value);</span>
@@ -278,7 +278,7 @@ public class ConfigurationManager {
             }
 <span class="fc" id="L279">        } else {</span>
 <span class="fc" id="L280">            Optional&lt;String&gt; valueOpt = Optional.ofNullable(value);</span>
-<span class="pc bpc" id="L281" title="2 of 4 branches missed.">            if(conf.isEmpty() || conf.get().getConfigurationPathLevel() == EXTERNAL) {</span>
+<span class="pc bpc" id="L281" title="1 of 4 branches missed.">            if(conf.isEmpty() || conf.get().getConfigurationPathLevel() == EXTERNAL) {</span>
 <span class="fc" id="L282">                valueOpt.ifPresent(v -&gt; configurationRepository.insert(key.getValue(), v, key.getDescription()));</span>
             } else {
 <span class="nc" id="L284">                configurationRepository.update(key.getValue(), value);</span>
@@ -486,23 +486,23 @@ public class ConfigurationManager {
 <span class="fc" id="L486">    }</span>
 
     public void deleteOrganizationLevelByKey(String key, int organizationId, String username) {
-<span class="nc" id="L489">        Validate.isTrue(userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), organizationId), &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);</span>
-<span class="nc" id="L490">        configurationRepository.deleteOrganizationLevelByKey(key, organizationId);</span>
-<span class="nc" id="L491">    }</span>
+<span class="fc" id="L489">        Validate.isTrue(userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), organizationId), &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);</span>
+<span class="fc" id="L490">        configurationRepository.deleteOrganizationLevelByKey(key, organizationId);</span>
+<span class="fc" id="L491">    }</span>
 
     public void deleteEventLevelByKey(String key, int eventId, String username) {
-<span class="nc" id="L494">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
-<span class="nc" id="L495">        Validate.notNull(event, &quot;Wrong event id&quot;);</span>
-<span class="nc" id="L496">        Validate.isTrue(userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), event.getOrganizationId()), &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);</span>
-<span class="nc" id="L497">        configurationRepository.deleteEventLevelByKey(key, eventId);</span>
-<span class="nc" id="L498">    }</span>
+<span class="fc" id="L494">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="fc" id="L495">        Validate.notNull(event, &quot;Wrong event id&quot;);</span>
+<span class="fc" id="L496">        Validate.isTrue(userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), event.getOrganizationId()), &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);</span>
+<span class="fc" id="L497">        configurationRepository.deleteEventLevelByKey(key, eventId);</span>
+<span class="fc" id="L498">    }</span>
 
     public void deleteCategoryLevelByKey(String key, int eventId, int categoryId, String username) {
-<span class="nc" id="L501">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
-<span class="nc" id="L502">        Validate.notNull(event, &quot;Wrong event id&quot;);</span>
-<span class="nc" id="L503">        Validate.isTrue(userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), event.getOrganizationId()), &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);</span>
-<span class="nc" id="L504">        configurationRepository.deleteCategoryLevelByKey(key, eventId, categoryId);</span>
-<span class="nc" id="L505">    }</span>
+<span class="fc" id="L501">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="fc" id="L502">        Validate.notNull(event, &quot;Wrong event id&quot;);</span>
+<span class="fc" id="L503">        Validate.isTrue(userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), event.getOrganizationId()), &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);</span>
+<span class="fc" id="L504">        configurationRepository.deleteCategoryLevelByKey(key, eventId, categoryId);</span>
+<span class="fc" id="L505">    }</span>
 
     private static Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; collectConfigurationKeysByCategory(ConfigurationPathLevel pathLevel) {
 <span class="fc" id="L508">        return ConfigurationKeys.byPathLevel(pathLevel)</span>

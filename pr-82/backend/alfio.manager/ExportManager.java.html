@@ -49,8 +49,8 @@ public class ExportManager {
 <span class="fc" id="L49">            throw new IllegalArgumentException(&quot;Wrong interval&quot;);</span>
         }
 <span class="fc" id="L51">        var orgIds = userManager.findUserOrganizations(Objects.requireNonNull(principal).getName());</span>
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (orgIds.isEmpty()) {</span>
-<span class="nc" id="L53">            throw new IllegalArgumentException(&quot;Wrong user&quot;);</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (orgIds.isEmpty()) {</span>
+<span class="fc" id="L53">            throw new IllegalArgumentException(&quot;Wrong user&quot;);</span>
         }
 <span class="fc" id="L55">        var zoneId = clockProvider.getClock().getZone();</span>
 <span class="fc" id="L56">        var zonedFrom = from.atStartOfDay().atZone(zoneId);</span>

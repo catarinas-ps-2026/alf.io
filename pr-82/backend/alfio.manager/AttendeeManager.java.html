@@ -91,22 +91,22 @@ public class AttendeeManager {
     }
 
     public Result&lt;TicketWithAdditionalFields&gt; retrieveTicket(String eventShortName, String ticketUid, String username) {
-<span class="nc" id="L94">        Optional&lt;Event&gt; maybeEvent = eventRepository.findOptionalByShortName(eventShortName)</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">            .filter(e -&gt; userManager.findUserOrganizations(username).stream().anyMatch(o -&gt; o.getId() == e.getOrganizationId()));</span>
+<span class="fc" id="L94">        Optional&lt;Event&gt; maybeEvent = eventRepository.findOptionalByShortName(eventShortName)</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">            .filter(e -&gt; userManager.findUserOrganizations(username).stream().anyMatch(o -&gt; o.getId() == e.getOrganizationId()));</span>
 
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        if(maybeEvent.isEmpty()) {</span>
-<span class="nc" id="L98">            return Result.error(ErrorCode.EventError.NOT_FOUND);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        if(maybeEvent.isEmpty()) {</span>
+<span class="fc" id="L98">            return Result.error(ErrorCode.EventError.NOT_FOUND);</span>
         }
 
-<span class="nc" id="L101">        Event event = maybeEvent.get();</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">        Optional&lt;Ticket&gt; maybeTicket = ticketRepository.findOptionalByUUID(ticketUid).filter(t -&gt; t.getEventId() == event.getId());</span>
+<span class="fc" id="L101">        Event event = maybeEvent.get();</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        Optional&lt;Ticket&gt; maybeTicket = ticketRepository.findOptionalByUUID(ticketUid).filter(t -&gt; t.getEventId() == event.getId());</span>
 
-<span class="nc" id="L104">        return new Result.Builder&lt;TicketWithAdditionalFields&gt;()</span>
-<span class="nc" id="L105">            .checkPrecondition(maybeTicket::isPresent, ErrorCode.custom(&quot;ticket_not_found&quot;, &quot;ticket not found&quot;))</span>
-<span class="nc" id="L106">            .build(() -&gt; {</span>
-<span class="nc" id="L107">                var ticket = maybeTicket.orElseThrow();</span>
-<span class="nc" id="L108">                var descriptionAndValues = EventUtil.retrieveFieldValues(ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, true).apply(ticket, event);</span>
-<span class="nc" id="L109">                return new TicketWithAdditionalFields(ticket, descriptionAndValues);</span>
+<span class="fc" id="L104">        return new Result.Builder&lt;TicketWithAdditionalFields&gt;()</span>
+<span class="fc" id="L105">            .checkPrecondition(maybeTicket::isPresent, ErrorCode.custom(&quot;ticket_not_found&quot;, &quot;ticket not found&quot;))</span>
+<span class="fc" id="L106">            .build(() -&gt; {</span>
+<span class="fc" id="L107">                var ticket = maybeTicket.orElseThrow();</span>
+<span class="fc" id="L108">                var descriptionAndValues = EventUtil.retrieveFieldValues(ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, true).apply(ticket, event);</span>
+<span class="fc" id="L109">                return new TicketWithAdditionalFields(ticket, descriptionAndValues);</span>
             });
     }
 

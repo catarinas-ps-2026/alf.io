@@ -49,29 +49,29 @@ public class SameCountryValidator implements Predicate&lt;String&gt; {
     @Override
     public boolean test(String vatNr) {
 
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        if(StringUtils.isEmpty(vatNr)) {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if(StringUtils.isEmpty(vatNr)) {</span>
 <span class="nc" id="L53">            log.warn(&quot;empty VAT number received for organizationId {}&quot;, purchaseContext.getOrganizationId());</span>
         }
 
-<span class="nc" id="L56">        String organizerCountry = EuVatChecker.organizerCountry(configurationManager, purchaseContext);</span>
+<span class="fc" id="L56">        String organizerCountry = EuVatChecker.organizerCountry(configurationManager, purchaseContext);</span>
 
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        if(!EuVatChecker.validationEnabled(configurationManager, purchaseContext)) {</span>
-<span class="nc" id="L59">            log.warn(&quot;VAT checking is not enabled for organizationId {} or country not defined ({})&quot;, purchaseContext.getOrganizationId(), organizerCountry);</span>
-<span class="nc" id="L60">            return false;</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if(!EuVatChecker.validationEnabled(configurationManager, purchaseContext)) {</span>
+<span class="fc" id="L59">            log.warn(&quot;VAT checking is not enabled for organizationId {} or country not defined ({})&quot;, purchaseContext.getOrganizationId(), organizerCountry);</span>
+<span class="fc" id="L60">            return false;</span>
         }
 
-<span class="nc" id="L63">        EUVatCheckResponse result = EuVatChecker.validateEUVat(vatNr, organizerCountry, client);</span>
-<span class="nc bnc" id="L64" title="All 4 branches missed.">        boolean validStrict = result != null &amp;&amp; result.isValid();</span>
-<span class="nc" id="L65">        boolean valid = validStrict;</span>
+<span class="fc" id="L63">        EUVatCheckResponse result = EuVatChecker.validateEUVat(vatNr, organizerCountry, client);</span>
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">        boolean validStrict = result != null &amp;&amp; result.isValid();</span>
+<span class="fc" id="L65">        boolean valid = validStrict;</span>
 
-<span class="nc bnc" id="L67" title="All 4 branches missed.">        if(!valid &amp;&amp; StringUtils.isNotBlank(vatNr)) {</span>
-<span class="nc" id="L68">            valid = extensionManager.handleTaxIdValidation(purchaseContext, vatNr, organizerCountry);</span>
+<span class="pc bpc" id="L67" title="1 of 4 branches missed.">        if(!valid &amp;&amp; StringUtils.isNotBlank(vatNr)) {</span>
+<span class="fc" id="L68">            valid = extensionManager.handleTaxIdValidation(purchaseContext, vatNr, organizerCountry);</span>
         }
-<span class="nc bnc" id="L70" title="All 4 branches missed.">        if(valid &amp;&amp; StringUtils.isNotEmpty(ticketReservationId)) {</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">            VatDetail detail = new VatDetail(vatNr, organizerCountry, true, &quot;&quot;, &quot;&quot;, validStrict ? VatDetail.Type.VIES : VatDetail.Type.FORMAL, false);</span>
-<span class="nc" id="L72">            checker.logSuccessfulValidation(detail, ticketReservationId, purchaseContext);</span>
+<span class="pc bpc" id="L70" title="1 of 4 branches missed.">        if(valid &amp;&amp; StringUtils.isNotEmpty(ticketReservationId)) {</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">            VatDetail detail = new VatDetail(vatNr, organizerCountry, true, &quot;&quot;, &quot;&quot;, validStrict ? VatDetail.Type.VIES : VatDetail.Type.FORMAL, false);</span>
+<span class="fc" id="L72">            checker.logSuccessfulValidation(detail, ticketReservationId, purchaseContext);</span>
         }
-<span class="nc" id="L74">        return valid;</span>
+<span class="fc" id="L74">        return valid;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

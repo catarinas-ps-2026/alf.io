@@ -83,16 +83,16 @@ public interface FileUploadRepository {
      */
     default File file(String id) {
         try {
-<span class="nc" id="L86">            File cachedFile = File.createTempFile(&quot;fileupload-cache&quot;, &quot;.tmp&quot;);</span>
-<span class="nc" id="L87">            SqlParameterSource param = new MapSqlParameterSource(&quot;id&quot;, id);</span>
-<span class="nc" id="L88">            getNamedParameterJdbcTemplate().query(&quot;select content from file_blob where id = :id&quot;, param, rs -&gt; {</span>
+<span class="fc" id="L86">            File cachedFile = File.createTempFile(&quot;fileupload-cache&quot;, &quot;.tmp&quot;);</span>
+<span class="fc" id="L87">            SqlParameterSource param = new MapSqlParameterSource(&quot;id&quot;, id);</span>
+<span class="fc" id="L88">            getNamedParameterJdbcTemplate().query(&quot;select content from file_blob where id = :id&quot;, param, rs -&gt; {</span>
 <span class="nc" id="L89">                try (InputStream is = rs.getBinaryStream(&quot;content&quot;); OutputStream os = new FileOutputStream(cachedFile)) {</span>
 <span class="nc" id="L90">                    is.transferTo(os);</span>
 <span class="nc" id="L91">                } catch (IOException e) {</span>
 <span class="nc" id="L92">                    throw new IllegalStateException(&quot;Error while copying data&quot;, e);</span>
 <span class="nc" id="L93">                }</span>
 <span class="nc" id="L94">            });</span>
-<span class="nc" id="L95">            return cachedFile;</span>
+<span class="fc" id="L95">            return cachedFile;</span>
 <span class="nc" id="L96">        } catch (IOException e) {</span>
 <span class="nc" id="L97">            throw new IllegalStateException(e);</span>
         }

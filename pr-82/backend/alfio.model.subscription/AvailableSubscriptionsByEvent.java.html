@@ -57,8 +57,8 @@ public class AvailableSubscriptionsByEvent {
 <span class="fc" id="L57">        this.lastName = lastName;</span>
 <span class="fc" id="L58">        this.userLanguage = userLanguage;</span>
 <span class="fc" id="L59">        this.reservationEmail = reservationEmail;</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (additionalFieldsAsString != null) {</span>
-<span class="nc" id="L61">            this.additionalFields = Json.fromJson(additionalFieldsAsString, new TypeReference&lt;&gt;() {});</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (additionalFieldsAsString != null) {</span>
+<span class="fc" id="L61">            this.additionalFields = Json.fromJson(additionalFieldsAsString, new TypeReference&lt;&gt;() {});</span>
         } else {
 <span class="fc" id="L63">            this.additionalFields = List.of();</span>
         }
@@ -66,7 +66,7 @@ public class AvailableSubscriptionsByEvent {
 <span class="fc" id="L66">    }</span>
 
     public int getEventId() {
-<span class="nc" id="L69">        return eventId;</span>
+<span class="fc" id="L69">        return eventId;</span>
     }
 
     public UUID getSubscriptionId() {

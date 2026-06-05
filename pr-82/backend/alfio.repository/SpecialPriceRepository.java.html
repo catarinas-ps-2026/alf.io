@@ -134,8 +134,8 @@ public interface SpecialPriceRepository {
 
 
     default Map&lt;Integer,List&lt;SpecialPrice&gt;&gt; findAllByCategoriesIdsMapped(Collection&lt;Integer&gt; ticketCategoriesIds) {
-<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if(ticketCategoriesIds.isEmpty()) {</span>
-<span class="nc" id="L138">            return Collections.emptyMap();</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if(ticketCategoriesIds.isEmpty()) {</span>
+<span class="fc" id="L138">            return Collections.emptyMap();</span>
         }
 <span class="fc" id="L140">        return findAllByCategoriesIds(ticketCategoriesIds).stream().collect(Collectors.groupingBy(SpecialPrice::getTicketCategoryId));</span>
     }

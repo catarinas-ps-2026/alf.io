@@ -149,13 +149,13 @@ public interface GroupRepository {
     int deleteExistingWhitelistedTickets(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds);
 
     default void deactivateGroupMember(List&lt;Integer&gt; memberIds, int groupId) {
-<span class="nc" id="L152">        MapSqlParameterSource[] params = memberIds.stream().map(memberId -&gt;</span>
-<span class="nc" id="L153">                new MapSqlParameterSource(&quot;groupId&quot;, groupId)</span>
-<span class="nc" id="L154">                    .addValue(&quot;memberId&quot;, memberId)</span>
-<span class="nc" id="L155">                    .addValue(&quot;disabledPlaceholder&quot;, UUID.randomUUID().toString())</span>
-<span class="nc" id="L156">            ).toArray(MapSqlParameterSource[]::new);</span>
-<span class="nc" id="L157">        getNamedParameterJdbcTemplate().batchUpdate(&quot;update group_member set active = false, value = 'DISABLED-' || :disabledPlaceholder where id = :memberId and a_group_id_fk = :groupId&quot;, params);</span>
-<span class="nc" id="L158">    }</span>
+<span class="fc" id="L152">        MapSqlParameterSource[] params = memberIds.stream().map(memberId -&gt;</span>
+<span class="fc" id="L153">                new MapSqlParameterSource(&quot;groupId&quot;, groupId)</span>
+<span class="fc" id="L154">                    .addValue(&quot;memberId&quot;, memberId)</span>
+<span class="fc" id="L155">                    .addValue(&quot;disabledPlaceholder&quot;, UUID.randomUUID().toString())</span>
+<span class="fc" id="L156">            ).toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L157">        getNamedParameterJdbcTemplate().batchUpdate(&quot;update group_member set active = false, value = 'DISABLED-' || :disabledPlaceholder where id = :memberId and a_group_id_fk = :groupId&quot;, params);</span>
+<span class="fc" id="L158">    }</span>
 
 
     @Query(&quot;update a_group set active = false where id = :groupId&quot;)

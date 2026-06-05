@@ -77,7 +77,7 @@ public interface AdditionalServiceTextRepository {
 <span class="fc" id="L77">        return findByLocaleAndType(additionalServiceId, locale, type)</span>
 <span class="fc" id="L78">            .orElseGet(() -&gt; {</span>
 <span class="fc" id="L79">                List&lt;AdditionalServiceText&gt; texts = findAllByAdditionalServiceIdAndType(additionalServiceId, type);</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">                return !texts.isEmpty() ? texts.get(0) : new AdditionalServiceText(-1, additionalServiceId, locale, type, &quot;N/A&quot;);</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">                return !texts.isEmpty() ? texts.get(0) : new AdditionalServiceText(-1, additionalServiceId, locale, type, &quot;N/A&quot;);</span>
             });
     }
 

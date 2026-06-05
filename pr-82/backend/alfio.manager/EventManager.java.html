@@ -205,7 +205,7 @@ public class EventManager {
 <span class="fc" id="L205">        createCategoriesForEvent(em, event, srcEvent);</span>
 <span class="fc" id="L206">        createAllTicketsForEvent(event, em);</span>
 <span class="fc" id="L207">        createSubscriptionLinks(eventId, organization.getId(), toSubscriptionLinkRequests(em.getLinkedSubscriptions()));</span>
-<span class="pc" id="L208">        srcEvent.ifPresent(eventAndOrganizationId -&gt; copySettings(event, eventAndOrganizationId));</span>
+<span class="fc" id="L208">        srcEvent.ifPresent(eventAndOrganizationId -&gt; copySettings(event, eventAndOrganizationId));</span>
 <span class="fc" id="L209">        extensionManager.handleEventCreation(event);</span>
 <span class="fc" id="L210">        var eventMetadata = extensionManager.handleMetadataUpdate(event, organization, AlfioMetadata.empty());</span>
 <span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if(eventMetadata != null) {</span>
@@ -214,8 +214,8 @@ public class EventManager {
 <span class="fc" id="L214">    }</span>
 
     private Optional&lt;EventAndOrganizationId&gt; getCopiedFrom(EventModification em, String username) {
-<span class="pc bpc" id="L217" title="2 of 4 branches missed.">        if (em.getMetadata() != null &amp;&amp; StringUtils.isNotBlank(em.getMetadata().getCopiedFrom())) {</span>
-<span class="nc" id="L218">            return getOptionalEventAndOrganizationIdByName(em.getMetadata().getCopiedFrom(), username);</span>
+<span class="fc bfc" id="L217" title="All 4 branches covered.">        if (em.getMetadata() != null &amp;&amp; StringUtils.isNotBlank(em.getMetadata().getCopiedFrom())) {</span>
+<span class="fc" id="L218">            return getOptionalEventAndOrganizationIdByName(em.getMetadata().getCopiedFrom(), username);</span>
         }
 <span class="fc" id="L220">        return Optional.empty();</span>
     }
@@ -228,9 +228,9 @@ public class EventManager {
      * @param srcEvent source event
      */
     private void copySettings(Event event, EventAndOrganizationId srcEvent) {
-<span class="nc" id="L231">        int count = configurationRepository.copyEventConfiguration(event.getId(), event.getOrganizationId(), srcEvent.getId(), srcEvent.getOrganizationId());</span>
-<span class="nc" id="L232">        log.info(&quot;copied {} settings from source event&quot;, count);</span>
-<span class="nc" id="L233">    }</span>
+<span class="fc" id="L231">        int count = configurationRepository.copyEventConfiguration(event.getId(), event.getOrganizationId(), srcEvent.getId(), srcEvent.getOrganizationId());</span>
+<span class="fc" id="L232">        log.info(&quot;copied {} settings from source event&quot;, count);</span>
+<span class="fc" id="L233">    }</span>
 
     private void createSubscriptionLinks(int eventId, int organizationId, List&lt;LinkSubscriptionsToEventRequest&gt; linkedSubscriptions) {
 <span class="fc bfc" id="L236" title="All 2 branches covered.">        if(CollectionUtils.isNotEmpty(linkedSubscriptions)) {</span>
@@ -488,15 +488,15 @@ public class EventManager {
 <span class="fc" id="L488">        ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
 <span class="fc" id="L489">            .map(tc -&gt; Triple.of(tc, tc.getInception(zoneId), tc.getExpiration(zoneId)))</span>
 <span class="fc" id="L490">            .filter(t -&gt; t.getRight().isAfter(end))</span>
-<span class="pc" id="L491">            .forEach(t -&gt; fixTicketCategoryDates(end, t.getLeft(), t.getMiddle(), t.getRight()));</span>
+<span class="fc" id="L491">            .forEach(t -&gt; fixTicketCategoryDates(end, t.getLeft(), t.getMiddle(), t.getRight()));</span>
 <span class="fc" id="L492">    }</span>
 
     private void fixTicketCategoryDates(ZonedDateTime end, TicketCategory tc, ZonedDateTime inception, ZonedDateTime expiration) {
-<span class="nc" id="L495">        final ZonedDateTime newExpiration = ObjectUtils.min(end, expiration);</span>
-<span class="nc" id="L496">        Objects.requireNonNull(newExpiration);</span>
-<span class="nc" id="L497">        Validate.isTrue(inception.isBefore(newExpiration), format(&quot;Cannot fix dates for category \&quot;%s\&quot; (id: %d), try updating that category first.&quot;, tc.getName(), tc.getId()));</span>
-<span class="nc" id="L498">        ticketCategoryRepository.fixDates(tc.getId(), inception, newExpiration);</span>
-<span class="nc" id="L499">    }</span>
+<span class="fc" id="L495">        final ZonedDateTime newExpiration = ObjectUtils.min(end, expiration);</span>
+<span class="fc" id="L496">        Objects.requireNonNull(newExpiration);</span>
+<span class="fc" id="L497">        Validate.isTrue(inception.isBefore(newExpiration), format(&quot;Cannot fix dates for category \&quot;%s\&quot; (id: %d), try updating that category first.&quot;, tc.getName(), tc.getId()));</span>
+<span class="fc" id="L498">        ticketCategoryRepository.fixDates(tc.getId(), inception, newExpiration);</span>
+<span class="fc" id="L499">    }</span>
 
     public void reallocateTickets(int srcCategoryId, int targetCategoryId, EventAndOrganizationId event) {
 <span class="fc" id="L502">        reallocateTickets(ticketCategoryRepository.findStatisticWithId(srcCategoryId, event.getId()), Optional.of(ticketCategoryRepository.getByIdAndActive(targetCategoryId, event.getId())), event);</span>
@@ -862,14 +862,14 @@ public class EventManager {
     }
 
     public boolean toggleTicketLocking(String eventName, int categoryId, int ticketId, String username) {
-<span class="nc" id="L865">        EventAndOrganizationId event = getEventAndOrganizationId(eventName, username);</span>
-<span class="nc" id="L866">        checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="fc" id="L865">        EventAndOrganizationId event = getEventAndOrganizationId(eventName, username);</span>
+<span class="fc" id="L866">        checkOwnership(event, username, event.getOrganizationId());</span>
         // FIXME: can search directly by id
-<span class="nc bnc" id="L868" title="All 2 branches missed.">        var existingCategory = ticketCategoryRepository.findAllTicketCategories(event.getId()).stream().filter(tc -&gt; tc.getId() == categoryId).findFirst();</span>
-<span class="nc bnc" id="L869" title="All 2 branches missed.">        if(existingCategory.isPresent()) {</span>
-<span class="nc" id="L870">            Ticket ticket = ticketRepository.findById(ticketId, categoryId);</span>
-<span class="nc bnc" id="L871" title="All 4 branches missed.">            Validate.isTrue(ticketRepository.toggleTicketLocking(ticketId, categoryId, !ticket.getLockedAssignment()) == 1, &quot;unwanted result from ticket locking&quot;);</span>
-<span class="nc" id="L872">            return true;</span>
+<span class="pc bpc" id="L868" title="1 of 2 branches missed.">        var existingCategory = ticketCategoryRepository.findAllTicketCategories(event.getId()).stream().filter(tc -&gt; tc.getId() == categoryId).findFirst();</span>
+<span class="pc bpc" id="L869" title="1 of 2 branches missed.">        if(existingCategory.isPresent()) {</span>
+<span class="fc" id="L870">            Ticket ticket = ticketRepository.findById(ticketId, categoryId);</span>
+<span class="pc bpc" id="L871" title="2 of 4 branches missed.">            Validate.isTrue(ticketRepository.toggleTicketLocking(ticketId, categoryId, !ticket.getLockedAssignment()) == 1, &quot;unwanted result from ticket locking&quot;);</span>
+<span class="fc" id="L872">            return true;</span>
         }
 <span class="nc" id="L874">        throw new IllegalArgumentException(&quot;Invalid category&quot;);</span>
     }

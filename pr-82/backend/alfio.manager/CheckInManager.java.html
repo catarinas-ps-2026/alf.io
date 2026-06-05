@@ -288,12 +288,12 @@ public class CheckInManager {
 
     private TicketAndCheckInResult extractStatus(Optional&lt;? extends EventCheckInInfo&gt; maybeEvent, Optional&lt;Ticket&gt; maybeTicket, String ticketIdentifier, Optional&lt;String&gt; ticketCode) {
 
-<span class="pc bpc" id="L291" title="1 of 2 branches missed.">        if (maybeEvent.isEmpty()) {</span>
-<span class="nc" id="L292">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(EVENT_NOT_FOUND, &quot;Event not found&quot;));</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">        if (maybeEvent.isEmpty()) {</span>
+<span class="fc" id="L292">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(EVENT_NOT_FOUND, &quot;Event not found&quot;));</span>
         }
 
-<span class="pc bpc" id="L295" title="1 of 2 branches missed.">        if (maybeTicket.isEmpty()) {</span>
-<span class="nc" id="L296">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(TICKET_NOT_FOUND, &quot;Ticket with uuid &quot; + ticketIdentifier + &quot; not found&quot;));</span>
+<span class="fc bfc" id="L295" title="All 2 branches covered.">        if (maybeTicket.isEmpty()) {</span>
+<span class="fc" id="L296">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(TICKET_NOT_FOUND, &quot;Ticket with uuid &quot; + ticketIdentifier + &quot; not found&quot;));</span>
         }
 
 <span class="fc" id="L299">        Ticket ticket = maybeTicket.get();</span>
@@ -333,8 +333,8 @@ public class CheckInManager {
 <span class="nc" id="L333">                    tc.getName(), from, to, formattedNow)));</span>
         }
 
-<span class="pc bpc" id="L336" title="1 of 2 branches missed.">        if (!code.equals(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()))) {</span>
-<span class="nc" id="L337">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(INVALID_TICKET_CODE, &quot;Ticket qr code does not match&quot;));</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">        if (!code.equals(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()))) {</span>
+<span class="fc" id="L337">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(INVALID_TICKET_CODE, &quot;Ticket qr code does not match&quot;));</span>
         }
 
 <span class="fc" id="L340">        final TicketStatus ticketStatus = ticket.getStatus();</span>

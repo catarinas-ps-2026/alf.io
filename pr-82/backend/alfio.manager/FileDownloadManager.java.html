@@ -48,13 +48,13 @@ public class FileDownloadManager {
         HttpResponse&lt;byte[]&gt; response;
         try {
 <span class="fc" id="L50">            response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofByteArray());</span>
-<span class="nc" id="L51">        } catch (IOException exception) {</span>
-<span class="nc" id="L52">            logWarning(exception);</span>
-<span class="nc" id="L53">            return null;</span>
-<span class="nc" id="L54">        } catch (InterruptedException exception) {</span>
-<span class="nc" id="L55">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L56">            logWarning(exception);</span>
-<span class="nc" id="L57">            return null;</span>
+<span class="fc" id="L51">        } catch (IOException exception) {</span>
+<span class="fc" id="L52">            logWarning(exception);</span>
+<span class="fc" id="L53">            return null;</span>
+<span class="fc" id="L54">        } catch (InterruptedException exception) {</span>
+<span class="fc" id="L55">            Thread.currentThread().interrupt();</span>
+<span class="fc" id="L56">            logWarning(exception);</span>
+<span class="fc" id="L57">            return null;</span>
 <span class="fc" id="L58">        }</span>
 <span class="fc bfc" id="L59" title="All 2 branches covered.">        if(callSuccessful(response)) {</span>
 <span class="fc" id="L60">            String[] parts = Pattern.compile(&quot;/&quot;).split(url);</span>
@@ -75,8 +75,8 @@ public class FileDownloadManager {
     }
 
     private void logWarning(Throwable exception) {
-<span class="nc" id="L78">        log.warn(&quot;error while downloading file&quot;, exception);</span>
-<span class="nc" id="L79">    }</span>
+<span class="fc" id="L78">        log.warn(&quot;error while downloading file&quot;, exception);</span>
+<span class="fc" id="L79">    }</span>
 
     private boolean callSuccessful(HttpResponse&lt;?&gt; response) {
 <span class="pc bpc" id="L82" title="1 of 4 branches missed.">        return response.statusCode() &gt;= 200 &amp;&amp; response.statusCode() &lt; 300;</span>

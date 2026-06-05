@@ -827,14 +827,14 @@ public class TicketReservationManager {
 <span class="fc" id="L827">        var organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
 <span class="fc" id="L828">        extensionManager.handleCreditNoteGenerated(reservation, purchaseContext, ((OrderSummary) model.get(&quot;orderSummary&quot;)).getOriginalTotalPrice(), billingDocument.getId(), Map.of(ORGANIZATION, organization));</span>
 
-<span class="pc bpc" id="L830" title="1 of 2 branches missed.">        if(sendEmail) {</span>
-<span class="nc" id="L831">            var reservationLocale = getReservationLocale(reservation);</span>
-<span class="nc" id="L832">            notificationManager.sendSimpleEmail(purchaseContext,</span>
+<span class="fc bfc" id="L830" title="All 2 branches covered.">        if(sendEmail) {</span>
+<span class="fc" id="L831">            var reservationLocale = getReservationLocale(reservation);</span>
+<span class="fc" id="L832">            notificationManager.sendSimpleEmail(purchaseContext,</span>
                 reservationId,
-<span class="nc" id="L834">                reservation.getEmail(),</span>
-<span class="nc" id="L835">                reservationHelper.getReservationEmailSubject(purchaseContext, reservationLocale, &quot;credit-note-issued-email-subject&quot;, reservation.getId()),</span>
+<span class="fc" id="L834">                reservation.getEmail(),</span>
+<span class="fc" id="L835">                reservationHelper.getReservationEmailSubject(purchaseContext, reservationLocale, &quot;credit-note-issued-email-subject&quot;, reservation.getId()),</span>
 <span class="nc" id="L836">                () -&gt; templateManager.renderTemplate(purchaseContext, TemplateResource.CREDIT_NOTE_ISSUED_EMAIL, model, reservationLocale),</span>
-<span class="nc" id="L837">                reservationHelper.generateBillingDocumentAttachment(purchaseContext, reservation, reservationLocale, billingDocument.getModel(), CREDIT_NOTE)</span>
+<span class="fc" id="L837">                reservationHelper.generateBillingDocumentAttachment(purchaseContext, reservation, reservationLocale, billingDocument.getModel(), CREDIT_NOTE)</span>
             );
         }
 <span class="fc" id="L840">    }</span>
@@ -1087,8 +1087,8 @@ public class TicketReservationManager {
      * @param expirationDate expiration date
      */
     public void markExpiredInPaymentReservationAsStuck(Date expirationDate) {
-<span class="nc" id="L1090">        List&lt;Pair&lt;TicketReservation, Event&gt;&gt; stuckReservations = findStuckPaymentsToBeNotified(expirationDate);</span>
-<span class="nc bnc" id="L1091" title="All 2 branches missed.">        if(!stuckReservations.isEmpty()) {</span>
+<span class="fc" id="L1090">        List&lt;Pair&lt;TicketReservation, Event&gt;&gt; stuckReservations = findStuckPaymentsToBeNotified(expirationDate);</span>
+<span class="pc bpc" id="L1091" title="1 of 2 branches missed.">        if(!stuckReservations.isEmpty()) {</span>
 <span class="nc" id="L1092">            List&lt;String&gt; ids = stuckReservations.stream().map(p -&gt; p.getLeft().getId()).collect(toList());</span>
 <span class="nc" id="L1093">            ticketReservationRepository.updateReservationsStatus(ids, TicketReservationStatus.STUCK.name());</span>
 
@@ -1105,22 +1105,22 @@ public class TicketReservationManager {
 <span class="nc" id="L1105">                extensionManager.handleStuckReservations(event, reservations.stream().map(p -&gt; p.getLeft().getId()).collect(toList()));</span>
 <span class="nc" id="L1106">            });</span>
         }
-<span class="nc" id="L1108">    }</span>
+<span class="fc" id="L1108">    }</span>
 
     private List&lt;Pair&lt;TicketReservation, Event&gt;&gt; findStuckPaymentsToBeNotified(Date expirationDate) {
-<span class="nc" id="L1111">        List&lt;ReservationIdAndEventId&gt; stuckReservations = ticketReservationRepository.findStuckReservationsForUpdate(expirationDate);</span>
+<span class="fc" id="L1111">        List&lt;ReservationIdAndEventId&gt; stuckReservations = ticketReservationRepository.findStuckReservationsForUpdate(expirationDate);</span>
         Map&lt;Integer, Event&gt; events;
-<span class="nc bnc" id="L1113" title="All 2 branches missed.">        if(!stuckReservations.isEmpty()){</span>
+<span class="pc bpc" id="L1113" title="1 of 2 branches missed.">        if(!stuckReservations.isEmpty()){</span>
 <span class="nc" id="L1114">            events = eventRepository.findByIds(stuckReservations.stream().map(ReservationIdAndEventId::getEventId).collect(toSet()))</span>
 <span class="nc" id="L1115">                .stream()</span>
 <span class="nc" id="L1116">                .collect(toMap(Event::getId, Function.identity()));</span>
         } else {
-<span class="nc" id="L1118">            events = Map.of();</span>
+<span class="fc" id="L1118">            events = Map.of();</span>
         }
 
-<span class="nc" id="L1121">        return stuckReservations.stream()</span>
-<span class="nc" id="L1122">            .map(id -&gt; Pair.of(ticketReservationRepository.findReservationById(id.getId()), events.get(id.getEventId())))</span>
-<span class="nc" id="L1123">            .filter(reservationAndEvent -&gt; {</span>
+<span class="fc" id="L1121">        return stuckReservations.stream()</span>
+<span class="pc" id="L1122">            .map(id -&gt; Pair.of(ticketReservationRepository.findReservationById(id.getId()), events.get(id.getEventId())))</span>
+<span class="fc" id="L1123">            .filter(reservationAndEvent -&gt; {</span>
 <span class="nc" id="L1124">                var event = reservationAndEvent.getRight();</span>
 <span class="nc" id="L1125">                var reservation = reservationAndEvent.getLeft();</span>
 <span class="nc" id="L1126">                var optionalTransaction = transactionRepository.loadOptionalByReservationIdAndStatusForUpdate(reservation.getId(), Transaction.Status.PENDING);</span>
@@ -1138,7 +1138,7 @@ public class TicketReservationManager {
 <span class="nc" id="L1138">                handlePaymentWebhookResult(event, providerAndWebhookResult.getLeft(), paymentWebhookResult, reservation, transaction, paymentContext, &quot;stuck-check&quot;, false);</span>
 <span class="nc bnc" id="L1139" title="All 2 branches missed.">                return paymentWebhookResult.getType() == PaymentWebhookResult.Type.NOT_RELEVANT;</span>
             })
-<span class="nc" id="L1141">            .collect(toList());</span>
+<span class="fc" id="L1141">            .collect(toList());</span>
     }
 
     /**
@@ -1291,9 +1291,9 @@ public class TicketReservationManager {
                                   Optional&lt;UserDetails&gt; userDetails) {
 
 <span class="fc" id="L1293">        Ticket preUpdateTicket = ticketRepository.findByUUID(ticket.getUuid());</span>
-<span class="pc bpc" id="L1294" title="3 of 4 branches missed.">        if(preUpdateTicket.getLockedAssignment() &amp;&amp; isTicketBeingReassigned(ticket, updateTicketOwner, event)) {</span>
-<span class="nc" id="L1295">            log.warn(&quot;trying to update assignee for a locked ticket ({})&quot;, preUpdateTicket.getId());</span>
-<span class="nc" id="L1296">            return;</span>
+<span class="pc bpc" id="L1294" title="1 of 4 branches missed.">        if(preUpdateTicket.getLockedAssignment() &amp;&amp; isTicketBeingReassigned(ticket, updateTicketOwner, event)) {</span>
+<span class="fc" id="L1295">            log.warn(&quot;trying to update assignee for a locked ticket ({})&quot;, preUpdateTicket.getId());</span>
+<span class="fc" id="L1296">            return;</span>
         }
 
 <span class="fc" id="L1299">        var ticketFieldValueMapCollector = groupingBy(PurchaseContextFieldValue::getName, mapping(PurchaseContextFieldValue::getValue, toList()));</span>
@@ -1316,7 +1316,7 @@ public class TicketReservationManager {
 
 <span class="fc" id="L1317">        Ticket newTicket = ticketRepository.findByUUID(ticket.getUuid());</span>
 <span class="fc" id="L1318">        boolean sendTicketAllowed = configurationManager.getFor(SEND_TICKETS_AUTOMATICALLY, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault();</span>
-<span class="pc bpc" id="L1319" title="2 of 6 branches missed.">        if (sendTicketAllowed &amp;&amp; (newTicket.getStatus() == TicketStatus.ACQUIRED || newTicket.getStatus() == TicketStatus.TO_BE_PAID)</span>
+<span class="pc bpc" id="L1319" title="1 of 6 branches missed.">        if (sendTicketAllowed &amp;&amp; (newTicket.getStatus() == TicketStatus.ACQUIRED || newTicket.getStatus() == TicketStatus.TO_BE_PAID)</span>
 <span class="pc bpc" id="L1320" title="3 of 4 branches missed.">            &amp;&amp; (!equalsIgnoreCase(newEmail, ticket.getEmail()) || !equalsIgnoreCase(customerName.getFullName(), ticket.getFullName()))) {</span>
 <span class="fc" id="L1321">            reservationHelper.sendTicketByEmail(newTicket, userLocale, event, confirmationTextBuilder);</span>
         }
@@ -1402,52 +1402,52 @@ public class TicketReservationManager {
     }
 
     public void sendReminderForOfflinePayments() {
-<span class="nc" id="L1405">        Date expiration = truncate(addHours(new Date(), configurationManager.getForSystem(OFFLINE_REMINDER_HOURS).getValueAsIntOrDefault(24)), Calendar.DATE);</span>
-<span class="nc" id="L1406">        ticketReservationRepository.findAllOfflinePaymentReservationForNotificationForUpdate(expiration).stream()</span>
-<span class="nc" id="L1407">                .map(reservation -&gt; {</span>
-<span class="nc" id="L1408">                    Optional&lt;Ticket&gt; ticket = ticketRepository.findFirstTicketInReservation(reservation.getId());</span>
-<span class="nc" id="L1409">                    Optional&lt;Event&gt; event = ticket.map(t -&gt; eventRepository.findById(t.getEventId()));</span>
-<span class="nc" id="L1410">                    Optional&lt;Locale&gt; locale = ticket.map(t -&gt; LocaleUtil.forLanguageTag(t.getUserLanguage()));</span>
-<span class="nc" id="L1411">                    return Triple.of(reservation, event, locale);</span>
+<span class="fc" id="L1405">        Date expiration = truncate(addHours(new Date(), configurationManager.getForSystem(OFFLINE_REMINDER_HOURS).getValueAsIntOrDefault(24)), Calendar.DATE);</span>
+<span class="fc" id="L1406">        ticketReservationRepository.findAllOfflinePaymentReservationForNotificationForUpdate(expiration).stream()</span>
+<span class="fc" id="L1407">                .map(reservation -&gt; {</span>
+<span class="fc" id="L1408">                    Optional&lt;Ticket&gt; ticket = ticketRepository.findFirstTicketInReservation(reservation.getId());</span>
+<span class="fc" id="L1409">                    Optional&lt;Event&gt; event = ticket.map(t -&gt; eventRepository.findById(t.getEventId()));</span>
+<span class="fc" id="L1410">                    Optional&lt;Locale&gt; locale = ticket.map(t -&gt; LocaleUtil.forLanguageTag(t.getUserLanguage()));</span>
+<span class="fc" id="L1411">                    return Triple.of(reservation, event, locale);</span>
                 })
-<span class="nc" id="L1413">                .filter(p -&gt; p.getMiddle().isPresent())</span>
-<span class="nc" id="L1414">                .filter(p -&gt; {</span>
-<span class="nc" id="L1415">                    Event event = p.getMiddle().get();</span>
-<span class="nc bnc" id="L1416" title="All 2 branches missed.">                    return truncate(addHours(new Date(), configurationManager.getFor(OFFLINE_REMINDER_HOURS, ConfigurationLevel.event(event)).getValueAsIntOrDefault(24)), Calendar.DATE).compareTo(p.getLeft().getValidity()) &gt;= 0;</span>
+<span class="fc" id="L1413">                .filter(p -&gt; p.getMiddle().isPresent())</span>
+<span class="fc" id="L1414">                .filter(p -&gt; {</span>
+<span class="fc" id="L1415">                    Event event = p.getMiddle().get();</span>
+<span class="pc bpc" id="L1416" title="1 of 2 branches missed.">                    return truncate(addHours(new Date(), configurationManager.getFor(OFFLINE_REMINDER_HOURS, ConfigurationLevel.event(event)).getValueAsIntOrDefault(24)), Calendar.DATE).compareTo(p.getLeft().getValidity()) &gt;= 0;</span>
                 })
-<span class="nc" id="L1418">                .map(p -&gt; Triple.of(p.getLeft(), p.getMiddle().orElseThrow(), p.getRight().orElseThrow()))</span>
-<span class="nc" id="L1419">                .forEach(p -&gt; {</span>
-<span class="nc" id="L1420">                    TicketReservation reservation = p.getLeft();</span>
-<span class="nc" id="L1421">                    Event event = p.getMiddle();</span>
-<span class="nc" id="L1422">                    Map&lt;String, Object&gt; model = reservationHelper.prepareModelForReservationEmail(event, reservation);</span>
-<span class="nc" id="L1423">                    Locale locale = p.getRight();</span>
-<span class="nc" id="L1424">                    ticketReservationRepository.flagAsOfflinePaymentReminderSent(reservation.getId());</span>
-<span class="nc" id="L1425">                    notificationManager.sendSimpleEmail(event, reservation.getId(), reservation.getEmail(), messageSourceManager.getMessageSourceFor(event).getMessage(&quot;reservation.reminder.mail.subject&quot;,</span>
-<span class="nc" id="L1426">                    		new Object[]{configurationManager.getShortReservationID(event, reservation)}, locale), () -&gt; templateManager.renderTemplate(event, TemplateResource.REMINDER_EMAIL, model, locale));</span>
-<span class="nc" id="L1427">                });</span>
-<span class="nc" id="L1428">    }</span>
+<span class="fc" id="L1418">                .map(p -&gt; Triple.of(p.getLeft(), p.getMiddle().orElseThrow(), p.getRight().orElseThrow()))</span>
+<span class="fc" id="L1419">                .forEach(p -&gt; {</span>
+<span class="fc" id="L1420">                    TicketReservation reservation = p.getLeft();</span>
+<span class="fc" id="L1421">                    Event event = p.getMiddle();</span>
+<span class="fc" id="L1422">                    Map&lt;String, Object&gt; model = reservationHelper.prepareModelForReservationEmail(event, reservation);</span>
+<span class="fc" id="L1423">                    Locale locale = p.getRight();</span>
+<span class="fc" id="L1424">                    ticketReservationRepository.flagAsOfflinePaymentReminderSent(reservation.getId());</span>
+<span class="fc" id="L1425">                    notificationManager.sendSimpleEmail(event, reservation.getId(), reservation.getEmail(), messageSourceManager.getMessageSourceFor(event).getMessage(&quot;reservation.reminder.mail.subject&quot;,</span>
+<span class="pc" id="L1426">                    		new Object[]{configurationManager.getShortReservationID(event, reservation)}, locale), () -&gt; templateManager.renderTemplate(event, TemplateResource.REMINDER_EMAIL, model, locale));</span>
+<span class="fc" id="L1427">                });</span>
+<span class="fc" id="L1428">    }</span>
 
     //called each hour
     public void sendReminderForOfflinePaymentsToEventManagers() {
-<span class="nc" id="L1432">        eventRepository.findAllActives(ZonedDateTime.now(clockProvider.getClock())).stream().filter(event -&gt; {</span>
-<span class="nc" id="L1433">            ZonedDateTime dateTimeForEvent = event.now(clockProvider);</span>
-<span class="nc bnc" id="L1434" title="All 2 branches missed.">            return dateTimeForEvent.truncatedTo(ChronoUnit.HOURS).getHour() == 5; //only for the events at 5:00 local time</span>
-<span class="nc" id="L1435">        }).forEachOrdered(event -&gt; {</span>
-<span class="nc" id="L1436">            ZonedDateTime dateTimeForEvent = event.now(clockProvider).truncatedTo(ChronoUnit.DAYS).plusDays(1);</span>
-<span class="nc" id="L1437">            List&lt;TicketReservationInfo&gt; reservations = ticketReservationRepository.findAllOfflinePaymentReservationWithExpirationBeforeForUpdate(dateTimeForEvent, event.getId());</span>
-<span class="nc" id="L1438">            log.info(&quot;for event {} there are {} pending offline payments to handle&quot;, event.getId(), reservations.size());</span>
-<span class="nc bnc" id="L1439" title="All 2 branches missed.">            if(!reservations.isEmpty()) {</span>
-<span class="nc" id="L1440">                Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="nc" id="L1441">                List&lt;String&gt; cc = notificationManager.getCCForEventOrganizer(event);</span>
-<span class="nc" id="L1442">                String subject = &quot;There are %d pending offline payments that will expire in event: %s&quot;.formatted(reservations.size(), event.getDisplayName());</span>
-<span class="nc" id="L1443">                String baseUrl = configurationManager.getFor(BASE_URL, ConfigurationLevel.event(event)).getRequiredValue();</span>
-<span class="nc" id="L1444">                Map&lt;String, Object&gt; model = TemplateResource.prepareModelForOfflineReservationExpiringEmailForOrganizer(event, reservations, baseUrl);</span>
-<span class="nc" id="L1445">                notificationManager.sendSimpleEmail(event, null, organization.getEmail(), cc, subject, () -&gt;</span>
+<span class="fc" id="L1432">        eventRepository.findAllActives(ZonedDateTime.now(clockProvider.getClock())).stream().filter(event -&gt; {</span>
+<span class="fc" id="L1433">            ZonedDateTime dateTimeForEvent = event.now(clockProvider);</span>
+<span class="pc bpc" id="L1434" title="1 of 2 branches missed.">            return dateTimeForEvent.truncatedTo(ChronoUnit.HOURS).getHour() == 5; //only for the events at 5:00 local time</span>
+<span class="fc" id="L1435">        }).forEachOrdered(event -&gt; {</span>
+<span class="fc" id="L1436">            ZonedDateTime dateTimeForEvent = event.now(clockProvider).truncatedTo(ChronoUnit.DAYS).plusDays(1);</span>
+<span class="fc" id="L1437">            List&lt;TicketReservationInfo&gt; reservations = ticketReservationRepository.findAllOfflinePaymentReservationWithExpirationBeforeForUpdate(dateTimeForEvent, event.getId());</span>
+<span class="fc" id="L1438">            log.info(&quot;for event {} there are {} pending offline payments to handle&quot;, event.getId(), reservations.size());</span>
+<span class="pc bpc" id="L1439" title="1 of 2 branches missed.">            if(!reservations.isEmpty()) {</span>
+<span class="fc" id="L1440">                Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L1441">                List&lt;String&gt; cc = notificationManager.getCCForEventOrganizer(event);</span>
+<span class="fc" id="L1442">                String subject = &quot;There are %d pending offline payments that will expire in event: %s&quot;.formatted(reservations.size(), event.getDisplayName());</span>
+<span class="fc" id="L1443">                String baseUrl = configurationManager.getFor(BASE_URL, ConfigurationLevel.event(event)).getRequiredValue();</span>
+<span class="fc" id="L1444">                Map&lt;String, Object&gt; model = TemplateResource.prepareModelForOfflineReservationExpiringEmailForOrganizer(event, reservations, baseUrl);</span>
+<span class="fc" id="L1445">                notificationManager.sendSimpleEmail(event, null, organization.getEmail(), cc, subject, () -&gt;</span>
 <span class="nc" id="L1446">                    templateManager.renderTemplate(event, TemplateResource.OFFLINE_RESERVATION_EXPIRING_EMAIL_FOR_ORGANIZER, model, Locale.ENGLISH));</span>
-<span class="nc" id="L1447">                extensionManager.handleOfflineReservationsWillExpire(event, reservations);</span>
+<span class="fc" id="L1447">                extensionManager.handleOfflineReservationsWillExpire(event, reservations);</span>
             }
-<span class="nc" id="L1449">        });</span>
-<span class="nc" id="L1450">    }</span>
+<span class="fc" id="L1449">        });</span>
+<span class="fc" id="L1450">    }</span>
 
     public void sendReminderForTicketAssignment() {
 <span class="fc" id="L1453">        getNotifiableEventsStream()</span>
@@ -1771,13 +1771,13 @@ public class TicketReservationManager {
     public PaymentWebhookResult processTransactionWebhook(String body, String signature, PaymentProxy paymentProxy, Map&lt;String, String&gt; additionalInfo, PaymentContext pc) {
         //load the payment provider using given configuration
 <span class="fc" id="L1773">        var paymentProviderOptional = paymentManager.streamActiveProvidersByProxyAndCapabilities(paymentProxy, pc, List.of(WebhookHandler.class)).findFirst();</span>
-<span class="pc bpc" id="L1774" title="1 of 2 branches missed.">        if(paymentProviderOptional.isEmpty()) {</span>
-<span class="nc" id="L1775">            return PaymentWebhookResult.error(&quot;payment provider not found&quot;);</span>
+<span class="fc bfc" id="L1774" title="All 2 branches covered.">        if(paymentProviderOptional.isEmpty()) {</span>
+<span class="fc" id="L1775">            return PaymentWebhookResult.error(&quot;payment provider not found&quot;);</span>
         }
 
 <span class="fc" id="L1778">        var paymentProvider = paymentProviderOptional.get();</span>
-<span class="pc bpc" id="L1779" title="2 of 4 branches missed.">        if(((WebhookHandler)paymentProvider).requiresSignedBody() &amp;&amp; StringUtils.isBlank(signature)) {</span>
-<span class="nc" id="L1780">            return PaymentWebhookResult.error(&quot;signature is missing&quot;);</span>
+<span class="fc bfc" id="L1779" title="All 4 branches covered.">        if(((WebhookHandler)paymentProvider).requiresSignedBody() &amp;&amp; StringUtils.isBlank(signature)) {</span>
+<span class="fc" id="L1780">            return PaymentWebhookResult.error(&quot;signature is missing&quot;);</span>
         }
 
         PaymentContext paymentContext;
@@ -1791,25 +1791,25 @@ public class TicketReservationManager {
         }
 
 <span class="fc" id="L1793">        var optionalTransactionWebhookPayload = ((WebhookHandler)paymentProvider).parseTransactionPayload(body, signature, additionalInfo, paymentContext);</span>
-<span class="pc bpc" id="L1794" title="1 of 2 branches missed.">        if(optionalTransactionWebhookPayload.isEmpty()) {</span>
-<span class="nc" id="L1795">            return PaymentWebhookResult.error(&quot;payload not recognized&quot;);</span>
+<span class="fc bfc" id="L1794" title="All 2 branches covered.">        if(optionalTransactionWebhookPayload.isEmpty()) {</span>
+<span class="fc" id="L1795">            return PaymentWebhookResult.error(&quot;payload not recognized&quot;);</span>
         }
 <span class="fc" id="L1797">        var transactionPayload = optionalTransactionWebhookPayload.get();</span>
 
 <span class="fc" id="L1799">        var optionalReservation = ticketReservationRepository.findOptionalReservationById(transactionPayload.getReservationId());</span>
-<span class="pc bpc" id="L1800" title="1 of 2 branches missed.">        if(optionalReservation.isEmpty()) {</span>
-<span class="nc" id="L1801">            return PaymentWebhookResult.notRelevant(&quot;reservation not found&quot;);</span>
+<span class="fc bfc" id="L1800" title="All 2 branches covered.">        if(optionalReservation.isEmpty()) {</span>
+<span class="fc" id="L1801">            return PaymentWebhookResult.notRelevant(&quot;reservation not found&quot;);</span>
         }
 <span class="fc" id="L1803">        var reservation = optionalReservation.get();</span>
 <span class="fc" id="L1804">        var optionalTransaction = transactionRepository.lockLatestForUpdate(reservation.getId());</span>
-<span class="pc bpc" id="L1805" title="1 of 2 branches missed.">        if(optionalTransaction.isEmpty()) {</span>
-<span class="nc" id="L1806">            return PaymentWebhookResult.notRelevant(&quot;transaction not found&quot;);</span>
+<span class="fc bfc" id="L1805" title="All 2 branches covered.">        if(optionalTransaction.isEmpty()) {</span>
+<span class="fc" id="L1806">            return PaymentWebhookResult.notRelevant(&quot;transaction not found&quot;);</span>
         }
 <span class="fc" id="L1808">        var transaction = optionalTransaction.get();</span>
 
-<span class="pc bpc" id="L1810" title="2 of 4 branches missed.">        if(reservationStatusNotCompatible(reservation) || transaction.getStatus() != Transaction.Status.PENDING) {</span>
-<span class="nc" id="L1811">            log.warn(&quot;discarding transaction webhook {} for reservation id {} ({}). Transaction status is: {}&quot;, transactionPayload.getType(), reservation.getId(), reservation.getStatus(), transaction.getStatus());</span>
-<span class="nc" id="L1812">            return PaymentWebhookResult.notRelevant(&quot;reservation status is not compatible&quot;);</span>
+<span class="pc bpc" id="L1810" title="1 of 4 branches missed.">        if(reservationStatusNotCompatible(reservation) || transaction.getStatus() != Transaction.Status.PENDING) {</span>
+<span class="fc" id="L1811">            log.warn(&quot;discarding transaction webhook {} for reservation id {} ({}). Transaction status is: {}&quot;, transactionPayload.getType(), reservation.getId(), reservation.getStatus(), transaction.getStatus());</span>
+<span class="fc" id="L1812">            return PaymentWebhookResult.notRelevant(&quot;reservation status is not compatible&quot;);</span>
         }
 
 
@@ -1939,7 +1939,7 @@ public class TicketReservationManager {
 
     private boolean reservationStatusNotCompatible(TicketReservation reservation) {
 <span class="fc" id="L1941">        TicketReservationStatus status = reservation.getStatus();</span>
-<span class="pc bpc" id="L1942" title="3 of 4 branches missed.">        return status != EXTERNAL_PROCESSING_PAYMENT &amp;&amp; status != WAITING_EXTERNAL_CONFIRMATION;</span>
+<span class="pc bpc" id="L1942" title="1 of 4 branches missed.">        return status != EXTERNAL_PROCESSING_PAYMENT &amp;&amp; status != WAITING_EXTERNAL_CONFIRMATION;</span>
     }
 
     private void sendTransactionFailedEmail(PurchaseContext purchaseContext, TicketReservation reservation, PaymentMethod paymentMethod, PaymentWebhookResult paymentWebhookResult, boolean cancelReservation) {
@@ -2011,9 +2011,9 @@ public class TicketReservationManager {
     }
 
     public void checkOfflinePaymentsStatus() {
-<span class="nc" id="L2014">        eventRepository.findAllActives(ZonedDateTime.now(clockProvider.getClock()))</span>
-<span class="nc" id="L2015">            .forEach(this::checkOfflinePaymentsForEvent);</span>
-<span class="nc" id="L2016">    }</span>
+<span class="fc" id="L2014">        eventRepository.findAllActives(ZonedDateTime.now(clockProvider.getClock()))</span>
+<span class="fc" id="L2015">            .forEach(this::checkOfflinePaymentsForEvent);</span>
+<span class="fc" id="L2016">    }</span>
 
     public Optional&lt;String&gt; createSubscriptionReservation(SubscriptionDescriptor subscriptionDescriptor,
                                                           Locale locale,
@@ -2087,93 +2087,93 @@ public class TicketReservationManager {
 <span class="fc" id="L2087">    }</span>
 
     private void checkOfflinePaymentsForEvent(Event event) {
-<span class="nc" id="L2090">        log.trace(&quot;check offline payments for event {}&quot;, event.getShortName());</span>
-<span class="nc" id="L2091">        var paymentContext = new PaymentContext(event);</span>
-<span class="nc" id="L2092">        var providers = paymentManager.streamActiveProvidersByProxyAndCapabilities(PaymentProxy.OFFLINE, paymentContext, List.of(OfflineProcessor.class))</span>
-<span class="nc" id="L2093">            .collect(toList());</span>
-<span class="nc bnc" id="L2094" title="All 2 branches missed.">        if(providers.isEmpty()) {</span>
-<span class="nc" id="L2095">            log.trace(&quot;No active offline provider has been found. Exiting...&quot;);</span>
-<span class="nc" id="L2096">            return;</span>
+<span class="fc" id="L2090">        log.trace(&quot;check offline payments for event {}&quot;, event.getShortName());</span>
+<span class="fc" id="L2091">        var paymentContext = new PaymentContext(event);</span>
+<span class="fc" id="L2092">        var providers = paymentManager.streamActiveProvidersByProxyAndCapabilities(PaymentProxy.OFFLINE, paymentContext, List.of(OfflineProcessor.class))</span>
+<span class="fc" id="L2093">            .collect(toList());</span>
+<span class="fc bfc" id="L2094" title="All 2 branches covered.">        if(providers.isEmpty()) {</span>
+<span class="fc" id="L2095">            log.trace(&quot;No active offline provider has been found. Exiting...&quot;);</span>
+<span class="fc" id="L2096">            return;</span>
         }
-<span class="nc" id="L2098">        var pendingReservationsMap = ticketSearchRepository.findOfflineReservationsWithPendingTransaction(event.getId()).stream()</span>
-<span class="nc" id="L2099">            .collect(toMap(tr -&gt; tr.getTicketReservation().getId(), Function.identity()));</span>
+<span class="fc" id="L2098">        var pendingReservationsMap = ticketSearchRepository.findOfflineReservationsWithPendingTransaction(event.getId()).stream()</span>
+<span class="fc" id="L2099">            .collect(toMap(tr -&gt; tr.getTicketReservation().getId(), Function.identity()));</span>
 
-<span class="nc bnc" id="L2101" title="All 2 branches missed.">        if(pendingReservationsMap.isEmpty()) {</span>
-<span class="nc" id="L2102">            log.trace(&quot;no pending reservations found. Exiting...&quot;);</span>
-<span class="nc" id="L2103">            return;</span>
+<span class="fc bfc" id="L2101" title="All 2 branches covered.">        if(pendingReservationsMap.isEmpty()) {</span>
+<span class="fc" id="L2102">            log.trace(&quot;no pending reservations found. Exiting...&quot;);</span>
+<span class="fc" id="L2103">            return;</span>
         }
 
-<span class="nc" id="L2106">        var errors = new ArrayList&lt;String&gt;();</span>
-<span class="nc" id="L2107">        var confirmed = new ArrayList&lt;String&gt;();</span>
-<span class="nc" id="L2108">        var pendingReview = new ArrayList&lt;String&gt;();</span>
-<span class="nc" id="L2109">        int matchingCount = 0;</span>
-<span class="nc bnc" id="L2110" title="All 4 branches missed.">        for (int i = 0; !pendingReservationsMap.isEmpty() &amp;&amp; i &lt; providers.size(); i++) {</span>
-<span class="nc" id="L2111">            OfflineProcessor offlineProcessor = (OfflineProcessor) providers.get(i);</span>
-<span class="nc" id="L2112">            Result&lt;List&lt;String&gt;&gt; matching = offlineProcessor.checkPendingReservations(pendingReservationsMap.values(), paymentContext, null);</span>
-<span class="nc bnc" id="L2113" title="All 2 branches missed.">            if(matching.isSuccess()) {</span>
-<span class="nc" id="L2114">                int resultSize = matching.getData().size();</span>
-<span class="nc" id="L2115">                matchingCount += resultSize;</span>
-<span class="nc" id="L2116">                log.trace(&quot;found {} matches for provider {}&quot;, matchingCount, offlineProcessor.getClass().getName());</span>
-<span class="nc bnc" id="L2117" title="All 2 branches missed.">                if(resultSize &gt; 0) {</span>
-<span class="nc" id="L2118">                    processResults(event, pendingReservationsMap, errors, confirmed, pendingReview, matching);</span>
+<span class="fc" id="L2106">        var errors = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L2107">        var confirmed = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L2108">        var pendingReview = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L2109">        int matchingCount = 0;</span>
+<span class="pc bpc" id="L2110" title="1 of 4 branches missed.">        for (int i = 0; !pendingReservationsMap.isEmpty() &amp;&amp; i &lt; providers.size(); i++) {</span>
+<span class="fc" id="L2111">            OfflineProcessor offlineProcessor = (OfflineProcessor) providers.get(i);</span>
+<span class="fc" id="L2112">            Result&lt;List&lt;String&gt;&gt; matching = offlineProcessor.checkPendingReservations(pendingReservationsMap.values(), paymentContext, null);</span>
+<span class="pc bpc" id="L2113" title="1 of 2 branches missed.">            if(matching.isSuccess()) {</span>
+<span class="fc" id="L2114">                int resultSize = matching.getData().size();</span>
+<span class="fc" id="L2115">                matchingCount += resultSize;</span>
+<span class="fc" id="L2116">                log.trace(&quot;found {} matches for provider {}&quot;, matchingCount, offlineProcessor.getClass().getName());</span>
+<span class="pc bpc" id="L2117" title="1 of 2 branches missed.">                if(resultSize &gt; 0) {</span>
+<span class="fc" id="L2118">                    processResults(event, pendingReservationsMap, errors, confirmed, pendingReview, matching);</span>
                 }
             }
         }
-<span class="nc bnc" id="L2122" title="All 2 branches missed.">        if(matchingCount &gt; 0) {</span>
-<span class="nc" id="L2123">            var organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="nc" id="L2124">            var cc = notificationManager.getCCForEventOrganizer(event);</span>
-<span class="nc" id="L2125">            var subject = &quot;%d matching payments found for: %s&quot;.formatted(matchingCount, event.getDisplayName());</span>
+<span class="pc bpc" id="L2122" title="1 of 2 branches missed.">        if(matchingCount &gt; 0) {</span>
+<span class="fc" id="L2123">            var organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L2124">            var cc = notificationManager.getCCForEventOrganizer(event);</span>
+<span class="fc" id="L2125">            var subject = &quot;%d matching payments found for: %s&quot;.formatted(matchingCount, event.getDisplayName());</span>
 
-<span class="nc" id="L2127">            Map&lt;String, Object&gt; model = Map.of(</span>
-<span class="nc" id="L2128">                &quot;matchingCount&quot;, matchingCount,</span>
-<span class="nc" id="L2129">                &quot;eventName&quot;, event.getDisplayName(),</span>
-<span class="nc bnc" id="L2130" title="All 2 branches missed.">                &quot;pendingReviewMatches&quot;, !pendingReview.isEmpty(),</span>
+<span class="fc" id="L2127">            Map&lt;String, Object&gt; model = Map.of(</span>
+<span class="fc" id="L2128">                &quot;matchingCount&quot;, matchingCount,</span>
+<span class="fc" id="L2129">                &quot;eventName&quot;, event.getDisplayName(),</span>
+<span class="fc bfc" id="L2130" title="All 2 branches covered.">                &quot;pendingReviewMatches&quot;, !pendingReview.isEmpty(),</span>
                 &quot;pendingReview&quot;, pendingReview,
-<span class="nc bnc" id="L2132" title="All 2 branches missed.">                &quot;automaticApprovedMatches&quot;, !confirmed.isEmpty(),</span>
+<span class="pc bpc" id="L2132" title="1 of 2 branches missed.">                &quot;automaticApprovedMatches&quot;, !confirmed.isEmpty(),</span>
                 &quot;automaticApproved&quot;, confirmed,
-<span class="nc bnc" id="L2134" title="All 2 branches missed.">                &quot;automaticApprovalErrors&quot;, !errors.isEmpty(),</span>
+<span class="fc bfc" id="L2134" title="All 2 branches covered.">                &quot;automaticApprovalErrors&quot;, !errors.isEmpty(),</span>
                 &quot;approvalErrors&quot;, errors
             );
-<span class="nc" id="L2137">            notificationManager.sendSimpleEmail(event, null, organization.getEmail(), cc, subject,</span>
+<span class="fc" id="L2137">            notificationManager.sendSimpleEmail(event, null, organization.getEmail(), cc, subject,</span>
 <span class="nc" id="L2138">            	() -&gt; templateManager.renderTemplate(event, TemplateResource.OFFLINE_PAYMENT_MATCHES_FOUND, model, Locale.ENGLISH));</span>
         }
 
 
-<span class="nc" id="L2142">    }</span>
+<span class="fc" id="L2142">    }</span>
 
     private void processResults(Event event, Map&lt;String, TicketReservationWithTransaction&gt; pendingReservationsMap, ArrayList&lt;String&gt; errors, ArrayList&lt;String&gt; confirmed, ArrayList&lt;String&gt; pendingReview, Result&lt;List&lt;String&gt;&gt; matching) {
-<span class="nc" id="L2145">        var reservations = ticketSearchRepository.findOfflineReservationsWithTransaction(matching.getData());</span>
-<span class="nc" id="L2146">        reservations.forEach(tr -&gt; {</span>
-<span class="nc" id="L2147">            var reservationId = tr.getTicketReservation().getId();</span>
-<span class="nc" id="L2148">            auditingRepository.insert(reservationId, null, event.getId(),</span>
-<span class="nc" id="L2149">                MATCHING_PAYMENT_FOUND, new Date(), RESERVATION, reservationId, json.asJsonString(List.of(tr.getTransaction().getMetadata())));</span>
-<span class="nc" id="L2150">            pendingReservationsMap.remove(reservationId);</span>
-<span class="nc" id="L2151">        });</span>
-<span class="nc" id="L2152">        var byStatus = reservations.stream().collect(groupingBy(tr -&gt; tr.getTransaction().getStatus()));</span>
+<span class="fc" id="L2145">        var reservations = ticketSearchRepository.findOfflineReservationsWithTransaction(matching.getData());</span>
+<span class="fc" id="L2146">        reservations.forEach(tr -&gt; {</span>
+<span class="fc" id="L2147">            var reservationId = tr.getTicketReservation().getId();</span>
+<span class="fc" id="L2148">            auditingRepository.insert(reservationId, null, event.getId(),</span>
+<span class="fc" id="L2149">                MATCHING_PAYMENT_FOUND, new Date(), RESERVATION, reservationId, json.asJsonString(List.of(tr.getTransaction().getMetadata())));</span>
+<span class="fc" id="L2150">            pendingReservationsMap.remove(reservationId);</span>
+<span class="fc" id="L2151">        });</span>
+<span class="fc" id="L2152">        var byStatus = reservations.stream().collect(groupingBy(tr -&gt; tr.getTransaction().getStatus()));</span>
 
-<span class="nc" id="L2154">        byStatus.getOrDefault(Transaction.Status.OFFLINE_MATCHING_PAYMENT_FOUND, List.of()).forEach(tr -&gt; {</span>
-<span class="nc" id="L2155">            var reservationId = tr.getTicketReservation().getId();</span>
-<span class="nc bnc" id="L2156" title="All 2 branches missed.">            if(automaticConfirmOfflinePayment(event, reservationId)) {</span>
+<span class="fc" id="L2154">        byStatus.getOrDefault(Transaction.Status.OFFLINE_MATCHING_PAYMENT_FOUND, List.of()).forEach(tr -&gt; {</span>
+<span class="fc" id="L2155">            var reservationId = tr.getTicketReservation().getId();</span>
+<span class="pc bpc" id="L2156" title="1 of 2 branches missed.">            if(automaticConfirmOfflinePayment(event, reservationId)) {</span>
 <span class="nc" id="L2157">                log.trace(&quot;reservation {} confirmed automatically&quot;, reservationId);</span>
 <span class="nc" id="L2158">                auditingRepository.insert(reservationId, null, event.getId(), Audit.EventType.AUTOMATIC_PAYMENT_CONFIRMATION, new Date(), RESERVATION, reservationId);</span>
 <span class="nc" id="L2159">                confirmed.add(reservationId);</span>
             } else {
-<span class="nc" id="L2161">                log.trace(&quot;got error while confirming reservation {}&quot;, reservationId);</span>
-<span class="nc" id="L2162">                auditingRepository.insert(reservationId, null, event.getId(), Audit.EventType.AUTOMATIC_PAYMENT_CONFIRMATION_FAILED, new Date(), RESERVATION, reservationId);</span>
-<span class="nc" id="L2163">                errors.add(reservationId);</span>
+<span class="fc" id="L2161">                log.trace(&quot;got error while confirming reservation {}&quot;, reservationId);</span>
+<span class="fc" id="L2162">                auditingRepository.insert(reservationId, null, event.getId(), Audit.EventType.AUTOMATIC_PAYMENT_CONFIRMATION_FAILED, new Date(), RESERVATION, reservationId);</span>
+<span class="fc" id="L2163">                errors.add(reservationId);</span>
             }
-<span class="nc" id="L2165">        });</span>
+<span class="fc" id="L2165">        });</span>
 
-<span class="nc" id="L2167">        pendingReview.addAll(byStatus.getOrDefault(Transaction.Status.OFFLINE_PENDING_REVIEW, List.of()).stream().map(tr -&gt; tr.getTicketReservation().getId()).collect(toList()));</span>
-<span class="nc" id="L2168">    }</span>
+<span class="fc" id="L2167">        pendingReview.addAll(byStatus.getOrDefault(Transaction.Status.OFFLINE_PENDING_REVIEW, List.of()).stream().map(tr -&gt; tr.getTicketReservation().getId()).collect(toList()));</span>
+<span class="fc" id="L2168">    }</span>
 
     private boolean automaticConfirmOfflinePayment(Event event, String reservationId) {
         try {
 <span class="nc" id="L2172">            confirmOfflinePayment(event, reservationId, null, null);</span>
 <span class="nc" id="L2173">            return true;</span>
-<span class="nc" id="L2174">        } catch(Exception ex) {</span>
-<span class="nc" id="L2175">            log.warn(&quot;Unable to confirm reservation &quot;+reservationId, ex);</span>
-<span class="nc" id="L2176">            return false;</span>
+<span class="fc" id="L2174">        } catch(Exception ex) {</span>
+<span class="fc" id="L2175">            log.warn(&quot;Unable to confirm reservation &quot;+reservationId, ex);</span>
+<span class="fc" id="L2176">            return false;</span>
         }
     }
 
@@ -2276,11 +2276,11 @@ public class TicketReservationManager {
 <span class="fc bfc" id="L2276" title="All 2 branches covered.">            if(oncePerEvent) {</span>
 <span class="fc" id="L2277">                limit = 1;</span>
 <span class="fc" id="L2278">                eventIdToFilter = eventId;</span>
-<span class="pc bpc" id="L2279" title="1 of 2 branches missed.">            } else if(subscription.getMaxEntries() &gt; -1) {</span>
+<span class="fc bfc" id="L2279" title="All 2 branches covered.">            } else if(subscription.getMaxEntries() &gt; -1) {</span>
 <span class="fc" id="L2280">                limit = subscription.getMaxEntries();</span>
             } else {
                 // otherwise the sky's the limit
-<span class="nc" id="L2283">                limit = Integer.MAX_VALUE;</span>
+<span class="fc" id="L2283">                limit = Integer.MAX_VALUE;</span>
             }
 <span class="fc" id="L2285">            int countExisting = ticketRepository.countSubscriptionUsage(subscriptionId, eventIdToFilter);</span>
 <span class="pc bpc" id="L2286" title="1 of 2 branches missed.">            if(countExisting &gt;= limit) {</span>
@@ -2296,10 +2296,10 @@ public class TicketReservationManager {
 <span class="fc" id="L2296">                count = ticketRepository.applySubscriptionToTicketsInReservation(reservation.getId(), subscriptionId, limit - countExisting);</span>
             }
 <span class="fc" id="L2298">            log.trace(&quot;Applied subscription {} to {} tickets for reservation {}&quot;, subscriptionId, count, reservation.getId());</span>
-<span class="nc" id="L2299">        } catch(UncategorizedSQLException sqlException) {</span>
-<span class="nc" id="L2300">            log.trace(&quot;got exception while trying to apply SubscriptionID {} to ReservationID {}&quot;, subscriptionId, reservation.getId());</span>
-<span class="nc" id="L2301">            throw SqlUtils.findServerError(sqlException)</span>
-<span class="nc" id="L2302">                .map(serverError -&gt; {</span>
+<span class="fc" id="L2299">        } catch(UncategorizedSQLException sqlException) {</span>
+<span class="fc" id="L2300">            log.trace(&quot;got exception while trying to apply SubscriptionID {} to ReservationID {}&quot;, subscriptionId, reservation.getId());</span>
+<span class="fc" id="L2301">            throw SqlUtils.findServerError(sqlException)</span>
+<span class="fc" id="L2302">                .map(serverError -&gt; {</span>
 <span class="nc bnc" id="L2303" title="All 4 branches missed.">                    if(serverError.getMessage() == null || serverError.getDetail() == null) {</span>
 <span class="nc" id="L2304">                        log.warn(&quot;Cannot retrieve ErrorDetails for SubscriptionID {} and ReservationID {}&quot;, subscriptionId, reservation.getId());</span>
 <span class="nc" id="L2305">                        return sqlException;</span>
@@ -2310,7 +2310,7 @@ public class TicketReservationManager {
                     }
 <span class="nc" id="L2311">                    return new SubscriptionUsageExceededForEvent(errorDetails.getAllowed(),errorDetails.getRequested());</span>
                 })
-<span class="nc" id="L2313">                .orElse(sqlException);</span>
+<span class="fc" id="L2313">                .orElse(sqlException);</span>
 <span class="fc" id="L2314">        }</span>
         //
 <span class="fc" id="L2316">        var totalPrice = totalReservationCostWithVAT(reservation.getId()).getLeft();</span>

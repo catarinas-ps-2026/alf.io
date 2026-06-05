@@ -112,10 +112,10 @@ public interface EmailMessageRepository {
     List&lt;LightweightMailMessage&gt; findBySubscriptionDescriptorAndReservationId(@Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;reservationId&quot;) String reservationId);
 
     default List&lt;LightweightMailMessage&gt; findByPurchaseContextAndReservationId(PurchaseContext purchaseContext, String reservationId) {
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
 <span class="fc" id="L116">            return findByEventIdAndReservationId(((Event)purchaseContext).getId(), reservationId);</span>
         } else {
-<span class="nc" id="L118">            return findBySubscriptionDescriptorAndReservationId(((SubscriptionDescriptor)purchaseContext).getId(), reservationId);</span>
+<span class="fc" id="L118">            return findBySubscriptionDescriptorAndReservationId(((SubscriptionDescriptor)purchaseContext).getId(), reservationId);</span>
         }
     }
 

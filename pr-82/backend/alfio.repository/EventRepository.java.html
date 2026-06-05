@@ -202,7 +202,7 @@ public interface EventRepository {
     default CheckInStatistics retrieveCheckInStatisticsForEvent(int eventId, List&lt;Integer&gt; categories) {
 <span class="fc" id="L203">        var sqlParameterSource = new MapSqlParameterSource(&quot;eventId&quot;, eventId);</span>
 <span class="fc" id="L204">        var query = STATISTICS_QUERY;</span>
-<span class="pc bpc" id="L205" title="2 of 4 branches missed.">        if (categories != null &amp;&amp; !categories.isEmpty()) {</span>
+<span class="pc bpc" id="L205" title="1 of 4 branches missed.">        if (categories != null &amp;&amp; !categories.isEmpty()) {</span>
 <span class="fc" id="L206">            query += &quot; and category_id in (:categories)&quot;;</span>
 <span class="fc" id="L207">            sqlParameterSource.addValue(&quot;categories&quot;, categories);</span>
         }
