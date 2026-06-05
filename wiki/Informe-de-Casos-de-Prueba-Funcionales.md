@@ -1,5 +1,4 @@
-
-# Informe de Pruebas del Sistema alf.io
+# Informe de Casos de Prueba Funcionales del Sistema alf.io
 
 ## Índice
 
@@ -14,8 +13,6 @@
    7.1. Técnicas de diseño de pruebas
 8. Integración continua
 9. Conclusión
-
----
 
 ## 1. Introducción
 
