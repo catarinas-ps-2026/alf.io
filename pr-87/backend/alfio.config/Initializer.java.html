@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Initializer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config</a> &gt; <span class="el_source">Initializer.java</span></div><h1>Initializer.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config;
+
+import alfio.util.DefaultExceptionHandler;
+import com.openhtmltopdf.util.XRLog;
+import jakarta.servlet.FilterRegistration.Dynamic;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import org.springframework.web.context.ConfigurableWebApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
+
+import java.util.Objects;
+import java.util.logging.Level;
+
+<span class="nc" id="L32">public class Initializer extends AbstractAnnotationConfigDispatcherServletInitializer {</span>
+
+    public static final String PROFILE_APP_CDS = &quot;app-cds&quot;;
+    public static final String PROFILE_DEV = &quot;dev&quot;;
+    public static final String PROFILE_INTEGRATION_TEST = &quot;integration-test&quot;;
+    public static final String PROFILE_LIVE = &quot;!dev&quot;;
+    static final String PROFILE_SPRING_BOOT = &quot;spring-boot&quot;;
+    public static final String PROFILE_DEMO = &quot;demo&quot;;
+    public static final String PROFILE_OPENID = &quot;openid&quot;;
+    public static final String PROFILE_DISABLE_JOBS = &quot;disable-jobs&quot;;
+    public static final String API_V2_PUBLIC_PATH = &quot;/api/v2/public/&quot;;
+    public static final String XSRF_TOKEN = &quot;XSRF-TOKEN&quot;;
+
+    @Override
+    public void onStartup(ServletContext servletContext) throws ServletException {
+<span class="nc" id="L47">        super.onStartup(servletContext);</span>
+
+<span class="nc" id="L49">        Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler());</span>
+
+<span class="nc" id="L51">        CharacterEncodingFilter cef = new CharacterEncodingFilter();</span>
+<span class="nc" id="L52">        cef.setEncoding(&quot;UTF-8&quot;);</span>
+<span class="nc" id="L53">        cef.setForceEncoding(true);</span>
+
+<span class="nc" id="L55">        Dynamic characterEncodingFilter = servletContext.addFilter(&quot;CharacterEncodingFilter&quot;, cef);</span>
+<span class="nc" id="L56">        characterEncodingFilter.setAsyncSupported(true);</span>
+<span class="nc" id="L57">        characterEncodingFilter.addMappingForUrlPatterns(null, false, &quot;/*&quot;);</span>
+
+        //force log initialization, then disable it
+<span class="nc" id="L60">        XRLog.setLevel(XRLog.EXCEPTION, Level.WARNING);</span>
+<span class="nc" id="L61">        XRLog.setLoggingEnabled(false);</span>
+
+<span class="nc" id="L63">    }</span>
+
+    @Override
+    protected WebApplicationContext createRootApplicationContext() {
+<span class="nc" id="L67">        ConfigurableWebApplicationContext ctx = ((ConfigurableWebApplicationContext) super.createRootApplicationContext());</span>
+<span class="nc" id="L68">        Objects.requireNonNull(ctx, &quot;Something really bad is happening...&quot;);</span>
+<span class="nc" id="L69">        return ctx;</span>
+    }
+
+    @Override
+    protected Class&lt;?&gt;[] getRootConfigClasses() {
+<span class="nc" id="L74">        return new Class&lt;?&gt;[] { ApplicationPropertiesConfiguration.class, DataSourceConfiguration.class, WebSecurityConfig.class };</span>
+    }
+
+    @Override
+    protected Class&lt;?&gt;[] getServletConfigClasses() {
+<span class="nc" id="L79">        return new Class&lt;?&gt;[] { MvcConfiguration.class };</span>
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+<span class="nc" id="L84">        return new String[] { &quot;/&quot; };</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

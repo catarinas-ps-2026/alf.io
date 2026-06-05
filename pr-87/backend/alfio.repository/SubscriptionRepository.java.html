@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SubscriptionRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">SubscriptionRepository.java</span></div><h1>SubscriptionRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.AllocationStatus;
+import alfio.model.DescriptorIdAndReservationId;
+import alfio.model.PriceContainer.VatStatus;
+import alfio.model.metadata.SubscriptionMetadata;
+import alfio.model.modification.SubscriptionDescriptorModification;
+import alfio.model.subscription.*;
+import alfio.model.subscription.SubscriptionDescriptor.SubscriptionTimeUnit;
+import alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType;
+import alfio.model.subscription.SubscriptionDescriptor.SubscriptionValidityType;
+import alfio.model.support.Array;
+import alfio.model.support.JSONData;
+import alfio.model.transaction.PaymentProxy;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryRepository;
+import ch.digitalfondue.npjt.QueryType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Stream;
+
+@QueryRepository
+public interface SubscriptionRepository {
+
+<span class="fc" id="L50">    Logger log = LoggerFactory.getLogger(SubscriptionRepository.class);</span>
+
+    String FETCH_SUBSCRIPTION_LINK = &quot;&quot;&quot;
+        select sd.id subscription_descriptor_id, sd.title subscription_descriptor_title, e.id event_id,\
+         e.short_name event_short_name, e.display_name event_display_name, e.currency event_currency,\
+         se.price_per_ticket price_per_ticket, se.compatible_categories compatible_categories\
+         from subscription_event se\
+         join event e on e.id = se.event_id_fk and e.org_id = :organizationId\
+         join subscription_descriptor sd on sd.id = se.subscription_descriptor_id_fk and sd.organization_id_fk = :organizationId\
+        &quot;&quot;&quot;;
+
+    String INSERT_SUBSCRIPTION_LINK = &quot;&quot;&quot;
+        insert into subscription_event(event_id_fk, subscription_descriptor_id_fk, price_per_ticket, organization_id_fk, compatible_categories) \
+        values(:eventId, :subscriptionId, :pricePerTicket, :organizationId, :compatibleCategories::json) on conflict(subscription_descriptor_id_fk, event_id_fk) do update set price_per_ticket = excluded.price_per_ticket, compatible_categories = excluded.compatible_categories
+        &quot;&quot;&quot;;
+
+    String INSERT_SUBSCRIPTION = &quot;&quot;&quot;
+        insert into subscription(id, subscription_descriptor_fk, reservation_id_fk, max_usage, \
+         valid_from, valid_to,  organization_id_fk, status, src_price_cts, currency, max_entries, time_zone) \
+         values (:id, :subscriptionDescriptorId, :reservationId, :maxUsage, :validFrom, :validTo, :organizationId, :status::ALLOCATION_STATUS, \
+         :srcPriceCts, :currency, :maxEntries, :timeZone)\
+        &quot;&quot;&quot;;
+
+    @Query(&quot;&quot;&quot;
+        insert into subscription_descriptor (\
+        id, title, description, max_available, on_sale_from, on_sale_to, price_cts, vat, vat_status, currency, is_public, organization_id_fk, \
+         max_entries, validity_type, validity_time_unit, validity_units, validity_from, validity_to, usage_type, terms_conditions_url, privacy_policy_url,\
+         file_blob_id_fk, allowed_payment_proxies, private_key, time_zone, supports_tickets_generation, status) \
+         values(:id, :title::jsonb, :description::jsonb, :maxAvailable, :onSaleFrom, :onSaleTo, :priceCts, :vat, :vatStatus::VAT_STATUS, :currency, \
+         :isPublic, :organizationId, :maxEntries, :validityType::SUBSCRIPTION_VALIDITY_TYPE, :validityTimeUnit::SUBSCRIPTION_TIME_UNIT, \
+         :validityUnits, :validityFrom, :validityTo, :usageType::SUBSCRIPTION_USAGE_TYPE, :tcUrl, :privacyPolicyUrl,\
+         :fileBlobId, :allowedPaymentProxies::text[], :privateKey, :timeZone, :supportsTicketsGeneration, 'ACTIVE')\
+        &quot;&quot;&quot;)
+    int createSubscriptionDescriptor(@Bind(&quot;id&quot;) UUID id,
+                                     @Bind(&quot;title&quot;) @JSONData Map&lt;String, String&gt; title,
+                                     @Bind(&quot;description&quot;) @JSONData Map&lt;String, String&gt; description,
+                                     @Bind(&quot;maxAvailable&quot;) int maxAvailable,
+                                     @Bind(&quot;onSaleFrom&quot;) ZonedDateTime onSaleFrom,
+                                     @Bind(&quot;onSaleTo&quot;) ZonedDateTime onSaleTo,
+                                     @Bind(&quot;priceCts&quot;) int priceCts,
+                                     @Bind(&quot;vat&quot;) BigDecimal vat,
+                                     @Bind(&quot;vatStatus&quot;) VatStatus vatStatus,
+                                     @Bind(&quot;currency&quot;) String currency,
+                                     @Bind(&quot;isPublic&quot;) boolean isPublic,
+                                     @Bind(&quot;organizationId&quot;) int organizationId,
+
+                                     @Bind(&quot;maxEntries&quot;) int maxEntries,
+                                     @Bind(&quot;validityType&quot;) SubscriptionValidityType validityType,
+                                     @Bind(&quot;validityTimeUnit&quot;) SubscriptionTimeUnit validityTimeUnit,
+                                     @Bind(&quot;validityUnits&quot;) Integer validityUnits,
+                                     @Bind(&quot;validityFrom&quot;) ZonedDateTime validityFrom,
+                                     @Bind(&quot;validityTo&quot;) ZonedDateTime validityTo,
+                                     @Bind(&quot;usageType&quot;) SubscriptionUsageType usageType,
+
+                                     @Bind(&quot;tcUrl&quot;) String termsConditionsUrl,
+                                     @Bind(&quot;privacyPolicyUrl&quot;) String privacyPolicyUrl,
+                                     @Bind(&quot;fileBlobId&quot;) String fileBlobId,
+                                     @Bind(&quot;allowedPaymentProxies&quot;) @Array List&lt;PaymentProxy&gt; allowedPaymentProxies,
+                                     @Bind(&quot;privateKey&quot;) String privateKey,
+                                     @Bind(&quot;timeZone&quot;) String timeZone,
+                                     @Bind(&quot;supportsTicketsGeneration&quot;) boolean supportsTicketsGeneration);
+
+    @Query(&quot;&quot;&quot;
+        update subscription_descriptor set title = :title::jsonb, description = :description::jsonb, max_available = :maxAvailable,\
+         on_sale_from = :onSaleFrom, on_sale_to = :onSaleTo, price_cts = :priceCts, vat = :vat, vat_status = :vatStatus::VAT_STATUS, \
+         currency = :currency, is_public = :isPublic, max_entries = :maxEntries, validity_type = :validityType::SUBSCRIPTION_VALIDITY_TYPE,\
+         validity_time_unit = :validityTimeUnit::SUBSCRIPTION_TIME_UNIT, validity_units = :validityUnits, validity_from = :validityFrom,\
+         validity_to = :validityTo, usage_type = :usageType::SUBSCRIPTION_USAGE_TYPE,\
+         terms_conditions_url = :tcUrl, privacy_policy_url = :privacyPolicyUrl, file_blob_id_fk = :fileBlobId,\
+         allowed_payment_proxies = :allowedPaymentProxies::text[], time_zone = :timeZone, supports_tickets_generation = :supportsTicketsGeneration \
+         where id = :id and organization_id_fk = :organizationId\
+        &quot;&quot;&quot;)
+    int updateSubscriptionDescriptor(@Bind(&quot;title&quot;) @JSONData Map&lt;String, String&gt; title,
+                                     @Bind(&quot;description&quot;) @JSONData Map&lt;String, String&gt; description,
+                                     @Bind(&quot;maxAvailable&quot;) int maxAvailable,
+                                     @Bind(&quot;onSaleFrom&quot;) ZonedDateTime onSaleFrom,
+                                     @Bind(&quot;onSaleTo&quot;) ZonedDateTime onSaleTo,
+                                     @Bind(&quot;priceCts&quot;) int priceCts,
+                                     @Bind(&quot;vat&quot;) BigDecimal vat,
+                                     @Bind(&quot;vatStatus&quot;) VatStatus vatStatus,
+                                     @Bind(&quot;currency&quot;) String currency,
+                                     @Bind(&quot;isPublic&quot;) boolean isPublic,
+
+                                     @Bind(&quot;maxEntries&quot;) int maxEntries,
+                                     @Bind(&quot;validityType&quot;) SubscriptionValidityType validityType,
+                                     @Bind(&quot;validityTimeUnit&quot;) SubscriptionTimeUnit validityTimeUnit,
+                                     @Bind(&quot;validityUnits&quot;) Integer validityUnits,
+                                     @Bind(&quot;validityFrom&quot;) ZonedDateTime validityFrom,
+                                     @Bind(&quot;validityTo&quot;) ZonedDateTime validityTo,
+                                     @Bind(&quot;usageType&quot;) SubscriptionUsageType usageType,
+
+                                     @Bind(&quot;tcUrl&quot;) String termsConditionsUrl,
+                                     @Bind(&quot;privacyPolicyUrl&quot;) String privacyPolicyUrl,
+                                     @Bind(&quot;fileBlobId&quot;) String fileBlobId,
+                                     @Bind(&quot;allowedPaymentProxies&quot;) @Array List&lt;PaymentProxy&gt; allowedPaymentProxies,
+
+                                     @Bind(&quot;id&quot;) UUID id,
+                                     @Bind(&quot;organizationId&quot;) int organizationId,
+                                     @Bind(&quot;timeZone&quot;) String timeZone,
+                                     @Bind(&quot;supportsTicketsGeneration&quot;) boolean supportsTicketsGeneration);
+
+    @Query(&quot;update subscription_descriptor set is_public = :isPublic where id = :id and organization_id_fk = :organizationId&quot;)
+    int setPublicStatus(@Bind(&quot;id&quot;) UUID id, @Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;isPublic&quot;) boolean isPublic);
+
+    @Query(&quot;update subscription_descriptor set status = 'NOT_ACTIVE' where id = :id and organization_id_fk = :organizationId&quot;)
+    int deactivateDescriptor(@Bind(&quot;id&quot;) UUID id, @Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;&quot;&quot;
+        select * from subscription_descriptor where organization_id_fk = :organizationId\
+         and status = 'ACTIVE'\
+         order by on_sale_from, on_sale_to nulls last\
+        &quot;&quot;&quot;)
+    List&lt;SubscriptionDescriptor&gt; findAllByOrganizationIds(@Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;&quot;&quot;
+        select subscription_descriptor.* from subscription_descriptor\
+         join organization org on subscription_descriptor.organization_id_fk = org.id \
+         where status = 'ACTIVE' and is_public = true and\
+         (max_entries &gt; 0 or max_entries = -1) and (on_sale_from is null or :from &gt;= on_sale_from) \
+         and (on_sale_to is null or :from &lt;= on_sale_to)\
+         and (:orgSlug is null or org.slug = :orgSlug)\
+         order by on_sale_from, on_sale_to nulls last\
+        &quot;&quot;&quot;)
+    List&lt;SubscriptionDescriptor&gt; findAllActiveAndPublic(@Bind(&quot;from&quot;) ZonedDateTime from, @Bind(&quot;orgSlug&quot;) String organizerSlug);
+
+    @Query(&quot;select * from subscription_descriptor where status = 'ACTIVE' and id = :id and organization_id_fk = :organizationId&quot;)
+    Optional&lt;SubscriptionDescriptor&gt; findOne(@Bind(&quot;id&quot;) UUID id, @Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;select * from subscription_descriptor where id = :id and status = 'ACTIVE'&quot;)
+    Optional&lt;SubscriptionDescriptor&gt; findOne(@Bind(&quot;id&quot;) UUID id);
+
+    @Query(&quot;select organization_id_fk from subscription_descriptor where status = 'ACTIVE' and id = :id&quot;)
+    Optional&lt;Integer&gt; findOrganizationIdForDescriptor(@Bind(&quot;id&quot;) UUID id);
+
+    @Query(&quot;select count(*) from subscription_descriptor where status = 'ACTIVE' and id in(:ids) and organization_id_fk = :organizationId&quot;)
+    Integer countDescriptorsBelongingToOrganization(@Bind(&quot;ids&quot;) Collection&lt;UUID&gt; ids,
+                                                    @Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;select * from subscription_descriptor where id = (select subscription_descriptor_fk from subscription where reservation_id_fk = :reservationId) and status = 'ACTIVE'&quot;)
+    Optional&lt;SubscriptionDescriptor&gt; findDescriptorByReservationId(@Bind(&quot;reservationId&quot;) String reservationId);
+
+    @Query(&quot;&quot;&quot;
+        select tr.id as reservation_id, sd.id as descriptor_id, sd.max_available as max_available
+            from tickets_reservation tr
+            join subscription s on s.reservation_id_fk = tr.id
+            join subscription_descriptor sd on s.subscription_descriptor_fk = sd.id
+        where tr.id in (:ids)
+        &quot;&quot;&quot;)
+    List&lt;DescriptorIdAndReservationId&gt; findDescriptorsByReservationIds(@Bind(&quot;ids&quot;) Collection&lt;String&gt; reservationIds);
+
+    @Query(&quot;select * from subscription_descriptor where id in (:ids)&quot;)
+    List&lt;SubscriptionDescriptor&gt; findByIds(@Bind(&quot;ids&quot;) Set&lt;UUID&gt; ids);
+
+    @Query(&quot;select * from subscription_descriptor where id = (select subscription_descriptor_fk from subscription where id = :id) and status = 'ACTIVE'&quot;)
+    SubscriptionDescriptor findDescriptorBySubscriptionId(@Bind(&quot;id&quot;) UUID subscriptionId);
+
+    @Query(&quot;select organization_id_fk from subscription_descriptor where id = (select subscription_descriptor_fk from subscription where id = :id) and status = 'ACTIVE'&quot;)
+    Optional&lt;Integer&gt; findOrganizationIdForSubscription(@Bind(&quot;id&quot;) UUID subscriptionId);
+
+    @Query(&quot;select * from subscription_descriptor_statistics where sd_organization_id_fk = :organizationId&quot;)
+    List&lt;SubscriptionDescriptorWithStatistics&gt; findAllWithStatistics(@Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;select * from subscription_descriptor_statistics where sd_organization_id_fk = :organizationId and sd_id = :subscriptionDescriptorId&quot;)
+    Optional&lt;SubscriptionDescriptorWithStatistics&gt; findOneWithStatistics(@Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId,
+                                                                         @Bind(&quot;organizationId&quot;) int organizationId);
+
+
+    @Query(INSERT_SUBSCRIPTION_LINK)
+    int linkSubscriptionAndEvent(@Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+                                 @Bind(&quot;eventId&quot;) int eventId,
+                                 @Bind(&quot;pricePerTicket&quot;) int pricePerTicket,
+                                 @Bind(&quot;organizationId&quot;) int organizationId,
+                                 @Bind(&quot;compatibleCategories&quot;) @JSONData List&lt;Integer&gt; compatibleCategories);
+
+
+    @Query(FETCH_SUBSCRIPTION_LINK + &quot; where se.subscription_descriptor_id_fk = :subscriptionId&quot;)
+    List&lt;EventSubscriptionLink&gt; findLinkedEvents(@Bind(&quot;organizationId&quot;) int organizationId,
+                                                 @Bind(&quot;subscriptionId&quot;) UUID id);
+
+    @Query(FETCH_SUBSCRIPTION_LINK + &quot; where se.event_id_fk = :eventId&quot;)
+    List&lt;EventSubscriptionLink&gt; findLinkedSubscriptions(@Bind(&quot;organizationId&quot;) int organizationId,
+                                                        @Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(FETCH_SUBSCRIPTION_LINK + &quot; where se.event_id_fk = :eventId and se.subscription_descriptor_id_fk = :subscriptionId&quot;)
+    Optional&lt;EventSubscriptionLink&gt; findLink(@Bind(&quot;organizationId&quot;) int organizationId,
+                                             @Bind(&quot;subscriptionId&quot;) UUID id,
+                                             @Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select subscription_descriptor_id_fk from subscription_event where event_id_fk = :eventId and organization_id_fk = :organizationId&quot;)
+    List&lt;UUID&gt; findLinkedSubscriptionIds(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;&quot;&quot;
+        select * from subscription_descriptor where status = 'ACTIVE' and organization_id_fk = :organizationId\
+         and (on_sale_to is null or on_sale_to &gt; now()) order by on_sale_from, on_sale_to nulls last\
+        &quot;&quot;&quot;)
+    List&lt;SubscriptionDescriptor&gt; findActiveSubscriptionsForOrganization(@Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;&quot;&quot;
+        delete from subscription_event where event_id_fk = :eventId and organization_id_fk = :organizationId\
+         and subscription_descriptor_id_fk not in (:descriptorIds)\
+        &quot;&quot;&quot;)
+    int removeStaleSubscriptions(@Bind(&quot;eventId&quot;) int eventId,
+                                 @Bind(&quot;organizationId&quot;) int organizationId,
+                                 @Bind(&quot;descriptorIds&quot;) List&lt;UUID&gt; currentDescriptors);
+
+    @Query(&quot;delete from subscription_event where event_id_fk = :eventId and organization_id_fk = :organizationId&quot;)
+    int removeAllSubscriptionsForEvent(@Bind(&quot;eventId&quot;) int eventId,
+                                       @Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(&quot;delete from subscription_event where subscription_descriptor_id_fk = :subscriptionId and organization_id_fk = :organizationId&quot;)
+    int removeAllLinksForSubscription(@Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+                                      @Bind(&quot;organizationId&quot;) int organizationId);
+
+    default void preGenerateSubscriptions(SubscriptionDescriptorModification subscriptionDescriptor, UUID subscriptionDescriptorId, int quantity) {
+<span class="fc" id="L264">        var results = getJdbcTemplate().batchUpdate(INSERT_SUBSCRIPTION, Stream.generate(UUID::randomUUID)</span>
+<span class="fc" id="L265">            .limit(quantity)</span>
+<span class="fc" id="L266">            .map(subscriptionId -&gt; new MapSqlParameterSource(&quot;id&quot;, subscriptionId)</span>
+<span class="fc" id="L267">                .addValue(&quot;subscriptionDescriptorId&quot;, subscriptionDescriptorId)</span>
+<span class="fc" id="L268">                .addValue(&quot;maxUsage&quot;, subscriptionDescriptor.getMaxEntries())</span>
+<span class="fc" id="L269">                .addValue(&quot;validFrom&quot;, toOffsetDateTime(subscriptionDescriptor.getValidityFrom()))</span>
+<span class="fc" id="L270">                .addValue(&quot;validTo&quot;, toOffsetDateTime(subscriptionDescriptor.getValidityTo()))</span>
+<span class="fc" id="L271">                .addValue(&quot;srcPriceCts&quot;, subscriptionDescriptor.getPriceCts())</span>
+<span class="fc" id="L272">                .addValue(&quot;currency&quot;, subscriptionDescriptor.getCurrency())</span>
+<span class="fc" id="L273">                .addValue(&quot;organizationId&quot;, subscriptionDescriptor.getOrganizationId())</span>
+<span class="fc" id="L274">                .addValue(&quot;status&quot;, AllocationStatus.FREE.name())</span>
+<span class="fc" id="L275">                .addValue(&quot;maxEntries&quot;, subscriptionDescriptor.getMaxEntries())</span>
+<span class="fc" id="L276">                .addValue(&quot;reservationId&quot;, null)</span>
+<span class="fc" id="L277">                .addValue(&quot;timeZone&quot;, subscriptionDescriptor.getTimeZone().toString())</span>
+<span class="fc" id="L278">            ).toArray(MapSqlParameterSource[]::new));</span>
+<span class="fc" id="L279">        var added = Arrays.stream(results).sum();</span>
+<span class="pc bpc" id="L280" title="1 of 2 branches missed.">        if(added != quantity) {</span>
+<span class="nc" id="L281">            log.warn(&quot;wanted to generate {} subscriptions, got {} instead&quot;, quantity, added);</span>
+<span class="nc" id="L282">            throw new IllegalStateException(&quot;Cannot set max availability&quot;);</span>
+        }
+<span class="fc" id="L284">    }</span>
+
+    private static OffsetDateTime toOffsetDateTime(ZonedDateTime in) {
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">        if(in == null) {</span>
+<span class="nc" id="L288">            return null;</span>
+        }
+<span class="fc" id="L290">        return in.withZoneSameInstant(ZoneId.of(&quot;UTC&quot;)).toOffsetDateTime();</span>
+    }
+
+    @Query(INSERT_SUBSCRIPTION)
+    int createSubscription(@Bind(&quot;id&quot;) UUID id,
+                           @Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId,
+                           @Bind(&quot;reservationId&quot;) String reservationId,
+                           @Bind(&quot;maxUsage&quot;) int maxUsage,
+                           @Bind(&quot;validFrom&quot;) ZonedDateTime validFrom,
+                           @Bind(&quot;validTo&quot;) ZonedDateTime validTo,
+                           @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
+                           @Bind(&quot;currency&quot;) String currency,
+                           @Bind(&quot;organizationId&quot;) int organizationId,
+                           @Bind(&quot;status&quot;) AllocationStatus status,
+                           @Bind(&quot;maxEntries&quot;) int maxEntries,
+                           @Bind(&quot;timeZone&quot;) String timeZone);
+
+    @Query(&quot;select id from subscription where subscription_descriptor_fk = :descriptorId and status = 'FREE' limit 1 for update skip locked&quot;)
+    Optional&lt;UUID&gt; selectFreeSubscription(@Bind(&quot;descriptorId&quot;) UUID subscriptionDescriptorId);
+
+    @Query(&quot;select count(*) from subscription where subscription_descriptor_fk = :descriptorId and status = 'FREE'&quot;)
+    int countFreeSubscriptionForDescriptor(@Bind(&quot;descriptorId&quot;) UUID subscriptionDescriptorId);
+
+    @Query(&quot;&quot;&quot;
+        update subscription set reservation_id_fk = :reservationId, status = :status::allocation_status,\
+         src_price_cts = :srcPriceCts where id = :subscriptionId\
+        &quot;&quot;&quot;)
+    int bindSubscriptionToReservation(@Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;srcPriceCts&quot;) int price, @Bind(&quot;status&quot;) AllocationStatus allocationStatus, @Bind(&quot;subscriptionId&quot;) UUID subscriptionId);
+
+    @Query(&quot;delete from subscription where reservation_id_fk in (:expiredReservationIds)&quot;)
+    int deleteSubscriptionWithReservationId(@Bind(&quot;expiredReservationIds&quot;) List&lt;String&gt; expiredReservationIds);
+
+
+    @Query(&quot;select * from subscription where reservation_id_fk = :reservationId&quot;)
+    List&lt;Subscription&gt; findSubscriptionsByReservationId(@Bind(&quot;reservationId&quot;) String reservationId);
+
+    @Query(&quot;select * from subscription where reservation_id_fk = :reservationId for update&quot;)
+    Optional&lt;Subscription&gt; findFirstSubscriptionByReservationIdForUpdate(@Bind(&quot;reservationId&quot;) String reservationId);
+
+    @Query(&quot;select exists(select 1 from subscription_descriptor where id = :id and status = 'ACTIVE')&quot;)
+    boolean existsById(@Bind(&quot;id&quot;) UUID subscriptionId);
+
+    @Query(&quot;select exists (select id from subscription_event where event_id_fk  = :eventId)&quot;)
+    boolean hasLinkedSubscription(@Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;select * from subscription where id = :id for update&quot;)
+    Subscription findSubscriptionByIdForUpdate(@Bind(&quot;id&quot;) UUID id);
+
+    @Query(&quot;select * from subscription where id = :id&quot;)
+    Subscription findSubscriptionById(@Bind(&quot;id&quot;) UUID id);
+
+    @Query(&quot;select count(*) from subscription where substring(replace(id::text,'-',''), 0, 11) like concat(:partialUuid, '%') and email_address = :email&quot;)
+    int countSubscriptionByPartialUuidAndEmail(@Bind(&quot;partialUuid&quot;) String partialUuid, @Bind(&quot;email&quot;) String email);
+
+    @Query(&quot;select count(*) from subscription where substring(replace(id::text,'-',''), 0, 11) like concat(:partialUuid, '%')&quot;)
+    int countSubscriptionByPartialUuid(@Bind(&quot;partialUuid&quot;) String partialUuid);
+
+    @Query(&quot;select id from subscription where substring(replace(id::text,'-',''), 0, 11) like concat(:partialUuid, '%') and email_address = :email&quot;)
+    UUID getSubscriptionIdByPartialUuidAndEmail(@Bind(&quot;partialUuid&quot;) String partialUuid, @Bind(&quot;email&quot;) String email);
+
+    @Query(&quot;select id from subscription where substring(replace(id::text,'-',''), 0, 11) like concat(:partialUuid, '%')&quot;)
+    UUID getSubscriptionIdByPartialUuid(@Bind(&quot;partialUuid&quot;) String partialUuid);
+
+    @Query(&quot;select * from subscription where id = (select subscription_id_fk from tickets_reservation where id = :reservationId)&quot;)
+    Optional&lt;Subscription&gt; findAppliedSubscriptionByReservationId(@Bind(&quot;reservationId&quot;) String id);
+
+    @Query(&quot;select count(*) from subscription where id = :id&quot;)
+    int countSubscriptionById(@Bind(&quot;id&quot;) UUID fromString);
+
+    @Query(&quot;&quot;&quot;
+        update subscription set status = :status::allocation_status, first_name = :firstName, last_name = :lastName,\
+         email_address = :email, max_entries = :maxEntries, confirmation_ts = :confirmationTs,\
+         validity_from = :validityFrom, validity_to = :validityTo, time_zone = :timeZone \
+         where reservation_id_fk = :reservationId\
+        &quot;&quot;&quot;)
+    int confirmSubscription(@Bind(&quot;reservationId&quot;) String reservationId,
+                            @Bind(&quot;status&quot;) AllocationStatus status,
+                            @Bind(&quot;firstName&quot;) String firstName,
+                            @Bind(&quot;lastName&quot;) String lastName,
+                            @Bind(&quot;email&quot;) String email,
+                            @Bind(&quot;maxEntries&quot;) int maxEntries,
+                            @Bind(&quot;validityFrom&quot;) ZonedDateTime validityFrom,
+                            @Bind(&quot;validityTo&quot;) ZonedDateTime validityTo,
+                            @Bind(&quot;confirmationTs&quot;) ZonedDateTime confirmationTimestamp,
+                            @Bind(&quot;timeZone&quot;) String timeZone);
+
+    @Query(&quot;&quot;&quot;
+        update subscription set first_name = :firstName, last_name = :lastName, email_address = :email,\
+         max_entries = :maxEntries, validity_from = :validityFrom, validity_to = :validityTo where id = :id::uuid\
+        &quot;&quot;&quot;)
+    int updateSubscription(@Bind(&quot;id&quot;) UUID subscriptionId,
+                           @Bind(&quot;firstName&quot;) String firstName,
+                           @Bind(&quot;lastName&quot;) String lastName,
+                           @Bind(&quot;email&quot;) String email,
+                           @Bind(&quot;maxEntries&quot;) int maxEntries,
+                           @Bind(&quot;validityFrom&quot;) ZonedDateTime validityFrom,
+                           @Bind(&quot;validityTo&quot;) ZonedDateTime validityTo);
+
+    @Query(&quot;update subscription set first_name = :firstName, last_name = :lastName, email_address = :email where reservation_id_fk = :reservationId&quot;)
+    int assignSubscription(@Bind(&quot;reservationId&quot;) String reservationId,
+                           @Bind(&quot;firstName&quot;) String firstName,
+                           @Bind(&quot;lastName&quot;) String lastName,
+                           @Bind(&quot;email&quot;) String email);
+
+    @Query(&quot;update subscription set status = 'INVALIDATED' where id in (select id from subscription where subscription_descriptor_fk = :descriptorId and status = 'FREE' limit :amount)&quot;)
+    int invalidateSubscriptions(@Bind(&quot;descriptorId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;amount&quot;) int amount);
+
+    @Query(&quot;update subscription set status = 'CANCELLED' where reservation_id_fk = :reservationId&quot;)
+    int cancelSubscriptions(@Bind(&quot;reservationId&quot;) String reservationId);
+
+    @Query(&quot;&quot;&quot;
+        update subscription set status = 'CANCELLED' where reservation_id_fk = :reservationId\
+         and id = :subscriptionId and subscription_descriptor_fk = :descriptorId\
+        &quot;&quot;&quot;)
+    int cancelSubscription(@Bind(&quot;reservationId&quot;) String reservationId,
+                           @Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+                           @Bind(&quot;descriptorId&quot;) UUID descriptorId);
+
+    NamedParameterJdbcTemplate getJdbcTemplate();
+
+    default Map&lt;Integer, List&lt;AvailableSubscriptionsByEvent&gt;&gt; loadAvailableSubscriptionsByEvent(@Bind(&quot;eventId&quot;) Integer eventId,
+                                                                          @Bind(&quot;organizationId&quot;) Integer organizationId) {
+<span class="fc" id="L412">        Map&lt;Integer, List&lt;AvailableSubscriptionsByEvent&gt;&gt; result = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L413">        var paramSource = new MapSqlParameterSource(&quot;eventId&quot;, eventId)</span>
+<span class="fc" id="L414">            .addValue(&quot;organizationId&quot;, organizationId);</span>
+<span class="fc" id="L415">        getJdbcTemplate().query(&quot;&quot;&quot;</span>
+        with usage_by_subscription_id as ( \
+                select s.id subscription_id, \
+                       sum(case when t.subscription_id_fk is not null then 1 else 0 end) usage \
+                from subscription s \
+                         left join tickets_reservation t on t.subscription_id_fk = s.id \
+                group by 1 \
+            ), subscription_expiration as ( \
+                select id, \
+                       coalesce(s.validity_from, 'yesterday'::timestamp) inception, \
+                       coalesce(s.validity_to, 'tomorrow'::timestamp) expiration \
+                from subscription s \
+            ), subscription_additional as (\
+               select subscription_id_fk, jsonb_agg(jsonb_build_object('name', field_name, 'value', to_jsonb(field_value))) fields\
+                   from field_value_w_additional where context = 'SUBSCRIPTION' group by 1\
+            ) \
+            select e.id event_id, \
+                   e.org_id organization_id, \
+                   s.id as subscription_id, \
+                   sd.id as descriptor_id, \
+                   s.email_address as email_address, \
+                   s.first_name as first_name, \
+                   s.last_name as last_name, \
+                   r.user_language as user_language,\
+                   r.email_address as reservation_email,\
+                   fv.fields as additional_fields, \
+                   se.compatible_categories as compatible_categories \
+            from event e \
+                     join subscription_event se on se.event_id_fk = e.id \
+                     join subscription_descriptor sd on se.subscription_descriptor_id_fk = sd.id \
+                     join subscription s on sd.id = s.subscription_descriptor_fk \
+                     join usage_by_subscription_id u on s.id = u.subscription_id \
+                     join subscription_expiration exp on s.id = exp.id \
+                     join tickets_reservation r on r.id = s.reservation_id_fk \
+                     left join subscription_additional fv on s.id = fv.subscription_id_fk\
+            where e.end_ts &gt; now() \
+              and (:eventId::int is null or e.id = :eventId::int)\
+              and (:organizationId::int is null or e.org_id = :organizationId::int)\
+              and s.status = 'ACQUIRED' \
+              and not exists(select id from tickets_reservation tr where tr.subscription_id_fk = s.id and tr.event_id_fk = e.id) \
+              and sd.supports_tickets_generation is TRUE \
+              and exp.inception &lt;= now() \
+              and exp.expiration &gt; now() \
+              and (s.max_entries = -1 or s.max_entries &gt; u.usage) \
+              and (select count(*) from ticket_category where event_id = e.id and tc_status = 'ACTIVE') &gt; 0\
+            order by e.id\
+        &quot;&quot;&quot;, paramSource, rse -&gt; {
+<span class="fc" id="L462">            int eId = rse.getInt(&quot;event_id&quot;);</span>
+<span class="pc bpc" id="L463" title="1 of 2 branches missed.">            if (!result.containsKey(eId)) {</span>
+<span class="fc" id="L464">                result.put(eId, new ArrayList&lt;&gt;());</span>
+            }
+<span class="fc" id="L466">            result.get(eId).add(new AvailableSubscriptionsByEvent(</span>
+                eId,
+<span class="fc" id="L468">                rse.getInt(&quot;organization_id&quot;),</span>
+<span class="fc" id="L469">                rse.getObject(&quot;subscription_id&quot;, UUID.class),</span>
+<span class="fc" id="L470">                rse.getObject(&quot;descriptor_id&quot;, UUID.class),</span>
+<span class="fc" id="L471">                rse.getString(&quot;email_address&quot;),</span>
+<span class="fc" id="L472">                rse.getString(&quot;first_name&quot;),</span>
+<span class="fc" id="L473">                rse.getString(&quot;last_name&quot;),</span>
+<span class="fc" id="L474">                rse.getString(&quot;user_language&quot;),</span>
+<span class="fc" id="L475">                rse.getString(&quot;reservation_email&quot;),</span>
+<span class="fc" id="L476">                rse.getString(&quot;additional_fields&quot;),</span>
+<span class="fc" id="L477">                rse.getString(&quot;compatible_categories&quot;)</span>
+            ));
+<span class="fc" id="L479">        });</span>
+<span class="fc" id="L480">        return result;</span>
+    }
+
+    @Query(&quot;update subscription set src_price_cts = :price where subscription_descriptor_fk = :descriptorId and status = 'FREE'&quot;)
+    int updatePriceForSubscriptions(@Bind(&quot;descriptorId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;price&quot;) int priceCts);
+
+    @Query(&quot;update subscription set max_entries = :maxEntries, max_usage = :maxEntries where subscription_descriptor_fk = :descriptorId&quot;)
+    int updateMaxEntriesForSubscriptions(@Bind(&quot;descriptorId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;maxEntries&quot;) int maxEntries);
+
+    @Query(&quot;update subscription set metadata = :metadata::jsonb where id = :id&quot;)
+    int setMetadataForSubscription(@Bind(&quot;id&quot;) UUID subscriptionId, @Bind(&quot;metadata&quot;) @JSONData SubscriptionMetadata metadata);
+
+    @Query(&quot;select metadata from subscription where id = :id&quot;)
+    @JSONData
+    SubscriptionMetadata getSubscriptionMetadata(@Bind(&quot;id&quot;) UUID subscriptionId);
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

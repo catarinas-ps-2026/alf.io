@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentProviderConnectFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config.authentication.support</a> &gt; <span class="el_source">PaymentProviderConnectFilter.java</span></div><h1>PaymentProviderConnectFilter.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config.authentication.support;
+
+import alfio.manager.payment.MollieConnectManager;
+import alfio.manager.payment.OAuthPaymentProviderConnector;
+import alfio.manager.payment.StripeConnectManager;
+import alfio.manager.user.UserManager;
+import alfio.util.TemplateManager;
+import alfio.util.oauth2.AccessTokenResponseDetails;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatchers;
+import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.FlashMapManager;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
+
+import static alfio.manager.payment.MollieConnectManager.MOLLIE_CONNECT_REDIRECT_PATH;
+import static alfio.manager.payment.StripeConnectManager.STRIPE_CONNECT_REDIRECT_PATH;
+
+public class PaymentProviderConnectFilter extends GenericFilterBean {
+
+<span class="nc" id="L54">    private static final Logger log = LoggerFactory.getLogger(PaymentProviderConnectFilter.class);</span>
+    private static final String CONNECT_ORG = &quot;.connect.org&quot;;
+    private static final String CONNECT_STATE_PREFIX = &quot;.connect.state.&quot;;
+    public static final String MOLLIE = &quot;mollie&quot;;
+    public static final String ADMIN = &quot;/admin&quot;;
+    public static final String ERROR_MESSAGE = &quot;errorMessage&quot;;
+    private final TemplateManager templateManager;
+    private final RequestMatcher requestMatcher;
+    private final RequestMatcher authorizeRequestMatcher;
+    private final UserManager userManager;
+    private final FlashMapManager flashMapManager;
+    private final StripeConnectManager stripeConnectManager;
+    private final MollieConnectManager mollieConnectManager;
+
+    public PaymentProviderConnectFilter(TemplateManager templateManager,
+                                        UserManager userManager,
+                                        StripeConnectManager stripeConnectManager,
+<span class="nc" id="L71">                                        MollieConnectManager mollieConnectManager) {</span>
+<span class="nc" id="L72">        this.templateManager = templateManager;</span>
+<span class="nc" id="L73">        this.userManager = userManager;</span>
+<span class="nc" id="L74">        this.stripeConnectManager = stripeConnectManager;</span>
+<span class="nc" id="L75">        this.mollieConnectManager = mollieConnectManager;</span>
+<span class="nc" id="L76">        this.requestMatcher = new AntPathRequestMatcher(&quot;/admin/configuration/payment/{provider}/connect/{orgId}&quot;);</span>
+<span class="nc" id="L77">        this.authorizeRequestMatcher = RequestMatchers.anyOf(</span>
+            new AntPathRequestMatcher(STRIPE_CONNECT_REDIRECT_PATH),
+            new AntPathRequestMatcher(MOLLIE_CONNECT_REDIRECT_PATH)
+        );
+<span class="nc" id="L81">        this.flashMapManager = new SessionFlashMapManager();</span>
+<span class="nc" id="L82">    }</span>
+
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+<span class="nc" id="L86">        var request = (HttpServletRequest) req;</span>
+<span class="nc" id="L87">        var response = (HttpServletResponse) res;</span>
+<span class="nc" id="L88">        var matcher = requestMatcher.matcher(request);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (matcher.isMatch()) {</span>
+<span class="nc" id="L90">            initializeConnect(matcher, request, response);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        } else if (authorizeRequestMatcher.matches(request)) {</span>
+<span class="nc" id="L92">            var stateParams = getStateParams(request);</span>
+<span class="nc" id="L93">            var session = request.getSession(false);</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">            if (stateParams.isValid() &amp;&amp; session == null) {</span>
+<span class="nc" id="L95">                var redirectPath = request.getRequestURI() + &quot;?&quot; + request.getQueryString()+&quot;&amp;p=true&quot;;</span>
+<span class="nc" id="L96">                log.trace(&quot;Session is null. Request URI is: {}&quot;, redirectPath);</span>
+<span class="nc" id="L97">                response.setContentType(&quot;text/html&quot;);</span>
+<span class="nc" id="L98">                response.setStatus(HttpServletResponse.SC_OK);</span>
+<span class="nc" id="L99">                templateManager.renderHtml(</span>
+                    new ClassPathResource(&quot;/alfio/templates/openid-redirect.ms&quot;),
+<span class="nc" id="L101">                    Map.of(&quot;redirectPath&quot;, redirectPath),</span>
+<span class="nc" id="L102">                    response.getWriter()</span>
+                );
+<span class="nc" id="L104">                response.flushBuffer();</span>
+<span class="nc" id="L105">                return;</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            } else if (session == null) {</span>
+<span class="nc" id="L107">                log.trace(&quot;Session is null and a first attempt has been already made. Giving up...&quot;);</span>
+            } else {
+<span class="nc" id="L109">                handleConnectResponse(request, response, session, stateParams);</span>
+            }
+        }
+<span class="nc" id="L112">        chain.doFilter(req, res);</span>
+<span class="nc" id="L113">    }</span>
+
+    private static StateParams getStateParams(HttpServletRequest request) {
+<span class="nc" id="L116">        var state = request.getParameter(&quot;state&quot;);</span>
+<span class="nc" id="L117">        var code = request.getParameter(&quot;code&quot;);</span>
+<span class="nc" id="L118">        var errorCode = request.getParameter(&quot;error&quot;);</span>
+<span class="nc" id="L119">        var errorDescription = request.getParameter(&quot;error_description&quot;);</span>
+<span class="nc" id="L120">        var processed = request.getParameter(&quot;p&quot;);</span>
+<span class="nc" id="L121">        return new StateParams(state, code, errorCode, errorDescription, processed);</span>
+    }
+
+
+    private void handleConnectResponse(HttpServletRequest request,
+                                       HttpServletResponse response,
+                                       HttpSession session,
+                                       StateParams stateParams) throws IOException {
+        try {
+<span class="nc" id="L130">            boolean isMollie = request.getRequestURI().equals(MOLLIE_CONNECT_REDIRECT_PATH);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            var provider = isMollie ? MOLLIE : &quot;stripe&quot;;</span>
+<span class="nc" id="L132">            var orgId = (Integer) session.getAttribute(provider + CONNECT_ORG);</span>
+<span class="nc bnc" id="L133" title="All 4 branches missed.">            if (orgId == null || !userManager.isOwnerOfOrganization(SecurityContextHolder.getContext().getAuthentication().getName(), orgId)) {</span>
+<span class="nc" id="L134">                response.sendRedirect(ADMIN);</span>
+            } else {
+<span class="nc" id="L136">                var flashMap = new FlashMap();</span>
+<span class="nc" id="L137">                session.removeAttribute(provider + CONNECT_ORG);</span>
+<span class="nc" id="L138">                String persistedState = (String) session.getAttribute(provider + CONNECT_STATE_PREFIX + orgId);</span>
+<span class="nc" id="L139">                session.removeAttribute(provider + CONNECT_STATE_PREFIX + orgId);</span>
+<span class="nc" id="L140">                boolean stateVerified = Objects.equals(persistedState, stateParams.state);</span>
+<span class="nc bnc" id="L141" title="All 4 branches missed.">                if(stateVerified &amp;&amp; stateParams.code != null) {</span>
+<span class="nc" id="L142">                    AccessTokenResponseDetails connectResult = getConnector(provider).storeConnectedAccountId(stateParams.code, orgId);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                    if(connectResult.isSuccess()) {</span>
+<span class="nc" id="L144">                        response.sendRedirect(&quot;/admin/#/configuration/organization/&quot;+orgId);</span>
+                    }
+<span class="nc bnc" id="L146" title="All 4 branches missed.">                } else if(stateVerified &amp;&amp; StringUtils.isNotEmpty(stateParams.errorCode)) {</span>
+<span class="nc" id="L147">                    log.warn(&quot;error from {}. {}={}&quot;, provider, stateParams.errorCode, stateParams.errorDescription);</span>
+<span class="nc" id="L148">                    flashMap.put(ERROR_MESSAGE, Objects.toString(stateParams.errorDescription, stateParams.errorCode));</span>
+<span class="nc" id="L149">                    flashMapManager.saveOutputFlashMap(flashMap, request, response);</span>
+<span class="nc" id="L150">                    response.sendRedirect(ADMIN);</span>
+                } else {
+<span class="nc" id="L152">                    flashMap.put(ERROR_MESSAGE, &quot;Couldn't connect your account. Please retry.&quot;);</span>
+<span class="nc" id="L153">                    flashMapManager.saveOutputFlashMap(flashMap, request, response);</span>
+<span class="nc" id="L154">                    response.sendRedirect(ADMIN);</span>
+                }
+            }
+<span class="nc" id="L157">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L158">            log.warn(&quot;Cannot complete connection with payment provider&quot;, e);</span>
+<span class="nc" id="L159">            var flashMap = new FlashMap();</span>
+<span class="nc" id="L160">            flashMap.put(ERROR_MESSAGE, &quot;Couldn't connect your account. Please retry.&quot;);</span>
+<span class="nc" id="L161">            flashMapManager.saveOutputFlashMap(flashMap, request, response);</span>
+<span class="nc" id="L162">            response.sendRedirect(ADMIN);</span>
+<span class="nc" id="L163">        }</span>
+<span class="nc" id="L164">    }</span>
+
+    private void initializeConnect(RequestMatcher.MatchResult matcher, HttpServletRequest request, HttpServletResponse response) throws IOException {
+<span class="nc" id="L167">        var variables = matcher.getVariables();</span>
+<span class="nc" id="L168">        int orgId = Integer.parseInt(variables.get(&quot;orgId&quot;));</span>
+<span class="nc" id="L169">        String provider = variables.get(&quot;provider&quot;);</span>
+<span class="nc" id="L170">        var username = SecurityContextHolder.getContext().getAuthentication().getName();</span>
+<span class="nc bnc" id="L171" title="All 6 branches missed.">        if ((&quot;stripe&quot;.equals(provider) || MOLLIE.equals(provider)) &amp;&amp; userManager.isOwnerOfOrganization(username, orgId)) {</span>
+<span class="nc" id="L172">            var session = Objects.requireNonNull(request.getSession(false));</span>
+<span class="nc" id="L173">            var connectURL = getConnector(provider).getConnectURL(orgId);</span>
+<span class="nc" id="L174">            session.setAttribute(provider+CONNECT_STATE_PREFIX +orgId, connectURL.getState());</span>
+<span class="nc" id="L175">            session.setAttribute(provider+CONNECT_ORG, orgId);</span>
+<span class="nc" id="L176">            response.sendRedirect(connectURL.getAuthorizationUrl());</span>
+<span class="nc" id="L177">        } else {</span>
+<span class="nc" id="L178">            response.sendRedirect(ADMIN);</span>
+        }
+<span class="nc" id="L180">    }</span>
+
+    private OAuthPaymentProviderConnector getConnector(String providerAsString) {
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        return MOLLIE.equals(providerAsString) ? mollieConnectManager : stripeConnectManager;</span>
+    }
+
+<span class="nc" id="L186">    record StateParams(String state,</span>
+                       String code,
+                       String errorCode,
+                       String errorDescription,
+                       String processed) {
+        boolean isValid() {
+<span class="nc bnc" id="L192" title="All 8 branches missed.">            return processed == null &amp;&amp; ((state != null &amp;&amp; code != null) || errorCode != null);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
