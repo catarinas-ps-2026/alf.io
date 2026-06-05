@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BankTransferManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.payment</a> &gt; <span class="el_source">BankTransferManager.java</span></div><h1>BankTransferManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.payment;
+
+import alfio.manager.support.PaymentResult;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.Event;
+import alfio.model.PurchaseContext;
+import alfio.model.TicketReservation;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.transaction.*;
+import alfio.repository.TicketReservationRepository;
+import alfio.repository.TransactionRepository;
+import alfio.util.ClockProvider;
+import alfio.util.WorkingDaysAdjusters;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
+import static alfio.model.TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT;
+import static alfio.model.system.ConfigurationKeys.*;
+
+@Component
+@AllArgsConstructor
+public class BankTransferManager implements PaymentProvider {
+
+<span class="fc" id="L48">    private static final Logger log = LoggerFactory.getLogger(BankTransferManager.class);</span>
+<span class="fc" id="L49">    private static final EnumSet&lt;ConfigurationKeys&gt; OPTIONS_TO_LOAD = EnumSet.of(BANK_TRANSFER_ENABLED,</span>
+        DEFERRED_BANK_TRANSFER_ENABLED, OFFLINE_PAYMENT_DAYS, OFFLINE_PAYMENT_BUSINESS_DAYS, REVOLUT_ENABLED, REVOLUT_API_KEY,
+        REVOLUT_LIVE_MODE, REVOLUT_MANUAL_REVIEW);
+    private final ConfigurationManager configurationManager;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final TransactionRepository transactionRepository;
+    private final ClockProvider clockProvider;
+
+    @Override
+    public Set&lt;? extends PaymentMethod&gt; getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
+<span class="nc" id="L59">        return EnumSet.of(StaticPaymentMethods.BANK_TRANSFER);</span>
+    }
+
+    @Override
+    public PaymentProxy getPaymentProxy() {
+<span class="fc" id="L64">        return PaymentProxy.OFFLINE;</span>
+    }
+
+    @Override
+    public boolean accept(PaymentMethod paymentMethod, PaymentContext paymentContext, TransactionRequest transactionRequest) {
+<span class="nc" id="L69">        var options = options(paymentContext);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        return bankTransferEnabledForMethod(paymentMethod, paymentContext, options)</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            &amp;&amp; !options.get(REVOLUT_ENABLED).getValueAsBooleanOrDefault();</span>
+    }
+
+    boolean bankTransferEnabledForMethod(PaymentMethod paymentMethod, PaymentContext paymentContext, Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; options) {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if(paymentMethod != StaticPaymentMethods.BANK_TRANSFER) {</span>
+<span class="nc" id="L76">            return false;</span>
+        }
+<span class="nc" id="L78">        return bankTransferActive(paymentContext, options);</span>
+    }
+
+    boolean bankTransferActive(PaymentContext paymentContext, Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; options) {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        return options.get(BANK_TRANSFER_ENABLED).getValueAsBooleanOrDefault()</span>
+<span class="nc bnc" id="L83" title="All 4 branches missed.">            &amp;&amp; (paymentContext.getPurchaseContext() == null || getOfflinePaymentWaitingPeriod(paymentContext.getPurchaseContext(), options.get(OFFLINE_PAYMENT_DAYS).getValueAsIntOrDefault(5)).orElse(0) &gt; 0);</span>
+    }
+
+    Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; options(PaymentContext paymentContext) {
+<span class="nc" id="L87">        return configurationManager.getFor(OPTIONS_TO_LOAD, paymentContext.getConfigurationLevel());</span>
+    }
+
+    boolean isPaymentDeferredEnabled(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; options) {
+<span class="fc" id="L91">        return options.get(DEFERRED_BANK_TRANSFER_ENABLED).getValueAsBooleanOrDefault();</span>
+    }
+
+    @Override
+    public PaymentResult doPayment(PaymentSpecification spec) {
+<span class="nc" id="L96">        transitionToOfflinePayment(spec);</span>
+<span class="nc" id="L97">        overrideExistingTransactions(spec);</span>
+<span class="nc" id="L98">        return PaymentResult.successful(NOT_YET_PAID_TRANSACTION_ID);</span>
+    }
+
+    void overrideExistingTransactions(PaymentSpecification spec) {
+<span class="nc" id="L102">        PaymentManagerUtils.invalidateExistingTransactions(spec.getReservationId(), transactionRepository);</span>
+<span class="nc" id="L103">        transactionRepository.insert(UUID.randomUUID().toString(), null,</span>
+<span class="nc" id="L104">            spec.getReservationId(), ZonedDateTime.now(clockProvider.getClock()), spec.getPriceWithVAT(), spec.getCurrencyCode(),</span>
+<span class="nc" id="L105">            &quot;&quot;, PaymentProxy.OFFLINE.name(), 0L, 0L, Transaction.Status.PENDING, Map.of());</span>
+<span class="nc" id="L106">    }</span>
+
+    @Override
+    public Map&lt;String, ?&gt; getModelOptions(PaymentContext context) {
+<span class="nc" id="L110">        OptionalInt delay = getOfflinePaymentWaitingPeriod(context, configurationManager);</span>
+<span class="nc" id="L111">        PurchaseContext purchaseContext = context.getPurchaseContext();</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if(delay.isEmpty()) {</span>
+<span class="nc" id="L113">            log.error(&quot;Already started event {} has been found with OFFLINE payment enabled&quot; , purchaseContext.getDisplayName());</span>
+        }
+<span class="nc" id="L115">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L116">        model.put(&quot;delayForOfflinePayment&quot;, Math.max(1, delay.orElse( 0 )));</span>
+<span class="nc" id="L117">        boolean recaptchaEnabled = configurationManager.isRecaptchaForOfflinePaymentAndFreeEnabled(purchaseContext.getConfigurationLevel());</span>
+<span class="nc" id="L118">        model.put(&quot;captchaRequestedForOffline&quot;, recaptchaEnabled);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if(recaptchaEnabled) {</span>
+<span class="nc" id="L120">            model.put(&quot;recaptchaApiKey&quot;, configurationManager.getForSystem(RECAPTCHA_API_KEY).getValue().orElse(null));</span>
+        }
+<span class="nc" id="L122">        return model;</span>
+    }
+
+    private void transitionToOfflinePayment(PaymentSpecification spec) {
+<span class="nc" id="L126">        ZonedDateTime deadline = getOfflinePaymentDeadline(spec.getPaymentContext(), configurationManager);</span>
+<span class="nc" id="L127">        postponePayment(spec, OFFLINE_PAYMENT, deadline);</span>
+<span class="nc" id="L128">    }</span>
+
+    void postponePayment(PaymentSpecification spec, TicketReservation.TicketReservationStatus status, ZonedDateTime deadline) {
+<span class="nc" id="L131">        int updatedReservation = ticketReservationRepository.postponePayment(spec.getReservationId(), status, this.getPaymentProxy().name(), Date.from(deadline.toInstant()), spec.getEmail(),</span>
+<span class="nc" id="L132">            spec.getCustomerName().getFullName(), spec.getCustomerName().getFirstName(), spec.getCustomerName().getLastName(), spec.getBillingAddress(), spec.getCustomerReference());</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        Validate.isTrue(updatedReservation == 1, &quot;expected exactly one updated reservation, got &quot; + updatedReservation);</span>
+<span class="nc" id="L134">    }</span>
+
+    public static ZonedDateTime getOfflinePaymentDeadline(PaymentContext context, ConfigurationManager configurationManager) {
+<span class="fc" id="L137">        PurchaseContext purchaseContext = context.getPurchaseContext();</span>
+<span class="fc" id="L138">        var configuration = configurationManager.getFor(EnumSet.of(OFFLINE_PAYMENT_DAYS, OFFLINE_PAYMENT_BUSINESS_DAYS), purchaseContext.getConfigurationLevel());</span>
+<span class="fc" id="L139">        ZonedDateTime now = purchaseContext.now(ClockProvider.clock());</span>
+<span class="fc" id="L140">        int waitingPeriod = getOfflinePaymentWaitingPeriod(purchaseContext, configuration.get(OFFLINE_PAYMENT_DAYS).getValueAsIntOrDefault(5)).orElse(0);</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if(waitingPeriod == 0) {</span>
+<span class="fc" id="L142">            log.warn(&quot;accepting offline payments the same day is a very bad practice and should be avoided. Please set cash payment as payment method next time&quot;);</span>
+            //if today is the event start date, then we add a couple of hours.
+            //TODO Maybe should we avoid this wrong behavior upfront, in the admin area?
+<span class="fc" id="L145">            return now.plusHours(2);</span>
+        }
+<span class="fc bfc" id="L147" title="All 2 branches covered.">        if (configuration.get(OFFLINE_PAYMENT_BUSINESS_DAYS).getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L148">            return ZonedDateTime.from(WorkingDaysAdjusters.addDays(now.truncatedTo(ChronoUnit.HALF_DAYS), waitingPeriod));</span>
+        } else {
+<span class="fc" id="L150">            return now.truncatedTo(ChronoUnit.HALF_DAYS).plusDays(waitingPeriod);</span>
+        }
+    }
+
+    public static OptionalInt getOfflinePaymentWaitingPeriod(PaymentContext paymentContext, ConfigurationManager configurationManager) {
+<span class="fc" id="L155">        PurchaseContext purchaseContext = paymentContext.getPurchaseContext();</span>
+<span class="fc" id="L156">        return getOfflinePaymentWaitingPeriod(purchaseContext, configurationManager.getFor(OFFLINE_PAYMENT_DAYS, purchaseContext.getConfigurationLevel()).getValueAsIntOrDefault(5));</span>
+    }
+
+    private static OptionalInt getOfflinePaymentWaitingPeriod(PurchaseContext purchaseContext, int configuredValue) {
+<span class="fc" id="L160">        ZonedDateTime now = purchaseContext.now(ClockProvider.clock());</span>
+<span class="fc" id="L161">        ZonedDateTime maxDate = purchaseContext.event()</span>
+<span class="fc" id="L162">            .map(BankTransferManager::getMaxPaymentDate)</span>
+<span class="fc" id="L163">            .orElse(purchaseContext.getBegin());</span>
+<span class="fc" id="L164">        int daysToBegin = (int) ChronoUnit.DAYS.between(now.toLocalDate(), maxDate.toLocalDate());</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">        if (daysToBegin &lt; 0) {</span>
+<span class="nc" id="L166">            return OptionalInt.empty();</span>
+        }
+<span class="fc" id="L168">        return OptionalInt.of( Math.min(daysToBegin, configuredValue) );</span>
+    }
+
+    private static ZonedDateTime getMaxPaymentDate(Event event) {
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (event.getSameDay()) {</span>
+<span class="nc" id="L173">            return event.getBegin();</span>
+        } else {
+<span class="fc" id="L175">            return event.getEnd();</span>
+        }
+    }
+
+    @Override
+    public boolean accept(Transaction transaction) {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        return PaymentProxy.OFFLINE == transaction.getPaymentProxy();</span>
+    }
+
+    @Override
+    public PaymentMethod getPaymentMethodForTransaction(Transaction transaction) {
+<span class="nc" id="L186">        return StaticPaymentMethods.BANK_TRANSFER;</span>
+    }
+
+    @Override
+    public boolean isActive(PaymentContext paymentContext) {
+<span class="nc" id="L191">        return bankTransferActive(paymentContext, options(paymentContext));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

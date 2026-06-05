@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReservationAuditingHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.support.reservation</a> &gt; <span class="el_source">ReservationAuditingHelper.java</span></div><h1>ReservationAuditingHelper.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.support.reservation;
+
+import alfio.model.Audit;
+import alfio.model.Ticket;
+import alfio.model.metadata.TicketMetadataContainer;
+import alfio.repository.AuditingRepository;
+import alfio.util.ObjectDiffUtil;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static alfio.model.Audit.EntityType.TICKET;
+
+public class ReservationAuditingHelper {
+
+    private final AuditingRepository auditingRepository;
+
+<span class="fc" id="L38">    public ReservationAuditingHelper(AuditingRepository auditingRepository) {</span>
+<span class="fc" id="L39">        this.auditingRepository = auditingRepository;</span>
+<span class="fc" id="L40">    }</span>
+
+    public void auditUpdateMetadata(String reservationId,
+                                     int ticketId,
+                                     int eventId,
+                                     TicketMetadataContainer newMetadata,
+                                     TicketMetadataContainer oldMetadata) {
+<span class="nc" id="L47">        List&lt;Map&lt;String, Object&gt;&gt; changes = ObjectDiffUtil.diff(oldMetadata, newMetadata, TicketMetadataContainer.class).stream()</span>
+<span class="nc" id="L48">            .map(this::processChange)</span>
+<span class="nc" id="L49">            .collect(Collectors.toList());</span>
+
+<span class="nc" id="L51">        auditingRepository.insert(reservationId, null, eventId, Audit.EventType.UPDATE_TICKET_METADATA, new Date(),</span>
+<span class="nc" id="L52">            TICKET, Integer.toString(ticketId), changes);</span>
+<span class="nc" id="L53">    }</span>
+
+    public void auditUpdateTicket(Ticket preUpdateTicket, Map&lt;String, List&lt;String&gt;&gt; preUpdateTicketFields, Ticket postUpdateTicket, Map&lt;String, List&lt;String&gt;&gt; postUpdateTicketFields, int eventId) {
+<span class="fc" id="L56">        List&lt;ObjectDiffUtil.Change&gt; diffTicket = ObjectDiffUtil.diff(preUpdateTicket, postUpdateTicket);</span>
+<span class="fc" id="L57">        List&lt;ObjectDiffUtil.Change&gt; diffTicketFields = ObjectDiffUtil.diff(preUpdateTicketFields, postUpdateTicketFields);</span>
+
+<span class="fc" id="L59">        List&lt;Map&lt;String, Object&gt;&gt; changes = Stream.concat(diffTicket.stream(), diffTicketFields.stream())</span>
+<span class="fc" id="L60">            .map(this::processChange)</span>
+<span class="fc" id="L61">            .collect(Collectors.toList());</span>
+
+<span class="fc" id="L63">        auditingRepository.insert(preUpdateTicket.getTicketsReservationId(), null, eventId,</span>
+<span class="fc" id="L64">            Audit.EventType.UPDATE_TICKET, new Date(), TICKET, Integer.toString(preUpdateTicket.getId()), changes);</span>
+<span class="fc" id="L65">    }</span>
+
+    private HashMap&lt;String, Object&gt; processChange(ObjectDiffUtil.Change change) {
+<span class="nc" id="L68">        var v = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L69">        v.put(&quot;propertyName&quot;, change.getPropertyName());</span>
+<span class="nc" id="L70">        v.put(&quot;state&quot;, change.getState());</span>
+<span class="nc" id="L71">        v.put(&quot;oldValue&quot;, change.getOldValue());</span>
+<span class="nc" id="L72">        v.put(&quot;newValue&quot;, change.getNewValue());</span>
+<span class="nc" id="L73">        return v;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

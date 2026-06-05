@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReservationApiV2Controller.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.v2.user</a> &gt; <span class="el_source">ReservationApiV2Controller.java</span></div><h1>ReservationApiV2Controller.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.v2.user;
+
+import alfio.controller.api.admin.PassedIdDoesNotExistException;
+import alfio.controller.api.support.AdditionalServiceWithData;
+import alfio.controller.api.support.BookingInfoTicketLoader;
+import alfio.controller.api.support.TicketHelper;
+import alfio.controller.api.v2.model.PaymentProxyWithParameters;
+import alfio.controller.api.v2.model.ReservationInfo;
+import alfio.controller.api.v2.model.ReservationInfo.TicketsByTicketCategory;
+import alfio.controller.api.v2.model.ReservationPaymentResult;
+import alfio.controller.api.v2.model.ReservationStatusInfo;
+import alfio.controller.api.v2.user.support.ReservationAccessDenied;
+import alfio.controller.form.ContactAndTicketsForm;
+import alfio.controller.form.PaymentForm;
+import alfio.controller.form.ReservationCodeForm;
+import alfio.controller.support.CustomBindingResult;
+import alfio.controller.support.Formatters;
+import alfio.controller.support.TemplateProcessor;
+import alfio.manager.*;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.payment.PaymentSpecification;
+import alfio.manager.payment.StripeCreditCardManager;
+import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager;
+import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager.CustomOfflinePaymentMethodDoesNotExistException;
+import alfio.manager.support.AdditionalServiceHelper;
+import alfio.manager.support.PaymentResult;
+import alfio.manager.support.response.ValidatedResponse;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.user.PublicUserManager;
+import alfio.model.*;
+import alfio.model.PurchaseContext.PurchaseContextType;
+import alfio.model.metadata.SubscriptionMetadata;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.subscription.UsageDetails;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.transaction.*;
+import alfio.repository.*;
+import alfio.util.*;
+import lombok.AllArgsConstructor;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.util.MultiValueMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+import static alfio.controller.api.support.BookingInfoTicketLoader.toAdditionalFieldsStream;
+import static alfio.model.PurchaseContextFieldConfiguration.EVENT_RELATED_CONTEXTS;
+import static alfio.model.system.ConfigurationKeys.ENABLE_ITALY_E_INVOICING;
+import static alfio.model.system.ConfigurationKeys.FORCE_TICKET_OWNER_ASSIGNMENT_AT_RESERVATION;
+import static java.util.Objects.requireNonNullElse;
+import static java.util.Objects.requireNonNullElseGet;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping(&quot;/api/v2/public/&quot;)
+public class ReservationApiV2Controller {
+
+<span class="nc" id="L100">    private static final Logger log = LoggerFactory.getLogger(ReservationApiV2Controller.class);</span>
+    private final EventRepository eventRepository;
+    private final TicketReservationManager ticketReservationManager;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final PurchaseContextFieldRepository purchaseContextFieldRepository;
+    private final MessageSourceManager messageSourceManager;
+    private final ConfigurationManager configurationManager;
+    private final PaymentManager paymentManager;
+    private final FileUploadManager fileUploadManager;
+    private final TemplateManager templateManager;
+    private final ExtensionManager extensionManager;
+    private final TicketHelper ticketHelper;
+    private final EuVatChecker vatChecker;
+    private final RecaptchaService recaptchaService;
+    private final BookingInfoTicketLoader bookingInfoTicketLoader;
+    private final BillingDocumentManager billingDocumentManager;
+    private final PurchaseContextManager purchaseContextManager;
+    private final SubscriptionRepository subscriptionRepository;
+    private final TicketRepository ticketRepository;
+    private final TransactionRepository transactionRepository;
+    private final PublicUserManager publicUserManager;
+    private final ReverseChargeManager reverseChargeManager;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final AdditionalServiceManager additionalServiceManager;
+    private final AdditionalServiceHelper additionalServiceHelper;
+    private final PurchaseContextFieldManager purchaseContextFieldManager;
+    private final CustomOfflineConfigurationManager customOfflineConfigurationManager;
+
+    /**
+     * Note: now it will return for any states of the reservation.
+     *
+     * @param reservationId
+     * @return
+     */
+    @GetMapping(&quot;/reservation/{reservationId}&quot;)
+    public ResponseEntity&lt;ReservationInfo&gt; getReservationInfo(@PathVariable String reservationId, Principal principal) {
+
+<span class="nc" id="L137">        Optional&lt;ReservationInfo&gt; res = purchaseContextManager.findByReservationId(reservationId).flatMap(purchaseContext -&gt; ticketReservationManager.findById(reservationId).flatMap(reservation -&gt; {</span>
+
+<span class="nc" id="L139">            validateAccessToReservation(principal, reservation);</span>
+
+<span class="nc" id="L141">            var orderSummary = ticketReservationManager.orderSummaryForReservationId(reservationId, purchaseContext);</span>
+<span class="nc" id="L142">            List&lt;TicketsByTicketCategory&gt; ticketsInReservation = null;</span>
+<span class="nc" id="L143">            Set&lt;Integer&gt; categoryIds = null;</span>
+<span class="nc" id="L144">            var additionalInfo = ticketReservationRepository.getAdditionalInfo(reservationId);</span>
+<span class="nc" id="L145">            boolean containsCategoriesLinkedToGroups = false;</span>
+<span class="nc" id="L146">            List&lt;AdditionalServiceWithData&gt; additionalServices = null;</span>
+<span class="nc" id="L147">            var descriptionsByFieldId = purchaseContextFieldManager.findDescriptionsGroupedByFieldId(purchaseContext);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="nc" id="L149">                var event = (Event) purchaseContext;</span>
+<span class="nc" id="L150">                var tickets = ticketReservationManager.findTicketsInReservation(reservationId);</span>
+<span class="nc" id="L151">                var ticketIds = tickets.stream().map(Ticket::getId).collect(Collectors.toSet());</span>
+
+                // check if the user can cancel ticket
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                if (!ticketIds.isEmpty()) {</span>
+<span class="nc" id="L155">                    var valuesByTicketIds = purchaseContextFieldRepository.findAllValuesByTicketIds(ticketIds)</span>
+<span class="nc" id="L156">                        .stream()</span>
+<span class="nc" id="L157">                        .collect(Collectors.groupingBy(PurchaseContextFieldValue::getTicketId));</span>
+
+<span class="nc" id="L159">                    var ticketFieldsFilterer = bookingInfoTicketLoader.getTicketFieldsFilterer(reservationId, event);</span>
+<span class="nc" id="L160">                    var ticketsByCategory = tickets.stream().collect(Collectors.groupingBy(Ticket::getCategoryId));</span>
+<span class="nc" id="L161">                    var hasPaidSupplement = ticketReservationManager.hasPaidSupplements(event.getId(), reservationId);</span>
+<span class="nc" id="L162">                    var categories = ticketCategoryRepository.findCategoriesInReservation(reservationId);</span>
+<span class="nc" id="L163">                    ticketsInReservation = ticketsByCategory</span>
+<span class="nc" id="L164">                        .entrySet()</span>
+<span class="nc" id="L165">                        .stream()</span>
+<span class="nc" id="L166">                        .map(e -&gt; {</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                            var tc = categories.stream().filter(t -&gt; t.getId() == e.getKey()).findFirst().orElseThrow();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                            var context = event.supportsLinkedAdditionalServices() ? EnumSet.of(PurchaseContextFieldConfiguration.Context.ATTENDEE) : EVENT_RELATED_CONTEXTS;</span>
+<span class="nc" id="L169">                            var ts = e.getValue().stream()</span>
+<span class="nc" id="L170">                                .map(t -&gt; bookingInfoTicketLoader.toBookingInfoTicket(t, hasPaidSupplement, event, ticketFieldsFilterer, descriptionsByFieldId, valuesByTicketIds, Map.of(), false, context))</span>
+<span class="nc" id="L171">                                .collect(Collectors.toList());</span>
+<span class="nc" id="L172">                            return new TicketsByTicketCategory(tc.getName(), tc.getTicketAccessType(), ts);</span>
+                        })
+<span class="nc" id="L174">                        .collect(Collectors.toList());</span>
+<span class="nc" id="L175">                    containsCategoriesLinkedToGroups = ticketReservationManager.containsCategoriesLinkedToGroups(reservationId, event.getId());</span>
+<span class="nc" id="L176">                    categoryIds = ticketsByCategory.keySet();</span>
+<span class="nc" id="L177">                    var additionalServiceItems = additionalServiceManager.findItemsInReservation(event.getId(), reservationId);</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                    Map&lt;Integer, List&lt;AdditionalServiceFieldValue&gt;&gt; additionalServicesByItemId = additionalServiceItems.isEmpty() ? Map.of() :</span>
+<span class="nc" id="L179">                        purchaseContextFieldRepository.findAdditionalServicesValueByItemIds(additionalServiceItems.stream().map(AdditionalServiceItem::getId).collect(Collectors.toList()))</span>
+<span class="nc" id="L180">                            .stream().collect(groupingBy(AdditionalServiceFieldValue::getAdditionalServiceItemId));</span>
+<span class="nc" id="L181">                    additionalServices = additionalServiceHelper.getAdditionalServicesWithData(event,</span>
+                        additionalServiceItems,
+                        additionalServicesByItemId,
+                        descriptionsByFieldId,
+                        tickets);
+                }
+            }
+
+
+
+<span class="nc" id="L191">            var shortReservationId =  configurationManager.getShortReservationID(purchaseContext, reservation);</span>
+            //
+
+<span class="nc bnc" id="L194" title="All 2 branches missed.">            var formattedExpirationDate = reservation.getValidity() != null ? formatDateForLocales(purchaseContext, ZonedDateTime.ofInstant(reservation.getValidity().toInstant(), purchaseContext.getZoneId()), &quot;datetime.pattern&quot;) : null;</span>
+
+<span class="nc" id="L196">            var paymentToken = paymentManager.getPaymentToken(reservationId);</span>
+<span class="nc" id="L197">            boolean tokenAcquired = paymentToken.isPresent();</span>
+<span class="nc" id="L198">            PaymentProxy selectedPaymentProxy = paymentToken.map(PaymentToken::getPaymentProvider).orElse(null);</span>
+
+
+            //
+<span class="nc" id="L202">            List&lt;ReservationInfo.SubscriptionInfo&gt; subscriptionInfos = null;</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">            if (purchaseContext.ofType(PurchaseContextType.subscription)) {</span>
+<span class="nc" id="L204">                subscriptionInfos = subscriptionRepository.findSubscriptionsByReservationId(reservationId).stream()</span>
+<span class="nc" id="L205">                    .limit(1) // since we support only one subscription for now, it makes sense to limit the result to avoid N+1</span>
+<span class="nc" id="L206">                    .map(s -&gt; {</span>
+<span class="nc" id="L207">                        int usageCount = ticketRepository.countSubscriptionUsage(s.getId(), null);</span>
+<span class="nc" id="L208">                        var metadata = requireNonNullElseGet(subscriptionRepository.getSubscriptionMetadata(s.getId()), SubscriptionMetadata::empty);</span>
+<span class="nc" id="L209">                        var fields = purchaseContextFieldManager.findAdditionalFields(purchaseContext);</span>
+<span class="nc" id="L210">                        var valuesById = purchaseContextFieldRepository.findAllValuesBySubscriptionIds(List.of(s.getId()))</span>
+<span class="nc" id="L211">                            .stream()</span>
+<span class="nc" id="L212">                            .collect(Collectors.groupingBy(PurchaseContextFieldValue::getFieldConfigurationId));</span>
+<span class="nc" id="L213">                        var additionalFields = fields.stream()</span>
+<span class="nc" id="L214">                            .sorted(Comparator.comparing(PurchaseContextFieldConfiguration::getOrder))</span>
+<span class="nc" id="L215">                            .flatMap(tfc -&gt; toAdditionalFieldsStream(descriptionsByFieldId, tfc, valuesById))</span>
+<span class="nc" id="L216">                            .collect(Collectors.toList());</span>
+<span class="nc" id="L217">                        return new ReservationInfo.SubscriptionInfo(</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">                            s.getStatus() == AllocationStatus.ACQUIRED ? s.getId() : null,</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                            s.getStatus() == AllocationStatus.ACQUIRED ? s.getPin() : null,</span>
+<span class="nc" id="L220">                            UsageDetails.fromSubscription(s, usageCount),</span>
+<span class="nc" id="L221">                            new ReservationInfo.SubscriptionOwner(s.getFirstName(), s.getLastName(), s.getEmail()),</span>
+<span class="nc" id="L222">                            metadata.getConfiguration(),</span>
+                            additionalFields
+                        );
+                    })
+<span class="nc" id="L226">                    .collect(Collectors.toList());</span>
+            }
+
+<span class="nc" id="L229">            return Optional.of(new ReservationInfo(reservation.getId(), shortReservationId,</span>
+<span class="nc" id="L230">                reservation.getFirstName(), reservation.getLastName(), reservation.getEmail(),</span>
+<span class="nc" id="L231">                reservation.getValidity().getTime(),</span>
+<span class="nc" id="L232">                requireNonNullElse(ticketsInReservation, List.of()),</span>
+<span class="nc" id="L233">                new ReservationInfo.ReservationInfoOrderSummary(orderSummary), reservation.getStatus(),</span>
+<span class="nc" id="L234">                additionalInfo.hasBeenValidated(),</span>
+                formattedExpirationDate,
+<span class="nc" id="L236">                reservation.getInvoiceNumber(),</span>
+<span class="nc" id="L237">                reservation.isInvoiceRequested(),</span>
+<span class="nc" id="L238">                reservation.getHasInvoiceOrReceiptDocument(),</span>
+<span class="nc" id="L239">                reservation.getHasBeenPaid(),</span>
+                tokenAcquired,
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                selectedPaymentProxy != null ? selectedPaymentProxy : reservation.getPaymentMethod(),</span>
+                //
+<span class="nc" id="L243">                additionalInfo.getAddCompanyBillingDetails(),</span>
+<span class="nc" id="L244">                reservation.getCustomerReference(),</span>
+<span class="nc" id="L245">                additionalInfo.getSkipVatNr(),</span>
+<span class="nc" id="L246">                reservation.getBillingAddress(),</span>
+<span class="nc" id="L247">                additionalInfo.getBillingDetails(),</span>
+                //
+                containsCategoriesLinkedToGroups,
+<span class="nc" id="L250">                getActivePaymentMethods(purchaseContext, requireNonNullElse(categoryIds, Set.of()), orderSummary, reservationId),</span>
+                subscriptionInfos,
+<span class="nc" id="L252">                ticketReservationRepository.getMetadata(reservationId),</span>
+<span class="nc" id="L253">                requireNonNullElse(additionalServices, List.of())</span>
+                ));
+        }));
+
+        //
+<span class="nc" id="L258">        return res.map(ResponseEntity::ok).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    private Map&lt;String, PaymentProxyWithParameters&gt; getActivePaymentMethods(PurchaseContext purchaseContext,
+                                                                                   Collection&lt;Integer&gt; categoryIds,
+                                                                                   OrderSummary orderSummary,
+                                                                                   String reservationId) {
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        if(!purchaseContext.isFreeOfCharge()) {</span>
+<span class="nc" id="L266">            var blacklistedMethodsForReservation = configurationManager.getBlacklistedMethodsForReservation(purchaseContext, categoryIds);</span>
+<span class="nc" id="L267">            return paymentManager.getPaymentMethods(purchaseContext, new TransactionRequest(orderSummary.getOriginalTotalPrice(), ticketReservationRepository.getBillingDetailsForReservation(reservationId)))</span>
+<span class="nc" id="L268">                .stream()</span>
+<span class="nc" id="L269">                .filter(p -&gt;</span>
+<span class="nc" id="L270">                    blacklistedMethodsForReservation</span>
+<span class="nc" id="L271">                        .stream()</span>
+<span class="nc" id="L272">                        .noneMatch(p2 -&gt; p2.getPaymentMethodId().equals(p.getPaymentMethod().getPaymentMethodId()))</span>
+                )
+<span class="nc" id="L274">                .filter(p -&gt; ticketReservationManager.isValidPaymentMethod(p, purchaseContext))</span>
+<span class="nc" id="L275">                .collect(</span>
+<span class="nc" id="L276">                    toMap(</span>
+                        PaymentManager.PaymentMethodDTO::getPaymentMethodId,
+<span class="nc" id="L278">                        pm -&gt; new PaymentProxyWithParameters(</span>
+<span class="nc" id="L279">                            pm.getPaymentProxy(),</span>
+<span class="nc" id="L280">                            paymentManager.loadModelOptionsFor(List.of(pm.getPaymentProxy()), purchaseContext)</span>
+                        )
+                    )
+                );
+        } else {
+<span class="nc" id="L285">            return Map.of();</span>
+        }
+    }
+
+    @GetMapping(&quot;/reservation/{reservationId}/status&quot;)
+    public ResponseEntity&lt;ReservationStatusInfo&gt; getReservationStatus(@PathVariable String reservationId) {
+
+<span class="nc" id="L292">        Optional&lt;ReservationStatusInfo&gt; res = ticketReservationRepository.findOptionalStatusAndValidationById(reservationId)</span>
+<span class="nc" id="L293">            .map(status -&gt; new ReservationStatusInfo(status.getStatus(), Boolean.TRUE.equals(status.getValidated())));</span>
+<span class="nc" id="L294">        return res.map(ResponseEntity::ok).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+
+    @DeleteMapping(&quot;/reservation/{reservationId}&quot;)
+    public ResponseEntity&lt;Boolean&gt; cancelPendingReservation(@PathVariable String reservationId) {
+<span class="nc" id="L300">        getReservationWithPendingStatus(reservationId).ifPresent(er -&gt; ticketReservationManager.cancelPendingReservation(reservationId, false, null));</span>
+<span class="nc" id="L301">        return ResponseEntity.ok(true);</span>
+    }
+
+    @PostMapping(&quot;/reservation/{reservationId}/back-to-booking&quot;)
+    public ResponseEntity&lt;Boolean&gt; backToBooking(@PathVariable String reservationId) {
+<span class="nc" id="L306">        getReservationWithPendingStatus(reservationId).ifPresent(er -&gt; ticketReservationRepository.updateValidationStatus(reservationId, false));</span>
+<span class="nc" id="L307">        return ResponseEntity.ok(true);</span>
+    }
+
+    @PostMapping(&quot;/reservation/{reservationId}&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;ReservationPaymentResult&gt;&gt; confirmOverview(@PathVariable String reservationId,
+                                                                                       @RequestParam(&quot;lang&quot;) String lang,
+                                                                                       @RequestBody  PaymentForm paymentForm,
+                                                                                       BindingResult bindingResult,
+                                                                                       HttpServletRequest request,
+                                                                                       Principal principal) {
+
+<span class="nc" id="L318">        return getReservation(reservationId).map(er -&gt; {</span>
+<span class="nc" id="L319">            var event = er.getLeft();</span>
+<span class="nc" id="L320">            var reservation = er.getRight();</span>
+<span class="nc" id="L321">            var locale = LocaleUtil.forLanguageTag(lang, event);</span>
+
+<span class="nc" id="L323">            validateAccessToReservation(principal, reservation);</span>
+
+<span class="nc bnc" id="L325" title="All 2 branches missed.">            if (!reservation.getValidity().after(new Date())) {</span>
+<span class="nc" id="L326">                bindingResult.reject(ErrorsCode.STEP_2_ORDER_EXPIRED);</span>
+            }
+
+
+<span class="nc" id="L330">            final TotalPrice reservationCost = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();</span>
+
+<span class="nc" id="L332">            paymentForm.validate(bindingResult, event, reservationCost);</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">            if (bindingResult.hasErrors()) {</span>
+<span class="nc" id="L334">                return buildReservationPaymentStatus(bindingResult);</span>
+            }
+
+<span class="nc bnc" id="L337" title="All 2 branches missed.">            if(isCaptchaInvalid(reservationCost.getPriceWithVAT(), paymentForm.getPaymentProxy(), paymentForm.getCaptcha(), request, event)) {</span>
+<span class="nc" id="L338">                log.debug(&quot;captcha validation failed.&quot;);</span>
+<span class="nc" id="L339">                bindingResult.reject(ErrorsCode.STEP_2_CAPTCHA_VALIDATION_FAILED);</span>
+            }
+
+<span class="nc" id="L342">            if(</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">                paymentForm.getPaymentProxy() == PaymentProxy.CUSTOM_OFFLINE</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">                &amp;&amp; event.event().isPresent()</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">                &amp;&amp; !isCustomPaymentMethodValidForEvent(event.event().get(), paymentForm.getSelectedPaymentMethod())</span>
+            ) {
+<span class="nc" id="L347">                bindingResult.reject(ErrorsCode.STEP_2_MISSING_PAYMENT_METHOD);</span>
+            }
+
+<span class="nc bnc" id="L350" title="All 2 branches missed.">            if(!bindingResult.hasErrors()) {</span>
+<span class="nc" id="L351">                extensionManager.handleReservationValidation(event, reservation, paymentForm, bindingResult);</span>
+            }
+
+<span class="nc bnc" id="L354" title="All 2 branches missed.">            if (bindingResult.hasErrors()) {</span>
+<span class="nc" id="L355">                return buildReservationPaymentStatus(bindingResult);</span>
+            }
+
+<span class="nc" id="L358">            CustomerName customerName = new CustomerName(reservation.getFullName(), reservation.getFirstName(), reservation.getLastName(), true);</span>
+
+<span class="nc" id="L360">            OrderSummary orderSummary = ticketReservationManager.orderSummaryForReservationId(reservationId, event);</span>
+
+<span class="nc" id="L362">            PaymentToken paymentToken = paymentManager.getPaymentToken(reservationId).orElse(null);</span>
+<span class="nc bnc" id="L363" title="All 4 branches missed.">            if(paymentToken == null &amp;&amp; StringUtils.isNotEmpty(paymentForm.getGatewayToken())) {</span>
+<span class="nc" id="L364">                paymentToken = paymentManager.buildPaymentToken(paymentForm.getGatewayToken(), paymentForm.getPaymentProxy(),</span>
+                    new PaymentContext(event, reservationId));
+            }
+<span class="nc" id="L367">            PaymentSpecification spec = new PaymentSpecification(reservationId, paymentToken, paymentForm.getSelectedPaymentMethod(),</span>
+<span class="nc" id="L368">                reservationCost.getPriceWithVAT(), event, reservation.getEmail(), customerName, reservation.getBillingAddress(),</span>
+<span class="nc bnc" id="L369" title="All 2 branches missed.">                reservation.getCustomerReference(), locale, reservation.isInvoiceRequested(), !reservation.isDirectAssignmentRequested(),</span>
+<span class="nc" id="L370">                orderSummary, reservation.getVatCountryCode(), reservation.getVatNr(), reservation.getVatStatus(),</span>
+<span class="nc" id="L371">                Boolean.TRUE.equals(paymentForm.getTermAndConditionsAccepted()), Boolean.TRUE.equals(paymentForm.getPrivacyPolicyAccepted()));</span>
+
+<span class="nc" id="L373">            final PaymentResult status = ticketReservationManager.performPayment(spec, reservationCost, paymentForm.getPaymentProxy(), paymentForm.getSelectedPaymentMethod(), principal);</span>
+
+<span class="nc bnc" id="L375" title="All 2 branches missed.">            if (status.isRedirect()) {</span>
+<span class="nc" id="L376">                var body = ValidatedResponse.toResponse(bindingResult,</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">                    new ReservationPaymentResult(!bindingResult.hasErrors(), true, status.getRedirectUrl(), status.isFailed(), status.getGatewayIdOrNull()));</span>
+<span class="nc" id="L378">                return ResponseEntity.ok(body);</span>
+            }
+
+<span class="nc bnc" id="L381" title="All 2 branches missed.">            if (!status.isSuccessful()) {</span>
+<span class="nc" id="L382">                String errorMessageCode = status.getErrorCode().orElse(StripeCreditCardManager.STRIPE_UNEXPECTED);</span>
+<span class="nc" id="L383">                MessageSourceResolvable message = new DefaultMessageSourceResolvable(new String[]{errorMessageCode, StripeCreditCardManager.STRIPE_UNEXPECTED});</span>
+<span class="nc" id="L384">                bindingResult.reject(ErrorsCode.STEP_2_PAYMENT_PROCESSING_ERROR, new Object[]{messageSourceManager.getMessageSourceFor(event).getMessage(message, locale)}, null);</span>
+<span class="nc" id="L385">                return buildReservationPaymentStatus(bindingResult);</span>
+            }
+
+
+<span class="nc" id="L389">            return buildReservationPaymentStatus(bindingResult);</span>
+
+<span class="nc" id="L391">        }).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    private static ResponseEntity&lt;ValidatedResponse&lt;ReservationPaymentResult&gt;&gt; buildReservationPaymentStatus(BindingResult bindingResult) {
+<span class="nc bnc" id="L395" title="All 2 branches missed.">        var body = ValidatedResponse.toResponse(bindingResult, new ReservationPaymentResult(!bindingResult.hasErrors(), false, null, true, null));</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">        return ResponseEntity.status(bindingResult.hasErrors() ? HttpStatus.UNPROCESSABLE_ENTITY : HttpStatus.OK).body(body);</span>
+    }
+
+    @PostMapping(&quot;/reservation/{reservationId}/validate-to-overview&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;Boolean&gt;&gt; validateToOverview(@PathVariable String reservationId,
+                                                                         @RequestParam(&quot;lang&quot;) String lang,
+                                                                         @RequestParam(value = &quot;ignoreWarnings&quot;, defaultValue = &quot;false&quot;) boolean ignoreWarnings,
+                                                                         @RequestBody ContactAndTicketsForm contactAndTicketsForm,
+                                                                         BindingResult br,
+                                                                         Authentication principal) {
+
+<span class="nc" id="L407">        var bindingResult = new CustomBindingResult(br);</span>
+
+<span class="nc" id="L409">        return getPurchaseContextAndReservationWithPendingStatus(reservationId).map(er -&gt; {</span>
+<span class="nc" id="L410">            var purchaseContext = er.getLeft();</span>
+<span class="nc" id="L411">            var reservation = er.getRight();</span>
+
+<span class="nc" id="L413">            validateAccessToReservation(principal, reservation);</span>
+
+<span class="nc" id="L415">            var locale = LocaleUtil.forLanguageTag(lang, purchaseContext);</span>
+<span class="nc" id="L416">            final TotalPrice reservationCost = ticketReservationManager.totalReservationCostWithVAT(reservation.withVatStatus(purchaseContext.getVatStatus())).getLeft();</span>
+
+<span class="nc" id="L418">            purchaseContext.event().ifPresent(event -&gt; {</span>
+<span class="nc" id="L419">                boolean forceAssignment = configurationManager.getFor(FORCE_TICKET_OWNER_ASSIGNMENT_AT_RESERVATION, purchaseContext.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
+<span class="nc bnc" id="L420" title="All 4 branches missed.">                if (forceAssignment || ticketReservationManager.containsCategoriesLinkedToGroups(reservationId, event.getId())) {</span>
+<span class="nc" id="L421">                    contactAndTicketsForm.setPostponeAssignment(false);</span>
+                }
+<span class="nc" id="L423">            });</span>
+
+<span class="nc" id="L425">            boolean invoiceOnly = configurationManager.isInvoiceOnly(purchaseContext);</span>
+
+<span class="nc bnc" id="L427" title="All 4 branches missed.">            if(invoiceOnly &amp;&amp; reservationCost.getPriceWithVAT() &gt; 0) {</span>
+                //override, that's why we save it
+<span class="nc" id="L429">                contactAndTicketsForm.setInvoiceRequested(true);</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">            } else if (reservationCost.getPriceWithVAT() == 0) {</span>
+<span class="nc" id="L431">                contactAndTicketsForm.setInvoiceRequested(false);</span>
+            }
+
+<span class="nc" id="L434">            CustomerName customerName = new CustomerName(contactAndTicketsForm.getFullName(), contactAndTicketsForm.getFirstName(), contactAndTicketsForm.getLastName(), true, false);</span>
+
+
+<span class="nc" id="L437">            ticketReservationRepository.resetVat(reservationId, contactAndTicketsForm.isInvoiceRequested(), purchaseContext.getVatStatus(),</span>
+<span class="nc" id="L438">                reservation.getSrcPriceCts(), reservationCost.getPriceWithVAT(), reservationCost.getVAT(), Math.abs(reservationCost.getDiscount()), reservation.getCurrencyCode());</span>
+
+<span class="nc" id="L440">            var optionalCustomTaxPolicy = extensionManager.handleCustomTaxPolicy(purchaseContext, reservationId, contactAndTicketsForm, reservationCost);</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">            if (optionalCustomTaxPolicy.isPresent()) {</span>
+<span class="nc" id="L442">                log.debug(&quot;Custom tax policy returned for reservation {}. Applying it.&quot;, reservationId);</span>
+<span class="nc" id="L443">                reverseChargeManager.applyCustomTaxPolicy(</span>
+                    purchaseContext,
+<span class="nc" id="L445">                    optionalCustomTaxPolicy.get(),</span>
+                    reservationId,
+                    contactAndTicketsForm,
+                    bindingResult);
+<span class="nc bnc" id="L449" title="All 6 branches missed.">            } else if(reservationCost.getPriceWithVAT() &gt; 0 &amp;&amp; (contactAndTicketsForm.isBusiness() || configurationManager.noTaxesFlagDefinedFor(ticketCategoryRepository.findCategoriesInReservation(reservationId)))) {</span>
+<span class="nc" id="L450">                reverseChargeManager.checkAndApplyVATRules(purchaseContext, reservationId, contactAndTicketsForm, bindingResult);</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">            } else if(reservationCost.getPriceWithVAT() &gt; 0) {</span>
+<span class="nc" id="L452">                reverseChargeManager.resetVat(purchaseContext, reservationId);</span>
+            }
+
+            //persist data
+<span class="nc" id="L456">            ticketReservationManager.updateReservation(reservationId, customerName, contactAndTicketsForm.getEmail(),</span>
+<span class="nc" id="L457">                contactAndTicketsForm.getBillingAddressCompany(), contactAndTicketsForm.getBillingAddressLine1(), contactAndTicketsForm.getBillingAddressLine2(),</span>
+<span class="nc" id="L458">                contactAndTicketsForm.getBillingAddressZip(), contactAndTicketsForm.getBillingAddressCity(), contactAndTicketsForm.getBillingAddressState(), contactAndTicketsForm.getVatCountryCode(),</span>
+<span class="nc" id="L459">                contactAndTicketsForm.getCustomerReference(), contactAndTicketsForm.getVatNr(), contactAndTicketsForm.isInvoiceRequested(),</span>
+<span class="nc" id="L460">                contactAndTicketsForm.getAddCompanyBillingDetails(), contactAndTicketsForm.canSkipVatNrCheck(), false, locale, principal);</span>
+
+<span class="nc" id="L462">            boolean italyEInvoicing = configurationManager.getFor(ENABLE_ITALY_E_INVOICING, purchaseContext.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
+
+<span class="nc bnc" id="L464" title="All 2 branches missed.">            if(italyEInvoicing) {</span>
+<span class="nc" id="L465">                ticketReservationManager.updateReservationInvoicingAdditionalInformation(reservationId, purchaseContext,</span>
+<span class="nc" id="L466">                    new TicketReservationInvoicingAdditionalInfo(getItalianInvoicingInfo(contactAndTicketsForm))</span>
+                );
+            }
+
+<span class="nc bnc" id="L470" title="All 2 branches missed.">            if (purchaseContext instanceof Event event) {</span>
+<span class="nc bnc" id="L471" title="All 4 branches missed.">                if (event.supportsLinkedAdditionalServices() &amp;&amp; contactAndTicketsForm.hasAdditionalServices()) {</span>
+<span class="nc" id="L472">                    var tickets = ticketReservationManager.findTicketsInReservation(reservationId);</span>
+<span class="nc" id="L473">                    additionalServiceManager.linkItemsToTickets(reservationId, contactAndTicketsForm.getAdditionalServices(), tickets);</span>
+<span class="nc" id="L474">                    additionalServiceManager.persistFieldsForAdditionalItems(event.getId(), event.getOrganizationId(), contactAndTicketsForm.getAdditionalServices(), tickets);</span>
+                }
+<span class="nc" id="L476">                assignTickets(event, reservationId, contactAndTicketsForm, bindingResult, locale, true, true);</span>
+            }
+
+<span class="nc bnc" id="L479" title="All 2 branches missed.">            if(purchaseContext.ofType(PurchaseContextType.subscription)) {</span>
+<span class="nc" id="L480">                var owner = contactAndTicketsForm.getSubscriptionOwner();</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                if (contactAndTicketsForm.isDifferentSubscriptionOwner()) {</span>
+<span class="nc bnc" id="L482" title="All 2 branches missed.">                    Validate.isTrue(subscriptionRepository.assignSubscription(reservationId, owner.getFirstName(), owner.getLastName(), owner.getEmail()) == 1);</span>
+                } else {
+                    // cleanup data
+<span class="nc bnc" id="L485" title="All 2 branches missed.">                    Validate.isTrue(subscriptionRepository.assignSubscription(reservationId, null, null, null) == 1);</span>
+                }
+<span class="nc bnc" id="L487" title="All 2 branches missed.">                if (MapUtils.isNotEmpty(owner.getAdditional())) {</span>
+<span class="nc" id="L488">                    purchaseContextFieldManager.updateFieldsForReservation(owner, purchaseContext, null, subscriptionRepository.findSubscriptionsByReservationId(reservationId).get(0).getId());</span>
+                }
+            }
+            //
+
+<span class="nc" id="L493">            Map&lt;ConfigurationKeys, Boolean&gt; formValidationParameters = Collections.singletonMap(ENABLE_ITALY_E_INVOICING, italyEInvoicing);</span>
+
+<span class="nc" id="L495">            var fieldsFilterer = purchaseContext.event()</span>
+<span class="nc" id="L496">                .map(event -&gt; bookingInfoTicketLoader.getTicketFieldsFilterer(reservationId, event))</span>
+<span class="nc" id="L497">                .or(() -&gt; Optional.of(bookingInfoTicketLoader.getSubscriptionFieldsFilterer(reservationId, (SubscriptionDescriptor) purchaseContext)));</span>
+
+            //
+<span class="nc" id="L500">            contactAndTicketsForm.validate(bindingResult, purchaseContext, new SameCountryValidator(configurationManager, extensionManager, purchaseContext, reservationId, vatChecker),</span>
+<span class="nc" id="L501">                formValidationParameters, fieldsFilterer, reservationCost.requiresPayment(), extensionManager,</span>
+<span class="nc" id="L502">                () -&gt; additionalServiceManager.findItemsInReservation(purchaseContext, reservationId));</span>
+            //
+
+<span class="nc bnc" id="L505" title="All 2 branches missed.">            if(!bindingResult.hasErrors()) {</span>
+<span class="nc" id="L506">                extensionManager.handleReservationValidation(purchaseContext, reservation, contactAndTicketsForm, bindingResult);</span>
+            }
+
+<span class="nc bnc" id="L509" title="All 6 branches missed.">            if(!bindingResult.hasErrors() &amp;&amp; (!bindingResult.hasWarnings() || ignoreWarnings)) {</span>
+<span class="nc" id="L510">                ticketReservationManager.flagAsValidated(reservationId, purchaseContext, bindingResult.getWarnings());</span>
+                // save customer data
+<span class="nc bnc" id="L512" title="All 4 branches missed.">                if(principal != null &amp;&amp; configurationManager.isPublicOpenIdEnabled()) {</span>
+<span class="nc" id="L513">                    var additionalData = contactAndTicketsForm.getTickets().values()</span>
+<span class="nc" id="L514">                        .stream()</span>
+<span class="nc bnc" id="L515" title="All 4 branches missed.">                        .filter(f -&gt; principal.getName().equals(f.getEmail()) &amp;&amp; !f.getAdditional().isEmpty())</span>
+<span class="nc" id="L516">                        .limit(1)</span>
+<span class="nc" id="L517">                        .map(form -&gt; publicUserManager.buildAdditionalInfoWithLabels(principal, purchaseContext, form))</span>
+<span class="nc" id="L518">                        .findFirst()</span>
+<span class="nc" id="L519">                        .orElse(Map.of());</span>
+
+<span class="nc" id="L521">                    publicUserManager.persistProfileForPublicUser(principal,</span>
+                        contactAndTicketsForm,
+                        bindingResult,
+<span class="nc" id="L524">                        ticketReservationManager.loadAdditionalInfo(reservationId),</span>
+                        additionalData);
+                }
+            }
+
+<span class="nc bnc" id="L529" title="All 2 branches missed.">            var body = ValidatedResponse.toResponse(bindingResult, !bindingResult.hasErrors());</span>
+<span class="nc bnc" id="L530" title="All 2 branches missed.">            return ResponseEntity.status(bindingResult.hasErrors() ? HttpStatus.UNPROCESSABLE_ENTITY : HttpStatus.OK).body(body);</span>
+<span class="nc" id="L531">        }).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    private void validateAccessToReservation(Principal principal, TicketReservation reservation) {
+<span class="nc bnc" id="L535" title="All 2 branches missed.">        if(!ticketReservationManager.validateAccessToReservation(reservation, principal)) {</span>
+<span class="nc" id="L536">            log.warn(&quot;Access to reservation {} has been denied to principal {}&quot;, reservation.getId(), principal);</span>
+<span class="nc" id="L537">            throw new ReservationAccessDenied();</span>
+        }
+<span class="nc" id="L539">    }</span>
+
+    private TicketReservationInvoicingAdditionalInfo.ItalianEInvoicing getItalianInvoicingInfo(ContactAndTicketsForm contactAndTicketsForm) {
+<span class="nc" id="L542">        return new TicketReservationInvoicingAdditionalInfo.ItalianEInvoicing(</span>
+<span class="nc" id="L543">            StringUtils.upperCase(contactAndTicketsForm.getItalyEInvoicingFiscalCode()),</span>
+<span class="nc" id="L544">            contactAndTicketsForm.getItalyEInvoicingReferenceType(),</span>
+<span class="nc" id="L545">            contactAndTicketsForm.getItalyEInvoicingReferenceAddresseeCode(),</span>
+<span class="nc" id="L546">            contactAndTicketsForm.getItalyEInvoicingReferencePEC(),</span>
+<span class="nc" id="L547">            contactAndTicketsForm.isItalyEInvoicingSplitPayment());</span>
+    }
+
+    private void assignTickets(Event event, String reservationId, ContactAndTicketsForm contactAndTicketsForm, BindingResult bindingResult, Locale locale, boolean preAssign, boolean skipValidation) {
+<span class="nc bnc" id="L551" title="All 2 branches missed.">        if(!contactAndTicketsForm.isPostponeAssignment()) {</span>
+<span class="nc" id="L552">            contactAndTicketsForm.getTickets().forEach((ticketPublicId, owner) -&gt; {</span>
+<span class="nc" id="L553">                var publicUUID = UUID.fromString(ticketPublicId);</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">                if (preAssign) {</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                    Optional&lt;BindingResult&gt; bindingResultOptional = skipValidation ? Optional.empty() : Optional.of(bindingResult);</span>
+<span class="nc" id="L556">                    Validate.isTrue(ticketHelper.preAssignTicket(event.getShortName(), reservationId, publicUUID, owner, bindingResultOptional, locale).isPresent());</span>
+<span class="nc" id="L557">                } else {</span>
+<span class="nc" id="L558">                    Validate.isTrue(ticketHelper.assignTicket(event.getShortName(), publicUUID, owner, Optional.of(bindingResult), locale, Optional.empty(), true).isPresent());</span>
+                }
+<span class="nc" id="L560">            });</span>
+        }
+<span class="nc" id="L562">    }</span>
+
+    private Optional&lt;Pair&lt;PurchaseContext, TicketReservation&gt;&gt; getReservation(String reservationId) {
+<span class="nc" id="L565">        return purchaseContextManager.findByReservationId(reservationId)</span>
+<span class="nc" id="L566">            .flatMap(purchaseContext -&gt; ticketReservationManager.findById(reservationId)</span>
+<span class="nc" id="L567">                .flatMap(reservation -&gt; Optional.of(Pair.of(purchaseContext, reservation))));</span>
+    }
+
+    private Optional&lt;TicketReservation&gt; getReservationWithPendingStatus(String reservationId) {
+<span class="nc bnc" id="L571" title="All 2 branches missed.">        return ticketReservationManager.findById(reservationId).filter(reservation -&gt; reservation.getStatus() == TicketReservation.TicketReservationStatus.PENDING);</span>
+    }
+
+    private Optional&lt;Pair&lt;PurchaseContext, TicketReservation&gt;&gt; getPurchaseContextAndReservationWithPendingStatus(String reservationId) {
+<span class="nc" id="L575">        return purchaseContextManager.findByReservationId(reservationId)</span>
+<span class="nc" id="L576">            .flatMap(event -&gt; ticketReservationManager.findById(reservationId)</span>
+<span class="nc bnc" id="L577" title="All 2 branches missed.">                .filter(reservation -&gt; reservation.getStatus() == TicketReservation.TicketReservationStatus.PENDING)</span>
+<span class="nc" id="L578">                .flatMap(reservation -&gt; Optional.of(Pair.of(event, reservation))));</span>
+    }
+
+    @PostMapping(&quot;/{purchaseContextType}/{publicIdentifier}/reservation/{reservationId}/re-send-email&quot;)
+    public ResponseEntity&lt;Boolean&gt; reSendReservationConfirmationEmail(@PathVariable PurchaseContextType purchaseContextType,
+                                                                      @PathVariable String publicIdentifier,
+                                                                      @PathVariable String reservationId,
+                                                                      @RequestParam(&quot;lang&quot;) String lang,
+                                                                      Principal principal) {
+
+
+<span class="nc" id="L589">        return ResponseEntity.of(purchaseContextManager.findBy(purchaseContextType, publicIdentifier)</span>
+<span class="nc" id="L590">            .map(purchaseContext -&gt; ticketReservationManager.findById(reservationId)</span>
+<span class="nc" id="L591">                .map(ticketReservation -&gt; {</span>
+<span class="nc" id="L592">                    validateAccessToReservation(principal, ticketReservation);</span>
+<span class="nc bnc" id="L593" title="All 2 branches missed.">                    ticketReservationManager.sendConfirmationEmail(purchaseContext, ticketReservation, LocaleUtil.forLanguageTag(lang, purchaseContext), principal != null ? principal.getName() : null);</span>
+<span class="nc" id="L594">                    return true;</span>
+<span class="nc" id="L595">                }).orElse(false)));</span>
+    }
+
+
+    //
+    @GetMapping(&quot;/event/{eventName}/reservation/{reservationId}/receipt&quot;)
+    public ResponseEntity&lt;Void&gt; getReceipt(@PathVariable String eventName,
+                                           @PathVariable String reservationId,
+                                           HttpServletResponse response,
+                                           Authentication authentication) {
+<span class="nc" id="L605">        return handleReservationWith(eventName, reservationId, authentication, generatePdfFunction(false, response));</span>
+    }
+
+    @GetMapping(&quot;/event/{eventName}/reservation/{reservationId}/invoice&quot;)
+    public ResponseEntity&lt;Void&gt; getInvoice(@PathVariable String eventName,
+                                           @PathVariable String reservationId,
+                                           HttpServletResponse response,
+                                           Authentication authentication) {
+<span class="nc" id="L613">        return handleReservationWith(eventName, reservationId, authentication, generatePdfFunction(true, response));</span>
+    }
+    //
+
+    private ResponseEntity&lt;Void&gt; handleReservationWith(String eventName, String reservationId, Authentication authentication,
+                                                       BiFunction&lt;Event, TicketReservation, ResponseEntity&lt;Void&gt;&gt; with) {
+<span class="nc" id="L619">        ResponseEntity&lt;Void&gt; notFound = ResponseEntity.notFound().build();</span>
+<span class="nc" id="L620">        ResponseEntity&lt;Void&gt; badRequest = ResponseEntity.badRequest().build();</span>
+
+
+
+<span class="nc" id="L624">        return eventRepository.findOptionalByShortName(eventName).map(event -&gt; {</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">                if(canAccessReceiptOrInvoice(event, authentication)) {</span>
+<span class="nc" id="L626">                    return ticketReservationManager.findById(reservationId).map(ticketReservation -&gt; with.apply(event, ticketReservation)).orElse(notFound);</span>
+                } else {
+<span class="nc" id="L628">                    return badRequest;</span>
+                }
+            }
+<span class="nc" id="L631">        ).orElse(notFound);</span>
+    }
+
+    private boolean canAccessReceiptOrInvoice(Configurable configurable, Authentication authentication) {
+<span class="nc bnc" id="L635" title="All 4 branches missed.">        return configurationManager.canGenerateReceiptOrInvoiceToCustomer(configurable) || !isAnonymous(authentication);</span>
+    }
+
+
+    private boolean isAnonymous(Authentication authentication) {
+<span class="nc bnc" id="L640" title="All 2 branches missed.">        return authentication == null ||</span>
+<span class="nc bnc" id="L641" title="All 2 branches missed.">            authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(&quot;ROLE_ANONYMOUS&quot;::equals);</span>
+    }
+
+    private BiFunction&lt;Event, TicketReservation, ResponseEntity&lt;Void&gt;&gt; generatePdfFunction(boolean forInvoice, HttpServletResponse response) {
+<span class="nc" id="L645">        return (event, reservation) -&gt; {</span>
+<span class="nc bnc" id="L646" title="All 6 branches missed.">            if((forInvoice ^ reservation.getInvoiceNumber() != null) || reservation.isCancelled()) {</span>
+<span class="nc" id="L647">                return ResponseEntity.notFound().build();</span>
+            }
+
+<span class="nc" id="L650">            BillingDocument billingDocument = billingDocumentManager.getOrCreateBillingDocument(event, reservation, null, ticketReservationManager.orderSummaryForReservation(reservation, event));</span>
+
+            try {
+<span class="nc" id="L653">                FileUtil.sendHeaders(response, event.getShortName(), reservation.getId(), billingDocument);</span>
+<span class="nc" id="L654">                TemplateProcessor.buildReceiptOrInvoicePdf(event, fileUploadManager, LocaleUtil.forLanguageTag(reservation.getUserLanguage()),</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">                    templateManager, billingDocument.getModel(), forInvoice ? TemplateResource.INVOICE_PDF : TemplateResource.RECEIPT_PDF,</span>
+<span class="nc" id="L656">                    extensionManager, response.getOutputStream());</span>
+<span class="nc" id="L657">                return ResponseEntity.ok().build();</span>
+<span class="nc" id="L658">            } catch (IOException ioe) {</span>
+<span class="nc" id="L659">                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+            }
+        };
+    }
+    //----------------
+
+
+    @PostMapping(&quot;/reservation/{reservationId}/payment/{method}/init&quot;)
+    public ResponseEntity&lt;TransactionInitializationToken&gt; initTransaction(@PathVariable String reservationId,
+                                                                          @PathVariable(&quot;method&quot;) String paymentMethodStr,
+                                                                          @RequestParam MultiValueMap&lt;String, String&gt; allParams) {
+<span class="nc" id="L670">        var paymentMethod = PaymentMethod.safeParse(paymentMethodStr);</span>
+
+<span class="nc bnc" id="L672" title="All 2 branches missed.">        if(paymentMethod == null) {</span>
+<span class="nc" id="L673">            return ResponseEntity.badRequest().build();</span>
+        }
+
+<span class="nc" id="L676">        Optional&lt;ResponseEntity&lt;TransactionInitializationToken&gt;&gt; responseEntity = purchaseContextManager.getReservationWithPurchaseContext(reservationId)</span>
+<span class="nc" id="L677">            .map(pair -&gt; {</span>
+<span class="nc" id="L678">                var event = pair.getLeft();</span>
+<span class="nc" id="L679">                return ticketReservationManager.initTransaction(event, reservationId, paymentMethod, allParams)</span>
+<span class="nc" id="L680">                    .map(ResponseEntity::ok)</span>
+<span class="nc" id="L681">                    .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+            });
+<span class="nc" id="L683">        return responseEntity.orElseGet(() -&gt; ResponseEntity.badRequest().build());</span>
+    }
+
+    @DeleteMapping(&quot;/reservation/{reservationId}/payment/token&quot;)
+    public ResponseEntity&lt;Boolean&gt; removeToken(@PathVariable String reservationId) {
+
+<span class="nc" id="L689">        var res = purchaseContextManager.getReservationWithPurchaseContext(reservationId).map(et -&gt; paymentManager.removePaymentTokenReservation(et.getRight().getId())).orElse(false);</span>
+<span class="nc" id="L690">        return ResponseEntity.ok(res);</span>
+    }
+
+    @DeleteMapping(&quot;/reservation/{reservationId}/payment&quot;)
+    public ResponseEntity&lt;Boolean&gt; deletePaymentAttempt(@PathVariable String reservationId) {
+
+<span class="nc" id="L696">        var res = purchaseContextManager.getReservationWithPurchaseContext(reservationId).map(et -&gt; ticketReservationManager.cancelPendingPayment(et.getRight().getId(), et.getLeft())).orElse(false);</span>
+<span class="nc" id="L697">        return ResponseEntity.ok(res);</span>
+    }
+
+    @GetMapping(&quot;/reservation/{reservationId}/payment/{method}/status&quot;)
+    public ResponseEntity&lt;ReservationPaymentResult&gt; getTransactionStatus(
+                                                              @PathVariable String reservationId,
+                                                              @PathVariable(&quot;method&quot;) String paymentMethodAsString) {
+
+<span class="nc" id="L705">        var paymentMethod = PaymentMethod.safeParse(paymentMethodAsString);</span>
+<span class="nc bnc" id="L706" title="All 2 branches missed.">        if(paymentMethod == null) {</span>
+<span class="nc" id="L707">            return ResponseEntity.badRequest().build();</span>
+        }
+
+<span class="nc" id="L710">        return getTransactionStatus(reservationId, paymentMethod);</span>
+    }
+
+    /*
+     * This method has been kept here for integration tests
+     */
+    public ResponseEntity&lt;ReservationPaymentResult&gt; getTransactionStatus(@NonNull String reservationId, @NonNull PaymentMethod paymentMethod) {
+<span class="nc" id="L717">        return purchaseContextManager.getReservationWithPurchaseContext(reservationId)</span>
+<span class="nc" id="L718">            .flatMap(pair -&gt; paymentManager.getTransactionStatus(pair.getRight(), paymentMethod))</span>
+<span class="nc" id="L719">            .map(pr -&gt; ResponseEntity.ok(new ReservationPaymentResult(pr.isSuccessful(), pr.isRedirect(), pr.getRedirectUrl(), pr.isFailed(), pr.getGatewayIdOrNull())))</span>
+<span class="nc" id="L720">            .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @PostMapping(&quot;/reservation/{reservationId}/apply-code&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;Boolean&gt;&gt; applyCode(@PathVariable String reservationId, @RequestBody ReservationCodeForm reservationCodeForm, BindingResult bindingResult) {
+<span class="nc bnc" id="L725" title="All 2 branches missed.">        if(reservationCodeForm.getType() != ReservationCodeForm.ReservationCodeType.SUBSCRIPTION) {</span>
+<span class="nc" id="L726">            throw new IllegalStateException(reservationCodeForm.getType() + &quot; not supported&quot;);</span>
+        }
+<span class="nc" id="L728">        boolean res = purchaseContextManager.getReservationWithPurchaseContext(reservationId)</span>
+<span class="nc" id="L729">            .map(et -&gt; ticketReservationManager.validateAndApplySubscriptionCode(et.getLeft(),</span>
+<span class="nc" id="L730">                et.getRight(),</span>
+<span class="nc" id="L731">                reservationCodeForm.getCodeAsUUID(),</span>
+<span class="nc" id="L732">                reservationCodeForm.getCode(),</span>
+<span class="nc" id="L733">                reservationCodeForm.getEmail(),</span>
+                bindingResult))
+<span class="nc" id="L735">            .orElse(false);</span>
+<span class="nc" id="L736">        return ResponseEntity.ok(ValidatedResponse.toResponse(bindingResult, res));</span>
+    }
+
+    @DeleteMapping(&quot;/reservation/{reservationId}/remove-code&quot;)
+    public ResponseEntity&lt;Boolean&gt; removeCode(@PathVariable String reservationId, @RequestParam(&quot;type&quot;) ReservationCodeForm.ReservationCodeType type) {
+<span class="nc" id="L741">        boolean res = false;</span>
+<span class="nc bnc" id="L742" title="All 2 branches missed.">        if (type == ReservationCodeForm.ReservationCodeType.SUBSCRIPTION) {</span>
+<span class="nc" id="L743">            res = purchaseContextManager.getReservationWithPurchaseContext(reservationId).map(et -&gt; ticketReservationManager.removeSubscription(et.getRight())).orElse(false);</span>
+        }
+<span class="nc" id="L745">        return ResponseEntity.ok(res);</span>
+    }
+
+    @GetMapping(&quot;/reservation/{reservationId}/applicable-custom-payment-method-details&quot;)
+    public ResponseEntity&lt;List&lt;UserDefinedOfflinePaymentMethod&gt;&gt; getApplicableCustomPaymentMethodDetails(@PathVariable String reservationId, Principal principal) throws PassedIdDoesNotExistException {
+<span class="nc" id="L750">        var reservation = ticketReservationManager</span>
+<span class="nc" id="L751">            .findById(reservationId)</span>
+<span class="nc" id="L752">            .orElseThrow(() -&gt; new PassedIdDoesNotExistException(&quot;Passed reservationId does not exist.&quot;));</span>
+
+<span class="nc" id="L754">        validateAccessToReservation(principal, reservation);</span>
+
+<span class="nc" id="L756">        var event = eventRepository.findByReservationId(reservationId);</span>
+<span class="nc" id="L757">        var allowedPaymentMethods = customOfflineConfigurationManager.getAllowedCustomOfflinePaymentMethodsForEvent(event);</span>
+
+<span class="nc" id="L759">        allowedPaymentMethods</span>
+<span class="nc" id="L760">            .forEach(paymentMethod -&gt;</span>
+<span class="nc" id="L761">            paymentMethod</span>
+<span class="nc" id="L762">                .getLocalizations()</span>
+<span class="nc" id="L763">                .forEach((key, locale) -&gt; {</span>
+<span class="nc" id="L764">                    Map&lt;String, String&gt; localeTexts = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L765">                    localeTexts.put(&quot;instructions&quot;, locale.paymentInstructions());</span>
+<span class="nc" id="L766">                    localeTexts.put(&quot;description&quot;, locale.paymentDescription());</span>
+<span class="nc" id="L767">                    localeTexts = Formatters.applyCommonMark(localeTexts);</span>
+
+<span class="nc" id="L769">                    var updatedLocale = new UserDefinedOfflinePaymentMethod.Localization(</span>
+<span class="nc" id="L770">                        locale.paymentName(),</span>
+<span class="nc" id="L771">                        localeTexts.get(&quot;description&quot;),</span>
+<span class="nc" id="L772">                        localeTexts.get(&quot;instructions&quot;)</span>
+                    );
+
+<span class="nc" id="L775">                    paymentMethod.getLocalizations().put(key, updatedLocale);</span>
+<span class="nc" id="L776">                })</span>
+        );
+
+<span class="nc" id="L779">        return ResponseEntity.ok(allowedPaymentMethods);</span>
+    }
+
+    @GetMapping(&quot;/reservation/{reservationId}/selected-custom-payment-method-details&quot;)
+    public ResponseEntity&lt;UserDefinedOfflinePaymentMethod&gt; getSelectedCustomPaymentMethodDetails(@PathVariable String reservationId, Principal principal) throws PassedIdDoesNotExistException, CustomOfflinePaymentMethodDoesNotExistException {
+<span class="nc" id="L784">        var reservation = ticketReservationManager</span>
+<span class="nc" id="L785">            .findById(reservationId)</span>
+<span class="nc" id="L786">            .orElseThrow(() -&gt; new PassedIdDoesNotExistException(&quot;Passed reservationId does not exist.&quot;));</span>
+
+<span class="nc" id="L788">        validateAccessToReservation(principal, reservation);</span>
+
+<span class="nc" id="L790">        var event = eventRepository.findByReservationId(reservationId);</span>
+<span class="nc" id="L791">        var paymentMethods = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethods(</span>
+<span class="nc" id="L792">            event.getOrganizationId()</span>
+        );
+
+<span class="nc" id="L795">        var maybeTransaction = transactionRepository.loadOptionalByReservationId(reservationId);</span>
+<span class="nc bnc" id="L796" title="All 2 branches missed.">        if(maybeTransaction.isEmpty()) {</span>
+<span class="nc" id="L797">            throw new NoCustomPaymentTransactionForReservationException();</span>
+        }
+<span class="nc" id="L799">        var transaction = maybeTransaction.get();</span>
+<span class="nc" id="L800">        var paymentMethodId = transaction.getMetadata().get(Transaction.SELECTED_PAYMENT_METHOD_KEY);</span>
+<span class="nc" id="L801">        UserDefinedOfflinePaymentMethod respPaymentMethod = paymentMethods</span>
+<span class="nc" id="L802">            .stream()</span>
+<span class="nc" id="L803">            .filter(pm -&gt; pm.getPaymentMethodId().equals(paymentMethodId))</span>
+<span class="nc" id="L804">            .findFirst()</span>
+<span class="nc" id="L805">            .orElseThrow(() -&gt; new CustomOfflinePaymentMethodDoesNotExistException(</span>
+                &quot;The payment method associated with your transaction does not exist.&quot;
+            ));
+
+<span class="nc" id="L809">        respPaymentMethod</span>
+<span class="nc" id="L810">            .getLocalizations()</span>
+<span class="nc" id="L811">            .forEach((key, locale) -&gt; {</span>
+<span class="nc" id="L812">                Map&lt;String, String&gt; localeTexts = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L813">                localeTexts.put(&quot;description&quot;, locale.paymentDescription());</span>
+<span class="nc" id="L814">                localeTexts.put(&quot;instructions&quot;, locale.paymentInstructions());</span>
+<span class="nc" id="L815">                localeTexts = Formatters.applyCommonMark(localeTexts);</span>
+
+<span class="nc" id="L817">                var updatedLocale = new UserDefinedOfflinePaymentMethod.Localization(</span>
+<span class="nc" id="L818">                    locale.paymentName(),</span>
+<span class="nc" id="L819">                    localeTexts.get(&quot;description&quot;),</span>
+<span class="nc" id="L820">                    localeTexts.get(&quot;instructions&quot;)</span>
+                );
+
+<span class="nc" id="L823">                respPaymentMethod.getLocalizations().put(key, updatedLocale);</span>
+<span class="nc" id="L824">            });</span>
+
+<span class="nc" id="L826">        return ResponseEntity.ok(respPaymentMethod);</span>
+    }
+
+    @ExceptionHandler({
+        PassedIdDoesNotExistException.class,
+        CustomOfflinePaymentMethodDoesNotExistException.class
+    })
+    public ResponseEntity&lt;String&gt; handleResponseException(RuntimeException ex) {
+<span class="nc" id="L834">        return ResponseEntity</span>
+<span class="nc" id="L835">            .status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L836">            .contentType(MediaType.TEXT_PLAIN)</span>
+<span class="nc" id="L837">            .body(ex.getMessage());</span>
+    }
+
+    @ResponseStatus(value=HttpStatus.BAD_REQUEST, reason=&quot;There is no transaction associated with the passed reservation.&quot;)
+<span class="nc" id="L841">    public class NoCustomPaymentTransactionForReservationException extends RuntimeException {}</span>
+
+    private Map&lt;String, String&gt; formatDateForLocales(PurchaseContext purchaseContext, ZonedDateTime date, String formattingCode) {
+
+<span class="nc" id="L845">        var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
+
+<span class="nc" id="L847">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L848" title="All 2 branches missed.">        for (ContentLanguage cl : purchaseContext.getContentLanguages()) {</span>
+<span class="nc" id="L849">            var formatter = messageSource.getMessage(formattingCode, null, cl.locale());</span>
+<span class="nc" id="L850">            res.put(cl.locale().getLanguage(), DateTimeFormatter.ofPattern(formatter, cl.locale()).format(date));</span>
+<span class="nc" id="L851">        }</span>
+<span class="nc" id="L852">        return res;</span>
+    }
+
+    private boolean isCaptchaInvalid(int cost, PaymentProxy paymentMethod, String recaptchaResponse, HttpServletRequest request, Configurable configurable) {
+<span class="nc bnc" id="L856" title="All 6 branches missed.">        return (cost == 0 || paymentMethod == PaymentProxy.OFFLINE || paymentMethod == PaymentProxy.ON_SITE)</span>
+<span class="nc bnc" id="L857" title="All 2 branches missed.">            &amp;&amp; configurationManager.isRecaptchaForOfflinePaymentAndFreeEnabled(configurable.getConfigurationLevel())</span>
+<span class="nc bnc" id="L858" title="All 2 branches missed.">            &amp;&amp; !recaptchaService.checkRecaptcha(recaptchaResponse, request);</span>
+    }
+
+    private boolean isCustomPaymentMethodValidForEvent(Event event, PaymentMethod paymentMethod) {
+<span class="nc" id="L862">        var eventSelectedMethods = customOfflineConfigurationManager.getAllowedCustomOfflinePaymentMethodsForEvent(event);</span>
+<span class="nc" id="L863">        return eventSelectedMethods</span>
+<span class="nc" id="L864">            .stream()</span>
+<span class="nc" id="L865">            .anyMatch(pm -&gt; pm.getPaymentMethodId().equals(paymentMethod.getPaymentMethodId()));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

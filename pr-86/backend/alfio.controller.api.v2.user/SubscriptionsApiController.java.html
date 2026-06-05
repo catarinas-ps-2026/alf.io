@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SubscriptionsApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.v2.user</a> &gt; <span class="el_source">SubscriptionsApiController.java</span></div><h1>SubscriptionsApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.v2.user;
+
+import alfio.controller.api.support.CurrencyDescriptor;
+import alfio.controller.api.v2.model.*;
+import alfio.controller.api.v2.user.support.PurchaseContextInfoBuilder;
+import alfio.controller.form.SearchOptions;
+import alfio.controller.support.Formatters;
+import alfio.manager.SubscriptionManager;
+import alfio.manager.TicketReservationManager;
+import alfio.manager.i18n.I18nManager;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.support.response.ValidatedResponse;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.result.ValidationResult;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.repository.user.OrganizationRepository;
+import alfio.util.ClockProvider;
+import alfio.util.MonetaryUtil;
+import alfio.util.ReservationUtil;
+import jakarta.servlet.http.HttpSession;
+import lombok.AllArgsConstructor;
+import org.joda.money.CurrencyUnit;
+import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.MapBindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static alfio.model.PriceContainer.VatStatus.isVatIncluded;
+import static alfio.model.system.ConfigurationKeys.*;
+import static java.util.stream.Collectors.toList;
+
+@RestController
+@RequestMapping(&quot;/api/v2/public/&quot;)
+@AllArgsConstructor
+public class SubscriptionsApiController {
+
+    private static final String DATE_FORMAT_KEY = &quot;common.event.date-format&quot;;
+    private final SubscriptionManager subscriptionManager;
+    private final I18nManager i18nManager;
+    private final TicketReservationManager reservationManager;
+    private final ConfigurationManager configurationManager;
+    private final OrganizationRepository organizationRepository;
+    private final MessageSourceManager messageSourceManager;
+    private final ClockProvider clockProvider;
+
+
+    @GetMapping(&quot;subscriptions&quot;)
+    public ResponseEntity&lt;List&lt;BasicSubscriptionDescriptorInfo&gt;&gt; listSubscriptions(SearchOptions searchOptions) {
+<span class="nc" id="L71">        var now = ZonedDateTime.now(ClockProvider.clock());</span>
+<span class="nc" id="L72">        var activeSubscriptions = subscriptionManager.getActivePublicSubscriptionsDescriptor(now, searchOptions)</span>
+<span class="nc" id="L73">            .stream()</span>
+<span class="nc" id="L74">            .map(s -&gt; subscriptionDescriptorMapper(s, messageSourceManager.getMessageSourceFor(s)))</span>
+<span class="nc" id="L75">            .collect(Collectors.toList());</span>
+<span class="nc" id="L76">        return ResponseEntity.ok(activeSubscriptions);</span>
+    }
+
+    private static BasicSubscriptionDescriptorInfo subscriptionDescriptorMapper(SubscriptionDescriptor s, MessageSource messageSource) {
+<span class="nc" id="L80">        var currencyUnit = CurrencyUnit.of(s.getCurrency());</span>
+<span class="nc" id="L81">        var currencyDescriptor = new CurrencyDescriptor(currencyUnit.getCode(), currencyUnit.toCurrency().getDisplayName(), currencyUnit.getSymbol(), currencyUnit.getDecimalPlaces());</span>
+<span class="nc" id="L82">        return new BasicSubscriptionDescriptorInfo(s.getId(),</span>
+<span class="nc" id="L83">            s.getFileBlobId(),</span>
+<span class="nc" id="L84">            s.getTitle(),</span>
+<span class="nc" id="L85">            s.getDescription(),</span>
+<span class="nc" id="L86">            DatesWithTimeZoneOffset.fromDates(s.getOnSaleFrom(), s.getOnSaleTo()),</span>
+<span class="nc" id="L87">            s.getValidityType(),</span>
+<span class="nc" id="L88">            s.getUsageType(),</span>
+<span class="nc" id="L89">            s.getZoneId(),</span>
+<span class="nc" id="L90">            s.getValidityTimeUnit(),</span>
+<span class="nc" id="L91">            s.getValidityUnits(),</span>
+<span class="nc" id="L92">            s.getMaxEntries(),</span>
+
+            null,
+            null,
+
+<span class="nc" id="L97">            MonetaryUtil.formatCents(s.getPrice(), s.getCurrency()),</span>
+<span class="nc" id="L98">            s.getCurrency(),</span>
+            currencyDescriptor,
+<span class="nc" id="L100">            s.getVat(),</span>
+<span class="nc" id="L101">            isVatIncluded(s.getVatStatus()),</span>
+<span class="nc" id="L102">            Formatters.getFormattedDate(s, s.getOnSaleFrom(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L103">            Formatters.getFormattedDate(s, s.getOnSaleTo(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L104">            Formatters.getFormattedDate(s, s.getValidityFrom(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L105">            Formatters.getFormattedDate(s, s.getValidityTo(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L106">            s.getContentLanguages().stream().map(cl -&gt; new Language(cl.locale().getLanguage(), cl.getDisplayLanguage())).collect(toList())</span>
+        );
+    }
+
+    @GetMapping(&quot;subscription/{id}&quot;)
+    public ResponseEntity&lt;SubscriptionDescriptorWithAdditionalInfo&gt; getSubscriptionInfo(@PathVariable String id, HttpSession session) {
+<span class="nc" id="L112">        var res = subscriptionManager.getSubscriptionById(UUID.fromString(id));</span>
+<span class="nc" id="L113">        return res</span>
+<span class="nc" id="L114">            .map(s -&gt; {</span>
+<span class="nc" id="L115">                var configurationsValues = PurchaseContextInfoBuilder.configurationsValues(s, configurationManager);</span>
+<span class="nc" id="L116">                var invoicingInfo = PurchaseContextInfoBuilder.invoicingInfo(configurationManager, configurationsValues);</span>
+<span class="nc" id="L117">                var analyticsConf = AnalyticsConfiguration.build(configurationsValues, session);</span>
+<span class="nc" id="L118">                var captchaConf = PurchaseContextInfoBuilder.captchaConfiguration(configurationManager, configurationsValues);</span>
+<span class="nc" id="L119">                var bankAccount = configurationsValues.get(BANK_ACCOUNT_NR).getValueOrDefault(&quot;&quot;);</span>
+<span class="nc" id="L120">                var bankAccountOwner = Arrays.asList(configurationsValues.get(BANK_ACCOUNT_OWNER).getValueOrDefault(&quot;&quot;).split(&quot;\n&quot;));</span>
+<span class="nc" id="L121">                var orgContact = organizationRepository.getContactById(s.getOrganizationId());</span>
+<span class="nc" id="L122">                var messageSource = messageSourceManager.getMessageSourceFor(s);</span>
+                int available;
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                if(!s.withinSalePeriod(clockProvider.getClock())) {</span>
+<span class="nc" id="L125">                    available = 0;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                } else if (s.getMaxAvailable() == -1) {</span>
+<span class="nc" id="L127">                    available = Integer.MAX_VALUE;</span>
+                } else {
+<span class="nc" id="L129">                    available = subscriptionManager.countFree(s.getId());</span>
+                }
+<span class="nc" id="L131">                return new SubscriptionDescriptorWithAdditionalInfo(s,</span>
+                    invoicingInfo,
+                    analyticsConf,
+                    captchaConf,
+<span class="nc" id="L135">                    new EmbeddingConfiguration(configurationsValues.get(EMBED_POST_MESSAGE_ORIGIN).getValueOrNull()),</span>
+                    bankAccount,
+                    bankAccountOwner,
+<span class="nc" id="L138">                    orgContact.getEmail(),</span>
+<span class="nc" id="L139">                    orgContact.getName(),</span>
+<span class="nc" id="L140">                    DatesWithTimeZoneOffset.fromDates(s.getOnSaleFrom(), s.getOnSaleTo()),</span>
+<span class="nc" id="L141">                    Formatters.getFormattedDate(s, s.getOnSaleFrom(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L142">                    Formatters.getFormattedDate(s, s.getOnSaleTo(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L143">                    s.getZoneId().toString(),</span>
+<span class="nc" id="L144">                    Formatters.getFormattedDate(s, s.getValidityFrom(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L145">                    Formatters.getFormattedDate(s, s.getValidityTo(), DATE_FORMAT_KEY, messageSource),</span>
+<span class="nc" id="L146">                    available);</span>
+            })
+<span class="nc" id="L148">            .map(ResponseEntity::ok)</span>
+<span class="nc" id="L149">            .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @PostMapping(&quot;subscription/{id}&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;String&gt;&gt; reserveSubscription(@PathVariable String id, Locale locale, Principal principal) {
+<span class="nc" id="L154">        var bindingResult = new MapBindingResult(new HashMap&lt;&gt;(), &quot;request&quot;);</span>
+<span class="nc" id="L155">        return subscriptionManager.getSubscriptionById(UUID.fromString(id))</span>
+<span class="nc" id="L156">            .map(subscriptionDescriptor -&gt; {</span>
+<span class="nc" id="L157">                var reservationOptional = ReservationUtil.handleReservationCreationErrors(() -&gt; reservationManager.createSubscriptionReservation(subscriptionDescriptor, locale, principal), bindingResult, subscriptionDescriptor.getType());</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                if (bindingResult.hasErrors()) {</span>
+<span class="nc" id="L159">                    return new ResponseEntity&lt;ValidatedResponse&lt;String&gt;&gt;(ValidatedResponse.toResponse(bindingResult, null), HttpStatus.UNPROCESSABLE_ENTITY);</span>
+                } else {
+<span class="nc" id="L161">                    return reservationOptional.map(reservationId -&gt; ResponseEntity.ok(new ValidatedResponse&lt;&gt;(ValidationResult.success(), reservationId)))</span>
+<span class="nc" id="L162">                        .orElseGet(() -&gt; ResponseEntity.unprocessableEntity().build());</span>
+                }
+            })
+<span class="nc" id="L165">            .orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

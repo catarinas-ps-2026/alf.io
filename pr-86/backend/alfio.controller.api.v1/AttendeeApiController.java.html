@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AttendeeApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.v1</a> &gt; <span class="el_source">AttendeeApiController.java</span></div><h1>AttendeeApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.v1;
+
+import alfio.manager.AccessService;
+import alfio.manager.AttendeeManager;
+import alfio.manager.support.SponsorAttendeeData;
+import alfio.manager.support.TicketAndCheckInResult;
+import alfio.model.SponsorScan;
+import alfio.model.support.TicketWithAdditionalFields;
+import alfio.repository.SponsorScanRepository;
+import alfio.util.EventUtil;
+import alfio.util.Wrappers;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static alfio.util.Wrappers.optionally;
+
+@RestController
+@RequestMapping(&quot;/api/attendees&quot;)
+public class AttendeeApiController {
+
+    public static final String ALFIO_OPERATOR_HEADER = &quot;Alfio-Operator&quot;;
+<span class="nc" id="L54">    private static final Logger log = LoggerFactory.getLogger(AttendeeApiController.class);</span>
+    private final AttendeeManager attendeeManager;
+    private final AccessService accessService;
+
+    @Autowired
+<span class="nc" id="L59">    public AttendeeApiController(AttendeeManager attendeeManager, AccessService accessService) {</span>
+<span class="nc" id="L60">        this.attendeeManager = attendeeManager;</span>
+<span class="nc" id="L61">        this.accessService = accessService;</span>
+<span class="nc" id="L62">    }</span>
+
+    @ExceptionHandler({DataIntegrityViolationException.class, IllegalArgumentException.class})
+    public ResponseEntity&lt;String&gt; handleDataIntegrityException(Exception e) {
+<span class="nc" id="L66">        log.warn(&quot;bad input detected&quot;, e);</span>
+<span class="nc" id="L67">        return new ResponseEntity&lt;&gt;(&quot;bad input parameters&quot;, HttpStatus.BAD_REQUEST);</span>
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity&lt;String&gt; handleGenericException(RuntimeException e) {
+<span class="nc" id="L72">        log.error(&quot;unexpected exception&quot;, e);</span>
+<span class="nc" id="L73">        return new ResponseEntity&lt;&gt;(&quot;unexpected error&quot;, HttpStatus.INTERNAL_SERVER_ERROR);</span>
+    }
+
+
+    @PostMapping(&quot;/sponsor-scan&quot;)
+    public ResponseEntity&lt;TicketAndCheckInResult&gt; scanBadge(@RequestBody SponsorScanRequest request,
+                                                            Principal principal,
+                                                            @RequestHeader(name = ALFIO_OPERATOR_HEADER, required = false) String operator) {
+<span class="nc" id="L81">        return ResponseEntity.ok(attendeeManager.registerSponsorScan(request.eventName, request.ticketIdentifier, request.notes, request.leadStatus, principal.getName(), operator, request.timestamp));</span>
+    }
+
+    @PostMapping(&quot;/sponsor-scan/bulk&quot;)
+    public ResponseEntity&lt;List&lt;TicketAndCheckInResult&gt;&gt; scanBadges(@RequestBody List&lt;SponsorScanRequest&gt; requests,
+                                                                   Principal principal,
+                                                                   @RequestHeader(name = ALFIO_OPERATOR_HEADER, required = false) String operator) {
+<span class="nc" id="L88">        String username = principal.getName();</span>
+<span class="nc" id="L89">        return ResponseEntity.ok(requests.stream()</span>
+<span class="nc" id="L90">            .map(request -&gt; attendeeManager.registerSponsorScan(request.eventName, request.ticketIdentifier, request.notes, request.leadStatus, username, operator, request.timestamp))</span>
+<span class="nc" id="L91">            .toList());</span>
+    }
+
+    @GetMapping(&quot;/{eventKey}/sponsor-scan/mine&quot;)
+    public ResponseEntity&lt;List&lt;SponsorAttendeeData&gt;&gt; getScannedBadges(@PathVariable(&quot;eventKey&quot;) String eventShortName, @RequestParam(value = &quot;from&quot;, required = false) String from, Principal principal) {
+
+<span class="nc" id="L97">        ZonedDateTime start = Optional.ofNullable(StringUtils.trimToNull(from))</span>
+<span class="nc" id="L98">            .map(EventUtil.JSON_DATETIME_FORMATTER::parse)</span>
+<span class="nc" id="L99">            .flatMap(d -&gt; Wrappers.safeSupplier(() -&gt; ZonedDateTime.of(LocalDateTime.from(d), ZoneOffset.UTC)))</span>
+<span class="nc" id="L100">            .orElse(SponsorScanRepository.DEFAULT_TIMESTAMP);</span>
+<span class="nc" id="L101">        accessService.canAccessEvent(principal, eventShortName);</span>
+<span class="nc" id="L102">        return attendeeManager.retrieveScannedAttendees(eventShortName, principal.getName(), start).map(ResponseEntity::ok).orElse(notFound());</span>
+    }
+
+    /**
+     * API for external apps that load the ticket using its UUID. It is possible to retrieve a ticket only if &lt;b&gt;all&lt;/b&gt; the following conditions are met:
+     *
+     * &lt;ul&gt;
+     *     &lt;li&gt;An event with key {@code eventKey} exists&lt;/li&gt;
+     *     &lt;li&gt;The user and the event belong to the same organization&lt;/li&gt;
+     *     &lt;li&gt;A ticket with UUID {@code UUID} exists&lt;/li&gt;
+     * &lt;/ul&gt;
+     *
+     * otherwise, an error is returned.
+     *
+     * @param eventShortName
+     * @param uuid
+     * @param principal
+     * @return
+     */
+    @GetMapping(&quot;/{eventKey}/ticket/{UUID}&quot;)
+    public ResponseEntity&lt;TicketWithAdditionalFields&gt; getTicketDetails(@PathVariable(&quot;eventKey&quot;) String eventShortName, @PathVariable(&quot;UUID&quot;) String uuid, Principal principal) {
+<span class="nc" id="L123">        accessService.canAccessTicket(principal, eventShortName, uuid);</span>
+<span class="nc" id="L124">        var result = attendeeManager.retrieveTicket(eventShortName, uuid, principal.getName());</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (result.isSuccess()) {</span>
+<span class="nc" id="L126">            return ResponseEntity.ok(result.getData());</span>
+        } else {
+<span class="nc" id="L128">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+        }
+
+    }
+
+    private static &lt;T&gt; ResponseEntity&lt;T&gt; notFound() {
+<span class="nc" id="L134">        return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
+    }
+
+    @Getter
+    public static class SponsorScanRequest {
+        private final String eventName;
+        private final String ticketIdentifier;
+        private final String notes;
+        private final SponsorScan.LeadStatus leadStatus;
+        private final Long timestamp;
+
+        @JsonCreator
+        public SponsorScanRequest(@JsonProperty(&quot;eventName&quot;) String eventName,
+                                  @JsonProperty(&quot;ticketIdentifier&quot;) String ticketIdentifier,
+                                  @JsonProperty(&quot;notes&quot;) String notes,
+                                  @JsonProperty(&quot;leadStatus&quot;) String leadStatus,
+<span class="nc" id="L150">                                  @JsonProperty(&quot;timestamp&quot;) Long timestamp) {</span>
+<span class="nc" id="L151">            this.eventName = eventName;</span>
+<span class="nc" id="L152">            this.ticketIdentifier = ticketIdentifier;</span>
+<span class="nc" id="L153">            this.notes = notes;</span>
+<span class="nc" id="L154">            this.leadStatus = Optional.ofNullable(leadStatus)</span>
+<span class="nc" id="L155">                .flatMap(l -&gt; optionally(() -&gt; SponsorScan.LeadStatus.valueOf(l)))</span>
+<span class="nc" id="L156">                .orElse(SponsorScan.LeadStatus.WARM);</span>
+<span class="nc" id="L157">            this.timestamp = timestamp;</span>
+<span class="nc" id="L158">        }</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
