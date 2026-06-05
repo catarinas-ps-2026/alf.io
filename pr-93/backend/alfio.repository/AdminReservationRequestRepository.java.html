@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminReservationRequestRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">AdminReservationRequestRepository.java</span></div><h1>AdminReservationRequestRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.AdminReservationRequest;
+import alfio.model.AdminReservationRequestStats;
+import alfio.model.EventAndOrganizationId;
+import alfio.model.modification.AdminReservationModification;
+import alfio.util.Json;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryRepository;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+@QueryRepository
+public interface AdminReservationRequestRepository {
+
+    default void insertRequest(String requestId, long userId, EventAndOrganizationId event, Stream&lt;AdminReservationModification&gt; requestModifications) {
+<span class="fc" id="L38">        MapSqlParameterSource[] requests = requestModifications.map(res -&gt; new MapSqlParameterSource(&quot;userId&quot;, userId)</span>
+<span class="fc" id="L39">                .addValue(&quot;requestId&quot;, requestId)</span>
+<span class="fc" id="L40">                .addValue(&quot;requestType&quot;, AdminReservationRequest.RequestType.IMPORT.name())</span>
+<span class="fc" id="L41">                .addValue(&quot;status&quot;, AdminReservationRequest.Status.PENDING.name())</span>
+<span class="fc" id="L42">                .addValue(&quot;eventId&quot;, event.getId())</span>
+<span class="fc" id="L43">                .addValue(&quot;body&quot;, Json.toJson(res)))</span>
+<span class="fc" id="L44">            .toArray(MapSqlParameterSource[]::new);</span>
+
+<span class="fc" id="L46">        getNamedParameterJdbcTemplate().batchUpdate(&quot;insert into admin_reservation_request(user_id, request_id, event_id, request_type, status, body) values(:userId, :requestId, :eventId, :requestType, :status, :body)&quot;, requests);</span>
+<span class="fc" id="L47">    }</span>
+
+    @Query(&quot;select id from admin_reservation_request where status = 'PENDING' order by request_id limit :limit for update skip locked&quot;)
+    List&lt;Long&gt; findPendingForUpdate(@Bind(&quot;limit&quot;) int limit);
+
+    @Query(&quot;select count(*) from admin_reservation_request where status = 'PENDING'&quot;)
+    Integer countPending();
+
+    @Query(&quot;select * from admin_reservation_request where id = :id&quot;)
+    AdminReservationRequest fetchCompleteById(@Bind(&quot;id&quot;) long id);
+
+    //todo, would be better to have more sane parameters, we are leaking the details here
+    default void updateStatus(List&lt;MapSqlParameterSource&gt; params) {
+<span class="fc" id="L60">        getNamedParameterJdbcTemplate().batchUpdate(&quot;update admin_reservation_request set status = :status, reservation_id = :reservationId, failure_code = :failureCode where id = :id&quot;, params.toArray(new MapSqlParameterSource[0]));</span>
+<span class="fc" id="L61">    }</span>
+
+
+    @Query(&quot;select * from admin_reservation_request_stats where request_id = :requestId and event_id = :eventId&quot;)
+    Optional&lt;AdminReservationRequestStats&gt; findStatsByRequestIdAndEventId(@Bind(&quot;requestId&quot;) String requestId, @Bind(&quot;eventId&quot;) long eventId);
+
+
+    NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

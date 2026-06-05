@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MailjetMailer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.system</a> &gt; <span class="el_source">MailjetMailer.java</span></div><h1>MailjetMailer.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.system;
+
+import alfio.model.Configurable;
+import alfio.repository.user.OrganizationRepository;
+import alfio.util.HttpUtils;
+import alfio.util.Json;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static alfio.model.system.ConfigurationKeys.*;
+
+class MailjetMailer extends BaseMailer  {
+
+<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(MailjetMailer.class);</span>
+    private final HttpClient client;
+    private final ConfigurationManager configurationManager;
+
+    MailjetMailer(HttpClient httpClient,
+                         ConfigurationManager configurationManager,
+                         OrganizationRepository organizationRepository) {
+<span class="fc" id="L46">        super(organizationRepository);</span>
+<span class="fc" id="L47">        this.client = httpClient;</span>
+<span class="fc" id="L48">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L49">    }</span>
+
+    @Override
+    public void send(Configurable configurable, String fromName, String to, List&lt;String&gt; cc, String subject, String text, Optional&lt;String&gt; html, Attachment... attachment) {
+
+<span class="fc" id="L54">        var conf = configurationManager.getFor(</span>
+<span class="fc" id="L55">            EnumSet.of(MAILJET_APIKEY_PUBLIC, MAILJET_APIKEY_PRIVATE, MAILJET_FROM, MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO), configurable.getConfigurationLevel());</span>
+
+
+<span class="fc" id="L58">        String apiKeyPublic = conf.get(MAILJET_APIKEY_PUBLIC).getRequiredValue();</span>
+<span class="fc" id="L59">        String apiKeyPrivate = conf.get(MAILJET_APIKEY_PRIVATE).getRequiredValue();</span>
+<span class="fc" id="L60">        String fromEmail = conf.get(MAILJET_FROM).getRequiredValue();</span>
+
+        //https://dev.mailjet.com/guides/?shell#sending-with-attached-files
+<span class="fc" id="L63">        Map&lt;String, Object&gt; mailPayload = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L65">        List&lt;Map&lt;String, String&gt;&gt; recipients = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L66">        recipients.add(Collections.singletonMap(&quot;Email&quot;, to));</span>
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">        if(cc != null &amp;&amp; !cc.isEmpty()) {</span>
+<span class="fc" id="L68">            recipients.addAll(cc.stream().map(email -&gt; Collections.singletonMap(&quot;Email&quot;, email)).toList());</span>
+        }
+
+<span class="fc" id="L71">        mailPayload.put(&quot;FromEmail&quot;, fromEmail);</span>
+<span class="fc" id="L72">        mailPayload.put(&quot;FromName&quot;, fromName.replace(&quot;\&quot;&quot;, &quot;&quot;));</span>
+<span class="fc" id="L73">        mailPayload.put(&quot;Subject&quot;, subject);</span>
+<span class="fc" id="L74">        mailPayload.put(&quot;Text-part&quot;, text);</span>
+<span class="fc" id="L75">        html.ifPresent(h -&gt; mailPayload.put(&quot;Html-part&quot;, h));</span>
+<span class="fc" id="L76">        mailPayload.put(&quot;Recipients&quot;, recipients);</span>
+
+<span class="fc" id="L78">        setReplyToIfPresent(conf, configurable.getOrganizationId(),</span>
+<span class="fc" id="L79">            address -&gt; mailPayload.put(&quot;Headers&quot;, Collections.singletonMap(&quot;Reply-To&quot;, address)));</span>
+
+<span class="pc bpc" id="L81" title="2 of 4 branches missed.">        if(attachment != null &amp;&amp; attachment.length &gt; 0) {</span>
+<span class="fc" id="L82">            mailPayload.put(&quot;Attachments&quot;, Arrays.stream(attachment).map(MailjetMailer::fromAttachment).collect(Collectors.toList()));</span>
+        }
+
+<span class="fc" id="L85">        HttpRequest request = HttpRequest.newBuilder(URI.create(&quot;https://api.mailjet.com/v3/send&quot;))</span>
+<span class="fc" id="L86">            .header(HttpUtils.AUTHORIZATION, HttpUtils.basicAuth(apiKeyPublic, apiKeyPrivate))</span>
+<span class="fc" id="L87">            .header(HttpUtils.CONTENT_TYPE, HttpUtils.APPLICATION_JSON)</span>
+<span class="fc" id="L88">            .POST(HttpRequest.BodyPublishers.ofString(Json.GSON.toJson(mailPayload)))</span>
+<span class="fc" id="L89">            .build();</span>
+
+        try {
+<span class="fc" id="L92">            HttpResponse&lt;Void&gt; response = client.send(request, HttpResponse.BodyHandlers.discarding());</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">            if(!HttpUtils.callSuccessful(response)) {</span>
+<span class="nc" id="L94">                log.warn(&quot;sending email was not successful:&quot; + response);</span>
+<span class="nc" id="L95">                throw new IllegalStateException(&quot;Attempt to send a message failed. Result is: &quot;+response.statusCode());</span>
+            }
+<span class="nc" id="L97">        } catch (IOException e) {</span>
+<span class="nc" id="L98">            log.warn(&quot;error while sending email&quot;, e);</span>
+<span class="nc" id="L99">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L100">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L101">            log.warn(&quot;error while sending email&quot;, e);</span>
+<span class="pc" id="L102">        }</span>
+<span class="fc" id="L103">    }</span>
+
+
+
+    private static Map&lt;String, String&gt; fromAttachment(Attachment a) {
+<span class="fc" id="L108">        Map&lt;String, String&gt; m = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L109">        m.put(&quot;Content-type&quot;, a.getContentType());</span>
+<span class="fc" id="L110">        m.put(&quot;Filename&quot;, a.getFilename());</span>
+<span class="fc" id="L111">        m.put(&quot;content&quot;, Base64.encodeBase64String(a.getSource()));</span>
+<span class="fc" id="L112">        return m;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

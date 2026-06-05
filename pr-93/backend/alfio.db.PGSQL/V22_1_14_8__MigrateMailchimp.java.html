@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>V22_1_14_8__MigrateMailchimp.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.db.PGSQL</a> &gt; <span class="el_source">V22_1_14_8__MigrateMailchimp.java</span></div><h1>V22_1_14_8__MigrateMailchimp.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.db.PGSQL;
+
+import alfio.extension.Extension;
+import alfio.extension.ExtensionService;
+import alfio.extension.ScriptingExecutionService;
+import alfio.manager.system.ExternalConfiguration;
+import alfio.repository.ExtensionLogRepository;
+import alfio.repository.ExtensionRepository;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryFactory;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.util.StreamUtils;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.Executors;
+
+import static alfio.util.Wrappers.optionally;
+
+<span class="fc" id="L49">public class V22_1_14_8__MigrateMailchimp extends BaseJavaMigration {</span>
+
+    private static String getMailChimpScript() {
+<span class="nc" id="L52">        try (InputStream is = new ClassPathResource(&quot;/alfio/extension/mailchimp.js&quot;).getInputStream()){</span>
+<span class="nc" id="L53">            return StreamUtils.copyToString(is, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L54">        } catch (IOException e) {</span>
+<span class="nc" id="L55">            throw new IllegalStateException(&quot;cannot read mailchimp file&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public void migrate(Context context) throws Exception {
+<span class="fc" id="L61">        var jdbcTemplate = new JdbcTemplate(new SingleConnectionDataSource(context.getConnection(), true));</span>
+<span class="fc" id="L62">        Integer enabledCount = jdbcTemplate.queryForObject(&quot;select count(*) from plugin_configuration where plugin_id = 'alfio.mailchimp' and conf_name = 'enabled' and conf_value = 'true'&quot;, Integer.class);</span>
+<span class="pc bpc" id="L63" title="2 of 4 branches missed.">        if (enabledCount == null || enabledCount == 0) {</span>
+<span class="fc" id="L64">            return;</span>
+        }
+
+<span class="nc" id="L67">        DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());</span>
+<span class="nc" id="L68">        ExtensionRepository extensionRepository = QueryFactory.from(ExtensionRepository.class, &quot;PGSQL&quot;, dataSource);</span>
+<span class="nc" id="L69">        ExtensionLogRepository extensionLogRepository = QueryFactory.from(ExtensionLogRepository.class, &quot;PGSQL&quot;, dataSource);</span>
+<span class="nc" id="L70">        PluginRepository pluginRepository = QueryFactory.from(PluginRepository.class, &quot;PGSQL&quot;, dataSource);</span>
+<span class="nc" id="L71">        ExtensionService extensionService = new ExtensionService(</span>
+<span class="nc" id="L72">            new ScriptingExecutionService(HttpClient.newHttpClient(), null, Executors::newSingleThreadExecutor),</span>
+            extensionRepository,
+            extensionLogRepository,
+            new DataSourceTransactionManager(dataSource),
+            new ExternalConfiguration(),
+            new NamedParameterJdbcTemplate(jdbcTemplate));
+
+<span class="nc" id="L79">        extensionService.createOrUpdate(null, null, new Extension(&quot;-&quot;, &quot;mailchimp&quot;, getMailChimpScript(), true));</span>
+
+<span class="nc" id="L81">        int extensionId = extensionRepository.getExtensionIdFor(&quot;-&quot;, &quot;mailchimp&quot;);</span>
+<span class="nc" id="L82">        int apiKeyId = pluginRepository.getConfigurationMetadataIdFor(extensionId, &quot;apiKey&quot;, &quot;EVENT&quot;);</span>
+<span class="nc" id="L83">        int listIdId = pluginRepository.getConfigurationMetadataIdFor(extensionId, &quot;listId&quot;, &quot;EVENT&quot;);</span>
+
+
+<span class="nc" id="L86">        List&lt;ConfValue&gt; confValues = pluginRepository.findAllMailChimpConfigurationValues();</span>
+
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        for (ConfValue cv : confValues) {</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if(cv.value != null) {</span>
+<span class="nc" id="L90">                optionally(() -&gt;jdbcTemplate.queryForObject(&quot;select org_id from event where id = &quot;+cv.eventId, Integer.class))</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                    .ifPresent(orgId -&gt; extensionRepository.insertSettingValue(&quot;apiKey&quot;.equals(cv.name) ? apiKeyId : listIdId, &quot;-&quot; + orgId + &quot;-&quot; + cv.eventId, cv.value));</span>
+
+            }
+<span class="nc" id="L94">        }</span>
+<span class="nc" id="L95">    }</span>
+
+    public interface PluginRepository {
+        @Query(&quot;select conf_name, conf_value, event_id from plugin_configuration where plugin_id = 'alfio.mailchimp' and conf_name in ('apiKey', 'listId')&quot;)
+        List&lt;ConfValue&gt; findAllMailChimpConfigurationValues();
+
+
+        @Query(&quot;select ecm_id from extension_configuration_metadata where ecm_es_id_fk = :extensionId and ecm_name = :name and ecm_configuration_level = :confLevel&quot;)
+        int getConfigurationMetadataIdFor(@Bind(&quot;extensionId&quot;) int extensionId, @Bind(&quot;name&quot;) String name, @Bind(&quot;confLevel&quot;) String confLevel);
+    }
+
+    public static class ConfValue {
+        String name;
+        String value;
+        int eventId;
+
+        public ConfValue(@ConstructorAnnotationRowMapper.Column(&quot;conf_name&quot;) String name,
+                         @ConstructorAnnotationRowMapper.Column(&quot;conf_value&quot;) String value,
+<span class="nc" id="L113">                         @ConstructorAnnotationRowMapper.Column(&quot;event_id&quot;) int eventId) {</span>
+<span class="nc" id="L114">            this.name = name;</span>
+<span class="nc" id="L115">            this.value = value;</span>
+<span class="nc" id="L116">            this.eventId = eventId;</span>
+<span class="nc" id="L117">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
