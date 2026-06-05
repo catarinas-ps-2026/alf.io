@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataMigrator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.system</a> &gt; <span class="el_source">DataMigrator.java</span></div><h1>DataMigrator.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.system;
+
+import alfio.manager.BillingDocumentManager;
+import alfio.manager.TicketReservationManager;
+import alfio.model.*;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.system.EventMigration;
+import alfio.model.transaction.PaymentProxy;
+import alfio.repository.*;
+import alfio.repository.system.ConfigurationRepository;
+import alfio.repository.system.EventMigrationRepository;
+import alfio.util.ClockProvider;
+import alfio.util.MonetaryUtil;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.namedparam.EmptySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+
+import static alfio.model.PriceContainer.VatStatus.*;
+import static alfio.repository.TicketRepository.RESET_TICKET;
+import static alfio.util.Wrappers.optionally;
+import static java.util.stream.Collectors.*;
+
+@Component
+@Transactional
+public class DataMigrator {
+
+<span class="fc" id="L62">    private static final Logger log = LoggerFactory.getLogger(DataMigrator.class);</span>
+<span class="fc" id="L63">    private static final Pattern VERSION_PATTERN = Pattern.compile(&quot;(\\d\\.)([0-9.]*)(-SNAPSHOT)?&quot;);</span>
+<span class="fc" id="L64">    private static final Map&lt;String, String&gt; PRICE_UPDATE_BY_KEY = new LinkedHashMap&lt;&gt;();</span>
+    private final EventMigrationRepository eventMigrationRepository;
+    private final EventRepository eventRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final BigDecimal currentVersion;
+    private final String currentVersionAsString;
+    private final ZonedDateTime buildTimestamp;
+    private final TransactionTemplate transactionTemplate;
+    private final ConfigurationRepository configurationRepository;
+    private final NamedParameterJdbcTemplate jdbc;
+    private final TicketReservationManager ticketReservationManager;
+    private final TicketSearchRepository ticketSearchRepository;
+    private final PromoCodeDiscountRepository promoCodeDiscountRepository;
+    private final AdditionalServiceItemRepository additionalServiceItemRepository;
+    private final AdditionalServiceRepository additionalServiceRepository;
+    private final BillingDocumentManager billingDocumentManager;
+    private final ClockProvider clockProvider;
+
+    static {
+<span class="fc" id="L83">        PRICE_UPDATE_BY_KEY.put(&quot;event&quot;, &quot;update event set src_price_cts = :srcPriceCts, vat_status = :vatStatus where id = :eventId&quot;);</span>
+<span class="fc" id="L84">        PRICE_UPDATE_BY_KEY.put(&quot;category&quot;, &quot;update ticket_category set src_price_cts = :srcPriceCts where id = :categoryId&quot;);</span>
+<span class="fc" id="L85">        PRICE_UPDATE_BY_KEY.put(&quot;ticket&quot;, &quot;update ticket set src_price_cts = :srcPriceCts, final_price_cts = :finalPriceCts, vat_cts = :vatCts, discount_cts = :discountCts where id = :ticketId&quot;);</span>
+<span class="fc" id="L86">        PRICE_UPDATE_BY_KEY.put(&quot;additional_service&quot;, &quot;update additional_service set src_price_cts = :srcPriceCts where id = :additionalServiceId&quot;);</span>
+<span class="fc" id="L87">        PRICE_UPDATE_BY_KEY.put(&quot;additional_service_item&quot;, &quot;update additional_service_item set src_price_cts = :srcPriceCts, final_price_cts = :finalPriceCts, vat_cts = :vatCts where id = :additionalServiceItemId&quot;);</span>
+<span class="fc" id="L88">    }</span>
+
+    public DataMigrator(EventMigrationRepository eventMigrationRepository,
+                        EventRepository eventRepository,
+                        TicketCategoryRepository ticketCategoryRepository,
+                        @Value(&quot;${alfio.version}&quot;) String currentVersion,
+                        @Value(&quot;${alfio.build-ts}&quot;) String buildTimestamp,
+                        PlatformTransactionManager transactionManager,
+                        ConfigurationRepository configurationRepository,
+                        NamedParameterJdbcTemplate jdbc,
+                        TicketReservationManager ticketReservationManager,
+                        TicketSearchRepository ticketSearchRepository,
+                        PromoCodeDiscountRepository promoCodeDiscountRepository,
+                        AdditionalServiceItemRepository additionalServiceItemRepository,
+                        AdditionalServiceRepository additionalServiceRepository,
+                        BillingDocumentManager billingDocumentManager,
+<span class="nc" id="L104">                        ClockProvider clockProvider) {</span>
+<span class="nc" id="L105">        this.eventMigrationRepository = eventMigrationRepository;</span>
+<span class="nc" id="L106">        this.eventRepository = eventRepository;</span>
+<span class="nc" id="L107">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="nc" id="L108">        this.configurationRepository = configurationRepository;</span>
+<span class="nc" id="L109">        this.jdbc = jdbc;</span>
+<span class="nc" id="L110">        this.currentVersion = parseVersion(currentVersion);</span>
+<span class="nc" id="L111">        this.currentVersionAsString = currentVersion;</span>
+<span class="nc" id="L112">        this.buildTimestamp = ZonedDateTime.parse(buildTimestamp);</span>
+<span class="nc" id="L113">        this.transactionTemplate = new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));</span>
+<span class="nc" id="L114">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="nc" id="L115">        this.ticketSearchRepository = ticketSearchRepository;</span>
+<span class="nc" id="L116">        this.promoCodeDiscountRepository = promoCodeDiscountRepository;</span>
+<span class="nc" id="L117">        this.additionalServiceItemRepository = additionalServiceItemRepository;</span>
+<span class="nc" id="L118">        this.additionalServiceRepository = additionalServiceRepository;</span>
+<span class="nc" id="L119">        this.billingDocumentManager = billingDocumentManager;</span>
+<span class="nc" id="L120">        this.clockProvider = clockProvider;</span>
+<span class="nc" id="L121">    }</span>
+
+    public void migrateEventsToCurrentVersion() {
+<span class="nc" id="L124">        List&lt;Event&gt; events = eventRepository.findAll();</span>
+<span class="nc" id="L125">        events.forEach(this::migrateEventToCurrentVersion);</span>
+<span class="nc" id="L126">        fillReservationsLanguage();</span>
+<span class="nc" id="L127">        fillDefaultOptions();</span>
+<span class="nc" id="L128">        fixReservationPrice(events);</span>
+<span class="nc" id="L129">        fixVatStatus();</span>
+<span class="nc" id="L130">    }</span>
+
+    private void fixVatStatus() {
+<span class="nc" id="L133">        transactionTemplate.execute(ts -&gt; {</span>
+<span class="nc" id="L134">            int rows = jdbc.update(&quot;update tickets_reservation set vat_status = e.vat_status from event e where tickets_reservation.vat_status is null and tickets_reservation.event_id_fk = e.id&quot;, Map.of());</span>
+<span class="nc" id="L135">            log.debug(&quot;update VAT/GST on {} reservations&quot;, rows);</span>
+<span class="nc" id="L136">            return null;</span>
+        });
+<span class="nc" id="L138">    }</span>
+
+    private void fixReservationPrice(List&lt;Event&gt; events) {
+<span class="nc" id="L141">        transactionTemplate.execute(ts -&gt; {</span>
+<span class="nc" id="L142">            Map&lt;Integer, List&lt;String&gt;&gt; candidates = jdbc.queryForList(&quot;select id, event_id_fk from tickets_reservation where event_id_fk is not null and src_price_cts = 0 and payment_method &lt;&gt; 'NONE' and status not in ('CANCELLED', 'CREDIT_NOTE_ISSUED') order by 2&quot;, Map.of())</span>
+<span class="nc" id="L143">                .stream()</span>
+<span class="nc" id="L144">                .map(m -&gt; Pair.of((Integer) m.get(&quot;event_id_fk&quot;), (String) m.get(&quot;id&quot;)))</span>
+<span class="nc" id="L145">                .collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toList())));</span>
+
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            for(var entry : candidates.entrySet()) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                var event = events.stream().filter(e -&gt; e.getId() == entry.getKey()).findFirst().orElseThrow();</span>
+<span class="nc" id="L149">                ListUtils.partition(entry.getValue(), 1000) // limit query size and batch update size</span>
+<span class="nc" id="L150">                    .forEach(reservations -&gt; fixReservationsForEvent(event, reservations));</span>
+<span class="nc" id="L151">            }</span>
+<span class="nc" id="L152">            return null;</span>
+        });
+<span class="nc" id="L154">    }</span>
+
+    private void fixReservationsForEvent(Event event, List&lt;String&gt; reservations) {
+<span class="nc" id="L157">        var byReservationId = ticketSearchRepository.loadAllReservationsWithTickets(event.getId(), reservations).stream()</span>
+<span class="nc" id="L158">            .collect(groupingBy(trt -&gt; trt.getTicketReservation().getId()));</span>
+<span class="nc" id="L159">        log.trace(&quot;found {} reservations to fix for event {}&quot;, byReservationId.size(), event.getShortName());</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if(!byReservationId.isEmpty()) {</span>
+<span class="nc" id="L161">            var additionalServices = additionalServiceRepository.loadAllForEvent(event.getId());</span>
+<span class="nc" id="L162">            var reservationsToUpdate = byReservationId.values().stream()</span>
+<span class="nc" id="L163">                .map(ticketsReservationAndTransactions -&gt; {</span>
+<span class="nc" id="L164">                    var tickets = ticketsReservationAndTransactions.stream().map(TicketWithReservationAndTransaction::getTicket).collect(toList());</span>
+<span class="nc" id="L165">                    var ticketReservation = ticketsReservationAndTransactions.get(0).getTicketReservation();</span>
+<span class="nc" id="L166">                    var promoCodeDiscountId = ticketReservation.getPromoCodeDiscountId();</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                    var discount = promoCodeDiscountId != null ? promoCodeDiscountRepository.findById(promoCodeDiscountId) : null;</span>
+<span class="nc" id="L168">                    var additionalServiceItems = additionalServiceItemRepository.findByReservationUuid(event.getId(), ticketReservation.getId());</span>
+<span class="nc" id="L169">                    var calculator = new ReservationPriceCalculator(ticketReservation, discount, tickets, additionalServiceItems, additionalServices, event, List.of(), Optional.empty());</span>
+<span class="nc" id="L170">                    var currencyCode = calculator.getCurrencyCode();</span>
+<span class="nc" id="L171">                    return new MapSqlParameterSource(&quot;reservationId&quot;, calculator.reservation.getId())</span>
+<span class="nc" id="L172">                        .addValue(&quot;srcPrice&quot;, calculator.getSrcPriceCts())</span>
+<span class="nc" id="L173">                        .addValue(&quot;finalPrice&quot;, MonetaryUtil.unitToCents(calculator.getFinalPrice(), currencyCode))</span>
+<span class="nc" id="L174">                        .addValue(&quot;discount&quot;, MonetaryUtil.unitToCents(calculator.getAppliedDiscount(), currencyCode))</span>
+<span class="nc" id="L175">                        .addValue(&quot;vat&quot;, MonetaryUtil.unitToCents(calculator.getVAT(), currencyCode))</span>
+<span class="nc" id="L176">                        .addValue(&quot;currencyCode&quot;, currencyCode);</span>
+<span class="nc" id="L177">                }).toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L178">            log.trace(&quot;updating {} reservations&quot;, reservationsToUpdate.length);</span>
+<span class="nc" id="L179">            int[] results = jdbc.batchUpdate(&quot;update tickets_reservation set src_price_cts = :srcPrice, final_price_cts = :finalPrice, discount_cts = :discount, vat_cts = :vat, currency_code = :currencyCode where id = :reservationId&quot;, reservationsToUpdate);</span>
+<span class="nc" id="L180">            int sum = IntStream.of(results).sum();</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">            if(sum != reservationsToUpdate.length) {</span>
+<span class="nc" id="L182">                log.warn(&quot;Expected {} reservations to be affected, actual number: {}&quot;, reservationsToUpdate.length, sum);</span>
+            }
+        }
+<span class="nc" id="L185">    }</span>
+
+    private void fillDefaultOptions() {
+<span class="nc" id="L188">        transactionTemplate.execute(ts -&gt; {</span>
+<span class="nc" id="L189">            Integer count = jdbc.queryForObject(&quot;select count(*) from configuration where c_key = :key&quot;, new MapSqlParameterSource(&quot;key&quot;, ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue()), Integer.class);</span>
+<span class="nc bnc" id="L190" title="All 4 branches missed.">            if(count == null || count == 0) {</span>
+<span class="nc" id="L191">                configurationRepository.insert(ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue(), &quot;true&quot;, ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getDescription());</span>
+            }
+<span class="nc" id="L193">            return null;</span>
+        });
+<span class="nc" id="L195">    }</span>
+
+    private void migrateEventToCurrentVersion(Event event) {
+<span class="nc" id="L198">        Optional&lt;EventMigration&gt; optional = optionally(() -&gt; eventMigrationRepository.loadEventMigration(event.getId()));</span>
+<span class="nc" id="L199">        boolean alreadyDefined = optional.isPresent();</span>
+<span class="nc bnc" id="L200" title="All 4 branches missed.">        if(!alreadyDefined || optional.filter(this::needsFixing).isPresent()) {</span>
+<span class="nc" id="L201">            transactionTemplate.execute(s -&gt; {</span>
+                //optional.ifPresent(eventMigration -&gt; eventMigrationRepository.lockEventMigrationForUpdate(eventMigration.getId()));
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                if(event.now(clockProvider).isBefore(event.getEnd())) {</span>
+<span class="nc" id="L204">                    fixAvailableSeats(event);</span>
+<span class="nc" id="L205">                    fillDescriptions(event);</span>
+<span class="nc" id="L206">                    fixCategoriesSize(event);</span>
+                }
+
+                //migrate prices to new structure. This should be done for all events, regardless of the expiration date.
+<span class="nc" id="L210">                migratePrices(event.getId());</span>
+<span class="nc" id="L211">                fixStuckTickets(event.getId());</span>
+<span class="nc" id="L212">                createBillingDocuments(event);</span>
+
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                if(alreadyDefined) {</span>
+<span class="nc" id="L215">                    EventMigration eventMigration = optional.get();</span>
+<span class="nc" id="L216">                    int result = eventMigrationRepository.updateMigrationData(eventMigration.getId(), currentVersionAsString, buildTimestamp, EventMigration.Status.COMPLETE.name());</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                    Validate.isTrue(result == 1, &quot;error during update &quot; + result);</span>
+<span class="nc" id="L218">                } else {</span>
+<span class="nc" id="L219">                    eventMigrationRepository.insertMigrationData(event.getId(), currentVersionAsString, buildTimestamp, EventMigration.Status.COMPLETE.name());</span>
+                }
+
+<span class="nc" id="L222">                return null;</span>
+            });
+        }
+<span class="nc" id="L225">    }</span>
+
+    private void createBillingDocuments(Event event) {
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if(event.getEnd().isAfter(event.now(clockProvider))) {</span>
+<span class="nc" id="L229">            List&lt;String&gt; reservations = jdbc.queryForList(&quot;select id from tickets_reservation where event_id_fk = :eventId and status in ('OFFLINE_PAYMENT', 'COMPLETE') and invoice_number is not null and id not in(select distinct reservation_id_fk from billing_document where event_id_fk = :eventId)&quot;, new MapSqlParameterSource(&quot;eventId&quot;, event.getId()), String.class);</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            if(reservations.isEmpty()) {</span>
+<span class="nc" id="L231">                return;</span>
+            }
+<span class="nc" id="L233">            log.info(&quot;creating BillingDocument(s) for event {}&quot;, event.getDisplayName());</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            for (String reservationId : reservations) {</span>
+<span class="nc" id="L235">                TicketReservation reservation = ticketReservationManager.findById(reservationId).orElseThrow(IllegalStateException::new);</span>
+<span class="nc" id="L236">                billingDocumentManager.getOrCreateBillingDocument(event, reservation, null, ticketReservationManager.orderSummaryForReservation(reservation, event));</span>
+<span class="nc" id="L237">            }</span>
+<span class="nc" id="L238">            log.info(&quot;checked {} BillingDocument(s) for event {}&quot;, reservations.size(), event.getDisplayName());</span>
+        }
+<span class="nc" id="L240">    }</span>
+
+    void fixStuckTickets(int eventId) {
+<span class="nc" id="L243">        List&lt;Integer&gt; ticketIds = jdbc.queryForList(&quot;select a.id from ticket a, tickets_reservation b where a.event_id = :eventId and a.status in('PENDING','TO_BE_PAID') and a.tickets_reservation_id = b.id and b.status = 'CANCELLED'&quot;, new MapSqlParameterSource(&quot;eventId&quot;, eventId), Integer.class);</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if(!ticketIds.isEmpty()) {</span>
+<span class="nc" id="L245">            int toBeFixed = ticketIds.size();</span>
+<span class="nc" id="L246">            log.warn(&quot;********* reverting {} stuck tickets ({}) for event id {}&quot;, toBeFixed, ticketIds, eventId);</span>
+<span class="nc" id="L247">            int[] results = jdbc.batchUpdate(&quot;update ticket set status = 'RELEASED',&quot; + RESET_TICKET + &quot; where id = :ticketId&quot;, ticketIds.stream().map(id -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, id)).toArray(MapSqlParameterSource[]::new));</span>
+<span class="nc" id="L248">            int result = Arrays.stream(results).sum();</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            Validate.isTrue(result == toBeFixed, &quot;Error while fixing stuck tickets: expected &quot;+toBeFixed+&quot;, got &quot;+result);</span>
+        }
+<span class="nc" id="L251">    }</span>
+
+    void fixCategoriesSize(EventAndOrganizationId event) {
+<span class="nc" id="L254">        ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
+<span class="nc" id="L255">            .filter(TicketCategory::isBounded)</span>
+<span class="nc" id="L256">            .forEach(tc -&gt; {</span>
+<span class="nc" id="L257">                Integer result = jdbc.queryForObject(&quot;select count(*) from ticket where event_id = :eventId and category_id = :categoryId and status &lt;&gt; 'INVALIDATED'&quot;, new MapSqlParameterSource(&quot;eventId&quot;, tc.getEventId()).addValue(&quot;categoryId&quot;, tc.getId()), Integer.class);</span>
+<span class="nc bnc" id="L258" title="All 4 branches missed.">                if(result != null &amp;&amp; result != tc.getMaxTickets()) {</span>
+<span class="nc" id="L259">                    log.warn(&quot;********* updating category size for {} from {} to {} tickets&quot;, tc.getName(), tc.getMaxTickets(), result);</span>
+<span class="nc" id="L260">                    ticketCategoryRepository.updateSeatsAvailability(tc.getId(), result);</span>
+                }
+<span class="nc" id="L262">            });</span>
+
+<span class="nc" id="L264">    }</span>
+
+    void fillReservationsLanguage() {
+<span class="nc" id="L267">        transactionTemplate.execute(s -&gt; {</span>
+<span class="nc" id="L268">            jdbc.queryForList(&quot;select id from tickets_reservation where user_language is null and event_id_fk is not null&quot;, EmptySqlParameterSource.INSTANCE, String.class)</span>
+<span class="nc" id="L269">                    .forEach(id -&gt; {</span>
+<span class="nc" id="L270">                        MapSqlParameterSource param = new MapSqlParameterSource(&quot;reservationId&quot;, id);</span>
+<span class="nc" id="L271">                        String language = optionally(() -&gt; jdbc.queryForObject(&quot;select user_language from ticket where tickets_reservation_id = :reservationId limit 1&quot;, param, String.class)).orElse(&quot;en&quot;);</span>
+<span class="nc" id="L272">                        jdbc.update(&quot;update tickets_reservation set user_language = :userLanguage where id = :reservationId&quot;, param.addValue(&quot;userLanguage&quot;, language));</span>
+<span class="nc" id="L273">                    });</span>
+<span class="nc" id="L274">            return null;</span>
+        });
+<span class="nc" id="L276">    }</span>
+
+    private void fillDescriptions(Event event) {
+<span class="nc" id="L279">        int result = eventRepository.fillDisplayNameIfRequired(event.getId());</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">        if(result &gt; 0) {</span>
+<span class="nc" id="L281">            log.debug(&quot;Event {} didn't have displayName, filled with shortName&quot;, event.getShortName());</span>
+        }
+<span class="nc" id="L283">    }</span>
+
+    /*
+     * even if we don't actively use the &quot;available_seats&quot; event property anymore, it makes sense to keep it synchronized
+     * in order to ensure backward compatibility
+     */
+    private void fixAvailableSeats(Event event) {
+        try {
+<span class="nc" id="L291">            int availableSeats = eventRepository.countExistingTickets(event.getId());</span>
+<span class="nc" id="L292">            var paymentProxies = event.getAllowedPaymentProxies().stream().map(PaymentProxy::name).collect(joining(&quot;,&quot;));</span>
+<span class="nc" id="L293">            eventRepository.updatePrices(event.getCurrency(), availableSeats, event.isVatIncluded(),</span>
+<span class="nc" id="L294">                event.getVat(), paymentProxies, event.getId(), event.getVatStatus(), event.getSrcPriceCts());</span>
+<span class="nc" id="L295">        } catch (Exception ex) {</span>
+<span class="nc" id="L296">            log.trace(&quot;got exception while fixing available seats&quot;, ex);</span>
+<span class="nc" id="L297">        }</span>
+<span class="nc" id="L298">    }</span>
+
+    boolean needsFixing(EventMigration eventMigration) {
+<span class="nc bnc" id="L301" title="All 4 branches missed.">        return eventMigration.getBuildTimestamp().isBefore(buildTimestamp) || parseVersion(eventMigration.getCurrentVersion()).compareTo(currentVersion) &lt; 0;</span>
+    }
+
+    static BigDecimal parseVersion(String version) {
+<span class="fc" id="L305">        Matcher matcher = VERSION_PATTERN.matcher(version);</span>
+<span class="fc bfc" id="L306" title="All 2 branches covered.">        if(!matcher.find()) {</span>
+<span class="fc" id="L307">            return BigDecimal.ZERO;</span>
+        }
+<span class="fc" id="L309">        return new BigDecimal(matcher.group(1) + matcher.group(2).replaceAll(&quot;\\.&quot;, &quot;&quot;));</span>
+    }
+
+    private void migratePrices(final int eventId) {
+<span class="nc" id="L313">        final Map&lt;String, Integer&gt; eventIdParam = Collections.singletonMap(&quot;eventId&quot;, eventId);</span>
+<span class="nc" id="L314">        final String srcPriceCtsParam = &quot;srcPriceCts&quot;;</span>
+<span class="nc" id="L315">        Map&lt;String, List&lt;MapSqlParameterSource&gt;&gt; migrationData = jdbc.queryForList(&quot;select * from event where type = :type and id = :eventId and regular_price_cts &gt; 0&quot;, new MapSqlParameterSource(&quot;type&quot;, &quot;INTERNAL&quot;).addValue(&quot;eventId&quot;, eventId))</span>
+<span class="nc" id="L316">            .stream()</span>
+<span class="nc" id="L317">            .flatMap(event -&gt; {</span>
+                //fill the event prices
+<span class="nc" id="L319">                boolean eventVatIncluded = (boolean) event.get(&quot;vat_included&quot;);</span>
+<span class="nc" id="L320">                BigDecimal vatPercentage = Optional.ofNullable((BigDecimal) event.get(&quot;vat&quot;)).orElse(BigDecimal.ZERO);</span>
+<span class="nc" id="L321">                int price = (int) event.get(&quot;regular_price_cts&quot;);</span>
+<span class="nc" id="L322">                String currencyCode = (String) event.get(&quot;currency&quot;);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                int eventSrcPrice = eventVatIncluded ? MonetaryUtil.addVAT(price, vatPercentage) : price;</span>
+
+<span class="nc" id="L325">                List&lt;Pair&lt;String, MapSqlParameterSource&gt;&gt; modifications = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L327" title="All 2 branches missed.">                if (((int) event.get(&quot;src_price_cts&quot;)) == 0) {</span>
+<span class="nc" id="L328">                    modifications.add(Pair.of(&quot;event&quot;, new MapSqlParameterSource(srcPriceCtsParam, eventSrcPrice)</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">                        .addValue(&quot;vatStatus&quot;, eventVatIncluded ? INCLUDED.name() : NOT_INCLUDED.name())</span>
+<span class="nc" id="L330">                        .addValue(&quot;eventId&quot;, eventId)));</span>
+                }
+
+                //ticket categories
+<span class="nc" id="L334">                modifications.addAll(collectTicketCategoryMigrationData(srcPriceCtsParam, eventVatIncluded, vatPercentage, eventIdParam));</span>
+
+                //tickets
+<span class="nc" id="L337">                modifications.addAll(collectTicketMigrationData(srcPriceCtsParam, eventVatIncluded, vatPercentage, currencyCode, eventId, eventIdParam));</span>
+
+                //additional_service
+<span class="nc" id="L340">                modifications.addAll(collectASMigrationData(srcPriceCtsParam, eventVatIncluded, vatPercentage, eventIdParam));</span>
+
+                //additional_service_item
+<span class="nc" id="L343">                modifications.addAll(collectASItemMigrationData(srcPriceCtsParam, eventVatIncluded, vatPercentage, currencyCode, eventIdParam));</span>
+
+<span class="nc" id="L345">                log.debug(&quot;Price migration: got {} modifications for event {}&quot;, modifications.size(), event.get(&quot;short_name&quot;));</span>
+<span class="nc" id="L346">                return modifications.stream();</span>
+<span class="nc" id="L347">            }).collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toList())));</span>
+
+<span class="nc bnc" id="L349" title="All 2 branches missed.">        if(migrationData.size() &gt; 0) {</span>
+<span class="nc" id="L350">            log.debug(&quot;Price migration: got modifications for: {}&quot;, migrationData.keySet());</span>
+<span class="nc" id="L351">            PRICE_UPDATE_BY_KEY.entrySet().stream()</span>
+<span class="nc" id="L352">                .filter(e -&gt; migrationData.containsKey(e.getKey()))</span>
+<span class="nc" id="L353">                .map(e -&gt; Pair.of(e, migrationData.get(e.getKey())))</span>
+<span class="nc" id="L354">                .forEach(p -&gt; {</span>
+<span class="nc" id="L355">                    Map.Entry&lt;String, String&gt; entry = p.getLeft();</span>
+<span class="nc" id="L356">                    log.debug(&quot;migrating {} prices...&quot;, entry.getKey());</span>
+<span class="nc" id="L357">                    performPriceMigration(entry.getValue(), p.getRight(), jdbc);</span>
+<span class="nc" id="L358">                });</span>
+        }
+<span class="nc" id="L360">    }</span>
+
+    private static void performPriceMigration(String updateStatement, List&lt;MapSqlParameterSource&gt; data, NamedParameterJdbcTemplate jdbc) {
+<span class="nc" id="L363">        int size = data.size();</span>
+<span class="nc" id="L364">        jdbc.batchUpdate(updateStatement, data.toArray(new MapSqlParameterSource[size]));</span>
+<span class="nc" id="L365">        log.debug(&quot;{} records updated&quot;, size);</span>
+<span class="nc" id="L366">    }</span>
+
+    private List&lt;Pair&lt;String, MapSqlParameterSource&gt;&gt; collectASItemMigrationData(String srcPriceCtsParam, final boolean eventVatIncluded, final BigDecimal vatPercentage, final String currencyCode, Map&lt;String, Integer&gt; eventIdParam) {
+<span class="nc" id="L369">        return jdbc.queryForList(&quot;select ai.id as id, ai.paid_price_cts as paid_price_cts, a.vat_type as vat_type from additional_service_item ai, additional_service a where ai.paid_price_cts &gt; 0 and ai.src_price_cts = 0 and ai.event_id_fk = :eventId&quot;, eventIdParam).stream()</span>
+<span class="nc" id="L370">            .map(item -&gt; {</span>
+<span class="nc" id="L371">                int oldPrice = (int) item.get(&quot;paid_price_cts&quot;);</span>
+<span class="nc" id="L372">                AdditionalService.VatType vatType = AdditionalService.VatType.valueOf((String) item.get(&quot;vat_type&quot;));</span>
+<span class="nc" id="L373">                return Pair.of((Integer) item.get(&quot;id&quot;), new PriceContainer() {</span>
+                    @Override
+                    public int getSrcPriceCts() {
+<span class="nc bnc" id="L376" title="All 2 branches missed.">                        return eventVatIncluded ? MonetaryUtil.addVAT(oldPrice, vatPercentage) : oldPrice;</span>
+                    }
+
+                    @Override
+                    public String getCurrencyCode() {
+<span class="nc" id="L381">                        return currencyCode;</span>
+                    }
+
+                    @Override
+                    public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
+<span class="nc" id="L386">                        return Optional.of(vatPercentage);</span>
+                    }
+
+                    @Override
+                    public VatStatus getVatStatus() {
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                        if (vatType == AdditionalService.VatType.INHERITED) {</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">                            return eventVatIncluded ? INCLUDED : NOT_INCLUDED;</span>
+                        }
+<span class="nc" id="L394">                        return NONE;//no need to check for other VatTypes. At the time of writing VAT override strategy has not yet been implemented.</span>
+                    }
+                });
+            })
+<span class="nc" id="L398">            .map(p -&gt; {</span>
+<span class="nc" id="L399">                PriceContainer priceContainer = p.getValue();</span>
+<span class="nc" id="L400">                return Pair.of(&quot;additional_service_item&quot;, new MapSqlParameterSource(srcPriceCtsParam, priceContainer.getSrcPriceCts())</span>
+<span class="nc" id="L401">                    .addValue(&quot;finalPriceCts&quot;, MonetaryUtil.unitToCents(priceContainer.getFinalPrice(), currencyCode))</span>
+<span class="nc" id="L402">                    .addValue(&quot;vatCts&quot;, MonetaryUtil.unitToCents(priceContainer.getVAT(), currencyCode))</span>
+<span class="nc" id="L403">                    .addValue(&quot;additionalServiceItemId&quot;, p.getKey()));</span>
+<span class="nc" id="L404">            }).collect(toList());</span>
+    }
+
+    private List&lt;Pair&lt;String, MapSqlParameterSource&gt;&gt; collectASMigrationData(String srcPriceCtsParam, boolean eventVatIncluded, BigDecimal vatPercentage, Map&lt;String, Integer&gt; eventIdParam) {
+<span class="nc" id="L408">        return jdbc.queryForList(&quot;select id, price_cts, vat_type from additional_service where event_id_fk = :eventId and fix_price = true and price_cts &gt; 0 and src_price_cts = 0&quot;, eventIdParam)</span>
+<span class="nc" id="L409">            .stream()</span>
+<span class="nc" id="L410">            .map(as -&gt; {</span>
+<span class="nc" id="L411">                int priceCts = (int) as.get(&quot;price_cts&quot;);</span>
+<span class="nc" id="L412">                AdditionalService.VatType vatType = AdditionalService.VatType.valueOf((String) as.get(&quot;vat_type&quot;));</span>
+<span class="nc bnc" id="L413" title="All 4 branches missed.">                int srcPrice = vatType == AdditionalService.VatType.INHERITED &amp;&amp; eventVatIncluded ? MonetaryUtil.addVAT(priceCts, vatPercentage) : priceCts;</span>
+<span class="nc" id="L414">                return Pair.of(&quot;additional_service&quot;, new MapSqlParameterSource(srcPriceCtsParam, srcPrice).addValue(&quot;additionalServiceId&quot;, as.get(&quot;id&quot;)));</span>
+<span class="nc" id="L415">            }).collect(toList());</span>
+    }
+
+    private List&lt;Pair&lt;String, MapSqlParameterSource&gt;&gt; collectTicketMigrationData(String srcPriceCtsParam, final boolean eventVatIncluded, final BigDecimal vatPercentage, final String currencyCode, final int eventId, Map&lt;String, Integer&gt; eventIdParam) {
+<span class="nc" id="L419">        return jdbc.queryForList(&quot;select ticket.id as id, ticket.original_price_cts as original_price_cts, ticket.paid_price_cts as paid_price_cts, promo_code.discount_amount as discount_amount, promo_code.discount_type as discount_type from ticket join tickets_reservation on tickets_reservation.id = ticket.tickets_reservation_id left join promo_code on tickets_reservation.promo_code_id_fk = promo_code.id where ticket.event_id = :eventId and ticket.original_price_cts &gt; 0 and ticket.src_price_cts = 0&quot;, eventIdParam)</span>
+<span class="nc" id="L420">            .stream()</span>
+<span class="nc" id="L421">            .map(ticket -&gt; {</span>
+<span class="nc" id="L422">                int oldTicketPrice = (int) ticket.get(&quot;original_price_cts&quot;);</span>
+<span class="nc" id="L423">                return Pair.of((Integer) ticket.get(&quot;id&quot;), new PriceContainer() {</span>
+                    @Override
+                    public int getSrcPriceCts() {
+<span class="nc bnc" id="L426" title="All 2 branches missed.">                        return eventVatIncluded ? MonetaryUtil.addVAT(oldTicketPrice, vatPercentage) : oldTicketPrice;</span>
+                    }
+
+                    @Override
+                    public String getCurrencyCode() {
+<span class="nc" id="L431">                        return currencyCode;</span>
+                    }
+
+                    @Override
+                    public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
+<span class="nc" id="L436">                        return Optional.of(vatPercentage);</span>
+                    }
+
+                    @Override
+                    public VatStatus getVatStatus() {
+<span class="nc bnc" id="L441" title="All 2 branches missed.">                        return eventVatIncluded ? INCLUDED : NOT_INCLUDED;</span>
+                    }
+
+                    @Override
+                    public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
+<span class="nc" id="L446">                        return Optional.ofNullable(ticket.get(&quot;discount_amount&quot;))</span>
+<span class="nc" id="L447">                            .map(amount -&gt; new PromoCodeDiscount(0, &quot;&quot;, eventId, null, null, null, (int) amount, PromoCodeDiscount.DiscountType.valueOf((String) ticket.get(&quot;discount_type&quot;)), &quot;&quot;, null, null, null, PromoCodeDiscount.CodeType.DISCOUNT, null, currencyCode));</span>
+                    }
+                });
+            })
+<span class="nc" id="L451">            .map(p -&gt; {</span>
+<span class="nc" id="L452">                    PriceContainer priceContainer = p.getValue();</span>
+<span class="nc" id="L453">                    return Pair.of(&quot;ticket&quot;, new MapSqlParameterSource(srcPriceCtsParam, priceContainer.getSrcPriceCts())</span>
+<span class="nc" id="L454">                        .addValue(&quot;finalPriceCts&quot;, MonetaryUtil.unitToCents(priceContainer.getFinalPrice(), currencyCode))</span>
+<span class="nc" id="L455">                        .addValue(&quot;vatCts&quot;, MonetaryUtil.unitToCents(priceContainer.getVAT(), currencyCode))</span>
+<span class="nc" id="L456">                        .addValue(&quot;discountCts&quot;, MonetaryUtil.unitToCents(priceContainer.getAppliedDiscount(), currencyCode))</span>
+<span class="nc" id="L457">                        .addValue(&quot;ticketId&quot;, p.getKey()));</span>
+                }
+<span class="nc" id="L459">            ).collect(toList());</span>
+    }
+
+    private List&lt;Pair&lt;String, MapSqlParameterSource&gt;&gt; collectTicketCategoryMigrationData(String srcPriceCtsParam, boolean eventVatIncluded, BigDecimal vatPercentage, Map&lt;String, Integer&gt; eventIdParam) {
+<span class="nc" id="L463">        return jdbc.queryForList(&quot;select id, price_cts from ticket_category where event_id = :eventId and price_cts &gt; 0 and src_price_cts = 0&quot;, eventIdParam)</span>
+<span class="nc" id="L464">            .stream()</span>
+<span class="nc" id="L465">            .map(category -&gt; {</span>
+<span class="nc" id="L466">                int oldCategoryPrice = (int) category.get(&quot;price_cts&quot;);</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">                int categorySrcPrice = eventVatIncluded ? MonetaryUtil.addVAT(oldCategoryPrice, vatPercentage) : oldCategoryPrice;</span>
+<span class="nc" id="L468">                return Pair.of(&quot;category&quot;, new MapSqlParameterSource(srcPriceCtsParam, categorySrcPrice).addValue(&quot;categoryId&quot;, category.get(&quot;id&quot;)));</span>
+            })
+<span class="nc" id="L470">            .collect(toList());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

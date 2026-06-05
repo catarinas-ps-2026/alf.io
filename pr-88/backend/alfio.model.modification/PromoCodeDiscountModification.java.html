@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PromoCodeDiscountModification.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.modification</a> &gt; <span class="el_source">PromoCodeDiscountModification.java</span></div><h1>PromoCodeDiscountModification.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.modification;
+
+import alfio.model.PromoCodeDiscount;
+import alfio.model.PromoCodeDiscount.DiscountType;
+import alfio.util.MonetaryUtil;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Getter
+public class PromoCodeDiscountModification {
+
+    private final Integer organizationId;
+    private final Integer eventId;
+    private final String promoCode;
+    private final String currencyCode;
+    private final DateTimeModification start;
+    private final DateTimeModification end;
+    private final BigDecimal discountAmount;
+    private final DiscountType discountType;
+    private final List&lt;Integer&gt; categories;
+    private final Integer utcOffset;
+    private final Integer maxUsage;
+    private final String description;
+    private final String emailReference;
+    private final PromoCodeDiscount.CodeType codeType;
+    private final Integer hiddenCategoryId;
+
+
+    @JsonCreator
+    public PromoCodeDiscountModification(
+        @JsonProperty(&quot;organizationId&quot;) Integer organizationId,
+        @JsonProperty(&quot;eventId&quot;) Integer eventId,
+        @JsonProperty(&quot;promoCode&quot;) String promoCode,
+        @JsonProperty(&quot;start&quot;) DateTimeModification start,
+        @JsonProperty(&quot;end&quot;) DateTimeModification end,
+        @JsonProperty(&quot;discountAmount&quot;) BigDecimal discountAmount,
+        @JsonProperty(&quot;currencyCode&quot;) String currencyCode,
+        @JsonProperty(&quot;discountType&quot;) DiscountType discountType,
+        @JsonProperty(&quot;categories&quot;) List&lt;Integer&gt; categories,
+        @JsonProperty(&quot;utcOffset&quot;) Integer utcOffset,
+        @JsonProperty(&quot;maxUsage&quot;) Integer maxUsage,
+        @JsonProperty(&quot;description&quot;) String description,
+        @JsonProperty(&quot;emailReference&quot;) String emailReference,
+        @JsonProperty(&quot;codeType&quot;) PromoCodeDiscount.CodeType codeType,
+<span class="nc" id="L69">        @JsonProperty(&quot;hiddenCategoryId&quot;) Integer hiddenCategoryId) {</span>
+
+<span class="nc" id="L71">        this.organizationId = organizationId;</span>
+<span class="nc" id="L72">        this.eventId = eventId;</span>
+<span class="nc" id="L73">        this.promoCode = promoCode;</span>
+<span class="nc" id="L74">        this.start = start;</span>
+<span class="nc" id="L75">        this.end = end;</span>
+<span class="nc" id="L76">        this.discountAmount = discountAmount;</span>
+<span class="nc" id="L77">        this.currencyCode = currencyCode;</span>
+<span class="nc" id="L78">        this.discountType = discountType;</span>
+<span class="nc" id="L79">        this.categories = Optional.ofNullable(categories).map(l -&gt; l.stream().filter(Objects::nonNull).collect(Collectors.toList())).orElse(Collections.emptyList());</span>
+<span class="nc" id="L80">        this.utcOffset = utcOffset;</span>
+<span class="nc" id="L81">        this.maxUsage = maxUsage;</span>
+<span class="nc" id="L82">        this.description = description;</span>
+<span class="nc" id="L83">        this.emailReference = emailReference;</span>
+<span class="nc" id="L84">        this.codeType = Optional.ofNullable(codeType).orElse(PromoCodeDiscount.CodeType.DISCOUNT);</span>
+<span class="nc" id="L85">        this.hiddenCategoryId = hiddenCategoryId;</span>
+<span class="nc" id="L86">    }</span>
+    
+    private int getDiscountAsPercent() {
+<span class="nc" id="L89">        return Optional.ofNullable(discountAmount).map(BigDecimal::intValue).orElse(0);</span>
+    }
+    
+    private int getDiscountInCents(String currencyCode) {
+<span class="nc" id="L93">        return MonetaryUtil.unitToCents(discountAmount, currencyCode);</span>
+    }
+
+    public int getDiscountValue() {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if(codeType != PromoCodeDiscount.CodeType.DISCOUNT) {</span>
+<span class="nc" id="L98">            return 0;</span>
+        }
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if(discountType == DiscountType.PERCENTAGE) {</span>
+<span class="nc" id="L101">            return getDiscountAsPercent();</span>
+        }
+<span class="nc" id="L103">        return getDiscountInCents(currencyCode);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

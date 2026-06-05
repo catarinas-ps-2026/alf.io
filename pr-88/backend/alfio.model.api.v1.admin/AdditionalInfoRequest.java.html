@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdditionalInfoRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.api.v1.admin</a> &gt; <span class="el_source">AdditionalInfoRequest.java</span></div><h1>AdditionalInfoRequest.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.api.v1.admin;
+
+import alfio.model.modification.AdditionalFieldRequest;
+import alfio.model.modification.EventModification;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+
+@Getter
+@AllArgsConstructor
+public class AdditionalInfoRequest {
+
+    private Integer ordinal;
+    private String name;
+    private AdditionalInfoType type;
+    private Boolean required;
+    private List&lt;DescriptionRequest&gt; label;
+    private List&lt;DescriptionRequest&gt; placeholder;
+    private List&lt;RestrictedValueRequest&gt; restrictedValues;
+    private ContentLengthRequest contentLength;
+    private Boolean displayAtCheckIn;
+
+    public boolean isValid() {
+<span class="nc bnc" id="L52" title="All 4 branches missed.">        return StringUtils.isNotBlank(name)</span>
+            &amp;&amp; type != null
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            &amp;&amp; CollectionUtils.isNotEmpty(label)</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">            &amp;&amp; label.stream().allMatch(DescriptionRequest::isValid);</span>
+    }
+
+
+    public AdditionalFieldRequest toAdditionalField(int ordinal) {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        int position = this.ordinal != null ? this.ordinal : ordinal;</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        String code = type != null ? type.code : AdditionalInfoType.GENERIC_TEXT.code;</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        Integer minLength = contentLength != null ? contentLength.min : null;</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        Integer maxLength = contentLength != null ? contentLength.max : null;</span>
+<span class="nc" id="L64">        List&lt;EventModification.RestrictedValue&gt; restrictedValueList = null;</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (!isEmpty(this.restrictedValues)) {</span>
+<span class="nc" id="L66">            restrictedValueList = this.restrictedValues.stream().map(rv -&gt; new EventModification.RestrictedValue(rv.getValue(), rv.getEnabled())).collect(Collectors.toList());</span>
+        }
+
+<span class="nc" id="L69">        return new AdditionalFieldRequest(</span>
+            position,
+            null,
+            name,
+            code,
+<span class="nc" id="L74">            Boolean.TRUE.equals(required),</span>
+            false,
+            minLength,
+            maxLength,
+            restrictedValueList,
+<span class="nc" id="L79">            toDescriptionMap(EventCreationRequest.orEmpty(label), EventCreationRequest.orEmpty(placeholder), EventCreationRequest.orEmpty(this.restrictedValues)),</span>
+            null,
+            null,
+            displayAtCheckIn
+            );
+    }
+
+    private static Map&lt;String, EventModification.Description&gt; toDescriptionMap(List&lt;DescriptionRequest&gt; label,
+                                                                               List&lt;DescriptionRequest&gt; placeholder,
+                                                                               List&lt;RestrictedValueRequest&gt; restrictedValues) {
+<span class="nc" id="L89">        Map&lt;String, String&gt; labelsByLang = label.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));</span>
+<span class="nc" id="L90">        Map&lt;String, String&gt; placeholdersByLang = placeholder.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));</span>
+<span class="nc" id="L91">        Map&lt;String, List&lt;Triple&lt;String, String, String&gt;&gt;&gt; valuesByLang = restrictedValues.stream()</span>
+<span class="nc" id="L92">            .flatMap(rv -&gt; rv.getDescriptions().stream().map(rvd -&gt; Triple.of(rvd.getLang(), rv.getValue(), rvd.getBody())))</span>
+<span class="nc" id="L93">            .collect(Collectors.groupingBy(Triple::getLeft));</span>
+
+
+<span class="nc" id="L96">        Set&lt;String&gt; keys = new HashSet&lt;&gt;(labelsByLang.keySet());</span>
+<span class="nc" id="L97">        keys.addAll(placeholdersByLang.keySet());</span>
+<span class="nc" id="L98">        keys.addAll(valuesByLang.keySet());</span>
+
+<span class="nc" id="L100">        return keys.stream()</span>
+<span class="nc" id="L101">            .map(lang -&gt; {</span>
+<span class="nc" id="L102">                Map&lt;String, String&gt; rvsMap = valuesByLang.getOrDefault(lang, emptyList()).stream().collect(Collectors.toMap(Triple::getMiddle, Triple::getRight));</span>
+<span class="nc" id="L103">                return Pair.of(lang, new EventModification.Description(labelsByLang.get(lang), placeholdersByLang.get(lang), rvsMap));</span>
+<span class="nc" id="L104">            }).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));</span>
+    }
+
+<span class="nc" id="L107">    @Getter</span>
+    public enum AdditionalInfoType {
+
+<span class="nc" id="L110">        GENERIC_TEXT(&quot;input:text&quot;),</span>
+<span class="nc" id="L111">        PHONE_NUMBER(&quot;input:tel&quot;),</span>
+<span class="nc" id="L112">        MULTI_LINE_TEXT(&quot;textarea&quot;),</span>
+<span class="nc" id="L113">        LIST_BOX(&quot;select&quot;),</span>
+<span class="nc" id="L114">        COUNTRY(&quot;country&quot;),</span>
+<span class="nc" id="L115">        EU_VAT_NR(&quot;vat:eu&quot;),</span>
+<span class="nc" id="L116">        CHECKBOX(&quot;checkbox&quot;),</span>
+<span class="nc" id="L117">        RADIO(&quot;radio&quot;),</span>
+<span class="nc" id="L118">        DATE_OF_BIRTH(&quot;input:dateOfBirth&quot;);</span>
+
+        private final String code;
+
+<span class="nc" id="L122">        AdditionalInfoType(String code) {</span>
+<span class="nc" id="L123">            this.code = code;</span>
+<span class="nc" id="L124">        }</span>
+
+    }
+
+<span class="nc" id="L128">    public static final Set&lt;String&gt; WITH_RESTRICTED_VALUES = Set.of(AdditionalInfoType.LIST_BOX.code, AdditionalInfoType.CHECKBOX.code, AdditionalInfoType.RADIO.code);</span>
+
+    @Getter
+    @AllArgsConstructor
+    public static class ContentLengthRequest {
+        private Integer min;
+        private Integer max;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class RestrictedValueRequest {
+
+        private String value;
+        private Boolean enabled;
+        private List&lt;DescriptionRequest&gt; descriptions;
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

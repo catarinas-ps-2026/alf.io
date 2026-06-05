@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PassKitManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">PassKitManager.java</span></div><h1>PassKitManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.system.Mailer;
+import alfio.model.*;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.user.Organization;
+import alfio.repository.EventDescriptionRepository;
+import alfio.repository.EventRepository;
+import alfio.repository.TicketCategoryRepository;
+import alfio.repository.TicketRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.util.Json;
+import alfio.util.LocaleUtil;
+import alfio.util.MustacheCustomTag;
+import com.ryantenney.passkit4j.Pass;
+import com.ryantenney.passkit4j.PassResource;
+import com.ryantenney.passkit4j.PassSerializer;
+import com.ryantenney.passkit4j.model.*;
+import com.ryantenney.passkit4j.sign.PassSigner;
+import com.ryantenney.passkit4j.sign.PassSignerImpl;
+import com.ryantenney.passkit4j.sign.PassSigningException;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.imgscalr.Scalr;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+
+import javax.imageio.ImageIO;
+import java.io.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+
+@Component
+@AllArgsConstructor
+public class PassKitManager {
+
+<span class="nc" id="L62">    private static final Logger log = LoggerFactory.getLogger(PassKitManager.class);</span>
+    private static final String APPLE_PASS = &quot;ApplePass&quot;;
+    private static final String PASSKIT_SECTION = &quot;passkit&quot;;
+    private final EventRepository eventRepository;
+    private final OrganizationRepository organizationRepository;
+    private final ConfigurationManager configurationManager;
+    private final FileUploadManager fileUploadManager;
+    private final EventDescriptionRepository eventDescriptionRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final TicketRepository ticketRepository;
+    private final FileBlobCacheManager fileBlobCacheManager;
+
+
+    public boolean writePass(Ticket ticket, EventAndOrganizationId event, OutputStream out) throws IOException, PassSigningException {
+<span class="nc" id="L76">        Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="nc" id="L77">        Map&lt;ConfigurationKeys, String&gt; passConf = getConfigurationKeys(event);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if(!passConf.isEmpty()) {</span>
+<span class="nc" id="L79">            buildPass(ticket, eventRepository.findById(event.getId()), organization, passConf, out);</span>
+<span class="nc" id="L80">            return true;</span>
+        } else {
+<span class="nc" id="L82">            log.trace(&quot;Cannot generate Pass. Missing configuration keys, check if all 5 are presents&quot;);</span>
+<span class="nc" id="L83">            return false;</span>
+        }
+    }
+
+    byte[] getPass(Map&lt;String, String&gt; model) {
+        try {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (BooleanUtils.TRUE.equals(model.get(Mailer.SKIP_PASSBOOK))) {</span>
+<span class="nc" id="L90">                log.trace(&quot;HTML email enabled. Skipping passbook generation&quot;);</span>
+<span class="nc" id="L91">                return null;</span>
+            }
+<span class="nc" id="L93">            Ticket ticket = Json.fromJson(model.get(&quot;ticket&quot;), Ticket.class);</span>
+<span class="nc" id="L94">            int eventId = ticket.getEventId();</span>
+<span class="nc" id="L95">            Event event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L96">            Organization organization = organizationRepository.getById(Integer.valueOf(model.get(&quot;organizationId&quot;), 10));</span>
+
+<span class="nc" id="L98">            Map&lt;ConfigurationKeys, String&gt; passConf = getConfigurationKeys(event);</span>
+            //check if all are set
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if (passConf.isEmpty()) {</span>
+<span class="nc" id="L101">                log.trace(&quot;Cannot generate Passbook. Missing configuration keys, check if all 5 are presents&quot;);</span>
+<span class="nc" id="L102">                return null;</span>
+            }
+
+<span class="nc" id="L105">            try (ByteArrayOutputStream out = new ByteArrayOutputStream()){</span>
+<span class="nc" id="L106">                buildPass(ticket, event, organization, passConf, out);</span>
+<span class="nc" id="L107">                return out.toByteArray();</span>
+            }
+<span class="nc" id="L109">        } catch (Exception ex) {</span>
+<span class="nc" id="L110">            log.warn(&quot;Got Exception while generating Passbook. Please check configuration.&quot;, ex);</span>
+<span class="nc" id="L111">            return null;</span>
+        }
+    }
+
+    private Map&lt;ConfigurationKeys, String&gt; getConfigurationKeys(EventAndOrganizationId event) {
+
+<span class="nc" id="L117">        var conf = configurationManager.getFor(Set.of(ENABLE_PASS,</span>
+            PASSBOOK_TYPE_IDENTIFIER, PASSBOOK_KEYSTORE, PASSBOOK_KEYSTORE_PASSWORD,
+<span class="nc" id="L119">            PASSBOOK_TEAM_IDENTIFIER, PASSBOOK_PRIVATE_KEY_ALIAS), event.getConfigurationLevel());</span>
+
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if(!conf.get(ENABLE_PASS).getValueAsBooleanOrDefault()) {</span>
+<span class="nc" id="L122">            return Map.of();</span>
+        }
+<span class="nc" id="L124">        var configValues = Map.of(</span>
+<span class="nc" id="L125">            PASSBOOK_TYPE_IDENTIFIER, conf.get(PASSBOOK_TYPE_IDENTIFIER).getValue(),</span>
+<span class="nc" id="L126">            PASSBOOK_KEYSTORE, conf.get(PASSBOOK_KEYSTORE).getValue(),</span>
+<span class="nc" id="L127">            PASSBOOK_KEYSTORE_PASSWORD, conf.get(PASSBOOK_KEYSTORE_PASSWORD).getValue(),</span>
+<span class="nc" id="L128">            PASSBOOK_TEAM_IDENTIFIER, conf.get(PASSBOOK_TEAM_IDENTIFIER).getValue(),</span>
+<span class="nc" id="L129">            PASSBOOK_PRIVATE_KEY_ALIAS, conf.get(PASSBOOK_PRIVATE_KEY_ALIAS).getValue());</span>
+
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if(configValues.values().stream().anyMatch(Optional::isEmpty)) {</span>
+<span class="nc" id="L132">            return Map.of();</span>
+        }
+
+<span class="nc" id="L135">        return configValues</span>
+<span class="nc" id="L136">            .entrySet()</span>
+<span class="nc" id="L137">            .stream()</span>
+<span class="nc" id="L138">            .collect(Collectors.toMap(Map.Entry::getKey, e -&gt; e.getValue().orElseThrow()));</span>
+    }
+
+    private void buildPass(Ticket ticket,
+                           Event event,
+                           Organization organization,
+                           Map&lt;ConfigurationKeys, String&gt; config,
+                           OutputStream out) throws IOException, PassSigningException {
+
+        // from example: https://github.com/ryantenney/passkit4j/blob/master/src/test/java/com/ryantenney/passkit4j/EventTicketExample.java
+        // specification: https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW6
+
+<span class="nc" id="L150">        var ticketLocale = LocaleUtil.forLanguageTag(ticket.getUserLanguage());</span>
+<span class="nc" id="L151">        String teamIdentifier = config.get(PASSBOOK_TEAM_IDENTIFIER);</span>
+<span class="nc" id="L152">        String typeIdentifier = config.get(PASSBOOK_TYPE_IDENTIFIER);</span>
+<span class="nc" id="L153">        byte[] keystoreRaw = Base64.getDecoder().decode(config.get(PASSBOOK_KEYSTORE));</span>
+<span class="nc" id="L154">        String keystorePwd = config.get(PASSBOOK_KEYSTORE_PASSWORD);</span>
+<span class="nc" id="L155">        String privateKeyAlias = config.get(PASSBOOK_PRIVATE_KEY_ALIAS);</span>
+
+
+<span class="nc" id="L158">        String eventDescription = MustacheCustomTag.renderToTextCommonmark(</span>
+<span class="nc" id="L159">            eventDescriptionRepository.findDescriptionByEventIdTypeAndLocale(event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, ticket.getUserLanguage()).orElse(&quot;&quot;));</span>
+<span class="nc" id="L160">        TicketCategory category = ticketCategoryRepository.getById(ticket.getCategoryId());</span>
+<span class="nc" id="L161">        var ticketValidityStart = Optional.ofNullable(category.getTicketValidityStart(event.getZoneId())).orElse(event.getBegin());</span>
+<span class="nc" id="L162">        Pass pass = new Pass()</span>
+<span class="nc" id="L163">            .teamIdentifier(teamIdentifier)</span>
+<span class="nc" id="L164">            .passTypeIdentifier(typeIdentifier)</span>
+<span class="nc" id="L165">            .organizationName(organization.getName())</span>
+<span class="nc" id="L166">            .groupingIdentifier(organization.getEmail())</span>
+<span class="nc" id="L167">            .description(event.getDisplayName())</span>
+<span class="nc" id="L168">            .serialNumber(ticket.getUuid())</span>
+            //.authenticationToken(buildAuthenticationToken(ticket, event, event.getPrivateKey()))
+            //.webServiceURL(StringUtils.removeEnd(configurationManager.getRequiredValue(Configuration.getSystemConfiguration(BASE_URL)), &quot;/&quot;) + &quot;/api/pass/event/&quot; + event.getShortName() +&quot;/&quot;)
+<span class="nc" id="L171">            .relevantDate(Date.from(ticketValidityStart.toInstant()))</span>
+<span class="nc" id="L172">            .expirationDate(Date.from(Optional.ofNullable(category.getTicketValidityEnd(event.getZoneId())).orElse(event.getEnd()).toInstant()))</span>
+
+<span class="nc" id="L174">            .barcode(new Barcode(BarcodeFormat.QR, ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive())))</span>
+<span class="nc" id="L175">            .labelColor(Color.BLACK)</span>
+<span class="nc" id="L176">            .foregroundColor(Color.BLACK)</span>
+<span class="nc" id="L177">            .backgroundColor(Color.WHITE)</span>
+<span class="nc" id="L178">            .passInformation(</span>
+                new EventTicket()
+<span class="nc" id="L180">                    .headerFields(List.of(</span>
+<span class="nc" id="L181">                        new TextField(&quot;eventStartDate&quot;, &quot;Date&quot;, ticketValidityStart.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(ticketLocale)))</span>
+                    ))
+<span class="nc" id="L183">                    .primaryFields(List.of(</span>
+<span class="nc" id="L184">                        new TextField(&quot;categoryId&quot;, event.getDisplayName(), category.getName())</span>
+                    ))
+<span class="nc" id="L186">                    .secondaryFields(</span>
+<span class="nc" id="L187">                        new TextField(&quot;location&quot;, &quot;Venue&quot;, event.getLocation())</span>
+                    )
+<span class="nc" id="L189">                    .auxiliaryFields(</span>
+<span class="nc" id="L190">                        getAuxiliaryFields(ticket)</span>
+                    )
+<span class="nc" id="L192">                    .backFields(</span>
+                        new TextField(&quot;desc&quot;, &quot;Event Description&quot;, eventDescription),
+                        new TextField(&quot;credits&quot;, &quot;Powered by&quot;, &quot;Alf.io, the Open Source ticket reservation System.&quot;)
+                    )
+            );
+
+<span class="nc bnc" id="L198" title="All 4 branches missed.">        if (event.getLatitude() != null &amp;&amp; event.getLongitude() != null) {</span>
+<span class="nc" id="L199">            pass.locations(new Location(Double.parseDouble(event.getLatitude()), Double.parseDouble(event.getLongitude())).altitude(0D));</span>
+        }
+
+<span class="nc" id="L202">        List&lt;PassResource&gt; passResources = new ArrayList&lt;&gt;(6);</span>
+
+<span class="nc" id="L204">        passResources.add(new PassResource(&quot;icon.png&quot;, () -&gt; new ClassPathResource(&quot;/alfio/icon/icon.png&quot;).getInputStream()));</span>
+<span class="nc" id="L205">        passResources.add(new PassResource(&quot;icon@2x.png&quot;, () -&gt; new ClassPathResource(&quot;/alfio/icon/icon@2x.png&quot;).getInputStream()));</span>
+<span class="nc" id="L206">        passResources.add(new PassResource(&quot;icon@3x.png&quot;, () -&gt; new ClassPathResource(&quot;/alfio/icon/icon@3x.png&quot;).getInputStream()));</span>
+
+<span class="nc" id="L208">        fileUploadManager.findMetadata(event.getFileBlobId()).ifPresent(metadata -&gt; {</span>
+<span class="nc bnc" id="L209" title="All 4 branches missed.">            if (metadata.getContentType().equals(&quot;image/png&quot;) || metadata.getContentType().equals(&quot;image/jpeg&quot;)) {</span>
+<span class="nc" id="L210">                var fullSizeLogo = fileUploadManager.getFile(event.getFileBlobId());</span>
+<span class="nc" id="L211">                var id = event.getFileBlobId();</span>
+                try {
+<span class="nc" id="L213">                    var logo1x = fileBlobCacheManager.getFile(PASSKIT_SECTION, id + &quot;scale-1&quot;, () -&gt; scaleLogo(fullSizeLogo, 1));</span>
+<span class="nc" id="L214">                    var logo2x = fileBlobCacheManager.getFile(PASSKIT_SECTION, id + &quot;scale-2&quot;, () -&gt; scaleLogo(fullSizeLogo, 2));</span>
+<span class="nc" id="L215">                    var logo3x = fileBlobCacheManager.getFile(PASSKIT_SECTION, id + &quot;scale-3&quot;, () -&gt; scaleLogo(fullSizeLogo, 3));</span>
+<span class="nc" id="L216">                    passResources.add(new PassResource(&quot;logo.png&quot;, logo1x));</span>
+<span class="nc" id="L217">                    passResources.add(new PassResource(&quot;logo@2x.png&quot;, logo2x));</span>
+<span class="nc" id="L218">                    passResources.add(new PassResource(&quot;logo@3x.png&quot;, logo3x));</span>
+<span class="nc" id="L219">                } catch (IllegalStateException e) { // handle various failures related to the file blob layer</span>
+<span class="nc" id="L220">                    log.warn(&quot;was not able to add the logo to the passkit for ticket {} in event {}&quot;, ticket.getUuid(), event.getShortName(), e);</span>
+<span class="nc" id="L221">                }</span>
+            }
+<span class="nc" id="L223">        });</span>
+
+<span class="nc" id="L225">        pass.files(passResources.toArray(new PassResource[0]));</span>
+<span class="nc" id="L226">        try(InputStream appleCert = new ClassPathResource(&quot;/alfio/certificates/AppleWWDRCAG4.cer&quot;).getInputStream()) {</span>
+<span class="nc" id="L227">            PassSigner signer = PassSignerImpl.builder()</span>
+<span class="nc" id="L228">                .keystore(new ByteArrayInputStream(keystoreRaw), keystorePwd)</span>
+<span class="nc" id="L229">                .alias(privateKeyAlias)</span>
+<span class="nc" id="L230">                .intermediateCertificate(appleCert)</span>
+<span class="nc" id="L231">                .build();</span>
+<span class="nc" id="L232">            PassSerializer.writePkPassArchive(pass, signer, out);</span>
+        }
+<span class="nc" id="L234">    }</span>
+
+    private String buildAuthenticationToken(Ticket ticket, EventAndOrganizationId event, String privateKey) {
+<span class="nc" id="L237">        var code = event.getId() + &quot;/&quot; + ticket.getTicketsReservationId() + &quot;/&quot; + ticket.getUuid();</span>
+<span class="nc" id="L238">        return Ticket.hmacSHA256Base64(privateKey, code);</span>
+    }
+
+    public Optional&lt;Pair&lt;EventAndOrganizationId, Ticket&gt;&gt; retrieveTicketDetails(String eventName, String ticketUuid) {
+<span class="nc" id="L242">        return eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)</span>
+<span class="nc" id="L243">            .flatMap(e -&gt; ticketRepository.findOptionalByPublicUUID(UUID.fromString(ticketUuid))</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">                .filter(t -&gt; e.getId() == t.getEventId())</span>
+<span class="nc" id="L245">                .map(t -&gt; Pair.of(e, t))</span>
+            );
+    }
+
+    public Optional&lt;Pair&lt;EventAndOrganizationId, Ticket&gt;&gt; validateToken(String eventName, String typeIdentifier, String ticketUuid, String authorizationHeader) {
+        String token;
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        if(authorizationHeader.startsWith(APPLE_PASS)) {</span>
+            // From the specs:
+            // The Authorization header is supplied; its value is the word ApplePass, followed by a space,
+            // followed by the pass’s authorization token as specified in the pass.
+<span class="nc" id="L255">            token = authorizationHeader.substring(APPLE_PASS.length() + 1);</span>
+        } else {
+<span class="nc" id="L257">            log.trace(&quot;Authorization Header does not start with ApplePass&quot;);</span>
+<span class="nc" id="L258">            return Optional.empty();</span>
+        }
+
+<span class="nc" id="L261">        var eventOptional = eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if(eventOptional.isEmpty()) {</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L264">                log.trace(&quot;event {} not found&quot;, removeTabsAndNewlines(eventName));</span>
+            }
+<span class="nc" id="L266">            return Optional.empty();</span>
+        }
+
+<span class="nc" id="L269">        var event = eventOptional.get();</span>
+<span class="nc" id="L270">        var typeIdentifierOptional = configurationManager.getFor(PASSBOOK_TYPE_IDENTIFIER, event.getConfigurationLevel());</span>
+<span class="nc bnc" id="L271" title="All 4 branches missed.">        if(!typeIdentifierOptional.isPresent() || !typeIdentifier.equals(typeIdentifierOptional.getValueOrNull())) {</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L273">                log.trace(&quot;typeIdentifier does not match. Expected {}, got {}&quot;, typeIdentifierOptional.getValueOrDefault(&quot;not-found&quot;), removeTabsAndNewlines(typeIdentifier));</span>
+            }
+<span class="nc" id="L275">            return Optional.empty();</span>
+        }
+<span class="nc" id="L277">        return ticketRepository.findOptionalByUUID(ticketUuid)</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">            .filter(t -&gt; t.getEventId() == event.getId())</span>
+<span class="nc" id="L279">            .filter(t -&gt; buildAuthenticationToken(t, event, eventRepository.getPrivateKey(event.getId())).equals(token))</span>
+<span class="nc" id="L280">            .map(t -&gt; Pair.of(event, t));</span>
+    }
+
+    private List&lt;Field&lt;?&gt;&gt; getAuxiliaryFields(Ticket ticket) {
+        //TODO add additional options here.
+<span class="nc" id="L285">        return null;</span>
+    }
+
+    private static File scaleLogo(File sourceImage, int factor) {
+        try {
+            // base image is 160 x 50 points.
+            // On retina displays, a point can be two or three pixels, depending on the device model
+<span class="nc" id="L292">            int finalWidth = 160 * factor;</span>
+<span class="nc" id="L293">            int finalHeight = 50 * factor;</span>
+<span class="nc" id="L294">            var thumbImg = Scalr.resize(ImageIO.read(sourceImage), Scalr.Method.ULTRA_QUALITY, Scalr.Mode.AUTOMATIC, finalWidth, finalHeight);</span>
+<span class="nc" id="L295">            var tmpFile = File.createTempFile(&quot;passkit&quot;, &quot;&quot;+factor);</span>
+<span class="nc" id="L296">            ImageIO.write(thumbImg, &quot;png&quot;, tmpFile);</span>
+<span class="nc" id="L297">            return tmpFile;</span>
+<span class="nc" id="L298">        } catch (IOException e) {</span>
+<span class="nc" id="L299">            throw new IllegalStateException(&quot;was not able to scale logo from file &quot; + sourceImage + &quot; with factor &quot; + factor, e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

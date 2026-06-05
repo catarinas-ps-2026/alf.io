@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">PaymentManager.java</span></div><h1>PaymentManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.manager.support.PaymentResult;
+import alfio.manager.system.ConfigurationLevel;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.transaction.*;
+import alfio.model.transaction.capabilities.ClientServerTokenRequest;
+import alfio.model.transaction.capabilities.ExtractPaymentTokenFromTransaction;
+import alfio.model.transaction.capabilities.PaymentInfo;
+import alfio.model.transaction.capabilities.RefundRequest;
+import alfio.repository.AuditingRepository;
+import alfio.repository.TransactionRepository;
+import alfio.repository.user.UserRepository;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import java.security.Principal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNullElse;
+
+@Component
+@AllArgsConstructor
+public class PaymentManager {
+
+    public static final String PAYMENT_TOKEN = &quot;PAYMENT_TOKEN&quot;;
+<span class="fc" id="L54">    private static final Logger log = LoggerFactory.getLogger(PaymentManager.class);</span>
+
+    private final TransactionRepository transactionRepository;
+    private final ConfigurationManager configurationManager;
+    private final AuditingRepository auditingRepository;
+    private final UserRepository userRepository;
+    private final ExtensionManager extensionManager;
+
+    private final List&lt;PaymentProvider&gt; paymentProviders; // injected by Spring
+
+    public Optional&lt;PaymentProvider&gt; lookupProviderByTransactionAndCapabilities(Transaction transaction, List&lt;Class&lt;? extends Capability&gt;&gt; capabilities) {
+<span class="nc" id="L65">        return paymentProviders.stream()</span>
+<span class="nc" id="L66">            .filter(filterByCapabilities(capabilities))</span>
+<span class="nc" id="L67">            .filter(paymentProvider -&gt; paymentProvider.accept(transaction))</span>
+<span class="nc" id="L68">            .findFirst();</span>
+    }
+
+    Optional&lt;PaymentProvider&gt; lookupProviderByMethodAndCapabilities(PaymentMethod paymentMethod,
+                                                                    PaymentContext context,
+                                                                    TransactionRequest transactionRequest,
+                                                                    List&lt;Class&lt;? extends Capability&gt;&gt; capabilities) {
+<span class="nc" id="L75">        return compatibleStream(paymentMethod, context, transactionRequest)</span>
+<span class="nc" id="L76">            .filter(p -&gt; Objects.requireNonNull(capabilities).stream().allMatch(c -&gt; c.isInstance(p))).findFirst();</span>
+    }
+
+    public Stream&lt;PaymentProvider&gt; streamActiveProvidersByProxy(PaymentProxy paymentProxy, PaymentContext paymentContext) {
+<span class="nc" id="L80">        return streamActiveProvidersByProxyAndCapabilities(paymentProxy, paymentContext, List.of());</span>
+    }
+
+    /**
+     * validates the compatibility between the selected proxies, and returns the conflicts
+     *
+     * @param paymentProxies the {@link PaymentProxy PaymentProxies} to validate
+     * @param organizationId the organization for which the validation is made
+     * @return the conflicting {@link PaymentProxy proxies}
+     */
+    List&lt;Map.Entry&lt;PaymentMethod, Set&lt;PaymentProxy&gt;&gt;&gt; validateSelection(List&lt;PaymentProxy&gt; paymentProxies, int organizationId) {
+<span class="fc" id="L91">        var paymentContext = new PaymentContext(null, ConfigurationLevel.organization(organizationId));</span>
+
+<span class="fc" id="L93">        Map&lt;PaymentMethod, Set&lt;PaymentProxy&gt;&gt; proxiesByMethod = paymentProxies.stream()</span>
+<span class="fc" id="L94">            .flatMap(proxy -&gt; streamProvidersByProxyAndCapabilities(proxy, List.of()))</span>
+<span class="fc" id="L95">            .map(provider -&gt; Pair.of(provider.getPaymentProxy(), provider.getSupportedPaymentMethods(paymentContext, TransactionRequest.empty())))</span>
+<span class="fc" id="L96">            .flatMap(pair -&gt; pair.getValue().stream().map(pm -&gt; Pair.of(pm, pair.getKey()))) // flip</span>
+<span class="fc" id="L97">            .collect(Collectors.groupingBy(Pair::getKey, Collectors.mapping(Pair::getValue, Collectors.toSet())));</span>
+
+<span class="fc" id="L99">        return proxiesByMethod.entrySet().stream()</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">            .filter(e -&gt; e.getValue().size() &gt; 1)</span>
+<span class="fc" id="L101">            .collect(Collectors.toList());</span>
+    }
+
+    private Stream&lt;PaymentProvider&gt; streamProvidersByProxyAndCapabilities(PaymentProxy paymentProxy,
+                                                                  List&lt;Class&lt;? extends Capability&gt;&gt; capabilities) {
+<span class="fc" id="L106">        return paymentProviders.stream()</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            .filter(pp -&gt; pp.getPaymentProxy() == paymentProxy)</span>
+<span class="fc" id="L108">            .filter(filterByCapabilities(capabilities));</span>
+    }
+
+    Stream&lt;PaymentProvider&gt; streamActiveProvidersByProxyAndCapabilities(PaymentProxy paymentProxy,
+                                                                                PaymentContext paymentContext,
+                                                                                List&lt;Class&lt;? extends Capability&gt;&gt; capabilities) {
+<span class="nc" id="L114">        return streamProvidersByProxyAndCapabilities(paymentProxy, capabilities).filter((pp) -&gt; pp.isActive(paymentContext));</span>
+    }
+
+    private static Predicate&lt;PaymentProvider&gt; filterByCapabilities(List&lt;Class&lt;? extends Capability&gt;&gt; capabilities) {
+<span class="pc bpc" id="L118" title="3 of 4 branches missed.">        return p -&gt; capabilities.isEmpty() || capabilities.stream().allMatch(c -&gt; c.isInstance(p));</span>
+    }
+
+    private Stream&lt;PaymentProvider&gt; compatibleStream(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
+<span class="nc" id="L122">        return paymentProviders.stream()</span>
+<span class="nc" id="L123">            .filter(p -&gt; p.accept(paymentMethod, context, transactionRequest));</span>
+    }
+
+    private List&lt;PaymentMethodDTO&gt; getPaymentMethods(PaymentContext context, TransactionRequest transactionRequest) {
+<span class="fc" id="L127">        String blacklist = configurationManager.getFor(ConfigurationKeys.PAYMENT_METHODS_BLACKLIST, context.getConfigurationLevel()).getValueOrDefault(&quot;&quot;);</span>
+<span class="fc" id="L128">        var blacklistItems = List.of(blacklist.split(&quot;,&quot;));</span>
+<span class="fc" id="L129">        var proxies = Optional.ofNullable(context.getPurchaseContext()).map(PurchaseContext::getAllowedPaymentProxies).orElseGet(PaymentProxy::availableProxies);</span>
+
+<span class="fc" id="L131">        return proxies.stream()</span>
+<span class="fc" id="L132">            .filter(p -&gt; blacklistItems.stream().noneMatch(blItem -&gt; p.getKey().equals(blItem)))</span>
+<span class="fc" id="L133">            .map(proxy -&gt; Pair.of(proxy, paymentMethodsByProxy(context, transactionRequest, proxy)))</span>
+<span class="fc" id="L134">            .flatMap(pair -&gt; pair.getRight().stream().map(pm -&gt; new PaymentMethodDTO(pair.getLeft(), pm, PaymentMethodDTO.PaymentMethodStatus.ACTIVE)))</span>
+<span class="fc" id="L135">            .collect(Collectors.toList());</span>
+    }
+
+    private Set&lt;PaymentMethod&gt; paymentMethodsByProxy(PaymentContext context, TransactionRequest transactionRequest, PaymentProxy proxy) {
+<span class="fc" id="L139">        return paymentProviders.stream()</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">            .filter(pp -&gt; pp.getPaymentProxy() == proxy)</span>
+<span class="fc" id="L141">            .flatMap(pp -&gt; pp.getSupportedPaymentMethods(context, transactionRequest).stream())</span>
+<span class="fc" id="L142">            .collect(Collectors.toSet());</span>
+    }
+
+    public List&lt;PaymentMethodDTO&gt; getPaymentMethods(PurchaseContext purchaseContext, TransactionRequest transactionRequest) {
+<span class="nc" id="L146">        return getPaymentMethods(new PaymentContext(purchaseContext), transactionRequest);</span>
+    }
+
+    public List&lt;PaymentMethodDTO&gt; getPaymentMethods(int organizationId) {
+<span class="fc" id="L150">        return getPaymentMethods(new PaymentContext(null, ConfigurationLevel.organization(organizationId)), TransactionRequest.empty());</span>
+    }
+
+    public boolean refund(TicketReservation reservation, PurchaseContext purchaseContext, Integer amount, String username) {
+<span class="nc" id="L154">        Transaction transaction = transactionRepository.loadByReservationId(reservation.getId());</span>
+
+<span class="nc" id="L156">        boolean res = lookupProviderByTransactionAndCapabilities(transaction, List.of(RefundRequest.class))</span>
+<span class="nc" id="L157">            .map(paymentProvider -&gt; ((RefundRequest)paymentProvider).refund(transaction, purchaseContext, amount))</span>
+<span class="nc" id="L158">            .orElse(false);</span>
+
+<span class="nc" id="L160">        Map&lt;String, Object&gt; changes = Map.of(</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            &quot;refund&quot;, amount != null ? amount.toString() : &quot;full&quot;,</span>
+<span class="nc" id="L162">            &quot;paymentMethod&quot;, reservation.getPaymentMethod().toString()</span>
+        );
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if(res) {</span>
+<span class="nc" id="L165">            auditingRepository.insert(reservation.getId(), userRepository.findIdByUserName(username).orElse(null),</span>
+                    purchaseContext,
+<span class="nc" id="L167">                Audit.EventType.REFUND, new Date(), Audit.EntityType.RESERVATION, reservation.getId(),</span>
+<span class="nc" id="L168">                Collections.singletonList(changes));</span>
+<span class="nc" id="L169">            extensionManager.handleRefund(purchaseContext, reservation, getInfo(reservation, purchaseContext));</span>
+        } else {
+<span class="nc" id="L171">            auditingRepository.insert(reservation.getId(), userRepository.findIdByUserName(username).orElse(null),</span>
+                    purchaseContext,
+<span class="nc" id="L173">                Audit.EventType.REFUND_ATTEMPT_FAILED, new Date(), Audit.EntityType.RESERVATION, reservation.getId(),</span>
+<span class="nc" id="L174">                Collections.singletonList(changes));</span>
+        }
+
+<span class="nc" id="L177">        return res;</span>
+    }
+
+    public TransactionAndPaymentInfo getInfo(TicketReservation reservation, PurchaseContext purchaseContext) {
+<span class="nc" id="L181">        Optional&lt;TransactionAndPaymentInfo&gt; maybeTransaction = transactionRepository.loadOptionalByReservationId(reservation.getId())</span>
+<span class="nc" id="L182">            .map(transaction -&gt; internalGetInfo(reservation, purchaseContext, transaction));</span>
+<span class="nc" id="L183">        maybeTransaction.ifPresent(info -&gt; {</span>
+            try {
+<span class="nc" id="L185">                Transaction transaction = info.getTransaction();</span>
+<span class="nc" id="L186">                String transactionId = transaction.getTransactionId();</span>
+<span class="nc" id="L187">                PaymentInformation paymentInformation = info.getPaymentInformation();</span>
+<span class="nc bnc" id="L188" title="All 4 branches missed.">                if(paymentInformation != null &amp;&amp; feesUpdated(transaction, paymentInformation)) {</span>
+<span class="nc" id="L189">                    transactionRepository.updateFees(transactionId, reservation.getId(), safeParseLong(paymentInformation.getPlatformFee()), safeParseLong(paymentInformation.getFee()));</span>
+                }
+<span class="nc" id="L191">            } catch (Exception e) {</span>
+<span class="nc" id="L192">                log.warn(&quot;cannot update fees&quot;, e);</span>
+<span class="nc" id="L193">            }</span>
+<span class="nc" id="L194">        });</span>
+<span class="nc" id="L195">        return maybeTransaction.orElseGet(() -&gt; new TransactionAndPaymentInfo(reservation.getPaymentMethod(),null, new PaymentInformation(reservation.getPaidAmount(), null, null, null)));</span>
+    }
+
+    public void updateTransactionDetails(String reservationId,
+                                         String notes,
+                                         ZonedDateTime timestamp,
+                                         Principal principal) {
+        // TODO check if user can modify transaction once we have a centralized service.
+<span class="nc" id="L203">        var existingTransaction = transactionRepository.loadByReservationId(reservationId);</span>
+<span class="nc bnc" id="L204" title="All 4 branches missed.">        Validate.isTrue(existingTransaction.isTimestampEditable() || timestamp == null, &quot;Cannot modify timestamp&quot;);</span>
+<span class="nc" id="L205">        var existingMetadata = new HashMap&lt;&gt;(existingTransaction.getMetadata());</span>
+<span class="nc" id="L206">        existingMetadata.put(Transaction.NOTES_KEY, notes);</span>
+<span class="nc" id="L207">        int result = transactionRepository.updateDetailsById(existingTransaction.getId(), existingMetadata, requireNonNullElse(timestamp, existingTransaction.getTimestamp()));</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        Validate.isTrue(result == 1, &quot;Expected 1, got &quot; + result);</span>
+<span class="nc" id="L209">    }</span>
+
+    private boolean feesUpdated(Transaction transaction, PaymentInformation paymentInformation) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        return transaction.getPlatformFee() != safeParseLong(paymentInformation.getPlatformFee())</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            || transaction.getGatewayFee()  != safeParseLong(paymentInformation.getFee());</span>
+    }
+
+    private TransactionAndPaymentInfo internalGetInfo(TicketReservation reservation, PurchaseContext purchaseContext, Transaction transaction) {
+<span class="nc" id="L217">        return lookupProviderByTransactionAndCapabilities(transaction, List.of(PaymentInfo.class))</span>
+<span class="nc" id="L218">            .map(provider -&gt; {</span>
+<span class="nc" id="L219">                Optional&lt;PaymentInformation&gt; info = ((PaymentInfo) provider).getInfo(transaction, purchaseContext);</span>
+<span class="nc" id="L220">                return new TransactionAndPaymentInfo(reservation.getPaymentMethod(), transaction, info.orElse(null));</span>
+            })
+<span class="nc" id="L222">            .orElseGet(() -&gt; {</span>
+                //
+<span class="nc" id="L224">                return new TransactionAndPaymentInfo(</span>
+<span class="nc" id="L225">                    reservation.getPaymentMethod(),</span>
+                    transaction,
+                    new PaymentInformation(
+<span class="nc" id="L228">                        reservation.getPaidAmount(),</span>
+                        null,
+<span class="nc" id="L230">                        String.valueOf(transaction.getGatewayFee()),</span>
+<span class="nc" id="L231">                        String.valueOf(transaction.getPlatformFee())));</span>
+            });
+    }
+
+    private static long safeParseLong(String src) {
+<span class="nc" id="L236">        return Optional.ofNullable(src).map(Long::parseLong).orElse(0L);</span>
+    }
+
+    public Map&lt;String, ?&gt; loadModelOptionsFor(List&lt;PaymentProxy&gt; activePaymentMethods, PurchaseContext purchaseContext) {
+<span class="nc" id="L240">        PaymentContext context = new PaymentContext(purchaseContext);</span>
+<span class="nc" id="L241">        return activePaymentMethods.stream()</span>
+<span class="nc" id="L242">            .flatMap(pp -&gt; getProviderOptions(context, pp))</span>
+<span class="nc" id="L243">            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
+    }
+
+    private Stream&lt;? extends Map.Entry&lt;String, ?&gt;&gt; getProviderOptions(PaymentContext context, PaymentProxy pp) {
+<span class="nc" id="L247">        return streamActiveProvidersByProxy(pp, context)</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">            .flatMap(it -&gt; it.getModelOptions(context).entrySet().stream().filter(kv -&gt; kv.getValue() != null));</span>
+    }
+
+    public PaymentToken buildPaymentToken(String gatewayToken, PaymentProxy proxy, PaymentContext context) {
+<span class="nc" id="L252">        return streamActiveProvidersByProxyAndCapabilities(proxy, context, List.of(ClientServerTokenRequest.class))</span>
+<span class="nc" id="L253">            .map(ClientServerTokenRequest.class::cast)</span>
+<span class="nc" id="L254">            .map(pp -&gt; pp.buildPaymentToken(gatewayToken, context))</span>
+<span class="nc" id="L255">            .findFirst()</span>
+<span class="nc" id="L256">            .orElse(null);</span>
+    }
+
+    public Optional&lt;PaymentResult&gt; getTransactionStatus(TicketReservation reservation, PaymentMethod paymentMethod) {
+<span class="nc" id="L260">        return transactionRepository.loadOptionalByReservationId(reservation.getId())</span>
+<span class="nc" id="L261">            .filter(transaction -&gt; {</span>
+<span class="nc" id="L262">                var metadata = transaction.getMetadata();</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                if (metadata.containsKey(Transaction.SELECTED_PAYMENT_METHOD_KEY)) {</span>
+<span class="nc" id="L264">                    return metadata.get(Transaction.SELECTED_PAYMENT_METHOD_KEY).equals(paymentMethod.getPaymentMethodId());</span>
+                }
+
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                return transaction.getPaymentProxy().getPaymentMethod() == paymentMethod;</span>
+            })
+<span class="nc" id="L269">            .map(transaction -&gt;</span>
+<span class="nc bnc" id="L270" title="All 3 branches missed.">                switch (transaction.getStatus()) {</span>
+<span class="nc" id="L271">                    case COMPLETE -&gt; PaymentResult.successful(transaction.getPaymentId());</span>
+<span class="nc" id="L272">                    case FAILED -&gt; PaymentResult.failed(null);</span>
+<span class="nc" id="L273">                    default -&gt; PaymentResult.initialized(transaction.getPaymentId());</span>
+                });
+    }
+
+    public Optional&lt;PaymentToken&gt; getPaymentToken(String reservationId) {
+<span class="nc" id="L278">        return transactionRepository.loadOptionalByReservationId(reservationId)</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">            .filter(t-&gt;t.getStatus() == Transaction.Status.PENDING)</span>
+<span class="nc" id="L280">            .flatMap(t -&gt; {</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">                if(t.getMetadata().containsKey(PAYMENT_TOKEN)) {</span>
+<span class="nc" id="L282">                    return lookupProviderByTransactionAndCapabilities(t, List.of(ExtractPaymentTokenFromTransaction.class))</span>
+<span class="nc" id="L283">                        .map(ExtractPaymentTokenFromTransaction.class::cast)</span>
+<span class="nc" id="L284">                        .flatMap(paymentProvider -&gt; paymentProvider.extractToken(t));</span>
+                }
+<span class="nc" id="L286">                return Optional.empty();</span>
+            });
+    }
+
+    public boolean removePaymentTokenReservation(String reservationId) {
+<span class="nc bnc" id="L291" title="All 2 branches missed.">        return transactionRepository.loadOptionalByReservationId(reservationId).filter(t-&gt;t.getStatus() == Transaction.Status.PENDING)</span>
+<span class="nc" id="L292">            .map(t -&gt; {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">                if (t.getMetadata().containsKey(PAYMENT_TOKEN)) {</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                    return transactionRepository.invalidateById(t.getId()) == 1;</span>
+                } else {
+<span class="nc" id="L296">                    return false;</span>
+                }
+<span class="nc" id="L298">            }).orElse(false);</span>
+    }
+
+    @Data
+    public static final class PaymentMethodDTO {
+
+<span class="fc" id="L304">        public enum PaymentMethodStatus {</span>
+<span class="fc" id="L305">            ACTIVE, ERROR</span>
+        }
+
+        private final PaymentProxy paymentProxy;
+        private final PaymentMethod paymentMethod;
+
+        private final PaymentMethodStatus status;
+
+        public boolean isActive() {
+<span class="pc bpc" id="L314" title="1 of 2 branches missed.">            return status == PaymentMethodStatus.ACTIVE;</span>
+        }
+
+        @Deprecated
+        public Set&lt;String&gt; getOnlyForCurrency() {
+<span class="nc" id="L319">            return paymentProxy.getOnlyForCurrency();</span>
+        }
+
+        public PaymentMethod getPaymentMethod() {
+<span class="fc" id="L323">            return paymentMethod;</span>
+        }
+
+        public String getPaymentMethodId() {
+<span class="fc" id="L327">            return paymentMethod.getPaymentMethodId();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
