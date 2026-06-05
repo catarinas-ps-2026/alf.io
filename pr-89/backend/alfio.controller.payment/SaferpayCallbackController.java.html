@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SaferpayCallbackController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.payment</a> &gt; <span class="el_source">SaferpayCallbackController.java</span></div><h1>SaferpayCallbackController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.payment;
+
+import alfio.manager.PurchaseContextManager;
+import alfio.manager.TicketReservationManager;
+import alfio.manager.payment.saferpay.PaymentPageInitializeRequestBuilder;
+import alfio.model.PurchaseContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.util.UriComponentsBuilder;
+
+@Controller
+public class SaferpayCallbackController {
+
+    private final TicketReservationManager ticketReservationManager;
+    private final PurchaseContextManager purchaseContextManager;
+
+<span class="nc" id="L34">    public SaferpayCallbackController(TicketReservationManager ticketReservationManager, PurchaseContextManager purchaseContextManager) {</span>
+<span class="nc" id="L35">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="nc" id="L36">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="nc" id="L37">    }</span>
+
+    @GetMapping(PaymentPageInitializeRequestBuilder.CANCEL_URL_TEMPLATE)
+    public String saferpayCancel(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+                                 @PathVariable String purchaseContextIdentifier,
+                                 @PathVariable String reservationId) {
+<span class="nc" id="L43">        var maybePurchaseContext = purchaseContextManager.findBy(purchaseContextType, purchaseContextIdentifier);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if(maybePurchaseContext.isEmpty()) {</span>
+<span class="nc" id="L45">            return &quot;redirect:/&quot;;</span>
+        }
+<span class="nc" id="L47">        var purchaseContext = maybePurchaseContext.get();</span>
+<span class="nc" id="L48">        var optionalReservation = ticketReservationManager.findById(reservationId);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if(optionalReservation.isEmpty()) {</span>
+<span class="nc" id="L50">            return &quot;redirect:/&quot;+purchaseContext.getType().getUrlComponent()+&quot;/&quot;+purchaseContext.getPublicIdentifier();</span>
+        }
+<span class="nc" id="L52">        var optionalResult = ticketReservationManager.forceTransactionCheck(purchaseContext, optionalReservation.get());</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if(optionalResult.isEmpty()) {</span>
+            // there's no transaction available.
+<span class="nc" id="L55">            return &quot;redirect:/&quot;+purchaseContext.getType().getUrlComponent()+&quot;/&quot;+purchaseContext.getPublicIdentifier();</span>
+        }
+<span class="nc" id="L57">        return &quot;redirect:&quot; + UriComponentsBuilder.fromPath(PaymentPageInitializeRequestBuilder.SUCCESS_URL_TEMPLATE)</span>
+<span class="nc" id="L58">            .buildAndExpand(purchaseContext.getType().getUrlComponent(), purchaseContext.getPublicIdentifier(), reservationId).toUriString();</span>
+     }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
