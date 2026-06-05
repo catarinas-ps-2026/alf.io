@@ -116,9 +116,9 @@ public class AdminReservationModification implements Serializable {
         private final boolean vatApplied;
 
         @JsonCreator
-<span class="nc" id="L119">        public AdvancedBillingOptions(@JsonProperty(&quot;vatApplied&quot;) String vatApplied) {</span>
-<span class="nc" id="L120">            this.vatApplied = &quot;Y&quot;.equals(vatApplied);</span>
-<span class="nc" id="L121">        }</span>
+<span class="fc" id="L119">        public AdvancedBillingOptions(@JsonProperty(&quot;vatApplied&quot;) String vatApplied) {</span>
+<span class="fc" id="L120">            this.vatApplied = &quot;Y&quot;.equals(vatApplied);</span>
+<span class="fc" id="L121">        }</span>
     }
 
     @Getter
@@ -337,8 +337,8 @@ public class AdminReservationModification implements Serializable {
                 src.notification,
                 src.subscriptionDetails,
                 src.linkedSubscriptionId));
-<span class="nc" id="L340">        } catch(Exception e) {</span>
-<span class="nc" id="L341">            return e.toString();</span>
+<span class="fc" id="L340">        } catch(Exception e) {</span>
+<span class="fc" id="L341">            return e.toString();</span>
         }
     }
 
@@ -358,7 +358,7 @@ public class AdminReservationModification implements Serializable {
     }
 
     private static String placeholderIfNotEmpty(String in) {
-<span class="pc bpc" id="L361" title="1 of 2 branches missed.">        return StringUtils.isNotEmpty(in) ? &quot;xxx&quot; : null;</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">        return StringUtils.isNotEmpty(in) ? &quot;xxx&quot; : null;</span>
     }
 }
 
