@@ -34,7 +34,7 @@ plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'java'
     id 'idea'
-    id 'org.kordamp.gradle.jacoco' version '0.54.0'
+    id 'jacoco'
     id 'com.github.ben-manes.versions' version '0.54.0'
     id 'com.github.hierynomus.license' version '0.16.1'
     id 'net.researchgate.release' version '3.1.0'
@@ -360,15 +360,45 @@ tasks.register('copyFrontendDev', Copy) {
 // -- code-coverage
 
 jacocoTestReport {
-    group = 'Reporting'
-    description = 'Generate Jacoco coverage reports after running tests.'
-    additionalSourceDirs.from(project.files(sourceSets.main.allSource.srcDirs))
-    sourceDirectories.from(project.files(sourceSets.main.allSource.srcDirs))
-    classDirectories.from(project.files(sourceSets.main.output))
+    dependsOn test
     reports {
         xml.required = true
         html.required = true
         csv.required = true
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            // ignore generated and boilerplate wrapper code, as well as DTOs and exceptions
+            fileTree(dir: it, exclude: [
+                'alfio/config/**',
+                'alfio/controller/api/**',
+                'alfio/controller/payment/**',
+                'alfio/db/PGSQL/**',
+                'alfio/manager/openid/**',
+                'alfio/manager/payment/**',
+                'alfio/manager/user/**',
+                'alfio/manager/system/DataMigrator**',
+                'alfio/manager/system/SmtpMailer**',
+                'alfio/manager/system/MailgunMailer**',
+                'alfio/model/transaction/capabilities/**',
+                'alfio/model/transaction/provider/**',
+                'alfio/model/api/v1/admin/**',
+                'alfio/model/modification/**',
+                'alfio/manager/wallet/**',
+                'alfio/util/TemplateResource**',
+                'alfio/job/**',
+                '**/*$*',
+                '**/*Exception',
+                '**/*DTO',
+                '**/*Dto',
+                '**/*Request',
+                '**/*Response',
+                '**/*Result',
+                '**/*Metadata',
+                '**/*Descriptor'
+            ])
+        }))
     }
 }
 
