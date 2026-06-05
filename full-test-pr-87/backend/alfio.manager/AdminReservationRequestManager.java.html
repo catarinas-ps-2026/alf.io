@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminReservationRequestManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">AdminReservationRequestManager.java</span></div><h1>AdminReservationRequestManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.model.*;
+import alfio.model.api.v1.admin.TicketReservationCreationRequest;
+import alfio.model.modification.AdminReservationModification;
+import alfio.model.modification.AdminReservationModification.CustomerData;
+import alfio.model.modification.AdminReservationModification.TransactionDetails;
+import alfio.model.modification.DateTimeModification;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import alfio.model.user.User;
+import alfio.repository.AdminReservationRequestRepository;
+import alfio.repository.EventRepository;
+import alfio.repository.user.UserRepository;
+import alfio.util.ClockProvider;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static alfio.model.modification.AdminReservationModification.Notification.orEmpty;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.collections4.CollectionUtils.size;
+
+@Component
+@Transactional
+public class AdminReservationRequestManager {
+
+<span class="fc" id="L62">    private static final Logger log = LoggerFactory.getLogger(AdminReservationRequestManager.class);</span>
+    private final AdminReservationManager adminReservationManager;
+    private final EventManager eventManager;
+    private final UserRepository userRepository;
+    private final AdminReservationRequestRepository adminReservationRequestRepository;
+    private final EventRepository eventRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final ClockProvider clockProvider;
+
+    public AdminReservationRequestManager(AdminReservationManager adminReservationManager,
+                                          EventManager eventManager,
+                                          UserRepository userRepository,
+                                          AdminReservationRequestRepository adminReservationRequestRepository,
+                                          EventRepository eventRepository,
+                                          PlatformTransactionManager transactionManager,
+<span class="fc" id="L77">                                          ClockProvider clockProvider) {</span>
+<span class="fc" id="L78">        this.adminReservationManager = adminReservationManager;</span>
+<span class="fc" id="L79">        this.eventManager = eventManager;</span>
+<span class="fc" id="L80">        this.userRepository = userRepository;</span>
+<span class="fc" id="L81">        this.adminReservationRequestRepository = adminReservationRequestRepository;</span>
+<span class="fc" id="L82">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L83">        this.transactionManager = transactionManager;</span>
+<span class="fc" id="L84">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L85">    }</span>
+
+    public Result&lt;AdminReservationRequestStats&gt; getRequestStatus(String requestId, String eventName, String username) {
+<span class="fc" id="L88">        return eventManager.getOptionalEventAndOrganizationIdByName(eventName, username)</span>
+<span class="fc" id="L89">            .flatMap(e -&gt; adminReservationRequestRepository.findStatsByRequestIdAndEventId(requestId, e.getId()))</span>
+<span class="fc" id="L90">            .map(Result::success)</span>
+<span class="fc" id="L91">            .orElseGet(() -&gt; Result.error(ErrorCode.EventError.ACCESS_DENIED));</span>
+    }
+
+    public Result&lt;String&gt; scheduleReservations(String eventName, String language, List&lt;TicketReservationCreationRequest&gt; reservations, String username) {
+<span class="fc" id="L95">        var expiration = ZonedDateTime.now(clockProvider.getClock()).plusDays(1L);</span>
+<span class="fc" id="L96">        var ticketsInfo = reservations.stream()</span>
+<span class="fc" id="L97">            .flatMap(r -&gt; r.getTickets().stream())</span>
+<span class="fc" id="L98">            .map(ticket -&gt; {</span>
+<span class="fc" id="L99">                var category = new AdminReservationModification.Category(ticket.getTicketCategoryId(), &quot;&quot;, null, null);</span>
+<span class="fc" id="L100">                var attendees = ticket.getAttendees().stream()</span>
+<span class="fc" id="L101">                    .map(attendee -&gt; new AdminReservationModification.Attendee(null, attendee.getFirstName(), attendee.getLastName(), attendee.getEmail(), &quot;&quot;, false, attendee.getExternalReference(), null, attendee.getAdditional(), attendee.getMetadata()))</span>
+<span class="fc" id="L102">                    .toList();</span>
+<span class="fc" id="L103">                return new AdminReservationModification.TicketsInfo(category, attendees, false, false);</span>
+<span class="fc" id="L104">            }).toList();</span>
+<span class="fc" id="L105">        AdminReservationModification modification = new AdminReservationModification(</span>
+<span class="fc" id="L106">            DateTimeModification.fromZonedDateTime(expiration),</span>
+            new CustomerData(&quot;&quot;, &quot;&quot;, &quot;&quot;, null, null, null, null, null, null),
+            ticketsInfo,
+            language,
+<span class="fc" id="L110">            false,</span>
+<span class="fc" id="L111">            false,</span>
+            null,
+            AdminReservationModification.Notification.EMPTY,
+            null,
+            null
+            );
+<span class="fc" id="L117">        return scheduleReservations(eventName, modification, false, username);</span>
+    }
+
+    public Result&lt;String&gt; scheduleReservations(String eventName,
+                                               AdminReservationModification body,
+                                               boolean singleReservation,
+                                               String username) {
+
+        //safety check: if there are more than 150 people in a single reservation, the reservation page could take a while before showing up,
+        //therefore we will limit the maximum amount of people in a single reservation to 100. This will be addressed in rel. 2.0
+
+<span class="pc bpc" id="L128" title="3 of 4 branches missed.">        if(singleReservation &amp;&amp; body.getTicketsInfo().stream().mapToLong(ti -&gt; ti.getAttendees().size()).sum() &gt; 100) {</span>
+<span class="nc" id="L129">            return Result.error(ErrorCode.custom(&quot;MAX_NUMBER_EXCEEDED&quot;, &quot;Maximum allowed attendees per reservation is 100&quot;));</span>
+        }
+
+        // #620 - validate reference:
+<span class="fc" id="L133">        var attendeesWithDuplicateReference = body.getTicketsInfo().stream().flatMap(ti -&gt; ti.getAttendees().stream())</span>
+<span class="fc" id="L134">            .filter(attendee -&gt; StringUtils.isNotEmpty(attendee.getReference()))</span>
+<span class="fc" id="L135">            .collect(Collectors.groupingBy(attendee -&gt; attendee.getReference().trim(), Collectors.counting()))</span>
+<span class="fc" id="L136">            .entrySet().stream()</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">            .filter(e -&gt; e.getValue() &gt; 1)</span>
+<span class="fc" id="L138">            .map(Map.Entry::getKey)</span>
+<span class="fc" id="L139">            .limit(5) // return max 5 codes</span>
+<span class="fc" id="L140">            .toList();</span>
+
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        if(!attendeesWithDuplicateReference.isEmpty()) {</span>
+<span class="nc" id="L143">            return Result.error(ErrorCode.custom(&quot;DUPLICATE_REFERENCE&quot;, &quot;The following codes are duplicate:&quot; + attendeesWithDuplicateReference));</span>
+        }
+
+
+<span class="fc" id="L147">        return eventManager.getOptionalByName(eventName, username)</span>
+<span class="fc" id="L148">            .map(event -&gt; adminReservationManager.validateTickets(body, event))</span>
+<span class="fc" id="L149">            .map(request -&gt; request.flatMap(pair -&gt; insertRequest(pair.getRight(), pair.getLeft(), singleReservation, username)))</span>
+<span class="pc" id="L150">            .orElseGet(() -&gt; Result.error(ErrorCode.ReservationError.UPDATE_FAILED));</span>
+    }
+
+    //TODO: rewrite, and add test!
+    public Pair&lt;Integer, Integer&gt; processPendingReservations() {
+<span class="nc" id="L155">        Map&lt;Boolean, List&lt;MapSqlParameterSource&gt;&gt; result = adminReservationRequestRepository.findPendingForUpdate(1000)</span>
+<span class="nc" id="L156">            .stream()</span>
+<span class="nc" id="L157">            .map(id -&gt; {</span>
+<span class="nc" id="L158">                AdminReservationRequest request = adminReservationRequestRepository.fetchCompleteById(id);</span>
+
+<span class="nc" id="L160">                Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, Event&gt;&gt; reservationResult = Result.fromNullable(eventRepository.findOptionalById((int) request.getEventId()).orElse(null), ErrorCode.EventError.NOT_FOUND)</span>
+<span class="nc" id="L161">                    .flatMap(e -&gt; Result.fromNullable(userRepository.findOptionalById((int) request.getUserId()).map(u -&gt; Pair.of(e, u)).orElse(null), ErrorCode.EventError.ACCESS_DENIED))</span>
+<span class="nc" id="L162">                    .flatMap(p -&gt; processReservation(request, p.getLeft(), p.getRight()));</span>
+<span class="nc" id="L163">                return buildParameterSource(id, reservationResult);</span>
+<span class="nc" id="L164">            }).collect(Collectors.partitioningBy(ps -&gt; AdminReservationRequest.Status.SUCCESS.name().equals(ps.getValue(&quot;status&quot;))));</span>
+
+<span class="nc" id="L166">        result.values().forEach(list -&gt; {</span>
+            try {
+<span class="nc" id="L168">                adminReservationRequestRepository.updateStatus(list);</span>
+<span class="nc" id="L169">            } catch(Exception e) {</span>
+<span class="nc" id="L170">                log.warn(&quot;cannot update the status of &quot;+list.size()+&quot; reservations&quot;, e);</span>
+<span class="nc" id="L171">            }</span>
+<span class="nc" id="L172">        });</span>
+
+<span class="nc" id="L174">        return Pair.of(size(result.get(true)), size(result.get(false)));</span>
+
+    }
+
+    private Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, Event&gt;&gt; processReservation(AdminReservationRequest request, Event event, User user) {
+<span class="nc" id="L179">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED);</span>
+<span class="nc" id="L180">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
+<span class="nc" id="L181">        return template.execute(status -&gt; {</span>
+<span class="nc" id="L182">            var savepoint = status.createSavepoint();</span>
+            try {
+<span class="nc" id="L184">                String eventName = event.getShortName();</span>
+<span class="nc" id="L185">                String username = user.getUsername();</span>
+<span class="nc" id="L186">                var requestBody = request.getBody();</span>
+<span class="nc" id="L187">                Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, Event&gt;&gt; result = adminReservationManager.createReservation(requestBody, eventName, username)</span>
+<span class="nc" id="L188">                    .flatMap(r -&gt; adminReservationManager.confirmReservation(PurchaseContext.PurchaseContextType.event,</span>
+                        eventName,
+<span class="nc" id="L190">                        r.getLeft().getId(),</span>
+                        username,
+<span class="nc" id="L192">                        orEmpty(requestBody.getNotification()),</span>
+<span class="nc" id="L193">                        TransactionDetails.admin(),</span>
+<span class="nc" id="L194">                        requestBody.getLinkedSubscriptionId()))</span>
+<span class="nc" id="L195">                    .map(triple -&gt; Triple.of(triple.getLeft(), triple.getMiddle(), (Event) triple.getRight()));</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                if(!result.isSuccess()) {</span>
+<span class="nc" id="L197">                    status.rollbackToSavepoint(savepoint);</span>
+<span class="nc" id="L198">                    log.warn(&quot;Cannot process reservation: \n{}&quot;, result.getFormattedErrors());</span>
+                }
+<span class="nc" id="L200">                return result;</span>
+<span class="nc" id="L201">            } catch(Exception ex) {</span>
+<span class="nc" id="L202">                status.rollbackToSavepoint(savepoint);</span>
+<span class="nc" id="L203">                return Result.error(singletonList(ErrorCode.custom(&quot;&quot;, ex.getMessage())));</span>
+            }
+        });
+    }
+
+    private MapSqlParameterSource buildParameterSource(Long id, Result&lt;Triple&lt;TicketReservation, List&lt;Ticket&gt;, Event&gt;&gt; result) {
+<span class="nc" id="L209">        boolean success = result.isSuccess();</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (!success) {</span>
+<span class="nc" id="L211">            log.warn(&quot;Cannot process request {}. Got the following errors:\n{}&quot;, id, result.getFormattedErrors());</span>
+        }
+<span class="nc" id="L213">        return new MapSqlParameterSource(&quot;id&quot;, id)</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            .addValue(&quot;status&quot;, success ? AdminReservationRequest.Status.SUCCESS.name() : AdminReservationRequest.Status.ERROR.name())</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            .addValue(&quot;reservationId&quot;, success ? result.getData().getLeft().getId() : null)</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">            .addValue(&quot;failureCode&quot;, success ? null : ofNullable(result.getFirstErrorOrNull()).map(ErrorCode::getCode).orElse(null));</span>
+    }
+
+    private Result&lt;String&gt; insertRequest(AdminReservationModification body, EventAndOrganizationId event, boolean singleReservation, String username) {
+        try {
+<span class="fc" id="L221">            return insertRequest(UUID.randomUUID().toString(), body, event, singleReservation, username);</span>
+<span class="nc" id="L222">        } catch(DataIntegrityViolationException e) {</span>
+<span class="nc" id="L223">            log.error(&quot;data integrity violation while inserting request&quot;, e);</span>
+<span class="nc" id="L224">            return Result.error(ErrorCode.custom(&quot;internal_server_error&quot;, e.getMessage()));</span>
+        }
+    }
+
+    /**
+     * Insert a request using the provided ID and body
+     *
+     * @param requestId requestId, must be unique
+     * @param body request body which can be split across multiple reservations
+     * @param event the event for which we need to create reservations
+     * @param singleReservation whether the request will produce one or more reservations
+     * @param username user requesting the import
+     * @return {@code Result} the operation result
+     * @throws DataIntegrityViolationException if the given ID already exists
+     */
+    public Result&lt;String&gt; insertRequest(String requestId,
+                                 AdminReservationModification body,
+                                 EventAndOrganizationId event,
+                                 boolean singleReservation,
+                                 String username) {
+        try {
+<span class="fc" id="L245">            long userId = userRepository.findIdByUserName(username).orElseThrow(IllegalArgumentException::new);</span>
+<span class="fc" id="L246">            adminReservationRequestRepository.insertRequest(requestId, userId, event, spread(body, singleReservation));</span>
+<span class="fc" id="L247">            return Result.success(requestId);</span>
+<span class="nc" id="L248">        } catch (DataIntegrityViolationException e) {</span>
+<span class="nc" id="L249">            throw e;</span>
+<span class="nc" id="L250">        } catch (Exception e) {</span>
+<span class="nc" id="L251">            log.error(&quot;can't insert reservation request&quot;, e);</span>
+<span class="nc" id="L252">            return Result.error(ErrorCode.custom(&quot;internal_server_error&quot;, e.getMessage()));</span>
+        }
+    }
+
+    private Stream&lt;AdminReservationModification&gt; spread(AdminReservationModification src, boolean single) {
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">        if(single) {</span>
+<span class="nc" id="L258">            return Stream.of(src);</span>
+        }
+<span class="fc" id="L260">        return src.getTicketsInfo()</span>
+<span class="fc" id="L261">            .stream()</span>
+<span class="pc" id="L262">            .flatMap(ti -&gt; ti.getAttendees().stream().map(a -&gt; Pair.of(a, new AdminReservationModification.TicketsInfo(ti.getCategory(), singletonList(a), ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees()))))</span>
+<span class="fc" id="L263">            .map(p -&gt; {</span>
+<span class="nc" id="L264">                AdminReservationModification.Attendee attendee = p.getLeft();</span>
+<span class="nc" id="L265">                String language = StringUtils.defaultIfBlank(attendee.getLanguage(), src.getLanguage());</span>
+
+<span class="nc" id="L267">                CustomerData cd = new CustomerData(attendee.getFirstName(), attendee.getLastName(), attendee.getEmailAddress(), null, language, null, null, null, null);</span>
+<span class="nc" id="L268">                return new AdminReservationModification(src.getExpiration(),</span>
+                    cd,
+<span class="nc" id="L270">                    singletonList(p.getRight()),</span>
+                    language,
+<span class="nc" id="L272">                    src.isUpdateContactData(),</span>
+<span class="nc" id="L273">                    false,</span>
+                    null,
+<span class="nc" id="L275">                    src.getNotification(),</span>
+                    null,
+<span class="nc" id="L277">                    attendee.getSubscriptionId());</span>
+            });
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MollieConnectManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.payment</a> &gt; <span class="el_source">MollieConnectManager.java</span></div><h1>MollieConnectManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.payment;
+
+import alfio.manager.ExtensionManager;
+import alfio.manager.system.ConfigurationLevel;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
+import alfio.model.system.Configuration;
+import alfio.model.system.ConfigurationKeys;
+import alfio.util.oauth2.AccessTokenResponseDetails;
+import alfio.util.oauth2.AuthorizationRequestDetails;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.builder.api.DefaultApi20;
+import com.github.scribejava.core.model.OAuth2AccessToken;
+import com.github.scribejava.core.oauth.OAuth20Service;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import java.net.http.HttpClient;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import static alfio.model.system.ConfigurationKeys.*;
+
+@AllArgsConstructor
+@Component
+public class MollieConnectManager implements OAuthPaymentProviderConnector {
+    public static final String MOLLIE_CONNECT_REDIRECT_PATH = &quot;/admin/configuration/payment/mollie/authorize&quot;;
+<span class="nc" id="L48">    private static final Logger log = LoggerFactory.getLogger(MollieConnectManager.class);</span>
+    private static final String SCOPES = &quot;payments.read payments.write refunds.read refunds.write&quot;;
+    private final ExtensionManager extensionManager;
+    private final ConfigurationManager configurationManager;
+    private final HttpClient httpClient;
+
+    @Override
+    public AuthorizationRequestDetails getConnectURL(int organizationId) {
+<span class="nc" id="L56">        var options = configurationManager.getFor(Set.of(MOLLIE_API_KEY, MOLLIE_CONNECT_CLIENT_ID, MOLLIE_CONNECT_CALLBACK, BASE_URL), ConfigurationLevel.organization(organizationId));</span>
+<span class="nc" id="L57">        String callbackURL = options.get(MOLLIE_CONNECT_CALLBACK).getValueOrDefault(options.get(BASE_URL).getRequiredValue() + MOLLIE_CONNECT_REDIRECT_PATH);</span>
+<span class="nc" id="L58">        String state = extensionManager.generateOAuth2StateParam(organizationId).orElse(UUID.randomUUID().toString());</span>
+<span class="nc" id="L59">        return new AuthorizationRequestDetails(new MollieConnectApi()</span>
+<span class="nc" id="L60">            .getAuthorizationUrl(&quot;code&quot;, options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue(), callbackURL, SCOPES, state, Collections.emptyMap()), state);</span>
+    }
+
+    @Override
+    public AccessTokenResponseDetails storeConnectedAccountId(String code, int organizationId) {
+        try {
+<span class="nc" id="L66">            ConfigurationLevel configurationLevel = ConfigurationLevel.organization(organizationId);</span>
+<span class="nc" id="L67">            var options = configurationManager.getFor(Set.of(MOLLIE_API_KEY, MOLLIE_CONNECT_CLIENT_ID, MOLLIE_CONNECT_CLIENT_SECRET, MOLLIE_CONNECT_CALLBACK, BASE_URL), configurationLevel);</span>
+<span class="nc" id="L68">            OAuth20Service service = new ServiceBuilder(options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue())</span>
+<span class="nc" id="L69">                .apiSecret(options.get(MOLLIE_CONNECT_CLIENT_SECRET).getRequiredValue())</span>
+<span class="nc" id="L70">                .callback(options.get(MOLLIE_CONNECT_CALLBACK).getRequiredValue())</span>
+<span class="nc" id="L71">                .build(new MollieConnectApi());</span>
+<span class="nc" id="L72">            OAuth2AccessToken accessTokenResponse = service.getAccessToken(code);</span>
+<span class="nc" id="L73">            var refreshToken = accessTokenResponse.getRefreshToken();</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            if(refreshToken != null) {</span>
+<span class="nc" id="L75">                configurationManager.saveConfig(Configuration.from(organizationId, MOLLIE_CONNECT_REFRESH_TOKEN), refreshToken);</span>
+            }
+<span class="nc" id="L77">            return new AccessTokenResponseDetails(accessTokenResponse.getAccessToken(), refreshToken, null, true);</span>
+<span class="nc" id="L78">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L79">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L80">            log.warn(&quot;Request interrupted while retrieving access token&quot;, e);</span>
+<span class="nc" id="L81">            return new AccessTokenResponseDetails(null, null, e.getMessage(), false);</span>
+<span class="nc" id="L82">        } catch (Exception e) {</span>
+<span class="nc" id="L83">            log.warn(&quot;Got exception while retrieving access token&quot;, e);</span>
+<span class="nc" id="L84">            return new AccessTokenResponseDetails(null, null, e.getMessage(), false);</span>
+        }
+    }
+
+    public AccessTokenResponseDetails refreshAccessToken(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; options) {
+        try {
+<span class="nc" id="L90">            OAuth20Service service = new ServiceBuilder(options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue())</span>
+<span class="nc" id="L91">                .apiSecret(options.get(MOLLIE_CONNECT_CLIENT_SECRET).getRequiredValue())</span>
+<span class="nc" id="L92">                .callback(options.get(MOLLIE_CONNECT_CALLBACK).getRequiredValue())</span>
+<span class="nc" id="L93">                .build(new MollieConnectApi());</span>
+<span class="nc" id="L94">            String refreshToken = options.get(MOLLIE_CONNECT_REFRESH_TOKEN).getRequiredValue();</span>
+<span class="nc" id="L95">            OAuth2AccessToken accessTokenResponse = service.refreshAccessToken(refreshToken);</span>
+<span class="nc" id="L96">            return new AccessTokenResponseDetails(accessTokenResponse.getAccessToken(), refreshToken, null, true);</span>
+<span class="nc" id="L97">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L98">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L99">            log.warn(&quot;Request interrupted while retrieving access token&quot;, e);</span>
+<span class="nc" id="L100">            return new AccessTokenResponseDetails(null, null, e.getMessage(), false);</span>
+<span class="nc" id="L101">        } catch (Exception e) {</span>
+<span class="nc" id="L102">            log.warn(&quot;Got exception while retrieving access token&quot;, e);</span>
+<span class="nc" id="L103">            return new AccessTokenResponseDetails(null, null, e.getMessage(), false);</span>
+        }
+    }
+
+    private static class MollieConnectApi extends DefaultApi20 {
+
+        @Override
+        public String getAccessTokenEndpoint() {
+<span class="nc" id="L111">            return &quot;https://api.mollie.com/oauth2/tokens&quot;;</span>
+        }
+
+        @Override
+        protected String getAuthorizationBaseUrl() {
+<span class="nc" id="L116">            return &quot;https://www.mollie.com/oauth2/authorize&quot;;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
