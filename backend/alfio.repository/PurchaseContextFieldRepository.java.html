@@ -191,10 +191,10 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
 
     default String getFieldValueJson(List&lt;String&gt; fieldValues) {
         String fieldValue;
-<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        if(fieldValues.size() == 1) {</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        if(fieldValues.size() == 1) {</span>
 <span class="fc" id="L195">            fieldValue = fieldValues.get(0);</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">        } else if(fieldValues.stream().anyMatch(StringUtils::isNotBlank)) {</span>
-<span class="nc" id="L197">            fieldValue = Json.toJson(fieldValues);</span>
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">        } else if(fieldValues.stream().anyMatch(StringUtils::isNotBlank)) {</span>
+<span class="fc" id="L197">            fieldValue = Json.toJson(fieldValues);</span>
         } else {
 <span class="nc" id="L199">            fieldValue = &quot;&quot;;</span>
         }
@@ -203,10 +203,10 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
 
     default Map&lt;String, PurchaseContextFieldValue&gt; findAllByTicketIdGroupedByName(Integer id, boolean eventSupportsLink) {
         List&lt;PurchaseContextFieldValue&gt; values;
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        if (eventSupportsLink) {</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">        if (eventSupportsLink) {</span>
 <span class="fc" id="L207">            values = findAllForContextByTicketId(id, PurchaseContextFieldConfiguration.Context.ATTENDEE);</span>
         } else {
-<span class="nc" id="L209">            values = findAllByTicketId(id);</span>
+<span class="fc" id="L209">            values = findAllByTicketId(id);</span>
         }
 <span class="fc" id="L211">        return collectByName(values);</span>
     }
@@ -217,7 +217,7 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
     }
 
     default boolean hasOptionalData(int ticketId) {
-<span class="nc bnc" id="L220" title="All 2 branches missed.">        return countFilledOptionalData(ticketId) &gt; 0;</span>
+<span class="fc bfc" id="L220" title="All 2 branches covered.">        return countFilledOptionalData(ticketId) &gt; 0;</span>
     }
 
 
@@ -229,13 +229,13 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
             new MapSqlParameterSource(&quot;eventIds&quot;, eventIds),
             (ResultSet rs) -&gt; {
 <span class="fc" id="L231">                var result = new HashMap&lt;Integer, Set&lt;String&gt;&gt;();</span>
-<span class="pc bpc" id="L232" title="1 of 2 branches missed.">                while (rs.next()) {</span>
-<span class="nc" id="L233">                    Integer eventId = rs.getInt(1);</span>
-<span class="nc bnc" id="L234" title="All 2 branches missed.">                    if (!result.containsKey(eventId)) {</span>
-<span class="nc" id="L235">                        result.put(eventId, new HashSet&lt;&gt;());</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">                while (rs.next()) {</span>
+<span class="fc" id="L233">                    Integer eventId = rs.getInt(1);</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">                    if (!result.containsKey(eventId)) {</span>
+<span class="fc" id="L235">                        result.put(eventId, new HashSet&lt;&gt;());</span>
                     }
-<span class="nc" id="L237">                    result.get(eventId).add(rs.getString(2));</span>
-<span class="nc" id="L238">                }</span>
+<span class="fc" id="L237">                    result.get(eventId).add(rs.getString(2));</span>
+<span class="fc" id="L238">                }</span>
 <span class="fc" id="L239">                return result;</span>
             });
     }
@@ -287,27 +287,27 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
     List&lt;RestrictedValueStats.RestrictedValueCount&gt; getValueStats(@Bind(&quot;configurationId&quot;) long configurationId);
 
     default List&lt;RestrictedValueStats&gt; retrieveStats(long configurationId) {
-<span class="nc" id="L290">        PurchaseContextFieldConfiguration configuration = findById(configurationId);</span>
-<span class="nc" id="L291">        Map&lt;String, Integer&gt; valueStats = getValueStats(configurationId).stream().collect(Collectors.toMap(RestrictedValueStats.RestrictedValueCount::getName, RestrictedValueStats.RestrictedValueCount::getCount));</span>
-<span class="nc" id="L292">        int total = valueStats.values().stream().mapToInt(i -&gt; i).sum();</span>
-<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (configuration.isCountryField()) {</span>
+<span class="fc" id="L290">        PurchaseContextFieldConfiguration configuration = findById(configurationId);</span>
+<span class="fc" id="L291">        Map&lt;String, Integer&gt; valueStats = getValueStats(configurationId).stream().collect(Collectors.toMap(RestrictedValueStats.RestrictedValueCount::getName, RestrictedValueStats.RestrictedValueCount::getCount));</span>
+<span class="fc" id="L292">        int total = valueStats.values().stream().mapToInt(i -&gt; i).sum();</span>
+<span class="fc bfc" id="L293" title="All 2 branches covered.">        if (configuration.isCountryField()) {</span>
             // no restricted values
-<span class="nc" id="L295">            var descComparator = Entry.&lt;String, Integer&gt;comparingByValue().reversed();</span>
-<span class="nc" id="L296">            return valueStats.entrySet().stream()</span>
-<span class="nc" id="L297">                .sorted(descComparator)</span>
-<span class="nc" id="L298">                .map(entry -&gt; {</span>
-<span class="nc" id="L299">                    int count = entry.getValue();</span>
-<span class="nc" id="L300">                    return new RestrictedValueStats(entry.getKey(),</span>
+<span class="fc" id="L295">            var descComparator = Entry.&lt;String, Integer&gt;comparingByValue().reversed();</span>
+<span class="fc" id="L296">            return valueStats.entrySet().stream()</span>
+<span class="fc" id="L297">                .sorted(descComparator)</span>
+<span class="fc" id="L298">                .map(entry -&gt; {</span>
+<span class="fc" id="L299">                    int count = entry.getValue();</span>
+<span class="fc" id="L300">                    return new RestrictedValueStats(entry.getKey(),</span>
                         count,
-<span class="nc" id="L302">                        new BigDecimal(count).divide(new BigDecimal(total), 2, RoundingMode.HALF_UP).multiply(MonetaryUtil.HUNDRED).intValue()</span>
+<span class="fc" id="L302">                        new BigDecimal(count).divide(new BigDecimal(total), 2, RoundingMode.HALF_UP).multiply(MonetaryUtil.HUNDRED).intValue()</span>
                     );
-<span class="nc" id="L304">                }).collect(Collectors.toList());</span>
+<span class="fc" id="L304">                }).collect(Collectors.toList());</span>
         }
-<span class="nc" id="L306">        return configuration.getRestrictedValues().stream()</span>
-<span class="nc" id="L307">            .map(name -&gt; {</span>
-<span class="nc" id="L308">                int count = valueStats.getOrDefault(name, 0);</span>
-<span class="nc bnc" id="L309" title="All 2 branches missed.">                return new RestrictedValueStats(name, count, total == 0 ? 0 : new BigDecimal(count).divide(new BigDecimal(total), 2, RoundingMode.HALF_UP).multiply(MonetaryUtil.HUNDRED).intValue());</span>
-<span class="nc" id="L310">            }).collect(Collectors.toList());</span>
+<span class="fc" id="L306">        return configuration.getRestrictedValues().stream()</span>
+<span class="fc" id="L307">            .map(name -&gt; {</span>
+<span class="fc" id="L308">                int count = valueStats.getOrDefault(name, 0);</span>
+<span class="fc bfc" id="L309" title="All 2 branches covered.">                return new RestrictedValueStats(name, count, total == 0 ? 0 : new BigDecimal(count).divide(new BigDecimal(total), 2, RoundingMode.HALF_UP).multiply(MonetaryUtil.HUNDRED).intValue());</span>
+<span class="fc" id="L310">            }).collect(Collectors.toList());</span>
 
     }
 

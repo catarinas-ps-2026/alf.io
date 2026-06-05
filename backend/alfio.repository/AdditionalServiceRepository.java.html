@@ -35,18 +35,18 @@ public interface AdditionalServiceRepository {
     NamedParameterJdbcTemplate getJdbcTemplate();
 
     default Map&lt;Integer, Map&lt;AdditionalServiceItemStatus, Integer&gt;&gt; getCount(int eventId) {
-<span class="nc" id="L38">        Map&lt;Integer, Map&lt;AdditionalServiceItemStatus, Integer&gt;&gt; res = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L39">        getJdbcTemplate().query(&quot;select count(*) as cnt, additional_service_id_fk, status from additional_service_item where event_id_fk = :eventId group by additional_service_id_fk, status&quot;,</span>
-<span class="nc" id="L40">            Collections.singletonMap(&quot;eventId&quot;, eventId),</span>
+<span class="fc" id="L38">        Map&lt;Integer, Map&lt;AdditionalServiceItemStatus, Integer&gt;&gt; res = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L39">        getJdbcTemplate().query(&quot;select count(*) as cnt, additional_service_id_fk, status from additional_service_item where event_id_fk = :eventId group by additional_service_id_fk, status&quot;,</span>
+<span class="fc" id="L40">            Collections.singletonMap(&quot;eventId&quot;, eventId),</span>
             rse -&gt; {
-<span class="nc" id="L42">                var additionalServiceId = rse.getInt(&quot;additional_service_id_fk&quot;);</span>
-<span class="nc" id="L43">                res.putIfAbsent(additionalServiceId, new EnumMap&lt;&gt;(AdditionalServiceItem.AdditionalServiceItemStatus.class));</span>
-<span class="nc" id="L44">                var statusCount = res.get(additionalServiceId);</span>
-<span class="nc" id="L45">                var status = AdditionalServiceItem.AdditionalServiceItemStatus.valueOf(rse.getString(&quot;status&quot;));</span>
-<span class="nc" id="L46">                statusCount.put(status, rse.getInt(&quot;cnt&quot;));</span>
-<span class="nc" id="L47">            }</span>
+<span class="fc" id="L42">                var additionalServiceId = rse.getInt(&quot;additional_service_id_fk&quot;);</span>
+<span class="fc" id="L43">                res.putIfAbsent(additionalServiceId, new EnumMap&lt;&gt;(AdditionalServiceItem.AdditionalServiceItemStatus.class));</span>
+<span class="fc" id="L44">                var statusCount = res.get(additionalServiceId);</span>
+<span class="fc" id="L45">                var status = AdditionalServiceItem.AdditionalServiceItemStatus.valueOf(rse.getString(&quot;status&quot;));</span>
+<span class="fc" id="L46">                statusCount.put(status, rse.getInt(&quot;cnt&quot;));</span>
+<span class="fc" id="L47">            }</span>
         );
-<span class="nc" id="L49">        return res;</span>
+<span class="fc" id="L49">        return res;</span>
     }
 
     @Query(&quot;select ordinal from additional_service_with_currency where id = :id and event_id_fk = :eventId&quot;)

@@ -113,7 +113,7 @@ public interface TicketCategoryRepository {
 
     default Map&lt;Integer, AlfioMetadata&gt; findCategoryMetadataForEventGroupByCategoryId(int eventId) {
 <span class="fc" id="L115">        return findMetadataForCategoriesInEvent(eventId).stream()</span>
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">            .filter(ei -&gt; ei.getMetadata() != null)</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">            .filter(ei -&gt; ei.getMetadata() != null)</span>
 <span class="fc" id="L117">            .collect(Collectors.toMap(EntityIdAndMetadata::getId, EntityIdAndMetadata::getMetadata));</span>
     }
     
