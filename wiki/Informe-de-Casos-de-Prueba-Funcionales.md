@@ -9,8 +9,7 @@
 - [6. Resultados de Pruebas Funcionales](#6-resultados-de-pruebas-funcionales)
 - [7. Limitaciones](#7-limitaciones)
 - [8. Estrategia y métodos de prueba aplicados](#8-estrategia-y-métodos-de-prueba-aplicados)
-- [9. Integración continua](#9-integración-continua)
-- [10. Conclusión](#10-conclusión)
+- [9. Conclusión](#9-conclusión)
 
 ## 1. Introducción
 
@@ -70,27 +69,6 @@ Este proceso es controlado mediante Github actions, que:
 - **Pruebas de casos de uso:** Se recorren paso a paso los flujos principales del sistema: creación de un evento, configuración de categorías de entradas, proceso de compra, generación de entradas (incluyendo Apple Wallet), check-in y reporting.
 - **Tablas de decisión:** Se aplican para validar reglas complejas de negocio, como el cálculo de precios con descuentos, impuestos (IVA), tarifas de servicio y promociones combinadas, donde múltiples condiciones booleanas determinan el resultado final.
 
-## 9. Integración continua
-
-Cada Pull Request activa automáticamente el flujo de pruebas en GitHub Actions:
-
-```yaml
-# Extraído de .github/workflows/test.yml
-jobs:
-  test:
-    strategy:
-      matrix:
-        postgresql: ["10", "15", "16"]
-    steps:
-      - run: ./gradlew test jacocoTestReport -Dpgsql.version=${{ matrix.postgresql }}
-```
-
-Este proceso garantiza que:
-
-- El sistema es compatible con las tres versiones principales de PostgreSQL.
-- La cobertura de código no se degrada (verificable mediante Codecov).
-- Los informes de cobertura se generan y publican automáticamente.
-
-## 10. Conclusión
+## 9. Conclusión
 
 El enfoque de pruebas de alf.io combina múltiples niveles con un fuerte énfasis en la automatización para garantizar entornos de prueba reproducibles y fiables. La cobertura es extensa en la capa de negocio y los flujos críticos de pago y reserva, con 141 archivos de prueba que abarcan desde validaciones unitarias hasta escenarios concurrentes complejos. El pipeline de CI verifica cada cambio contra tres versiones de PostgreSQL, asegurando compatibilidad y calidad continua.
