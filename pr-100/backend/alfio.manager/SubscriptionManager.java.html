@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SubscriptionManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">SubscriptionManager.java</span></div><h1>SubscriptionManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.config.Initializer;
+import alfio.controller.form.SearchOptions;
+import alfio.model.modification.SubscriptionDescriptorModification;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import alfio.model.subscription.EventSubscriptionLink;
+import alfio.model.subscription.LinkEventsToSubscriptionRequest;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.subscription.SubscriptionDescriptorWithStatistics;
+import alfio.repository.EventRepository;
+import alfio.repository.SubscriptionRepository;
+import alfio.util.Json;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNullElse;
+
+@Component
+@Transactional
+@AllArgsConstructor
+public class SubscriptionManager {
+
+<span class="fc" id="L54">    private static final Logger log = LoggerFactory.getLogger(SubscriptionManager.class);</span>
+    private final SubscriptionRepository subscriptionRepository;
+    private final EventRepository eventRepository;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final Environment environment;
+
+    public List&lt;SubscriptionDescriptor&gt; findAll(int organizationId) {
+<span class="fc" id="L61">        return subscriptionRepository.findAllByOrganizationIds(organizationId);</span>
+    }
+
+    public Optional&lt;UUID&gt; createSubscriptionDescriptor(SubscriptionDescriptorModification subscriptionDescriptor) {
+<span class="fc" id="L65">        var id = UUID.randomUUID();</span>
+<span class="fc" id="L66">        int maxAvailable = requireNonNullElse(subscriptionDescriptor.getMaxAvailable(), -1);</span>
+<span class="fc" id="L67">        int result = subscriptionRepository.createSubscriptionDescriptor(</span>
+            id,
+<span class="fc" id="L69">            subscriptionDescriptor.getTitle(),</span>
+<span class="fc" id="L70">            subscriptionDescriptor.getDescription(),</span>
+            maxAvailable,
+<span class="fc" id="L72">            subscriptionDescriptor.getOnSaleFrom(),</span>
+<span class="fc" id="L73">            subscriptionDescriptor.getOnSaleTo(),</span>
+<span class="fc" id="L74">            subscriptionDescriptor.getPriceCts(),</span>
+<span class="fc" id="L75">            requireNonNullElse(subscriptionDescriptor.getVat(), BigDecimal.ZERO),</span>
+<span class="fc" id="L76">            subscriptionDescriptor.getVatStatus(),</span>
+<span class="fc" id="L77">            subscriptionDescriptor.getCurrency(),</span>
+<span class="fc" id="L78">            Boolean.TRUE.equals(subscriptionDescriptor.getIsPublic()),</span>
+<span class="fc" id="L79">            subscriptionDescriptor.getOrganizationId(),</span>
+
+<span class="fc" id="L81">            requireNonNullElse(subscriptionDescriptor.getMaxEntries(), -1),</span>
+<span class="fc" id="L82">            subscriptionDescriptor.getValidityType(),</span>
+<span class="fc" id="L83">            subscriptionDescriptor.getValidityTimeUnit(),</span>
+<span class="fc" id="L84">            subscriptionDescriptor.getValidityUnits(),</span>
+<span class="fc" id="L85">            subscriptionDescriptor.getValidityFrom(),</span>
+<span class="fc" id="L86">            subscriptionDescriptor.getValidityTo(),</span>
+<span class="fc" id="L87">            subscriptionDescriptor.getUsageType(),</span>
+
+<span class="fc" id="L89">            subscriptionDescriptor.getTermsAndConditionsUrl(),</span>
+<span class="fc" id="L90">            subscriptionDescriptor.getPrivacyPolicyUrl(),</span>
+<span class="fc" id="L91">            subscriptionDescriptor.getFileBlobId(),</span>
+<span class="fc" id="L92">            subscriptionDescriptor.getPaymentProxies(),</span>
+<span class="fc" id="L93">            UUID.randomUUID().toString(),</span>
+<span class="fc" id="L94">            subscriptionDescriptor.getTimeZone().toString(),</span>
+<span class="fc" id="L95">            Boolean.TRUE.equals(subscriptionDescriptor.getSupportsTicketsGeneration()));</span>
+
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        if(result != 1) {</span>
+<span class="fc" id="L98">            return Optional.empty();</span>
+        }
+
+        // pre-generate subscriptions if descriptor has a limited quantity
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if(maxAvailable &gt; 0) {</span>
+<span class="fc" id="L103">            subscriptionRepository.preGenerateSubscriptions(subscriptionDescriptor, id, maxAvailable);</span>
+        }
+
+<span class="fc" id="L106">        return Optional.of(id);</span>
+    }
+
+    public Optional&lt;UUID&gt; updateSubscriptionDescriptor(SubscriptionDescriptorModification subscriptionDescriptor) {
+
+<span class="fc" id="L111">        var subscriptionDescriptorId = subscriptionDescriptor.getId();</span>
+<span class="fc" id="L112">        return subscriptionRepository.findOne(subscriptionDescriptorId, subscriptionDescriptor.getOrganizationId())</span>
+<span class="fc" id="L113">            .flatMap(original -&gt; {</span>
+<span class="fc" id="L114">                int maxAvailable = requireNonNullElse(subscriptionDescriptor.getMaxAvailable(), -1);</span>
+<span class="fc" id="L115">                int result = subscriptionRepository.updateSubscriptionDescriptor(</span>
+<span class="fc" id="L116">                    subscriptionDescriptor.getTitle(),</span>
+<span class="fc" id="L117">                    subscriptionDescriptor.getDescription(),</span>
+                    maxAvailable,
+<span class="fc" id="L119">                    subscriptionDescriptor.getOnSaleFrom(),</span>
+<span class="fc" id="L120">                    subscriptionDescriptor.getOnSaleTo(),</span>
+<span class="fc" id="L121">                    subscriptionDescriptor.getPriceCts(),</span>
+<span class="fc" id="L122">                    subscriptionDescriptor.getVat(),</span>
+<span class="fc" id="L123">                    subscriptionDescriptor.getVatStatus(),</span>
+<span class="fc" id="L124">                    subscriptionDescriptor.getCurrency(),</span>
+<span class="fc" id="L125">                    Boolean.TRUE.equals(subscriptionDescriptor.getIsPublic()),</span>
+
+<span class="fc" id="L127">                    requireNonNullElse(subscriptionDescriptor.getMaxEntries(), -1),</span>
+<span class="fc" id="L128">                    subscriptionDescriptor.getValidityType(),</span>
+<span class="fc" id="L129">                    subscriptionDescriptor.getValidityTimeUnit(),</span>
+<span class="fc" id="L130">                    subscriptionDescriptor.getValidityUnits(),</span>
+<span class="fc" id="L131">                    subscriptionDescriptor.getValidityFrom(),</span>
+<span class="fc" id="L132">                    subscriptionDescriptor.getValidityTo(),</span>
+<span class="fc" id="L133">                    subscriptionDescriptor.getUsageType(),</span>
+
+<span class="fc" id="L135">                    subscriptionDescriptor.getTermsAndConditionsUrl(),</span>
+<span class="fc" id="L136">                    subscriptionDescriptor.getPrivacyPolicyUrl(),</span>
+<span class="fc" id="L137">                    subscriptionDescriptor.getFileBlobId(),</span>
+<span class="fc" id="L138">                    subscriptionDescriptor.getPaymentProxies(),</span>
+
+                    subscriptionDescriptorId,
+<span class="fc" id="L141">                    original.getOrganizationId(),</span>
+<span class="fc" id="L142">                    subscriptionDescriptor.getTimeZone().toString(),</span>
+<span class="fc" id="L143">                    Boolean.TRUE.equals(subscriptionDescriptor.getSupportsTicketsGeneration())</span>
+                );
+
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">                if (result != 1) {</span>
+<span class="nc" id="L147">                    return Optional.empty();</span>
+                }
+
+<span class="fc bfc" id="L150" title="All 4 branches covered.">                if(maxAvailable &gt; 0 &amp;&amp; maxAvailable &gt; original.getMaxAvailable()) {</span>
+<span class="fc" id="L151">                    int existing = Math.max(0, original.getMaxAvailable());</span>
+<span class="fc" id="L152">                    subscriptionRepository.preGenerateSubscriptions(subscriptionDescriptor, subscriptionDescriptorId, maxAvailable - existing);</span>
+<span class="fc bfc" id="L153" title="All 4 branches covered.">                } else if(maxAvailable &gt; -1 &amp;&amp; maxAvailable &lt; original.getMaxAvailable()) {</span>
+<span class="fc" id="L154">                    int amount = original.getMaxAvailable() - maxAvailable;</span>
+<span class="fc" id="L155">                    int invalidated = subscriptionRepository.invalidateSubscriptions(subscriptionDescriptorId, amount);</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">                    Validate.isTrue(amount == invalidated, &quot;Cannot invalidate existing subscriptions. (wanted: %d got: %d)&quot;, amount, invalidated);</span>
+                }
+<span class="fc bfc" id="L158" title="All 2 branches covered.">                if(original.getPrice() != subscriptionDescriptor.getPriceCts()) {</span>
+<span class="fc" id="L159">                    subscriptionRepository.updatePriceForSubscriptions(subscriptionDescriptorId, subscriptionDescriptor.getPriceCts());</span>
+                }
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">                if(!Objects.equals(original.getMaxEntries(), subscriptionDescriptor.getMaxEntries())) {</span>
+<span class="nc" id="L162">                    int maxEntries = requireNonNullElse(subscriptionDescriptor.getMaxEntries(), -1);</span>
+<span class="nc" id="L163">                    int updatedSubscriptions = subscriptionRepository.updateMaxEntriesForSubscriptions(subscriptionDescriptorId, maxEntries);</span>
+<span class="nc" id="L164">                    log.debug(&quot;SubscriptionDescriptor #{}: updated {} subscriptions. Modified max entries to {}&quot;,</span>
+<span class="nc" id="L165">                        subscriptionDescriptorId, updatedSubscriptions, maxEntries);</span>
+                }
+<span class="fc" id="L167">                return Optional.of(subscriptionDescriptorId);</span>
+            });
+    }
+
+    public Optional&lt;SubscriptionDescriptor&gt; findOne(UUID id, int organizationId) {
+<span class="nc" id="L172">        return subscriptionRepository.findOne(id, organizationId);</span>
+    }
+
+    public boolean setPublicStatus(UUID id, int organizationId, boolean isPublic) {
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if(environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
+<span class="nc" id="L177">            throw new IllegalStateException(&quot;Cannot publish subscriptions while in demo mode&quot;);</span>
+        }
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        return subscriptionRepository.setPublicStatus(id, organizationId, isPublic) == 1;</span>
+    }
+
+    public List&lt;SubscriptionDescriptor&gt; getActivePublicSubscriptionsDescriptor(ZonedDateTime from, SearchOptions searchOptions) {
+<span class="fc" id="L183">        return subscriptionRepository.findAllActiveAndPublic(from, searchOptions.getOrganizerSlug());</span>
+    }
+
+    public Optional&lt;SubscriptionDescriptor&gt; getSubscriptionById(UUID id) {
+<span class="fc" id="L187">        return subscriptionRepository.findOne(id);</span>
+    }
+
+    public List&lt;SubscriptionDescriptorWithStatistics&gt; loadSubscriptionsWithStatistics(int organizationId) {
+<span class="fc" id="L191">        return subscriptionRepository.findAllWithStatistics(organizationId);</span>
+    }
+
+    public Optional&lt;SubscriptionDescriptorWithStatistics&gt; loadSubscriptionWithStatistics(UUID id, int organizationId) {
+<span class="nc" id="L195">        return subscriptionRepository.findOneWithStatistics(id, organizationId);</span>
+    }
+
+    public int linkSubscriptionToEvent(UUID subscriptionId, int eventId, int organizationId, int pricePerTicket, List&lt;Integer&gt; compatibleCategories) {
+<span class="fc" id="L199">        return subscriptionRepository.linkSubscriptionAndEvent(subscriptionId, eventId, pricePerTicket, organizationId, Objects.requireNonNullElse(compatibleCategories, List.of()));</span>
+    }
+
+    public List&lt;EventSubscriptionLink&gt; getLinkedEvents(int organizationId, UUID id) {
+<span class="fc" id="L203">        return subscriptionRepository.findLinkedEvents(organizationId, id);</span>
+    }
+
+    public int countFree(UUID subscriptionDescriptorId) {
+<span class="nc" id="L207">        return subscriptionRepository.countFreeSubscriptionForDescriptor(subscriptionDescriptorId);</span>
+    }
+
+    public List&lt;SubscriptionDescriptor&gt; loadActiveSubscriptionDescriptors(int organizationId) {
+<span class="fc" id="L211">        return subscriptionRepository.findActiveSubscriptionsForOrganization(organizationId);</span>
+    }
+
+    public Result&lt;Boolean&gt; deactivateDescriptor(int organizationId, UUID descriptorId) {
+        // 1. remove all links
+<span class="fc" id="L216">        removeAllEventLinksForSubscription(organizationId, descriptorId);</span>
+<span class="fc" id="L217">        int result = subscriptionRepository.deactivateDescriptor(descriptorId, organizationId);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (result == 1) {</span>
+<span class="fc" id="L219">            return Result.success(true);</span>
+        }
+<span class="nc" id="L221">        return Result.error(ErrorCode.custom(&quot;cannot-deactivate-subscription&quot;,</span>
+            &quot;Cannot deactivate subscription descriptor&quot;));
+    }
+
+    public Result&lt;List&lt;EventSubscriptionLink&gt;&gt; updateLinkedEvents(int organizationId, UUID subscriptionId, List&lt;LinkEventsToSubscriptionRequest&gt; requests){
+<span class="fc" id="L226">        removeAllEventLinksForSubscription(organizationId, subscriptionId);</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        if (requests.isEmpty()) {</span>
+<span class="nc" id="L228">            return Result.success(List.of());</span>
+        } else {
+<span class="fc" id="L230">            var byName = requests.stream().collect(Collectors.groupingBy(LinkEventsToSubscriptionRequest::getSlug));</span>
+<span class="fc" id="L231">            var allEvents = eventRepository.findEventsByShortNames(organizationId, byName.keySet());</span>
+<span class="fc" id="L232">            var parameters = byName.entrySet().stream()</span>
+<span class="fc" id="L233">                .map(entry -&gt; {</span>
+<span class="fc" id="L234">                    var event = allEvents.stream().filter(e -&gt; e.getShortName().equals(entry.getKey()))</span>
+<span class="fc" id="L235">                        .findFirst()</span>
+<span class="fc" id="L236">                        .orElseThrow();</span>
+<span class="fc" id="L237">                    return new MapSqlParameterSource(&quot;eventId&quot;, event.getId())</span>
+<span class="fc" id="L238">                            .addValue(&quot;subscriptionId&quot;, subscriptionId)</span>
+<span class="fc" id="L239">                            .addValue(&quot;pricePerTicket&quot;, 0)</span>
+<span class="fc" id="L240">                            .addValue(&quot;organizationId&quot;, organizationId)</span>
+<span class="fc" id="L241">                            .addValue(&quot;compatibleCategories&quot;, Json.toJson(entry.getValue().stream().flatMap(v -&gt; v.getCategories().stream()).collect(Collectors.toSet())));</span>
+                })
+<span class="fc" id="L243">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L244">            var result = jdbcTemplate.batchUpdate(SubscriptionRepository.INSERT_SUBSCRIPTION_LINK, parameters);</span>
+<span class="fc" id="L245">            return new Result.Builder&lt;List&lt;EventSubscriptionLink&gt;&gt;()</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">                .checkPrecondition(() -&gt; Arrays.stream(result).allMatch(r -&gt; r == 1), ErrorCode.custom(&quot;cannot-link&quot;, &quot;Cannot link events&quot;))</span>
+<span class="fc" id="L247">                .build(() -&gt; getLinkedEvents(organizationId, subscriptionId));</span>
+        }
+    }
+
+    public SubscriptionDescriptor findDescriptorBySubscriptionId(UUID subscriptionId) {
+<span class="nc" id="L252">        return subscriptionRepository.findDescriptorBySubscriptionId(subscriptionId);</span>
+    }
+
+    private void removeAllEventLinksForSubscription(int organizationId, UUID subscriptionId) {
+<span class="fc" id="L256">        int removed = subscriptionRepository.removeAllLinksForSubscription(subscriptionId, organizationId);</span>
+<span class="fc" id="L257">        log.info(&quot;removed all event links ({}) for subscription {}&quot;, removed, subscriptionId);</span>
+<span class="fc" id="L258">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
