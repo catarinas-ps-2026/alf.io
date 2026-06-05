@@ -42,11 +42,11 @@ public class OrganizationsApiV1Controller {
 
     public OrganizationsApiV1Controller(UserManager userManager,
                                         OrganizationDeleter organizationDeleter,
-<span class="nc" id="L45">                                        AccessService accessService) {</span>
-<span class="nc" id="L46">        this.userManager = userManager;</span>
-<span class="nc" id="L47">        this.organizationDeleter = organizationDeleter;</span>
-<span class="nc" id="L48">        this.accessService = accessService;</span>
-<span class="nc" id="L49">    }</span>
+<span class="fc" id="L45">                                        AccessService accessService) {</span>
+<span class="fc" id="L46">        this.userManager = userManager;</span>
+<span class="fc" id="L47">        this.organizationDeleter = organizationDeleter;</span>
+<span class="fc" id="L48">        this.accessService = accessService;</span>
+<span class="fc" id="L49">    }</span>
 
     @PostMapping(&quot;/create&quot;)
     public ResponseEntity&lt;Organization&gt; createOrganization(@RequestBody OrganizationModification om, Principal principal) {

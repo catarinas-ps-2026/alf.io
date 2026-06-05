@@ -43,7 +43,7 @@ public class TicketMetadataContainer {
      * @return a read-only copy of the metadataMap
      */
     public Map&lt;String, TicketMetadata&gt; getMetadataMap() {
-<span class="nc" id="L46">        return Map.copyOf(metadataMap);</span>
+<span class="fc" id="L46">        return Map.copyOf(metadataMap);</span>
     }
 
     /**
@@ -64,9 +64,9 @@ public class TicketMetadataContainer {
      * @return {@code true} if key was accepted, otherwise {@code false}
      */
     public boolean putMetadata(String key, TicketMetadata value) {
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        if(ALLOWED_KEYS.contains(key)) {</span>
-<span class="nc" id="L68">            metadataMap.put(key, value);</span>
-<span class="nc" id="L69">            return true;</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if(ALLOWED_KEYS.contains(key)) {</span>
+<span class="fc" id="L68">            metadataMap.put(key, value);</span>
+<span class="fc" id="L69">            return true;</span>
         }
 <span class="nc" id="L71">        return false;</span>
     }
@@ -76,19 +76,19 @@ public class TicketMetadataContainer {
     }
 
     public static TicketMetadataContainer fromMetadata(TicketMetadata metadata) {
-<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (metadata != null) {</span>
-<span class="nc" id="L80">            var map = new HashMap&lt;String, TicketMetadata&gt;();</span>
-<span class="nc" id="L81">            map.put(GENERAL, metadata);</span>
-<span class="nc" id="L82">            return new TicketMetadataContainer(map);</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (metadata != null) {</span>
+<span class="fc" id="L80">            var map = new HashMap&lt;String, TicketMetadata&gt;();</span>
+<span class="fc" id="L81">            map.put(GENERAL, metadata);</span>
+<span class="fc" id="L82">            return new TicketMetadataContainer(map);</span>
         }
-<span class="nc" id="L84">        return null;</span>
+<span class="fc" id="L84">        return null;</span>
     }
 
     public static TicketMetadataContainer copyOf(TicketMetadataContainer src) {
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (src != null) {</span>
-<span class="nc" id="L89">            Map&lt;String, TicketMetadata&gt; newMap = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L90">            src.metadataMap.forEach((key, tm) -&gt; newMap.put(key, TicketMetadata.copyOf(tm)));</span>
-<span class="nc" id="L91">            return new TicketMetadataContainer(newMap);</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (src != null) {</span>
+<span class="fc" id="L89">            Map&lt;String, TicketMetadata&gt; newMap = new HashMap&lt;&gt;();</span>
+<span class="pc" id="L90">            src.metadataMap.forEach((key, tm) -&gt; newMap.put(key, TicketMetadata.copyOf(tm)));</span>
+<span class="fc" id="L91">            return new TicketMetadataContainer(newMap);</span>
         }
 <span class="nc" id="L93">        return null;</span>
     }

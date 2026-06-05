@@ -32,22 +32,22 @@ public class CheckInLogEntry {
 
     public CheckInLogEntry(@Column(&quot;t_uuid&quot;) String ticketId,
                            @Column(&quot;attendee_data&quot;) @JSONData AttendeeData attendeeData,
-<span class="nc" id="L35">                           @Column(&quot;scans&quot;) String scansAsString) {</span>
-<span class="nc" id="L36">        this.ticketId = ticketId;</span>
-<span class="nc" id="L37">        this.attendeeData = attendeeData;</span>
-<span class="nc" id="L38">        this.audit = Json.fromJson(scansAsString, new TypeReference&lt;&gt;() {});</span>
-<span class="nc" id="L39">    }</span>
+<span class="fc" id="L35">                           @Column(&quot;scans&quot;) String scansAsString) {</span>
+<span class="fc" id="L36">        this.ticketId = ticketId;</span>
+<span class="fc" id="L37">        this.attendeeData = attendeeData;</span>
+<span class="fc" id="L38">        this.audit = Json.fromJson(scansAsString, new TypeReference&lt;&gt;() {});</span>
+<span class="fc" id="L39">    }</span>
 
     public String getTicketId() {
-<span class="nc" id="L42">        return ticketId;</span>
+<span class="fc" id="L42">        return ticketId;</span>
     }
 
     public AttendeeData getAttendeeData() {
-<span class="nc" id="L46">        return attendeeData;</span>
+<span class="fc" id="L46">        return attendeeData;</span>
     }
 
     public List&lt;ScanAudit&gt; getAudit() {
-<span class="nc" id="L50">        return audit;</span>
+<span class="fc" id="L50">        return audit;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

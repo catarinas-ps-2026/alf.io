@@ -157,13 +157,13 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
 
     @Override
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        if(!SUPPORTED_METHODS.containsValue(paymentMethod)) {</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if(!SUPPORTED_METHODS.containsValue(paymentMethod)) {</span>
 <span class="nc" id="L161">            return false;</span>
         }
-<span class="nc" id="L163">        var configuration = getConfiguration(context.getConfigurationLevel());</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">        return checkIfActive(configuration)</span>
+<span class="fc" id="L163">        var configuration = getConfiguration(context.getConfigurationLevel());</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        return checkIfActive(configuration)</span>
 <span class="nc bnc" id="L165" title="All 2 branches missed.">            &amp;&amp; isPlatformConfigurationPresent(configuration)</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">            &amp;&amp; retrieveAvailablePaymentMethods(transactionRequest, configuration, context.getConfigurationLevel()).contains(paymentMethod);</span>
+<span class="pc bnc" id="L166" title="All 2 branches missed.">            &amp;&amp; retrieveAvailablePaymentMethods(transactionRequest, configuration, context.getConfigurationLevel()).contains(paymentMethod);</span>
     }
 
     private boolean isPlatformConfigurationPresent(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configuration) {
@@ -171,7 +171,7 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
     }
 
     private Map&lt;ConfigurationKeys, MaybeConfiguration&gt; getConfiguration(ConfigurationLevel configurationLevel) {
-<span class="nc" id="L174">        return configurationManager.getFor(ALL_OPTIONS, configurationLevel);</span>
+<span class="fc" id="L174">        return configurationManager.getFor(ALL_OPTIONS, configurationLevel);</span>
     }
 
     private Set&lt;? extends PaymentMethod&gt; retrieveAvailablePaymentMethods(TransactionRequest transactionRequest, Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configuration, ConfigurationLevel configurationLevel) {
@@ -364,7 +364,7 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
 
     @Override
     public boolean accept(Transaction transaction) {
-<span class="nc bnc" id="L367" title="All 2 branches missed.">        return PaymentProxy.MOLLIE == transaction.getPaymentProxy();</span>
+<span class="pc bpc" id="L367" title="1 of 2 branches missed.">        return PaymentProxy.MOLLIE == transaction.getPaymentProxy();</span>
     }
 
     @Override
@@ -378,10 +378,10 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
     }
 
     private boolean checkIfActive(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configuration) {
-<span class="nc bnc" id="L381" title="All 2 branches missed.">        return configuration.get(MOLLIE_CC_ENABLED).getValueAsBooleanOrDefault()</span>
+<span class="pc bpc" id="L381" title="1 of 2 branches missed.">        return configuration.get(MOLLIE_CC_ENABLED).getValueAsBooleanOrDefault()</span>
 <span class="nc bnc" id="L382" title="All 2 branches missed.">            &amp;&amp; configuration.get(BASE_URL).isPresent()</span>
 <span class="nc bnc" id="L383" title="All 2 branches missed.">            &amp;&amp; configuration.get(MOLLIE_API_KEY).isPresent()</span>
-<span class="nc bnc" id="L384" title="All 2 branches missed.">            &amp;&amp; connectOptionsPresent(configuration);</span>
+<span class="pc bnc" id="L384" title="All 2 branches missed.">            &amp;&amp; connectOptionsPresent(configuration);</span>
     }
 
     private boolean connectOptionsPresent(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configuration) {

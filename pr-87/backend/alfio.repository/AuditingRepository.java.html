@@ -65,8 +65,8 @@ public interface AuditingRepository {
 
     default int insert(String reservationId, Integer userId, PurchaseContext p, Audit.EventType eventType, Date eventTime, Audit.EntityType entityType,
                        String entityId, List&lt;Map&lt;String, Object&gt;&gt; modifications) {
-<span class="nc" id="L68">        var eventId = p.event().map(Event::getId).orElse(null);</span>
-<span class="nc" id="L69">        return insert(reservationId, userId, eventId, eventType, eventTime, entityType, entityId, modifications);</span>
+<span class="fc" id="L68">        var eventId = p.event().map(Event::getId).orElse(null);</span>
+<span class="fc" id="L69">        return insert(reservationId, userId, eventId, eventType, eventTime, entityType, entityId, modifications);</span>
     }
 
 

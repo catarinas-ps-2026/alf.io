@@ -35,8 +35,8 @@ class MetadataBuilder {
 <span class="fc" id="L35">        initialMetadata.put(RESERVATION_ID, spec.getReservationId());</span>
 <span class="fc" id="L36">        initialMetadata.put(&quot;email&quot;, spec.getEmail());</span>
 <span class="fc" id="L37">        initialMetadata.put(&quot;fullName&quot;, spec.getCustomerName().getFullName());</span>
-<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (StringUtils.isNotBlank(spec.getBillingAddress())) {</span>
-<span class="nc" id="L39">            initialMetadata.put(&quot;billingAddress&quot;, spec.getBillingAddress().lines().collect(Collectors.joining(&quot;,&quot;)));</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (StringUtils.isNotBlank(spec.getBillingAddress())) {</span>
+<span class="fc" id="L39">            initialMetadata.put(&quot;billingAddress&quot;, spec.getBillingAddress().lines().collect(Collectors.joining(&quot;,&quot;)));</span>
         }
 <span class="fc" id="L41">        return initialMetadata;</span>
     }

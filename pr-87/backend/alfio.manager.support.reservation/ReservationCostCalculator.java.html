@@ -96,9 +96,9 @@ public class ReservationCostCalculator {
 
 <span class="fc" id="L97">        String currencyCode = purchaseContext.getCurrency();</span>
 <span class="fc" id="L98">        List&lt;TicketPriceContainer&gt; ticketPrices = tickets.stream().map(t -&gt; TicketPriceContainer.from(t, reservation.getVatStatus(), purchaseContext.getVat(), purchaseContext.getVatStatus(), promoCodeDiscount)).collect(toList());</span>
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        int discountedTickets = (int) ticketPrices.stream().filter(t -&gt; t.getAppliedDiscount().compareTo(BigDecimal.ZERO) &gt; 0).count();</span>
-<span class="pc bpc" id="L100" title="3 of 4 branches missed.">        int discountAppliedCount = discountedTickets &lt;= 1 || promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT ? discountedTickets : 1;</span>
-<span class="pc bpc" id="L101" title="4 of 6 branches missed.">        if(discountAppliedCount == 0 &amp;&amp; promoCodeDiscount != null &amp;&amp; promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        int discountedTickets = (int) ticketPrices.stream().filter(t -&gt; t.getAppliedDiscount().compareTo(BigDecimal.ZERO) &gt; 0).count();</span>
+<span class="fc bfc" id="L100" title="All 4 branches covered.">        int discountAppliedCount = discountedTickets &lt;= 1 || promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT ? discountedTickets : 1;</span>
+<span class="pc bpc" id="L101" title="1 of 6 branches missed.">        if(discountAppliedCount == 0 &amp;&amp; promoCodeDiscount != null &amp;&amp; promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
 <span class="nc" id="L102">            discountAppliedCount = 1;</span>
         }
 <span class="fc" id="L104">        var reservationPriceCalculator = alfio.manager.system.ReservationPriceCalculator.from(reservation, promoCodeDiscount, tickets, purchaseContext, additionalServiceItems, subscriptions, appliedSubscription);</span>

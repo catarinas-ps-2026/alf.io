@@ -43,10 +43,10 @@ public interface Mailer {
     }
 
     default String decorateSubjectIfDemo(String subject, Environment environment) {
-<span class="nc bnc" id="L46" title="All 2 branches missed.">        if(environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if(environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
 <span class="nc" id="L47">            return &quot;THIS IS A TEST: &quot; + subject;</span>
         } else {
-<span class="nc" id="L49">            return subject;</span>
+<span class="fc" id="L49">            return subject;</span>
         }
     }
 
@@ -55,17 +55,17 @@ public interface Mailer {
 <span class="fc" id="L55">        TICKET_PDF {</span>
             @Override
             public List&lt;AttachmentIdentifier&gt; reinterpretAs() {
-<span class="nc" id="L58">                return Arrays.asList(PASSBOOK, CALENDAR_ICS);</span>
+<span class="fc" id="L58">                return Arrays.asList(PASSBOOK, CALENDAR_ICS);</span>
             }
 <span class="fc" id="L60">        }, CALENDAR_ICS {</span>
             @Override
             public String fileName(String fileName) {
-<span class="nc" id="L63">                return &quot;calendar.ics&quot;;</span>
+<span class="fc" id="L63">                return &quot;calendar.ics&quot;;</span>
             }
 
             @Override
             public String contentType(String contentType) {
-<span class="nc" id="L68">                return &quot;text/calendar&quot;;</span>
+<span class="fc" id="L68">                return &quot;text/calendar&quot;;</span>
             }
 <span class="fc" id="L70">        }, INVOICE_PDF, RECEIPT_PDF, CREDIT_NOTE_PDF, PASSBOOK {</span>
             @Override
@@ -80,15 +80,15 @@ public interface Mailer {
 <span class="fc" id="L80">        }, SUBSCRIPTION_PDF;</span>
 
         public List&lt;AttachmentIdentifier&gt; reinterpretAs() {
-<span class="nc" id="L83">            return Collections.emptyList();</span>
+<span class="fc" id="L83">            return Collections.emptyList();</span>
         }
 
         public String contentType(String contentType) {
-<span class="nc" id="L87">            return contentType;</span>
+<span class="fc" id="L87">            return contentType;</span>
         }
 
         public String fileName(String fileName) {
-<span class="nc" id="L91">            return fileName;</span>
+<span class="fc" id="L91">            return fileName;</span>
         }
     }
 }

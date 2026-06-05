@@ -123,36 +123,36 @@ public class TicketWithReservationAndTransaction {
 
                                                @Column(&quot;promo_code&quot;) String promoCode,
                                                @Column(&quot;special_price_token&quot;) String specialPriceToken
-<span class="nc" id="L126">                                               ) {</span>
+<span class="fc" id="L126">                                               ) {</span>
 
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        this.ticket = id != null ? new Ticket(id, uuid, publicUuid, creation, categoryId, status, eventId, ticketsReservationId,</span>
-<span class="nc" id="L129">            fullName, firstName, lastName, email, lockedAssignment, userLanguage,</span>
-<span class="nc" id="L130">            srcPriceCts, finalPriceCts, vatCts, discountCts, extReference, currencyCode,</span>
-<span class="nc" id="L131">            ticketTags, ticketSubscriptionId, vatStatus) : null;</span>
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">        this.ticket = id != null ? new Ticket(id, uuid, publicUuid, creation, categoryId, status, eventId, ticketsReservationId,</span>
+<span class="fc" id="L129">            fullName, firstName, lastName, email, lockedAssignment, userLanguage,</span>
+<span class="fc" id="L130">            srcPriceCts, finalPriceCts, vatCts, discountCts, extReference, currencyCode,</span>
+<span class="pc" id="L131">            ticketTags, ticketSubscriptionId, vatStatus) : null;</span>
 
 
-<span class="nc" id="L134">        this.ticketReservation = new TicketReservation(trId, validity, trStatus,</span>
+<span class="fc" id="L134">        this.ticketReservation = new TicketReservation(trId, validity, trStatus,</span>
             trFullName, trFirstName, trLastName, trEmail,
             billingAddress, confirmationTimestamp, latestReminder, paymentMethod,
             reminderSent, promoCodeDiscountId, automatic, trUserLanguage,
             directAssignmentRequested, invoiceNumber, invoiceModel, vatStatus, vatNr, vatCountryCode, invoiceRequested,
             usedVadPercent, vatIncluded, reservationCreationTimestamp, customerReference,
-<span class="nc" id="L140">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
+<span class="fc" id="L140">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
 
-<span class="nc" id="L142">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountryCode, vatNr, invoicingAdditionalInfo);</span>
+<span class="fc" id="L142">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountryCode, vatNr, invoicingAdditionalInfo);</span>
 
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        if(btId != null) {</span>
-<span class="nc" id="L145">            this.transaction = Optional.of(new Transaction(btId, transactionId, paymentId, reservationId,</span>
-<span class="nc" id="L146">                timestamp, priceInCents, currency, description, paymentProxy, Optional.ofNullable(platformFee).orElse(0L), Optional.ofNullable(gatewayFee).orElse(0L), transactionStatus, metadata));</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">        if(btId != null) {</span>
+<span class="fc" id="L145">            this.transaction = Optional.of(new Transaction(btId, transactionId, paymentId, reservationId,</span>
+<span class="fc" id="L146">                timestamp, priceInCents, currency, description, paymentProxy, Optional.ofNullable(platformFee).orElse(0L), Optional.ofNullable(gatewayFee).orElse(0L), transactionStatus, metadata));</span>
         } else {
-<span class="nc" id="L148">            this.transaction = Optional.empty();</span>
+<span class="fc" id="L148">            this.transaction = Optional.empty();</span>
         }
 
-<span class="nc" id="L151">        this.ticketsCountInReservation = ticketsCount;</span>
+<span class="fc" id="L151">        this.ticketsCountInReservation = ticketsCount;</span>
 
-<span class="nc" id="L153">        this.promoCode = promoCode;</span>
-<span class="nc" id="L154">        this.specialPriceToken = specialPriceToken;</span>
+<span class="fc" id="L153">        this.promoCode = promoCode;</span>
+<span class="fc" id="L154">        this.specialPriceToken = specialPriceToken;</span>
 
-<span class="nc" id="L156">    }</span>
+<span class="fc" id="L156">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

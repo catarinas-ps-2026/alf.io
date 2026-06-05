@@ -204,31 +204,31 @@ public class AdminReservationManager {
                                                                                                TransactionDetails transaction,
                                                                                                Notification notification,
                                                                                                ReservationBillingData billingData) {
-<span class="nc" id="L207">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition();</span>
-<span class="nc" id="L208">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
-<span class="nc" id="L209">        return template.execute(t -&gt; {</span>
-<span class="nc" id="L210">            var purchaseContextOptional = purchaseContextManager.findByReservationId(reservationId);</span>
-<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (purchaseContextOptional.isEmpty()) {</span>
+<span class="fc" id="L207">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition();</span>
+<span class="fc" id="L208">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
+<span class="fc" id="L209">        return template.execute(t -&gt; {</span>
+<span class="fc" id="L210">            var purchaseContextOptional = purchaseContextManager.findByReservationId(reservationId);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">            if (purchaseContextOptional.isEmpty()) {</span>
 <span class="nc" id="L212">                return Result.error(ErrorCode.ReservationError.NOT_FOUND);</span>
             }
-<span class="nc" id="L214">            var purchaseContext = purchaseContextOptional.get();</span>
-<span class="nc" id="L215">            accessService.checkOrganizationOwnership(principal, purchaseContext.getOrganizationId());</span>
-<span class="nc bnc" id="L216" title="All 2 branches missed.">            if (billingData != null) {</span>
-<span class="nc" id="L217">                log.debug(&quot;Setting billing address to reservation {}&quot;, reservationId);</span>
-<span class="nc" id="L218">                var billingAddress = TicketReservationManager.buildCompleteBillingAddress(</span>
-<span class="nc" id="L219">                    new CustomerName(billingData.fullName(), null, null, false),</span>
-<span class="nc" id="L220">                    billingData.company(),</span>
-<span class="nc" id="L221">                    billingData.line1(),</span>
-<span class="nc" id="L222">                    billingData.line2(),</span>
-<span class="nc" id="L223">                    billingData.zip(),</span>
-<span class="nc" id="L224">                    billingData.city(),</span>
-<span class="nc" id="L225">                    billingData.state(),</span>
-<span class="nc" id="L226">                    billingData.countryCode(),</span>
-<span class="nc" id="L227">                    Locale.forLanguageTag(ticketReservationRepository.loadUserLanguage(reservationId))</span>
+<span class="fc" id="L214">            var purchaseContext = purchaseContextOptional.get();</span>
+<span class="fc" id="L215">            accessService.checkOrganizationOwnership(principal, purchaseContext.getOrganizationId());</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">            if (billingData != null) {</span>
+<span class="fc" id="L217">                log.debug(&quot;Setting billing address to reservation {}&quot;, reservationId);</span>
+<span class="fc" id="L218">                var billingAddress = TicketReservationManager.buildCompleteBillingAddress(</span>
+<span class="fc" id="L219">                    new CustomerName(billingData.fullName(), null, null, false),</span>
+<span class="fc" id="L220">                    billingData.company(),</span>
+<span class="fc" id="L221">                    billingData.line1(),</span>
+<span class="fc" id="L222">                    billingData.line2(),</span>
+<span class="fc" id="L223">                    billingData.zip(),</span>
+<span class="fc" id="L224">                    billingData.city(),</span>
+<span class="fc" id="L225">                    billingData.state(),</span>
+<span class="fc" id="L226">                    billingData.countryCode(),</span>
+<span class="fc" id="L227">                    Locale.forLanguageTag(ticketReservationRepository.loadUserLanguage(reservationId))</span>
                 );
-<span class="nc bnc" id="L229" title="All 2 branches missed.">                Validate.isTrue( 1 == ticketReservationRepository.updateBillingAddress(billingAddress, reservationId));</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">                Validate.isTrue( 1 == ticketReservationRepository.updateBillingAddress(billingAddress, reservationId));</span>
             }
-<span class="nc" id="L231">            return confirmReservation(purchaseContext.getType(), purchaseContext.getPublicIdentifier(), reservationId, principal.getName(), notification, transaction, null);</span>
+<span class="fc" id="L231">            return confirmReservation(purchaseContext.getType(), purchaseContext.getPublicIdentifier(), reservationId, principal.getName(), notification, transaction, null);</span>
         });
     }
 
@@ -256,20 +256,20 @@ public class AdminReservationManager {
     }
 
     public Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; createReservation(AdminReservationModification input, String eventName, String username) {
-<span class="nc" id="L259">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED);</span>
-<span class="nc" id="L260">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
-<span class="nc" id="L261">        return template.execute(status -&gt; {</span>
-<span class="nc" id="L262">            var savepoint = status.createSavepoint();</span>
+<span class="fc" id="L259">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED);</span>
+<span class="fc" id="L260">        TransactionTemplate template = new TransactionTemplate(transactionManager, definition);</span>
+<span class="fc" id="L261">        return template.execute(status -&gt; {</span>
+<span class="fc" id="L262">            var savepoint = status.createSavepoint();</span>
             try {
-<span class="nc" id="L264">                Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; result = eventRepository.findOptionalByShortNameForUpdate(eventName)</span>
-<span class="nc" id="L265">                    .map(e -&gt; validateTickets(input, e))</span>
-<span class="nc" id="L266">                    .map(r -&gt; r.flatMap(p -&gt; transactionalCreateReservation(p.getRight(), p.getLeft(), username)))</span>
-<span class="nc" id="L267">                    .orElse(Result.error(ErrorCode.EventError.NOT_FOUND));</span>
-<span class="nc bnc" id="L268" title="All 2 branches missed.">                if (!result.isSuccess()) {</span>
-<span class="nc" id="L269">                    log.warn(&quot;Error during update of reservation eventName: {}, username: {}, reservation: {}&quot;, eventName, username, AdminReservationModification.summary(input));</span>
-<span class="nc" id="L270">                    status.rollbackToSavepoint(savepoint);</span>
+<span class="fc" id="L264">                Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; result = eventRepository.findOptionalByShortNameForUpdate(eventName)</span>
+<span class="fc" id="L265">                    .map(e -&gt; validateTickets(input, e))</span>
+<span class="fc" id="L266">                    .map(r -&gt; r.flatMap(p -&gt; transactionalCreateReservation(p.getRight(), p.getLeft(), username)))</span>
+<span class="fc" id="L267">                    .orElse(Result.error(ErrorCode.EventError.NOT_FOUND));</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">                if (!result.isSuccess()) {</span>
+<span class="fc" id="L269">                    log.warn(&quot;Error during update of reservation eventName: {}, username: {}, reservation: {}&quot;, eventName, username, AdminReservationModification.summary(input));</span>
+<span class="fc" id="L270">                    status.rollbackToSavepoint(savepoint);</span>
                 }
-<span class="nc" id="L272">                return result;</span>
+<span class="fc" id="L272">                return result;</span>
 <span class="nc" id="L273">            } catch (Exception e) {</span>
 <span class="nc" id="L274">                log.error(&quot;Error during update of reservation eventName: {}, username: {}, reservation: {}&quot;, eventName, username, AdminReservationModification.summary(input));</span>
 <span class="nc" id="L275">                log.debug(&quot;Error detail:&quot;, e);</span>
@@ -445,21 +445,21 @@ public class AdminReservationManager {
 
 <span class="fc" id="L446">            var reservation = original;</span>
 
-<span class="pc bpc" id="L448" title="3 of 4 branches missed.">            if (subscriptionId != null &amp;&amp; purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc bnc" id="L449" title="All 4 branches missed.">                if (reservation.getVatStatus() == null &amp;&amp; purchaseContext.getVatStatus() != null) {</span>
+<span class="pc bpc" id="L448" title="1 of 4 branches missed.">            if (subscriptionId != null &amp;&amp; purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="pc bpc" id="L449" title="2 of 4 branches missed.">                if (reservation.getVatStatus() == null &amp;&amp; purchaseContext.getVatStatus() != null) {</span>
                     // set default vatStatus if not present
-<span class="nc" id="L451">                    ticketReservationRepository.updateVatStatus(reservationId, purchaseContext.getVatStatus());</span>
-<span class="nc" id="L452">                    reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
+<span class="fc" id="L451">                    ticketReservationRepository.updateVatStatus(reservationId, purchaseContext.getVatStatus());</span>
+<span class="fc" id="L452">                    reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
                 }
-<span class="nc" id="L454">                var subscriptionDetails = subscriptionRepository.findSubscriptionById(subscriptionId);</span>
-<span class="nc" id="L455">                var bindingResult = new MapBindingResult(new HashMap&lt;&gt;(), &quot;&quot;);</span>
-<span class="nc" id="L456">                boolean result = ticketReservationManager.validateAndApplySubscriptionCode(purchaseContext,</span>
+<span class="fc" id="L454">                var subscriptionDetails = subscriptionRepository.findSubscriptionById(subscriptionId);</span>
+<span class="fc" id="L455">                var bindingResult = new MapBindingResult(new HashMap&lt;&gt;(), &quot;&quot;);</span>
+<span class="fc" id="L456">                boolean result = ticketReservationManager.validateAndApplySubscriptionCode(purchaseContext,</span>
                     reservation,
-<span class="nc" id="L458">                    Optional.of(subscriptionId),</span>
-<span class="nc" id="L459">                    subscriptionId.toString(),</span>
-<span class="nc" id="L460">                    subscriptionDetails.getEmail(),</span>
+<span class="fc" id="L458">                    Optional.of(subscriptionId),</span>
+<span class="fc" id="L459">                    subscriptionId.toString(),</span>
+<span class="fc" id="L460">                    subscriptionDetails.getEmail(),</span>
                     bindingResult);
-<span class="nc bnc" id="L462" title="All 2 branches missed.">                if (!result) {</span>
+<span class="pc bpc" id="L462" title="1 of 2 branches missed.">                if (!result) {</span>
 <span class="nc" id="L463">                    var message = bindingResult.getGlobalErrors().stream()</span>
 <span class="nc" id="L464">                        .findFirst()</span>
 <span class="nc" id="L465">                        .map(DefaultMessageSourceResolvable::getCode)</span>
@@ -469,7 +469,7 @@ public class AdminReservationManager {
 <span class="nc" id="L469">                    return Result.error(ErrorCode.custom(message, &quot;Cannot assign subscription %s to Reservation %s&quot;.formatted(subscriptionId, reservationId)));</span>
                 }
 
-<span class="nc" id="L472">                reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
+<span class="fc" id="L472">                reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
             }
 
 <span class="fc" id="L475">            PaymentSpecification spec = new PaymentSpecification(reservationId,</span>
@@ -491,25 +491,25 @@ public class AdminReservationManager {
                 false,
                 false);
 
-<span class="pc bpc" id="L494" title="1 of 2 branches missed.">            if (transactionDetails.getPaymentProvider() != PaymentProxy.ADMIN) {</span>
-<span class="nc" id="L495">                var timestamp = Objects.requireNonNullElseGet(transactionDetails.getTimestamp(), () -&gt; LocalDateTime.now(clockProvider.getClock())).atZone(purchaseContext.getZoneId());</span>
-<span class="nc bnc" id="L496" title="All 2 branches missed.">                if (transactionRepository.transactionExists(reservationId)) {</span>
+<span class="fc bfc" id="L494" title="All 2 branches covered.">            if (transactionDetails.getPaymentProvider() != PaymentProxy.ADMIN) {</span>
+<span class="pc" id="L495">                var timestamp = Objects.requireNonNullElseGet(transactionDetails.getTimestamp(), () -&gt; LocalDateTime.now(clockProvider.getClock())).atZone(purchaseContext.getZoneId());</span>
+<span class="pc bpc" id="L496" title="1 of 2 branches missed.">                if (transactionRepository.transactionExists(reservationId)) {</span>
 <span class="nc" id="L497">                    paymentManager.updateTransactionDetails(reservationId, transactionDetails.getNotes(), timestamp, null);</span>
                 } else {
-<span class="nc" id="L499">                    var paidAmount = Objects.requireNonNullElse(transactionDetails.getPaidAmount(), BigDecimal.ZERO);</span>
-<span class="nc" id="L500">                    transactionRepository.insert(</span>
-<span class="nc" id="L501">                        StringUtils.trimToEmpty(transactionDetails.getId()),</span>
+<span class="fc" id="L499">                    var paidAmount = Objects.requireNonNullElse(transactionDetails.getPaidAmount(), BigDecimal.ZERO);</span>
+<span class="fc" id="L500">                    transactionRepository.insert(</span>
+<span class="fc" id="L501">                        StringUtils.trimToEmpty(transactionDetails.getId()),</span>
                         &quot;&quot;,
                         reservationId,
                         timestamp,
-<span class="nc" id="L505">                        MonetaryUtil.unitToCents(paidAmount, reservation.getCurrencyCode()),</span>
-<span class="nc" id="L506">                        reservation.getCurrencyCode(),</span>
+<span class="fc" id="L505">                        MonetaryUtil.unitToCents(paidAmount, reservation.getCurrencyCode()),</span>
+<span class="fc" id="L506">                        reservation.getCurrencyCode(),</span>
                         &quot;&quot;,
-<span class="nc" id="L508">                        transactionDetails.getPaymentProvider().name(),</span>
+<span class="fc" id="L508">                        transactionDetails.getPaymentProvider().name(),</span>
                         0L,
                         0L,
                         Transaction.Status.COMPLETE,
-<span class="nc" id="L512">                        Map.of(Transaction.NOTES_KEY, StringUtils.trimToEmpty(transactionDetails.getNotes()))</span>
+<span class="fc" id="L512">                        Map.of(Transaction.NOTES_KEY, StringUtils.trimToEmpty(transactionDetails.getNotes()))</span>
                     );
                 }
             }
@@ -528,13 +528,13 @@ public class AdminReservationManager {
 
     @Transactional
     Result&lt;Pair&lt;Event, AdminReservationModification&gt;&gt; validateTickets(AdminReservationModification input, Event event) {
-<span class="nc" id="L531">        Set&lt;String&gt; keys = input.getTicketsInfo().stream().flatMap(ti -&gt; ti.getAttendees().stream())</span>
-<span class="nc" id="L532">            .flatMap(a -&gt; a.getAdditionalInfo().keySet().stream())</span>
-<span class="nc" id="L533">            .map(String::toLowerCase)</span>
-<span class="nc" id="L534">            .collect(toSet());</span>
+<span class="fc" id="L531">        Set&lt;String&gt; keys = input.getTicketsInfo().stream().flatMap(ti -&gt; ti.getAttendees().stream())</span>
+<span class="fc" id="L532">            .flatMap(a -&gt; a.getAdditionalInfo().keySet().stream())</span>
+<span class="fc" id="L533">            .map(String::toLowerCase)</span>
+<span class="fc" id="L534">            .collect(toSet());</span>
 
-<span class="nc bnc" id="L536" title="All 2 branches missed.">        if(keys.isEmpty()) {</span>
-<span class="nc" id="L537">            return Result.success(Pair.of(event, input));</span>
+<span class="pc bpc" id="L536" title="1 of 2 branches missed.">        if(keys.isEmpty()) {</span>
+<span class="fc" id="L537">            return Result.success(Pair.of(event, input));</span>
         }
 
 <span class="nc" id="L540">        List&lt;String&gt; existing = purchaseContextFieldRepository.getExistingFields(event.getId(), keys);</span>
@@ -549,126 +549,126 @@ public class AdminReservationManager {
     }
 
     private Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; transactionalCreateReservation(AdminReservationModification input, Event event, String username) {
-<span class="nc" id="L552">        return optionally(() -&gt; {</span>
-<span class="nc" id="L553">                eventManager.checkOwnership(event, username, event.getOrganizationId());</span>
-<span class="nc" id="L554">                return event;</span>
-<span class="nc" id="L555">            }).map(e -&gt; processReservation(input, username, e))</span>
-<span class="nc" id="L556">            .orElseGet(() -&gt; Result.error(singletonList(ErrorCode.EventError.NOT_FOUND)));</span>
+<span class="fc" id="L552">        return optionally(() -&gt; {</span>
+<span class="fc" id="L553">                eventManager.checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="fc" id="L554">                return event;</span>
+<span class="fc" id="L555">            }).map(e -&gt; processReservation(input, username, e))</span>
+<span class="pc" id="L556">            .orElseGet(() -&gt; Result.error(singletonList(ErrorCode.EventError.NOT_FOUND)));</span>
     }
 
     private Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; processReservation(AdminReservationModification input, String username, Event event) {
-<span class="nc" id="L560">        return input.getTicketsInfo().stream()</span>
-<span class="nc" id="L561">            .map(ti -&gt; checkCategoryCapacity(ti, event, input, username))</span>
-<span class="nc" id="L562">            .reduce((r1, r2) -&gt; reduceResults(r1, r2, this::joinData))</span>
-<span class="nc" id="L563">            .map(r -&gt; createReservation(r, event, input))</span>
-<span class="nc" id="L564">            .orElseGet(() -&gt; Result.error(singletonList(ErrorCode.custom(&quot;&quot;, &quot;something went wrong...&quot;))));</span>
+<span class="fc" id="L560">        return input.getTicketsInfo().stream()</span>
+<span class="fc" id="L561">            .map(ti -&gt; checkCategoryCapacity(ti, event, input, username))</span>
+<span class="fc" id="L562">            .reduce((r1, r2) -&gt; reduceResults(r1, r2, this::joinData))</span>
+<span class="fc" id="L563">            .map(r -&gt; createReservation(r, event, input))</span>
+<span class="pc" id="L564">            .orElseGet(() -&gt; Result.error(singletonList(ErrorCode.custom(&quot;&quot;, &quot;something went wrong...&quot;))));</span>
     }
 
     private List&lt;TicketsInfo&gt; joinData(List&lt;TicketsInfo&gt; t1, List&lt;TicketsInfo&gt; t2) {
-<span class="nc" id="L568">        List&lt;TicketsInfo&gt; join = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L569">        join.addAll(t1);</span>
-<span class="nc" id="L570">        join.addAll(t2);</span>
-<span class="nc" id="L571">        return join;</span>
+<span class="fc" id="L568">        List&lt;TicketsInfo&gt; join = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L569">        join.addAll(t1);</span>
+<span class="fc" id="L570">        join.addAll(t2);</span>
+<span class="fc" id="L571">        return join;</span>
     }
 
     private Result&lt;Pair&lt;TicketReservation, List&lt;Ticket&gt;&gt;&gt; createReservation(Result&lt;List&lt;TicketsInfo&gt;&gt; input, Event event, AdminReservationModification arm) {
-<span class="nc" id="L575">        final TicketsInfo empty = new TicketsInfo(null, null, false, false);</span>
-<span class="nc" id="L576">        return input.flatMap(t -&gt; {</span>
-<span class="nc" id="L577">            String reservationId = UUID.randomUUID().toString();</span>
-<span class="nc" id="L578">            Date validity = Date.from(arm.getExpiration().toZonedDateTime(event.getZoneId()).toInstant());</span>
-<span class="nc" id="L579">            ticketReservationRepository.createNewReservation(reservationId, event.now(clockProvider), validity, null,</span>
-<span class="nc" id="L580">                arm.getLanguage(), event.getId(), event.getVat(), event.isVatIncluded(), event.getCurrency(), event.getOrganizationId(), null);</span>
-<span class="nc" id="L581">            AdminReservationModification.CustomerData customerData = arm.getCustomerData();</span>
-<span class="nc" id="L582">            ticketReservationRepository.updateTicketReservation(reservationId, TicketReservationStatus.PENDING.name(), customerData.getEmailAddress(),</span>
-<span class="nc" id="L583">                customerData.getFullName(), customerData.getFirstName(), customerData.getLastName(), arm.getLanguage(),</span>
-<span class="nc" id="L584">                customerData.getBillingAddress(), null, null, customerData.getCustomerReference());</span>
+<span class="fc" id="L575">        final TicketsInfo empty = new TicketsInfo(null, null, false, false);</span>
+<span class="fc" id="L576">        return input.flatMap(t -&gt; {</span>
+<span class="fc" id="L577">            String reservationId = UUID.randomUUID().toString();</span>
+<span class="fc" id="L578">            Date validity = Date.from(arm.getExpiration().toZonedDateTime(event.getZoneId()).toInstant());</span>
+<span class="fc" id="L579">            ticketReservationRepository.createNewReservation(reservationId, event.now(clockProvider), validity, null,</span>
+<span class="fc" id="L580">                arm.getLanguage(), event.getId(), event.getVat(), event.isVatIncluded(), event.getCurrency(), event.getOrganizationId(), null);</span>
+<span class="fc" id="L581">            AdminReservationModification.CustomerData customerData = arm.getCustomerData();</span>
+<span class="fc" id="L582">            ticketReservationRepository.updateTicketReservation(reservationId, TicketReservationStatus.PENDING.name(), customerData.getEmailAddress(),</span>
+<span class="fc" id="L583">                customerData.getFullName(), customerData.getFirstName(), customerData.getLastName(), arm.getLanguage(),</span>
+<span class="fc" id="L584">                customerData.getBillingAddress(), null, null, customerData.getCustomerReference());</span>
 
-<span class="nc" id="L586">            Result&lt;List&lt;Ticket&gt;&gt; result = flattenTicketsInfo(event, empty, t)</span>
-<span class="nc" id="L587">                .map(pair -&gt; reserveForTicketsInfo(event, arm, reservationId, pair))</span>
-<span class="nc" id="L588">                .reduce(this::reduceReservationResults)</span>
-<span class="nc" id="L589">                .orElseGet(() -&gt; Result.error(ErrorCode.custom(&quot;&quot;, &quot;unknown error&quot;)));</span>
+<span class="fc" id="L586">            Result&lt;List&lt;Ticket&gt;&gt; result = flattenTicketsInfo(event, empty, t)</span>
+<span class="fc" id="L587">                .map(pair -&gt; reserveForTicketsInfo(event, arm, reservationId, pair))</span>
+<span class="fc" id="L588">                .reduce(this::reduceReservationResults)</span>
+<span class="pc" id="L589">                .orElseGet(() -&gt; Result.error(ErrorCode.custom(&quot;&quot;, &quot;unknown error&quot;)));</span>
 
-<span class="nc" id="L591">            return result.map(list -&gt; Pair.of(ticketReservationRepository.findReservationById(reservationId), list));</span>
+<span class="fc" id="L591">            return result.map(list -&gt; Pair.of(ticketReservationRepository.findReservationById(reservationId), list));</span>
         });
     }
 
     private Result&lt;List&lt;Ticket&gt;&gt; reserveForTicketsInfo(Event event, AdminReservationModification arm, String reservationId, Pair&lt;TicketCategory, TicketsInfo&gt; pair) {
-<span class="nc" id="L596">        TicketCategory category = pair.getLeft();</span>
-<span class="nc" id="L597">        TicketsInfo ticketsInfo = pair.getRight();</span>
-<span class="nc" id="L598">        int categoryId = category.getId();</span>
-<span class="nc" id="L599">        List&lt;Attendee&gt; attendees = ticketsInfo.getAttendees();</span>
-<span class="nc" id="L600">        List&lt;Integer&gt; reservedForUpdate = ticketReservationManager.reserveTickets(event.getId(), categoryId, attendees.size(), singletonList(Ticket.TicketStatus.FREE));</span>
-<span class="nc bnc" id="L601" title="All 4 branches missed.">        if (reservedForUpdate.isEmpty()|| reservedForUpdate.size() != attendees.size()) {</span>
-<span class="nc" id="L602">            return Result.error(ErrorCode.CategoryError.NOT_ENOUGH_SEATS);</span>
+<span class="fc" id="L596">        TicketCategory category = pair.getLeft();</span>
+<span class="fc" id="L597">        TicketsInfo ticketsInfo = pair.getRight();</span>
+<span class="fc" id="L598">        int categoryId = category.getId();</span>
+<span class="fc" id="L599">        List&lt;Attendee&gt; attendees = ticketsInfo.getAttendees();</span>
+<span class="fc" id="L600">        List&lt;Integer&gt; reservedForUpdate = ticketReservationManager.reserveTickets(event.getId(), categoryId, attendees.size(), singletonList(Ticket.TicketStatus.FREE));</span>
+<span class="pc bpc" id="L601" title="1 of 4 branches missed.">        if (reservedForUpdate.isEmpty()|| reservedForUpdate.size() != attendees.size()) {</span>
+<span class="fc" id="L602">            return Result.error(ErrorCode.CategoryError.NOT_ENOUGH_SEATS);</span>
         }
-<span class="nc" id="L604">        var currencyCode = category.getCurrencyCode();</span>
-<span class="nc" id="L605">        ticketRepository.reserveTickets(reservationId, reservedForUpdate, category, arm.getLanguage(), event.getVatStatus(), i -&gt; null);</span>
-<span class="nc" id="L606">        Ticket ticket = ticketRepository.findById(reservedForUpdate.get(0), categoryId);</span>
-<span class="nc" id="L607">        TicketPriceContainer priceContainer = TicketPriceContainer.from(ticket, null, event.getVat(), event.getVatStatus(), null);</span>
-<span class="nc" id="L608">        ticketRepository.updateTicketPrice(reservedForUpdate,</span>
+<span class="fc" id="L604">        var currencyCode = category.getCurrencyCode();</span>
+<span class="fc" id="L605">        ticketRepository.reserveTickets(reservationId, reservedForUpdate, category, arm.getLanguage(), event.getVatStatus(), i -&gt; null);</span>
+<span class="fc" id="L606">        Ticket ticket = ticketRepository.findById(reservedForUpdate.get(0), categoryId);</span>
+<span class="fc" id="L607">        TicketPriceContainer priceContainer = TicketPriceContainer.from(ticket, null, event.getVat(), event.getVatStatus(), null);</span>
+<span class="fc" id="L608">        ticketRepository.updateTicketPrice(reservedForUpdate,</span>
             categoryId,
-<span class="nc" id="L610">            event.getId(),</span>
-<span class="nc" id="L611">            category.getSrcPriceCts(),</span>
-<span class="nc" id="L612">            unitToCents(priceContainer.getFinalPrice(), currencyCode),</span>
-<span class="nc" id="L613">            unitToCents(priceContainer.getVAT(), currencyCode),</span>
-<span class="nc" id="L614">            unitToCents(priceContainer.getAppliedDiscount(), currencyCode),</span>
+<span class="fc" id="L610">            event.getId(),</span>
+<span class="fc" id="L611">            category.getSrcPriceCts(),</span>
+<span class="fc" id="L612">            unitToCents(priceContainer.getFinalPrice(), currencyCode),</span>
+<span class="fc" id="L613">            unitToCents(priceContainer.getVAT(), currencyCode),</span>
+<span class="fc" id="L614">            unitToCents(priceContainer.getAppliedDiscount(), currencyCode),</span>
             currencyCode,
-<span class="nc" id="L616">            priceContainer.getVatStatus());</span>
-<span class="nc bnc" id="L617" title="All 2 branches missed.">        List&lt;SpecialPrice&gt; codes = category.isAccessRestricted() ? bindSpecialPriceTokens(categoryId, attendees) : Collections.emptyList();</span>
-<span class="nc bnc" id="L618" title="All 4 branches missed.">        if(category.isAccessRestricted() &amp;&amp; codes.size() &lt; attendees.size()) {</span>
+<span class="fc" id="L616">            priceContainer.getVatStatus());</span>
+<span class="fc bfc" id="L617" title="All 2 branches covered.">        List&lt;SpecialPrice&gt; codes = category.isAccessRestricted() ? bindSpecialPriceTokens(categoryId, attendees) : Collections.emptyList();</span>
+<span class="pc bpc" id="L618" title="1 of 4 branches missed.">        if(category.isAccessRestricted() &amp;&amp; codes.size() &lt; attendees.size()) {</span>
 <span class="nc" id="L619">            return Result.error(ErrorCode.CategoryError.NOT_ENOUGH_SEATS);</span>
         }
-<span class="nc" id="L621">        assignTickets(event, attendees, categoryId, reservedForUpdate, codes, reservationId, arm.getLanguage(), category.getSrcPriceCts());</span>
-<span class="nc" id="L622">        List&lt;Ticket&gt; tickets = reservedForUpdate.stream().map(id -&gt; ticketRepository.findById(id, categoryId)).collect(toList());</span>
-<span class="nc" id="L623">        return Result.success(tickets);</span>
+<span class="fc" id="L621">        assignTickets(event, attendees, categoryId, reservedForUpdate, codes, reservationId, arm.getLanguage(), category.getSrcPriceCts());</span>
+<span class="fc" id="L622">        List&lt;Ticket&gt; tickets = reservedForUpdate.stream().map(id -&gt; ticketRepository.findById(id, categoryId)).collect(toList());</span>
+<span class="fc" id="L623">        return Result.success(tickets);</span>
     }
 
     private Result&lt;List&lt;Ticket&gt;&gt; reduceReservationResults(Result&lt;List&lt;Ticket&gt;&gt; r1, Result&lt;List&lt;Ticket&gt;&gt; r2) {
-<span class="nc" id="L627">        return reduceResults(r1, r2, this::joinCreateReservationResults);</span>
+<span class="fc" id="L627">        return reduceResults(r1, r2, this::joinCreateReservationResults);</span>
     }
 
     private List&lt;Ticket&gt; joinCreateReservationResults(List&lt;Ticket&gt; r1, List&lt;Ticket&gt; r2) {
-<span class="nc" id="L631">        List&lt;Ticket&gt; data = new ArrayList&lt;&gt;(r1);</span>
-<span class="nc" id="L632">        data.addAll(r2);</span>
-<span class="nc" id="L633">        return data;</span>
+<span class="fc" id="L631">        List&lt;Ticket&gt; data = new ArrayList&lt;&gt;(r1);</span>
+<span class="fc" id="L632">        data.addAll(r2);</span>
+<span class="fc" id="L633">        return data;</span>
     }
 
     private &lt;T&gt; Result&lt;T&gt; reduceResults(Result&lt;T&gt; r1, Result&lt;T&gt; r2, BinaryOperator&lt;T&gt; processData) {
-<span class="nc bnc" id="L637" title="All 4 branches missed.">        boolean successful = r1.isSuccess() &amp;&amp; r2.isSuccess();</span>
-<span class="nc bnc" id="L638" title="All 2 branches missed.">        ResultStatus global = r1.isSuccess() ? r2.getStatus() : r1.getStatus();</span>
-<span class="nc" id="L639">        List&lt;ErrorCode&gt; errors = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L640" title="All 2 branches missed.">        if(!successful) {</span>
+<span class="pc bpc" id="L637" title="2 of 4 branches missed.">        boolean successful = r1.isSuccess() &amp;&amp; r2.isSuccess();</span>
+<span class="pc bpc" id="L638" title="1 of 2 branches missed.">        ResultStatus global = r1.isSuccess() ? r2.getStatus() : r1.getStatus();</span>
+<span class="fc" id="L639">        List&lt;ErrorCode&gt; errors = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L640" title="1 of 2 branches missed.">        if(!successful) {</span>
 <span class="nc" id="L641">            errors.addAll(r1.getErrors());</span>
 <span class="nc" id="L642">            errors.addAll(r2.getErrors());</span>
 <span class="nc" id="L643">            return new Result&lt;&gt;(global, null, errors);</span>
         } else {
-<span class="nc" id="L645">            return new Result&lt;&gt;(global, processData.apply(r1.getData(), r2.getData()), errors);</span>
+<span class="fc" id="L645">            return new Result&lt;&gt;(global, processData.apply(r1.getData(), r2.getData()), errors);</span>
         }
     }
 
     private Stream&lt;Pair&lt;TicketCategory, TicketsInfo&gt;&gt; flattenTicketsInfo(Event event, TicketsInfo empty, List&lt;TicketsInfo&gt; t) {
-<span class="nc" id="L650">        return t.stream()</span>
-<span class="nc" id="L651">            .collect(groupingBy(ti -&gt; ti.getCategory().getExistingCategoryId()))</span>
-<span class="nc" id="L652">            .entrySet()</span>
-<span class="nc" id="L653">            .stream()</span>
-<span class="nc" id="L654">            .map(entry -&gt; {</span>
-<span class="nc" id="L655">                TicketsInfo ticketsInfo = entry.getValue()</span>
-<span class="nc" id="L656">                    .stream()</span>
-<span class="nc" id="L657">                    .reduce((ti1, ti2) -&gt; {</span>
-<span class="nc" id="L658">                        List&lt;Attendee&gt; attendees = new ArrayList&lt;&gt;(ti1.getAttendees());</span>
-<span class="nc" id="L659">                        attendees.addAll(ti2.getAttendees());</span>
-<span class="nc bnc" id="L660" title="All 8 branches missed.">                        return new TicketsInfo(ti1.getCategory(), attendees, ti1.isAddSeatsIfNotAvailable() &amp;&amp; ti2.isAddSeatsIfNotAvailable(), ti1.isUpdateAttendees() &amp;&amp; ti2.isUpdateAttendees());</span>
-<span class="nc" id="L661">                    }).orElse(empty);</span>
-<span class="nc" id="L662">                return Pair.of(ticketCategoryRepository.getByIdAndActive(entry.getKey(), event.getId()), ticketsInfo);</span>
+<span class="fc" id="L650">        return t.stream()</span>
+<span class="fc" id="L651">            .collect(groupingBy(ti -&gt; ti.getCategory().getExistingCategoryId()))</span>
+<span class="fc" id="L652">            .entrySet()</span>
+<span class="fc" id="L653">            .stream()</span>
+<span class="fc" id="L654">            .map(entry -&gt; {</span>
+<span class="fc" id="L655">                TicketsInfo ticketsInfo = entry.getValue()</span>
+<span class="fc" id="L656">                    .stream()</span>
+<span class="fc" id="L657">                    .reduce((ti1, ti2) -&gt; {</span>
+<span class="fc" id="L658">                        List&lt;Attendee&gt; attendees = new ArrayList&lt;&gt;(ti1.getAttendees());</span>
+<span class="fc" id="L659">                        attendees.addAll(ti2.getAttendees());</span>
+<span class="pc bpc" id="L660" title="6 of 8 branches missed.">                        return new TicketsInfo(ti1.getCategory(), attendees, ti1.isAddSeatsIfNotAvailable() &amp;&amp; ti2.isAddSeatsIfNotAvailable(), ti1.isUpdateAttendees() &amp;&amp; ti2.isUpdateAttendees());</span>
+<span class="fc" id="L661">                    }).orElse(empty);</span>
+<span class="fc" id="L662">                return Pair.of(ticketCategoryRepository.getByIdAndActive(entry.getKey(), event.getId()), ticketsInfo);</span>
             });
     }
 
     private List&lt;SpecialPrice&gt; bindSpecialPriceTokens(int categoryId, List&lt;Attendee&gt; attendees) {
-<span class="nc" id="L667">        specialPriceTokenGenerator.generatePendingCodesForCategory(categoryId);</span>
-<span class="nc" id="L668">        List&lt;SpecialPrice&gt; codes = specialPriceRepository.findActiveNotAssignedByCategoryId(categoryId, attendees.size());</span>
+<span class="fc" id="L667">        specialPriceTokenGenerator.generatePendingCodesForCategory(categoryId);</span>
+<span class="fc" id="L668">        List&lt;SpecialPrice&gt; codes = specialPriceRepository.findActiveNotAssignedByCategoryId(categoryId, attendees.size());</span>
 
-<span class="nc" id="L670">        codes.forEach(c -&gt; specialPriceRepository.updateStatus(c.getId(), SpecialPrice.Status.PENDING.toString(), null, null));</span>
-<span class="nc" id="L671">        return codes;</span>
+<span class="fc" id="L670">        codes.forEach(c -&gt; specialPriceRepository.updateStatus(c.getId(), SpecialPrice.Status.PENDING.toString(), null, null));</span>
+<span class="fc" id="L671">        return codes;</span>
     }
 
     private void assignTickets(Event event,
@@ -680,107 +680,107 @@ public class AdminReservationManager {
                                String userLanguage,
                                int srcPriceCts) {
 
-<span class="nc bnc" id="L683" title="All 2 branches missed.">        Optional&lt;Iterator&lt;SpecialPrice&gt;&gt; specialPriceIterator = Optional.of(codes).filter(c -&gt; !c.isEmpty()).map(Collection::iterator);</span>
-<span class="nc bnc" id="L684" title="All 2 branches missed.">        for(int i=0; i&lt;reservedForUpdate.size(); i++) {</span>
-<span class="nc" id="L685">            Attendee attendee = attendees.get(i);</span>
-<span class="nc" id="L686">            Integer ticketId = reservedForUpdate.get(i);</span>
-<span class="nc bnc" id="L687" title="All 2 branches missed.">            if(!attendee.isEmpty()) {</span>
-<span class="nc" id="L688">                ticketRepository.updateTicketOwnerById(ticketId, attendee.getEmailAddress(), attendee.getFullName(), attendee.getFirstName(), attendee.getLastName());</span>
-<span class="nc bnc" id="L689" title="All 4 branches missed.">                if(StringUtils.isNotBlank(attendee.getReference()) || attendee.isReassignmentForbidden()) {</span>
-<span class="nc" id="L690">                    updateExtRefAndLocking(categoryId, attendee, ticketId);</span>
+<span class="fc bfc" id="L683" title="All 2 branches covered.">        Optional&lt;Iterator&lt;SpecialPrice&gt;&gt; specialPriceIterator = Optional.of(codes).filter(c -&gt; !c.isEmpty()).map(Collection::iterator);</span>
+<span class="fc bfc" id="L684" title="All 2 branches covered.">        for(int i=0; i&lt;reservedForUpdate.size(); i++) {</span>
+<span class="fc" id="L685">            Attendee attendee = attendees.get(i);</span>
+<span class="fc" id="L686">            Integer ticketId = reservedForUpdate.get(i);</span>
+<span class="pc bpc" id="L687" title="1 of 2 branches missed.">            if(!attendee.isEmpty()) {</span>
+<span class="fc" id="L688">                ticketRepository.updateTicketOwnerById(ticketId, attendee.getEmailAddress(), attendee.getFullName(), attendee.getFirstName(), attendee.getLastName());</span>
+<span class="pc bpc" id="L689" title="1 of 4 branches missed.">                if(StringUtils.isNotBlank(attendee.getReference()) || attendee.isReassignmentForbidden()) {</span>
+<span class="fc" id="L690">                    updateExtRefAndLocking(categoryId, attendee, ticketId);</span>
                 }
-<span class="nc bnc" id="L692" title="All 2 branches missed.">                if(!attendee.getAdditionalInfo().isEmpty()) {</span>
+<span class="pc bpc" id="L692" title="1 of 2 branches missed.">                if(!attendee.getAdditionalInfo().isEmpty()) {</span>
 <span class="nc" id="L693">                    purchaseContextFieldRepository.updateOrInsert(attendee.getAdditionalInfo(), event, ticketId, null);</span>
                 }
-<span class="nc bnc" id="L695" title="All 2 branches missed.">                if (!attendee.getMetadata().isEmpty()) {</span>
-<span class="nc" id="L696">                    var ticketMetadata = new TicketMetadata(null, null, attendee.getMetadata());</span>
-<span class="nc" id="L697">                    ticketRepository.updateTicketMetadata(ticketId, TicketMetadataContainer.fromMetadata(ticketMetadata));</span>
+<span class="fc bfc" id="L695" title="All 2 branches covered.">                if (!attendee.getMetadata().isEmpty()) {</span>
+<span class="fc" id="L696">                    var ticketMetadata = new TicketMetadata(null, null, attendee.getMetadata());</span>
+<span class="fc" id="L697">                    ticketRepository.updateTicketMetadata(ticketId, TicketMetadataContainer.fromMetadata(ticketMetadata));</span>
                 }
             }
-<span class="nc" id="L700">            specialPriceIterator.map(Iterator::next)</span>
-<span class="nc" id="L701">                .ifPresent(code -&gt; ticketRepository.reserveTicket(reservationId, ticketId, code.getId(), userLanguage, srcPriceCts, event.getCurrency(), event.getVatStatus(), null));</span>
+<span class="fc" id="L700">            specialPriceIterator.map(Iterator::next)</span>
+<span class="fc" id="L701">                .ifPresent(code -&gt; ticketRepository.reserveTicket(reservationId, ticketId, code.getId(), userLanguage, srcPriceCts, event.getCurrency(), event.getVatStatus(), null));</span>
         }
-<span class="nc" id="L703">    }</span>
+<span class="fc" id="L703">    }</span>
 
     private void updateExtRefAndLocking(int categoryId, Attendee attendee, Integer ticketId) {
         try {
-<span class="nc" id="L707">            ticketRepository.updateExternalReferenceAndLocking(ticketId, categoryId, StringUtils.trimToNull(attendee.getReference()), attendee.isReassignmentForbidden());</span>
+<span class="fc" id="L707">            ticketRepository.updateExternalReferenceAndLocking(ticketId, categoryId, StringUtils.trimToNull(attendee.getReference()), attendee.isReassignmentForbidden());</span>
 <span class="nc" id="L708">        } catch (DataIntegrityViolationException ex) {</span>
 <span class="nc" id="L709">            log.warn(&quot;Duplicate found for external reference: &quot;+attendee.getReference()+&quot; and ticketID: &quot; + ticketId);</span>
 <span class="nc" id="L710">            throw new DuplicateReferenceException(&quot;Duplicated Reference: &quot;+attendee.getReference(), ex);</span>
-<span class="nc" id="L711">        }</span>
-<span class="nc" id="L712">    }</span>
+<span class="fc" id="L711">        }</span>
+<span class="fc" id="L712">    }</span>
 
     private Result&lt;List&lt;TicketsInfo&gt;&gt; checkCategoryCapacity(TicketsInfo ti, Event event, AdminReservationModification reservation, String username) {
-<span class="nc bnc" id="L715" title="All 2 branches missed.">        Result&lt;TicketCategory&gt; ticketCategoryResult = ti.getCategory().isExisting() ? checkExistingCategory(ti, event, username) : createCategory(ti, event, reservation, username);</span>
-<span class="nc" id="L716">        return ticketCategoryResult</span>
-<span class="nc" id="L717">            .map(tc -&gt; List.of(new TicketsInfo(new Category(tc.getId(), tc.getName(), tc.getPrice(), tc.getTicketAccessType()), ti.getAttendees(), ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees())));</span>
+<span class="fc bfc" id="L715" title="All 2 branches covered.">        Result&lt;TicketCategory&gt; ticketCategoryResult = ti.getCategory().isExisting() ? checkExistingCategory(ti, event, username) : createCategory(ti, event, reservation, username);</span>
+<span class="fc" id="L716">        return ticketCategoryResult</span>
+<span class="fc" id="L717">            .map(tc -&gt; List.of(new TicketsInfo(new Category(tc.getId(), tc.getName(), tc.getPrice(), tc.getTicketAccessType()), ti.getAttendees(), ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees())));</span>
     }
 
     private Result&lt;TicketCategory&gt; createCategory(TicketsInfo ti, Event event, AdminReservationModification reservation, String username) {
-<span class="nc" id="L721">        Category category = ti.getCategory();</span>
-<span class="nc" id="L722">        List&lt;Attendee&gt; attendees = ti.getAttendees();</span>
-<span class="nc" id="L723">        DateTimeModification inception = fromZonedDateTime(event.now(clockProvider));</span>
+<span class="fc" id="L721">        Category category = ti.getCategory();</span>
+<span class="fc" id="L722">        List&lt;Attendee&gt; attendees = ti.getAttendees();</span>
+<span class="fc" id="L723">        DateTimeModification inception = fromZonedDateTime(event.now(clockProvider));</span>
 
-<span class="nc" id="L725">        int tickets = attendees.size();</span>
-<span class="nc bnc" id="L726" title="All 2 branches missed.">        var accessType = event.getFormat() != Event.EventFormat.HYBRID ? TicketCategory.TicketAccessType.INHERIT : Objects.requireNonNull(category.getTicketAccessType());</span>
-<span class="nc" id="L727">        TicketCategoryModification tcm = new TicketCategoryModification(category.getExistingCategoryId(), category.getName(), accessType, tickets,</span>
-<span class="nc" id="L728">            inception, reservation.getExpiration(), Collections.emptyMap(), category.getPrice(), true, &quot;&quot;,</span>
-<span class="nc" id="L729">            true, null, null, null, null, null, 0, null, null,</span>
-<span class="nc" id="L730">            AlfioMetadata.empty());</span>
-<span class="nc" id="L731">        int notAllocated = getNotAllocatedTickets(event);</span>
-<span class="nc" id="L732">        int missingTickets = Math.max(tickets - notAllocated, 0);</span>
-<span class="nc" id="L733">        Event modified = increaseSeatsIfNeeded(ti, event, missingTickets, event);</span>
-<span class="nc" id="L734">        return eventManager.insertCategory(modified, tcm, username).map(id -&gt; ticketCategoryRepository.getByIdAndActive(id, event.getId()));</span>
+<span class="fc" id="L725">        int tickets = attendees.size();</span>
+<span class="pc bpc" id="L726" title="1 of 2 branches missed.">        var accessType = event.getFormat() != Event.EventFormat.HYBRID ? TicketCategory.TicketAccessType.INHERIT : Objects.requireNonNull(category.getTicketAccessType());</span>
+<span class="fc" id="L727">        TicketCategoryModification tcm = new TicketCategoryModification(category.getExistingCategoryId(), category.getName(), accessType, tickets,</span>
+<span class="fc" id="L728">            inception, reservation.getExpiration(), Collections.emptyMap(), category.getPrice(), true, &quot;&quot;,</span>
+<span class="fc" id="L729">            true, null, null, null, null, null, 0, null, null,</span>
+<span class="fc" id="L730">            AlfioMetadata.empty());</span>
+<span class="fc" id="L731">        int notAllocated = getNotAllocatedTickets(event);</span>
+<span class="fc" id="L732">        int missingTickets = Math.max(tickets - notAllocated, 0);</span>
+<span class="fc" id="L733">        Event modified = increaseSeatsIfNeeded(ti, event, missingTickets, event);</span>
+<span class="fc" id="L734">        return eventManager.insertCategory(modified, tcm, username).map(id -&gt; ticketCategoryRepository.getByIdAndActive(id, event.getId()));</span>
     }
 
     private Event increaseSeatsIfNeeded(TicketsInfo ti, Event event, int missingTickets, Event modified) {
-<span class="nc bnc" id="L738" title="All 4 branches missed.">        if(missingTickets &gt; 0 &amp;&amp; ti.isAddSeatsIfNotAvailable()) {</span>
-<span class="nc" id="L739">            int newTotal = eventRepository.countExistingTickets(event.getId()) + missingTickets;</span>
-<span class="nc" id="L740">            extensionManager.handleEventSeatsUpdateValidation(event, newTotal);</span>
-<span class="nc" id="L741">            createMissingTickets(event, missingTickets);</span>
+<span class="fc bfc" id="L738" title="All 4 branches covered.">        if(missingTickets &gt; 0 &amp;&amp; ti.isAddSeatsIfNotAvailable()) {</span>
+<span class="fc" id="L739">            int newTotal = eventRepository.countExistingTickets(event.getId()) + missingTickets;</span>
+<span class="fc" id="L740">            extensionManager.handleEventSeatsUpdateValidation(event, newTotal);</span>
+<span class="fc" id="L741">            createMissingTickets(event, missingTickets);</span>
             //update seats and reload event
-<span class="nc" id="L743">            log.debug(&quot;adding {} extra seats to the event&quot;, missingTickets);</span>
-<span class="nc" id="L744">            eventRepository.updateAvailableSeats(event.getId(), newTotal);</span>
-<span class="nc" id="L745">            modified = eventRepository.findById(event.getId());</span>
+<span class="fc" id="L743">            log.debug(&quot;adding {} extra seats to the event&quot;, missingTickets);</span>
+<span class="fc" id="L744">            eventRepository.updateAvailableSeats(event.getId(), newTotal);</span>
+<span class="fc" id="L745">            modified = eventRepository.findById(event.getId());</span>
         }
-<span class="nc" id="L747">        return modified;</span>
+<span class="fc" id="L747">        return modified;</span>
     }
 
     private int getNotAllocatedTickets(EventAndOrganizationId event) {
-<span class="nc" id="L751">        return ticketRepository.countFreeTicketsForUnbounded(event.getId());</span>
+<span class="fc" id="L751">        return ticketRepository.countFreeTicketsForUnbounded(event.getId());</span>
     }
 
     private Result&lt;TicketCategory&gt; checkExistingCategory(TicketsInfo ti, Event event, String username) {
-<span class="nc" id="L755">        Category category = ti.getCategory();</span>
-<span class="nc" id="L756">        List&lt;Attendee&gt; attendees = ti.getAttendees();</span>
-<span class="nc" id="L757">        int tickets = attendees.size();</span>
-<span class="nc" id="L758">        int eventId = event.getId();</span>
-<span class="nc" id="L759">        TicketCategory existing = ticketCategoryRepository.getByIdAndActive(category.getExistingCategoryId(), eventId);</span>
-<span class="nc" id="L760">        int existingCategoryId = existing.getId();</span>
-<span class="nc" id="L761">        int freeTicketsInCategory = ticketRepository.countFreeTickets(eventId, existingCategoryId);</span>
-<span class="nc" id="L762">        int notAllocated = getNotAllocatedTickets(event);</span>
-<span class="nc" id="L763">        int missingTickets = Math.max(tickets - (freeTicketsInCategory + notAllocated), 0);</span>
-<span class="nc" id="L764">        Event modified = increaseSeatsIfNeeded(ti, event, missingTickets, event);</span>
-<span class="nc bnc" id="L765" title="All 4 branches missed.">        if(freeTicketsInCategory &lt; tickets &amp;&amp; existing.isBounded()) {</span>
-<span class="nc" id="L766">            int maxTickets = existing.getMaxTickets() + (tickets - freeTicketsInCategory);</span>
-<span class="nc" id="L767">            TicketCategoryModification tcm = new TicketCategoryModification(existingCategoryId, existing.getName(), existing.getTicketAccessType(), maxTickets,</span>
-<span class="nc" id="L768">                fromZonedDateTime(existing.getInception(modified.getZoneId())), fromZonedDateTime(existing.getExpiration(event.getZoneId())),</span>
-<span class="nc" id="L769">                Collections.emptyMap(), existing.getPrice(), existing.isAccessRestricted(), &quot;&quot;, true, existing.getCode(),</span>
-<span class="nc" id="L770">                fromZonedDateTime(existing.getValidCheckInFrom(modified.getZoneId())),</span>
-<span class="nc" id="L771">                fromZonedDateTime(existing.getValidCheckInTo(modified.getZoneId())),</span>
-<span class="nc" id="L772">                fromZonedDateTime(existing.getTicketValidityStart(modified.getZoneId())),</span>
-<span class="nc" id="L773">                fromZonedDateTime(existing.getTicketValidityEnd(modified.getZoneId())), 0,</span>
-<span class="nc" id="L774">                existing.getTicketCheckInStrategy(), null, AlfioMetadata.empty());</span>
-<span class="nc" id="L775">            return eventManager.updateCategory(existingCategoryId, modified, tcm, username, true);</span>
+<span class="fc" id="L755">        Category category = ti.getCategory();</span>
+<span class="fc" id="L756">        List&lt;Attendee&gt; attendees = ti.getAttendees();</span>
+<span class="fc" id="L757">        int tickets = attendees.size();</span>
+<span class="fc" id="L758">        int eventId = event.getId();</span>
+<span class="fc" id="L759">        TicketCategory existing = ticketCategoryRepository.getByIdAndActive(category.getExistingCategoryId(), eventId);</span>
+<span class="fc" id="L760">        int existingCategoryId = existing.getId();</span>
+<span class="fc" id="L761">        int freeTicketsInCategory = ticketRepository.countFreeTickets(eventId, existingCategoryId);</span>
+<span class="fc" id="L762">        int notAllocated = getNotAllocatedTickets(event);</span>
+<span class="fc" id="L763">        int missingTickets = Math.max(tickets - (freeTicketsInCategory + notAllocated), 0);</span>
+<span class="fc" id="L764">        Event modified = increaseSeatsIfNeeded(ti, event, missingTickets, event);</span>
+<span class="pc bpc" id="L765" title="1 of 4 branches missed.">        if(freeTicketsInCategory &lt; tickets &amp;&amp; existing.isBounded()) {</span>
+<span class="fc" id="L766">            int maxTickets = existing.getMaxTickets() + (tickets - freeTicketsInCategory);</span>
+<span class="fc" id="L767">            TicketCategoryModification tcm = new TicketCategoryModification(existingCategoryId, existing.getName(), existing.getTicketAccessType(), maxTickets,</span>
+<span class="fc" id="L768">                fromZonedDateTime(existing.getInception(modified.getZoneId())), fromZonedDateTime(existing.getExpiration(event.getZoneId())),</span>
+<span class="fc" id="L769">                Collections.emptyMap(), existing.getPrice(), existing.isAccessRestricted(), &quot;&quot;, true, existing.getCode(),</span>
+<span class="fc" id="L770">                fromZonedDateTime(existing.getValidCheckInFrom(modified.getZoneId())),</span>
+<span class="fc" id="L771">                fromZonedDateTime(existing.getValidCheckInTo(modified.getZoneId())),</span>
+<span class="fc" id="L772">                fromZonedDateTime(existing.getTicketValidityStart(modified.getZoneId())),</span>
+<span class="fc" id="L773">                fromZonedDateTime(existing.getTicketValidityEnd(modified.getZoneId())), 0,</span>
+<span class="fc" id="L774">                existing.getTicketCheckInStrategy(), null, AlfioMetadata.empty());</span>
+<span class="fc" id="L775">            return eventManager.updateCategory(existingCategoryId, modified, tcm, username, true);</span>
         }
-<span class="nc" id="L777">        return Result.success(existing);</span>
+<span class="fc" id="L777">        return Result.success(existing);</span>
     }
 
     private void createMissingTickets(Event event, int tickets) {
-<span class="nc" id="L781">        final MapSqlParameterSource[] params = generateEmptyTickets(event, Date.from(event.now(clockProvider).toInstant()), tickets, Ticket.TicketStatus.FREE).toArray(MapSqlParameterSource[]::new);</span>
-<span class="nc" id="L782">        ticketRepository.bulkTicketInitialization(params);</span>
-<span class="nc" id="L783">    }</span>
+<span class="fc" id="L781">        final MapSqlParameterSource[] params = generateEmptyTickets(event, Date.from(event.now(clockProvider).toInstant()), tickets, Ticket.TicketStatus.FREE).toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L782">        ticketRepository.bulkTicketInitialization(params);</span>
+<span class="fc" id="L783">    }</span>
 
     @Transactional
     public Optional&lt;Ticket&gt; findTicketWithReservationId(String ticketUUID, String eventSlug, String username) {
@@ -807,17 +807,17 @@ public class AdminReservationManager {
             // ensure that all the tickets ids are present in tickets
 <span class="fc" id="L808">            Assert.isTrue(ticketIdsInReservation.containsAll(ticketIds), &quot;Some ticket ids are not contained in the reservation&quot;);</span>
 <span class="fc" id="L809">            Assert.isTrue(ticketIdsInReservation.containsAll(toRefund), &quot;Some ticket ids to refund are not contained in the reservation&quot;);</span>
-<span class="pc bpc" id="L810" title="1 of 2 branches missed.">            if (!ticketsStatusIsCompatibleWithCancellation(tickets.stream().filter(t -&gt; ticketIds.contains(t.getId())))) {</span>
-<span class="nc" id="L811">                throw new IncompatibleStateException(&quot;Cannot remove checked-in tickets&quot;);</span>
+<span class="fc bfc" id="L810" title="All 2 branches covered.">            if (!ticketsStatusIsCompatibleWithCancellation(tickets.stream().filter(t -&gt; ticketIds.contains(t.getId())))) {</span>
+<span class="fc" id="L811">                throw new IncompatibleStateException(&quot;Cannot remove checked-in tickets&quot;);</span>
             }
             //
 
 <span class="fc" id="L815">            handleTicketsRefund(toRefund, e, reservation, ticketsById, username);</span>
 
 <span class="pc bpc" id="L817" title="1 of 2 branches missed.">            boolean removeReservation = tickets.size() - ticketIds.size() &lt;= 0;</span>
-<span class="pc bpc" id="L818" title="1 of 2 branches missed.">            boolean issueCreditNote = (creditNoteRequested &amp;&amp;</span>
+<span class="fc bfc" id="L818" title="All 2 branches covered.">            boolean issueCreditNote = (creditNoteRequested &amp;&amp;</span>
                 // if payment method supports refund we require that the user has selected at least one ticket
-<span class="pc bnc" id="L820" title="All 4 branches missed.">                (!toRefund.isEmpty() || !reservation.getPaymentMethod().isSupportRefund())</span>
+<span class="pc bpc" id="L820" title="2 of 4 branches missed.">                (!toRefund.isEmpty() || !reservation.getPaymentMethod().isSupportRefund())</span>
             );
 <span class="fc" id="L822">            removeTicketsFromReservation(reservation, e, ticketIds, notify, username, removeReservation, issueCreditNote);</span>
             //
@@ -924,8 +924,8 @@ public class AdminReservationManager {
 <span class="pc bpc" id="L924" title="1 of 2 branches missed.">                    if(refundErrorCode != null) {</span>
 <span class="nc" id="L925">                        return Result.error(refundErrorCode);</span>
                     }
-<span class="pc bpc" id="L927" title="3 of 4 branches missed.">                    if(creditNoteRequested &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
-<span class="nc" id="L928">                        ticketReservationManager.issueCreditNoteForReservation(result.getRight(), reservation, username, false);</span>
+<span class="pc bpc" id="L927" title="1 of 4 branches missed.">                    if(creditNoteRequested &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L928">                        ticketReservationManager.issueCreditNoteForReservation(result.getRight(), reservation, username, false);</span>
                     }
                     // setting refund to false because we've already done it
 <span class="fc" id="L931">                    return removeReservation(result, false, notify, username, true, false);</span>
@@ -933,7 +933,7 @@ public class AdminReservationManager {
 <span class="fc" id="L933">            .map(pair -&gt; {</span>
 <span class="fc" id="L934">                var purchaseContext = pair.getLeft();</span>
 <span class="fc" id="L935">                var ticketReservation = pair.getRight();</span>
-<span class="pc bpc" id="L936" title="3 of 4 branches missed.">                if(!creditNoteRequested || !ticketReservation.getHasInvoiceNumber()) {</span>
+<span class="pc bpc" id="L936" title="1 of 4 branches missed.">                if(!creditNoteRequested || !ticketReservation.getHasInvoiceNumber()) {</span>
 <span class="fc" id="L937">                    markAsCancelled(ticketReservation, username, purchaseContext);</span>
                 }
 <span class="pc bpc" id="L939" title="1 of 2 branches missed.">                if(purchaseContext.ofType(PurchaseContextType.subscription)) {</span>
@@ -980,10 +980,10 @@ public class AdminReservationManager {
 <span class="fc" id="L980">                TicketReservation reservation = t.getLeft();</span>
 <span class="fc" id="L981">                List&lt;Ticket&gt; tickets = t.getMiddle();</span>
 <span class="fc" id="L982">                specialPriceRepository.resetToFreeAndCleanupForReservation(List.of(reservation.getId()));</span>
-<span class="pc bpc" id="L983" title="1 of 2 branches missed.">                if(purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc" id="L984">                    var event = (Event) purchaseContext;</span>
-<span class="nc" id="L985">                    removeTicketsFromReservation(reservation, event, tickets.stream().map(Ticket::getId).collect(toList()), notify, username, removeReservation, issueCreditNote);</span>
-<span class="nc" id="L986">                    additionalServiceItemRepository.updateItemsStatusWithReservationUUID(event.getId(), reservation.getId(), AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);</span>
+<span class="fc bfc" id="L983" title="All 2 branches covered.">                if(purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L984">                    var event = (Event) purchaseContext;</span>
+<span class="fc" id="L985">                    removeTicketsFromReservation(reservation, event, tickets.stream().map(Ticket::getId).collect(toList()), notify, username, removeReservation, issueCreditNote);</span>
+<span class="fc" id="L986">                    additionalServiceItemRepository.updateItemsStatusWithReservationUUID(event.getId(), reservation.getId(), AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);</span>
                 }
 <span class="fc" id="L988">                return Pair.of(purchaseContext, reservation);</span>
             });
@@ -1005,7 +1005,7 @@ public class AdminReservationManager {
     }
 
     private boolean ticketsStatusIsCompatibleWithCancellation(Stream&lt;Ticket&gt; ticketsStream) {
-<span class="pc bpc" id="L1008" title="1 of 2 branches missed.">        return ticketsStream.noneMatch(c -&gt; c.getStatus() == Ticket.TicketStatus.CHECKED_IN);</span>
+<span class="fc bfc" id="L1008" title="All 2 branches covered.">        return ticketsStream.noneMatch(c -&gt; c.getStatus() == Ticket.TicketStatus.CHECKED_IN);</span>
     }
 
     @Transactional
@@ -1044,7 +1044,7 @@ public class AdminReservationManager {
 
     @Transactional
     public List&lt;TicketWithMetadataAttributes&gt; findTicketsWithMetadata(String reservationId) {
-<span class="nc" id="L1047">        return ticketRepository.findTicketsInReservationWithMetadata(reservationId);</span>
+<span class="fc" id="L1047">        return ticketRepository.findTicketsInReservationWithMetadata(reservationId);</span>
     }
 
     @Transactional
@@ -1060,10 +1060,10 @@ public class AdminReservationManager {
                                               boolean removeReservation,
                                               boolean issueCreditNote) {
 <span class="fc" id="L1062">        String reservationId = reservation.getId();</span>
-<span class="pc bpc" id="L1063" title="4 of 6 branches missed.">        if(!ticketIds.isEmpty() &amp;&amp; issueCreditNote &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
-<span class="nc" id="L1064">            ticketReservationManager.issuePartialCreditNoteForReservation(purchaseContext, reservation, username, ticketIds);</span>
+<span class="pc bpc" id="L1063" title="2 of 6 branches missed.">        if(!ticketIds.isEmpty() &amp;&amp; issueCreditNote &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L1064">            ticketReservationManager.issuePartialCreditNoteForReservation(purchaseContext, reservation, username, ticketIds);</span>
         }
-<span class="pc bpc" id="L1066" title="2 of 4 branches missed.">        if(notify &amp;&amp; !ticketIds.isEmpty()) {</span>
+<span class="pc bpc" id="L1066" title="1 of 4 branches missed.">        if(notify &amp;&amp; !ticketIds.isEmpty()) {</span>
 <span class="fc" id="L1067">            Organization o = eventManager.loadOrganizer(purchaseContext, username);</span>
 <span class="fc" id="L1068">            ticketRepository.findByIds(ticketIds).forEach(t -&gt; {</span>
 <span class="nc bnc" id="L1069" title="All 2 branches missed.">                if(StringUtils.isNotBlank(t.getEmail())) {</span>
@@ -1072,8 +1072,8 @@ public class AdminReservationManager {
 <span class="nc" id="L1072">            });</span>
         }
 
-<span class="pc bpc" id="L1075" title="3 of 4 branches missed.">        if(!issueCreditNote || !reservation.getHasInvoiceNumber()) {</span>
-<span class="pc" id="L1076">            billingDocumentManager.ensureBillingDocumentIsPresent(purchaseContext, reservation, username, () -&gt; ticketReservationManager.orderSummaryForReservation(reservation, purchaseContext));</span>
+<span class="pc bpc" id="L1075" title="1 of 4 branches missed.">        if(!issueCreditNote || !reservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L1076">            billingDocumentManager.ensureBillingDocumentIsPresent(purchaseContext, reservation, username, () -&gt; ticketReservationManager.orderSummaryForReservation(reservation, purchaseContext));</span>
         }
 
 <span class="fc" id="L1079">        Integer userId = userRepository.findIdByUserName(username).orElse(null);</span>
@@ -1116,7 +1116,7 @@ public class AdminReservationManager {
 <span class="fc" id="L1116">    }</span>
 
     private void handleTicketsRefund(List&lt;Integer&gt; toRefund, Event e, TicketReservation reservation, Map&lt;Integer, Ticket&gt; ticketsById, String username) {
-<span class="pc bpc" id="L1119" title="3 of 4 branches missed.">        if(reservation.getPaymentMethod() == null || !reservation.getPaymentMethod().isSupportRefund()) {</span>
+<span class="pc bpc" id="L1119" title="1 of 4 branches missed.">        if(reservation.getPaymentMethod() == null || !reservation.getPaymentMethod().isSupportRefund()) {</span>
 <span class="fc" id="L1120">            return;</span>
         }
         // refund each selected ticket

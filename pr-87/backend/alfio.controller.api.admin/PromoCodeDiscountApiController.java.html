@@ -42,12 +42,12 @@ public class PromoCodeDiscountApiController {
     private final PromoCodeRequestManager promoCodeRequestManager;
     private final AccessService accessService;
 
-<span class="nc" id="L45">    public PromoCodeDiscountApiController(EventRepository eventRepository, EventManager eventManager, PromoCodeRequestManager promoCodeRequestManager, AccessService accessService) {</span>
-<span class="nc" id="L46">        this.eventRepository = eventRepository;</span>
-<span class="nc" id="L47">        this.eventManager = eventManager;</span>
-<span class="nc" id="L48">        this.promoCodeRequestManager = promoCodeRequestManager;</span>
-<span class="nc" id="L49">        this.accessService = accessService;</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L45">    public PromoCodeDiscountApiController(EventRepository eventRepository, EventManager eventManager, PromoCodeRequestManager promoCodeRequestManager, AccessService accessService) {</span>
+<span class="fc" id="L46">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L47">        this.eventManager = eventManager;</span>
+<span class="fc" id="L48">        this.promoCodeRequestManager = promoCodeRequestManager;</span>
+<span class="fc" id="L49">        this.accessService = accessService;</span>
+<span class="fc" id="L50">    }</span>
 
     @PostMapping(&quot;/promo-code&quot;)
     public void addPromoCode(@RequestBody PromoCodeDiscountModification promoCode, Principal principal) {

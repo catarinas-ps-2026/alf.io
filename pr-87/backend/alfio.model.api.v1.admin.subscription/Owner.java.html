@@ -39,45 +39,45 @@ public class Owner implements ReadOnlyAdditionalFieldsContainer {
                  @JsonProperty(&quot;firstName&quot;) String firstName,
                  @JsonProperty(&quot;lastName&quot;) String lastName,
                  @JsonProperty(&quot;email&quot;) String email,
-<span class="nc" id="L42">                 @JsonProperty(&quot;metadata&quot;) Map&lt;String, String&gt; metadata) {</span>
-<span class="nc" id="L43">        this.additional = additional;</span>
-<span class="nc" id="L44">        this.subscriptionId = subscriptionId;</span>
-<span class="nc" id="L45">        this.firstName = firstName;</span>
-<span class="nc" id="L46">        this.lastName = lastName;</span>
-<span class="nc" id="L47">        this.email = email;</span>
-<span class="nc" id="L48">        this.metadata = Objects.requireNonNullElse(metadata, Map.of());</span>
-<span class="nc" id="L49">    }</span>
+<span class="fc" id="L42">                 @JsonProperty(&quot;metadata&quot;) Map&lt;String, String&gt; metadata) {</span>
+<span class="fc" id="L43">        this.additional = additional;</span>
+<span class="fc" id="L44">        this.subscriptionId = subscriptionId;</span>
+<span class="fc" id="L45">        this.firstName = firstName;</span>
+<span class="fc" id="L46">        this.lastName = lastName;</span>
+<span class="fc" id="L47">        this.email = email;</span>
+<span class="fc" id="L48">        this.metadata = Objects.requireNonNullElse(metadata, Map.of());</span>
+<span class="fc" id="L49">    }</span>
 
     public Map&lt;String, List&lt;String&gt;&gt; getAdditional() {
-<span class="nc" id="L52">        return additional;</span>
+<span class="fc" id="L52">        return additional;</span>
     }
 
     public boolean hasAdditionalInfo() {
-<span class="nc" id="L56">        return MapUtils.isNotEmpty(additional);</span>
+<span class="fc" id="L56">        return MapUtils.isNotEmpty(additional);</span>
     }
 
     public UUID getSubscriptionId() {
-<span class="nc" id="L60">        return subscriptionId;</span>
+<span class="fc" id="L60">        return subscriptionId;</span>
     }
 
     public String getFirstName() {
-<span class="nc" id="L64">        return firstName;</span>
+<span class="fc" id="L64">        return firstName;</span>
     }
 
     public String getLastName() {
-<span class="nc" id="L68">        return lastName;</span>
+<span class="fc" id="L68">        return lastName;</span>
     }
 
     public String getEmail() {
-<span class="nc" id="L72">        return email;</span>
+<span class="fc" id="L72">        return email;</span>
     }
 
     public Map&lt;String, String&gt; getMetadata() {
-<span class="nc" id="L76">        return metadata;</span>
+<span class="fc" id="L76">        return metadata;</span>
     }
 
     public static Owner empty() {
-<span class="nc" id="L80">        return new Owner(Map.of(), null, null, null, null, null);</span>
+<span class="fc" id="L80">        return new Owner(Map.of(), null, null, null, null, null);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

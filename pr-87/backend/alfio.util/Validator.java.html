@@ -93,11 +93,11 @@ public final class Validator {
 <span class="fc" id="L93">        validateUrl(ev.getWebsiteUrl(), errors, &quot;websiteUrl&quot;, &quot;error.websiteurl&quot;);</span>
 <span class="fc" id="L94">        validateUrl(ev.getTermsAndConditionsUrl(), errors, &quot;websiteUrl&quot;, &quot;error.restrictedValue&quot;);</span>
 
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (StringUtils.isNotBlank(ev.getPrivacyPolicyUrl())) {</span>
-<span class="nc" id="L97">            validateUrl(ev.getPrivacyPolicyUrl(), errors, &quot;privacyPolicyUrl&quot;, &quot;error.restrictedValue&quot;);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (StringUtils.isNotBlank(ev.getPrivacyPolicyUrl())) {</span>
+<span class="fc" id="L97">            validateUrl(ev.getPrivacyPolicyUrl(), errors, &quot;privacyPolicyUrl&quot;, &quot;error.restrictedValue&quot;);</span>
         }
 
-<span class="pc bpc" id="L100" title="2 of 4 branches missed.">        if(allowsInPersonAccess(event, ev) &amp;&amp; isLocationMissing(ev)) {</span>
+<span class="pc bpc" id="L100" title="1 of 4 branches missed.">        if(allowsInPersonAccess(event, ev) &amp;&amp; isLocationMissing(ev)) {</span>
 <span class="fc" id="L101">            errors.rejectValue(&quot;locationDescriptor&quot;, &quot;error.coordinates&quot;);</span>
         }
 
@@ -110,7 +110,7 @@ public final class Validator {
 <span class="fc" id="L110">        ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;termsAndConditionsUrl&quot;, &quot;error.termsandconditionsurl&quot;);</span>
 
 
-<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if(ev.getFileBlobId() == null) {</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        if(ev.getFileBlobId() == null) {</span>
 <span class="fc" id="L114">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;imageUrl&quot;, &quot;error.imageurl&quot;);</span>
 <span class="pc bpc" id="L115" title="1 of 2 branches missed.">            if (!StringUtils.startsWith(ev.getImageUrl(), &quot;https://&quot;)) {</span>
 <span class="fc" id="L116">                errors.rejectValue(&quot;imageUrl&quot;, &quot;error.imageurl&quot;);</span>
@@ -128,8 +128,8 @@ public final class Validator {
 
     private static boolean isLocationMissing(EventModification em) {
 <span class="fc" id="L130">        LocationDescriptor descriptor = em.getLocationDescriptor();</span>
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        return descriptor == null</span>
-<span class="pc bnc" id="L132" title="All 2 branches missed.">            || isAnyBlank(descriptor.timeZone());</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        return descriptor == null</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">            || isAnyBlank(descriptor.timeZone());</span>
     }
 
     public static ValidationResult validateTicketCategories(EventModification ev, Errors errors) {
@@ -137,43 +137,43 @@ public final class Validator {
 <span class="nc" id="L137">            errors.rejectValue(&quot;ticketCategories&quot;, &quot;error.ticketCategories&quot;);</span>
         }
 <span class="fc" id="L139">        if(ev.getTicketCategories().stream()</span>
-<span class="pc bpc" id="L140" title="3 of 6 branches missed.">            .anyMatch(tc -&gt; tc.getTicketAccessType() == TicketCategory.TicketAccessType.INHERIT &amp;&amp; ev.getFormat() == Event.EventFormat.HYBRID)) {</span>
+<span class="pc bpc" id="L140" title="1 of 6 branches missed.">            .anyMatch(tc -&gt; tc.getTicketAccessType() == TicketCategory.TicketAccessType.INHERIT &amp;&amp; ev.getFormat() == Event.EventFormat.HYBRID)) {</span>
 <span class="fc" id="L141">            errors.rejectValue(&quot;ticketCategories&quot;, &quot;error.ticketCategories.format&quot;);</span>
         }
 <span class="fc" id="L143">        return evaluateValidationResult(errors);</span>
     }
 
     public static ValidationResult validateEventDates(EventModification ev, Errors errors) {
-<span class="nc bnc" id="L147" title="All 6 branches missed.">        if(ev.getBegin() == null || ev.getBegin().getDate() == null || ev.getBegin().getTime() == null) {</span>
+<span class="pc bpc" id="L147" title="3 of 6 branches missed.">        if(ev.getBegin() == null || ev.getBegin().getDate() == null || ev.getBegin().getTime() == null) {</span>
 <span class="nc" id="L148">            errors.rejectValue(&quot;begin&quot;, &quot;error.beginDate&quot;);</span>
         }
-<span class="nc bnc" id="L150" title="All 6 branches missed.">        if(ev.getEnd() == null || ev.getEnd().getDate() == null || ev.getEnd().getTime() == null) {</span>
+<span class="pc bpc" id="L150" title="3 of 6 branches missed.">        if(ev.getEnd() == null || ev.getEnd().getDate() == null || ev.getEnd().getTime() == null) {</span>
 <span class="nc" id="L151">            errors.rejectValue(&quot;end&quot;, &quot;error.endDate&quot;);</span>
         }
-<span class="nc bnc" id="L153" title="All 4 branches missed.">        if(!errors.hasErrors() &amp;&amp; !ev.getEnd().isAfter(ev.getBegin())) {</span>
+<span class="pc bpc" id="L153" title="2 of 4 branches missed.">        if(!errors.hasErrors() &amp;&amp; !ev.getEnd().isAfter(ev.getBegin())) {</span>
 <span class="nc" id="L154">            errors.rejectValue(&quot;end&quot;, &quot;error.endDate&quot;);</span>
         }
-<span class="nc" id="L156">        return evaluateValidationResult(errors);</span>
+<span class="fc" id="L156">        return evaluateValidationResult(errors);</span>
     }
 
     public static ValidationResult validateEventPrices(EventModification ev, Errors errors) {
 
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if(!ev.isFreeOfCharge()) {</span>
-<span class="nc bnc" id="L162" title="All 2 branches missed.">            if(isCollectionEmpty(ev.getAllowedPaymentProxies())) {</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if(!ev.isFreeOfCharge()) {</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">            if(isCollectionEmpty(ev.getAllowedPaymentProxies())) {</span>
 <span class="nc" id="L163">                errors.rejectValue(&quot;allowedPaymentProxies&quot;, &quot;error.allowedpaymentproxies&quot;);</span>
             }
-<span class="nc bnc" id="L165" title="All 4 branches missed.">            if(ev.getRegularPrice() == null || BigDecimal.ZERO.compareTo(ev.getRegularPrice()) &gt;= 0) {</span>
+<span class="pc bpc" id="L165" title="2 of 4 branches missed.">            if(ev.getRegularPrice() == null || BigDecimal.ZERO.compareTo(ev.getRegularPrice()) &gt;= 0) {</span>
 <span class="nc" id="L166">                errors.rejectValue(&quot;regularPrice&quot;, &quot;error.regularprice&quot;);</span>
             }
-<span class="nc bnc" id="L168" title="All 4 branches missed.">            if(ev.getVatPercentage() == null || BigDecimal.ZERO.compareTo(ev.getVatPercentage()) &gt; 0) {</span>
+<span class="pc bpc" id="L168" title="2 of 4 branches missed.">            if(ev.getVatPercentage() == null || BigDecimal.ZERO.compareTo(ev.getVatPercentage()) &gt; 0) {</span>
 <span class="nc" id="L169">                errors.rejectValue(&quot;vatPercentage&quot;, &quot;error.vat&quot;);</span>
             }
-<span class="nc" id="L171">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;currency&quot;, &quot;error.currency&quot;);</span>
+<span class="fc" id="L171">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;currency&quot;, &quot;error.currency&quot;);</span>
         }
-<span class="nc bnc" id="L173" title="All 4 branches missed.">        if(ev.getAvailableSeats() == null || ev.getAvailableSeats() &lt; 1) {</span>
+<span class="pc bpc" id="L173" title="2 of 4 branches missed.">        if(ev.getAvailableSeats() == null || ev.getAvailableSeats() &lt; 1) {</span>
 <span class="nc" id="L174">            errors.rejectValue(&quot;availableSeats&quot;, &quot;error.availableseats&quot;);</span>
         }
-<span class="nc" id="L176">        return evaluateValidationResult(errors);</span>
+<span class="fc" id="L176">        return evaluateValidationResult(errors);</span>
     }
 
     public static ValidationResult validateCategory(TicketCategoryModification category,
@@ -193,7 +193,7 @@ public final class Validator {
 <span class="pc bpc" id="L193" title="1 of 2 branches missed.">        if(StringUtils.isBlank(category.getName())) {</span>
 <span class="nc" id="L194">            errors.rejectValue(prefix + &quot;name&quot;, &quot;error.category.name&quot;);</span>
         }
-<span class="pc bpc" id="L196" title="3 of 4 branches missed.">        if(category.isBounded() &amp;&amp; category.getMaxTickets() &lt; 1) {</span>
+<span class="pc bpc" id="L196" title="1 of 4 branches missed.">        if(category.isBounded() &amp;&amp; category.getMaxTickets() &lt; 1) {</span>
 <span class="nc" id="L197">            errors.rejectValue(prefix + &quot;maxTickets&quot;, &quot;error.category.maxtickets&quot;);</span>
         }
 <span class="pc bpc" id="L199" title="1 of 2 branches missed.">        if(!category.getInception().isBefore(category.getExpiration())) {</span>
@@ -270,7 +270,7 @@ public final class Validator {
     }
 
     private static boolean isCollectionEmpty(Collection&lt;?&gt; collection) {
-<span class="nc bnc" id="L273" title="All 4 branches missed.">        return collection == null || collection.isEmpty();</span>
+<span class="pc bpc" id="L273" title="2 of 4 branches missed.">        return collection == null || collection.isEmpty();</span>
     }
 
     public static ValidationResult evaluateValidationResult(Errors errors) {
@@ -283,16 +283,16 @@ public final class Validator {
     }
 
     public static ValidationResult performAdvancedValidation(AdvancedTicketAssignmentValidator advancedValidator, AdvancedValidationContext context, Errors errors) {
-<span class="nc bnc" id="L286" title="All 2 branches missed.">        if(errors == null) {</span>
-<span class="nc" id="L287">            return ValidationResult.success();</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">        if(errors == null) {</span>
+<span class="fc" id="L287">            return ValidationResult.success();</span>
         }
-<span class="nc" id="L289">        Result&lt;Void&gt; advancedValidation = advancedValidator.apply(context);</span>
-<span class="nc bnc" id="L290" title="All 2 branches missed.">        if(!advancedValidation.isSuccess()) {</span>
+<span class="fc" id="L289">        Result&lt;Void&gt; advancedValidation = advancedValidator.apply(context);</span>
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">        if(!advancedValidation.isSuccess()) {</span>
 <span class="nc" id="L291">            ErrorCode error = advancedValidation.getFirstErrorOrNull();</span>
 <span class="nc" id="L292">            Validate.notNull(error, &quot;unexpected error&quot;);</span>
 <span class="nc" id="L293">            errors.rejectValue(StringUtils.defaultString(context.prefix) + error.getDescription(), error.getCode());</span>
         }
-<span class="nc" id="L295">        return evaluateValidationResult(errors);</span>
+<span class="fc" id="L295">        return evaluateValidationResult(errors);</span>
     }
 
     public static class AdditionalFieldsFilterer {
@@ -307,24 +307,24 @@ public final class Validator {
         public AdditionalFieldsFilterer(List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFields,
                                         List&lt;Ticket&gt; ticketsInReservation,
                                         boolean eventSupportsAdditionalFieldsLink,
-<span class="nc" id="L310">                                        List&lt;AdditionalServiceItem&gt; additionalServiceItems) {</span>
-<span class="nc" id="L311">            this.purchaseContextFields = purchaseContextFields;</span>
-<span class="nc" id="L312">            this.ticketsInReservation = ticketsInReservation;</span>
-<span class="nc" id="L313">            this.additionalFieldsForReservation = additionalServiceItems.stream().map(AdditionalServiceItem::getAdditionalServiceId).collect(Collectors.toSet());</span>
-<span class="nc" id="L314">            this.firstTicketInReservation = ticketsInReservation.stream().findFirst();</span>
-<span class="nc" id="L315">            this.eventSupportsAdditionalFieldsLink = eventSupportsAdditionalFieldsLink;</span>
-<span class="nc" id="L316">            this.additionalServiceItems = additionalServiceItems;</span>
-<span class="nc" id="L317">        }</span>
+<span class="fc" id="L310">                                        List&lt;AdditionalServiceItem&gt; additionalServiceItems) {</span>
+<span class="fc" id="L311">            this.purchaseContextFields = purchaseContextFields;</span>
+<span class="fc" id="L312">            this.ticketsInReservation = ticketsInReservation;</span>
+<span class="fc" id="L313">            this.additionalFieldsForReservation = additionalServiceItems.stream().map(AdditionalServiceItem::getAdditionalServiceId).collect(Collectors.toSet());</span>
+<span class="fc" id="L314">            this.firstTicketInReservation = ticketsInReservation.stream().findFirst();</span>
+<span class="fc" id="L315">            this.eventSupportsAdditionalFieldsLink = eventSupportsAdditionalFieldsLink;</span>
+<span class="fc" id="L316">            this.additionalServiceItems = additionalServiceItems;</span>
+<span class="fc" id="L317">        }</span>
 
 
         public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForTicket(UUID publicUuid, Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
-<span class="nc" id="L321">            var ticketOptional = ticketsInReservation.stream().filter(t -&gt; t.getPublicUuid().equals(publicUuid)).findFirst();</span>
-<span class="nc bnc" id="L322" title="All 2 branches missed.">            if (ticketOptional.isEmpty()) {</span>
+<span class="fc" id="L321">            var ticketOptional = ticketsInReservation.stream().filter(t -&gt; t.getPublicUuid().equals(publicUuid)).findFirst();</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">            if (ticketOptional.isEmpty()) {</span>
 <span class="nc" id="L323">                return List.of();</span>
             }
-<span class="nc" id="L325">            var ticket = ticketOptional.get();</span>
-<span class="nc bnc" id="L326" title="All 2 branches missed.">            var isFirstTicket = firstTicketInReservation.map(first -&gt; ticket.getId() == first.getId()).orElse(false);</span>
-<span class="nc" id="L327">            return filterFieldsForTicket(purchaseContextFields, ticket, additionalFieldsForReservation, isFirstTicket, eventSupportsAdditionalFieldsLink, additionalServiceItems, requestedContexts);</span>
+<span class="fc" id="L325">            var ticket = ticketOptional.get();</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">            var isFirstTicket = firstTicketInReservation.map(first -&gt; ticket.getId() == first.getId()).orElse(false);</span>
+<span class="fc" id="L327">            return filterFieldsForTicket(purchaseContextFields, ticket, additionalFieldsForReservation, isFirstTicket, eventSupportsAdditionalFieldsLink, additionalServiceItems, requestedContexts);</span>
         }
 
         public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForSubscription() {
@@ -338,34 +338,34 @@ public final class Validator {
                                                                                      boolean eventSupportsAdditionalFieldsLink,
                                                                                      List&lt;AdditionalServiceItem&gt; additionalServiceItems,
                                                                                      Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
-<span class="nc" id="L341">            return additionalFieldsForEvent.stream()</span>
-<span class="nc" id="L342">                .filter(field -&gt; field.rulesApply(ticket.getCategoryId()))</span>
-<span class="nc" id="L343">                .filter(f -&gt; {</span>
-<span class="nc bnc" id="L344" title="All 2 branches missed.">                    if (!requestedContexts.contains(f.getContext())) {</span>
-<span class="nc" id="L345">                        return false;</span>
+<span class="fc" id="L341">            return additionalFieldsForEvent.stream()</span>
+<span class="fc" id="L342">                .filter(field -&gt; field.rulesApply(ticket.getCategoryId()))</span>
+<span class="fc" id="L343">                .filter(f -&gt; {</span>
+<span class="fc bfc" id="L344" title="All 2 branches covered.">                    if (!requestedContexts.contains(f.getContext())) {</span>
+<span class="fc" id="L345">                        return false;</span>
                     }
-<span class="nc bnc" id="L347" title="All 2 branches missed.">                    if (f.getContext() == PurchaseContextFieldConfiguration.Context.ATTENDEE) {</span>
-<span class="nc" id="L348">                        return true;</span>
+<span class="fc bfc" id="L347" title="All 2 branches covered.">                    if (f.getContext() == PurchaseContextFieldConfiguration.Context.ATTENDEE) {</span>
+<span class="fc" id="L348">                        return true;</span>
                     }
                     // field context is &quot;Additional Service&quot;
-<span class="nc bnc" id="L351" title="All 4 branches missed.">                    if (!isFirstTicket &amp;&amp; !eventSupportsAdditionalFieldsLink) {</span>
+<span class="pc bpc" id="L351" title="1 of 4 branches missed.">                    if (!isFirstTicket &amp;&amp; !eventSupportsAdditionalFieldsLink) {</span>
 <span class="nc" id="L352">                        return false;</span>
                     }
-<span class="nc" id="L354">                    boolean included = isAdditionalServiceIncluded(f, additionalServiceIds);</span>
-<span class="nc bnc" id="L355" title="All 6 branches missed.">                    return included &amp;&amp; (!eventSupportsAdditionalFieldsLink || checkLinked(ticket, additionalServiceItems, f));</span>
-<span class="nc" id="L356">                }).toList();</span>
+<span class="fc" id="L354">                    boolean included = isAdditionalServiceIncluded(f, additionalServiceIds);</span>
+<span class="pc bpc" id="L355" title="1 of 6 branches missed.">                    return included &amp;&amp; (!eventSupportsAdditionalFieldsLink || checkLinked(ticket, additionalServiceItems, f));</span>
+<span class="fc" id="L356">                }).toList();</span>
         }
 
         private static boolean checkLinked(Ticket ticket, List&lt;AdditionalServiceItem&gt; additionalServiceItems, PurchaseContextFieldConfiguration tfc) {
-<span class="nc" id="L360">            return additionalServiceItems.stream()</span>
-<span class="nc bnc" id="L361" title="All 4 branches missed.">                .anyMatch(asi -&gt; tfc.getAdditionalServiceId() == asi.getAdditionalServiceId() &amp;&amp; Objects.equals(ticket.getId(), asi.getTicketId()));</span>
+<span class="fc" id="L360">            return additionalServiceItems.stream()</span>
+<span class="pc bpc" id="L361" title="1 of 4 branches missed.">                .anyMatch(asi -&gt; tfc.getAdditionalServiceId() == asi.getAdditionalServiceId() &amp;&amp; Objects.equals(ticket.getId(), asi.getTicketId()));</span>
         }
 
         private static boolean isAdditionalServiceIncluded(PurchaseContextFieldConfiguration f, Set&lt;Integer&gt; additionalServiceIds) {
-<span class="nc bnc" id="L365" title="All 2 branches missed.">            if (f.getAdditionalServiceId() == null) {</span>
+<span class="pc bpc" id="L365" title="1 of 2 branches missed.">            if (f.getAdditionalServiceId() == null) {</span>
 <span class="nc" id="L366">                return false;</span>
             }
-<span class="nc" id="L368">            return additionalServiceIds.contains(f.getAdditionalServiceId());</span>
+<span class="fc" id="L368">            return additionalServiceIds.contains(f.getAdditionalServiceId());</span>
         }
     }
 
@@ -377,29 +377,29 @@ public final class Validator {
                                                             String baseField,
                                                             SameCountryValidator vatValidator,
                                                             ExtensionManager extensionManager) {
-<span class="nc bnc" id="L380" title="All 2 branches missed.">        if(errorsOptional.isEmpty()) {</span>
-<span class="nc" id="L381">            return ValidationResult.success();//already validated</span>
+<span class="fc bfc" id="L380" title="All 2 branches covered.">        if(errorsOptional.isEmpty()) {</span>
+<span class="fc" id="L381">            return ValidationResult.success();//already validated</span>
         }
 
-<span class="nc" id="L384">        String prefix = StringUtils.trimToEmpty(baseField);</span>
+<span class="fc" id="L384">        String prefix = StringUtils.trimToEmpty(baseField);</span>
 
-<span class="nc bnc" id="L386" title="All 4 branches missed.">        if(!prefix.isEmpty() &amp;&amp; !prefix.endsWith(&quot;.&quot;)) {</span>
-<span class="nc" id="L387">            prefix = prefix + &quot;.&quot;;</span>
+<span class="pc bpc" id="L386" title="1 of 4 branches missed.">        if(!prefix.isEmpty() &amp;&amp; !prefix.endsWith(&quot;.&quot;)) {</span>
+<span class="fc" id="L387">            prefix = prefix + &quot;.&quot;;</span>
         }
 
-<span class="nc" id="L390">        var errors = errorsOptional.get();</span>
-<span class="nc" id="L391">        ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + EMAIL_KEY, ERROR_EMAIL);</span>
-<span class="nc" id="L392">        String email = form.getEmail();</span>
-<span class="nc bnc" id="L393" title="All 2 branches missed.">        if(!isEmailValid(email)) {</span>
+<span class="fc" id="L390">        var errors = errorsOptional.get();</span>
+<span class="fc" id="L391">        ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + EMAIL_KEY, ERROR_EMAIL);</span>
+<span class="fc" id="L392">        String email = form.getEmail();</span>
+<span class="pc bpc" id="L393" title="1 of 2 branches missed.">        if(!isEmailValid(email)) {</span>
 <span class="nc" id="L394">            errors.rejectValue(prefix + EMAIL_KEY, ERROR_EMAIL);</span>
         }
 
-<span class="nc bnc" id="L397" title="All 2 branches missed.">        if(event.mustUseFirstAndLastName()) {</span>
-<span class="nc" id="L398">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + FIRST_NAME, ErrorsCode.STEP_2_EMPTY_FIRSTNAME);</span>
-<span class="nc" id="L399">            validateMaxLength(form.getFirstName(), prefix + FIRST_NAME, ErrorsCode.STEP_2_MAX_LENGTH_FIRSTNAME, 255, errors);</span>
+<span class="pc bpc" id="L397" title="1 of 2 branches missed.">        if(event.mustUseFirstAndLastName()) {</span>
+<span class="fc" id="L398">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + FIRST_NAME, ErrorsCode.STEP_2_EMPTY_FIRSTNAME);</span>
+<span class="fc" id="L399">            validateMaxLength(form.getFirstName(), prefix + FIRST_NAME, ErrorsCode.STEP_2_MAX_LENGTH_FIRSTNAME, 255, errors);</span>
 
-<span class="nc" id="L401">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + LAST_NAME, ErrorsCode.STEP_2_EMPTY_LASTNAME);</span>
-<span class="nc" id="L402">            validateMaxLength(form.getLastName(), prefix + LAST_NAME, ErrorsCode.STEP_2_MAX_LENGTH_LASTNAME, 255, errors);</span>
+<span class="fc" id="L401">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + LAST_NAME, ErrorsCode.STEP_2_EMPTY_LASTNAME);</span>
+<span class="fc" id="L402">            validateMaxLength(form.getLastName(), prefix + LAST_NAME, ErrorsCode.STEP_2_MAX_LENGTH_LASTNAME, 255, errors);</span>
         } else {
 <span class="nc" id="L404">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + FULL_NAME, ErrorsCode.STEP_2_EMPTY_FULLNAME);</span>
 <span class="nc" id="L405">            validateMaxLength(form.getFullName(), prefix + FULL_NAME, ErrorsCode.STEP_2_MAX_LENGTH_FULLNAME, 255, errors);</span>
@@ -407,16 +407,16 @@ public final class Validator {
 
 
         //
-<span class="nc" id="L410">        final String prefixForLambda = prefix;</span>
-<span class="nc bnc" id="L411" title="All 2 branches missed.">        for(PurchaseContextFieldConfiguration fieldConf : additionalFieldsForTicket) {</span>
-<span class="nc" id="L412">            validateFieldConfiguration(form, vatValidator, errors, prefixForLambda, fieldConf);</span>
-<span class="nc" id="L413">        }</span>
+<span class="fc" id="L410">        final String prefixForLambda = prefix;</span>
+<span class="fc bfc" id="L411" title="All 2 branches covered.">        for(PurchaseContextFieldConfiguration fieldConf : additionalFieldsForTicket) {</span>
+<span class="fc" id="L412">            validateFieldConfiguration(form, vatValidator, errors, prefixForLambda, fieldConf);</span>
+<span class="fc" id="L413">        }</span>
 
-<span class="nc bnc" id="L415" title="All 2 branches missed.">        if (!errors.hasErrors()) {</span>
-<span class="nc" id="L416">            extensionManager.handleTicketUpdateValidation(event, form, errors, prefix);</span>
+<span class="fc bfc" id="L415" title="All 2 branches covered.">        if (!errors.hasErrors()) {</span>
+<span class="fc" id="L416">            extensionManager.handleTicketUpdateValidation(event, form, errors, prefix);</span>
         }
 
-<span class="nc" id="L419">        return evaluateValidationResult(errors);</span>
+<span class="fc" id="L419">        return evaluateValidationResult(errors);</span>
     }
 
     public static ValidationResult validateAdditionalItemFieldsForTicket(AdditionalServiceLinkForm form,
@@ -427,15 +427,15 @@ public final class Validator {
                                                                          List&lt;AdditionalServiceLinkForm&gt; allForms,
                                                                          List&lt;AdditionalServiceItem&gt; additionalServiceItems) {
         // ticket may be linked to different additional items, each one requiring fields
-<span class="nc" id="L430">        var allKeys = allForms.stream().flatMap(f -&gt; f.getAdditional().keySet().stream()).collect(Collectors.toSet());</span>
-<span class="nc" id="L431">        var foundKeys = additionalFieldsForTicket.stream()</span>
-<span class="nc" id="L432">            .map(PurchaseContextFieldConfiguration::getName)</span>
-<span class="nc" id="L433">            .filter(allKeys::contains)</span>
-<span class="nc" id="L434">            .collect(Collectors.toSet());</span>
-<span class="nc bnc" id="L435" title="All 2 branches missed.">        for (PurchaseContextFieldConfiguration fieldConf : additionalFieldsForTicket) {</span>
-<span class="nc" id="L436">            validateFieldConfiguration(form, vatValidator, errors, prefix + &quot;.&quot;, fieldConf, foundKeys.contains(fieldConf.getName()));</span>
-<span class="nc" id="L437">        }</span>
-<span class="nc" id="L438">        return evaluateValidationResult(errors);</span>
+<span class="fc" id="L430">        var allKeys = allForms.stream().flatMap(f -&gt; f.getAdditional().keySet().stream()).collect(Collectors.toSet());</span>
+<span class="fc" id="L431">        var foundKeys = additionalFieldsForTicket.stream()</span>
+<span class="fc" id="L432">            .map(PurchaseContextFieldConfiguration::getName)</span>
+<span class="fc" id="L433">            .filter(allKeys::contains)</span>
+<span class="fc" id="L434">            .collect(Collectors.toSet());</span>
+<span class="fc bfc" id="L435" title="All 2 branches covered.">        for (PurchaseContextFieldConfiguration fieldConf : additionalFieldsForTicket) {</span>
+<span class="fc" id="L436">            validateFieldConfiguration(form, vatValidator, errors, prefix + &quot;.&quot;, fieldConf, foundKeys.contains(fieldConf.getName()));</span>
+<span class="fc" id="L437">        }</span>
+<span class="fc" id="L438">        return evaluateValidationResult(errors);</span>
     }
 
     public static void validateFieldConfiguration(AdditionalFieldsContainer form,
@@ -443,8 +443,8 @@ public final class Validator {
                                                   Errors errors,
                                                   String prefixForLambda,
                                                   PurchaseContextFieldConfiguration fieldConf) {
-<span class="nc" id="L446">        validateFieldConfiguration(form, vatValidator, errors, prefixForLambda, fieldConf, false);</span>
-<span class="nc" id="L447">    }</span>
+<span class="fc" id="L446">        validateFieldConfiguration(form, vatValidator, errors, prefixForLambda, fieldConf, false);</span>
+<span class="fc" id="L447">    }</span>
 
     private static void validateFieldConfiguration(AdditionalFieldsContainer form,
                                                    SameCountryValidator vatValidator,
@@ -452,70 +452,70 @@ public final class Validator {
                                                    String prefixForLambda,
                                                    PurchaseContextFieldConfiguration fieldConf,
                                                    boolean skipPresenceCheck) {
-<span class="nc bnc" id="L455" title="All 4 branches missed.">        boolean isFieldPresent = form.getAdditional() != null &amp;&amp; form.getAdditional().containsKey(fieldConf.getName());</span>
+<span class="fc bfc" id="L455" title="All 4 branches covered.">        boolean isFieldPresent = form.getAdditional() != null &amp;&amp; form.getAdditional().containsKey(fieldConf.getName());</span>
 
-<span class="nc bnc" id="L457" title="All 4 branches missed.">        if(!skipPresenceCheck &amp;&amp; !isFieldPresent) {</span>
-<span class="nc bnc" id="L458" title="All 2 branches missed.">            if (fieldConf.isRequired()) { // sometimes the field is not propagated, so, if it's required, we need to do some additional work</span>
-<span class="nc bnc" id="L459" title="All 2 branches missed.">                if (form.getAdditional() == null) {</span>
-<span class="nc" id="L460">                    form.setAdditional(new HashMap&lt;&gt;());</span>
+<span class="fc bfc" id="L457" title="All 4 branches covered.">        if(!skipPresenceCheck &amp;&amp; !isFieldPresent) {</span>
+<span class="fc bfc" id="L458" title="All 2 branches covered.">            if (fieldConf.isRequired()) { // sometimes the field is not propagated, so, if it's required, we need to do some additional work</span>
+<span class="fc bfc" id="L459" title="All 2 branches covered.">                if (form.getAdditional() == null) {</span>
+<span class="fc" id="L460">                    form.setAdditional(new HashMap&lt;&gt;());</span>
                 }
-<span class="nc" id="L462">                form.getAdditional().put(fieldConf.getName(), Collections.singletonList(&quot;&quot;));</span>
-<span class="nc" id="L463">                errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][0]&quot;, ErrorsCode.EMPTY_FIELD);</span>
+<span class="fc" id="L462">                form.getAdditional().put(fieldConf.getName(), Collections.singletonList(&quot;&quot;));</span>
+<span class="fc" id="L463">                errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][0]&quot;, ErrorsCode.EMPTY_FIELD);</span>
             }
-<span class="nc" id="L465">            return;</span>
+<span class="fc" id="L465">            return;</span>
         }
-<span class="nc" id="L467">        var values = form.getAdditional().computeIfAbsent(fieldConf.getName(), k -&gt; List.of());</span>
+<span class="pc" id="L467">        var values = form.getAdditional().computeIfAbsent(fieldConf.getName(), k -&gt; List.of());</span>
 
         //handle required for multiple choice (checkbox) where required is interpreted as at least one!
-<span class="nc bnc" id="L470" title="All 6 branches missed.">        if (fieldConf.isRequired() &amp;&amp; fieldConf.getCount() &gt; 1  &amp;&amp; values.stream().allMatch(StringUtils::isBlank)) {</span>
+<span class="pc bpc" id="L470" title="4 of 6 branches missed.">        if (fieldConf.isRequired() &amp;&amp; fieldConf.getCount() &gt; 1  &amp;&amp; values.stream().allMatch(StringUtils::isBlank)) {</span>
 <span class="nc" id="L471">            errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;]&quot;, ErrorsCode.EMPTY_FIELD);</span>
         }
 
-<span class="nc bnc" id="L474" title="All 2 branches missed.">        for(int i = 0; i &lt; values.size(); i++) {</span>
-<span class="nc" id="L475">            validateFieldValue(vatValidator, errors, prefixForLambda, fieldConf, values, i);</span>
+<span class="fc bfc" id="L474" title="All 2 branches covered.">        for(int i = 0; i &lt; values.size(); i++) {</span>
+<span class="fc" id="L475">            validateFieldValue(vatValidator, errors, prefixForLambda, fieldConf, values, i);</span>
         }
-<span class="nc" id="L477">    }</span>
+<span class="fc" id="L477">    }</span>
 
     private static void validateFieldValue(SameCountryValidator vatValidator, Errors errors, String prefixForLambda, PurchaseContextFieldConfiguration fieldConf, List&lt;String&gt; values, int i) {
-<span class="nc" id="L480">        String formValue = values.get(i);</span>
+<span class="fc" id="L480">        String formValue = values.get(i);</span>
 
-<span class="nc" id="L482">        fieldValueBasicValidation(errors, prefixForLambda, fieldConf, i, formValue);</span>
+<span class="fc" id="L482">        fieldValueBasicValidation(errors, prefixForLambda, fieldConf, i, formValue);</span>
 
         try {
-<span class="nc bnc" id="L485" title="All 4 branches missed.">            if (fieldConf.isEuVat() &amp;&amp; !vatValidator.test(formValue)) {</span>
+<span class="pc bpc" id="L485" title="3 of 4 branches missed.">            if (fieldConf.isEuVat() &amp;&amp; !vatValidator.test(formValue)) {</span>
 <span class="nc" id="L486">                errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot;+ i +&quot;]&quot;, ErrorsCode.STEP_2_INVALID_VAT);</span>
             }
 <span class="nc" id="L488">        } catch (IllegalStateException e) {</span>
 <span class="nc" id="L489">            errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot;+ i +&quot;]&quot;, ErrorsCode.VIES_IS_DOWN);</span>
-<span class="nc" id="L490">        }</span>
-<span class="nc" id="L491">    }</span>
+<span class="fc" id="L490">        }</span>
+<span class="fc" id="L491">    }</span>
 
     private static void fieldValueBasicValidation(Errors errors, String prefixForLambda, PurchaseContextFieldConfiguration fieldConf, int i, String formValue) {
 
-<span class="nc" id="L495">        validateLength(errors, prefixForLambda, fieldConf, i, formValue);</span>
+<span class="fc" id="L495">        validateLength(errors, prefixForLambda, fieldConf, i, formValue);</span>
 
-<span class="nc bnc" id="L497" title="All 2 branches missed.">        if(!fieldConf.getRestrictedValues().isEmpty()) {</span>
+<span class="pc bpc" id="L497" title="1 of 2 branches missed.">        if(!fieldConf.getRestrictedValues().isEmpty()) {</span>
 <span class="nc" id="L498">            validateRestrictedValue(formValue, prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][&quot;+ i +&quot;]&quot;,</span>
 <span class="nc" id="L499">                ERROR_RESTRICTED_VALUE, fieldConf.getRestrictedValues(), errors);</span>
         }
 
-<span class="nc bnc" id="L502" title="All 6 branches missed.">        if(fieldConf.isRequired() &amp;&amp; fieldConf.getCount() == 1 &amp;&amp; StringUtils.isBlank(formValue)){</span>
+<span class="pc bpc" id="L502" title="3 of 6 branches missed.">        if(fieldConf.isRequired() &amp;&amp; fieldConf.getCount() == 1 &amp;&amp; StringUtils.isBlank(formValue)){</span>
 <span class="nc" id="L503">            errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][&quot;+ i +&quot;]&quot;, ErrorsCode.EMPTY_FIELD);</span>
         }
 
-<span class="nc bnc" id="L506" title="All 4 branches missed.">        if(fieldConf.hasDisabledValues() &amp;&amp; fieldConf.getDisabledValues().contains(formValue)) {</span>
+<span class="pc bpc" id="L506" title="3 of 4 branches missed.">        if(fieldConf.hasDisabledValues() &amp;&amp; fieldConf.getDisabledValues().contains(formValue)) {</span>
 <span class="nc" id="L507">            errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][&quot;+ i +&quot;]&quot;,</span>
                 &quot;error.disabledValue&quot;, null, null);
         }
 
-<span class="nc bnc" id="L511" title="All 6 branches missed.">        if (!errors.hasFieldErrors() &amp;&amp; StringUtils.isNotBlank(formValue) &amp;&amp; fieldConf.isDateOfBirth()) {</span>
+<span class="pc bpc" id="L511" title="2 of 6 branches missed.">        if (!errors.hasFieldErrors() &amp;&amp; StringUtils.isNotBlank(formValue) &amp;&amp; fieldConf.isDateOfBirth()) {</span>
 <span class="nc" id="L512">            int age = calculateAge(formValue, true, LOCAL_DATE_SUPPLIER);</span>
 <span class="nc bnc" id="L513" title="All 2 branches missed.">            if (age &lt; 0) {</span>
                 // age was not provided in the right format
 <span class="nc" id="L515">                errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][&quot;+ i +&quot;]&quot;, ErrorsCode.EMPTY_FIELD);</span>
             }
         }
-<span class="nc" id="L518">    }</span>
+<span class="fc" id="L518">    }</span>
 
     private static void validateLength(Errors errors,
                                        String prefixForLambda,
@@ -523,21 +523,21 @@ public final class Validator {
                                        int fieldIndex,
                                        String formValue) {
 
-<span class="nc" id="L526">        boolean isDateOfBirth = fieldConf.isDateOfBirth();</span>
+<span class="fc" id="L526">        boolean isDateOfBirth = fieldConf.isDateOfBirth();</span>
 
-<span class="nc bnc" id="L528" title="All 2 branches missed.">        if (isDateOfBirth) {</span>
+<span class="pc bpc" id="L528" title="1 of 2 branches missed.">        if (isDateOfBirth) {</span>
             // we require date of birth to be in the past
 <span class="nc" id="L530">            validateDateInThePast(formValue, prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][&quot;+ fieldIndex +&quot;]&quot;, errors);</span>
         }
 
-<span class="nc bnc" id="L533" title="All 2 branches missed.">        if(fieldConf.isMaxLengthDefined()) {</span>
+<span class="pc bpc" id="L533" title="1 of 2 branches missed.">        if(fieldConf.isMaxLengthDefined()) {</span>
 <span class="nc bnc" id="L534" title="All 2 branches missed.">            validateMaxLength(formValue, prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][&quot;+ fieldIndex +&quot;]&quot;, isDateOfBirth ? &quot;error.tooOld&quot; : &quot;error.tooLong&quot;, fieldConf, errors);</span>
         }
 
-<span class="nc bnc" id="L537" title="All 4 branches missed.">        if(StringUtils.isNotBlank(formValue) &amp;&amp; fieldConf.isMinLengthDefined()) {</span>
+<span class="pc bpc" id="L537" title="2 of 4 branches missed.">        if(StringUtils.isNotBlank(formValue) &amp;&amp; fieldConf.isMinLengthDefined()) {</span>
 <span class="nc bnc" id="L538" title="All 2 branches missed.">            validateMinLength(formValue, prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName()+&quot;][&quot;+ fieldIndex +&quot;]&quot;, isDateOfBirth ? &quot;error.tooYoung&quot; : &quot;error.tooShort&quot;, fieldConf, errors);</span>
         }
-<span class="nc" id="L540">    }</span>
+<span class="fc" id="L540">    }</span>
 
     private static void validateRestrictedValue(String value, String fieldName, String errorCode, List&lt;String&gt; restrictedValues, Errors errors) {
 <span class="nc bnc" id="L543" title="All 4 branches missed.">        if(StringUtils.isNotBlank(value) &amp;&amp; !restrictedValues.contains(value)) {</span>
@@ -550,7 +550,7 @@ public final class Validator {
     }
 
     public static boolean isEmailValid(String email) {
-<span class="pc bpc" id="L553" title="2 of 6 branches missed.">        return StringUtils.isNotEmpty(email) &amp;&amp; !email.strip().endsWith(&quot;.&quot;) &amp;&amp; SIMPLE_E_MAIL_PATTERN.matcher(email).matches();</span>
+<span class="pc bpc" id="L553" title="1 of 6 branches missed.">        return StringUtils.isNotEmpty(email) &amp;&amp; !email.strip().endsWith(&quot;.&quot;) &amp;&amp; SIMPLE_E_MAIL_PATTERN.matcher(email).matches();</span>
     }
 
     public static boolean isCanonicalMailAddress(String email) {
@@ -640,38 +640,38 @@ public final class Validator {
     }
 
     private static void validateMaxLength(String value, String fieldName, String errorCode, int maxLength, Errors errors) {
-<span class="nc bnc" id="L643" title="All 4 branches missed.">        if(StringUtils.isNotBlank(value) &amp;&amp; StringUtils.length(value) &gt; maxLength) {</span>
+<span class="pc bpc" id="L643" title="2 of 4 branches missed.">        if(StringUtils.isNotBlank(value) &amp;&amp; StringUtils.length(value) &gt; maxLength) {</span>
 <span class="nc" id="L644">            errors.rejectValue(fieldName, errorCode, new Object[] { maxLength }, null);</span>
         }
-<span class="nc" id="L646">    }</span>
+<span class="fc" id="L646">    }</span>
 
     public static ValidationResult validateWaitingQueueSubscription(WaitingQueueSubscriptionForm form, Errors errors, Event event) {
-<span class="nc bnc" id="L649" title="All 2 branches missed.">        if(!form.isTermAndConditionsAccepted()) {</span>
+<span class="pc bpc" id="L649" title="1 of 2 branches missed.">        if(!form.isTermAndConditionsAccepted()) {</span>
 <span class="nc" id="L650">            errors.rejectValue(&quot;termAndConditionsAccepted&quot;, ErrorsCode.STEP_2_TERMS_NOT_ACCEPTED);</span>
         }
 
-<span class="nc bnc" id="L653" title="All 4 branches missed.">        if(StringUtils.isNotEmpty(event.getPrivacyPolicyUrl()) &amp;&amp; !form.isPrivacyPolicyAccepted()) {</span>
+<span class="pc bpc" id="L653" title="2 of 4 branches missed.">        if(StringUtils.isNotEmpty(event.getPrivacyPolicyUrl()) &amp;&amp; !form.isPrivacyPolicyAccepted()) {</span>
 <span class="nc" id="L654">            errors.rejectValue(&quot;privacyPolicyAccepted&quot;, ErrorsCode.STEP_2_TERMS_NOT_ACCEPTED);</span>
         }
 
-<span class="nc bnc" id="L657" title="All 2 branches missed.">        if(event.mustUseFirstAndLastName()) {</span>
-<span class="nc" id="L658">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIRST_NAME, &quot;error.firstname&quot;);</span>
-<span class="nc" id="L659">            validateMaxLength(form.getFirstName(), FIRST_NAME, &quot;error.firstname&quot;, 255, errors);</span>
+<span class="pc bpc" id="L657" title="1 of 2 branches missed.">        if(event.mustUseFirstAndLastName()) {</span>
+<span class="fc" id="L658">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIRST_NAME, &quot;error.firstname&quot;);</span>
+<span class="fc" id="L659">            validateMaxLength(form.getFirstName(), FIRST_NAME, &quot;error.firstname&quot;, 255, errors);</span>
 
-<span class="nc" id="L661">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, LAST_NAME, &quot;lastname.fullname&quot;);</span>
-<span class="nc" id="L662">            validateMaxLength(form.getLastName(), LAST_NAME, &quot;error.lastname&quot;, 255, errors);</span>
+<span class="fc" id="L661">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, LAST_NAME, &quot;lastname.fullname&quot;);</span>
+<span class="fc" id="L662">            validateMaxLength(form.getLastName(), LAST_NAME, &quot;error.lastname&quot;, 255, errors);</span>
         } else {
 <span class="nc" id="L664">            validateMaxLength(form.getFullName(), FULL_NAME, &quot;error.fullname&quot;, 255, errors);</span>
 <span class="nc" id="L665">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, FULL_NAME, &quot;error.fullname&quot;);</span>
         }
 
-<span class="nc bnc" id="L668" title="All 2 branches missed.">        if(!isEmailValid(form.getEmail())) {</span>
-<span class="nc" id="L669">            errors.rejectValue(EMAIL_KEY, ERROR_EMAIL);</span>
+<span class="fc bfc" id="L668" title="All 2 branches covered.">        if(!isEmailValid(form.getEmail())) {</span>
+<span class="fc" id="L669">            errors.rejectValue(EMAIL_KEY, ERROR_EMAIL);</span>
         }
-<span class="nc bnc" id="L671" title="All 2 branches missed.">        if(form.getUserLanguage() == null) {</span>
+<span class="pc bpc" id="L671" title="1 of 2 branches missed.">        if(form.getUserLanguage() == null) {</span>
 <span class="nc" id="L672">            errors.rejectValue(&quot;userLanguage&quot;, &quot;error.userLanguage&quot;);</span>
         }
-<span class="nc" id="L674">        return evaluateValidationResult(errors);</span>
+<span class="fc" id="L674">        return evaluateValidationResult(errors);</span>
     }
 
     public static ValidationResult validateAdditionalService(EventModification.AdditionalService additionalService, Errors errors) {
@@ -739,7 +739,7 @@ public final class Validator {
     }
 
     public static boolean validateAdditionalInfoName(String additionalInfoName) {
-<span class="nc" id="L742">        return FIELD_NAME_VALIDATOR.matcher(additionalInfoName).matches();</span>
+<span class="fc" id="L742">        return FIELD_NAME_VALIDATOR.matcher(additionalInfoName).matches();</span>
     }
 
 
@@ -748,27 +748,27 @@ public final class Validator {
         private final SameCountryValidator vatValidator;
         private final GroupManager.WhitelistValidator whitelistValidator;
 
-<span class="nc" id="L751">        public AdvancedTicketAssignmentValidator(SameCountryValidator vatValidator, GroupManager.WhitelistValidator whitelistValidator) {</span>
-<span class="nc" id="L752">            this.vatValidator = vatValidator;</span>
-<span class="nc" id="L753">            this.whitelistValidator = whitelistValidator;</span>
-<span class="nc" id="L754">        }</span>
+<span class="fc" id="L751">        public AdvancedTicketAssignmentValidator(SameCountryValidator vatValidator, GroupManager.WhitelistValidator whitelistValidator) {</span>
+<span class="fc" id="L752">            this.vatValidator = vatValidator;</span>
+<span class="fc" id="L753">            this.whitelistValidator = whitelistValidator;</span>
+<span class="fc" id="L754">        }</span>
 
 
         @Override
         public Result&lt;Void&gt; apply(AdvancedValidationContext context) {
 
-<span class="nc" id="L760">            Optional&lt;PurchaseContextFieldConfiguration&gt; vatField = context.purchaseContextFieldConfigurations.stream()</span>
-<span class="nc" id="L761">                .filter(PurchaseContextFieldConfiguration::isEuVat)</span>
-<span class="nc bnc" id="L762" title="All 4 branches missed.">                .filter(f -&gt; context.updateTicketOwnerForm.getAdditional() !=null &amp;&amp; context.updateTicketOwnerForm.getAdditional().containsKey(f.getName()))</span>
-<span class="nc" id="L763">                .findFirst();</span>
+<span class="fc" id="L760">            Optional&lt;PurchaseContextFieldConfiguration&gt; vatField = context.purchaseContextFieldConfigurations.stream()</span>
+<span class="fc" id="L761">                .filter(PurchaseContextFieldConfiguration::isEuVat)</span>
+<span class="pc bnc" id="L762" title="All 4 branches missed.">                .filter(f -&gt; context.updateTicketOwnerForm.getAdditional() !=null &amp;&amp; context.updateTicketOwnerForm.getAdditional().containsKey(f.getName()))</span>
+<span class="fc" id="L763">                .findFirst();</span>
 
-<span class="nc" id="L765">            Optional&lt;String&gt; vatNr = vatField.map(c -&gt; Objects.requireNonNull(context.updateTicketOwnerForm.getAdditional()).get(c.getName()).get(0));</span>
-<span class="nc" id="L766">            String vatFieldName = vatField.map(PurchaseContextFieldConfiguration::getName).orElse(&quot;&quot;);</span>
+<span class="pc" id="L765">            Optional&lt;String&gt; vatNr = vatField.map(c -&gt; Objects.requireNonNull(context.updateTicketOwnerForm.getAdditional()).get(c.getName()).get(0));</span>
+<span class="fc" id="L766">            String vatFieldName = vatField.map(PurchaseContextFieldConfiguration::getName).orElse(&quot;&quot;);</span>
 
-<span class="nc" id="L768">            return new Result.Builder&lt;Void&gt;()</span>
-<span class="nc bnc" id="L769" title="All 4 branches missed.">                .checkPrecondition(() -&gt; vatNr.isEmpty() || vatValidator.test(vatNr.get()), ErrorCode.custom(ErrorsCode.STEP_2_INVALID_VAT, &quot;additional['&quot;+vatFieldName+&quot;']&quot;))</span>
-<span class="nc" id="L770">                .checkPrecondition(() -&gt; whitelistValidator.test(new GroupManager.WhitelistValidationItem(context.categoryId, context.updateTicketOwnerForm.getEmail())), ErrorCode.custom(ErrorsCode.STEP_2_WHITELIST_CHECK_FAILED, EMAIL_KEY))</span>
-<span class="nc" id="L771">                .build(() -&gt; null);</span>
+<span class="fc" id="L768">            return new Result.Builder&lt;Void&gt;()</span>
+<span class="pc bpc" id="L769" title="3 of 4 branches missed.">                .checkPrecondition(() -&gt; vatNr.isEmpty() || vatValidator.test(vatNr.get()), ErrorCode.custom(ErrorsCode.STEP_2_INVALID_VAT, &quot;additional['&quot;+vatFieldName+&quot;']&quot;))</span>
+<span class="fc" id="L770">                .checkPrecondition(() -&gt; whitelistValidator.test(new GroupManager.WhitelistValidationItem(context.categoryId, context.updateTicketOwnerForm.getEmail())), ErrorCode.custom(ErrorsCode.STEP_2_WHITELIST_CHECK_FAILED, EMAIL_KEY))</span>
+<span class="fc" id="L771">                .build(() -&gt; null);</span>
         }
     }
 
@@ -780,13 +780,13 @@ public final class Validator {
         private final String ticketUuid;
         private final String prefix;
 
-<span class="nc" id="L783">        public AdvancedValidationContext(UpdateTicketOwnerForm updateTicketOwnerForm, List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFieldConfigurations, int categoryId, String ticketUuid, String prefix) {</span>
-<span class="nc" id="L784">            this.updateTicketOwnerForm = updateTicketOwnerForm;</span>
-<span class="nc" id="L785">            this.purchaseContextFieldConfigurations = purchaseContextFieldConfigurations;</span>
-<span class="nc" id="L786">            this.categoryId = categoryId;</span>
-<span class="nc" id="L787">            this.ticketUuid = ticketUuid;</span>
-<span class="nc" id="L788">            this.prefix = prefix;</span>
-<span class="nc" id="L789">        }</span>
+<span class="fc" id="L783">        public AdvancedValidationContext(UpdateTicketOwnerForm updateTicketOwnerForm, List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFieldConfigurations, int categoryId, String ticketUuid, String prefix) {</span>
+<span class="fc" id="L784">            this.updateTicketOwnerForm = updateTicketOwnerForm;</span>
+<span class="fc" id="L785">            this.purchaseContextFieldConfigurations = purchaseContextFieldConfigurations;</span>
+<span class="fc" id="L786">            this.categoryId = categoryId;</span>
+<span class="fc" id="L787">            this.ticketUuid = ticketUuid;</span>
+<span class="fc" id="L788">            this.prefix = prefix;</span>
+<span class="fc" id="L789">        }</span>
     }
 
 }

@@ -62,19 +62,19 @@ public class EuVatChecker {
 <span class="fc" id="L62">        .build();</span>
 
     public boolean isReverseChargeEnabledFor(PurchaseContext configurable) {
-<span class="nc" id="L65">        return reverseChargeEnabled(configurationManager, configurable);</span>
+<span class="fc" id="L65">        return reverseChargeEnabled(configurationManager, configurable);</span>
     }
 
     public Optional&lt;VatDetail&gt; checkVat(String vatNr, String countryCode, PurchaseContext purchaseContext) {
-<span class="nc" id="L69">        Optional&lt;VatDetail&gt; res = performCheck(vatNr, countryCode, purchaseContext).apply(configurationManager, client);</span>
-<span class="nc" id="L70">        return res.map(detail -&gt; {</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">           if(!detail.isValid()) {</span>
+<span class="fc" id="L69">        Optional&lt;VatDetail&gt; res = performCheck(vatNr, countryCode, purchaseContext).apply(configurationManager, client);</span>
+<span class="fc" id="L70">        return res.map(detail -&gt; {</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">           if(!detail.isValid()) {</span>
 <span class="nc" id="L72">               String organizerCountry = organizerCountry(configurationManager, purchaseContext);</span>
 <span class="nc bnc" id="L73" title="All 6 branches missed.">               boolean valid = (&quot;IT&quot;.equals(organizerCountry) &amp;&amp; &quot;IT&quot;.equals(countryCode) &amp;&amp; ItalianTaxIdValidator.validateVatId(vatNr))</span>
 <span class="nc bnc" id="L74" title="All 2 branches missed.">                   || extensionManager.handleTaxIdValidation(purchaseContext, vatNr, organizerCountry);</span>
 <span class="nc" id="L75">               return new VatDetail(detail.getVatNr(), detail.getCountry(), valid, detail.getName(), detail.getAddress(), VatDetail.Type.FORMAL, false);</span>
            } else {
-<span class="nc" id="L77">               return detail;</span>
+<span class="fc" id="L77">               return detail;</span>
            }
         });
     }
@@ -113,16 +113,16 @@ public class EuVatChecker {
     }
 
     public void logSuccessfulValidation(VatDetail detail, String reservationId, PurchaseContext purchaseContext) {
-<span class="nc" id="L116">        List&lt;Map&lt;String, Object&gt;&gt; modifications = List.of(</span>
-<span class="nc" id="L117">            Map.of(&quot;vatNumber&quot;, detail.getVatNr(), &quot;country&quot;, detail.getCountry(), &quot;validationType&quot;, detail.getType())</span>
+<span class="fc" id="L116">        List&lt;Map&lt;String, Object&gt;&gt; modifications = List.of(</span>
+<span class="fc" id="L117">            Map.of(&quot;vatNumber&quot;, detail.getVatNr(), &quot;country&quot;, detail.getCountry(), &quot;validationType&quot;, detail.getType())</span>
         );
-<span class="nc bnc" id="L119" title="All 3 branches missed.">        Audit.EventType eventType = switch (detail.getType()) {</span>
-<span class="nc" id="L120">            case VIES, EXTRA_EU -&gt; VAT_VALIDATION_SUCCESSFUL;</span>
+<span class="pc bpc" id="L119" title="2 of 3 branches missed.">        Audit.EventType eventType = switch (detail.getType()) {</span>
+<span class="fc" id="L120">            case VIES, EXTRA_EU -&gt; VAT_VALIDATION_SUCCESSFUL;</span>
 <span class="nc" id="L121">            case SKIPPED -&gt; VAT_VALIDATION_SKIPPED;</span>
-<span class="nc" id="L122">            case FORMAL -&gt; VAT_FORMAL_VALIDATION_SUCCESSFUL;</span>
+<span class="pc" id="L122">            case FORMAL -&gt; VAT_FORMAL_VALIDATION_SUCCESSFUL;</span>
         };
-<span class="nc" id="L124">        auditingRepository.insert(reservationId, null, purchaseContext, eventType, new Date(), RESERVATION, reservationId, modifications);</span>
-<span class="nc" id="L125">    }</span>
+<span class="fc" id="L124">        auditingRepository.insert(reservationId, null, purchaseContext, eventType, new Date(), RESERVATION, reservationId, modifications);</span>
+<span class="fc" id="L125">    }</span>
 
 
     static EUVatCheckResponse validateEUVat(String vat, String countryCode, EUVatChecker client) {
@@ -175,7 +175,7 @@ public class EuVatChecker {
 <span class="pc bpc" id="L175" title="1 of 2 branches missed.">            &amp;&amp; res.containsKey(ENABLE_REVERSE_CHARGE_ONLINE));</span>
 <span class="fc" id="L176">        return (</span>
 <span class="fc bfc" id="L177" title="All 2 branches covered.">            res.get(ENABLE_EU_VAT_DIRECTIVE).getValueAsBooleanOrDefault()</span>
-<span class="pc bpc" id="L178" title="3 of 4 branches missed.">                &amp;&amp; (res.get(ENABLE_REVERSE_CHARGE_IN_PERSON).getValueAsBooleanOrDefault() || res.get(ENABLE_REVERSE_CHARGE_ONLINE).getValueAsBooleanOrDefault())</span>
+<span class="pc bpc" id="L178" title="1 of 4 branches missed.">                &amp;&amp; (res.get(ENABLE_REVERSE_CHARGE_IN_PERSON).getValueAsBooleanOrDefault() || res.get(ENABLE_REVERSE_CHARGE_ONLINE).getValueAsBooleanOrDefault())</span>
 <span class="pc bpc" id="L179" title="1 of 2 branches missed.">        ) &amp;&amp; res.get(COUNTRY_OF_BUSINESS).isPresent();</span>
     }
 

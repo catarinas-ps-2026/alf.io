@@ -60,8 +60,8 @@ public class FileBlobCacheManager {
     public File getFile(String section, String id, Supplier&lt;File&gt; supplier) {
 <span class="fc" id="L61">        var resourcePath = getBlobDir(section).resolve(id);</span>
 <span class="fc" id="L62">        checkPath(resourcePath, section);</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (Files.exists(resourcePath)) {</span>
-<span class="nc" id="L64">            return resourcePath.toFile();</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (Files.exists(resourcePath)) {</span>
+<span class="fc" id="L64">            return resourcePath.toFile();</span>
         }
 <span class="fc" id="L66">        log.debug(&quot;Cache not hit for file {}&quot;, id);</span>
 <span class="fc" id="L67">        var tmpFile = supplier.get();</span>
@@ -76,21 +76,21 @@ public class FileBlobCacheManager {
     }
 
     public void ensureFileExists(String section, String id, Supplier&lt;byte[]&gt; supplier) {
-<span class="nc" id="L79">        var resourcePath = getBlobDir(section).resolve(id);</span>
-<span class="nc" id="L80">        checkPath(resourcePath, section);</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (Files.exists(resourcePath)) {</span>
-<span class="nc" id="L82">            return;</span>
+<span class="fc" id="L79">        var resourcePath = getBlobDir(section).resolve(id);</span>
+<span class="fc" id="L80">        checkPath(resourcePath, section);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (Files.exists(resourcePath)) {</span>
+<span class="fc" id="L82">            return;</span>
         }
         try {
             // ensure directory
-<span class="nc" id="L86">            var dir = getBlobDir(section);</span>
-<span class="nc" id="L87">            Files.createDirectories(dir);</span>
-<span class="nc" id="L88">            var tmpFile = Files.createTempFile(dir, &quot;tmp&quot;, &quot;fileblob&quot;);</span>
-<span class="nc" id="L89">            Files.write(tmpFile, supplier.get());</span>
-<span class="nc" id="L90">            Files.move(tmpFile, dir.resolve(id), StandardCopyOption.ATOMIC_MOVE);</span>
+<span class="fc" id="L86">            var dir = getBlobDir(section);</span>
+<span class="fc" id="L87">            Files.createDirectories(dir);</span>
+<span class="fc" id="L88">            var tmpFile = Files.createTempFile(dir, &quot;tmp&quot;, &quot;fileblob&quot;);</span>
+<span class="fc" id="L89">            Files.write(tmpFile, supplier.get());</span>
+<span class="fc" id="L90">            Files.move(tmpFile, dir.resolve(id), StandardCopyOption.ATOMIC_MOVE);</span>
 <span class="nc" id="L91">        } catch (IOException e) {</span>
 <span class="nc" id="L92">            log.warn(&quot;was not able to ensure file presence with section {} and id {}&quot;, section, id, e);</span>
-<span class="nc" id="L93">        }</span>
-<span class="nc" id="L94">    }</span>
+<span class="fc" id="L93">        }</span>
+<span class="fc" id="L94">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -96,30 +96,30 @@ public class TicketReservationWithTransaction {
                                             @Column(&quot;tickets_count&quot;) Integer ticketsCount,
 
                                             @Column(&quot;promo_code&quot;) String promoCode,
-<span class="nc" id="L99">                                            @Column(&quot;special_price_token&quot;) String specialPriceToken) {</span>
+<span class="fc" id="L99">                                            @Column(&quot;special_price_token&quot;) String specialPriceToken) {</span>
 
-<span class="nc" id="L101">        this.ticketReservation = new TicketReservation(trId, validity, trStatus,</span>
+<span class="fc" id="L101">        this.ticketReservation = new TicketReservation(trId, validity, trStatus,</span>
             trFullName, trFirstName, trLastName, trEmail,
             billingAddress, confirmationTimestamp, latestReminder, paymentMethod,
             reminderSent, promoCodeDiscountId, automatic, trUserLanguage,
             directAssignmentRequested, invoiceNumber, invoiceModel, vatStatus, vatNr, vatCountryCode, invoiceRequested,
             usedVadPercent, vatIncluded, reservationCreationTimestamp, customerReference,
-<span class="nc" id="L107">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
+<span class="fc" id="L107">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
 
-<span class="nc" id="L109">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountryCode, vatNr, invoicingAdditionalInfo);</span>
+<span class="fc" id="L109">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountryCode, vatNr, invoicingAdditionalInfo);</span>
 
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        if(btId != null) {</span>
-<span class="nc" id="L112">            this.transaction = new Transaction(btId, transactionId, paymentId, reservationId,</span>
-<span class="nc" id="L113">                    timestamp, priceInCents, currency, description, paymentProxy, Optional.ofNullable(platformFee).orElse(0L), Optional.ofNullable(gatewayFee).orElse(0L), transactionStatus, transactionMetadata);</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">        if(btId != null) {</span>
+<span class="fc" id="L112">            this.transaction = new Transaction(btId, transactionId, paymentId, reservationId,</span>
+<span class="fc" id="L113">                    timestamp, priceInCents, currency, description, paymentProxy, Optional.ofNullable(platformFee).orElse(0L), Optional.ofNullable(gatewayFee).orElse(0L), transactionStatus, transactionMetadata);</span>
         } else {
 <span class="nc" id="L115">            this.transaction = null;</span>
         }
 
-<span class="nc" id="L118">        this.ticketsCount = ticketsCount;</span>
-<span class="nc" id="L119">        this.promoCode = promoCode;</span>
-<span class="nc" id="L120">        this.specialPriceToken = specialPriceToken;</span>
+<span class="fc" id="L118">        this.ticketsCount = ticketsCount;</span>
+<span class="fc" id="L119">        this.promoCode = promoCode;</span>
+<span class="fc" id="L120">        this.specialPriceToken = specialPriceToken;</span>
 
-<span class="nc" id="L122">    }</span>
+<span class="fc" id="L122">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

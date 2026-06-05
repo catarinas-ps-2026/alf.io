@@ -50,13 +50,13 @@ public class SubscriptionReservationManager {
 
     @EventListener(CleanupReservations.class)
     public void cleanupReservations(CleanupReservations cleanupReservations) {
-<span class="pc bpc" id="L53" title="1 of 4 branches missed.">        if (cleanupReservations.purchaseContext() != null &amp;&amp; cleanupReservations.purchaseContext() instanceof SubscriptionDescriptor sd) {</span>
+<span class="fc bfc" id="L53" title="All 4 branches covered.">        if (cleanupReservations.purchaseContext() != null &amp;&amp; cleanupReservations.purchaseContext() instanceof SubscriptionDescriptor sd) {</span>
 <span class="fc" id="L54">            deleteReservationsForDescriptor(cleanupReservations.reservationIds(), sd, cleanupReservations.expired());</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        } else if (cleanupReservations.purchaseContext() == null) {</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        } else if (cleanupReservations.purchaseContext() == null) {</span>
 <span class="fc" id="L56">            var involvedDescriptors = subscriptionRepository.findDescriptorsByReservationIds(cleanupReservations.reservationIds());</span>
 
 <span class="fc" id="L58">            var descriptorsIdsNeedingUpdate = involvedDescriptors.stream()</span>
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">                .filter(d -&gt; d.maxAvailable() &gt; 0)</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">                .filter(d -&gt; d.maxAvailable() &gt; 0)</span>
 <span class="fc" id="L60">                .map(DescriptorIdAndReservationId::descriptorId)</span>
 <span class="fc" id="L61">                .collect(Collectors.toSet());</span>
 
@@ -78,7 +78,7 @@ public class SubscriptionReservationManager {
     private void deleteReservationsForDescriptor(List&lt;String&gt; reservationIds, SubscriptionDescriptor sd, boolean expired) {
 <span class="fc" id="L79">        int deleted = subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds);</span>
 <span class="fc" id="L80">        log.trace(&quot;deleted {} subscriptions&quot;, deleted);</span>
-<span class="pc bpc" id="L81" title="1 of 4 branches missed.">        if (sd != null &amp;&amp; sd.getMaxAvailable() &gt; -1) {</span>
+<span class="fc bfc" id="L81" title="All 4 branches covered.">        if (sd != null &amp;&amp; sd.getMaxAvailable() &gt; -1) {</span>
             // restore deleted subscriptions
 <span class="fc" id="L83">            subscriptionRepository.preGenerateSubscriptions(SubscriptionDescriptorModification.fromModel(sd), sd.getId(), deleted);</span>
 <span class="fc" id="L84">            log.trace(&quot;created {} subscriptions to replace deleted&quot;, deleted);</span>

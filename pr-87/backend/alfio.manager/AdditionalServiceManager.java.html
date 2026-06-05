@@ -69,7 +69,7 @@ public class AdditionalServiceManager {
 
 
     public List&lt;AdditionalService&gt; loadAllForEvent(int eventId) {
-<span class="nc" id="L72">        return additionalServiceRepository.loadAllForEvent(eventId);</span>
+<span class="fc" id="L72">        return additionalServiceRepository.loadAllForEvent(eventId);</span>
     }
 
     public List&lt;AdditionalServiceText&gt; findAllTextByAdditionalServiceId(int additionalServiceId) {
@@ -139,95 +139,95 @@ public class AdditionalServiceManager {
 
 
     public EventModification.AdditionalService insertAdditionalService(Event event, EventModification.AdditionalService additionalService) {
-<span class="nc" id="L142">        int eventId = event.getId();</span>
-<span class="nc" id="L143">        AffectedRowCountAndKey&lt;Integer&gt; result = additionalServiceRepository.insert(eventId,</span>
-<span class="nc" id="L144">            evaluateAdditionalServicePriceCts(additionalService, event.getCurrency()),</span>
-<span class="nc" id="L145">            additionalService.isFixPrice(),</span>
-<span class="nc" id="L146">            additionalService.getOrdinal(),</span>
-<span class="nc" id="L147">            additionalService.getAvailableQuantity(),</span>
-<span class="nc" id="L148">            additionalService.getMaxQtyPerOrder(),</span>
-<span class="nc" id="L149">            additionalService.getInception().toZonedDateTime(event.getZoneId()),</span>
-<span class="nc" id="L150">            additionalService.getExpiration().toZonedDateTime(event.getZoneId()),</span>
-<span class="nc" id="L151">            additionalService.getVat(),</span>
-<span class="nc" id="L152">            additionalService.getVatType(),</span>
-<span class="nc" id="L153">            additionalService.getType(),</span>
-<span class="nc" id="L154">            Objects.requireNonNullElse(additionalService.getSupplementPolicy(), OPTIONAL_UNLIMITED_AMOUNT),</span>
-<span class="nc bnc" id="L155" title="All 2 branches missed.">            additionalService.getMinPrice() != null ? MonetaryUtil.unitToCents(additionalService.getMinPrice(), event.getCurrency()) : null,</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">            additionalService.getMaxPrice() != null ? MonetaryUtil.unitToCents(additionalService.getMaxPrice(), event.getCurrency()) : null);</span>
-<span class="nc bnc" id="L157" title="All 2 branches missed.">        Validate.isTrue(result.getAffectedRowCount() == 1, &quot;too many records updated&quot;);</span>
-<span class="nc" id="L158">        int id = result.getKey();</span>
-<span class="nc" id="L159">        Stream.concat(additionalService.getTitle().stream(), additionalService.getDescription().stream()).</span>
-<span class="nc" id="L160">            forEach(t -&gt; additionalServiceTextRepository.insert(id, t.getLocale(), t.getType(), t.getValue()));</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (additionalService.getAvailableQuantity() &gt; 0) {</span>
-<span class="nc" id="L162">            preGenerateItems(result.getKey(), event, additionalService);</span>
+<span class="fc" id="L142">        int eventId = event.getId();</span>
+<span class="fc" id="L143">        AffectedRowCountAndKey&lt;Integer&gt; result = additionalServiceRepository.insert(eventId,</span>
+<span class="fc" id="L144">            evaluateAdditionalServicePriceCts(additionalService, event.getCurrency()),</span>
+<span class="fc" id="L145">            additionalService.isFixPrice(),</span>
+<span class="fc" id="L146">            additionalService.getOrdinal(),</span>
+<span class="fc" id="L147">            additionalService.getAvailableQuantity(),</span>
+<span class="fc" id="L148">            additionalService.getMaxQtyPerOrder(),</span>
+<span class="fc" id="L149">            additionalService.getInception().toZonedDateTime(event.getZoneId()),</span>
+<span class="fc" id="L150">            additionalService.getExpiration().toZonedDateTime(event.getZoneId()),</span>
+<span class="fc" id="L151">            additionalService.getVat(),</span>
+<span class="fc" id="L152">            additionalService.getVatType(),</span>
+<span class="fc" id="L153">            additionalService.getType(),</span>
+<span class="fc" id="L154">            Objects.requireNonNullElse(additionalService.getSupplementPolicy(), OPTIONAL_UNLIMITED_AMOUNT),</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">            additionalService.getMinPrice() != null ? MonetaryUtil.unitToCents(additionalService.getMinPrice(), event.getCurrency()) : null,</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">            additionalService.getMaxPrice() != null ? MonetaryUtil.unitToCents(additionalService.getMaxPrice(), event.getCurrency()) : null);</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        Validate.isTrue(result.getAffectedRowCount() == 1, &quot;too many records updated&quot;);</span>
+<span class="fc" id="L158">        int id = result.getKey();</span>
+<span class="fc" id="L159">        Stream.concat(additionalService.getTitle().stream(), additionalService.getDescription().stream()).</span>
+<span class="fc" id="L160">            forEach(t -&gt; additionalServiceTextRepository.insert(id, t.getLocale(), t.getType(), t.getValue()));</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">        if (additionalService.getAvailableQuantity() &gt; 0) {</span>
+<span class="fc" id="L162">            preGenerateItems(result.getKey(), event, additionalService);</span>
         }
 
-<span class="nc" id="L165">        return EventModification.AdditionalService.from(additionalServiceRepository.getById(result.getKey(), eventId))</span>
-<span class="nc" id="L166">            .withText(additionalServiceTextRepository.findAllByAdditionalServiceId(result.getKey()))</span>
-<span class="nc" id="L167">            .withZoneId(event.getZoneId())</span>
-<span class="nc" id="L168">            .build();</span>
+<span class="fc" id="L165">        return EventModification.AdditionalService.from(additionalServiceRepository.getById(result.getKey(), eventId))</span>
+<span class="fc" id="L166">            .withText(additionalServiceTextRepository.findAllByAdditionalServiceId(result.getKey()))</span>
+<span class="fc" id="L167">            .withZoneId(event.getZoneId())</span>
+<span class="fc" id="L168">            .build();</span>
     }
 
     void createAllAdditionalServices(Event event, List&lt;EventModification.AdditionalService&gt; additionalServices) {
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (!CollectionUtils.isEmpty(additionalServices)) {</span>
-<span class="nc" id="L173">            int eventId = event.getId();</span>
-<span class="nc" id="L174">            var currencyCode = event.getCurrency();</span>
-<span class="nc" id="L175">            var zoneId = event.getZoneId();</span>
-<span class="nc" id="L176">            additionalServices.forEach(as -&gt; {</span>
-<span class="nc" id="L177">                AffectedRowCountAndKey&lt;Integer&gt; service = additionalServiceRepository.insert(eventId,</span>
-<span class="nc" id="L178">                    evaluateAdditionalServicePriceCts(as, currencyCode),</span>
-<span class="nc" id="L179">                    as.isFixPrice(),</span>
-<span class="nc" id="L180">                    as.getOrdinal(),</span>
-<span class="nc" id="L181">                    as.getAvailableQuantity(),</span>
-<span class="nc" id="L182">                    as.getMaxQtyPerOrder(),</span>
-<span class="nc" id="L183">                    as.getInception().toZonedDateTime(zoneId),</span>
-<span class="nc" id="L184">                    as.getExpiration().toZonedDateTime(zoneId),</span>
-<span class="nc" id="L185">                    as.getVat(),</span>
-<span class="nc" id="L186">                    as.getVatType(),</span>
-<span class="nc" id="L187">                    as.getType(),</span>
-<span class="nc" id="L188">                    as.getSupplementPolicy(),</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">                    as.getMinPrice() != null ? MonetaryUtil.unitToCents(as.getMinPrice(), currencyCode) : null,</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">                    as.getMaxPrice() != null ? MonetaryUtil.unitToCents(as.getMaxPrice(), currencyCode) : null);</span>
-<span class="nc bnc" id="L191" title="All 2 branches missed.">                if (as.getAvailableQuantity() &gt; 0) {</span>
-<span class="nc" id="L192">                    preGenerateItems(service.getKey(), event, as);</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">        if (!CollectionUtils.isEmpty(additionalServices)) {</span>
+<span class="fc" id="L173">            int eventId = event.getId();</span>
+<span class="fc" id="L174">            var currencyCode = event.getCurrency();</span>
+<span class="fc" id="L175">            var zoneId = event.getZoneId();</span>
+<span class="fc" id="L176">            additionalServices.forEach(as -&gt; {</span>
+<span class="fc" id="L177">                AffectedRowCountAndKey&lt;Integer&gt; service = additionalServiceRepository.insert(eventId,</span>
+<span class="fc" id="L178">                    evaluateAdditionalServicePriceCts(as, currencyCode),</span>
+<span class="fc" id="L179">                    as.isFixPrice(),</span>
+<span class="fc" id="L180">                    as.getOrdinal(),</span>
+<span class="fc" id="L181">                    as.getAvailableQuantity(),</span>
+<span class="fc" id="L182">                    as.getMaxQtyPerOrder(),</span>
+<span class="fc" id="L183">                    as.getInception().toZonedDateTime(zoneId),</span>
+<span class="fc" id="L184">                    as.getExpiration().toZonedDateTime(zoneId),</span>
+<span class="fc" id="L185">                    as.getVat(),</span>
+<span class="fc" id="L186">                    as.getVatType(),</span>
+<span class="fc" id="L187">                    as.getType(),</span>
+<span class="fc" id="L188">                    as.getSupplementPolicy(),</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">                    as.getMinPrice() != null ? MonetaryUtil.unitToCents(as.getMinPrice(), currencyCode) : null,</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">                    as.getMaxPrice() != null ? MonetaryUtil.unitToCents(as.getMaxPrice(), currencyCode) : null);</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">                if (as.getAvailableQuantity() &gt; 0) {</span>
+<span class="fc" id="L192">                    preGenerateItems(service.getKey(), event, as);</span>
                 }
-<span class="nc" id="L194">                as.getTitle().forEach(insertAdditionalServiceDescription(service.getKey()));</span>
-<span class="nc" id="L195">                as.getDescription().forEach(insertAdditionalServiceDescription(service.getKey()));</span>
-<span class="nc" id="L196">            });</span>
+<span class="fc" id="L194">                as.getTitle().forEach(insertAdditionalServiceDescription(service.getKey()));</span>
+<span class="fc" id="L195">                as.getDescription().forEach(insertAdditionalServiceDescription(service.getKey()));</span>
+<span class="fc" id="L196">            });</span>
         }
-<span class="nc" id="L198">    }</span>
+<span class="fc" id="L198">    }</span>
 
     private static int evaluateAdditionalServicePriceCts(EventModification.AdditionalService as, String currencyCode) {
-<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(as.getSupplementPolicy())) {</span>
-<span class="nc" id="L202">            var decimalAwarePrice = Objects.requireNonNullElse(as.getPrice(), BigDecimal.ZERO)</span>
-<span class="nc" id="L203">                .multiply(HUNDRED)</span>
-<span class="nc" id="L204">                .setScale(0, HALF_UP);</span>
-<span class="nc" id="L205">            return decimalAwarePrice.intValueExact();</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(as.getSupplementPolicy())) {</span>
+<span class="fc" id="L202">            var decimalAwarePrice = Objects.requireNonNullElse(as.getPrice(), BigDecimal.ZERO)</span>
+<span class="fc" id="L203">                .multiply(HUNDRED)</span>
+<span class="fc" id="L204">                .setScale(0, HALF_UP);</span>
+<span class="fc" id="L205">            return decimalAwarePrice.intValueExact();</span>
         } else {
-<span class="nc bnc" id="L207" title="All 2 branches missed.">            return as.getPrice() != null ? MonetaryUtil.unitToCents(as.getPrice(), currencyCode) : 0;</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">            return as.getPrice() != null ? MonetaryUtil.unitToCents(as.getPrice(), currencyCode) : 0;</span>
         }
     }
 
     private void preGenerateItems(int serviceId, Event event, EventModification.AdditionalService as) {
-<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (!event.supportsLinkedAdditionalServices()) {</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (!event.supportsLinkedAdditionalServices()) {</span>
 <span class="nc" id="L213">            LOGGER.trace(&quot;Event does not support linked additional services&quot;);</span>
 <span class="nc" id="L214">            return;</span>
         }
-<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (as.getAvailableQuantity() == -1) {</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">        if (as.getAvailableQuantity() == -1) {</span>
             // nothing to do here
 <span class="nc" id="L218">            return;</span>
         }
         // check how many are already defined
-<span class="nc" id="L221">        int count = additionalServiceItemRepository.countItemsForService(serviceId);</span>
-<span class="nc" id="L222">        int requested = Math.max(0, as.getAvailableQuantity());</span>
-<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (count &gt; requested) {</span>
+<span class="fc" id="L221">        int count = additionalServiceItemRepository.countItemsForService(serviceId);</span>
+<span class="fc" id="L222">        int requested = Math.max(0, as.getAvailableQuantity());</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if (count &gt; requested) {</span>
 <span class="nc" id="L224">            LOGGER.debug(&quot;Requested {} items, found {}&quot;, requested, count);</span>
 <span class="nc" id="L225">            int result = additionalServiceItemRepository.invalidateItems(serviceId, count - requested);</span>
 <span class="nc bnc" id="L226" title="All 2 branches missed.">            Validate.isTrue(result == count - requested, &quot;Cannot reduce available items to &quot;+requested);</span>
-<span class="nc bnc" id="L227" title="All 2 branches missed.">        } else if(count &lt; requested) {</span>
-<span class="nc" id="L228">            var batchReserveParameters = new ArrayList&lt;MapSqlParameterSource&gt;();</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">            for (int i = 0; i &lt; requested - count; i++) {</span>
-<span class="nc" id="L230">                batchReserveParameters.add(buildInsertItemParameterSource(</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        } else if(count &lt; requested) {</span>
+<span class="fc" id="L228">            var batchReserveParameters = new ArrayList&lt;MapSqlParameterSource&gt;();</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">            for (int i = 0; i &lt; requested - count; i++) {</span>
+<span class="fc" id="L230">                batchReserveParameters.add(buildInsertItemParameterSource(</span>
                     serviceId,
                     null,
                     AdditionalServiceItem.AdditionalServiceItemStatus.FREE,
@@ -238,12 +238,12 @@ public class AdditionalServiceManager {
                     0
                 ));
             }
-<span class="nc" id="L241">            int result = (int) Arrays.stream(jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchInsert(), batchReserveParameters.toArray(MapSqlParameterSource[]::new)))</span>
-<span class="nc" id="L242">                .asLongStream()</span>
-<span class="nc" id="L243">                .sum();</span>
-<span class="nc bnc" id="L244" title="All 2 branches missed.">            Validate.isTrue(result + count == requested, &quot;Error while pre-generating items&quot;);</span>
+<span class="fc" id="L241">            int result = (int) Arrays.stream(jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchInsert(), batchReserveParameters.toArray(MapSqlParameterSource[]::new)))</span>
+<span class="fc" id="L242">                .asLongStream()</span>
+<span class="fc" id="L243">                .sum();</span>
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">            Validate.isTrue(result + count == requested, &quot;Error while pre-generating items&quot;);</span>
         }
-<span class="nc" id="L246">    }</span>
+<span class="fc" id="L246">    }</span>
 
     void bookAdditionalServiceItems(int quantity,
                                     BigDecimal amount,
@@ -296,22 +296,22 @@ public class AdditionalServiceManager {
 <span class="fc" id="L296">    }</span>
 
     private Consumer&lt;EventModification.AdditionalServiceText&gt; insertAdditionalServiceDescription(int serviceId) {
-<span class="nc" id="L299">        return t -&gt; additionalServiceTextRepository.insert(serviceId, t.getLocale(), t.getType(), t.getValue());</span>
+<span class="fc" id="L299">        return t -&gt; additionalServiceTextRepository.insert(serviceId, t.getLocale(), t.getType(), t.getValue());</span>
     }
 
     public AdditionalService getAdditionalServiceById(int id, int eventId) {
-<span class="nc" id="L303">        return additionalServiceRepository.getById(id, eventId);</span>
+<span class="fc" id="L303">        return additionalServiceRepository.getById(id, eventId);</span>
     }
 
     public Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; getDescriptionsByAdditionalServiceIds(Collection&lt;Integer&gt; additionalServiceIds) {
-<span class="nc" id="L307">        return additionalServiceTextRepository.getDescriptionsByAdditionalServiceIds(additionalServiceIds);</span>
+<span class="fc" id="L307">        return additionalServiceTextRepository.getDescriptionsByAdditionalServiceIds(additionalServiceIds);</span>
     }
 
     public Map&lt;Integer, AdditionalService.AdditionalServiceType&gt; getTypeByIds(Collection&lt;Integer&gt; additionalServiceIds) {
-<span class="nc bnc" id="L311" title="All 2 branches missed.">        if (additionalServiceIds.isEmpty()) {</span>
+<span class="pc bpc" id="L311" title="1 of 2 branches missed.">        if (additionalServiceIds.isEmpty()) {</span>
 <span class="nc" id="L312">            return Map.of();</span>
         }
-<span class="nc" id="L314">        return additionalServiceRepository.getTypeByIds(additionalServiceIds);</span>
+<span class="fc" id="L314">        return additionalServiceRepository.getTypeByIds(additionalServiceIds);</span>
     }
 
     private MapSqlParameterSource buildInsertItemParameterSource(int serviceId,
@@ -335,7 +335,7 @@ public class AdditionalServiceManager {
     }
 
     int updateStatusForReservationId(int eventId, String reservationId, AdditionalServiceItem.AdditionalServiceItemStatus additionalServiceItemStatus) {
-<span class="nc" id="L338">        return additionalServiceItemRepository.updateItemsStatusWithReservationUUID(eventId, reservationId, additionalServiceItemStatus);</span>
+<span class="fc" id="L338">        return additionalServiceItemRepository.updateItemsStatusWithReservationUUID(eventId, reservationId, additionalServiceItemStatus);</span>
     }
 
     public List&lt;AdditionalServiceItem&gt; findItemsInReservation(int eventId, String reservationId) {
@@ -343,12 +343,12 @@ public class AdditionalServiceManager {
     }
 
     public List&lt;AdditionalServiceItem&gt; findItemsForTicket(Ticket ticket) {
-<span class="nc" id="L346">        return additionalServiceItemRepository.findByTicketId(ticket.getEventId(), ticket.getTicketsReservationId(), ticket.getId());</span>
+<span class="fc" id="L346">        return additionalServiceItemRepository.findByTicketId(ticket.getEventId(), ticket.getTicketsReservationId(), ticket.getId());</span>
     }
 
     public List&lt;AdditionalServiceItem&gt; findItemsInReservation(PurchaseContext purchaseContext, String reservationId) {
-<span class="nc bnc" id="L350" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
-<span class="nc" id="L351">            return findItemsInReservation(((Event)purchaseContext).getId(), reservationId);</span>
+<span class="pc bpc" id="L350" title="1 of 2 branches missed.">        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
+<span class="fc" id="L351">            return findItemsInReservation(((Event)purchaseContext).getId(), reservationId);</span>
         }
 <span class="nc" id="L353">        return List.of();</span>
     }
@@ -358,33 +358,33 @@ public class AdditionalServiceManager {
     }
 
     boolean hasPaidSupplements(int eventId, String reservationId) {
-<span class="nc" id="L361">        return additionalServiceItemRepository.hasPaidSupplements(eventId, reservationId);</span>
+<span class="fc" id="L361">        return additionalServiceItemRepository.hasPaidSupplements(eventId, reservationId);</span>
     }
 
     public void linkItemsToTickets(String reservationId,
                                       Map&lt;String, List&lt;AdditionalServiceLinkForm&gt;&gt; links,
                                       List&lt;Ticket&gt; tickets) {
-<span class="nc bnc" id="L367" title="All 4 branches missed.">        if (links == null || links.isEmpty()) {</span>
+<span class="pc bpc" id="L367" title="2 of 4 branches missed.">        if (links == null || links.isEmpty()) {</span>
 <span class="nc" id="L368">            return;</span>
         }
-<span class="nc" id="L370">        var parameterSources = links.entrySet().stream()</span>
-<span class="nc" id="L371">            .flatMap(entry -&gt; {</span>
-<span class="nc" id="L372">                var asl = entry.getValue();</span>
-<span class="nc" id="L373">                Integer ticketId = tickets.stream()</span>
-<span class="nc bnc" id="L374" title="All 4 branches missed.">                    .filter(t -&gt; StringUtils.isNotEmpty(entry.getKey()) &amp;&amp; t.getPublicUuid().toString().equals(entry.getKey()))</span>
-<span class="nc" id="L375">                    .findFirst()</span>
-<span class="nc" id="L376">                    .map(Ticket::getId)</span>
-<span class="nc" id="L377">                    .orElse(null);</span>
-<span class="nc" id="L378">                return asl.stream().map(form -&gt; batchLinkSource(reservationId, form.getAdditionalServiceItemId(), ticketId));</span>
-<span class="nc" id="L379">            }).toArray(MapSqlParameterSource[]::new);</span>
-<span class="nc" id="L380">        var results = jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchLinkToTicket(), parameterSources);</span>
-<span class="nc bnc" id="L381" title="All 2 branches missed.">        Validate.isTrue(Arrays.stream(results).allMatch(i -&gt; i == 1));</span>
-<span class="nc" id="L382">    }</span>
+<span class="fc" id="L370">        var parameterSources = links.entrySet().stream()</span>
+<span class="fc" id="L371">            .flatMap(entry -&gt; {</span>
+<span class="fc" id="L372">                var asl = entry.getValue();</span>
+<span class="fc" id="L373">                Integer ticketId = tickets.stream()</span>
+<span class="pc bpc" id="L374" title="1 of 4 branches missed.">                    .filter(t -&gt; StringUtils.isNotEmpty(entry.getKey()) &amp;&amp; t.getPublicUuid().toString().equals(entry.getKey()))</span>
+<span class="fc" id="L375">                    .findFirst()</span>
+<span class="fc" id="L376">                    .map(Ticket::getId)</span>
+<span class="fc" id="L377">                    .orElse(null);</span>
+<span class="fc" id="L378">                return asl.stream().map(form -&gt; batchLinkSource(reservationId, form.getAdditionalServiceItemId(), ticketId));</span>
+<span class="fc" id="L379">            }).toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L380">        var results = jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchLinkToTicket(), parameterSources);</span>
+<span class="pc bpc" id="L381" title="1 of 2 branches missed.">        Validate.isTrue(Arrays.stream(results).allMatch(i -&gt; i == 1));</span>
+<span class="fc" id="L382">    }</span>
 
     private static MapSqlParameterSource batchLinkSource(String reservationId, int itemId, Integer ticketId) {
-<span class="nc" id="L385">        return new MapSqlParameterSource(&quot;ticketId&quot;, ticketId)</span>
-<span class="nc" id="L386">            .addValue(&quot;itemId&quot;, itemId)</span>
-<span class="nc" id="L387">            .addValue(&quot;reservationId&quot;, reservationId);</span>
+<span class="fc" id="L385">        return new MapSqlParameterSource(&quot;ticketId&quot;, ticketId)</span>
+<span class="fc" id="L386">            .addValue(&quot;itemId&quot;, itemId)</span>
+<span class="fc" id="L387">            .addValue(&quot;reservationId&quot;, reservationId);</span>
     }
 
 
@@ -392,58 +392,58 @@ public class AdditionalServiceManager {
                                                      String reservationId,
                                                      List&lt;ASReservationWithOptionalCodeModification&gt; additionalServices,
                                                      Optional&lt;PromoCodeDiscount&gt; discount) {
-<span class="nc" id="L395">        var ticketIds = ticketRepository.findTicketIdsInReservation(reservationId);</span>
-<span class="nc" id="L396">        int ticketCount = ticketIds.size();</span>
+<span class="fc" id="L395">        var ticketIds = ticketRepository.findTicketIdsInReservation(reservationId);</span>
+<span class="fc" id="L396">        int ticketCount = ticketIds.size();</span>
         // apply valid additional service with supplement policy mandatory one for ticket
-<span class="nc" id="L398">        var additionalServicesForEvent = loadAllForEvent(event.getId());</span>
+<span class="fc" id="L398">        var additionalServicesForEvent = loadAllForEvent(event.getId());</span>
 
-<span class="nc bnc" id="L400" title="All 4 branches missed.">        var automatic = additionalServicesForEvent.stream().filter(as -&gt; as.supplementPolicy().isMandatory() &amp;&amp; as.getSaleable())</span>
-<span class="nc" id="L401">            .map(as -&gt; {</span>
-<span class="nc" id="L402">                AdditionalServiceReservationModification asrm = new AdditionalServiceReservationModification();</span>
-<span class="nc" id="L403">                asrm.setAdditionalServiceId(as.id());</span>
-<span class="nc bnc" id="L404" title="All 2 branches missed.">                asrm.setQuantity(as.supplementPolicy() == MANDATORY_ONE_FOR_TICKET ? ticketCount : 1);</span>
-<span class="nc" id="L405">                return new ASReservationWithOptionalCodeModification(asrm, Optional.empty());</span>
-<span class="nc" id="L406">            }).toList();</span>
+<span class="pc bpc" id="L400" title="1 of 4 branches missed.">        var automatic = additionalServicesForEvent.stream().filter(as -&gt; as.supplementPolicy().isMandatory() &amp;&amp; as.getSaleable())</span>
+<span class="fc" id="L401">            .map(as -&gt; {</span>
+<span class="fc" id="L402">                AdditionalServiceReservationModification asrm = new AdditionalServiceReservationModification();</span>
+<span class="fc" id="L403">                asrm.setAdditionalServiceId(as.id());</span>
+<span class="fc bfc" id="L404" title="All 2 branches covered.">                asrm.setQuantity(as.supplementPolicy() == MANDATORY_ONE_FOR_TICKET ? ticketCount : 1);</span>
+<span class="fc" id="L405">                return new ASReservationWithOptionalCodeModification(asrm, Optional.empty());</span>
+<span class="fc" id="L406">            }).toList();</span>
 
-<span class="nc bnc" id="L408" title="All 4 branches missed.">        if (automatic.isEmpty() &amp;&amp; additionalServices.isEmpty()) {</span>
+<span class="fc bfc" id="L408" title="All 4 branches covered.">        if (automatic.isEmpty() &amp;&amp; additionalServices.isEmpty()) {</span>
             // skip additional queries
-<span class="nc" id="L410">            return;</span>
+<span class="fc" id="L410">            return;</span>
         }
-<span class="nc" id="L412">        var items = new ArrayList&lt;&gt;(automatic);</span>
-<span class="nc" id="L413">        items.addAll(additionalServices);</span>
-<span class="nc" id="L414">        reserveAdditionalServicesForReservation(event, reservationId, items, discount.orElse(null), additionalServicesForEvent, ticketIds);</span>
-<span class="nc" id="L415">    }</span>
+<span class="fc" id="L412">        var items = new ArrayList&lt;&gt;(automatic);</span>
+<span class="fc" id="L413">        items.addAll(additionalServices);</span>
+<span class="fc" id="L414">        reserveAdditionalServicesForReservation(event, reservationId, items, discount.orElse(null), additionalServicesForEvent, ticketIds);</span>
+<span class="fc" id="L415">    }</span>
 
     public void persistFieldsForAdditionalItems(int eventId,
                                                 int organizationId,
                                                 Map&lt;String, List&lt;AdditionalServiceLinkForm&gt;&gt; additionalServices,
                                                 List&lt;Ticket&gt; tickets) {
-<span class="nc" id="L421">        var ticketIds = tickets.stream().map(Ticket::getId).collect(Collectors.toSet());</span>
-<span class="nc" id="L422">        int res = purchaseContextFieldRepository.deleteAllValuesForAdditionalItems(ticketIds, eventId);</span>
-<span class="nc bnc" id="L423" title="All 2 branches missed.">        if (LOGGER.isDebugEnabled()) {</span>
+<span class="fc" id="L421">        var ticketIds = tickets.stream().map(Ticket::getId).collect(Collectors.toSet());</span>
+<span class="fc" id="L422">        int res = purchaseContextFieldRepository.deleteAllValuesForAdditionalItems(ticketIds, eventId);</span>
+<span class="pc bpc" id="L423" title="1 of 2 branches missed.">        if (LOGGER.isDebugEnabled()) {</span>
 <span class="nc" id="L424">            LOGGER.debug(&quot;Deleted {} field values&quot;, res);</span>
         }
-<span class="nc" id="L426">        var fields = purchaseContextFieldRepository.findAdditionalFieldsForEvent(eventId)</span>
-<span class="nc" id="L427">            .stream()</span>
-<span class="nc bnc" id="L428" title="All 2 branches missed.">            .filter(c -&gt; c.getContext() == PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE)</span>
-<span class="nc" id="L429">            .toList();</span>
+<span class="fc" id="L426">        var fields = purchaseContextFieldRepository.findAdditionalFieldsForEvent(eventId)</span>
+<span class="fc" id="L427">            .stream()</span>
+<span class="fc bfc" id="L428" title="All 2 branches covered.">            .filter(c -&gt; c.getContext() == PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE)</span>
+<span class="fc" id="L429">            .toList();</span>
 
-<span class="nc" id="L431">        var sources = additionalServices.entrySet().stream()</span>
-<span class="nc" id="L432">            .flatMap(entry -&gt; entry.getValue().stream().flatMap(form -&gt; form.getAdditional().entrySet().stream()</span>
-<span class="nc bnc" id="L433" title="All 2 branches missed.">                .filter(e2 -&gt; !e2.getValue().isEmpty())</span>
-<span class="nc" id="L434">                .map(e2 -&gt; {</span>
-<span class="nc" id="L435">                    long configurationId = fields.stream().filter(f -&gt; f.getName().equals(e2.getKey()))</span>
-<span class="nc" id="L436">                        .findFirst()</span>
-<span class="nc" id="L437">                        .orElseThrow()</span>
-<span class="nc" id="L438">                        .getId();</span>
-<span class="nc" id="L439">                    return new MapSqlParameterSource(&quot;additionalServiceItemId&quot;, form.getAdditionalServiceItemId())</span>
-<span class="nc" id="L440">                        .addValue(&quot;fieldConfigurationId&quot;, configurationId)</span>
-<span class="nc" id="L441">                        .addValue(&quot;value&quot;, purchaseContextFieldRepository.getFieldValueJson(e2.getValue()))</span>
-<span class="nc" id="L442">                        .addValue(&quot;organizationId&quot;, organizationId);</span>
-<span class="nc" id="L443">                }))).toArray(MapSqlParameterSource[]::new);</span>
-<span class="nc" id="L444">        var results = jdbcTemplate.batchUpdate(purchaseContextFieldRepository.batchInsertAdditionalItemsFields(), sources);</span>
-<span class="nc bnc" id="L445" title="All 2 branches missed.">        Validate.isTrue(Arrays.stream(results).allMatch(r -&gt; r == 1), &quot;error while persisting additional fields&quot;);</span>
-<span class="nc" id="L446">    }</span>
+<span class="fc" id="L431">        var sources = additionalServices.entrySet().stream()</span>
+<span class="fc" id="L432">            .flatMap(entry -&gt; entry.getValue().stream().flatMap(form -&gt; form.getAdditional().entrySet().stream()</span>
+<span class="pc bpc" id="L433" title="1 of 2 branches missed.">                .filter(e2 -&gt; !e2.getValue().isEmpty())</span>
+<span class="fc" id="L434">                .map(e2 -&gt; {</span>
+<span class="fc" id="L435">                    long configurationId = fields.stream().filter(f -&gt; f.getName().equals(e2.getKey()))</span>
+<span class="fc" id="L436">                        .findFirst()</span>
+<span class="fc" id="L437">                        .orElseThrow()</span>
+<span class="fc" id="L438">                        .getId();</span>
+<span class="fc" id="L439">                    return new MapSqlParameterSource(&quot;additionalServiceItemId&quot;, form.getAdditionalServiceItemId())</span>
+<span class="fc" id="L440">                        .addValue(&quot;fieldConfigurationId&quot;, configurationId)</span>
+<span class="fc" id="L441">                        .addValue(&quot;value&quot;, purchaseContextFieldRepository.getFieldValueJson(e2.getValue()))</span>
+<span class="fc" id="L442">                        .addValue(&quot;organizationId&quot;, organizationId);</span>
+<span class="fc" id="L443">                }))).toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L444">        var results = jdbcTemplate.batchUpdate(purchaseContextFieldRepository.batchInsertAdditionalItemsFields(), sources);</span>
+<span class="pc bpc" id="L445" title="1 of 2 branches missed.">        Validate.isTrue(Arrays.stream(results).allMatch(r -&gt; r == 1), &quot;error while persisting additional fields&quot;);</span>
+<span class="fc" id="L446">    }</span>
 
     private void reserveAdditionalServicesForReservation(Event event,
                                                          String reservationId,
@@ -453,112 +453,112 @@ public class AdditionalServiceManager {
                                                          List&lt;Integer&gt; ticketIds) {
 
 
-<span class="nc" id="L456">        var allAdditionalItems = additionalServiceReservationList.stream()</span>
-<span class="nc bnc" id="L457" title="All 2 branches missed.">            .filter(ar -&gt; ar.getAdditionalServiceId() != null)</span>
-<span class="nc" id="L458">            .map(requested -&gt; {</span>
-<span class="nc" id="L459">                var optionalAs = additionalServicesForEvent.stream()</span>
-<span class="nc bnc" id="L460" title="All 4 branches missed.">                    .filter(as -&gt; as.id() == requested.getAdditionalServiceId() &amp;&amp; as.supplementPolicy() != null)</span>
-<span class="nc" id="L461">                    .findFirst();</span>
-<span class="nc" id="L462">                return new MappedRequestedService(requested, optionalAs.orElse(null));</span>
+<span class="fc" id="L456">        var allAdditionalItems = additionalServiceReservationList.stream()</span>
+<span class="pc bpc" id="L457" title="1 of 2 branches missed.">            .filter(ar -&gt; ar.getAdditionalServiceId() != null)</span>
+<span class="fc" id="L458">            .map(requested -&gt; {</span>
+<span class="fc" id="L459">                var optionalAs = additionalServicesForEvent.stream()</span>
+<span class="pc bpc" id="L460" title="1 of 4 branches missed.">                    .filter(as -&gt; as.id() == requested.getAdditionalServiceId() &amp;&amp; as.supplementPolicy() != null)</span>
+<span class="fc" id="L461">                    .findFirst();</span>
+<span class="fc" id="L462">                return new MappedRequestedService(requested, optionalAs.orElse(null));</span>
             })
-<span class="nc" id="L464">            .filter(o -&gt; Objects.nonNull(o.additionalService))</span>
-<span class="nc" id="L465">            .collect(groupingBy(o -&gt; o.additionalService.supplementPolicy()));</span>
+<span class="fc" id="L464">            .filter(o -&gt; Objects.nonNull(o.additionalService))</span>
+<span class="fc" id="L465">            .collect(groupingBy(o -&gt; o.additionalService.supplementPolicy()));</span>
 
         // first handle MANDATORY_PERCENTAGE_FOR_TICKET, if any.
         // this way only ticket costs will be included in the percentage calculation
-<span class="nc" id="L469">        handleMandatoryPercentage(MANDATORY_PERCENTAGE_FOR_TICKET, event, reservationId, discount, allAdditionalItems);</span>
+<span class="fc" id="L469">        handleMandatoryPercentage(MANDATORY_PERCENTAGE_FOR_TICKET, event, reservationId, discount, allAdditionalItems);</span>
 
         // then apply all non-mandatory (i.e. user-selected)
-<span class="nc" id="L472">        var nonMandatoryPolicies = AdditionalService.SupplementPolicy.userSelected();</span>
-<span class="nc" id="L473">        nonMandatoryPolicies.stream()</span>
-<span class="nc" id="L474">            .filter(allAdditionalItems::containsKey)</span>
-<span class="nc bnc" id="L475" title="All 6 branches missed.">            .flatMap(p -&gt; allAdditionalItems.get(p).stream().filter(as -&gt; as.requested.getQuantity() &gt; 0 &amp;&amp; (as.additionalService.fixPrice() || requireNonNullElse(as.requested.getAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) &gt; 0)))</span>
-<span class="nc" id="L476">            .forEach(mapped -&gt; {</span>
-<span class="nc" id="L477">                var as = mapped.additionalService;</span>
-<span class="nc" id="L478">                var additionalServiceReservation = mapped.requested;</span>
-<span class="nc" id="L479">                bookAdditionalServiceItems(additionalServiceReservation.getQuantity(), additionalServiceReservation.getAmount(), as, event, discount, reservationId);</span>
-<span class="nc" id="L480">            });</span>
+<span class="fc" id="L472">        var nonMandatoryPolicies = AdditionalService.SupplementPolicy.userSelected();</span>
+<span class="fc" id="L473">        nonMandatoryPolicies.stream()</span>
+<span class="fc" id="L474">            .filter(allAdditionalItems::containsKey)</span>
+<span class="pc bpc" id="L475" title="4 of 6 branches missed.">            .flatMap(p -&gt; allAdditionalItems.get(p).stream().filter(as -&gt; as.requested.getQuantity() &gt; 0 &amp;&amp; (as.additionalService.fixPrice() || requireNonNullElse(as.requested.getAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) &gt; 0)))</span>
+<span class="fc" id="L476">            .forEach(mapped -&gt; {</span>
+<span class="fc" id="L477">                var as = mapped.additionalService;</span>
+<span class="fc" id="L478">                var additionalServiceReservation = mapped.requested;</span>
+<span class="fc" id="L479">                bookAdditionalServiceItems(additionalServiceReservation.getQuantity(), additionalServiceReservation.getAmount(), as, event, discount, reservationId);</span>
+<span class="fc" id="L480">            });</span>
 
         // as last step, we apply all remaining mandatory
-<span class="nc" id="L483">        handleMandatoryPercentage(MANDATORY_PERCENTAGE_RESERVATION, event, reservationId, discount, allAdditionalItems);</span>
+<span class="fc" id="L483">        handleMandatoryPercentage(MANDATORY_PERCENTAGE_RESERVATION, event, reservationId, discount, allAdditionalItems);</span>
 
-<span class="nc" id="L485">        allAdditionalItems.getOrDefault(MANDATORY_ONE_FOR_TICKET, List.of()).forEach(mrs -&gt; {</span>
-<span class="nc" id="L486">            BigDecimal amount = mrs.requested.getAmount();</span>
-<span class="nc" id="L487">            bookAdditionalServiceItems(mrs.requested.getQuantity(), amount, mrs.additionalService, event, discount, reservationId);</span>
-<span class="nc" id="L488">        });</span>
+<span class="fc" id="L485">        allAdditionalItems.getOrDefault(MANDATORY_ONE_FOR_TICKET, List.of()).forEach(mrs -&gt; {</span>
+<span class="fc" id="L486">            BigDecimal amount = mrs.requested.getAmount();</span>
+<span class="fc" id="L487">            bookAdditionalServiceItems(mrs.requested.getQuantity(), amount, mrs.additionalService, event, discount, reservationId);</span>
+<span class="fc" id="L488">        });</span>
 
         // link additional services to tickets
-<span class="nc" id="L491">        var bookedItems = additionalServiceItemRepository.findByReservationUuid(event.getId(), reservationId);</span>
+<span class="fc" id="L491">        var bookedItems = additionalServiceItemRepository.findByReservationUuid(event.getId(), reservationId);</span>
         //we skip donation as they don't have a supplement policy
 
-<span class="nc" id="L494">        var parameterSources = allAdditionalItems.entrySet().stream()</span>
-<span class="nc" id="L495">            .flatMap(entry -&gt; {</span>
-<span class="nc" id="L496">                var values = entry.getValue();</span>
-<span class="nc bnc" id="L497" title="All 2 branches missed.">                if (LOGGER.isTraceEnabled()) {</span>
+<span class="fc" id="L494">        var parameterSources = allAdditionalItems.entrySet().stream()</span>
+<span class="fc" id="L495">            .flatMap(entry -&gt; {</span>
+<span class="fc" id="L496">                var values = entry.getValue();</span>
+<span class="pc bpc" id="L497" title="1 of 2 branches missed.">                if (LOGGER.isTraceEnabled()) {</span>
 <span class="nc" id="L498">                    LOGGER.trace(&quot;Processing {} items with policy {}&quot;, values.size(), entry.getKey());</span>
                 }
-<span class="nc" id="L500">                return values.stream()</span>
-<span class="nc" id="L501">                    .flatMap(m -&gt; linkWithEveryTicket(reservationId, additionalServiceReservationList, bookedItems, ticketIds, m.additionalService));</span>
-<span class="nc" id="L502">            }).toArray(MapSqlParameterSource[]::new);</span>
-<span class="nc" id="L503">        var results = jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchLinkToTicket(), parameterSources);</span>
-<span class="nc bnc" id="L504" title="All 2 branches missed.">        Validate.isTrue(Arrays.stream(results).allMatch(i -&gt; i == 1));</span>
+<span class="fc" id="L500">                return values.stream()</span>
+<span class="fc" id="L501">                    .flatMap(m -&gt; linkWithEveryTicket(reservationId, additionalServiceReservationList, bookedItems, ticketIds, m.additionalService));</span>
+<span class="fc" id="L502">            }).toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L503">        var results = jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchLinkToTicket(), parameterSources);</span>
+<span class="pc bpc" id="L504" title="1 of 2 branches missed.">        Validate.isTrue(Arrays.stream(results).allMatch(i -&gt; i == 1));</span>
 
         // we attach all those without policy to the first ticket (donations)
-<span class="nc" id="L507">        var firstTicketId = ticketIds.stream().findFirst().map(List::of).orElseThrow();</span>
-<span class="nc" id="L508">        var noPoliciesParameterSources = additionalServicesForEvent.stream()</span>
-<span class="nc bnc" id="L509" title="All 4 branches missed.">            .filter(as -&gt; as.supplementPolicy() == null &amp;&amp; additionalServiceReservationList.stream().anyMatch(findAdditionalServiceRequest(as)))</span>
-<span class="nc" id="L510">            .flatMap(as -&gt; linkWithEveryTicket(reservationId, additionalServiceReservationList, bookedItems, firstTicketId, as))</span>
-<span class="nc" id="L511">            .toArray(MapSqlParameterSource[]::new);</span>
-<span class="nc" id="L512">        var noPolicyResults = jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchLinkToTicket(), noPoliciesParameterSources);</span>
-<span class="nc bnc" id="L513" title="All 2 branches missed.">        Validate.isTrue(Arrays.stream(noPolicyResults).allMatch(i -&gt; i == 1));</span>
-<span class="nc" id="L514">    }</span>
+<span class="fc" id="L507">        var firstTicketId = ticketIds.stream().findFirst().map(List::of).orElseThrow();</span>
+<span class="fc" id="L508">        var noPoliciesParameterSources = additionalServicesForEvent.stream()</span>
+<span class="pc bpc" id="L509" title="3 of 4 branches missed.">            .filter(as -&gt; as.supplementPolicy() == null &amp;&amp; additionalServiceReservationList.stream().anyMatch(findAdditionalServiceRequest(as)))</span>
+<span class="pc" id="L510">            .flatMap(as -&gt; linkWithEveryTicket(reservationId, additionalServiceReservationList, bookedItems, firstTicketId, as))</span>
+<span class="fc" id="L511">            .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L512">        var noPolicyResults = jdbcTemplate.batchUpdate(additionalServiceItemRepository.batchLinkToTicket(), noPoliciesParameterSources);</span>
+<span class="pc bnc" id="L513" title="All 2 branches missed.">        Validate.isTrue(Arrays.stream(noPolicyResults).allMatch(i -&gt; i == 1));</span>
+<span class="fc" id="L514">    }</span>
 
     private void handleMandatoryPercentage(AdditionalService.SupplementPolicy supplementPolicy,
                                            Event event,
                                            String reservationId,
                                            PromoCodeDiscount discount,
                                            Map&lt;AdditionalService.SupplementPolicy, List&lt;MappedRequestedService&gt;&gt; allMapped) {
-<span class="nc bnc" id="L521" title="All 2 branches missed.">        if (allMapped.containsKey(supplementPolicy)) {</span>
-<span class="nc" id="L522">            final TotalPrice reservationPrice = reservationCostCalculator.totalReservationCostWithVAT(reservationId).getKey();</span>
-<span class="nc" id="L523">            allMapped.get(supplementPolicy).forEach(mrs -&gt; {</span>
-<span class="nc" id="L524">                int basePrice = reservationPrice.getPriceWithVAT();</span>
-<span class="nc" id="L525">                var vatStatus = event.getVatStatus();</span>
-<span class="nc bnc" id="L526" title="All 2 branches missed.">                if (PriceContainer.VatStatus.isVatNotIncluded(vatStatus)) {</span>
-<span class="nc" id="L527">                    basePrice -= reservationPrice.getVAT();</span>
+<span class="fc bfc" id="L521" title="All 2 branches covered.">        if (allMapped.containsKey(supplementPolicy)) {</span>
+<span class="fc" id="L522">            final TotalPrice reservationPrice = reservationCostCalculator.totalReservationCostWithVAT(reservationId).getKey();</span>
+<span class="fc" id="L523">            allMapped.get(supplementPolicy).forEach(mrs -&gt; {</span>
+<span class="fc" id="L524">                int basePrice = reservationPrice.getPriceWithVAT();</span>
+<span class="fc" id="L525">                var vatStatus = event.getVatStatus();</span>
+<span class="fc bfc" id="L526" title="All 2 branches covered.">                if (PriceContainer.VatStatus.isVatNotIncluded(vatStatus)) {</span>
+<span class="fc" id="L527">                    basePrice -= reservationPrice.getVAT();</span>
                 }
-<span class="nc" id="L529">                var percentage = new BigDecimal(String.valueOf(mrs.additionalService.srcPriceCts())).divide(HUNDRED, HALF_UP);</span>
-<span class="nc" id="L530">                int amountCts = adjustUsingMinMaxPrice(calcPercentage(basePrice, percentage, BigDecimal::intValueExact), mrs.additionalService);</span>
-<span class="nc" id="L531">                BigDecimal amount = centsToUnit(amountCts, reservationPrice.getCurrencyCode());</span>
-<span class="nc" id="L532">                bookAdditionalServiceItems(mrs.requested.getQuantity(), amount, mrs.additionalService, event, discount, reservationId);</span>
-<span class="nc" id="L533">            });</span>
+<span class="fc" id="L529">                var percentage = new BigDecimal(String.valueOf(mrs.additionalService.srcPriceCts())).divide(HUNDRED, HALF_UP);</span>
+<span class="fc" id="L530">                int amountCts = adjustUsingMinMaxPrice(calcPercentage(basePrice, percentage, BigDecimal::intValueExact), mrs.additionalService);</span>
+<span class="fc" id="L531">                BigDecimal amount = centsToUnit(amountCts, reservationPrice.getCurrencyCode());</span>
+<span class="fc" id="L532">                bookAdditionalServiceItems(mrs.requested.getQuantity(), amount, mrs.additionalService, event, discount, reservationId);</span>
+<span class="fc" id="L533">            });</span>
         }
-<span class="nc" id="L535">    }</span>
+<span class="fc" id="L535">    }</span>
 
     private static int adjustUsingMinMaxPrice(int amountCts, AdditionalService additionalService) {
-<span class="nc bnc" id="L538" title="All 4 branches missed.">        if (additionalService.minPriceCts() != null &amp;&amp; additionalService.minPriceCts() &gt; amountCts) {</span>
+<span class="pc bpc" id="L538" title="1 of 4 branches missed.">        if (additionalService.minPriceCts() != null &amp;&amp; additionalService.minPriceCts() &gt; amountCts) {</span>
             // if calculated price is below minimum, we return the minimum price
-<span class="nc" id="L540">            return additionalService.minPriceCts();</span>
+<span class="fc" id="L540">            return additionalService.minPriceCts();</span>
         }
-<span class="nc bnc" id="L542" title="All 4 branches missed.">        if (additionalService.maxPriceCts() != null &amp;&amp; additionalService.maxPriceCts() &lt; amountCts) {</span>
+<span class="pc bpc" id="L542" title="1 of 4 branches missed.">        if (additionalService.maxPriceCts() != null &amp;&amp; additionalService.maxPriceCts() &lt; amountCts) {</span>
             // if calculated price is over maximum, we return the maximum price
-<span class="nc" id="L544">            return additionalService.maxPriceCts();</span>
+<span class="fc" id="L544">            return additionalService.maxPriceCts();</span>
         }
-<span class="nc" id="L546">        return amountCts;</span>
+<span class="fc" id="L546">        return amountCts;</span>
     }
 
     private static Stream&lt;MapSqlParameterSource&gt; linkWithEveryTicket(String reservationId, List&lt;ASReservationWithOptionalCodeModification&gt; additionalServiceReservationList, List&lt;AdditionalServiceItem&gt; bookedItems, List&lt;Integer&gt; ticketIds, AdditionalService m) {
-<span class="nc" id="L550">        var additionalServiceRequest = additionalServiceReservationList.stream()</span>
-<span class="nc" id="L551">            .filter(findAdditionalServiceRequest(m))</span>
-<span class="nc" id="L552">            .findFirst()</span>
-<span class="nc" id="L553">            .orElseThrow();</span>
-<span class="nc" id="L554">        var ticketIterator = new LoopingIterator&lt;&gt;(ticketIds); // using looping iterator to handle potential overflow</span>
-<span class="nc" id="L555">        return bookedItems.stream()</span>
-<span class="nc bnc" id="L556" title="All 2 branches missed.">            .filter(i -&gt; i.getAdditionalServiceId() == additionalServiceRequest.getAdditionalServiceId())</span>
-<span class="nc" id="L557">            .map(i -&gt; batchLinkSource(reservationId, i.getId(), ticketIterator.next()));</span>
+<span class="fc" id="L550">        var additionalServiceRequest = additionalServiceReservationList.stream()</span>
+<span class="fc" id="L551">            .filter(findAdditionalServiceRequest(m))</span>
+<span class="fc" id="L552">            .findFirst()</span>
+<span class="fc" id="L553">            .orElseThrow();</span>
+<span class="fc" id="L554">        var ticketIterator = new LoopingIterator&lt;&gt;(ticketIds); // using looping iterator to handle potential overflow</span>
+<span class="fc" id="L555">        return bookedItems.stream()</span>
+<span class="fc bfc" id="L556" title="All 2 branches covered.">            .filter(i -&gt; i.getAdditionalServiceId() == additionalServiceRequest.getAdditionalServiceId())</span>
+<span class="fc" id="L557">            .map(i -&gt; batchLinkSource(reservationId, i.getId(), ticketIterator.next()));</span>
     }
 
     private static Predicate&lt;ASReservationWithOptionalCodeModification&gt; findAdditionalServiceRequest(AdditionalService as) {
-<span class="nc bnc" id="L561" title="All 2 branches missed.">        return asr -&gt; as.id() == asr.getAdditionalServiceId();</span>
+<span class="fc bfc" id="L561" title="All 2 branches covered.">        return asr -&gt; as.id() == asr.getAdditionalServiceId();</span>
     }
 
     public void swapAdditionalServicesPosition(int eventId, int id1, int id2) {
@@ -568,7 +568,7 @@ public class AdditionalServiceManager {
 <span class="nc" id="L568">        additionalServiceRepository.updateOrdinal(id2, id1Ordinal);</span>
 <span class="nc" id="L569">    }</span>
 
-<span class="nc" id="L571">    record MappedRequestedService(ASReservationWithOptionalCodeModification requested, AdditionalService additionalService) {</span>
+<span class="fc" id="L571">    record MappedRequestedService(ASReservationWithOptionalCodeModification requested, AdditionalService additionalService) {</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

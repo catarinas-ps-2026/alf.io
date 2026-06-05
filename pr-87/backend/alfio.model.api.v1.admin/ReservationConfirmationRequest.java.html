@@ -20,16 +20,16 @@ import alfio.model.modification.AdminReservationModification.Notification;
 import alfio.model.modification.AdminReservationModification.TransactionDetails;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-<span class="nc" id="L23">public record ReservationConfirmationRequest(@JsonProperty(&quot;transaction&quot;) TransactionDetails transaction,</span>
+<span class="fc" id="L23">public record ReservationConfirmationRequest(@JsonProperty(&quot;transaction&quot;) TransactionDetails transaction,</span>
                                              @JsonProperty(&quot;notification&quot;) Notification notification,
                                              @JsonProperty(&quot;billingData&quot;) ReservationBillingData reservationBillingData) {
     @Override
     public Notification notification() {
-<span class="nc" id="L28">        return Notification.orEmpty(notification);</span>
+<span class="fc" id="L28">        return Notification.orEmpty(notification);</span>
     }
 
     public boolean isValid() {
-<span class="nc bnc" id="L32" title="All 4 branches missed.">        return transaction != null &amp;&amp; transaction.getPaymentProvider() != null;</span>
+<span class="pc bpc" id="L32" title="2 of 4 branches missed.">        return transaction != null &amp;&amp; transaction.getPaymentProvider() != null;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

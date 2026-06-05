@@ -26,8 +26,8 @@ import java.util.Map;
 
     @Override
     public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class&lt;?&gt; staticType) {
-<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        if (List.class.isAssignableFrom(javaObject.getClass())) {</span>
-<span class="nc" id="L30">            return new SandboxNativeJavaList(scope, javaObject);</span>
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        if (List.class.isAssignableFrom(javaObject.getClass())) {</span>
+<span class="fc" id="L30">            return new SandboxNativeJavaList(scope, javaObject);</span>
         }
 <span class="fc bfc" id="L32" title="All 2 branches covered.">        if (Map.class.isAssignableFrom(javaObject.getClass())) {</span>
 <span class="fc" id="L33">            return new SandboxNativeJavaMap(scope, javaObject);</span>

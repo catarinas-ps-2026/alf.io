@@ -36,12 +36,12 @@ import static alfio.model.system.ConfigurationKeys.SECURITY_CSP_REPORT_URI;
 public class CspReportApiController {
 
 
-<span class="nc" id="L39">    private static final Logger log = LoggerFactory.getLogger(CspReportApiController.class);</span>
+<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(CspReportApiController.class);</span>
     private final ConfigurationManager configurationManager;
 
-<span class="nc" id="L42">    public CspReportApiController(ConfigurationManager configurationManager) {</span>
-<span class="nc" id="L43">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L44">    }</span>
+<span class="fc" id="L42">    public CspReportApiController(ConfigurationManager configurationManager) {</span>
+<span class="fc" id="L43">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L44">    }</span>
 
     @PostMapping(&quot;/report-csp-violation&quot;)
     public boolean logCspViolation(HttpServletRequest request) throws IOException {

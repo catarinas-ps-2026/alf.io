@@ -37,17 +37,17 @@ import static alfio.model.system.ConfigurationKeys.*;
 
 class MailgunMailer extends BaseMailer {
 
-<span class="nc" id="L40">    private static final Logger log = LoggerFactory.getLogger(MailgunMailer.class);</span>
+<span class="fc" id="L40">    private static final Logger log = LoggerFactory.getLogger(MailgunMailer.class);</span>
     private final HttpClient client;
     private final ConfigurationManager configurationManager;
 
     MailgunMailer(HttpClient client,
                          ConfigurationManager configurationManager,
                          OrganizationRepository organizationRepository) {
-<span class="nc" id="L47">        super(organizationRepository);</span>
-<span class="nc" id="L48">        this.client = client;</span>
-<span class="nc" id="L49">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L47">        super(organizationRepository);</span>
+<span class="fc" id="L48">        this.client = client;</span>
+<span class="fc" id="L49">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L50">    }</span>
 
 
     private static Map&lt;String, String&gt; getEmailData(String from,

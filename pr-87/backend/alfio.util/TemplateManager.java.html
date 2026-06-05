@@ -74,61 +74,61 @@ public class TemplateManager {
     public TemplateManager(MessageSourceManager messageSourceManager,
                            UploadedResourceManager uploadedResourceManager,
                            ConfigurationManager configurationManager,
-<span class="nc" id="L77">                           PurchaseContextFieldManager purchaseContextFieldManager) {</span>
-<span class="nc" id="L78">        this.messageSourceManager = messageSourceManager;</span>
-<span class="nc" id="L79">        this.uploadedResourceManager = uploadedResourceManager;</span>
-<span class="nc" id="L80">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L81">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+<span class="fc" id="L77">                           PurchaseContextFieldManager purchaseContextFieldManager) {</span>
+<span class="fc" id="L78">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L79">        this.uploadedResourceManager = uploadedResourceManager;</span>
+<span class="fc" id="L80">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L81">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
 
-<span class="nc" id="L83">        this.compilers = new EnumMap&lt;&gt;(TemplateOutput.class);</span>
-<span class="nc" id="L84">        this.compilers.put(TemplateOutput.TEXT, Mustache.compiler()</span>
-<span class="nc" id="L85">            .escapeHTML(false)</span>
-<span class="nc" id="L86">            .standardsMode(false)</span>
-<span class="nc" id="L87">            .defaultValue(&quot;&quot;)</span>
-<span class="nc" id="L88">            .nullValue(&quot;&quot;)</span>
-<span class="nc" id="L89">            .withFormatter(TemplateManager::dateFormatter));</span>
-<span class="nc" id="L90">        this.compilers.put(TemplateOutput.HTML, Mustache.compiler()</span>
-<span class="nc" id="L91">            .escapeHTML(true)</span>
-<span class="nc" id="L92">            .standardsMode(false)</span>
-<span class="nc" id="L93">            .defaultValue(&quot;&quot;)</span>
-<span class="nc" id="L94">            .nullValue(&quot;&quot;)</span>
-<span class="nc" id="L95">            .withFormatter(TemplateManager::dateFormatter));</span>
-<span class="nc" id="L96">    }</span>
+<span class="fc" id="L83">        this.compilers = new EnumMap&lt;&gt;(TemplateOutput.class);</span>
+<span class="fc" id="L84">        this.compilers.put(TemplateOutput.TEXT, Mustache.compiler()</span>
+<span class="fc" id="L85">            .escapeHTML(false)</span>
+<span class="fc" id="L86">            .standardsMode(false)</span>
+<span class="fc" id="L87">            .defaultValue(&quot;&quot;)</span>
+<span class="fc" id="L88">            .nullValue(&quot;&quot;)</span>
+<span class="fc" id="L89">            .withFormatter(TemplateManager::dateFormatter));</span>
+<span class="fc" id="L90">        this.compilers.put(TemplateOutput.HTML, Mustache.compiler()</span>
+<span class="fc" id="L91">            .escapeHTML(true)</span>
+<span class="fc" id="L92">            .standardsMode(false)</span>
+<span class="fc" id="L93">            .defaultValue(&quot;&quot;)</span>
+<span class="fc" id="L94">            .nullValue(&quot;&quot;)</span>
+<span class="fc" id="L95">            .withFormatter(TemplateManager::dateFormatter));</span>
+<span class="fc" id="L96">    }</span>
 
     private static String dateFormatter(Object o) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if(o instanceof ZonedDateTime time) {</span>
-<span class="nc" id="L100">            return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(time);</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if(o instanceof ZonedDateTime time) {</span>
+<span class="fc" id="L100">            return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(time);</span>
         }
-<span class="nc" id="L102">        return String.valueOf(o);</span>
+<span class="fc" id="L102">        return String.valueOf(o);</span>
     }
 
     
     private RenderedTemplate renderMultipartTemplate(PurchaseContext purchaseContext, TemplateResource templateResource, Map&lt;String, Object&gt; model, Locale locale) {
-<span class="nc" id="L107">    	var enrichedModel = modelEnricher(model, purchaseContext, locale);</span>
-<span class="nc" id="L108">        var options = configurationManager.getFor(EnumSet.of(ConfigurationKeys.MAIL_FOOTER, ConfigurationKeys.ENABLE_HTML_EMAILS), purchaseContext.getConfigurationLevel());</span>
-<span class="nc" id="L109">        var mailFooter = options.get(ConfigurationKeys.MAIL_FOOTER);</span>
-<span class="nc" id="L110">        enrichedModel.put(&quot;hasMailFooter&quot;, mailFooter.isPresent());</span>
-<span class="nc" id="L111">        enrichedModel.put(MAIL_FOOTER, mailFooter.getValueOrNull());</span>
-<span class="nc" id="L112">    	var isMultipart = templateResource.isMultipart();</span>
+<span class="fc" id="L107">    	var enrichedModel = modelEnricher(model, purchaseContext, locale);</span>
+<span class="fc" id="L108">        var options = configurationManager.getFor(EnumSet.of(ConfigurationKeys.MAIL_FOOTER, ConfigurationKeys.ENABLE_HTML_EMAILS), purchaseContext.getConfigurationLevel());</span>
+<span class="fc" id="L109">        var mailFooter = options.get(ConfigurationKeys.MAIL_FOOTER);</span>
+<span class="fc" id="L110">        enrichedModel.put(&quot;hasMailFooter&quot;, mailFooter.isPresent());</span>
+<span class="fc" id="L111">        enrichedModel.put(MAIL_FOOTER, mailFooter.getValueOrNull());</span>
+<span class="fc" id="L112">    	var isMultipart = templateResource.isMultipart();</span>
     	
-<span class="nc bnc" id="L114" title="All 2 branches missed.">        var textRender = render(new ClassPathResource(templateResource.classPath()), enrichedModel, locale, purchaseContext, isMultipart ? TemplateOutput.TEXT : templateResource.getTemplateOutput());</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        var textRender = render(new ClassPathResource(templateResource.classPath()), enrichedModel, locale, purchaseContext, isMultipart ? TemplateOutput.TEXT : templateResource.getTemplateOutput());</span>
         
-<span class="nc" id="L116">        boolean htmlEnabled = options.get(ConfigurationKeys.ENABLE_HTML_EMAILS).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L116">        boolean htmlEnabled = options.get(ConfigurationKeys.ENABLE_HTML_EMAILS).getValueAsBooleanOrDefault();</span>
 
-<span class="nc" id="L118">        String htmlRender = null;</span>
+<span class="fc" id="L118">        String htmlRender = null;</span>
 
-<span class="nc bnc" id="L120" title="All 4 branches missed.">        if(isMultipart &amp;&amp; htmlEnabled) {</span>
-<span class="nc" id="L121">            htmlRender = render(new ClassPathResource(templateResource.htmlClassPath()), enrichedModel, locale, purchaseContext, TemplateOutput.HTML);</span>
+<span class="pc bpc" id="L120" title="1 of 4 branches missed.">        if(isMultipart &amp;&amp; htmlEnabled) {</span>
+<span class="fc" id="L121">            htmlRender = render(new ClassPathResource(templateResource.htmlClassPath()), enrichedModel, locale, purchaseContext, TemplateOutput.HTML);</span>
         }
 
-<span class="nc" id="L124">    	return RenderedTemplate.multipart(textRender, htmlRender, model);</span>
+<span class="fc" id="L124">    	return RenderedTemplate.multipart(textRender, htmlRender, model);</span>
     }
 
     public RenderedTemplate renderTemplate(PurchaseContext purchaseContext, TemplateResource templateResource, Map&lt;String, Object&gt; model, Locale locale) {
-<span class="nc" id="L128">        Map&lt;String, Object&gt; updatedModel = modelEnricher(model, purchaseContext, locale);</span>
-<span class="nc" id="L129">        return uploadedResourceManager.findCascading(purchaseContext.getOrganizationId(), purchaseContext.event().map(Event::getId).orElse(null), templateResource.getSavedName(locale))</span>
-<span class="nc" id="L130">            .map(resource -&gt; RenderedTemplate.plaintext(render(new ByteArrayResource(templateResource.replaceTokens(resource)), updatedModel, locale, purchaseContext, templateResource.getTemplateOutput()), model))</span>
-<span class="nc" id="L131">            .orElseGet(() -&gt; renderMultipartTemplate(purchaseContext, templateResource, updatedModel, locale));</span>
+<span class="fc" id="L128">        Map&lt;String, Object&gt; updatedModel = modelEnricher(model, purchaseContext, locale);</span>
+<span class="fc" id="L129">        return uploadedResourceManager.findCascading(purchaseContext.getOrganizationId(), purchaseContext.event().map(Event::getId).orElse(null), templateResource.getSavedName(locale))</span>
+<span class="pc" id="L130">            .map(resource -&gt; RenderedTemplate.plaintext(render(new ByteArrayResource(templateResource.replaceTokens(resource)), updatedModel, locale, purchaseContext, templateResource.getTemplateOutput()), model))</span>
+<span class="fc" id="L131">            .orElseGet(() -&gt; renderMultipartTemplate(purchaseContext, templateResource, updatedModel, locale));</span>
     }
 
     public String renderString(PurchaseContext purchaseContext, String template, Map&lt;String, Object&gt; model, Locale locale, TemplateOutput templateOutput) {
@@ -152,46 +152,46 @@ public class TemplateManager {
 <span class="nc" id="L152">    }</span>
 
     private Map&lt;String, Object&gt; modelEnricher(Map&lt;String, Object&gt; model, PurchaseContext purchaseContext, Locale locale) {
-<span class="nc" id="L155">        Map&lt;String, Object&gt; toEnrich = new HashMap&lt;&gt;(model);</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        if(!toEnrich.containsKey(&quot;purchaseContext&quot;)) {</span>
+<span class="fc" id="L155">        Map&lt;String, Object&gt; toEnrich = new HashMap&lt;&gt;(model);</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        if(!toEnrich.containsKey(&quot;purchaseContext&quot;)) {</span>
             // this is necessary to support older model format
-<span class="nc" id="L158">            toEnrich.put(&quot;purchaseContext&quot;, purchaseContext);</span>
+<span class="fc" id="L158">            toEnrich.put(&quot;purchaseContext&quot;, purchaseContext);</span>
         }
-<span class="nc" id="L160">        toEnrich.put(VAT_TRANSLATION_TEMPLATE_KEY, messageSourceManager.getMessageSourceFor(purchaseContext).getMessage(&quot;common.vat&quot;, null, locale));</span>
-<span class="nc" id="L161">        return toEnrich;</span>
+<span class="fc" id="L160">        toEnrich.put(VAT_TRANSLATION_TEMPLATE_KEY, messageSourceManager.getMessageSourceFor(purchaseContext).getMessage(&quot;common.vat&quot;, null, locale));</span>
+<span class="fc" id="L161">        return toEnrich;</span>
     }
 
     private String render(Resource resource, Map&lt;String, Object&gt; model, Locale locale, PurchaseContext purchaseContext, TemplateOutput templateOutput) {
         try {
-<span class="nc" id="L166">            var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
-<span class="nc" id="L167">            var configuration = configurationManager.getFor(EnumSet.of(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL, ConfigurationKeys.ENABLE_WALLET, ConfigurationKeys.ENABLE_PASS), ConfigurationLevel.purchaseContext(purchaseContext));</span>
-<span class="nc" id="L168">            boolean usePartnerCode = Objects.requireNonNull(configuration.get(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL))</span>
-<span class="nc" id="L169">                .getValueAsBooleanOrDefault();</span>
-<span class="nc" id="L170">            Supplier&lt;Map&lt;String, String&gt;&gt; descriptionSupplier =</span>
+<span class="fc" id="L166">            var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
+<span class="fc" id="L167">            var configuration = configurationManager.getFor(EnumSet.of(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL, ConfigurationKeys.ENABLE_WALLET, ConfigurationKeys.ENABLE_PASS), ConfigurationLevel.purchaseContext(purchaseContext));</span>
+<span class="fc" id="L168">            boolean usePartnerCode = Objects.requireNonNull(configuration.get(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL))</span>
+<span class="fc" id="L169">                .getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L170">            Supplier&lt;Map&lt;String, String&gt;&gt; descriptionSupplier =</span>
 <span class="nc" id="L171">                () -&gt; purchaseContextFieldManager.findDescriptions(purchaseContext).stream()</span>
 <span class="nc" id="L172">                    .filter(d -&gt; d.getLocale().equals(locale.getLanguage()))</span>
 <span class="nc" id="L173">                    .collect(Collectors.toMap(PurchaseContextFieldDescription::getFieldName, d -&gt; String.valueOf(d.getDescription().getOrDefault(&quot;label&quot;, d.getFieldName()))));</span>
-<span class="nc" id="L174">            ModelAndView mv = new ModelAndView();</span>
-<span class="nc" id="L175">            mv.getModelMap().addAllAttributes(model);</span>
-<span class="nc" id="L176">            mv.addObject(&quot;format-date&quot;, MustacheCustomTag.FORMAT_DATE);</span>
-<span class="nc" id="L177">            mv.addObject(&quot;country-name&quot;, COUNTRY_NAME);</span>
-<span class="nc" id="L178">            mv.addObject(&quot;render-markdown&quot;, RENDER_MARKDOWN);</span>
-<span class="nc" id="L179">            mv.addObject(&quot;additional-field-value&quot;, ADDITIONAL_FIELD_VALUE.apply(model.get(ADDITIONAL_FIELDS_KEY)));</span>
-<span class="nc" id="L180">            mv.addObject(&quot;print-additional-fields&quot;, MustacheCustomTag.PRINT_ADDITIONAL_FIELDS.apply(model.get(ADDITIONAL_FIELDS_KEY), descriptionSupplier));</span>
-<span class="nc" id="L181">            mv.addObject(&quot;metadata-value&quot;, ADDITIONAL_FIELD_VALUE.apply(model.get(METADATA_ATTRIBUTES_KEY)));</span>
-<span class="nc" id="L182">            mv.addObject(&quot;i18n&quot;, new CustomLocalizationMessageInterceptor(locale, messageSource).createTranslator());</span>
-<span class="nc bnc" id="L183" title="All 2 branches missed.">            mv.addObject(&quot;discountCodeDescription&quot;, messageSource.getMessage(&quot;show-event.promo-code-type.&quot; + (usePartnerCode ? &quot;partner&quot; : &quot;promotional&quot;), null, locale));</span>
-<span class="nc" id="L184">            mv.addObject(&quot;subscriptionDescription&quot;, MustacheCustomTag.subscriptionDescriptionGenerator(messageSource, model, locale));</span>
-<span class="nc" id="L185">            var updatedModel = mv.getModel();</span>
-<span class="nc" id="L186">            updatedModel.putIfAbsent(&quot;custom-header-text&quot;, &quot;&quot;);</span>
-<span class="nc" id="L187">            updatedModel.putIfAbsent(&quot;custom-body-text&quot;, &quot;&quot;);</span>
-<span class="nc" id="L188">            updatedModel.putIfAbsent(&quot;custom-footer-text&quot;, &quot;&quot;);</span>
-<span class="nc" id="L189">            boolean googleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_WALLET).getValueAsBooleanOrDefault();</span>
-<span class="nc" id="L190">            boolean appleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_PASS).getValueAsBooleanOrDefault();</span>
-<span class="nc" id="L191">            updatedModel.putIfAbsent(&quot;googleWalletEnabled&quot;, googleWalletEnabled);</span>
-<span class="nc" id="L192">            updatedModel.putIfAbsent(&quot;appleWalletEnabled&quot;, appleWalletEnabled);</span>
-<span class="nc bnc" id="L193" title="All 4 branches missed.">            updatedModel.putIfAbsent(&quot;walletEnabled&quot;, googleWalletEnabled || appleWalletEnabled);</span>
-<span class="nc" id="L194">            return compile(resource, templateOutput).execute(mv.getModel());</span>
+<span class="fc" id="L174">            ModelAndView mv = new ModelAndView();</span>
+<span class="fc" id="L175">            mv.getModelMap().addAllAttributes(model);</span>
+<span class="fc" id="L176">            mv.addObject(&quot;format-date&quot;, MustacheCustomTag.FORMAT_DATE);</span>
+<span class="fc" id="L177">            mv.addObject(&quot;country-name&quot;, COUNTRY_NAME);</span>
+<span class="fc" id="L178">            mv.addObject(&quot;render-markdown&quot;, RENDER_MARKDOWN);</span>
+<span class="fc" id="L179">            mv.addObject(&quot;additional-field-value&quot;, ADDITIONAL_FIELD_VALUE.apply(model.get(ADDITIONAL_FIELDS_KEY)));</span>
+<span class="fc" id="L180">            mv.addObject(&quot;print-additional-fields&quot;, MustacheCustomTag.PRINT_ADDITIONAL_FIELDS.apply(model.get(ADDITIONAL_FIELDS_KEY), descriptionSupplier));</span>
+<span class="fc" id="L181">            mv.addObject(&quot;metadata-value&quot;, ADDITIONAL_FIELD_VALUE.apply(model.get(METADATA_ATTRIBUTES_KEY)));</span>
+<span class="fc" id="L182">            mv.addObject(&quot;i18n&quot;, new CustomLocalizationMessageInterceptor(locale, messageSource).createTranslator());</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">            mv.addObject(&quot;discountCodeDescription&quot;, messageSource.getMessage(&quot;show-event.promo-code-type.&quot; + (usePartnerCode ? &quot;partner&quot; : &quot;promotional&quot;), null, locale));</span>
+<span class="fc" id="L184">            mv.addObject(&quot;subscriptionDescription&quot;, MustacheCustomTag.subscriptionDescriptionGenerator(messageSource, model, locale));</span>
+<span class="fc" id="L185">            var updatedModel = mv.getModel();</span>
+<span class="fc" id="L186">            updatedModel.putIfAbsent(&quot;custom-header-text&quot;, &quot;&quot;);</span>
+<span class="fc" id="L187">            updatedModel.putIfAbsent(&quot;custom-body-text&quot;, &quot;&quot;);</span>
+<span class="fc" id="L188">            updatedModel.putIfAbsent(&quot;custom-footer-text&quot;, &quot;&quot;);</span>
+<span class="fc" id="L189">            boolean googleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_WALLET).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L190">            boolean appleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_PASS).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L191">            updatedModel.putIfAbsent(&quot;googleWalletEnabled&quot;, googleWalletEnabled);</span>
+<span class="fc" id="L192">            updatedModel.putIfAbsent(&quot;appleWalletEnabled&quot;, appleWalletEnabled);</span>
+<span class="pc bpc" id="L193" title="2 of 4 branches missed.">            updatedModel.putIfAbsent(&quot;walletEnabled&quot;, googleWalletEnabled || appleWalletEnabled);</span>
+<span class="fc" id="L194">            return compile(resource, templateOutput).execute(mv.getModel());</span>
 <span class="nc" id="L195">        } catch (Exception e) {</span>
 <span class="nc" id="L196">            log.error(&quot;TemplateManager: got exception while generating a template&quot;, e);</span>
 <span class="nc" id="L197">            throw new IllegalStateException(e);</span>
@@ -199,8 +199,8 @@ public class TemplateManager {
     }
 
     private Template compile(Resource resource, TemplateOutput templateOutput) {
-<span class="nc" id="L202">        try (InputStreamReader tmpl = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L203">            return compilers.get(templateOutput).compile(tmpl);</span>
+<span class="fc" id="L202">        try (InputStreamReader tmpl = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L203">            return compilers.get(templateOutput).compile(tmpl);</span>
 <span class="nc" id="L204">        } catch (IOException ioe) {</span>
 <span class="nc" id="L205">            throw new IllegalStateException(ioe);</span>
         }
@@ -246,19 +246,19 @@ public class TemplateManager {
         private final Locale locale;
         private final MessageSource messageSource;
 
-<span class="nc" id="L249">        private CustomLocalizationMessageInterceptor(Locale locale, MessageSource messageSource) {</span>
-<span class="nc" id="L250">            this.locale = locale;</span>
-<span class="nc" id="L251">            this.messageSource = messageSource;</span>
-<span class="nc" id="L252">        }</span>
+<span class="fc" id="L249">        private CustomLocalizationMessageInterceptor(Locale locale, MessageSource messageSource) {</span>
+<span class="fc" id="L250">            this.locale = locale;</span>
+<span class="fc" id="L251">            this.messageSource = messageSource;</span>
+<span class="fc" id="L252">        }</span>
 
         protected Mustache.Lambda createTranslator() {
-<span class="nc" id="L255">            return (frag, out) -&gt; {</span>
-<span class="nc" id="L256">                String template = frag.execute();</span>
-<span class="nc" id="L257">                final String key = extractKey(template);</span>
-<span class="nc" id="L258">                final List&lt;String&gt; args = extractParameters(template);</span>
-<span class="nc" id="L259">                final String text = messageSource.getMessage(key, args.toArray(), locale);</span>
-<span class="nc" id="L260">                out.write(text);</span>
-<span class="nc" id="L261">            };</span>
+<span class="fc" id="L255">            return (frag, out) -&gt; {</span>
+<span class="fc" id="L256">                String template = frag.execute();</span>
+<span class="fc" id="L257">                final String key = extractKey(template);</span>
+<span class="fc" id="L258">                final List&lt;String&gt; args = extractParameters(template);</span>
+<span class="fc" id="L259">                final String text = messageSource.getMessage(key, args.toArray(), locale);</span>
+<span class="fc" id="L260">                out.write(text);</span>
+<span class="fc" id="L261">            };</span>
         }
     }
 

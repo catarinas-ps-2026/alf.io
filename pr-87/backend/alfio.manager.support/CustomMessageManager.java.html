@@ -180,20 +180,20 @@ public class CustomMessageManager {
                                                              TicketCategory ticketCategory,
                                                              Organization organization,
                                                              boolean htmlEmailEnabled) {
-<span class="nc" id="L183">        Map&lt;String, String&gt; model = getModelForTicket(ticket, reservation, ticketCategory, organization);</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (htmlEmailEnabled) {</span>
-<span class="nc" id="L185">            model.put(Mailer.SKIP_PASSBOOK, &quot;true&quot;);</span>
+<span class="fc" id="L183">        Map&lt;String, String&gt; model = getModelForTicket(ticket, reservation, ticketCategory, organization);</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (htmlEmailEnabled) {</span>
+<span class="fc" id="L185">            model.put(Mailer.SKIP_PASSBOOK, &quot;true&quot;);</span>
         }
-<span class="nc" id="L187">        return new Mailer.Attachment(&quot;ticket-&quot; + ticket.getPublicUuid() + &quot;.pdf&quot;, null, &quot;application/pdf&quot;, model, Mailer.AttachmentIdentifier.TICKET_PDF);</span>
+<span class="fc" id="L187">        return new Mailer.Attachment(&quot;ticket-&quot; + ticket.getPublicUuid() + &quot;.pdf&quot;, null, &quot;application/pdf&quot;, model, Mailer.AttachmentIdentifier.TICKET_PDF);</span>
     }
 
     private static Map&lt;String, String&gt; getModelForTicket(Ticket ticket, TicketReservation reservation, TicketCategory ticketCategory, Organization organization) {
-<span class="nc" id="L191">        Map&lt;String, String&gt; model = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L192">        model.put(&quot;ticket&quot;, Json.toJson(ticket));</span>
-<span class="nc" id="L193">        model.put(&quot;ticketCategory&quot;, Json.toJson(ticketCategory));</span>
-<span class="nc" id="L194">        model.put(&quot;reservationId&quot;, reservation.getId());</span>
-<span class="nc" id="L195">        model.put(&quot;organizationId&quot;, Integer.toString(organization.getId()));</span>
-<span class="nc" id="L196">        return model;</span>
+<span class="fc" id="L191">        Map&lt;String, String&gt; model = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L192">        model.put(&quot;ticket&quot;, Json.toJson(ticket));</span>
+<span class="fc" id="L193">        model.put(&quot;ticketCategory&quot;, Json.toJson(ticketCategory));</span>
+<span class="fc" id="L194">        model.put(&quot;reservationId&quot;, reservation.getId());</span>
+<span class="fc" id="L195">        model.put(&quot;organizationId&quot;, Integer.toString(organization.getId()));</span>
+<span class="fc" id="L196">        return model;</span>
     }
 
     public static Mailer.Attachment generateCalendarAttachmentForOnlineEvent(Event event,
@@ -223,7 +223,7 @@ public class CustomMessageManager {
     }
 
     public static Mailer.Attachment generateCalendarAttachmentForOnlineEvent(Map&lt;String, String&gt; model) {
-<span class="nc" id="L226">        return new Mailer.Attachment(CALENDAR_ICS.fileName(&quot;&quot;), null, CALENDAR_ICS.contentType(&quot;&quot;), model, CALENDAR_ICS);</span>
+<span class="fc" id="L226">        return new Mailer.Attachment(CALENDAR_ICS.fileName(&quot;&quot;), null, CALENDAR_ICS.contentType(&quot;&quot;), model, CALENDAR_ICS);</span>
     }
 
     private static String renderResource(String template, PurchaseContext purchaseContext, Model model, Locale locale, TemplateManager templateManager) {

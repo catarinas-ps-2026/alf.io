@@ -40,22 +40,22 @@ import static alfio.util.HttpUtils.APPLICATION_JSON;
 import static alfio.util.HttpUtils.CONTENT_TYPE;
 
 public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
-<span class="nc" id="L43">    private static final Logger log = LoggerFactory.getLogger(CFTurnstileVerificationFilter.class);</span>
-<span class="nc" id="L44">    private static final URI SITEVERIFY = URI.create(&quot;https://challenges.cloudflare.com/turnstile/v0/siteverify&quot;);</span>
+<span class="fc" id="L43">    private static final Logger log = LoggerFactory.getLogger(CFTurnstileVerificationFilter.class);</span>
+<span class="fc" id="L44">    private static final URI SITEVERIFY = URI.create(&quot;https://challenges.cloudflare.com/turnstile/v0/siteverify&quot;);</span>
     private final ConfigurationManager configurationManager;
     private final RequestMatcher requestMatcher;
     private final RestClient restClient;
 
 
     public CFTurnstileVerificationFilter(ConfigurationManager configurationManager,
-<span class="nc" id="L51">                                         RequestMatcher requestMatcher) {</span>
-<span class="nc" id="L52">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L53">        this.requestMatcher = requestMatcher;</span>
-<span class="nc" id="L54">        this.restClient = RestClient.builder()</span>
-<span class="nc" id="L55">            .baseUrl(&quot;https://challenges.cloudflare.com&quot;)</span>
-<span class="nc" id="L56">            .build();</span>
+<span class="fc" id="L51">                                         RequestMatcher requestMatcher) {</span>
+<span class="fc" id="L52">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L53">        this.requestMatcher = requestMatcher;</span>
+<span class="fc" id="L54">        this.restClient = RestClient.builder()</span>
+<span class="fc" id="L55">            .baseUrl(&quot;https://challenges.cloudflare.com&quot;)</span>
+<span class="fc" id="L56">            .build();</span>
 
-<span class="nc" id="L58">    }</span>
+<span class="fc" id="L58">    }</span>
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

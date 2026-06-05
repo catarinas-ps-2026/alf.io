@@ -28,12 +28,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(&quot;/admin/api&quot;)
 public class FileUploadApiController {
 
-<span class="nc" id="L31">    private static final Logger log = LoggerFactory.getLogger(FileUploadApiController.class);</span>
+<span class="fc" id="L31">    private static final Logger log = LoggerFactory.getLogger(FileUploadApiController.class);</span>
     private final FileUploadManager fileUploadManager;
 
-<span class="nc" id="L34">    public FileUploadApiController(FileUploadManager fileUploadManager) {</span>
-<span class="nc" id="L35">        this.fileUploadManager = fileUploadManager;</span>
-<span class="nc" id="L36">    }</span>
+<span class="fc" id="L34">    public FileUploadApiController(FileUploadManager fileUploadManager) {</span>
+<span class="fc" id="L35">        this.fileUploadManager = fileUploadManager;</span>
+<span class="fc" id="L36">    }</span>
 
     @PostMapping(&quot;/file/upload&quot;)
     public ResponseEntity&lt;String&gt; uploadFile(@RequestBody UploadBase64FileModification upload) {

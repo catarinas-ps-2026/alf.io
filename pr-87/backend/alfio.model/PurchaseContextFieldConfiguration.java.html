@@ -72,35 +72,35 @@ public class PurchaseContextFieldConfiguration {
                                              @Column(&quot;additional_service_id&quot;) Integer additionalServiceId,
                                              @Column(&quot;ticket_category_ids&quot;) String ticketCategoryIds,
                                              @Column(&quot;field_disabled_values&quot;) String disabledValues,
-<span class="nc" id="L75">                                             @Column(&quot;display_at_check_in&quot;) boolean displayAtCheckIn) {</span>
-<span class="nc" id="L76">        this.id = id;</span>
-<span class="nc" id="L77">        this.eventId = eventId;</span>
-<span class="nc" id="L78">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
-<span class="nc" id="L79">        this.name = name;</span>
-<span class="nc" id="L80">        this.order = order;</span>
-<span class="nc" id="L81">        this.type = type;</span>
-<span class="nc" id="L82">        this.maxLength = maxLength;</span>
-<span class="nc" id="L83">        this.minLength = minLength;</span>
-<span class="nc" id="L84">        this.required = required;</span>
-<span class="nc" id="L85">        this.editable = editable;</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        this.restrictedValues = restrictedValues == null ? Collections.emptyList() : Json.GSON.fromJson(restrictedValues, new TypeToken&lt;List&lt;String&gt;&gt;(){}.getType());</span>
-<span class="nc bnc" id="L87" title="All 2 branches missed.">        this.disabledValues = disabledValues == null ? Collections.emptyList() : Json.GSON.fromJson(disabledValues, new TypeToken&lt;List&lt;String&gt;&gt;(){}.getType());</span>
-<span class="nc" id="L88">        this.context = context;</span>
-<span class="nc" id="L89">        this.additionalServiceId = additionalServiceId;</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">        this.categoryIds = ticketCategoryIds == null ? Collections.emptyList() : Json.GSON.fromJson(ticketCategoryIds, new TypeToken&lt;List&lt;Integer&gt;&gt;(){}.getType());</span>
-<span class="nc" id="L91">        this.displayAtCheckIn = displayAtCheckIn;</span>
-<span class="nc" id="L92">    }</span>
+<span class="fc" id="L75">                                             @Column(&quot;display_at_check_in&quot;) boolean displayAtCheckIn) {</span>
+<span class="fc" id="L76">        this.id = id;</span>
+<span class="fc" id="L77">        this.eventId = eventId;</span>
+<span class="fc" id="L78">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
+<span class="fc" id="L79">        this.name = name;</span>
+<span class="fc" id="L80">        this.order = order;</span>
+<span class="fc" id="L81">        this.type = type;</span>
+<span class="fc" id="L82">        this.maxLength = maxLength;</span>
+<span class="fc" id="L83">        this.minLength = minLength;</span>
+<span class="fc" id="L84">        this.required = required;</span>
+<span class="fc" id="L85">        this.editable = editable;</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        this.restrictedValues = restrictedValues == null ? Collections.emptyList() : Json.GSON.fromJson(restrictedValues, new TypeToken&lt;List&lt;String&gt;&gt;(){}.getType());</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        this.disabledValues = disabledValues == null ? Collections.emptyList() : Json.GSON.fromJson(disabledValues, new TypeToken&lt;List&lt;String&gt;&gt;(){}.getType());</span>
+<span class="fc" id="L88">        this.context = context;</span>
+<span class="fc" id="L89">        this.additionalServiceId = additionalServiceId;</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        this.categoryIds = ticketCategoryIds == null ? Collections.emptyList() : Json.GSON.fromJson(ticketCategoryIds, new TypeToken&lt;List&lt;Integer&gt;&gt;(){}.getType());</span>
+<span class="fc" id="L91">        this.displayAtCheckIn = displayAtCheckIn;</span>
+<span class="fc" id="L92">    }</span>
 
     public boolean isInputField() {
-<span class="nc" id="L95">        return type.startsWith(&quot;input:&quot;);</span>
+<span class="fc" id="L95">        return type.startsWith(&quot;input:&quot;);</span>
     }
 
     public boolean isTextareaField() {
-<span class="nc" id="L99">        return &quot;textarea&quot;.equals(type);</span>
+<span class="fc" id="L99">        return &quot;textarea&quot;.equals(type);</span>
     }
 
     public boolean isCountryField() {
-<span class="nc" id="L103">        return &quot;country&quot;.equals(type);</span>
+<span class="fc" id="L103">        return &quot;country&quot;.equals(type);</span>
     }
 
     public boolean isSelectField() {
@@ -108,23 +108,23 @@ public class PurchaseContextFieldConfiguration {
     }
 
     public boolean isCheckboxField() {
-<span class="nc" id="L111">        return &quot;checkbox&quot;.equals(type);</span>
+<span class="fc" id="L111">        return &quot;checkbox&quot;.equals(type);</span>
     }
 
     public int getCount() {
-<span class="nc bnc" id="L115" title="All 4 branches missed.">        if (&quot;checkbox&quot;.equals(type) &amp;&amp; this.restrictedValues != null) {</span>
+<span class="pc bpc" id="L115" title="3 of 4 branches missed.">        if (&quot;checkbox&quot;.equals(type) &amp;&amp; this.restrictedValues != null) {</span>
 <span class="nc" id="L116">            return Math.max(this.restrictedValues.size(), 1);</span>
         } else {
-<span class="nc" id="L118">            return 1;</span>
+<span class="fc" id="L118">            return 1;</span>
         }
     }
 
     public boolean isEuVat() {
-<span class="nc" id="L123">        return &quot;vat:eu&quot;.equals(type);</span>
+<span class="fc" id="L123">        return &quot;vat:eu&quot;.equals(type);</span>
     }
 
     public boolean isDateOfBirth() {
-<span class="nc" id="L127">        return &quot;input:dateOfBirth&quot;.equals(type);</span>
+<span class="fc" id="L127">        return &quot;input:dateOfBirth&quot;.equals(type);</span>
     }
 
     public String getInputType() {
@@ -133,27 +133,27 @@ public class PurchaseContextFieldConfiguration {
     }
 
     public boolean isMaxLengthDefined() {
-<span class="nc bnc" id="L136" title="All 2 branches missed.">        return maxLength != null;</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">        return maxLength != null;</span>
     }
 
     public boolean hasDisabledValues() {
-<span class="nc" id="L140">        return CollectionUtils.isNotEmpty(disabledValues);</span>
+<span class="fc" id="L140">        return CollectionUtils.isNotEmpty(disabledValues);</span>
     }
 
     public boolean isMinLengthDefined() {
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        return minLength != null;</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        return minLength != null;</span>
     }
 
     public boolean rulesApply(Integer ticketCategoryId) {
-<span class="nc bnc" id="L148" title="All 4 branches missed.">        return categoryIds.isEmpty() || categoryIds.contains(ticketCategoryId);</span>
+<span class="pc bpc" id="L148" title="3 of 4 branches missed.">        return categoryIds.isEmpty() || categoryIds.contains(ticketCategoryId);</span>
     }
 
     public boolean isReadOnly() {
-<span class="nc bnc" id="L152" title="All 2 branches missed.">        return !editable;</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        return !editable;</span>
     }
 
     public boolean isTextField() {
-<span class="nc bnc" id="L156" title="All 4 branches missed.">        return isInputField() || isTextareaField();</span>
+<span class="pc bpc" id="L156" title="2 of 4 branches missed.">        return isInputField() || isTextareaField();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

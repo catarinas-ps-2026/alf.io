@@ -68,17 +68,17 @@ public class WaitingQueueManager {
 
     public boolean subscribe(Event event, CustomerName customerName, String email, Integer selectedCategoryId, Locale userLanguage) {
         try {
-<span class="nc bnc" id="L71" title="All 2 branches missed.">            if(configurationManager.getFor(STOP_WAITING_QUEUE_SUBSCRIPTIONS, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault()) {</span>
-<span class="nc" id="L72">                log.info(&quot;waiting list subscription denied for event {} ({})&quot;, event.getShortName(), event.getId());</span>
-<span class="nc" id="L73">                return false;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">            if(configurationManager.getFor(STOP_WAITING_QUEUE_SUBSCRIPTIONS, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L72">                log.info(&quot;waiting list subscription denied for event {} ({})&quot;, event.getShortName(), event.getId());</span>
+<span class="fc" id="L73">                return false;</span>
             }
-<span class="nc" id="L75">            WaitingQueueSubscription.Type subscriptionType = getSubscriptionType(event);</span>
-<span class="nc" id="L76">            validateSubscriptionType(event, subscriptionType);</span>
-<span class="nc" id="L77">            validateSelectedCategoryId(event.getId(), selectedCategoryId);</span>
-<span class="nc" id="L78">            AffectedRowCountAndKey&lt;Integer&gt; key = waitingQueueRepository.insert(event.getId(), customerName.getFullName(), customerName.getFirstName(), customerName.getLastName(), email, event.now(clockProvider), userLanguage.getLanguage(), subscriptionType, selectedCategoryId);</span>
-<span class="nc" id="L79">            notifySubscription(event, customerName, email, userLanguage, subscriptionType);</span>
-<span class="nc" id="L80">            extensionManager.handleWaitingQueueSubscription(waitingQueueRepository.loadById(key.getKey()));</span>
-<span class="nc" id="L81">            return true;</span>
+<span class="fc" id="L75">            WaitingQueueSubscription.Type subscriptionType = getSubscriptionType(event);</span>
+<span class="fc" id="L76">            validateSubscriptionType(event, subscriptionType);</span>
+<span class="fc" id="L77">            validateSelectedCategoryId(event.getId(), selectedCategoryId);</span>
+<span class="fc" id="L78">            AffectedRowCountAndKey&lt;Integer&gt; key = waitingQueueRepository.insert(event.getId(), customerName.getFullName(), customerName.getFirstName(), customerName.getLastName(), email, event.now(clockProvider), userLanguage.getLanguage(), subscriptionType, selectedCategoryId);</span>
+<span class="fc" id="L79">            notifySubscription(event, customerName, email, userLanguage, subscriptionType);</span>
+<span class="fc" id="L80">            extensionManager.handleWaitingQueueSubscription(waitingQueueRepository.loadById(key.getKey()));</span>
+<span class="fc" id="L81">            return true;</span>
 <span class="nc" id="L82">        } catch(DuplicateKeyException e) {</span>
 <span class="nc" id="L83">            return true;//why are you subscribing twice?</span>
 <span class="nc" id="L84">        } catch (Exception e) {</span>
@@ -88,16 +88,16 @@ public class WaitingQueueManager {
     }
 
     private void validateSelectedCategoryId(int eventId, Integer selectedCategoryId) {
-<span class="nc" id="L91">        Optional.ofNullable(selectedCategoryId).ifPresent(id -&gt; Validate.isTrue(ticketCategoryRepository.findUnboundedOrderByExpirationDesc(eventId).stream().anyMatch(c -&gt; id.equals(c.getId()))));</span>
-<span class="nc" id="L92">    }</span>
+<span class="fc" id="L91">        Optional.ofNullable(selectedCategoryId).ifPresent(id -&gt; Validate.isTrue(ticketCategoryRepository.findUnboundedOrderByExpirationDesc(eventId).stream().anyMatch(c -&gt; id.equals(c.getId()))));</span>
+<span class="fc" id="L92">    }</span>
 
     private void notifySubscription(Event event, CustomerName name, String email, Locale userLanguage, WaitingQueueSubscription.Type subscriptionType) {
-<span class="nc" id="L95">        var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
-<span class="nc" id="L96">        Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="nc" id="L97">        Map&lt;String, Object&gt; model = TemplateResource.buildModelForWaitingQueueJoined(organization, event, name);</span>
-<span class="nc" id="L98">        notificationManager.sendSimpleEmail(event, null, email, messageSource.getMessage(&quot;email-waiting-queue.subscribed.subject&quot;, new Object[]{event.getDisplayName()}, userLanguage),</span>
-<span class="nc" id="L99">                () -&gt; templateManager.renderTemplate(event, TemplateResource.WAITING_QUEUE_JOINED, model, userLanguage));</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">        if(configurationManager.getFor(ENABLE_WAITING_QUEUE_NOTIFICATION, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L95">        var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="fc" id="L96">        Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L97">        Map&lt;String, Object&gt; model = TemplateResource.buildModelForWaitingQueueJoined(organization, event, name);</span>
+<span class="fc" id="L98">        notificationManager.sendSimpleEmail(event, null, email, messageSource.getMessage(&quot;email-waiting-queue.subscribed.subject&quot;, new Object[]{event.getDisplayName()}, userLanguage),</span>
+<span class="fc" id="L99">                () -&gt; templateManager.renderTemplate(event, TemplateResource.WAITING_QUEUE_JOINED, model, userLanguage));</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if(configurationManager.getFor(ENABLE_WAITING_QUEUE_NOTIFICATION, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault()) {</span>
 <span class="nc" id="L101">            String adminTemplate = messageSource.getMessage(&quot;email-waiting-queue.subscribed.admin.text&quot;,</span>
 <span class="nc" id="L102">                    new Object[] {subscriptionType, event.getDisplayName()}, Locale.ENGLISH);</span>
 <span class="nc" id="L103">            notificationManager.sendSimpleEmail(event, null, organization.getEmail(), messageSource.getMessage(&quot;email-waiting-queue.subscribed.admin.subject&quot;,</span>
@@ -105,25 +105,25 @@ public class WaitingQueueManager {
 <span class="nc" id="L105">                    () -&gt; RenderedTemplate.plaintext(templateManager.renderString(event, adminTemplate, model, Locale.ENGLISH, TemplateManager.TemplateOutput.TEXT), model));</span>
         }
 
-<span class="nc" id="L108">    }</span>
+<span class="fc" id="L108">    }</span>
 
     private WaitingQueueSubscription.Type getSubscriptionType(Event event) {
-<span class="nc" id="L111">        ZonedDateTime now = event.now(clockProvider);</span>
-<span class="nc" id="L112">        return ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">                .filter(tc -&gt; !tc.isAccessRestricted())</span>
-<span class="nc" id="L114">                .filter(tc -&gt; now.isAfter(tc.getInception(event.getZoneId())))</span>
-<span class="nc" id="L115">                .findFirst()</span>
-<span class="nc" id="L116">                .map(tc -&gt; WaitingQueueSubscription.Type.SOLD_OUT)</span>
-<span class="nc" id="L117">                .orElse(WaitingQueueSubscription.Type.PRE_SALES);</span>
+<span class="fc" id="L111">        ZonedDateTime now = event.now(clockProvider);</span>
+<span class="fc" id="L112">        return ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">                .filter(tc -&gt; !tc.isAccessRestricted())</span>
+<span class="fc" id="L114">                .filter(tc -&gt; now.isAfter(tc.getInception(event.getZoneId())))</span>
+<span class="fc" id="L115">                .findFirst()</span>
+<span class="fc" id="L116">                .map(tc -&gt; WaitingQueueSubscription.Type.SOLD_OUT)</span>
+<span class="fc" id="L117">                .orElse(WaitingQueueSubscription.Type.PRE_SALES);</span>
     }
 
     private void validateSubscriptionType(EventAndOrganizationId event, WaitingQueueSubscription.Type type) {
-<span class="nc bnc" id="L121" title="All 2 branches missed.">        if(type == WaitingQueueSubscription.Type.PRE_SALES) {</span>
-<span class="nc" id="L122">            Validate.isTrue(configurationManager.getFor(ENABLE_PRE_REGISTRATION, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault(), &quot;PRE_SALES Waiting list is not active&quot;);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if(type == WaitingQueueSubscription.Type.PRE_SALES) {</span>
+<span class="fc" id="L122">            Validate.isTrue(configurationManager.getFor(ENABLE_PRE_REGISTRATION, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault(), &quot;PRE_SALES Waiting list is not active&quot;);</span>
         } else {
-<span class="nc" id="L124">            Validate.isTrue(eventStatisticsManager.noSeatsAvailable().test(event), &quot;SOLD_OUT Waiting list is not active&quot;);</span>
+<span class="fc" id="L124">            Validate.isTrue(eventStatisticsManager.noSeatsAvailable().test(event), &quot;SOLD_OUT Waiting list is not active&quot;);</span>
         }
-<span class="nc" id="L126">    }</span>
+<span class="fc" id="L126">    }</span>
 
     public List&lt;WaitingQueueSubscription&gt; loadAllSubscriptionsForEvent(int eventId) {
 <span class="nc" id="L129">        return waitingQueueRepository.loadAllWaiting(eventId);</span>
@@ -147,8 +147,8 @@ public class WaitingQueueManager {
 
 <span class="fc bfc" id="L148" title="All 4 branches covered.">        if (waitingPeople == 0 &amp;&amp; waitingTickets &gt; 0) {</span>
 <span class="fc" id="L149">            ticketRepository.revertToFree(eventId);</span>
-<span class="pc bpc" id="L150" title="1 of 4 branches missed.">        } else if (waitingPeople &gt; 0 &amp;&amp; waitingTickets &gt; 0) {</span>
-<span class="nc" id="L151">            return distributeAvailableSeats(event, waitingPeople, waitingTickets);</span>
+<span class="fc bfc" id="L150" title="All 4 branches covered.">        } else if (waitingPeople &gt; 0 &amp;&amp; waitingTickets &gt; 0) {</span>
+<span class="fc" id="L151">            return distributeAvailableSeats(event, waitingPeople, waitingTickets);</span>
 <span class="pc bpc" id="L152" title="1 of 4 branches missed.">        } else if(subscriptions.stream().anyMatch(WaitingQueueSubscription::isPreSales) &amp;&amp; configurationManager.getFor(ENABLE_PRE_REGISTRATION, ConfigurationLevel.event(event)).getValueAsBooleanOrDefault()) {</span>
 <span class="fc" id="L153">            return handlePreReservation(event, waitingPeople);</span>
         }
@@ -161,21 +161,21 @@ public class WaitingQueueManager {
         // all other people, we must process their a little bit before the sale period starts
 <span class="fc" id="L162">        Optional&lt;TicketCategory&gt; categoryWithInceptionInFuture = ticketCategories.stream()</span>
 <span class="fc" id="L163">                .min(TicketCategory.COMPARATOR)</span>
-<span class="pc" id="L164">                .filter(t -&gt; event.now(clockProvider).isBefore(t.getInception(event.getZoneId()).minusMinutes(5)));</span>
+<span class="fc" id="L164">                .filter(t -&gt; event.now(clockProvider).isBefore(t.getInception(event.getZoneId()).minusMinutes(5)));</span>
 <span class="fc" id="L165">        int ticketsNeeded = Math.min(waitingPeople, eventRepository.countExistingTickets(event.getId()));</span>
 <span class="pc bpc" id="L166" title="1 of 2 branches missed.">        if(ticketsNeeded &gt; 0) {</span>
 <span class="fc" id="L167">            preReserveIfNeeded(event, ticketsNeeded);</span>
-<span class="pc bpc" id="L168" title="1 of 2 branches missed.">            if(categoryWithInceptionInFuture.isEmpty()) {</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">            if(categoryWithInceptionInFuture.isEmpty()) {</span>
 <span class="fc" id="L169">                return distributeAvailableSeats(event, Ticket.TicketStatus.PRE_RESERVED, () -&gt; ticketsNeeded);</span>
             }
         }
-<span class="nc" id="L172">        return Stream.empty();</span>
+<span class="fc" id="L172">        return Stream.empty();</span>
     }
 
     private void preReserveIfNeeded(Event event, int ticketsNeeded) {
 <span class="fc" id="L176">        int eventId = event.getId();</span>
 <span class="fc" id="L177">        int alreadyReserved = ticketRepository.countPreReservedTickets(eventId);</span>
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if(alreadyReserved &lt; ticketsNeeded) {</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">        if(alreadyReserved &lt; ticketsNeeded) {</span>
 <span class="fc" id="L179">            preReserveTickets(event, ticketsNeeded, eventId, alreadyReserved);</span>
         }
 <span class="fc" id="L181">    }</span>
@@ -185,29 +185,29 @@ public class WaitingQueueManager {
 <span class="fc" id="L185">        EventStatisticView eventStatisticView = eventRepository.findStatisticsFor(eventId);</span>
 <span class="fc" id="L186">        Map&lt;Integer, TicketCategoryStatisticView&gt; ticketCategoriesStats = ticketCategoryRepository.findStatisticsForEventIdByCategoryId(eventId);</span>
 <span class="fc" id="L187">        List&lt;Pair&lt;Integer, TicketCategoryStatisticView&gt;&gt; collectedTickets = ticketCategoryRepository.findAllTicketCategories(eventId).stream()</span>
-<span class="pc bnc" id="L188" title="All 2 branches missed.">                .filter(tc -&gt; !tc.isAccessRestricted())</span>
-<span class="pc" id="L189">                .sorted(Comparator.comparing(t -&gt; t.getExpiration(event.getZoneId())))</span>
-<span class="pc" id="L190">                .map(tc -&gt; Pair.of(determineAvailableSeats(ticketCategoriesStats.get(tc.getId()), eventStatisticView), ticketCategoriesStats.get(tc.getId())))</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">                .filter(tc -&gt; !tc.isAccessRestricted())</span>
+<span class="fc" id="L189">                .sorted(Comparator.comparing(t -&gt; t.getExpiration(event.getZoneId())))</span>
+<span class="fc" id="L190">                .map(tc -&gt; Pair.of(determineAvailableSeats(ticketCategoriesStats.get(tc.getId()), eventStatisticView), ticketCategoriesStats.get(tc.getId())))</span>
 <span class="fc" id="L191">                .collect(new PreReservedTicketDistributor(toBeGenerated));</span>
 <span class="fc" id="L192">        List&lt;Integer&gt; ids = collectedTickets.stream()</span>
-<span class="pc" id="L193">                .flatMap(p -&gt; selectTicketsForPreReservation(eventId, p).stream())</span>
+<span class="fc" id="L193">                .flatMap(p -&gt; selectTicketsForPreReservation(eventId, p).stream())</span>
 <span class="fc" id="L194">                .collect(Collectors.toList());</span>
 
 <span class="fc" id="L196">        ticketRepository.preReserveTicket(ids);</span>
 <span class="fc" id="L197">    }</span>
 
     private List&lt;Integer&gt; selectTicketsForPreReservation(int eventId, Pair&lt;Integer, TicketCategoryStatisticView&gt; p) {
-<span class="nc" id="L200">        TicketCategoryStatisticView category = p.getValue();</span>
-<span class="nc" id="L201">        Integer amount = p.getKey();</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">        if(category.isBounded()) {</span>
-<span class="nc" id="L203">            return ticketRepository.selectFreeTicketsForPreReservation(eventId, amount, category.getId());</span>
+<span class="fc" id="L200">        TicketCategoryStatisticView category = p.getValue();</span>
+<span class="fc" id="L201">        Integer amount = p.getKey();</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        if(category.isBounded()) {</span>
+<span class="fc" id="L203">            return ticketRepository.selectFreeTicketsForPreReservation(eventId, amount, category.getId());</span>
         }
-<span class="nc" id="L205">        return ticketRepository.selectNotAllocatedFreeTicketsForPreReservation(eventId, amount);</span>
+<span class="fc" id="L205">        return ticketRepository.selectNotAllocatedFreeTicketsForPreReservation(eventId, amount);</span>
     }
 
 
     private Stream&lt;Triple&lt;WaitingQueueSubscription, TicketReservationWithOptionalCodeModification, ZonedDateTime&gt;&gt; distributeAvailableSeats(Event event, int waitingPeople, int waitingTickets) {
-<span class="nc" id="L210">        return distributeAvailableSeats(event, Ticket.TicketStatus.RELEASED, () -&gt; Math.min(waitingPeople, waitingTickets));</span>
+<span class="fc" id="L210">        return distributeAvailableSeats(event, Ticket.TicketStatus.RELEASED, () -&gt; Math.min(waitingPeople, waitingTickets));</span>
     }
 
     private Stream&lt;Triple&lt;WaitingQueueSubscription, TicketReservationWithOptionalCodeModification, ZonedDateTime&gt;&gt; distributeAvailableSeats(Event event, Ticket.TicketStatus status, IntSupplier availableSeatSupplier) {
@@ -217,34 +217,34 @@ public class WaitingQueueManager {
 <span class="fc" id="L217">        List&lt;TicketCategory&gt; unboundedCategories = ticketCategoryRepository.findUnboundedOrderByExpirationDesc(eventId);</span>
 <span class="fc" id="L218">        Iterator&lt;Ticket&gt; tickets = ticketRepository.selectWaitingTicketsForUpdate(eventId, status.name(), availableSeats)</span>
 <span class="fc" id="L219">            .stream()</span>
-<span class="pc bpc" id="L220" title="3 of 4 branches missed.">            .filter(t -&gt; t.getCategoryId() != null || !unboundedCategories.isEmpty())</span>
+<span class="fc bfc" id="L220" title="All 4 branches covered.">            .filter(t -&gt; t.getCategoryId() != null || !unboundedCategories.isEmpty())</span>
 <span class="fc" id="L221">            .iterator();</span>
 <span class="fc" id="L222">        int expirationTimeout = configurationManager.getFor(WAITING_QUEUE_RESERVATION_TIMEOUT, ConfigurationLevel.event(event)).getValueAsIntOrDefault(4);</span>
 <span class="fc" id="L223">        ZonedDateTime expiration = event.now(clockProvider).plusHours(expirationTimeout).with(WorkingDaysAdjusters.defaultWorkingDays());</span>
 
-<span class="pc bpc" id="L225" title="1 of 2 branches missed.">        if(!tickets.hasNext()) {</span>
-<span class="nc" id="L226">            log.warn(&quot;Unable to assign tickets, returning an empty stream&quot;);</span>
-<span class="nc" id="L227">            return Stream.empty();</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">        if(!tickets.hasNext()) {</span>
+<span class="fc" id="L226">            log.warn(&quot;Unable to assign tickets, returning an empty stream&quot;);</span>
+<span class="fc" id="L227">            return Stream.empty();</span>
         }
 <span class="fc" id="L229">        return waitingQueueRepository.loadWaiting(eventId, availableSeats).stream()</span>
-<span class="pc" id="L230">            .map(wq -&gt; Pair.of(wq, tickets.next()))</span>
+<span class="fc" id="L230">            .map(wq -&gt; Pair.of(wq, tickets.next()))</span>
 <span class="fc" id="L231">            .map(pair -&gt; {</span>
-<span class="nc" id="L232">                TicketReservationModification ticketReservation = new TicketReservationModification();</span>
-<span class="nc" id="L233">                ticketReservation.setQuantity(1);</span>
-<span class="nc" id="L234">                Integer categoryId = Optional.ofNullable(pair.getValue().getCategoryId()).orElseGet(() -&gt; findBestCategory(unboundedCategories, pair.getKey()).orElseThrow(RuntimeException::new).getId());</span>
-<span class="nc" id="L235">                ticketReservation.setTicketCategoryId(categoryId);</span>
-<span class="nc" id="L236">                return Pair.of(pair.getLeft(), new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty()));</span>
+<span class="fc" id="L232">                TicketReservationModification ticketReservation = new TicketReservationModification();</span>
+<span class="fc" id="L233">                ticketReservation.setQuantity(1);</span>
+<span class="fc" id="L234">                Integer categoryId = Optional.ofNullable(pair.getValue().getCategoryId()).orElseGet(() -&gt; findBestCategory(unboundedCategories, pair.getKey()).orElseThrow(RuntimeException::new).getId());</span>
+<span class="fc" id="L235">                ticketReservation.setTicketCategoryId(categoryId);</span>
+<span class="fc" id="L236">                return Pair.of(pair.getLeft(), new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty()));</span>
             })
-<span class="pc" id="L238">            .map(pair -&gt; Triple.of(pair.getKey(), pair.getValue(), expiration));</span>
+<span class="fc" id="L238">            .map(pair -&gt; Triple.of(pair.getKey(), pair.getValue(), expiration));</span>
     }
 
     private Optional&lt;TicketCategory&gt; findBestCategory(List&lt;TicketCategory&gt; unboundedCategories, WaitingQueueSubscription subscription) {
-<span class="nc" id="L242">        Integer selectedCategoryId = subscription.getSelectedCategoryId();</span>
-<span class="nc" id="L243">        Optional&lt;TicketCategory&gt; firstMatch = unboundedCategories.stream()</span>
-<span class="nc bnc" id="L244" title="All 4 branches missed.">            .filter(tc -&gt; selectedCategoryId == null || selectedCategoryId.equals(tc.getId()))</span>
-<span class="nc" id="L245">            .findFirst();</span>
-<span class="nc bnc" id="L246" title="All 2 branches missed.">        if(firstMatch.isPresent()) {</span>
-<span class="nc" id="L247">            return firstMatch;</span>
+<span class="fc" id="L242">        Integer selectedCategoryId = subscription.getSelectedCategoryId();</span>
+<span class="fc" id="L243">        Optional&lt;TicketCategory&gt; firstMatch = unboundedCategories.stream()</span>
+<span class="fc bfc" id="L244" title="All 4 branches covered.">            .filter(tc -&gt; selectedCategoryId == null || selectedCategoryId.equals(tc.getId()))</span>
+<span class="fc" id="L245">            .findFirst();</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">        if(firstMatch.isPresent()) {</span>
+<span class="fc" id="L247">            return firstMatch;</span>
         } else {
 <span class="nc" id="L249">            return unboundedCategories.stream().findFirst();</span>
         }

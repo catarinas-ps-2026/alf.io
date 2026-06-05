@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 
 public class ExportUtils {
 
-<span class="nc" id="L36">    private static final int[] BOM_MARKERS = new int[] {0xEF, 0xBB, 0xBF};</span>
+<span class="fc" id="L36">    private static final int[] BOM_MARKERS = new int[] {0xEF, 0xBB, 0xBF};</span>
     public static final String X_ROBOTS_TAG = &quot;X-Robots-Tag&quot;;
 
     private ExportUtils() {}
@@ -77,47 +77,47 @@ public class ExportUtils {
 
     // https://owasp.org/www-community/attacks/CSV_Injection
     private static String escapeFormulaChar(String s) {
-<span class="nc" id="L80">        var trimmed = StringUtils.trimToEmpty(s);</span>
+<span class="fc" id="L80">        var trimmed = StringUtils.trimToEmpty(s);</span>
         // tab and carriage return are removed by the trimming
-<span class="nc" id="L82">        var res = trimmed;</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (StringUtils.startsWithAny(trimmed, &quot;=&quot;, &quot;+&quot;, &quot;-&quot;, &quot;@&quot;)) {</span>
+<span class="fc" id="L82">        var res = trimmed;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (StringUtils.startsWithAny(trimmed, &quot;=&quot;, &quot;+&quot;, &quot;-&quot;, &quot;@&quot;)) {</span>
 <span class="nc" id="L84">            res = &quot;\t&quot; + trimmed; // http://georgemauer.net/2017/10/07/csv-injection.html starting with a tab seems to be enough?</span>
         }
-<span class="nc" id="L86">        return res;</span>
+<span class="fc" id="L86">        return res;</span>
     }
 
     public static void exportCsv(String fileName, String[] header, Stream&lt;String[]&gt; data, HttpServletResponse response) throws IOException {
-<span class="nc" id="L90">        response.setContentType(&quot;text/csv;charset=UTF-8&quot;);</span>
-<span class="nc" id="L91">        response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; + fileName);</span>
-<span class="nc" id="L92">        markAsNoIndex(response);</span>
+<span class="fc" id="L90">        response.setContentType(&quot;text/csv;charset=UTF-8&quot;);</span>
+<span class="fc" id="L91">        response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=&quot; + fileName);</span>
+<span class="fc" id="L92">        markAsNoIndex(response);</span>
 
-<span class="nc" id="L94">        var headerBuilder = CsvSchema.builder().setUseHeader(true).setQuoteChar('&quot;');</span>
-<span class="nc" id="L95">        Arrays.stream(header).forEach(headerBuilder::addColumn);</span>
+<span class="fc" id="L94">        var headerBuilder = CsvSchema.builder().setUseHeader(true).setQuoteChar('&quot;');</span>
+<span class="fc" id="L95">        Arrays.stream(header).forEach(headerBuilder::addColumn);</span>
 
-<span class="nc" id="L97">        try (ServletOutputStream out = response.getOutputStream()) {</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">            for (int marker : ExportUtils.BOM_MARKERS) {</span>
-<span class="nc" id="L99">                out.write(marker);</span>
+<span class="fc" id="L97">        try (ServletOutputStream out = response.getOutputStream()) {</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            for (int marker : ExportUtils.BOM_MARKERS) {</span>
+<span class="fc" id="L99">                out.write(marker);</span>
             }
-<span class="nc" id="L101">            var writer = new CsvMapper().writer().with(headerBuilder.build()).writeValues(out);</span>
-<span class="nc" id="L102">            data.forEachOrdered(d -&gt; {</span>
-<span class="nc" id="L103">                var copy = Arrays.copyOf(d, d.length);</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">                for (var i = 0; i &lt; copy.length; i++) {</span>
-<span class="nc" id="L105">                    var res = copy[i];</span>
-<span class="nc" id="L106">                    copy[i] = escapeFormulaChar(res);</span>
+<span class="fc" id="L101">            var writer = new CsvMapper().writer().with(headerBuilder.build()).writeValues(out);</span>
+<span class="fc" id="L102">            data.forEachOrdered(d -&gt; {</span>
+<span class="fc" id="L103">                var copy = Arrays.copyOf(d, d.length);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">                for (var i = 0; i &lt; copy.length; i++) {</span>
+<span class="fc" id="L105">                    var res = copy[i];</span>
+<span class="fc" id="L106">                    copy[i] = escapeFormulaChar(res);</span>
                 }
                 try {
-<span class="nc" id="L109">                    writer.write(copy);</span>
+<span class="fc" id="L109">                    writer.write(copy);</span>
 <span class="nc" id="L110">                } catch (IOException e) {</span>
 <span class="nc" id="L111">                    throw new RuntimeException(e);</span>
-<span class="nc" id="L112">                }</span>
-<span class="nc" id="L113">            });</span>
-<span class="nc" id="L114">            writer.flush();</span>
-<span class="nc" id="L115">            out.flush();</span>
+<span class="fc" id="L112">                }</span>
+<span class="fc" id="L113">            });</span>
+<span class="fc" id="L114">            writer.flush();</span>
+<span class="fc" id="L115">            out.flush();</span>
         }
-<span class="nc" id="L117">    }</span>
+<span class="fc" id="L117">    }</span>
 
     public static void markAsNoIndex(HttpServletResponse response) {
-<span class="nc" id="L120">        response.setHeader(X_ROBOTS_TAG, &quot;noindex&quot;);</span>
-<span class="nc" id="L121">    }</span>
+<span class="fc" id="L120">        response.setHeader(X_ROBOTS_TAG, &quot;noindex&quot;);</span>
+<span class="fc" id="L121">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

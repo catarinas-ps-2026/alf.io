@@ -44,11 +44,11 @@ public class EmailMessageApiController {
     private final PurchaseContextManager purchaseContextManager;
     private final AccessService accessService;
 
-<span class="nc" id="L47">    public EmailMessageApiController(NotificationManager notificationManager, PurchaseContextManager purchaseContextManager, AccessService accessService) {</span>
-<span class="nc" id="L48">        this.notificationManager = notificationManager;</span>
-<span class="nc" id="L49">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="nc" id="L50">        this.accessService = accessService;</span>
-<span class="nc" id="L51">    }</span>
+<span class="fc" id="L47">    public EmailMessageApiController(NotificationManager notificationManager, PurchaseContextManager purchaseContextManager, AccessService accessService) {</span>
+<span class="fc" id="L48">        this.notificationManager = notificationManager;</span>
+<span class="fc" id="L49">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L50">        this.accessService = accessService;</span>
+<span class="fc" id="L51">    }</span>
 
     @GetMapping()
     public PageAndContent&lt;List&lt;LightweightEmailMessage&gt;&gt; loadEmailMessages(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,

@@ -34,9 +34,9 @@ public class FileController {
 
     private static final String MAX_AGE_6_MONTH = &quot;max-age=15778463&quot;;
 
-<span class="nc" id="L37">    public FileController(FileUploadManager manager) {</span>
-<span class="nc" id="L38">        this.manager = manager;</span>
-<span class="nc" id="L39">    }</span>
+<span class="fc" id="L37">    public FileController(FileUploadManager manager) {</span>
+<span class="fc" id="L38">        this.manager = manager;</span>
+<span class="fc" id="L39">    }</span>
 
     @GetMapping(&quot;/file/{digest}&quot;)
     public void showFile(@PathVariable String digest, HttpServletRequest request, HttpServletResponse response) throws IOException {

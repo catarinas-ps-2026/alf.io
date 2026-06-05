@@ -80,12 +80,12 @@ public class AttendeeManager {
         }
 <span class="fc" id="L81">        var operator = Objects.requireNonNullElse(operatorId, DEFAULT_OPERATOR_ID);</span>
 <span class="fc" id="L82">        Optional&lt;ZonedDateTime&gt; existingRegistration = sponsorScanRepository.getRegistrationTimestamp(userId, event.getId(), ticket.getId(), operator);</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if(existingRegistration.isEmpty()) {</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if(existingRegistration.isEmpty()) {</span>
 <span class="fc" id="L84">            ZoneId eventZoneId = eventRepository.getZoneIdByEventId(event.getId());</span>
 <span class="pc bpc" id="L85" title="1 of 2 branches missed.">            var creation = timestamp != null ? Instant.ofEpochMilli(timestamp).atZone(eventZoneId) : ZonedDateTime.now(clockProvider.withZone(eventZoneId));</span>
 <span class="fc" id="L86">            sponsorScanRepository.insert(userId, creation, event.getId(), ticket.getId(), notes, leadStatus, operator);</span>
 <span class="fc" id="L87">        } else {</span>
-<span class="nc" id="L88">            sponsorScanRepository.updateNotesAndLeadStatus(userId, event.getId(), ticket.getId(), notes, leadStatus, operator);</span>
+<span class="fc" id="L88">            sponsorScanRepository.updateNotesAndLeadStatus(userId, event.getId(), ticket.getId(), notes, leadStatus, operator);</span>
         }
 <span class="fc" id="L90">        return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(CheckInStatus.SUCCESS, &quot;success&quot;));</span>
     }

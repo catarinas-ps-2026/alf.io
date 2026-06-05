@@ -46,7 +46,7 @@ public class TicketPriceContainer implements SummaryPriceContainer {
     @Override
     public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
 <span class="fc" id="L48">        return Optional.ofNullable(promoCodeDiscount)</span>
-<span class="pc bpc" id="L49" title="4 of 6 branches missed.">            .filter(discount -&gt; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION &amp;&amp; (discount.getCategories().isEmpty() || discount.getCategories().contains(getCategoryId())));</span>
+<span class="pc bpc" id="L49" title="2 of 6 branches missed.">            .filter(discount -&gt; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION &amp;&amp; (discount.getCategories().isEmpty() || discount.getCategories().contains(getCategoryId())));</span>
     }
 
     @Override
@@ -73,12 +73,12 @@ public class TicketPriceContainer implements SummaryPriceContainer {
 
     @Override
     public BigDecimal getTaxablePrice() {
-<span class="pc bpc" id="L76" title="3 of 6 branches missed.">        if(vatStatus != VatStatus.INCLUDED_EXEMPT</span>
+<span class="pc bpc" id="L76" title="1 of 6 branches missed.">        if(vatStatus != VatStatus.INCLUDED_EXEMPT</span>
             &amp;&amp; vatStatus != VatStatus.NOT_INCLUDED_EXEMPT
             &amp;&amp; vatStatus != VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {
 <span class="fc" id="L79">            return SummaryPriceContainer.super.getTaxablePrice();</span>
         }
-<span class="nc" id="L81">        return BigDecimal.ZERO;</span>
+<span class="fc" id="L81">        return BigDecimal.ZERO;</span>
     }
 
     @Override

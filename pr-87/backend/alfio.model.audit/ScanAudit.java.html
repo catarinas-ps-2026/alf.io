@@ -28,9 +28,9 @@ import java.time.LocalDateTime;
 @Getter
 public class ScanAudit {
 
-<span class="nc" id="L31">    public enum Operation {</span>
-<span class="nc" id="L32">        SCAN,</span>
-<span class="nc" id="L33">        REVERT</span>
+<span class="fc" id="L31">    public enum Operation {</span>
+<span class="fc" id="L32">        SCAN,</span>
+<span class="fc" id="L33">        REVERT</span>
     }
 
     private final String ticketUuid;
@@ -44,17 +44,17 @@ public class ScanAudit {
                      @JsonProperty(&quot;scanTimestamp&quot;) @Column(&quot;scan_ts&quot;) LocalDateTime scanTimestamp,
                      @JsonProperty(&quot;username&quot;) @Column(&quot;username&quot;) String username,
                      @JsonProperty(&quot;checkInStatus&quot;) @Column(&quot;check_in_status&quot;) CheckInStatus checkInStatus,
-<span class="nc" id="L47">                     @JsonProperty(&quot;operation&quot;) @Column(&quot;operation&quot;) Operation operation) {</span>
-<span class="nc" id="L48">        this.ticketUuid = ticketUuid;</span>
-<span class="nc" id="L49">        this.scanTimestamp = scanTimestamp;</span>
-<span class="nc" id="L50">        this.username = username;</span>
-<span class="nc" id="L51">        this.checkInStatus = checkInStatus;</span>
-<span class="nc" id="L52">        this.operation = operation;</span>
-<span class="nc" id="L53">    }</span>
+<span class="fc" id="L47">                     @JsonProperty(&quot;operation&quot;) @Column(&quot;operation&quot;) Operation operation) {</span>
+<span class="fc" id="L48">        this.ticketUuid = ticketUuid;</span>
+<span class="fc" id="L49">        this.scanTimestamp = scanTimestamp;</span>
+<span class="fc" id="L50">        this.username = username;</span>
+<span class="fc" id="L51">        this.checkInStatus = checkInStatus;</span>
+<span class="fc" id="L52">        this.operation = operation;</span>
+<span class="fc" id="L53">    }</span>
 
     @JsonIgnore
     public String getTicketUuid() {
-<span class="nc" id="L57">        return ticketUuid;</span>
+<span class="fc" id="L57">        return ticketUuid;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

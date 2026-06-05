@@ -56,20 +56,20 @@ public class UserApiV2Controller {
     private final ConfigurationManager configurationManager;
     private final ExtensionManager extensionManager;
     private final MessageSourceManager messageSourceManager;
-<span class="nc" id="L59">    private final SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();</span>
+<span class="fc" id="L59">    private final SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();</span>
 
     @Autowired
     public UserApiV2Controller(PublicUserManager publicUserManager,
                                TicketReservationManager ticketReservationManager,
                                ConfigurationManager configurationManager,
                                ExtensionManager extensionManager,
-<span class="nc" id="L66">                               MessageSourceManager messageSourceManager) {</span>
-<span class="nc" id="L67">        this.publicUserManager = publicUserManager;</span>
-<span class="nc" id="L68">        this.ticketReservationManager = ticketReservationManager;</span>
-<span class="nc" id="L69">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L70">        this.extensionManager = extensionManager;</span>
-<span class="nc" id="L71">        this.messageSourceManager = messageSourceManager;</span>
-<span class="nc" id="L72">    }</span>
+<span class="fc" id="L66">                               MessageSourceManager messageSourceManager) {</span>
+<span class="fc" id="L67">        this.publicUserManager = publicUserManager;</span>
+<span class="fc" id="L68">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L69">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L70">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L71">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L72">    }</span>
 
     @GetMapping(&quot;/me&quot;)
     public ResponseEntity&lt;User&gt; getUserIdentity(Authentication principal) {
@@ -150,22 +150,22 @@ public class UserApiV2Controller {
 
     @GetMapping(&quot;/reservations&quot;)
     public ResponseEntity&lt;List&lt;PurchaseContextWithReservations&gt;&gt; getUserReservations(Principal principal) {
-<span class="nc bnc" id="L153" title="All 2 branches missed.">        if(principal != null) {</span>
-<span class="nc" id="L154">            var reservations = ticketReservationManager.loadReservationsForUser(principal);</span>
-<span class="nc bnc" id="L155" title="All 2 branches missed.">            if(reservations.isEmpty()) {</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        if(principal != null) {</span>
+<span class="fc" id="L154">            var reservations = ticketReservationManager.loadReservationsForUser(principal);</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">            if(reservations.isEmpty()) {</span>
 <span class="nc" id="L156">                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
             }
             // &quot;datetime.pattern&quot;
-<span class="nc" id="L159">            var messageSource = messageSourceManager.getRootMessageSource();</span>
-<span class="nc" id="L160">            var datePatternsMap = ContentLanguage.ALL_LANGUAGES.stream()</span>
-<span class="nc" id="L161">                .map(l -&gt; Map.entry(l.locale(), messageSource.getMessage(&quot;datetime.pattern&quot;, null, l.locale())))</span>
-<span class="nc" id="L162">                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
-<span class="nc" id="L163">            var results = reservations.stream()</span>
-<span class="nc" id="L164">                .collect(Collectors.groupingBy(p -&gt; p.getPurchaseContextType().name() + &quot;/&quot; + p.getPurchaseContextPublicIdentifier()))</span>
-<span class="nc" id="L165">                .values().stream()</span>
-<span class="nc" id="L166">                .map(pc -&gt; PurchaseContextWithReservations.from(pc, datePatternsMap))</span>
-<span class="nc" id="L167">                .toList();</span>
-<span class="nc" id="L168">            return ResponseEntity.ok(results);</span>
+<span class="fc" id="L159">            var messageSource = messageSourceManager.getRootMessageSource();</span>
+<span class="fc" id="L160">            var datePatternsMap = ContentLanguage.ALL_LANGUAGES.stream()</span>
+<span class="fc" id="L161">                .map(l -&gt; Map.entry(l.locale(), messageSource.getMessage(&quot;datetime.pattern&quot;, null, l.locale())))</span>
+<span class="fc" id="L162">                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
+<span class="fc" id="L163">            var results = reservations.stream()</span>
+<span class="fc" id="L164">                .collect(Collectors.groupingBy(p -&gt; p.getPurchaseContextType().name() + &quot;/&quot; + p.getPurchaseContextPublicIdentifier()))</span>
+<span class="fc" id="L165">                .values().stream()</span>
+<span class="fc" id="L166">                .map(pc -&gt; PurchaseContextWithReservations.from(pc, datePatternsMap))</span>
+<span class="fc" id="L167">                .toList();</span>
+<span class="fc" id="L168">            return ResponseEntity.ok(results);</span>
         }
 <span class="nc" id="L170">        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
     }

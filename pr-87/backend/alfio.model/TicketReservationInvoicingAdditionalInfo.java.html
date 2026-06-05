@@ -26,11 +26,11 @@ public class TicketReservationInvoicingAdditionalInfo {
     private final ItalianEInvoicing italianEInvoicing;
 
     public boolean isEmpty() {
-<span class="nc bnc" id="L29" title="All 4 branches missed.">        return italianEInvoicing == null || italianEInvoicing.isEmpty();</span>
+<span class="pc bpc" id="L29" title="1 of 4 branches missed.">        return italianEInvoicing == null || italianEInvoicing.isEmpty();</span>
     }
 
     public boolean getEmpty() {
-<span class="nc" id="L33">        return isEmpty();</span>
+<span class="fc" id="L33">        return isEmpty();</span>
     }
 
     //
@@ -40,10 +40,10 @@ public class TicketReservationInvoicingAdditionalInfo {
     @AllArgsConstructor
     public static class ItalianEInvoicing {
 
-<span class="nc" id="L43">        public enum ReferenceType {</span>
-<span class="nc" id="L44">            ADDRESSEE_CODE, /* Codice destinatario */</span>
-<span class="nc" id="L45">            PEC, /* (pec = email) */</span>
-<span class="nc" id="L46">            NONE</span>
+<span class="fc" id="L43">        public enum ReferenceType {</span>
+<span class="fc" id="L44">            ADDRESSEE_CODE, /* Codice destinatario */</span>
+<span class="fc" id="L45">            PEC, /* (pec = email) */</span>
+<span class="fc" id="L46">            NONE</span>
         }
 
         private final String fiscalCode;
@@ -53,20 +53,20 @@ public class TicketReservationInvoicingAdditionalInfo {
         private final boolean splitPayment;
 
         public String getReferenceTypeAsString() {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">            return referenceType == null ? &quot;&quot; : referenceType.toString();</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">            return referenceType == null ? &quot;&quot; : referenceType.toString();</span>
         }
 
         public String getReference() {
-<span class="nc bnc" id="L60" title="All 2 branches missed.">            if(referenceType == ReferenceType.ADDRESSEE_CODE) {</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">            if(referenceType == ReferenceType.ADDRESSEE_CODE) {</span>
 <span class="nc" id="L61">                return addresseeCode;</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">            } else if(referenceType == ReferenceType.PEC) {</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            } else if(referenceType == ReferenceType.PEC) {</span>
 <span class="nc" id="L63">                return pec;</span>
             }
-<span class="nc" id="L65">            return null;</span>
+<span class="fc" id="L65">            return null;</span>
         }
 
         public boolean isEmpty() {
-<span class="nc bnc" id="L69" title="All 8 branches missed.">            return fiscalCode == null</span>
+<span class="pc bpc" id="L69" title="7 of 8 branches missed.">            return fiscalCode == null</span>
                 &amp;&amp; referenceType == null
                 &amp;&amp; addresseeCode == null
                 &amp;&amp; pec == null;

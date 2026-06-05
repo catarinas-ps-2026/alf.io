@@ -41,7 +41,7 @@ public interface PriceContainer {
 <span class="fc" id="L41">        NOT_INCLUDED_EXEMPT((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),</span>
         // tax exemption was granted by custom rules (extension CUSTOM_TAX_POLICY_APPLICATION)
 <span class="fc" id="L43">        CUSTOM_INCLUDED_EXEMPT(includedVatExtractor, BigDecimal::negate),</span>
-<span class="pc" id="L44">        CUSTOM_NOT_INCLUDED_EXEMPT((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),</span>
+<span class="fc" id="L44">        CUSTOM_NOT_INCLUDED_EXEMPT((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),</span>
         // The following two are dedicated for handling italian-specific cases, &quot;split payment&quot;
         // VAT has to be shown on the invoice, but not charged
 <span class="fc" id="L47">        INCLUDED_NOT_CHARGED(includedVatExtractor, UnaryOperator.identity()),</span>
@@ -65,12 +65,12 @@ public interface PriceContainer {
         }
 
         public static boolean isVatExempt(VatStatus vatStatus) {
-<span class="pc bpc" id="L68" title="2 of 8 branches missed.">            return vatStatus == INCLUDED_EXEMPT || vatStatus == NOT_INCLUDED_EXEMPT</span>
+<span class="fc bfc" id="L68" title="All 8 branches covered.">            return vatStatus == INCLUDED_EXEMPT || vatStatus == NOT_INCLUDED_EXEMPT</span>
                 || vatStatus == CUSTOM_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
         }
 
         public static boolean isVatIncluded(VatStatus vatStatus) {
-<span class="pc bpc" id="L73" title="5 of 6 branches missed.">            return vatStatus == INCLUDED || vatStatus == INCLUDED_EXEMPT || vatStatus == CUSTOM_INCLUDED_EXEMPT;</span>
+<span class="pc bpc" id="L73" title="2 of 6 branches missed.">            return vatStatus == INCLUDED || vatStatus == INCLUDED_EXEMPT || vatStatus == CUSTOM_INCLUDED_EXEMPT;</span>
         }
 
         /**
@@ -79,7 +79,7 @@ public interface PriceContainer {
          * @return true if not included
          */
         public static boolean isVatNotIncluded(VatStatus vatStatus) {
-<span class="nc bnc" id="L82" title="All 6 branches missed.">            return vatStatus == NOT_INCLUDED || vatStatus == NOT_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;</span>
+<span class="pc bpc" id="L82" title="2 of 6 branches missed.">            return vatStatus == NOT_INCLUDED || vatStatus == NOT_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;</span>
         }
 
         public static VatStatus forceExempt(VatStatus original) {
@@ -100,7 +100,7 @@ public interface PriceContainer {
      */
     @JsonIgnore
     default Optional&lt;PromoCodeDiscount&gt; getDiscount() {
-<span class="nc" id="L103">        return Optional.empty();</span>
+<span class="fc" id="L103">        return Optional.empty();</span>
     }
 
     /**

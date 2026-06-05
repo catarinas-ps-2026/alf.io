@@ -64,13 +64,13 @@ public interface FileUploadRepository {
 <span class="fc" id="L64">            new AbstractLobCreatingPreparedStatementCallback(lobHandler) {</span>
                 @Override
                 protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
-<span class="nc" id="L67">                    ps.setString(1, digest);</span>
-<span class="nc" id="L68">                    ps.setString(2, file.getName());</span>
-<span class="nc" id="L69">                    ps.setLong(3, file.getFile().length);</span>
-<span class="nc" id="L70">                    lobCreator.setBlobAsBytes(ps, 4, file.getFile());</span>
-<span class="nc" id="L71">                    ps.setString(5, file.getType());</span>
-<span class="nc" id="L72">                    ps.setString(6, Json.GSON.toJson(attributes));</span>
-<span class="nc" id="L73">                }</span>
+<span class="fc" id="L67">                    ps.setString(1, digest);</span>
+<span class="fc" id="L68">                    ps.setString(2, file.getName());</span>
+<span class="fc" id="L69">                    ps.setLong(3, file.getFile().length);</span>
+<span class="fc" id="L70">                    lobCreator.setBlobAsBytes(ps, 4, file.getFile());</span>
+<span class="fc" id="L71">                    ps.setString(5, file.getType());</span>
+<span class="fc" id="L72">                    ps.setString(6, Json.GSON.toJson(attributes));</span>
+<span class="fc" id="L73">                }</span>
             });
 <span class="fc" id="L75">    }</span>
 

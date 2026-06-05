@@ -27,24 +27,24 @@ public class StandardPeriodTerm implements SubscriptionTerm {
 
     @JsonCreator
     public StandardPeriodTerm(@JsonProperty(&quot;timeUnit&quot;) SubscriptionTimeUnit timeUnit,
-<span class="nc" id="L30">                              @JsonProperty(&quot;units&quot;) Integer units) {</span>
-<span class="nc" id="L31">        this.timeUnit = timeUnit;</span>
-<span class="nc" id="L32">        this.units = units;</span>
-<span class="nc" id="L33">    }</span>
+<span class="fc" id="L30">                              @JsonProperty(&quot;units&quot;) Integer units) {</span>
+<span class="fc" id="L31">        this.timeUnit = timeUnit;</span>
+<span class="fc" id="L32">        this.units = units;</span>
+<span class="fc" id="L33">    }</span>
 
     @Override
     public boolean validate() {
-<span class="nc bnc" id="L37" title="All 6 branches missed.">        return timeUnit != null &amp;&amp; units != null &amp;&amp; units &gt; 0;</span>
+<span class="pc bpc" id="L37" title="3 of 6 branches missed.">        return timeUnit != null &amp;&amp; units != null &amp;&amp; units &gt; 0;</span>
     }
 
     @Override
     public SubscriptionTimeUnit getTimeUnit() {
-<span class="nc" id="L42">        return timeUnit;</span>
+<span class="fc" id="L42">        return timeUnit;</span>
     }
 
     @Override
     public Integer getUnits() {
-<span class="nc" id="L47">        return units;</span>
+<span class="fc" id="L47">        return units;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -36,18 +36,18 @@ public class SummaryRow {
     }
 
     public String getDescriptionForPayment() {
-<span class="nc bnc" id="L39" title="All 2 branches missed.">        if(name != null) {</span>
-<span class="nc" id="L40">            return amount + &quot; x &quot; + name;</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if(name != null) {</span>
+<span class="fc" id="L40">            return amount + &quot; x &quot; + name;</span>
         }
 <span class="nc" id="L42">        return &quot;&quot;;</span>
     }
 
     public boolean isDiscount() {
-<span class="nc bnc" id="L46" title="All 4 branches missed.">        return type == SummaryType.PROMOTION_CODE || type == SummaryType.DYNAMIC_DISCOUNT;</span>
+<span class="pc bpc" id="L46" title="1 of 4 branches missed.">        return type == SummaryType.PROMOTION_CODE || type == SummaryType.DYNAMIC_DISCOUNT;</span>
     }
 
     public boolean getTaxDetail() {
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        return type == SummaryType.TAX_DETAIL;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        return type == SummaryType.TAX_DETAIL;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

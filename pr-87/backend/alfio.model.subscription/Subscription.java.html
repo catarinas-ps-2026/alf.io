@@ -36,7 +36,7 @@ import static alfio.util.LocaleUtil.atZone;
 @Getter
 public class Subscription implements TimeZoneInfo {
 
-<span class="nc" id="L39">    private static final DateTimeFormatter VALIDITY_FORMATTER = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm&quot;);</span>
+<span class="fc" id="L39">    private static final DateTimeFormatter VALIDITY_FORMATTER = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm&quot;);</span>
     private final UUID id;
     private final String firstName;
     private final String lastName;
@@ -76,42 +76,42 @@ public class Subscription implements TimeZoneInfo {
                         @Column(&quot;validity_from&quot;) ZonedDateTime validityFrom,
                         @Column(&quot;validity_to&quot;) ZonedDateTime validityTo,
                         @Column(&quot;confirmation_ts&quot;) ZonedDateTime confirmationTimestamp,
-<span class="nc" id="L79">                        @Column(&quot;time_zone&quot;) String timeZone) {</span>
-<span class="nc" id="L80">        this.id = id;</span>
-<span class="nc" id="L81">        this.firstName = firstName;</span>
-<span class="nc" id="L82">        this.lastName = lastName;</span>
-<span class="nc" id="L83">        this.email = email;</span>
-<span class="nc" id="L84">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
-<span class="nc" id="L85">        this.reservationId = reservationId;</span>
-<span class="nc" id="L86">        this.organizationId = organizationId;</span>
-<span class="nc" id="L87">        this.creationTime = creationTime;</span>
-<span class="nc" id="L88">        this.updateTime = updateTime;</span>
-<span class="nc" id="L89">        this.srcPriceCts = srcPriceCts;</span>
-<span class="nc" id="L90">        this.discountCts = discountCts;</span>
-<span class="nc" id="L91">        this.currency = currency;</span>
-<span class="nc" id="L92">        this.status = status;</span>
-<span class="nc" id="L93">        this.maxEntries = maxEntries;</span>
-<span class="nc" id="L94">        var zone = ZoneId.of(timeZone);</span>
-<span class="nc" id="L95">        this.zoneId = zone;</span>
-<span class="nc" id="L96">        this.validityFrom = atZone(validityFrom, zone);</span>
-<span class="nc" id="L97">        this.validityTo = atZone(validityTo, zone);</span>
-<span class="nc" id="L98">        this.confirmationTimestamp = atZone(confirmationTimestamp, zone);</span>
-<span class="nc" id="L99">    }</span>
+<span class="fc" id="L79">                        @Column(&quot;time_zone&quot;) String timeZone) {</span>
+<span class="fc" id="L80">        this.id = id;</span>
+<span class="fc" id="L81">        this.firstName = firstName;</span>
+<span class="fc" id="L82">        this.lastName = lastName;</span>
+<span class="fc" id="L83">        this.email = email;</span>
+<span class="fc" id="L84">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
+<span class="fc" id="L85">        this.reservationId = reservationId;</span>
+<span class="fc" id="L86">        this.organizationId = organizationId;</span>
+<span class="fc" id="L87">        this.creationTime = creationTime;</span>
+<span class="fc" id="L88">        this.updateTime = updateTime;</span>
+<span class="fc" id="L89">        this.srcPriceCts = srcPriceCts;</span>
+<span class="fc" id="L90">        this.discountCts = discountCts;</span>
+<span class="fc" id="L91">        this.currency = currency;</span>
+<span class="fc" id="L92">        this.status = status;</span>
+<span class="fc" id="L93">        this.maxEntries = maxEntries;</span>
+<span class="fc" id="L94">        var zone = ZoneId.of(timeZone);</span>
+<span class="fc" id="L95">        this.zoneId = zone;</span>
+<span class="fc" id="L96">        this.validityFrom = atZone(validityFrom, zone);</span>
+<span class="fc" id="L97">        this.validityTo = atZone(validityTo, zone);</span>
+<span class="fc" id="L98">        this.confirmationTimestamp = atZone(confirmationTimestamp, zone);</span>
+<span class="fc" id="L99">    }</span>
 
     public boolean isValid(Optional&lt;BindingResult&gt; bindingResult) {
-<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (status != AllocationStatus.ACQUIRED) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (status != AllocationStatus.ACQUIRED) {</span>
 <span class="nc" id="L103">            reject(bindingResult, &quot;subscription.not.acquired&quot;);</span>
 <span class="nc" id="L104">            return false;</span>
         }
-<span class="nc" id="L106">        var now = now(ClockProvider.clock());</span>
-<span class="nc bnc" id="L107" title="All 4 branches missed.">        if(validityFrom != null &amp;&amp; validityFrom.isAfter(now)) {</span>
+<span class="fc" id="L106">        var now = now(ClockProvider.clock());</span>
+<span class="pc bpc" id="L107" title="3 of 4 branches missed.">        if(validityFrom != null &amp;&amp; validityFrom.isAfter(now)) {</span>
 <span class="nc" id="L108">            reject(bindingResult, &quot;subscription.not.valid&quot;);</span>
 <span class="nc" id="L109">            return false;</span>
-<span class="nc bnc" id="L110" title="All 4 branches missed.">        } else if(validityTo != null &amp;&amp; validityTo.isBefore(now)) {</span>
+<span class="pc bpc" id="L110" title="3 of 4 branches missed.">        } else if(validityTo != null &amp;&amp; validityTo.isBefore(now)) {</span>
 <span class="nc" id="L111">            reject(bindingResult, &quot;subscription.expired&quot;);</span>
 <span class="nc" id="L112">            return false;</span>
         }
-<span class="nc" id="L114">        return true;</span>
+<span class="fc" id="L114">        return true;</span>
     }
 
     private static void reject(Optional&lt;BindingResult&gt; bindingResult, String errorCode) {
@@ -119,16 +119,16 @@ public class Subscription implements TimeZoneInfo {
 <span class="nc" id="L119">    }</span>
 
     public boolean isValid() {
-<span class="nc" id="L122">        return isValid(Optional.empty());</span>
+<span class="fc" id="L122">        return isValid(Optional.empty());</span>
     }
 
     public String getPin() {
-<span class="nc" id="L126">        return PinGenerator.uuidToPin(id.toString(), PIN_LENGTH);</span>
+<span class="fc" id="L126">        return PinGenerator.uuidToPin(id.toString(), PIN_LENGTH);</span>
     }
 
     @JsonIgnore
     public ZoneId getZoneId() {
-<span class="nc" id="L131">        return zoneId;</span>
+<span class="fc" id="L131">        return zoneId;</span>
     }
 
     public String getFormattedValidityTo() {

@@ -64,8 +64,8 @@ public class PromoCodeRequestManager {
     private final ClockProvider clockProvider;
     private final AdditionalServiceManager additionalServiceManager;
 
-<span class="nc" id="L67">    enum PromoCodeType {</span>
-<span class="nc" id="L68">        SPECIAL_PRICE, PROMO_CODE_DISCOUNT, TICKET_CATEGORY_CODE, NOT_FOUND</span>
+<span class="fc" id="L67">    enum PromoCodeType {</span>
+<span class="fc" id="L68">        SPECIAL_PRICE, PROMO_CODE_DISCOUNT, TICKET_CATEGORY_CODE, NOT_FOUND</span>
     }
 
     public Optional&lt;String&gt; createReservationFromPromoCode(String eventName,
@@ -75,76 +75,76 @@ public class PromoCodeRequestManager {
                                                            ServletWebRequest request,
                                                            Principal principal) {
 
-<span class="nc" id="L78">        String trimmedCode = StringUtils.trimToNull(code);</span>
+<span class="fc" id="L78">        String trimmedCode = StringUtils.trimToNull(code);</span>
 
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if(trimmedCode == null) {</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if(trimmedCode == null) {</span>
 <span class="nc" id="L81">            return Optional.empty();</span>
         }
 
-<span class="nc" id="L84">        return eventRepository.findOptionalByShortName(eventName).flatMap(e -&gt; {</span>
+<span class="fc" id="L84">        return eventRepository.findOptionalByShortName(eventName).flatMap(e -&gt; {</span>
 
-<span class="nc" id="L86">            var checkedCode = checkCode(e, trimmedCode);</span>
+<span class="fc" id="L86">            var checkedCode = checkCode(e, trimmedCode);</span>
 
-<span class="nc" id="L88">            var codeType = checkPromoCodeType(e.getId(), trimmedCode);</span>
+<span class="fc" id="L88">            var codeType = checkPromoCodeType(e.getId(), trimmedCode);</span>
 
-<span class="nc" id="L90">            var maybePromoCodeDiscount = checkedCode.getValue().getRight();</span>
+<span class="fc" id="L90">            var maybePromoCodeDiscount = checkedCode.getValue().getRight();</span>
 
-<span class="nc bnc" id="L92" title="All 4 branches missed.">            if(checkedCode.isSuccess() &amp;&amp; codeType == PromoCodeType.PROMO_CODE_DISCOUNT) {</span>
-<span class="nc" id="L93">                queryStringHandler.accept(&quot;code&quot;, trimmedCode);</span>
-<span class="nc" id="L94">                return Optional.empty();</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">            } else if(codeType == PromoCodeType.TICKET_CATEGORY_CODE) {</span>
-<span class="nc" id="L96">                var category = ticketCategoryRepository.findCodeInEvent(e.getId(), trimmedCode).orElseThrow();</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">                if(!category.isAccessRestricted()) {</span>
+<span class="pc bpc" id="L92" title="1 of 4 branches missed.">            if(checkedCode.isSuccess() &amp;&amp; codeType == PromoCodeType.PROMO_CODE_DISCOUNT) {</span>
+<span class="fc" id="L93">                queryStringHandler.accept(&quot;code&quot;, trimmedCode);</span>
+<span class="fc" id="L94">                return Optional.empty();</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">            } else if(codeType == PromoCodeType.TICKET_CATEGORY_CODE) {</span>
+<span class="fc" id="L96">                var category = ticketCategoryRepository.findCodeInEvent(e.getId(), trimmedCode).orElseThrow();</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">                if(!category.isAccessRestricted()) {</span>
 <span class="nc" id="L98">                    var res = makeSimpleReservation(e, category.getId(), trimmedCode, request, maybePromoCodeDiscount, principal);</span>
 <span class="nc" id="L99">                    return handleErrors.apply(res);</span>
                 } else {
-<span class="nc" id="L101">                    var specialPrice = specialPriceRepository.findActiveNotAssignedByCategoryId(category.getId(), 1).stream().findFirst();</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">                    if(specialPrice.isEmpty()) {</span>
+<span class="fc" id="L101">                    var specialPrice = specialPriceRepository.findActiveNotAssignedByCategoryId(category.getId(), 1).stream().findFirst();</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">                    if(specialPrice.isEmpty()) {</span>
 <span class="nc" id="L103">                        queryStringHandler.accept(&quot;errors&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND);</span>
 <span class="nc" id="L104">                        return Optional.empty();</span>
                     }
-<span class="nc" id="L106">                    var res = makeSimpleReservation(e, category.getId(), specialPrice.get().getCode(), request, maybePromoCodeDiscount, principal);</span>
-<span class="nc" id="L107">                    return handleErrors.apply(res);</span>
+<span class="fc" id="L106">                    var res = makeSimpleReservation(e, category.getId(), specialPrice.get().getCode(), request, maybePromoCodeDiscount, principal);</span>
+<span class="fc" id="L107">                    return handleErrors.apply(res);</span>
                 }
-<span class="nc bnc" id="L109" title="All 4 branches missed.">            } else if (checkedCode.isSuccess() &amp;&amp; codeType == PromoCodeType.SPECIAL_PRICE) {</span>
+<span class="pc bpc" id="L109" title="3 of 4 branches missed.">            } else if (checkedCode.isSuccess() &amp;&amp; codeType == PromoCodeType.SPECIAL_PRICE) {</span>
 <span class="nc" id="L110">                int ticketCategoryId = specialPriceRepository.getByCode(trimmedCode).orElseThrow().getTicketCategoryId();</span>
 <span class="nc" id="L111">                var res = makeSimpleReservation(e, ticketCategoryId, trimmedCode, request, maybePromoCodeDiscount, principal);</span>
 <span class="nc" id="L112">                return handleErrors.apply(res);</span>
             } else {
-<span class="nc" id="L114">                queryStringHandler.accept(&quot;errors&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND);</span>
-<span class="nc" id="L115">                return Optional.empty();</span>
+<span class="fc" id="L114">                queryStringHandler.accept(&quot;errors&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND);</span>
+<span class="fc" id="L115">                return Optional.empty();</span>
             }
         });
     }
 
     public ValidatedResponse&lt;Triple&lt;Optional&lt;SpecialPrice&gt;, Event, Optional&lt;PromoCodeDiscount&gt;&gt;&gt; checkCode(String eventName, String promoCode) {
-<span class="nc" id="L121">        var eventOptional = eventRepository.findOptionalByShortName(eventName);</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if(eventOptional.isEmpty()) {</span>
+<span class="fc" id="L121">        var eventOptional = eventRepository.findOptionalByShortName(eventName);</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if(eventOptional.isEmpty()) {</span>
 <span class="nc" id="L123">            return new ValidatedResponse&lt;&gt;(ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;eventName&quot;, &quot;Event not found.&quot;)), null);</span>
         }
-<span class="nc" id="L125">        var event = eventOptional.get();</span>
-<span class="nc" id="L126">        var response = checkCode(event, promoCode);</span>
-<span class="nc bnc" id="L127" title="All 2 branches missed.">        if(response.isSuccess()) {</span>
-<span class="nc" id="L128">            var value = response.getValue();</span>
-<span class="nc" id="L129">            return new ValidatedResponse&lt;&gt;(ValidationResult.success(), Triple.of(value.getLeft(), event, value.getRight()));</span>
+<span class="fc" id="L125">        var event = eventOptional.get();</span>
+<span class="fc" id="L126">        var response = checkCode(event, promoCode);</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if(response.isSuccess()) {</span>
+<span class="fc" id="L128">            var value = response.getValue();</span>
+<span class="fc" id="L129">            return new ValidatedResponse&lt;&gt;(ValidationResult.success(), Triple.of(value.getLeft(), event, value.getRight()));</span>
         } else {
-<span class="nc" id="L131">            return new ValidatedResponse&lt;&gt;(ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;promoCode&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)), null);</span>
+<span class="fc" id="L131">            return new ValidatedResponse&lt;&gt;(ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;promoCode&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)), null);</span>
         }
     }
 
     public ValidatedResponse&lt;Pair&lt;Optional&lt;SpecialPrice&gt;, Optional&lt;PromoCodeDiscount&gt;&gt;&gt; checkCode(Event event, String promoCode) {
-<span class="nc" id="L136">        ZoneId eventZoneId = event.getZoneId();</span>
-<span class="nc" id="L137">        ZonedDateTime now = ZonedDateTime.now(clockProvider.withZone(eventZoneId));</span>
-<span class="nc" id="L138">        Optional&lt;String&gt; maybeSpecialCode = Optional.ofNullable(StringUtils.trimToNull(promoCode));</span>
-<span class="nc" id="L139">        Optional&lt;SpecialPrice&gt; specialCode = maybeSpecialCode.flatMap(specialPriceRepository::getByCode);</span>
-<span class="nc" id="L140">        Optional&lt;PromoCodeDiscount&gt; promotionCodeDiscount = maybeSpecialCode.flatMap(trimmedCode -&gt; promoCodeRepository.findPublicPromoCodeInEventOrOrganization(event.getId(), trimmedCode));</span>
+<span class="fc" id="L136">        ZoneId eventZoneId = event.getZoneId();</span>
+<span class="fc" id="L137">        ZonedDateTime now = ZonedDateTime.now(clockProvider.withZone(eventZoneId));</span>
+<span class="fc" id="L138">        Optional&lt;String&gt; maybeSpecialCode = Optional.ofNullable(StringUtils.trimToNull(promoCode));</span>
+<span class="fc" id="L139">        Optional&lt;SpecialPrice&gt; specialCode = maybeSpecialCode.flatMap(specialPriceRepository::getByCode);</span>
+<span class="fc" id="L140">        Optional&lt;PromoCodeDiscount&gt; promotionCodeDiscount = maybeSpecialCode.flatMap(trimmedCode -&gt; promoCodeRepository.findPublicPromoCodeInEventOrOrganization(event.getId(), trimmedCode));</span>
 
-<span class="nc" id="L142">        var result = Pair.of(specialCode, promotionCodeDiscount);</span>
+<span class="fc" id="L142">        var result = Pair.of(specialCode, promotionCodeDiscount);</span>
 
-<span class="nc" id="L144">        var errorResponse = new ValidatedResponse&lt;&gt;(ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;promoCode&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)), result);</span>
+<span class="fc" id="L144">        var errorResponse = new ValidatedResponse&lt;&gt;(ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;promoCode&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)), result);</span>
 
         //
-<span class="nc bnc" id="L147" title="All 2 branches missed.">        if(specialCode.isPresent()) {</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if(specialCode.isPresent()) {</span>
 <span class="nc bnc" id="L148" title="All 2 branches missed.">            if (eventManager.getOptionalByIdAndActive(specialCode.get().getTicketCategoryId(), event.getId()).isEmpty()) {</span>
 <span class="nc" id="L149">                return errorResponse;</span>
             }
@@ -153,36 +153,36 @@ public class PromoCodeRequestManager {
 <span class="nc" id="L153">                return errorResponse;</span>
             }
 
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        } else if(promotionCodeDiscount.isPresent()) {</span>
-<span class="nc" id="L157">            var pcd = promotionCodeDiscount.get();</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (!pcd.isCurrentlyValid(eventZoneId, now)</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">                || isDiscountCodeUsageExceeded(pcd)</span>
-<span class="nc bnc" id="L160" title="All 4 branches missed.">                || (pcd.hasCurrencyCode() &amp;&amp; !pcd.getCurrencyCode().equals(event.getCurrency()))) {</span>
-<span class="nc" id="L161">                return errorResponse;</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        } else if(promotionCodeDiscount.isPresent()) {</span>
+<span class="fc" id="L157">            var pcd = promotionCodeDiscount.get();</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            if (!pcd.isCurrentlyValid(eventZoneId, now)</span>
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">                || isDiscountCodeUsageExceeded(pcd)</span>
+<span class="pc bpc" id="L160" title="1 of 4 branches missed.">                || (pcd.hasCurrencyCode() &amp;&amp; !pcd.getCurrencyCode().equals(event.getCurrency()))) {</span>
+<span class="fc" id="L161">                return errorResponse;</span>
             }
-<span class="nc" id="L163">        } else {</span>
-<span class="nc" id="L164">            return errorResponse;</span>
+<span class="fc" id="L163">        } else {</span>
+<span class="fc" id="L164">            return errorResponse;</span>
         }
 
-<span class="nc" id="L167">        return new ValidatedResponse&lt;&gt;(ValidationResult.success(), result);</span>
+<span class="fc" id="L167">        return new ValidatedResponse&lt;&gt;(ValidationResult.success(), result);</span>
     }
 
     private PromoCodeType checkPromoCodeType(int eventId, String trimmedCode) {
-<span class="nc bnc" id="L171" title="All 2 branches missed.">        if(trimmedCode == null) {</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">        if(trimmedCode == null) {</span>
 <span class="nc" id="L172">            return PromoCodeType.NOT_FOUND;</span>
-<span class="nc bnc" id="L173" title="All 2 branches missed.">        }  else if(specialPriceRepository.getByCode(trimmedCode).isPresent()) {</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">        }  else if(specialPriceRepository.getByCode(trimmedCode).isPresent()) {</span>
 <span class="nc" id="L174">            return PromoCodeType.SPECIAL_PRICE;</span>
-<span class="nc bnc" id="L175" title="All 2 branches missed.">        } else if (promoCodeRepository.findPublicPromoCodeInEventOrOrganization(eventId, trimmedCode).isPresent()) {</span>
-<span class="nc" id="L176">            return PromoCodeType.PROMO_CODE_DISCOUNT;</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">        } else if (ticketCategoryRepository.findCodeInEvent(eventId, trimmedCode).isPresent()) {</span>
-<span class="nc" id="L178">            return PromoCodeType.TICKET_CATEGORY_CODE;</span>
+<span class="fc bfc" id="L175" title="All 2 branches covered.">        } else if (promoCodeRepository.findPublicPromoCodeInEventOrOrganization(eventId, trimmedCode).isPresent()) {</span>
+<span class="fc" id="L176">            return PromoCodeType.PROMO_CODE_DISCOUNT;</span>
+<span class="fc bfc" id="L177" title="All 2 branches covered.">        } else if (ticketCategoryRepository.findCodeInEvent(eventId, trimmedCode).isPresent()) {</span>
+<span class="fc" id="L178">            return PromoCodeType.TICKET_CATEGORY_CODE;</span>
         } else {
-<span class="nc" id="L180">            return PromoCodeType.NOT_FOUND;</span>
+<span class="fc" id="L180">            return PromoCodeType.NOT_FOUND;</span>
         }
     }
 
     private boolean isDiscountCodeUsageExceeded(PromoCodeDiscount discount) {
-<span class="nc bnc" id="L185" title="All 4 branches missed.">        return discount.getMaxUsage() != null &amp;&amp; discount.getMaxUsage() &lt;= promoCodeRepository.countConfirmedPromoCode(discount.getId());</span>
+<span class="pc bpc" id="L185" title="1 of 4 branches missed.">        return discount.getMaxUsage() != null &amp;&amp; discount.getMaxUsage() &lt;= promoCodeRepository.countConfirmedPromoCode(discount.getId());</span>
     }
 
     private Pair&lt;Optional&lt;String&gt;, BindingResult&gt; makeSimpleReservation(Event event,
@@ -192,15 +192,15 @@ public class PromoCodeRequestManager {
                                                                         Optional&lt;PromoCodeDiscount&gt; promoCodeDiscount,
                                                                         Principal principal) {
 
-<span class="nc" id="L195">        Locale locale = RequestUtils.getMatchingLocale(request, event);</span>
-<span class="nc" id="L196">        ReservationForm form = new ReservationForm();</span>
-<span class="nc" id="L197">        form.setPromoCode(promoCode);</span>
-<span class="nc" id="L198">        TicketReservationModification reservation = new TicketReservationModification();</span>
-<span class="nc" id="L199">        reservation.setQuantity(1);</span>
-<span class="nc" id="L200">        reservation.setTicketCategoryId(ticketCategoryId);</span>
-<span class="nc" id="L201">        form.setReservation(Collections.singletonList(reservation));</span>
-<span class="nc" id="L202">        var bindingRes = new BeanPropertyBindingResult(form, &quot;reservationForm&quot;);</span>
-<span class="nc" id="L203">        return Pair.of(createTicketReservation(form, bindingRes, event, locale, promoCodeDiscount.map(PromoCodeDiscount::getPromoCode), principal), bindingRes);</span>
+<span class="fc" id="L195">        Locale locale = RequestUtils.getMatchingLocale(request, event);</span>
+<span class="fc" id="L196">        ReservationForm form = new ReservationForm();</span>
+<span class="fc" id="L197">        form.setPromoCode(promoCode);</span>
+<span class="fc" id="L198">        TicketReservationModification reservation = new TicketReservationModification();</span>
+<span class="fc" id="L199">        reservation.setQuantity(1);</span>
+<span class="fc" id="L200">        reservation.setTicketCategoryId(ticketCategoryId);</span>
+<span class="fc" id="L201">        form.setReservation(Collections.singletonList(reservation));</span>
+<span class="fc" id="L202">        var bindingRes = new BeanPropertyBindingResult(form, &quot;reservationForm&quot;);</span>
+<span class="fc" id="L203">        return Pair.of(createTicketReservation(form, bindingRes, event, locale, promoCodeDiscount.map(PromoCodeDiscount::getPromoCode), principal), bindingRes);</span>
     }
 
     private Optional&lt;String&gt; createTicketReservation(ReservationForm reservation,
@@ -209,12 +209,12 @@ public class PromoCodeRequestManager {
                                                      Locale locale,
                                                      Optional&lt;String&gt; promoCodeDiscount,
                                                      Principal principal) {
-<span class="nc" id="L212">        return ReservationUtil.validateCreateRequest(reservation, bindingResult, ticketReservationManager, eventManager, additionalServiceManager, promoCodeDiscount.orElse(null), event)</span>
-<span class="nc" id="L213">            .flatMap(selected -&gt; ReservationUtil.handleReservationCreationErrors(() -&gt; ticketReservationManager.createTicketReservation(event, selected.getLeft(), selected.getRight(), promoCodeDiscount, locale, principal), bindingResult, event.getType()));</span>
+<span class="fc" id="L212">        return ReservationUtil.validateCreateRequest(reservation, bindingResult, ticketReservationManager, eventManager, additionalServiceManager, promoCodeDiscount.orElse(null), event)</span>
+<span class="fc" id="L213">            .flatMap(selected -&gt; ReservationUtil.handleReservationCreationErrors(() -&gt; ticketReservationManager.createTicketReservation(event, selected.getLeft(), selected.getRight(), promoCodeDiscount, locale, principal), bindingResult, event.getType()));</span>
     }
 
     public Optional&lt;PromoCodeDiscount&gt; findById(int id) {
-<span class="nc" id="L217">        return promoCodeRepository.findOptionalById(id);</span>
+<span class="fc" id="L217">        return promoCodeRepository.findOptionalById(id);</span>
     }
 
     public void disablePromoCode(int promoCodeId) {
@@ -230,9 +230,9 @@ public class PromoCodeRequestManager {
     }
 
     public List&lt;PromoCodeUsageResult&gt; retrieveDetailedUsage(int promoCodeId, Integer eventId) {
-<span class="nc" id="L233">        return findById(promoCodeId)</span>
-<span class="nc" id="L234">            .map(pc -&gt; promoCodeRepository.findDetailedUsage(pc.getPromoCode(), eventId))</span>
-<span class="nc" id="L235">            .orElse(List.of());</span>
+<span class="fc" id="L233">        return findById(promoCodeId)</span>
+<span class="fc" id="L234">            .map(pc -&gt; promoCodeRepository.findDetailedUsage(pc.getPromoCode(), eventId))</span>
+<span class="fc" id="L235">            .orElse(List.of());</span>
     }
 
 }

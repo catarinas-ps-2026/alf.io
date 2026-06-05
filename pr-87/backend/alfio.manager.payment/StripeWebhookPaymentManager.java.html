@@ -120,16 +120,16 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
 
     @Override
     public TransactionInitializationToken initTransaction(PaymentSpecification paymentSpecification, Map&lt;String, List&lt;String&gt;&gt; params) {
-<span class="nc" id="L123">        var reservationId = paymentSpecification.getReservationId();</span>
-<span class="nc" id="L124">        return transactionRepository.loadOptionalByReservationId(reservationId)</span>
-<span class="nc" id="L125">            .map(transaction -&gt; {</span>
+<span class="fc" id="L123">        var reservationId = paymentSpecification.getReservationId();</span>
+<span class="fc" id="L124">        return transactionRepository.loadOptionalByReservationId(reservationId)</span>
+<span class="fc" id="L125">            .map(transaction -&gt; {</span>
 <span class="nc bnc" id="L126" title="All 2 branches missed.">                if(transaction.getStatus() == Transaction.Status.PENDING) {</span>
 <span class="nc" id="L127">                    return buildTokenFromTransaction(transaction, paymentSpecification.getPurchaseContext(), true);</span>
                 } else {
 <span class="nc" id="L129">                    return errorToken(&quot;Reload reservation&quot;, true);</span>
                 }
             })
-<span class="nc" id="L132">            .orElseGet(() -&gt; createNewToken(paymentSpecification));</span>
+<span class="fc" id="L132">            .orElseGet(() -&gt; createNewToken(paymentSpecification));</span>
     }
 
     @Override
@@ -210,22 +210,22 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
     }
 
     private StripeSCACreditCardToken createNewToken(PaymentSpecification paymentSpecification) {
-<span class="nc" id="L213">        Map&lt;String, String&gt; baseMetadata = configurationManager.getFor(BASE_URL, paymentSpecification.getPurchaseContext().getConfigurationLevel()).getValue()</span>
-<span class="nc" id="L214">            .map(baseUrl -&gt; Map.of(&quot;alfioBaseUrl&quot;, baseUrl))</span>
-<span class="nc" id="L215">            .orElse(Map.of());</span>
-<span class="nc" id="L216">        var paymentIntentParams = baseStripeManager.createParams(paymentSpecification, baseMetadata);</span>
-<span class="nc" id="L217">        paymentIntentParams.put(&quot;payment_method_types&quot;, List.of(&quot;card&quot;));</span>
+<span class="fc" id="L213">        Map&lt;String, String&gt; baseMetadata = configurationManager.getFor(BASE_URL, paymentSpecification.getPurchaseContext().getConfigurationLevel()).getValue()</span>
+<span class="fc" id="L214">            .map(baseUrl -&gt; Map.of(&quot;alfioBaseUrl&quot;, baseUrl))</span>
+<span class="fc" id="L215">            .orElse(Map.of());</span>
+<span class="fc" id="L216">        var paymentIntentParams = baseStripeManager.createParams(paymentSpecification, baseMetadata);</span>
+<span class="fc" id="L217">        paymentIntentParams.put(&quot;payment_method_types&quot;, List.of(&quot;card&quot;));</span>
         try {
-<span class="nc" id="L219">            var options = baseStripeManager.options(paymentSpecification.getPurchaseContext(), builder -&gt; builder.setIdempotencyKey(paymentSpecification.getReservationId())).orElseThrow();</span>
-<span class="nc" id="L220">            var intent = PaymentIntent.create(paymentIntentParams, options);</span>
-<span class="nc" id="L221">            var clientSecret = intent.getClientSecret();</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">            long platformFee = paymentIntentParams.containsKey(&quot;application_fee&quot;) ? (long) paymentIntentParams.get(&quot;application_fee&quot;) : 0L;</span>
-<span class="nc" id="L223">            PaymentManagerUtils.invalidateExistingTransactions(paymentSpecification.getReservationId(), transactionRepository);</span>
-<span class="nc" id="L224">            transactionRepository.insert(intent.getId(), intent.getId(),</span>
-<span class="nc" id="L225">                paymentSpecification.getReservationId(), ZonedDateTime.now(clockProvider.withZone(paymentSpecification.getPurchaseContext().getZoneId())),</span>
-<span class="nc" id="L226">                paymentSpecification.getPriceWithVAT(), paymentSpecification.getPurchaseContext().getCurrency(), &quot;Payment Intent&quot;,</span>
-<span class="nc" id="L227">                PaymentProxy.STRIPE.name(), platformFee,0L, Transaction.Status.PENDING, Map.of(CLIENT_SECRET_METADATA, clientSecret, STRIPE_MANAGER_TYPE_KEY, STRIPE_MANAGER));</span>
-<span class="nc" id="L228">            return new StripeSCACreditCardToken(intent.getId(), null, clientSecret);</span>
+<span class="fc" id="L219">            var options = baseStripeManager.options(paymentSpecification.getPurchaseContext(), builder -&gt; builder.setIdempotencyKey(paymentSpecification.getReservationId())).orElseThrow();</span>
+<span class="fc" id="L220">            var intent = PaymentIntent.create(paymentIntentParams, options);</span>
+<span class="fc" id="L221">            var clientSecret = intent.getClientSecret();</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">            long platformFee = paymentIntentParams.containsKey(&quot;application_fee&quot;) ? (long) paymentIntentParams.get(&quot;application_fee&quot;) : 0L;</span>
+<span class="fc" id="L223">            PaymentManagerUtils.invalidateExistingTransactions(paymentSpecification.getReservationId(), transactionRepository);</span>
+<span class="fc" id="L224">            transactionRepository.insert(intent.getId(), intent.getId(),</span>
+<span class="fc" id="L225">                paymentSpecification.getReservationId(), ZonedDateTime.now(clockProvider.withZone(paymentSpecification.getPurchaseContext().getZoneId())),</span>
+<span class="fc" id="L226">                paymentSpecification.getPriceWithVAT(), paymentSpecification.getPurchaseContext().getCurrency(), &quot;Payment Intent&quot;,</span>
+<span class="fc" id="L227">                PaymentProxy.STRIPE.name(), platformFee,0L, Transaction.Status.PENDING, Map.of(CLIENT_SECRET_METADATA, clientSecret, STRIPE_MANAGER_TYPE_KEY, STRIPE_MANAGER));</span>
+<span class="fc" id="L228">            return new StripeSCACreditCardToken(intent.getId(), null, clientSecret);</span>
 
 <span class="nc" id="L230">        } catch (StripeException e) {</span>
 <span class="nc" id="L231">            throw new IllegalStateException(e);</span>
@@ -234,7 +234,7 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
 
     @Override
     public String getWebhookSignatureKey(ConfigurationLevel configurationLevel) {
-<span class="nc" id="L237">        return configurationManager.getFor(STRIPE_WEBHOOK_PAYMENT_KEY, configurationLevel).getRequiredValue();</span>
+<span class="fc" id="L237">        return configurationManager.getFor(STRIPE_WEBHOOK_PAYMENT_KEY, configurationLevel).getRequiredValue();</span>
     }
 
     @Override
@@ -243,14 +243,14 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
                                                                        Map&lt;String, String&gt; additionalInfo,
                                                                        PaymentContext paymentContext) {
         try {
-<span class="nc" id="L246">            var stripeEvent = Webhook.constructEvent(body, signature, getWebhookSignatureKey(paymentContext.getConfigurationLevel()));</span>
-<span class="nc" id="L247">            String eventType = stripeEvent.getType();</span>
-<span class="nc bnc" id="L248" title="All 2 branches missed.">            if(eventType.startsWith(&quot;charge.&quot;)) {</span>
+<span class="fc" id="L246">            var stripeEvent = Webhook.constructEvent(body, signature, getWebhookSignatureKey(paymentContext.getConfigurationLevel()));</span>
+<span class="fc" id="L247">            String eventType = stripeEvent.getType();</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">            if(eventType.startsWith(&quot;charge.&quot;)) {</span>
 <span class="nc" id="L249">                return deserializeObject(stripeEvent, body)</span>
 <span class="nc" id="L250">                    .map(obj -&gt; new StripeChargeTransactionWebhookPayload(eventType, (Charge)obj));</span>
-<span class="nc bnc" id="L251" title="All 2 branches missed.">            } else if(eventType.startsWith(&quot;payment_intent.&quot;)) {</span>
-<span class="nc" id="L252">                return deserializeObject(stripeEvent, body)</span>
-<span class="nc" id="L253">                    .map(obj -&gt; new StripePaymentIntentWebhookPayload(eventType, (PaymentIntent)obj));</span>
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">            } else if(eventType.startsWith(&quot;payment_intent.&quot;)) {</span>
+<span class="fc" id="L252">                return deserializeObject(stripeEvent, body)</span>
+<span class="fc" id="L253">                    .map(obj -&gt; new StripePaymentIntentWebhookPayload(eventType, (PaymentIntent)obj));</span>
             }
 <span class="nc" id="L255">            return Optional.empty();</span>
 <span class="nc" id="L256">        } catch (Exception e) {</span>
@@ -260,23 +260,23 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
     }
 
     private Optional&lt;StripeObject&gt; deserializeObject(com.stripe.model.Event stripeEvent, String rawJson) {
-<span class="nc" id="L263">        var dataObjectDeserializer = stripeEvent.getDataObjectDeserializer();</span>
-<span class="nc" id="L264">        var cleanDeserialization = dataObjectDeserializer.getObject();</span>
-<span class="nc bnc" id="L265" title="All 2 branches missed.">        if(cleanDeserialization.isPresent()) {</span>
+<span class="fc" id="L263">        var dataObjectDeserializer = stripeEvent.getDataObjectDeserializer();</span>
+<span class="fc" id="L264">        var cleanDeserialization = dataObjectDeserializer.getObject();</span>
+<span class="pc bpc" id="L265" title="1 of 2 branches missed.">        if(cleanDeserialization.isPresent()) {</span>
 <span class="nc" id="L266">            return cleanDeserialization;</span>
         }
-<span class="nc" id="L268">        log.warn(&quot;unable to deserialize payload. Expected version {}, actual {}, falling back to unsafe deserialization&quot;, Stripe.API_VERSION, stripeEvent.getApiVersion());</span>
+<span class="fc" id="L268">        log.warn(&quot;unable to deserialize payload. Expected version {}, actual {}, falling back to unsafe deserialization&quot;, Stripe.API_VERSION, stripeEvent.getApiVersion());</span>
         try {
-<span class="nc" id="L270">            return Optional.ofNullable(dataObjectDeserializer.deserializeUnsafe())</span>
-<span class="nc" id="L271">                .map(stripeObject -&gt; {</span>
+<span class="fc" id="L270">            return Optional.ofNullable(dataObjectDeserializer.deserializeUnsafe())</span>
+<span class="fc" id="L271">                .map(stripeObject -&gt; {</span>
                     // if the message we received was built with an API version older than 2022-11-15
                     // we need to save the raw JSON body to ensure we have all the information to parse the message
                     // see https://stripe.com/docs/upgrades#2022-11-15 and https://github.com/alfio-event/alf.io/issues/1159
-<span class="nc bnc" id="L275" title="All 4 branches missed.">                    if (stripeObject.getLastResponse() == null &amp;&amp; &quot;2022-11-15&quot;.compareTo(stripeEvent.getApiVersion()) &gt; 0) {</span>
-<span class="nc" id="L276">                        log.debug(&quot;API version requires raw JSON body. Forcing 'lastResponse' property&quot;);</span>
-<span class="nc" id="L277">                        stripeObject.setLastResponse(new StripeResponse(200, HttpHeaders.of(Map.of()), rawJson));</span>
+<span class="pc bpc" id="L275" title="1 of 4 branches missed.">                    if (stripeObject.getLastResponse() == null &amp;&amp; &quot;2022-11-15&quot;.compareTo(stripeEvent.getApiVersion()) &gt; 0) {</span>
+<span class="fc" id="L276">                        log.debug(&quot;API version requires raw JSON body. Forcing 'lastResponse' property&quot;);</span>
+<span class="fc" id="L277">                        stripeObject.setLastResponse(new StripeResponse(200, HttpHeaders.of(Map.of()), rawJson));</span>
                     }
-<span class="nc" id="L279">                    return stripeObject;</span>
+<span class="fc" id="L279">                    return stripeObject;</span>
                 });
 <span class="nc" id="L281">        } catch(Exception e) {</span>
 <span class="nc" id="L282">            throw new IllegalArgumentException(&quot;Cannot deserialize webhook event.&quot;, e);</span>
@@ -374,29 +374,29 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
 <span class="fc" id="L374">        String chargeId = paymentIntent.getLatestCharge();</span>
 <span class="fc" id="L375">        String balanceTransactionId = null;</span>
 <span class="fc" id="L376">        long fees = 0L;</span>
-<span class="pc bpc" id="L377" title="1 of 2 branches missed.">        if (chargeId == null) {</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">        if (chargeId == null) {</span>
             // compatibility mode for payloads with API version up to 2022-08-01
-<span class="nc" id="L379">            var jsonObject = paymentIntent.getRawJsonObject();</span>
+<span class="fc" id="L379">            var jsonObject = paymentIntent.getRawJsonObject();</span>
             // old structure is paymentIntent -&gt; data -&gt; object -&gt; charges -&gt; data[0] -&gt; id
-<span class="nc" id="L381">            var chargesContainer = requireNonNull(jsonObject.getAsJsonObject(&quot;data&quot;)</span>
-<span class="nc" id="L382">                .getAsJsonObject(&quot;object&quot;)</span>
-<span class="nc" id="L383">                .getAsJsonObject(&quot;charges&quot;), &quot;data -&gt; object -&gt; charges is null!&quot;);</span>
-<span class="nc" id="L384">            var latestCharge = requireNonNull(chargesContainer.getAsJsonArray(&quot;data&quot;).get(0), &quot;charges is empty!&quot;)</span>
-<span class="nc" id="L385">                .getAsJsonObject();</span>
+<span class="fc" id="L381">            var chargesContainer = requireNonNull(jsonObject.getAsJsonObject(&quot;data&quot;)</span>
+<span class="fc" id="L382">                .getAsJsonObject(&quot;object&quot;)</span>
+<span class="fc" id="L383">                .getAsJsonObject(&quot;charges&quot;), &quot;data -&gt; object -&gt; charges is null!&quot;);</span>
+<span class="fc" id="L384">            var latestCharge = requireNonNull(chargesContainer.getAsJsonArray(&quot;data&quot;).get(0), &quot;charges is empty!&quot;)</span>
+<span class="fc" id="L385">                .getAsJsonObject();</span>
 
-<span class="nc" id="L387">            chargeId = requireNonNull(latestCharge.get(&quot;id&quot;), &quot;charges array is empty!&quot;).getAsString();</span>
-<span class="nc bnc" id="L388" title="All 2 branches missed.">            if (latestCharge.has(&quot;balance_transaction&quot;)) {</span>
-<span class="nc" id="L389">                balanceTransactionId = latestCharge.get(&quot;balance_transaction&quot;).getAsString();</span>
+<span class="fc" id="L387">            chargeId = requireNonNull(latestCharge.get(&quot;id&quot;), &quot;charges array is empty!&quot;).getAsString();</span>
+<span class="pc bpc" id="L388" title="1 of 2 branches missed.">            if (latestCharge.has(&quot;balance_transaction&quot;)) {</span>
+<span class="fc" id="L389">                balanceTransactionId = latestCharge.get(&quot;balance_transaction&quot;).getAsString();</span>
             }
         }
 
-<span class="pc bpc" id="L393" title="1 of 2 branches missed.">        if (balanceTransactionId == null) {</span>
+<span class="fc bfc" id="L393" title="All 2 branches covered.">        if (balanceTransactionId == null) {</span>
 <span class="fc" id="L394">            var charge = baseStripeManager.retrieveCharge(chargeId, requestOptions);</span>
 <span class="fc" id="L395">            balanceTransactionId = charge.getBalanceTransaction();</span>
         }
 
-<span class="pc bpc" id="L398" title="1 of 2 branches missed.">        if (balanceTransactionId != null) {</span>
-<span class="nc" id="L399">            fees = baseStripeManager.retrieveBalanceTransaction(balanceTransactionId, requestOptions).getFee();</span>
+<span class="fc bfc" id="L398" title="All 2 branches covered.">        if (balanceTransactionId != null) {</span>
+<span class="fc" id="L399">            fees = baseStripeManager.retrieveBalanceTransaction(balanceTransactionId, requestOptions).getFee();</span>
         }
 
 <span class="fc" id="L402">        return new ChargeIdAndFees(chargeId, fees);</span>
@@ -415,8 +415,8 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
 
     @Override
     public Set&lt;? extends PaymentMethod&gt; getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
-<span class="nc bnc" id="L418" title="All 2 branches missed.">        if(!isActive(paymentContext)) {</span>
-<span class="nc" id="L419">            return EnumSet.noneOf(StaticPaymentMethods.class);</span>
+<span class="pc bpc" id="L418" title="1 of 2 branches missed.">        if(!isActive(paymentContext)) {</span>
+<span class="fc" id="L419">            return EnumSet.noneOf(StaticPaymentMethods.class);</span>
         }
 <span class="nc" id="L421">        return EnumSet.of(StaticPaymentMethods.CREDIT_CARD);</span>
     }
@@ -428,28 +428,28 @@ public class StripeWebhookPaymentManager implements PaymentProvider, RefundReque
 
     @Override
     public boolean accept(Transaction transaction) {
-<span class="nc bnc" id="L431" title="All 4 branches missed.">        var isWebHookManager = STRIPE_MANAGER.equals(transaction.getMetadata().get(STRIPE_MANAGER_TYPE_KEY)) || transaction.getMetadata().get(CLIENT_SECRET_METADATA) != null;</span>
-<span class="nc bnc" id="L432" title="All 4 branches missed.">        return transaction.getPaymentProxy() == PaymentProxy.STRIPE &amp;&amp; isWebHookManager;</span>
+<span class="pc bpc" id="L431" title="3 of 4 branches missed.">        var isWebHookManager = STRIPE_MANAGER.equals(transaction.getMetadata().get(STRIPE_MANAGER_TYPE_KEY)) || transaction.getMetadata().get(CLIENT_SECRET_METADATA) != null;</span>
+<span class="pc bpc" id="L432" title="2 of 4 branches missed.">        return transaction.getPaymentProxy() == PaymentProxy.STRIPE &amp;&amp; isWebHookManager;</span>
     }
 
     @Override
     public PaymentMethod getPaymentMethodForTransaction(Transaction transaction) {
-<span class="nc" id="L437">        return StaticPaymentMethods.CREDIT_CARD;</span>
+<span class="fc" id="L437">        return StaticPaymentMethods.CREDIT_CARD;</span>
     }
 
     @Override
     public boolean isActive(PaymentContext paymentContext) {
-<span class="nc" id="L442">        return baseStripeManager.isActive(paymentContext, OPTIONS_TO_LOAD, this::isConfigurationValid);</span>
+<span class="fc" id="L442">        return baseStripeManager.isActive(paymentContext, OPTIONS_TO_LOAD, this::isConfigurationValid);</span>
     }
 
     @Override
     public PaymentResult doPayment(PaymentSpecification spec) {
-<span class="nc" id="L447">        var optionalTransaction = transactionRepository.loadOptionalByReservationId(spec.getReservationId());</span>
-<span class="nc bnc" id="L448" title="All 2 branches missed.">        if(optionalTransaction.isEmpty()) {</span>
+<span class="fc" id="L447">        var optionalTransaction = transactionRepository.loadOptionalByReservationId(spec.getReservationId());</span>
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">        if(optionalTransaction.isEmpty()) {</span>
 <span class="nc" id="L449">            return PaymentResult.failed(StripeCreditCardManager.STRIPE_UNEXPECTED);</span>
         }
-<span class="nc" id="L451">        var transaction = optionalTransaction.get();</span>
-<span class="nc bnc" id="L452" title="All 2 branches missed.">        return transaction.getStatus() == Transaction.Status.COMPLETE ? PaymentResult.successful(transaction.getTransactionId()) : PaymentResult.initialized(transaction.getPaymentId());</span>
+<span class="fc" id="L451">        var transaction = optionalTransaction.get();</span>
+<span class="pc bpc" id="L452" title="1 of 2 branches missed.">        return transaction.getStatus() == Transaction.Status.COMPLETE ? PaymentResult.successful(transaction.getTransactionId()) : PaymentResult.initialized(transaction.getPaymentId());</span>
     }
 
     @Override

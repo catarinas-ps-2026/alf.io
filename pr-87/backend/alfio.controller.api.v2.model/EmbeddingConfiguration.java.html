@@ -21,16 +21,16 @@ import java.util.Objects;
 public class EmbeddingConfiguration {
     private final String notificationOrigin;
 
-<span class="nc" id="L24">    public EmbeddingConfiguration(String notificationOrigin) {</span>
-<span class="nc" id="L25">        this.notificationOrigin = Objects.requireNonNullElse(notificationOrigin, &quot;&quot;);</span>
-<span class="nc" id="L26">    }</span>
+<span class="fc" id="L24">    public EmbeddingConfiguration(String notificationOrigin) {</span>
+<span class="fc" id="L25">        this.notificationOrigin = Objects.requireNonNullElse(notificationOrigin, &quot;&quot;);</span>
+<span class="fc" id="L26">    }</span>
 
     public boolean isEnabled() {
-<span class="nc bnc" id="L29" title="All 4 branches missed.">        return notificationOrigin != null &amp;&amp; !notificationOrigin.isBlank();</span>
+<span class="pc bpc" id="L29" title="2 of 4 branches missed.">        return notificationOrigin != null &amp;&amp; !notificationOrigin.isBlank();</span>
     }
 
     public String getNotificationOrigin() {
-<span class="nc" id="L33">        return notificationOrigin;</span>
+<span class="fc" id="L33">        return notificationOrigin;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

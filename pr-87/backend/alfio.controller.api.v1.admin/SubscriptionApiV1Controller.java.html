@@ -45,7 +45,7 @@ import static java.util.stream.Collectors.toList;
 @RequestMapping(&quot;/api/v1/admin/subscription&quot;)
 @Transactional
 public class SubscriptionApiV1Controller {
-<span class="nc" id="L48">    private static final Logger log = LoggerFactory.getLogger(SubscriptionApiV1Controller.class);</span>
+<span class="fc" id="L48">    private static final Logger log = LoggerFactory.getLogger(SubscriptionApiV1Controller.class);</span>
     private final SubscriptionManager subscriptionManager;
     private final FileUploadManager fileUploadManager;
     private final FileDownloadManager fileDownloadManager;
@@ -58,34 +58,34 @@ public class SubscriptionApiV1Controller {
                                        FileDownloadManager fileDownloadManager,
                                        UserManager userManager,
                                        AccessService accessService,
-<span class="nc" id="L61">                                       PurchaseContextFieldManager purchaseContextFieldManager) {</span>
-<span class="nc" id="L62">        this.subscriptionManager = subscriptionManager;</span>
-<span class="nc" id="L63">        this.fileUploadManager = fileUploadManager;</span>
-<span class="nc" id="L64">        this.fileDownloadManager = fileDownloadManager;</span>
-<span class="nc" id="L65">        this.userManager = userManager;</span>
-<span class="nc" id="L66">        this.accessService = accessService;</span>
-<span class="nc" id="L67">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
-<span class="nc" id="L68">    }</span>
+<span class="fc" id="L61">                                       PurchaseContextFieldManager purchaseContextFieldManager) {</span>
+<span class="fc" id="L62">        this.subscriptionManager = subscriptionManager;</span>
+<span class="fc" id="L63">        this.fileUploadManager = fileUploadManager;</span>
+<span class="fc" id="L64">        this.fileDownloadManager = fileDownloadManager;</span>
+<span class="fc" id="L65">        this.userManager = userManager;</span>
+<span class="fc" id="L66">        this.accessService = accessService;</span>
+<span class="fc" id="L67">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+<span class="fc" id="L68">    }</span>
 
     @PostMapping(&quot;/create&quot;)
     public ResponseEntity&lt;String&gt; create(@RequestBody SubscriptionDescriptorModificationRequest request, Principal principal) {
-<span class="nc" id="L72">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
-<span class="nc" id="L73">        String imageRef = null;</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(request.getImageUrl())) {</span>
-<span class="nc" id="L75">            imageRef = fetchImage(request.getImageUrl());</span>
+<span class="fc" id="L72">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L73">        String imageRef = null;</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if(StringUtils.isNotEmpty(request.getImageUrl())) {</span>
+<span class="fc" id="L75">            imageRef = fetchImage(request.getImageUrl());</span>
         }
-<span class="nc" id="L77">        var modification = request.toDescriptorModification(null, organization.getId(), imageRef)</span>
-<span class="nc" id="L78">            .flatMap(SubscriptionDescriptorModification::validate);</span>
-<span class="nc" id="L79">        var additionalFields = request.toAdditionalFieldsRequest();</span>
-<span class="nc bnc" id="L80" title="All 4 branches missed.">        if (modification.isSuccess() &amp;&amp; additionalFields.isSuccess()) {</span>
+<span class="fc" id="L77">        var modification = request.toDescriptorModification(null, organization.getId(), imageRef)</span>
+<span class="fc" id="L78">            .flatMap(SubscriptionDescriptorModification::validate);</span>
+<span class="fc" id="L79">        var additionalFields = request.toAdditionalFieldsRequest();</span>
+<span class="pc bpc" id="L80" title="2 of 4 branches missed.">        if (modification.isSuccess() &amp;&amp; additionalFields.isSuccess()) {</span>
             // request is valid
-<span class="nc" id="L82">            var optionalId = subscriptionManager.createSubscriptionDescriptor(modification.getData());</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (optionalId.isPresent()) {</span>
-<span class="nc" id="L84">                var id = optionalId.get();</span>
-<span class="nc" id="L85">                purchaseContextFieldManager.addAdditionalFields(subscriptionManager.getSubscriptionById(id).orElseThrow(), additionalFields.getData());</span>
+<span class="fc" id="L82">            var optionalId = subscriptionManager.createSubscriptionDescriptor(modification.getData());</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (optionalId.isPresent()) {</span>
+<span class="fc" id="L84">                var id = optionalId.get();</span>
+<span class="fc" id="L85">                purchaseContextFieldManager.addAdditionalFields(subscriptionManager.getSubscriptionById(id).orElseThrow(), additionalFields.getData());</span>
             }
-<span class="nc" id="L87">            return optionalId.map(uuid -&gt; ResponseEntity.ok(uuid.toString()))</span>
-<span class="nc" id="L88">                .orElseGet(() -&gt; ResponseEntity.internalServerError().build());</span>
+<span class="fc" id="L87">            return optionalId.map(uuid -&gt; ResponseEntity.ok(uuid.toString()))</span>
+<span class="pc" id="L88">                .orElseGet(() -&gt; ResponseEntity.internalServerError().build());</span>
         }
 <span class="nc" id="L90">        var errors = new ArrayList&lt;&gt;(modification.getErrors());</span>
 <span class="nc" id="L91">        errors.addAll(additionalFields.getErrors());</span>
@@ -95,19 +95,19 @@ public class SubscriptionApiV1Controller {
     @PostMapping(&quot;/{subscriptionId}/update&quot;)
     public ResponseEntity&lt;String&gt; update(@PathVariable UUID subscriptionId,
                                          @RequestBody SubscriptionDescriptorModificationRequest request, Principal principal) {
-<span class="nc" id="L98">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId.toString());</span>
-<span class="nc" id="L99">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
-<span class="nc" id="L100">        String imageRef = null;</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(request.getImageUrl())) {</span>
-<span class="nc" id="L102">            imageRef = fetchImage(request.getImageUrl());</span>
+<span class="fc" id="L98">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId.toString());</span>
+<span class="fc" id="L99">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L100">        String imageRef = null;</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if(StringUtils.isNotEmpty(request.getImageUrl())) {</span>
+<span class="fc" id="L102">            imageRef = fetchImage(request.getImageUrl());</span>
         }
-<span class="nc" id="L104">        var modification = request.toDescriptorModification(subscriptionId, organization.getId(), imageRef)</span>
-<span class="nc" id="L105">            .flatMap(SubscriptionDescriptorModification::validate);</span>
-<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (modification.isSuccess()) {</span>
+<span class="fc" id="L104">        var modification = request.toDescriptorModification(subscriptionId, organization.getId(), imageRef)</span>
+<span class="fc" id="L105">            .flatMap(SubscriptionDescriptorModification::validate);</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (modification.isSuccess()) {</span>
             // request is valid
-<span class="nc" id="L108">            var optionalId = subscriptionManager.updateSubscriptionDescriptor(modification.getData());</span>
-<span class="nc" id="L109">            return optionalId.map(uuid -&gt; ResponseEntity.ok(uuid.toString()))</span>
-<span class="nc" id="L110">                .orElseGet(() -&gt; ResponseEntity.internalServerError().build());</span>
+<span class="fc" id="L108">            var optionalId = subscriptionManager.updateSubscriptionDescriptor(modification.getData());</span>
+<span class="fc" id="L109">            return optionalId.map(uuid -&gt; ResponseEntity.ok(uuid.toString()))</span>
+<span class="pc" id="L110">                .orElseGet(() -&gt; ResponseEntity.internalServerError().build());</span>
         }
 <span class="nc" id="L112">        return ResponseEntity.badRequest().body(Json.toJson(modification.getErrors()));</span>
     }
@@ -123,24 +123,24 @@ public class SubscriptionApiV1Controller {
     @GetMapping(&quot;/{subscriptionId}/events&quot;)
     public ResponseEntity&lt;List&lt;LinkedEvent&gt;&gt; getLinkedEvents(@PathVariable UUID subscriptionId,
                                                        Principal principal) {
-<span class="nc" id="L126">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId.toString());</span>
-<span class="nc" id="L127">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
-<span class="nc" id="L128">        return ResponseEntity.ok(toLinkedEvents(subscriptionManager.getLinkedEvents(organization.getId(), subscriptionId)));</span>
+<span class="fc" id="L126">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId.toString());</span>
+<span class="fc" id="L127">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L128">        return ResponseEntity.ok(toLinkedEvents(subscriptionManager.getLinkedEvents(organization.getId(), subscriptionId)));</span>
     }
 
     @PostMapping(&quot;/{subscriptionId}/events&quot;)
     public ResponseEntity&lt;List&lt;LinkedEvent&gt;&gt; updateLinkedEvents(@PathVariable UUID subscriptionId,
                                                                 @RequestBody List&lt;LinkEventsToSubscriptionRequest&gt; linkedEvents,
                                                                 Principal principal) {
-<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (linkedEvents == null) {</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (linkedEvents == null) {</span>
 <span class="nc" id="L136">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
         }
-<span class="nc" id="L138">        accessService.checkEventLinkRequest(principal, subscriptionId.toString(), linkedEvents);</span>
-<span class="nc" id="L139">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
-<span class="nc" id="L140">        int organizationId = organization.getId();</span>
-<span class="nc" id="L141">        var result = subscriptionManager.updateLinkedEvents(organizationId, subscriptionId, linkedEvents);</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (result.isSuccess()) {</span>
-<span class="nc" id="L143">            return ResponseEntity.ok(toLinkedEvents(result.getData()));</span>
+<span class="fc" id="L138">        accessService.checkEventLinkRequest(principal, subscriptionId.toString(), linkedEvents);</span>
+<span class="fc" id="L139">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L140">        int organizationId = organization.getId();</span>
+<span class="fc" id="L141">        var result = subscriptionManager.updateLinkedEvents(organizationId, subscriptionId, linkedEvents);</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        if (result.isSuccess()) {</span>
+<span class="fc" id="L143">            return ResponseEntity.ok(toLinkedEvents(result.getData()));</span>
         } else {
 <span class="nc bnc" id="L145" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
 <span class="nc" id="L146">                log.warn(&quot;Cannot update linked events {}&quot;, Json.toJson(result.getErrors()));</span>
@@ -151,25 +151,25 @@ public class SubscriptionApiV1Controller {
 
     @DeleteMapping(&quot;/{subscriptionId}/deactivate&quot;)
     public ResponseEntity&lt;Void&gt; deactivate(@PathVariable(&quot;subscriptionId&quot;) UUID descriptorId, Principal principal) {
-<span class="nc" id="L154">        accessService.checkSubscriptionDescriptorOwnership(principal, descriptorId.toString());</span>
-<span class="nc" id="L155">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
-<span class="nc" id="L156">        int organizationId = organization.getId();</span>
-<span class="nc" id="L157">        return SubscriptionApiController.deactivateSubscriptionDescriptor(organizationId, descriptorId, subscriptionManager);</span>
+<span class="fc" id="L154">        accessService.checkSubscriptionDescriptorOwnership(principal, descriptorId.toString());</span>
+<span class="fc" id="L155">        var organization = userManager.findUserOrganizations(principal.getName()).get(0);</span>
+<span class="fc" id="L156">        int organizationId = organization.getId();</span>
+<span class="fc" id="L157">        return SubscriptionApiController.deactivateSubscriptionDescriptor(organizationId, descriptorId, subscriptionManager);</span>
     }
 
     private String fetchImage(String url) {
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if(url != null) {</span>
-<span class="nc" id="L162">            FileDownloadManager.DownloadedFile file = fileDownloadManager.downloadFile(url);</span>
-<span class="nc bnc" id="L163" title="All 2 branches missed.">            return file != null ? fileUploadManager.insertFile(file.toUploadBase64FileModification()) : null;</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if(url != null) {</span>
+<span class="fc" id="L162">            FileDownloadManager.DownloadedFile file = fileDownloadManager.downloadFile(url);</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">            return file != null ? fileUploadManager.insertFile(file.toUploadBase64FileModification()) : null;</span>
         } else {
 <span class="nc" id="L165">            return null;</span>
         }
     }
 
     private static List&lt;LinkedEvent&gt; toLinkedEvents(List&lt;EventSubscriptionLink&gt; links) {
-<span class="nc" id="L170">        return links.stream()</span>
-<span class="nc" id="L171">            .map(l -&gt; new LinkedEvent(l.getEventShortName(), l.getCompatibleCategories()))</span>
-<span class="nc" id="L172">            .collect(toList());</span>
+<span class="fc" id="L170">        return links.stream()</span>
+<span class="fc" id="L171">            .map(l -&gt; new LinkedEvent(l.getEventShortName(), l.getCompatibleCategories()))</span>
+<span class="fc" id="L172">            .collect(toList());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

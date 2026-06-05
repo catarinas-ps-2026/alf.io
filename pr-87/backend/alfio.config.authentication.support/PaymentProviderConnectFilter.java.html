@@ -51,7 +51,7 @@ import static alfio.manager.payment.StripeConnectManager.STRIPE_CONNECT_REDIRECT
 
 public class PaymentProviderConnectFilter extends GenericFilterBean {
 
-<span class="nc" id="L54">    private static final Logger log = LoggerFactory.getLogger(PaymentProviderConnectFilter.class);</span>
+<span class="fc" id="L54">    private static final Logger log = LoggerFactory.getLogger(PaymentProviderConnectFilter.class);</span>
     private static final String CONNECT_ORG = &quot;.connect.org&quot;;
     private static final String CONNECT_STATE_PREFIX = &quot;.connect.state.&quot;;
     public static final String MOLLIE = &quot;mollie&quot;;
@@ -68,18 +68,18 @@ public class PaymentProviderConnectFilter extends GenericFilterBean {
     public PaymentProviderConnectFilter(TemplateManager templateManager,
                                         UserManager userManager,
                                         StripeConnectManager stripeConnectManager,
-<span class="nc" id="L71">                                        MollieConnectManager mollieConnectManager) {</span>
-<span class="nc" id="L72">        this.templateManager = templateManager;</span>
-<span class="nc" id="L73">        this.userManager = userManager;</span>
-<span class="nc" id="L74">        this.stripeConnectManager = stripeConnectManager;</span>
-<span class="nc" id="L75">        this.mollieConnectManager = mollieConnectManager;</span>
-<span class="nc" id="L76">        this.requestMatcher = new AntPathRequestMatcher(&quot;/admin/configuration/payment/{provider}/connect/{orgId}&quot;);</span>
-<span class="nc" id="L77">        this.authorizeRequestMatcher = RequestMatchers.anyOf(</span>
+<span class="fc" id="L71">                                        MollieConnectManager mollieConnectManager) {</span>
+<span class="fc" id="L72">        this.templateManager = templateManager;</span>
+<span class="fc" id="L73">        this.userManager = userManager;</span>
+<span class="fc" id="L74">        this.stripeConnectManager = stripeConnectManager;</span>
+<span class="fc" id="L75">        this.mollieConnectManager = mollieConnectManager;</span>
+<span class="fc" id="L76">        this.requestMatcher = new AntPathRequestMatcher(&quot;/admin/configuration/payment/{provider}/connect/{orgId}&quot;);</span>
+<span class="fc" id="L77">        this.authorizeRequestMatcher = RequestMatchers.anyOf(</span>
             new AntPathRequestMatcher(STRIPE_CONNECT_REDIRECT_PATH),
             new AntPathRequestMatcher(MOLLIE_CONNECT_REDIRECT_PATH)
         );
-<span class="nc" id="L81">        this.flashMapManager = new SessionFlashMapManager();</span>
-<span class="nc" id="L82">    }</span>
+<span class="fc" id="L81">        this.flashMapManager = new SessionFlashMapManager();</span>
+<span class="fc" id="L82">    }</span>
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {

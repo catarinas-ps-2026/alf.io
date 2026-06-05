@@ -104,7 +104,7 @@ public class ScriptingExecutionService {
 <span class="fc" id="L104">    }</span>
 
     public &lt;T&gt; T executeScript(String name, String hash, Supplier&lt;String&gt; scriptFetcher, Map&lt;String, Object&gt; params, Class&lt;T&gt; clazz, ExtensionLogger extensionLogger) {
-<span class="nc" id="L107">        return executeScriptFinally(name, scriptFetcher.get(), params, clazz, extensionLogger);</span>
+<span class="fc" id="L107">        return executeScriptFinally(name, scriptFetcher.get(), params, clazz, extensionLogger);</span>
     }
 
     public void executeScriptAsync(String path,
@@ -113,36 +113,36 @@ public class ScriptingExecutionService {
                                    Supplier&lt;String&gt; scriptFetcher,
                                    Map&lt;String, Object&gt; params,
                                    ExtensionLogger extensionLogger) {
-<span class="nc" id="L116">        Optional.ofNullable(asyncExecutors.get(path, key -&gt; executorSupplier.get()))</span>
-<span class="nc" id="L117">            .ifPresent(it -&gt; it.execute(() -&gt; {</span>
+<span class="fc" id="L116">        Optional.ofNullable(asyncExecutors.get(path, key -&gt; executorSupplier.get()))</span>
+<span class="fc" id="L117">            .ifPresent(it -&gt; it.execute(() -&gt; {</span>
                 try {
-<span class="nc" id="L119">                    executeScript(name, hash, scriptFetcher, params, Object.class, extensionLogger);</span>
-<span class="nc" id="L120">                } catch (AlfioScriptingException | IllegalStateException ex) {</span>
+<span class="fc" id="L119">                    executeScript(name, hash, scriptFetcher, params, Object.class, extensionLogger);</span>
+<span class="fc" id="L120">                } catch (AlfioScriptingException | IllegalStateException ex) {</span>
                     // we got an error while executing the script. We must now re-schedule the script to be executed again
                     // at a later time
-<span class="nc" id="L123">                    var paramsCopy = new HashMap&lt;&gt;(params);</span>
+<span class="fc" id="L123">                    var paramsCopy = new HashMap&lt;&gt;(params);</span>
                     // do not persist extension parameters because they could contain sensitive information
-<span class="nc" id="L125">                    paramsCopy.remove(EXTENSION_CONFIGURATION_PARAMETERS);</span>
-<span class="nc" id="L126">                    Map&lt;String, Object&gt; metadata = Map.of(</span>
+<span class="fc" id="L125">                    paramsCopy.remove(EXTENSION_CONFIGURATION_PARAMETERS);</span>
+<span class="fc" id="L126">                    Map&lt;String, Object&gt; metadata = Map.of(</span>
                         EXTENSION_NAME, name,
                         EXTENSION_PATH, path,
                         EXTENSION_PARAMS, paramsCopy
                     );
-<span class="nc" id="L131">                    boolean scheduled = AdminJobManager.executionScheduler(</span>
+<span class="fc" id="L131">                    boolean scheduled = AdminJobManager.executionScheduler(</span>
                         EXECUTE_EXTENSION,
                         metadata,
-<span class="nc" id="L134">                        ZonedDateTime.now(ClockProvider.clock()).plusSeconds(2L)</span>
-<span class="nc" id="L135">                    ).apply(adminJobQueueRepository);</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">                    if(!scheduled) {</span>
+<span class="fc" id="L134">                        ZonedDateTime.now(ClockProvider.clock()).plusSeconds(2L)</span>
+<span class="fc" id="L135">                    ).apply(adminJobQueueRepository);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">                    if(!scheduled) {</span>
 <span class="nc" id="L137">                        log.warn(&quot;Cannot schedule extension {} for retry&quot;, name);</span>
                         // throw exception only if we can't schedule the extension for later execution
 <span class="nc" id="L139">                        throw ex;</span>
                     } else {
-<span class="nc" id="L141">                        log.warn(&quot;Error while executing extension &quot;+name + &quot;, which has been scheduled for retry&quot;, ex);</span>
+<span class="fc" id="L141">                        log.warn(&quot;Error while executing extension &quot;+name + &quot;, which has been scheduled for retry&quot;, ex);</span>
                     }
-<span class="nc" id="L143">                }</span>
-<span class="nc" id="L144">            }));</span>
-<span class="nc" id="L145">    }</span>
+<span class="fc" id="L143">                }</span>
+<span class="fc" id="L144">            }));</span>
+<span class="fc" id="L145">    }</span>
 
     public &lt;T&gt; T executeScript(String name, String script, Map&lt;String, Object&gt; params, Class&lt;T&gt; clazz,  ExtensionLogger extensionLogger) {
 <span class="fc" id="L148">        return executeScriptFinally(name, script, params, clazz, extensionLogger);</span>
@@ -187,8 +187,8 @@ public class ScriptingExecutionService {
 
 <span class="fc bfc" id="L188" title="All 2 branches covered.">            for (var entry : params.entrySet()) {</span>
 <span class="fc" id="L189">                var value = entry.getValue();</span>
-<span class="pc bpc" id="L190" title="1 of 2 branches missed.">                if(entry.getKey().equals(EXTENSION_CONFIGURATION_PARAMETERS)) {</span>
-<span class="nc" id="L191">                    scope.put(entry.getKey(), scope, convertExtensionParameters(scope, value));</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">                if(entry.getKey().equals(EXTENSION_CONFIGURATION_PARAMETERS)) {</span>
+<span class="fc" id="L191">                    scope.put(entry.getKey(), scope, convertExtensionParameters(scope, value));</span>
                 } else {
 <span class="fc" id="L193">                    scope.put(entry.getKey(), scope, Context.javaToJS(value, scope));</span>
                 }
@@ -196,14 +196,14 @@ public class ScriptingExecutionService {
             Object res;
 <span class="fc" id="L197">            res = cx.evaluateString(scope, script, name, 1, null);</span>
 <span class="fc" id="L198">            extensionLogger.logSuccess(&quot;Script executed successfully.&quot;);</span>
-<span class="pc bpc" id="L199" title="1 of 2 branches missed.">            if (res instanceof NativeJavaObject nativeRes) {</span>
-<span class="nc" id="L200">                return (T) nativeRes.unwrap();</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">            if (res instanceof NativeJavaObject nativeRes) {</span>
+<span class="fc" id="L200">                return (T) nativeRes.unwrap();</span>
 <span class="pc bpc" id="L201" title="1 of 2 branches missed.">            } else if(clazz.isInstance(res)) {</span>
 <span class="nc" id="L202">                return (T) res;</span>
             } else {
 <span class="fc" id="L204">                return null;</span>
             }
-<span class="pc bnc" id="L206" title="All 4 branches missed.">        } catch (EcmaError ex) {</span>
+<span class="pc bpc" id="L206" title="3 of 4 branches missed.">        } catch (EcmaError ex) {</span>
 <span class="fc" id="L207">            log.warn(&quot;Syntax error detected in script &quot; + name, ex);</span>
 <span class="fc" id="L208">            extensionLogger.logError(&quot;Syntax error while executing script: &quot; + ex.getMessage() + &quot;(&quot; + ex.lineNumber() + &quot;:&quot; + ex.columnNumber() + &quot;)&quot;);</span>
 <span class="fc" id="L209">            throw new InvalidScriptException(&quot;Syntax error in script &quot; + name);</span>
@@ -248,9 +248,9 @@ public class ScriptingExecutionService {
     }
 
     private Object convertExtensionParameters(Scriptable context, Object extensionParameters) {
-<span class="nc" id="L251">        return ((Map&lt;?, ?&gt;) extensionParameters).entrySet().stream()</span>
-<span class="nc" id="L252">            .map(entry -&gt; Map.entry(entry.getKey(), ScriptRuntime.toObject(context, entry.getValue())))</span>
-<span class="nc" id="L253">            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
+<span class="fc" id="L251">        return ((Map&lt;?, ?&gt;) extensionParameters).entrySet().stream()</span>
+<span class="pc" id="L252">            .map(entry -&gt; Map.entry(entry.getKey(), ScriptRuntime.toObject(context, entry.getValue())))</span>
+<span class="fc" id="L253">            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

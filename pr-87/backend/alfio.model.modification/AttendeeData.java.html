@@ -72,8 +72,8 @@ public class AttendeeData {
     }
 
     public String getFullName() {
-<span class="pc bpc" id="L75" title="3 of 4 branches missed.">        if (firstName != null &amp;&amp; lastName != null) {</span>
-<span class="nc" id="L76">            return new CustomerName(null, firstName, lastName, true).getFullName();</span>
+<span class="pc bpc" id="L75" title="1 of 4 branches missed.">        if (firstName != null &amp;&amp; lastName != null) {</span>
+<span class="fc" id="L76">            return new CustomerName(null, firstName, lastName, true).getFullName();</span>
         }
 <span class="fc" id="L78">        return null;</span>
     }
@@ -91,7 +91,7 @@ public class AttendeeData {
     }
 
     public boolean hasAdditionalData() {
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        return additional != null;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        return additional != null;</span>
     }
 
     public boolean hasContactData() {
@@ -101,7 +101,7 @@ public class AttendeeData {
     }
 
     public AttendeeResources getResources() {
-<span class="nc" id="L104">        return resources;</span>
+<span class="fc" id="L104">        return resources;</span>
     }
 
     public String getExternalReference() {

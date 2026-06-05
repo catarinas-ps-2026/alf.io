@@ -108,20 +108,20 @@ public class ReservationInfo {
         private final String vatPercentage;
         private final boolean notYetPaid;
 
-<span class="nc" id="L111">        public ReservationInfoOrderSummary(OrderSummary orderSummary) {</span>
-<span class="nc" id="L112">            this.summary = orderSummary.getSummary()</span>
-<span class="nc" id="L113">                .stream()</span>
-<span class="nc" id="L114">                .map(s -&gt; new ReservationInfoOrderSummaryRow(s.getName(), s.getAmount(), s.getPrice(), s.getSubTotal(), s.getType(), s.getTaxPercentage()))</span>
-<span class="nc" id="L115">                .toList();</span>
-<span class="nc" id="L116">            this.totalPrice = orderSummary.getTotalPrice();</span>
-<span class="nc" id="L117">            this.free = orderSummary.getFree();</span>
-<span class="nc" id="L118">            this.displayVat = orderSummary.getDisplayVat();</span>
-<span class="nc" id="L119">            this.priceInCents = orderSummary.getPriceInCents();</span>
-<span class="nc" id="L120">            this.descriptionForPayment = orderSummary.getDescriptionForPayment();</span>
-<span class="nc" id="L121">            this.totalVAT = orderSummary.getTotalVAT();</span>
-<span class="nc" id="L122">            this.vatPercentage = orderSummary.getVatPercentage();</span>
-<span class="nc" id="L123">            this.notYetPaid = orderSummary.getNotYetPaid();</span>
-<span class="nc" id="L124">        }</span>
+<span class="fc" id="L111">        public ReservationInfoOrderSummary(OrderSummary orderSummary) {</span>
+<span class="fc" id="L112">            this.summary = orderSummary.getSummary()</span>
+<span class="fc" id="L113">                .stream()</span>
+<span class="fc" id="L114">                .map(s -&gt; new ReservationInfoOrderSummaryRow(s.getName(), s.getAmount(), s.getPrice(), s.getSubTotal(), s.getType(), s.getTaxPercentage()))</span>
+<span class="fc" id="L115">                .toList();</span>
+<span class="fc" id="L116">            this.totalPrice = orderSummary.getTotalPrice();</span>
+<span class="fc" id="L117">            this.free = orderSummary.getFree();</span>
+<span class="fc" id="L118">            this.displayVat = orderSummary.getDisplayVat();</span>
+<span class="fc" id="L119">            this.priceInCents = orderSummary.getPriceInCents();</span>
+<span class="fc" id="L120">            this.descriptionForPayment = orderSummary.getDescriptionForPayment();</span>
+<span class="fc" id="L121">            this.totalVAT = orderSummary.getTotalVAT();</span>
+<span class="fc" id="L122">            this.vatPercentage = orderSummary.getVatPercentage();</span>
+<span class="fc" id="L123">            this.notYetPaid = orderSummary.getNotYetPaid();</span>
+<span class="fc" id="L124">        }</span>
     }
 
     @AllArgsConstructor

@@ -115,7 +115,7 @@ public class Ticket implements TicketInfoContainer {
     
     @Override
     public boolean getAssigned() {
-<span class="pc bpc" id="L118" title="6 of 8 branches missed.">        return (StringUtils.isNotBlank(fullName) || (StringUtils.isNotBlank(firstName) &amp;&amp; StringUtils.isNotBlank(lastName))) &amp;&amp; StringUtils.isNotBlank(email);</span>
+<span class="pc bpc" id="L118" title="4 of 8 branches missed.">        return (StringUtils.isNotBlank(fullName) || (StringUtils.isNotBlank(firstName) &amp;&amp; StringUtils.isNotBlank(lastName))) &amp;&amp; StringUtils.isNotBlank(email);</span>
     }
     
     public boolean getLockedAssignment() {
@@ -139,12 +139,12 @@ public class Ticket implements TicketInfoContainer {
     }
 
     public boolean hasBeenSold() {
-<span class="nc" id="L142">        return SOLD_STATUSES.contains(status);</span>
+<span class="fc" id="L142">        return SOLD_STATUSES.contains(status);</span>
     }
 
     @Override
     public boolean isCheckedIn() {
-<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        return status == TicketStatus.CHECKED_IN;</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">        return status == TicketStatus.CHECKED_IN;</span>
     }
 
     static String generateHmacTicketInfo(String eventKey, boolean caseInsensitive, String fullName, String email, String ticketsReservationId, String uuid) {
@@ -174,13 +174,13 @@ public class Ticket implements TicketInfoContainer {
     }
 
     public Ticket withVatStatus(PriceContainer.VatStatus newVatStatus) {
-<span class="nc" id="L177">        return new Ticket(</span>
+<span class="fc" id="L177">        return new Ticket(</span>
             id,
             uuid,
             publicUuid,
             creation,
             categoryId,
-<span class="nc" id="L183">            status.name(),</span>
+<span class="fc" id="L183">            status.name(),</span>
             eventId,
             ticketsReservationId,
             fullName,

@@ -57,18 +57,18 @@ public class EventWithCheckInInfo extends EventAndOrganizationId implements Even
                                 @Column(&quot;metadata&quot;) @JSONData AlfioMetadata metadata,
                                 @Column(&quot;locales&quot;) int locales,
                                 @Column(&quot;version&quot;) String version) {
-<span class="nc" id="L60">        super(id, organizationId);</span>
-<span class="nc" id="L61">        this.zoneId = ZoneId.of(timezone);</span>
-<span class="nc" id="L62">        this.format = format;</span>
-<span class="nc" id="L63">        this.shortName = shortName;</span>
-<span class="nc" id="L64">        this.displayName = displayName;</span>
-<span class="nc" id="L65">        this.begin = startTs.withZoneSameInstant(zoneId);</span>
-<span class="nc" id="L66">        this.end = endTs.withZoneSameInstant(zoneId);</span>
-<span class="nc" id="L67">        this.privateKey = privateKey;</span>
-<span class="nc" id="L68">        this.metadata = metadata;</span>
-<span class="nc" id="L69">        this.contentLanguages = ContentLanguage.findAllFor(locales);</span>
-<span class="nc" id="L70">        this.version = version;</span>
-<span class="nc" id="L71">    }</span>
+<span class="fc" id="L60">        super(id, organizationId);</span>
+<span class="fc" id="L61">        this.zoneId = ZoneId.of(timezone);</span>
+<span class="fc" id="L62">        this.format = format;</span>
+<span class="fc" id="L63">        this.shortName = shortName;</span>
+<span class="fc" id="L64">        this.displayName = displayName;</span>
+<span class="fc" id="L65">        this.begin = startTs.withZoneSameInstant(zoneId);</span>
+<span class="fc" id="L66">        this.end = endTs.withZoneSameInstant(zoneId);</span>
+<span class="fc" id="L67">        this.privateKey = privateKey;</span>
+<span class="fc" id="L68">        this.metadata = metadata;</span>
+<span class="fc" id="L69">        this.contentLanguages = ContentLanguage.findAllFor(locales);</span>
+<span class="fc" id="L70">        this.version = version;</span>
+<span class="fc" id="L71">    }</span>
 
     public boolean isOnline() {
 <span class="nc bnc" id="L74" title="All 2 branches missed.">        return format == Event.EventFormat.ONLINE;</span>

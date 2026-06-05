@@ -39,15 +39,15 @@ public interface PaymentProvider {
     boolean isActive(PaymentContext paymentContext);
 
     default PaymentResult getToken(PaymentSpecification spec) {
-<span class="nc" id="L42">        return PaymentResult.initialized(UUID.randomUUID().toString());</span>
+<span class="fc" id="L42">        return PaymentResult.initialized(UUID.randomUUID().toString());</span>
     }
 
     PaymentResult doPayment(PaymentSpecification spec);
 
     default PaymentResult getTokenAndPay(PaymentSpecification spec) {
-<span class="nc" id="L48">        PaymentResult tokenResult = getToken(spec);</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        if(tokenResult.isInitialized()) {</span>
-<span class="nc" id="L50">            return doPayment(spec);</span>
+<span class="fc" id="L48">        PaymentResult tokenResult = getToken(spec);</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if(tokenResult.isInitialized()) {</span>
+<span class="fc" id="L50">            return doPayment(spec);</span>
         }
 <span class="nc" id="L52">        return tokenResult;</span>
     }

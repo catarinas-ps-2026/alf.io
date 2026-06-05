@@ -51,15 +51,15 @@ import static alfio.util.Wrappers.optionally;
 public class AttendeeApiController {
 
     public static final String ALFIO_OPERATOR_HEADER = &quot;Alfio-Operator&quot;;
-<span class="nc" id="L54">    private static final Logger log = LoggerFactory.getLogger(AttendeeApiController.class);</span>
+<span class="fc" id="L54">    private static final Logger log = LoggerFactory.getLogger(AttendeeApiController.class);</span>
     private final AttendeeManager attendeeManager;
     private final AccessService accessService;
 
     @Autowired
-<span class="nc" id="L59">    public AttendeeApiController(AttendeeManager attendeeManager, AccessService accessService) {</span>
-<span class="nc" id="L60">        this.attendeeManager = attendeeManager;</span>
-<span class="nc" id="L61">        this.accessService = accessService;</span>
-<span class="nc" id="L62">    }</span>
+<span class="fc" id="L59">    public AttendeeApiController(AttendeeManager attendeeManager, AccessService accessService) {</span>
+<span class="fc" id="L60">        this.attendeeManager = attendeeManager;</span>
+<span class="fc" id="L61">        this.accessService = accessService;</span>
+<span class="fc" id="L62">    }</span>
 
     @ExceptionHandler({DataIntegrityViolationException.class, IllegalArgumentException.class})
     public ResponseEntity&lt;String&gt; handleDataIntegrityException(Exception e) {
@@ -78,7 +78,7 @@ public class AttendeeApiController {
     public ResponseEntity&lt;TicketAndCheckInResult&gt; scanBadge(@RequestBody SponsorScanRequest request,
                                                             Principal principal,
                                                             @RequestHeader(name = ALFIO_OPERATOR_HEADER, required = false) String operator) {
-<span class="nc" id="L81">        return ResponseEntity.ok(attendeeManager.registerSponsorScan(request.eventName, request.ticketIdentifier, request.notes, request.leadStatus, principal.getName(), operator, request.timestamp));</span>
+<span class="fc" id="L81">        return ResponseEntity.ok(attendeeManager.registerSponsorScan(request.eventName, request.ticketIdentifier, request.notes, request.leadStatus, principal.getName(), operator, request.timestamp));</span>
     }
 
     @PostMapping(&quot;/sponsor-scan/bulk&quot;)
@@ -94,12 +94,12 @@ public class AttendeeApiController {
     @GetMapping(&quot;/{eventKey}/sponsor-scan/mine&quot;)
     public ResponseEntity&lt;List&lt;SponsorAttendeeData&gt;&gt; getScannedBadges(@PathVariable(&quot;eventKey&quot;) String eventShortName, @RequestParam(value = &quot;from&quot;, required = false) String from, Principal principal) {
 
-<span class="nc" id="L97">        ZonedDateTime start = Optional.ofNullable(StringUtils.trimToNull(from))</span>
-<span class="nc" id="L98">            .map(EventUtil.JSON_DATETIME_FORMATTER::parse)</span>
-<span class="nc" id="L99">            .flatMap(d -&gt; Wrappers.safeSupplier(() -&gt; ZonedDateTime.of(LocalDateTime.from(d), ZoneOffset.UTC)))</span>
-<span class="nc" id="L100">            .orElse(SponsorScanRepository.DEFAULT_TIMESTAMP);</span>
-<span class="nc" id="L101">        accessService.canAccessEvent(principal, eventShortName);</span>
-<span class="nc" id="L102">        return attendeeManager.retrieveScannedAttendees(eventShortName, principal.getName(), start).map(ResponseEntity::ok).orElse(notFound());</span>
+<span class="fc" id="L97">        ZonedDateTime start = Optional.ofNullable(StringUtils.trimToNull(from))</span>
+<span class="fc" id="L98">            .map(EventUtil.JSON_DATETIME_FORMATTER::parse)</span>
+<span class="fc" id="L99">            .flatMap(d -&gt; Wrappers.safeSupplier(() -&gt; ZonedDateTime.of(LocalDateTime.from(d), ZoneOffset.UTC)))</span>
+<span class="fc" id="L100">            .orElse(SponsorScanRepository.DEFAULT_TIMESTAMP);</span>
+<span class="fc" id="L101">        accessService.canAccessEvent(principal, eventShortName);</span>
+<span class="fc" id="L102">        return attendeeManager.retrieveScannedAttendees(eventShortName, principal.getName(), start).map(ResponseEntity::ok).orElse(notFound());</span>
     }
 
     /**
@@ -131,7 +131,7 @@ public class AttendeeApiController {
     }
 
     private static &lt;T&gt; ResponseEntity&lt;T&gt; notFound() {
-<span class="nc" id="L134">        return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
+<span class="fc" id="L134">        return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
     }
 
     @Getter
@@ -147,15 +147,15 @@ public class AttendeeApiController {
                                   @JsonProperty(&quot;ticketIdentifier&quot;) String ticketIdentifier,
                                   @JsonProperty(&quot;notes&quot;) String notes,
                                   @JsonProperty(&quot;leadStatus&quot;) String leadStatus,
-<span class="nc" id="L150">                                  @JsonProperty(&quot;timestamp&quot;) Long timestamp) {</span>
-<span class="nc" id="L151">            this.eventName = eventName;</span>
-<span class="nc" id="L152">            this.ticketIdentifier = ticketIdentifier;</span>
-<span class="nc" id="L153">            this.notes = notes;</span>
-<span class="nc" id="L154">            this.leadStatus = Optional.ofNullable(leadStatus)</span>
-<span class="nc" id="L155">                .flatMap(l -&gt; optionally(() -&gt; SponsorScan.LeadStatus.valueOf(l)))</span>
-<span class="nc" id="L156">                .orElse(SponsorScan.LeadStatus.WARM);</span>
-<span class="nc" id="L157">            this.timestamp = timestamp;</span>
-<span class="nc" id="L158">        }</span>
+<span class="fc" id="L150">                                  @JsonProperty(&quot;timestamp&quot;) Long timestamp) {</span>
+<span class="fc" id="L151">            this.eventName = eventName;</span>
+<span class="fc" id="L152">            this.ticketIdentifier = ticketIdentifier;</span>
+<span class="fc" id="L153">            this.notes = notes;</span>
+<span class="fc" id="L154">            this.leadStatus = Optional.ofNullable(leadStatus)</span>
+<span class="fc" id="L155">                .flatMap(l -&gt; optionally(() -&gt; SponsorScan.LeadStatus.valueOf(l)))</span>
+<span class="fc" id="L156">                .orElse(SponsorScan.LeadStatus.WARM);</span>
+<span class="fc" id="L157">            this.timestamp = timestamp;</span>
+<span class="fc" id="L158">        }</span>
     }
 
 }

@@ -41,10 +41,10 @@ import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM
 
 class RoleAndOrganizationsTransactionPreparer {
 
-<span class="nc" id="L44">    private static final Logger log = LoggerFactory.getLogger(RoleAndOrganizationsTransactionPreparer.class);</span>
+<span class="fc" id="L44">    private static final Logger log = LoggerFactory.getLogger(RoleAndOrganizationsTransactionPreparer.class);</span>
     private RoleAndOrganizationsTransactionPreparer() {}
 
-<span class="nc" id="L47">    private static final OrRequestMatcher IS_PUBLIC_URLS = new OrRequestMatcher(</span>
+<span class="fc" id="L47">    private static final OrRequestMatcher IS_PUBLIC_URLS = new OrRequestMatcher(</span>
         new AntPathRequestMatcher(&quot;/resources/**&quot;),
         new AntPathRequestMatcher(&quot;/webjars/**&quot;),
         new AntPathRequestMatcher(&quot;/event/**&quot;),
@@ -65,7 +65,7 @@ class RoleAndOrganizationsTransactionPreparer {
     }
 
     private static boolean isInAHttpRequest() {
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        return RequestContextHolder.getRequestAttributes() != null;</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        return RequestContextHolder.getRequestAttributes() != null;</span>
     }
 
     private static boolean isLoggedUser() {
@@ -103,8 +103,8 @@ class RoleAndOrganizationsTransactionPreparer {
         &quot;&quot;&quot;;
 
     public static void prepareTransactionalConnection(Connection connection) throws SQLException {
-<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (!isInAHttpRequest()) {</span>
-<span class="nc" id="L107">            return;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (!isInAHttpRequest()) {</span>
+<span class="fc" id="L107">            return;</span>
         }
 <span class="nc bnc" id="L109" title="All 8 branches missed.">        boolean mustCheck = !isCurrentlyInAPublicUrlRequest() &amp;&amp; isLoggedUser() &amp;&amp; !isPublic() &amp;&amp; !isAdmin();</span>
 <span class="nc bnc" id="L110" title="All 2 branches missed.">        if (!mustCheck) {</span>

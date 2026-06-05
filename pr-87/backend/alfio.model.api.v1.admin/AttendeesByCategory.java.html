@@ -50,15 +50,15 @@ public class AttendeesByCategory implements ReservationRequest {
 
     @Override
     public Integer getQuantity() {
-<span class="nc" id="L53">        return quantity;</span>
+<span class="fc" id="L53">        return quantity;</span>
     }
 
     @Override
     public List&lt;AttendeeData&gt; getAttendees() {
-<span class="pc bpc" id="L58" title="2 of 4 branches missed.">        if (attendees != null &amp;&amp; !attendees.isEmpty()) {</span>
+<span class="fc bfc" id="L58" title="All 4 branches covered.">        if (attendees != null &amp;&amp; !attendees.isEmpty()) {</span>
 <span class="fc" id="L59">            return attendees;</span>
         }
-<span class="nc" id="L61">        return ReservationRequest.metadataToAttendeesList(getQuantity(), metadata);</span>
+<span class="fc" id="L61">        return ReservationRequest.metadataToAttendeesList(getQuantity(), metadata);</span>
     }
 
     @Override

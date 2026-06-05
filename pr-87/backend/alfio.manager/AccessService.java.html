@@ -510,7 +510,7 @@ public class AccessService {
         }
 <span class="fc" id="L511">        linkRequests.forEach(request -&gt; {</span>
 <span class="fc" id="L512">            var categoriesToLink = request.getCategories();</span>
-<span class="pc bpc" id="L513" title="1 of 2 branches missed.">            if (!categoriesToLink.isEmpty()) {</span>
+<span class="fc bfc" id="L513" title="All 2 branches covered.">            if (!categoriesToLink.isEmpty()) {</span>
 <span class="fc" id="L514">                int count = ticketCategoryRepository.countCategoryForEvent(Set.copyOf(request.getCategories()), request.getSlug());</span>
 <span class="fc bfc" id="L515" title="All 2 branches covered.">                if (categoriesToLink.size() != count) {</span>
 <span class="fc" id="L516">                    throw new AccessDeniedException();</span>
@@ -541,7 +541,7 @@ public class AccessService {
 <span class="fc" id="L541">        var eventAndOrgId = checkEventOwnership(principal, eventName);</span>
 <span class="fc bfc" id="L542" title="All 2 branches covered.">        if (!waitingQueueRepository.exists(subscriberId, eventAndOrgId.getId())) {</span>
 <span class="pc bpc" id="L543" title="1 of 2 branches missed.">            if (log.isWarnEnabled()) {</span>
-<span class="nc" id="L544">                log.warn(&quot;subscriberId {} does not exists in event {}&quot;, subscriberId, removeTabsAndNewlines(eventName));</span>
+<span class="fc" id="L544">                log.warn(&quot;subscriberId {} does not exists in event {}&quot;, subscriberId, removeTabsAndNewlines(eventName));</span>
             }
 <span class="fc" id="L546">            throw new AccessDeniedException();</span>
         }
@@ -570,7 +570,7 @@ public class AccessService {
         }
 <span class="fc bfc" id="L571" title="All 2 branches covered.">        if (additionalFieldIds.size() != purchaseContextFieldRepository.countMatchingAdditionalFieldsForPurchaseContext(eventId, subscriptionUuid, additionalFieldIds)) {</span>
 <span class="pc bpc" id="L572" title="1 of 2 branches missed.">            if (log.isWarnEnabled()) {</span>
-<span class="nc" id="L573">                log.warn(&quot;Some additional field ids {} are not inside purchaseContext {}&quot;, additionalFieldIds, removeTabsAndNewlines(publicIdentifier));</span>
+<span class="fc" id="L573">                log.warn(&quot;Some additional field ids {} are not inside purchaseContext {}&quot;, additionalFieldIds, removeTabsAndNewlines(publicIdentifier));</span>
             }
 <span class="fc" id="L575">            throw new AccessDeniedException();</span>
         }
@@ -598,7 +598,7 @@ public class AccessService {
         }
 <span class="fc bfc" id="L599" title="All 2 branches covered.">        if (reservationIds.size() != countExisting) {</span>
 <span class="pc bpc" id="L600" title="1 of 2 branches missed.">            if (log.isWarnEnabled()) {</span>
-<span class="nc" id="L601">                log.warn(&quot;Some reservation ids {} are not in the event {}&quot;, reservationIds.stream().map(MiscUtils::removeTabsAndNewlines).collect(Collectors.toSet()), removeTabsAndNewlines(eventName));</span>
+<span class="fc" id="L601">                log.warn(&quot;Some reservation ids {} are not in the event {}&quot;, reservationIds.stream().map(MiscUtils::removeTabsAndNewlines).collect(Collectors.toSet()), removeTabsAndNewlines(eventName));</span>
             }
 <span class="fc" id="L603">            throw new AccessDeniedException();</span>
         }
@@ -608,7 +608,7 @@ public class AccessService {
 <span class="fc" id="L608">        checkEventAndReservationOwnership(principal, eventName, Set.of(reservationId));</span>
 <span class="fc bfc" id="L609" title="All 2 branches covered.">        if (!reservationRepository.hasReservationWithTransactionId(reservationId, transactionId)) {</span>
 <span class="pc bpc" id="L610" title="1 of 2 branches missed.">            if (log.isWarnEnabled()) {</span>
-<span class="nc" id="L611">                log.warn(&quot;Reservation id {} does not have transaction id {}&quot;, removeTabsAndNewlines(reservationId), transactionId);</span>
+<span class="fc" id="L611">                log.warn(&quot;Reservation id {} does not have transaction id {}&quot;, removeTabsAndNewlines(reservationId), transactionId);</span>
             }
 <span class="fc" id="L613">            throw new AccessDeniedException();</span>
         }
@@ -626,7 +626,7 @@ public class AccessService {
 <span class="fc" id="L626">        checkEventMembership(principal, eventId, roles);</span>
 <span class="fc bfc" id="L627" title="All 2 branches covered.">        if (!ticketRepository.isTicketInEvent(eventId, ticketIdentifier)) {</span>
 <span class="pc bpc" id="L628" title="1 of 2 branches missed.">            if (log.isWarnEnabled()) {</span>
-<span class="nc" id="L629">                log.warn(&quot;ticket {} is not in eventId {}&quot;, removeTabsAndNewlines(ticketIdentifier), eventId);</span>
+<span class="fc" id="L629">                log.warn(&quot;ticket {} is not in eventId {}&quot;, removeTabsAndNewlines(ticketIdentifier), eventId);</span>
             }
 <span class="fc" id="L631">            throw new AccessDeniedException();</span>
         }
@@ -636,7 +636,7 @@ public class AccessService {
 <span class="fc" id="L636">        var eventAndOrgId = checkEventMembership(principal, eventName, roles);</span>
 <span class="fc bfc" id="L637" title="All 2 branches covered.">        if (!ticketRepository.isTicketInEvent(eventAndOrgId.getId(), ticketIdentifier)) {</span>
 <span class="pc bpc" id="L638" title="1 of 2 branches missed.">            if (log.isWarnEnabled()) {</span>
-<span class="nc" id="L639">                log.warn(&quot;ticket {} is not in eventId {}&quot;, removeTabsAndNewlines(ticketIdentifier), eventAndOrgId.getId());</span>
+<span class="fc" id="L639">                log.warn(&quot;ticket {} is not in eventId {}&quot;, removeTabsAndNewlines(ticketIdentifier), eventAndOrgId.getId());</span>
             }
 <span class="fc" id="L641">            throw new AccessDeniedException();</span>
         }

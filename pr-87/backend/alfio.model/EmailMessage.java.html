@@ -34,8 +34,8 @@ import java.util.UUID;
 @Getter
 public class EmailMessage implements Comparable&lt;EmailMessage&gt; {
 
-<span class="nc" id="L37">    public enum Status {</span>
-<span class="nc" id="L38">        WAITING, RETRY, IN_PROCESS, SENT, ERROR</span>
+<span class="fc" id="L37">    public enum Status {</span>
+<span class="fc" id="L38">        WAITING, RETRY, IN_PROCESS, SENT, ERROR</span>
     }
     
     private final int id;
@@ -68,31 +68,31 @@ public class EmailMessage implements Comparable&lt;EmailMessage&gt; {
                         @Column(&quot;sent_ts&quot;) ZonedDateTime sentTimestamp,
                         @Column(&quot;attempts&quot;) int attempts,
                         @Column(&quot;email_cc&quot;) String emailCC,
-<span class="nc" id="L71">                        @Column(&quot;organization_id_fk&quot;) int organizationId) {</span>
-<span class="nc" id="L72">        this.id = id;</span>
-<span class="nc" id="L73">        this.eventId = eventId;</span>
-<span class="nc" id="L74">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
-<span class="nc" id="L75">        this.requestTimestamp = requestTimestamp;</span>
-<span class="nc" id="L76">        this.sentTimestamp = sentTimestamp;</span>
-<span class="nc" id="L77">        this.status = Status.valueOf(status);</span>
-<span class="nc" id="L78">        this.recipient = recipient;</span>
-<span class="nc" id="L79">        this.subject = subject;</span>
-<span class="nc" id="L80">        this.message = message;</span>
-<span class="nc" id="L81">        this.htmlMessage = htmlMessage;</span>
-<span class="nc" id="L82">        this.attachments = attachments;</span>
-<span class="nc" id="L83">        this.checksum = checksum;</span>
-<span class="nc" id="L84">        this.attempts = attempts;</span>
-<span class="nc" id="L85">        this.organizationId = organizationId;</span>
+<span class="fc" id="L71">                        @Column(&quot;organization_id_fk&quot;) int organizationId) {</span>
+<span class="fc" id="L72">        this.id = id;</span>
+<span class="fc" id="L73">        this.eventId = eventId;</span>
+<span class="fc" id="L74">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
+<span class="fc" id="L75">        this.requestTimestamp = requestTimestamp;</span>
+<span class="fc" id="L76">        this.sentTimestamp = sentTimestamp;</span>
+<span class="fc" id="L77">        this.status = Status.valueOf(status);</span>
+<span class="fc" id="L78">        this.recipient = recipient;</span>
+<span class="fc" id="L79">        this.subject = subject;</span>
+<span class="fc" id="L80">        this.message = message;</span>
+<span class="fc" id="L81">        this.htmlMessage = htmlMessage;</span>
+<span class="fc" id="L82">        this.attachments = attachments;</span>
+<span class="fc" id="L83">        this.checksum = checksum;</span>
+<span class="fc" id="L84">        this.attempts = attempts;</span>
+<span class="fc" id="L85">        this.organizationId = organizationId;</span>
 
-<span class="nc bnc" id="L87" title="All 2 branches missed.">        if(StringUtils.isNotBlank(emailCC)) {</span>
-<span class="nc" id="L88">            this.cc = Json.GSON.fromJson(emailCC, new TypeToken&lt;List&lt;String&gt;&gt;(){}.getType());</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if(StringUtils.isNotBlank(emailCC)) {</span>
+<span class="fc" id="L88">            this.cc = Json.GSON.fromJson(emailCC, new TypeToken&lt;List&lt;String&gt;&gt;(){}.getType());</span>
         } else {
-<span class="nc" id="L90">            this.cc = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L90">            this.cc = new ArrayList&lt;&gt;();</span>
         }
-<span class="nc" id="L92">    }</span>
+<span class="fc" id="L92">    }</span>
 
     public PurchaseContextType getPurchaseContextType() {
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        return eventId != null ? PurchaseContextType.event : PurchaseContextType.subscription;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        return eventId != null ? PurchaseContextType.event : PurchaseContextType.subscription;</span>
     }
 
     @Override

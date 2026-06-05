@@ -30,22 +30,22 @@ public class SubscriptionMetadata {
 
     @JsonCreator
     public SubscriptionMetadata(@JsonProperty(&quot;properties&quot;) Map&lt;String, String&gt; properties,
-<span class="nc" id="L33">                                @JsonProperty(&quot;configuration&quot;) SubscriptionConfiguration configuration) {</span>
-<span class="nc" id="L34">        this.properties = Objects.requireNonNullElse(properties, Map.of());</span>
-<span class="nc" id="L35">        this.configuration = Objects.requireNonNullElseGet(configuration, SubscriptionConfiguration::defaultConfiguration);</span>
-<span class="nc" id="L36">    }</span>
+<span class="fc" id="L33">                                @JsonProperty(&quot;configuration&quot;) SubscriptionConfiguration configuration) {</span>
+<span class="fc" id="L34">        this.properties = Objects.requireNonNullElse(properties, Map.of());</span>
+<span class="fc" id="L35">        this.configuration = Objects.requireNonNullElseGet(configuration, SubscriptionConfiguration::defaultConfiguration);</span>
+<span class="fc" id="L36">    }</span>
 
 
     public Map&lt;String, String&gt; getProperties() {
-<span class="nc" id="L40">        return properties;</span>
+<span class="fc" id="L40">        return properties;</span>
     }
 
     public SubscriptionConfiguration getConfiguration() {
-<span class="nc" id="L44">        return configuration;</span>
+<span class="fc" id="L44">        return configuration;</span>
     }
 
     public static SubscriptionMetadata empty() {
-<span class="nc" id="L48">        return new SubscriptionMetadata(null, null);</span>
+<span class="fc" id="L48">        return new SubscriptionMetadata(null, null);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

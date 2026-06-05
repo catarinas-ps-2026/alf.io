@@ -57,18 +57,18 @@ import static java.util.Objects.requireNonNullElse;
 @RequestMapping(&quot;/admin/api&quot;)
 public class AdditionalServiceApiController {
 
-<span class="nc" id="L60">    private static final Logger log = LoggerFactory.getLogger(AdditionalServiceApiController.class);</span>
+<span class="fc" id="L60">    private static final Logger log = LoggerFactory.getLogger(AdditionalServiceApiController.class);</span>
     private final EventManager eventManager;
     private final EventRepository eventRepository;
     private final AdditionalServiceManager additionalServiceManager;
     private final AccessService accessService;
 
-<span class="nc" id="L66">    public AdditionalServiceApiController(EventManager eventManager, EventRepository eventRepository, AdditionalServiceManager additionalServiceManager, AccessService accessService) {</span>
-<span class="nc" id="L67">        this.eventManager = eventManager;</span>
-<span class="nc" id="L68">        this.eventRepository = eventRepository;</span>
-<span class="nc" id="L69">        this.additionalServiceManager = additionalServiceManager;</span>
-<span class="nc" id="L70">        this.accessService = accessService;</span>
-<span class="nc" id="L71">    }</span>
+<span class="fc" id="L66">    public AdditionalServiceApiController(EventManager eventManager, EventRepository eventRepository, AdditionalServiceManager additionalServiceManager, AccessService accessService) {</span>
+<span class="fc" id="L67">        this.eventManager = eventManager;</span>
+<span class="fc" id="L68">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L69">        this.additionalServiceManager = additionalServiceManager;</span>
+<span class="fc" id="L70">        this.accessService = accessService;</span>
+<span class="fc" id="L71">    }</span>
 
 
     @ExceptionHandler({IllegalArgumentException.class})
@@ -145,12 +145,12 @@ public class AdditionalServiceApiController {
     @PostMapping(value = &quot;/event/{eventId}/additional-services&quot;)
     @Transactional
     public ResponseEntity&lt;EventModification.AdditionalService&gt; insert(@PathVariable int eventId, @RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult, Principal principal) {
-<span class="nc" id="L148">        accessService.checkEventOwnership(principal, eventId);</span>
-<span class="nc" id="L149">        ValidationResult validationResult = Validator.validateAdditionalService(additionalService, bindingResult);</span>
-<span class="nc" id="L150">        Validate.isTrue(validationResult.isSuccess(), &quot;validation failed&quot;);</span>
-<span class="nc" id="L151">        return eventRepository.findOptionalById(eventId)</span>
-<span class="nc" id="L152">            .map(event -&gt; ResponseEntity.ok(additionalServiceManager.insertAdditionalService(event, additionalService)))</span>
-<span class="nc" id="L153">            .orElseThrow(IllegalArgumentException::new);</span>
+<span class="fc" id="L148">        accessService.checkEventOwnership(principal, eventId);</span>
+<span class="fc" id="L149">        ValidationResult validationResult = Validator.validateAdditionalService(additionalService, bindingResult);</span>
+<span class="fc" id="L150">        Validate.isTrue(validationResult.isSuccess(), &quot;validation failed&quot;);</span>
+<span class="fc" id="L151">        return eventRepository.findOptionalById(eventId)</span>
+<span class="fc" id="L152">            .map(event -&gt; ResponseEntity.ok(additionalServiceManager.insertAdditionalService(event, additionalService)))</span>
+<span class="fc" id="L153">            .orElseThrow(IllegalArgumentException::new);</span>
     }
 
     @DeleteMapping(&quot;/event/{eventId}/additional-services/{additionalServiceId}&quot;)

@@ -33,26 +33,26 @@ public class AttendeeBulkImportApiController {
     private final AdminReservationRequestManager requestManager;
     private final AccessService accessService;
 
-<span class="nc" id="L36">    public AttendeeBulkImportApiController(AdminReservationRequestManager requestManager, AccessService accessService) {</span>
-<span class="nc" id="L37">        this.requestManager = requestManager;</span>
-<span class="nc" id="L38">        this.accessService = accessService;</span>
-<span class="nc" id="L39">    }</span>
+<span class="fc" id="L36">    public AttendeeBulkImportApiController(AdminReservationRequestManager requestManager, AccessService accessService) {</span>
+<span class="fc" id="L37">        this.requestManager = requestManager;</span>
+<span class="fc" id="L38">        this.accessService = accessService;</span>
+<span class="fc" id="L39">    }</span>
 
     @PostMapping(&quot;&quot;)
     public Result&lt;String&gt; createReservations(@PathVariable String eventName,
                                              @RequestBody AdminReservationModification body,
                                              @RequestParam(name=&quot;oneReservationPerAttendee&quot;, defaultValue = &quot;false&quot;, required = false) boolean oneReservationPerAttendee,
                                              Principal principal) {
-<span class="nc" id="L46">        accessService.checkEventOwnership(principal, eventName);</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">        return requestManager.scheduleReservations(eventName, body, !oneReservationPerAttendee, principal.getName());</span>
+<span class="fc" id="L46">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        return requestManager.scheduleReservations(eventName, body, !oneReservationPerAttendee, principal.getName());</span>
     }
 
     @GetMapping(&quot;/{requestId}/status&quot;)
     public Result&lt;AdminReservationRequestStats&gt; getRequestsStatus(@PathVariable String eventName,
                                                                   @PathVariable String requestId,
                                                                   Principal principal) {
-<span class="nc" id="L54">        accessService.checkEventOwnership(principal, eventName);</span>
-<span class="nc" id="L55">        return requestManager.getRequestStatus(requestId, eventName, principal.getName());</span>
+<span class="fc" id="L54">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L55">        return requestManager.getRequestStatus(requestId, eventName, principal.getName());</span>
     }
 
 }

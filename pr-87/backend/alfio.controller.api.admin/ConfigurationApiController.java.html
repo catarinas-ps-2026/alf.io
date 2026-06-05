@@ -340,18 +340,18 @@ public class ConfigurationApiController {
         @RequestBody UserDefinedOfflinePaymentMethod paymentMethod,
         Principal principal
     ) throws CustomOfflinePaymentMethodAlreadyExistsException {
-<span class="nc" id="L343">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="fc" id="L343">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
 
         try {
-<span class="nc" id="L346">            customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(organizationId, paymentMethod);</span>
-<span class="nc" id="L347">        } catch(CustomOfflinePaymentMethodAlreadyExistsException e) {</span>
-<span class="nc" id="L348">            throw new CustomOfflinePaymentMethodAlreadyExistsException(</span>
+<span class="fc" id="L346">            customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(organizationId, paymentMethod);</span>
+<span class="fc" id="L347">        } catch(CustomOfflinePaymentMethodAlreadyExistsException e) {</span>
+<span class="fc" id="L348">            throw new CustomOfflinePaymentMethodAlreadyExistsException(</span>
                 &quot;A payment method with the passed ID already exists&quot;,
                 e
             );
-<span class="nc" id="L352">        }</span>
+<span class="fc" id="L352">        }</span>
 
-<span class="nc" id="L354">        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
+<span class="fc" id="L354">        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
     }
 
     @GetMapping(&quot;/organizations/{organizationId}/payment-method&quot;)
@@ -360,18 +360,18 @@ public class ConfigurationApiController {
         @RequestParam(required = false, defaultValue = &quot;false&quot;) boolean includeDeleted,
         Principal principal
     ) {
-<span class="nc" id="L363">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="fc" id="L363">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
 
         List&lt;UserDefinedOfflinePaymentMethod&gt; paymentMethods;
-<span class="nc bnc" id="L366" title="All 2 branches missed.">        if(includeDeleted) {</span>
-<span class="nc" id="L367">            paymentMethods = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodsIncludingDeleted(</span>
+<span class="fc bfc" id="L366" title="All 2 branches covered.">        if(includeDeleted) {</span>
+<span class="fc" id="L367">            paymentMethods = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodsIncludingDeleted(</span>
                 organizationId
             );
         } else {
-<span class="nc" id="L371">            paymentMethods = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethods(organizationId);</span>
+<span class="fc" id="L371">            paymentMethods = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethods(organizationId);</span>
         }
 
-<span class="nc" id="L374">        return ResponseEntity.ok(paymentMethods);</span>
+<span class="fc" id="L374">        return ResponseEntity.ok(paymentMethods);</span>
     }
 
     @PutMapping(&quot;/organizations/{organizationId}/payment-method/{paymentMethodId}&quot;)
@@ -381,17 +381,17 @@ public class ConfigurationApiController {
         @RequestBody UserDefinedOfflinePaymentMethod paymentMethod,
         Principal principal
     ) throws CustomOfflinePaymentMethodDoesNotExistException {
-<span class="nc" id="L384">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="fc" id="L384">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
 
         try {
-<span class="nc" id="L387">            customOfflineConfigurationManager.updateOrganizationCustomOfflinePaymentMethod(organizationId, paymentMethod);</span>
-<span class="nc" id="L388">        } catch(CustomOfflinePaymentMethodDoesNotExistException e) {</span>
-<span class="nc" id="L389">            throw new CustomOfflinePaymentMethodDoesNotExistException(</span>
+<span class="fc" id="L387">            customOfflineConfigurationManager.updateOrganizationCustomOfflinePaymentMethod(organizationId, paymentMethod);</span>
+<span class="fc" id="L388">        } catch(CustomOfflinePaymentMethodDoesNotExistException e) {</span>
+<span class="fc" id="L389">            throw new CustomOfflinePaymentMethodDoesNotExistException(</span>
                 &quot;Payment method with passed ID does not exist.&quot;, e
             );
-<span class="nc" id="L392">        }</span>
+<span class="fc" id="L392">        }</span>
 
-<span class="nc" id="L394">        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
+<span class="fc" id="L394">        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
     }
 
     @DeleteMapping(&quot;/organizations/{organizationId}/payment-method/{paymentMethodId}&quot;)
@@ -400,31 +400,31 @@ public class ConfigurationApiController {
         @PathVariable String paymentMethodId,
         Principal principal
     ) throws CustomOfflinePaymentMethodDoesNotExistException, CustomOfflinePaymentMethodIllegalDeletionStateException {
-<span class="nc" id="L403">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
+<span class="fc" id="L403">        accessService.checkOrganizationOwnership(principal, organizationId);</span>
 
         UserDefinedOfflinePaymentMethod existingPaymentMethod;
         try {
-<span class="nc" id="L407">            existingPaymentMethod = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodById(</span>
+<span class="fc" id="L407">            existingPaymentMethod = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodById(</span>
                 organizationId,
                 paymentMethodId
             );
-<span class="nc" id="L411">        } catch (CustomOfflinePaymentMethodDoesNotExistException e) {</span>
-<span class="nc" id="L412">            throw new CustomOfflinePaymentMethodDoesNotExistException(</span>
+<span class="fc" id="L411">        } catch (CustomOfflinePaymentMethodDoesNotExistException e) {</span>
+<span class="fc" id="L412">            throw new CustomOfflinePaymentMethodDoesNotExistException(</span>
                 &quot;Payment method with passed ID does not exist.&quot;, e
             );
-<span class="nc" id="L415">        }</span>
+<span class="fc" id="L415">        }</span>
 
-<span class="nc" id="L417">        var isPaymentMethodActivelyUsed = customOfflineConfigurationManager</span>
-<span class="nc" id="L418">            .isPaymentMethodCurrentlyUsedInActiveEvent(organizationId, existingPaymentMethod);</span>
+<span class="fc" id="L417">        var isPaymentMethodActivelyUsed = customOfflineConfigurationManager</span>
+<span class="fc" id="L418">            .isPaymentMethodCurrentlyUsedInActiveEvent(organizationId, existingPaymentMethod);</span>
 
-<span class="nc bnc" id="L420" title="All 2 branches missed.">        if(isPaymentMethodActivelyUsed) {</span>
-<span class="nc" id="L421">            throw new CustomOfflinePaymentMethodIllegalDeletionStateException(</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">        if(isPaymentMethodActivelyUsed) {</span>
+<span class="fc" id="L421">            throw new CustomOfflinePaymentMethodIllegalDeletionStateException(</span>
                 &quot;You cannot delete a payment method which is currently in use by an active event.&quot;
             );
         }
 
         try {
-<span class="nc" id="L427">            customOfflineConfigurationManager.deleteOrganizationCustomOfflinePaymentMethod(</span>
+<span class="fc" id="L427">            customOfflineConfigurationManager.deleteOrganizationCustomOfflinePaymentMethod(</span>
                 organizationId,
                 existingPaymentMethod
             );
@@ -432,9 +432,9 @@ public class ConfigurationApiController {
 <span class="nc" id="L432">            throw new CustomOfflinePaymentMethodDoesNotExistException(</span>
                 &quot;Payment method with passed ID does not exist.&quot;, e
             );
-<span class="nc" id="L435">        }</span>
+<span class="fc" id="L435">        }</span>
 
-<span class="nc" id="L437">        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
+<span class="fc" id="L437">        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
     }
 
     @GetMapping(&quot;/event/{eventId}/payment-method&quot;)
@@ -442,15 +442,15 @@ public class ConfigurationApiController {
         @PathVariable Integer eventId,
         Principal principal
     ) throws PassedIdDoesNotExistException {
-<span class="nc" id="L445">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventId);</span>
+<span class="fc" id="L445">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventId);</span>
 
-<span class="nc" id="L447">        var event = eventRepository.findById(eventAndOrgId.getId());</span>
-<span class="nc bnc" id="L448" title="All 2 branches missed.">        if(event == null) {</span>
+<span class="fc" id="L447">        var event = eventRepository.findById(eventAndOrgId.getId());</span>
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">        if(event == null) {</span>
 <span class="nc" id="L449">            throw new PassedIdDoesNotExistException(&quot;Passed event ID does not exist.&quot;);</span>
         }
 
-<span class="nc" id="L452">        var eventSelectedMethods = customOfflineConfigurationManager.getAllowedCustomOfflinePaymentMethodsForEvent(event);</span>
-<span class="nc" id="L453">        return ResponseEntity.ok(eventSelectedMethods);</span>
+<span class="fc" id="L452">        var eventSelectedMethods = customOfflineConfigurationManager.getAllowedCustomOfflinePaymentMethodsForEvent(event);</span>
+<span class="fc" id="L453">        return ResponseEntity.ok(eventSelectedMethods);</span>
     }
 
     @PostMapping(value = &quot;/event/{eventId}/payment-method&quot;)
@@ -459,26 +459,26 @@ public class ConfigurationApiController {
         @RequestBody List&lt;String&gt; paymentMethodIds,
         Principal principal
     ) throws PassedIdDoesNotExistException, CustomOfflinePaymentMethodDoesNotExistException {
-<span class="nc" id="L462">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventId);</span>
+<span class="fc" id="L462">        var eventAndOrgId = accessService.checkEventOwnership(principal, eventId);</span>
 
-<span class="nc" id="L464">        var event = eventRepository.findById(eventAndOrgId.getId());</span>
-<span class="nc bnc" id="L465" title="All 2 branches missed.">        if(event == null) {</span>
+<span class="fc" id="L464">        var event = eventRepository.findById(eventAndOrgId.getId());</span>
+<span class="pc bpc" id="L465" title="1 of 2 branches missed.">        if(event == null) {</span>
 <span class="nc" id="L466">            throw new PassedIdDoesNotExistException(&quot;Event matching passed ID does not exist.&quot;);</span>
         }
 
         try {
-<span class="nc" id="L470">            customOfflineConfigurationManager.setAllowedCustomOfflinePaymentMethodsForEvent(</span>
+<span class="fc" id="L470">            customOfflineConfigurationManager.setAllowedCustomOfflinePaymentMethodsForEvent(</span>
                 event,
                 paymentMethodIds
             );
-<span class="nc" id="L474">        } catch (CustomOfflinePaymentMethodDoesNotExistException e) {</span>
-<span class="nc" id="L475">            throw new CustomOfflinePaymentMethodDoesNotExistException(</span>
+<span class="fc" id="L474">        } catch (CustomOfflinePaymentMethodDoesNotExistException e) {</span>
+<span class="fc" id="L475">            throw new CustomOfflinePaymentMethodDoesNotExistException(</span>
                 &quot;One or more of the passed payment methods IDs do not exist.&quot;,
                 e
             );
-<span class="nc" id="L479">        }</span>
+<span class="fc" id="L479">        }</span>
 
-<span class="nc" id="L481">        return ResponseEntity.ok(true);</span>
+<span class="fc" id="L481">        return ResponseEntity.ok(true);</span>
     }
 
     @ExceptionHandler({

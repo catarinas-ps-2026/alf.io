@@ -41,13 +41,13 @@ public interface AdminJobExecutor {
 <span class="fc" id="L41">        }</span>
 
         public boolean allowsMultipleScheduling() {
-<span class="nc" id="L44">            return allowsMultiple;</span>
+<span class="fc" id="L44">            return allowsMultiple;</span>
         }
 
         public static JobName safeValueOf(String value) {
-<span class="nc" id="L48">            return Arrays.stream(values())</span>
-<span class="nc" id="L49">                .filter(v -&gt; v.name().equalsIgnoreCase(value))</span>
-<span class="nc" id="L50">                .findFirst().orElse(UNKNOWN);</span>
+<span class="fc" id="L48">            return Arrays.stream(values())</span>
+<span class="fc" id="L49">                .filter(v -&gt; v.name().equalsIgnoreCase(value))</span>
+<span class="fc" id="L50">                .findFirst().orElse(UNKNOWN);</span>
         }
     }
 

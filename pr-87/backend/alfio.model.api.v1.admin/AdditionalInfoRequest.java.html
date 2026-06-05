@@ -49,34 +49,34 @@ public class AdditionalInfoRequest {
     private Boolean displayAtCheckIn;
 
     public boolean isValid() {
-<span class="nc bnc" id="L52" title="All 4 branches missed.">        return StringUtils.isNotBlank(name)</span>
+<span class="pc bpc" id="L52" title="2 of 4 branches missed.">        return StringUtils.isNotBlank(name)</span>
             &amp;&amp; type != null
-<span class="nc bnc" id="L54" title="All 2 branches missed.">            &amp;&amp; CollectionUtils.isNotEmpty(label)</span>
-<span class="nc bnc" id="L55" title="All 2 branches missed.">            &amp;&amp; label.stream().allMatch(DescriptionRequest::isValid);</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">            &amp;&amp; CollectionUtils.isNotEmpty(label)</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">            &amp;&amp; label.stream().allMatch(DescriptionRequest::isValid);</span>
     }
 
 
     public AdditionalFieldRequest toAdditionalField(int ordinal) {
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        int position = this.ordinal != null ? this.ordinal : ordinal;</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">        String code = type != null ? type.code : AdditionalInfoType.GENERIC_TEXT.code;</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">        Integer minLength = contentLength != null ? contentLength.min : null;</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        Integer maxLength = contentLength != null ? contentLength.max : null;</span>
-<span class="nc" id="L64">        List&lt;EventModification.RestrictedValue&gt; restrictedValueList = null;</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (!isEmpty(this.restrictedValues)) {</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        int position = this.ordinal != null ? this.ordinal : ordinal;</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        String code = type != null ? type.code : AdditionalInfoType.GENERIC_TEXT.code;</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        Integer minLength = contentLength != null ? contentLength.min : null;</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        Integer maxLength = contentLength != null ? contentLength.max : null;</span>
+<span class="fc" id="L64">        List&lt;EventModification.RestrictedValue&gt; restrictedValueList = null;</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (!isEmpty(this.restrictedValues)) {</span>
 <span class="nc" id="L66">            restrictedValueList = this.restrictedValues.stream().map(rv -&gt; new EventModification.RestrictedValue(rv.getValue(), rv.getEnabled())).collect(Collectors.toList());</span>
         }
 
-<span class="nc" id="L69">        return new AdditionalFieldRequest(</span>
+<span class="fc" id="L69">        return new AdditionalFieldRequest(</span>
             position,
             null,
             name,
             code,
-<span class="nc" id="L74">            Boolean.TRUE.equals(required),</span>
+<span class="fc" id="L74">            Boolean.TRUE.equals(required),</span>
             false,
             minLength,
             maxLength,
             restrictedValueList,
-<span class="nc" id="L79">            toDescriptionMap(EventCreationRequest.orEmpty(label), EventCreationRequest.orEmpty(placeholder), EventCreationRequest.orEmpty(this.restrictedValues)),</span>
+<span class="fc" id="L79">            toDescriptionMap(EventCreationRequest.orEmpty(label), EventCreationRequest.orEmpty(placeholder), EventCreationRequest.orEmpty(this.restrictedValues)),</span>
             null,
             null,
             displayAtCheckIn
@@ -86,46 +86,46 @@ public class AdditionalInfoRequest {
     private static Map&lt;String, EventModification.Description&gt; toDescriptionMap(List&lt;DescriptionRequest&gt; label,
                                                                                List&lt;DescriptionRequest&gt; placeholder,
                                                                                List&lt;RestrictedValueRequest&gt; restrictedValues) {
-<span class="nc" id="L89">        Map&lt;String, String&gt; labelsByLang = label.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));</span>
-<span class="nc" id="L90">        Map&lt;String, String&gt; placeholdersByLang = placeholder.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));</span>
-<span class="nc" id="L91">        Map&lt;String, List&lt;Triple&lt;String, String, String&gt;&gt;&gt; valuesByLang = restrictedValues.stream()</span>
-<span class="nc" id="L92">            .flatMap(rv -&gt; rv.getDescriptions().stream().map(rvd -&gt; Triple.of(rvd.getLang(), rv.getValue(), rvd.getBody())))</span>
-<span class="nc" id="L93">            .collect(Collectors.groupingBy(Triple::getLeft));</span>
+<span class="fc" id="L89">        Map&lt;String, String&gt; labelsByLang = label.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));</span>
+<span class="fc" id="L90">        Map&lt;String, String&gt; placeholdersByLang = placeholder.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));</span>
+<span class="fc" id="L91">        Map&lt;String, List&lt;Triple&lt;String, String, String&gt;&gt;&gt; valuesByLang = restrictedValues.stream()</span>
+<span class="pc" id="L92">            .flatMap(rv -&gt; rv.getDescriptions().stream().map(rvd -&gt; Triple.of(rvd.getLang(), rv.getValue(), rvd.getBody())))</span>
+<span class="fc" id="L93">            .collect(Collectors.groupingBy(Triple::getLeft));</span>
 
 
-<span class="nc" id="L96">        Set&lt;String&gt; keys = new HashSet&lt;&gt;(labelsByLang.keySet());</span>
-<span class="nc" id="L97">        keys.addAll(placeholdersByLang.keySet());</span>
-<span class="nc" id="L98">        keys.addAll(valuesByLang.keySet());</span>
+<span class="fc" id="L96">        Set&lt;String&gt; keys = new HashSet&lt;&gt;(labelsByLang.keySet());</span>
+<span class="fc" id="L97">        keys.addAll(placeholdersByLang.keySet());</span>
+<span class="fc" id="L98">        keys.addAll(valuesByLang.keySet());</span>
 
-<span class="nc" id="L100">        return keys.stream()</span>
-<span class="nc" id="L101">            .map(lang -&gt; {</span>
-<span class="nc" id="L102">                Map&lt;String, String&gt; rvsMap = valuesByLang.getOrDefault(lang, emptyList()).stream().collect(Collectors.toMap(Triple::getMiddle, Triple::getRight));</span>
-<span class="nc" id="L103">                return Pair.of(lang, new EventModification.Description(labelsByLang.get(lang), placeholdersByLang.get(lang), rvsMap));</span>
-<span class="nc" id="L104">            }).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));</span>
+<span class="fc" id="L100">        return keys.stream()</span>
+<span class="fc" id="L101">            .map(lang -&gt; {</span>
+<span class="fc" id="L102">                Map&lt;String, String&gt; rvsMap = valuesByLang.getOrDefault(lang, emptyList()).stream().collect(Collectors.toMap(Triple::getMiddle, Triple::getRight));</span>
+<span class="fc" id="L103">                return Pair.of(lang, new EventModification.Description(labelsByLang.get(lang), placeholdersByLang.get(lang), rvsMap));</span>
+<span class="fc" id="L104">            }).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));</span>
     }
 
-<span class="nc" id="L107">    @Getter</span>
+<span class="fc" id="L107">    @Getter</span>
     public enum AdditionalInfoType {
 
-<span class="nc" id="L110">        GENERIC_TEXT(&quot;input:text&quot;),</span>
-<span class="nc" id="L111">        PHONE_NUMBER(&quot;input:tel&quot;),</span>
-<span class="nc" id="L112">        MULTI_LINE_TEXT(&quot;textarea&quot;),</span>
-<span class="nc" id="L113">        LIST_BOX(&quot;select&quot;),</span>
-<span class="nc" id="L114">        COUNTRY(&quot;country&quot;),</span>
-<span class="nc" id="L115">        EU_VAT_NR(&quot;vat:eu&quot;),</span>
-<span class="nc" id="L116">        CHECKBOX(&quot;checkbox&quot;),</span>
-<span class="nc" id="L117">        RADIO(&quot;radio&quot;),</span>
-<span class="nc" id="L118">        DATE_OF_BIRTH(&quot;input:dateOfBirth&quot;);</span>
+<span class="fc" id="L110">        GENERIC_TEXT(&quot;input:text&quot;),</span>
+<span class="fc" id="L111">        PHONE_NUMBER(&quot;input:tel&quot;),</span>
+<span class="fc" id="L112">        MULTI_LINE_TEXT(&quot;textarea&quot;),</span>
+<span class="fc" id="L113">        LIST_BOX(&quot;select&quot;),</span>
+<span class="fc" id="L114">        COUNTRY(&quot;country&quot;),</span>
+<span class="fc" id="L115">        EU_VAT_NR(&quot;vat:eu&quot;),</span>
+<span class="fc" id="L116">        CHECKBOX(&quot;checkbox&quot;),</span>
+<span class="fc" id="L117">        RADIO(&quot;radio&quot;),</span>
+<span class="fc" id="L118">        DATE_OF_BIRTH(&quot;input:dateOfBirth&quot;);</span>
 
         private final String code;
 
-<span class="nc" id="L122">        AdditionalInfoType(String code) {</span>
-<span class="nc" id="L123">            this.code = code;</span>
-<span class="nc" id="L124">        }</span>
+<span class="fc" id="L122">        AdditionalInfoType(String code) {</span>
+<span class="fc" id="L123">            this.code = code;</span>
+<span class="fc" id="L124">        }</span>
 
     }
 
-<span class="nc" id="L128">    public static final Set&lt;String&gt; WITH_RESTRICTED_VALUES = Set.of(AdditionalInfoType.LIST_BOX.code, AdditionalInfoType.CHECKBOX.code, AdditionalInfoType.RADIO.code);</span>
+<span class="fc" id="L128">    public static final Set&lt;String&gt; WITH_RESTRICTED_VALUES = Set.of(AdditionalInfoType.LIST_BOX.code, AdditionalInfoType.CHECKBOX.code, AdditionalInfoType.RADIO.code);</span>
 
     @Getter
     @AllArgsConstructor

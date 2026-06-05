@@ -42,12 +42,12 @@ public class RecaptchaLoginFilter extends GenericFilterBean {
     public RecaptchaLoginFilter(RecaptchaService recaptchaService,
                                 String loginProcessingUrl,
                                 String recaptchaFailureUrl,
-<span class="nc" id="L45">                                ConfigurationManager configurationManager) {</span>
-<span class="nc" id="L46">        this.requestMatcher = new AntPathRequestMatcher(loginProcessingUrl, &quot;POST&quot;);</span>
-<span class="nc" id="L47">        this.recaptchaService = recaptchaService;</span>
-<span class="nc" id="L48">        this.recaptchaFailureUrl = recaptchaFailureUrl;</span>
-<span class="nc" id="L49">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L45">                                ConfigurationManager configurationManager) {</span>
+<span class="fc" id="L46">        this.requestMatcher = new AntPathRequestMatcher(loginProcessingUrl, &quot;POST&quot;);</span>
+<span class="fc" id="L47">        this.recaptchaService = recaptchaService;</span>
+<span class="fc" id="L48">        this.recaptchaFailureUrl = recaptchaFailureUrl;</span>
+<span class="fc" id="L49">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L50">    }</span>
 
 
     @Override

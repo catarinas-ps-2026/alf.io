@@ -21,74 +21,74 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 <span class="fc" id="L21">public record TicketWithCategory(@JsonIgnore Ticket ticket, @JsonIgnore TicketCategory category) implements TicketInfoContainer {</span>
 
     public String getCategoryName() {
-<span class="nc bnc" id="L24" title="All 2 branches missed.">        return category != null ? category.getName() : null;</span>
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">        return category != null ? category.getName() : null;</span>
     }
 
     @Override
     public boolean getAssigned() {
-<span class="nc" id="L29">        return ticket.getAssigned();</span>
+<span class="fc" id="L29">        return ticket.getAssigned();</span>
     }
 
     @Override
     public boolean isCheckedIn() {
-<span class="nc" id="L34">        return ticket.isCheckedIn();</span>
+<span class="fc" id="L34">        return ticket.isCheckedIn();</span>
     }
 
     @Override
     public int getId() {
-<span class="nc" id="L39">        return ticket.getId();</span>
+<span class="fc" id="L39">        return ticket.getId();</span>
     }
 
     @Override
     public String getUuid() {
-<span class="nc" id="L44">        return ticket.getUuid();</span>
+<span class="fc" id="L44">        return ticket.getUuid();</span>
     }
 
     @Override
     public int getEventId() {
-<span class="nc" id="L49">        return ticket.getEventId();</span>
+<span class="fc" id="L49">        return ticket.getEventId();</span>
     }
 
     @Override
     public String getTicketsReservationId() {
-<span class="nc" id="L54">        return ticket.getTicketsReservationId();</span>
+<span class="fc" id="L54">        return ticket.getTicketsReservationId();</span>
     }
 
     @Override
     public String getFirstName() {
-<span class="nc" id="L59">        return ticket.getFirstName();</span>
+<span class="fc" id="L59">        return ticket.getFirstName();</span>
     }
 
     @Override
     public String getLastName() {
-<span class="nc" id="L64">        return ticket.getLastName();</span>
+<span class="fc" id="L64">        return ticket.getLastName();</span>
     }
 
     @Override
     public String getEmail() {
-<span class="nc" id="L69">        return ticket.getEmail();</span>
+<span class="fc" id="L69">        return ticket.getEmail();</span>
     }
 
     @Override
     public String getUserLanguage() {
-<span class="nc" id="L74">        return ticket.getUserLanguage();</span>
+<span class="fc" id="L74">        return ticket.getUserLanguage();</span>
     }
 
     @Override
     public Integer getCategoryId() {
-<span class="nc" id="L79">        return ticket.getCategoryId();</span>
+<span class="fc" id="L79">        return ticket.getCategoryId();</span>
     }
 
     public String getFullName() {
-<span class="nc" id="L83">        return ticket.getFullName();</span>
+<span class="fc" id="L83">        return ticket.getFullName();</span>
     }
 
     public String getFormattedFinalPrice() {
-<span class="nc" id="L87">        return ticket.getFormattedFinalPrice();</span>
+<span class="fc" id="L87">        return ticket.getFormattedFinalPrice();</span>
     }
 
     public String getFormattedNetPrice() {
-<span class="nc" id="L91">        return ticket.getFormattedNetPrice();</span>
+<span class="fc" id="L91">        return ticket.getFormattedNetPrice();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

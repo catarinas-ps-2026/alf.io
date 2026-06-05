@@ -39,15 +39,15 @@ public class SaleableAdditionalService implements PriceContainer {
 
     public SaleableAdditionalService(Event event,
                                      AdditionalService additionalService,
-<span class="nc" id="L42">                                     PromoCodeDiscount promoCodeDiscount) {</span>
-<span class="nc" id="L43">        this.event = event;</span>
-<span class="nc" id="L44">        this.additionalService = additionalService;</span>
-<span class="nc" id="L45">        this.promoCodeDiscount = promoCodeDiscount;</span>
-<span class="nc" id="L46">        this.clock = ClockProvider.clock().withZone(event.getZoneId());</span>
-<span class="nc" id="L47">    }</span>
+<span class="fc" id="L42">                                     PromoCodeDiscount promoCodeDiscount) {</span>
+<span class="fc" id="L43">        this.event = event;</span>
+<span class="fc" id="L44">        this.additionalService = additionalService;</span>
+<span class="fc" id="L45">        this.promoCodeDiscount = promoCodeDiscount;</span>
+<span class="fc" id="L46">        this.clock = ClockProvider.clock().withZone(event.getZoneId());</span>
+<span class="fc" id="L47">    }</span>
 
     public boolean isExpired() {
-<span class="nc" id="L50">        return utcExpiration().isBefore(ZonedDateTime.now(clock));</span>
+<span class="fc" id="L50">        return utcExpiration().isBefore(ZonedDateTime.now(clock));</span>
     }
 
     public boolean getExpired() {
@@ -55,84 +55,84 @@ public class SaleableAdditionalService implements PriceContainer {
     }
 
     public boolean getSaleInFuture() {
-<span class="nc" id="L58">        return utcInception().isAfter(ZonedDateTime.now(clock));</span>
+<span class="fc" id="L58">        return utcInception().isAfter(ZonedDateTime.now(clock));</span>
     }
 
     public boolean getFree() {
-<span class="nc bnc" id="L62" title="All 4 branches missed.">        return fixPrice() &amp;&amp; getFinalPrice().compareTo(BigDecimal.ZERO) == 0;</span>
+<span class="pc bpc" id="L62" title="2 of 4 branches missed.">        return fixPrice() &amp;&amp; getFinalPrice().compareTo(BigDecimal.ZERO) == 0;</span>
     }
 
     public ZonedDateTime getZonedInception() {
-<span class="nc" id="L66">        return getInception(event.getZoneId());</span>
+<span class="fc" id="L66">        return getInception(event.getZoneId());</span>
     }
 
     public ZonedDateTime getZonedExpiration() {
-<span class="nc" id="L70">        return getExpiration(event.getZoneId());</span>
+<span class="fc" id="L70">        return getExpiration(event.getZoneId());</span>
     }
 
     @Override
     public int getSrcPriceCts() {
-<span class="nc" id="L75">        return Optional.ofNullable(additionalService.srcPriceCts()).orElse(0);</span>
+<span class="fc" id="L75">        return Optional.ofNullable(additionalService.srcPriceCts()).orElse(0);</span>
     }
 
     @Override
     public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
-<span class="nc" id="L80">        return Optional.ofNullable(promoCodeDiscount)</span>
-<span class="nc bnc" id="L81" title="All 4 branches missed.">            .filter(x -&gt; x.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT &amp;&amp; type() != AdditionalService.AdditionalServiceType.DONATION);</span>
+<span class="fc" id="L80">        return Optional.ofNullable(promoCodeDiscount)</span>
+<span class="pc bpc" id="L81" title="1 of 4 branches missed.">            .filter(x -&gt; x.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT &amp;&amp; type() != AdditionalService.AdditionalServiceType.DONATION);</span>
     }
 
     @Override
     public String getCurrencyCode() {
-<span class="nc" id="L86">        return event.getCurrency();</span>
+<span class="fc" id="L86">        return event.getCurrency();</span>
     }
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if(getVatStatus() != VatStatus.NONE) {</span>
-<span class="nc" id="L92">            return Optional.ofNullable(event.getVat()); //FIXME implement VAT override</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if(getVatStatus() != VatStatus.NONE) {</span>
+<span class="fc" id="L92">            return Optional.ofNullable(event.getVat()); //FIXME implement VAT override</span>
         }
 <span class="nc" id="L94">        return Optional.of(BigDecimal.ZERO);</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="nc" id="L99">        return AdditionalService.getVatStatus(vatType(), event.getVatStatus());</span>
+<span class="fc" id="L99">        return AdditionalService.getVatStatus(vatType(), event.getVatStatus());</span>
     }
 
     public String getFormattedFinalPrice() {
-<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(supplementPolicy())) {</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(supplementPolicy())) {</span>
 <span class="nc" id="L104">            return formatPercentage(srcPriceCts());</span>
         }
-<span class="nc" id="L106">        return SaleableTicketCategory.getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()).toPlainString();</span>
+<span class="fc" id="L106">        return SaleableTicketCategory.getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()).toPlainString();</span>
     }
 
     public boolean getSupportsDiscount() {
-<span class="nc bnc" id="L110" title="All 6 branches missed.">        return type() != AdditionalService.AdditionalServiceType.DONATION &amp;&amp; fixPrice()</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">            &amp;&amp; promoCodeDiscount != null &amp;&amp; promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT;</span>
+<span class="pc bpc" id="L110" title="2 of 6 branches missed.">        return type() != AdditionalService.AdditionalServiceType.DONATION &amp;&amp; fixPrice()</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">            &amp;&amp; promoCodeDiscount != null &amp;&amp; promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT;</span>
     }
 
     public String getDiscountedPrice() {
-<span class="nc" id="L115">        return getFinalPrice().toPlainString();</span>
+<span class="fc" id="L115">        return getFinalPrice().toPlainString();</span>
     }
 
     public boolean getVatIncluded() {
-<span class="nc bnc" id="L119" title="All 3 branches missed.">        return switch (vatType()) {</span>
-<span class="nc" id="L120">            case INHERITED -&gt; event.isVatIncluded();</span>
+<span class="pc bpc" id="L119" title="2 of 3 branches missed.">        return switch (vatType()) {</span>
+<span class="fc" id="L120">            case INHERITED -&gt; event.isVatIncluded();</span>
 <span class="nc" id="L121">            case CUSTOM_INCLUDED -&gt; true;</span>
 <span class="nc" id="L122">            default -&gt; false;</span>
         };
     }
 
     public BigDecimal getVatPercentage() {
-<span class="nc" id="L127">        AdditionalService.VatType vatType = vatType();</span>
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        if(vatType == AdditionalService.VatType.INHERITED) {</span>
-<span class="nc" id="L129">            return event.getVat();</span>
+<span class="fc" id="L127">        AdditionalService.VatType vatType = vatType();</span>
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">        if(vatType == AdditionalService.VatType.INHERITED) {</span>
+<span class="fc" id="L129">            return event.getVat();</span>
         }
 <span class="nc" id="L131">        return Optional.ofNullable(additionalService.vat()).orElse(BigDecimal.ZERO);</span>
     }
 
     public boolean getVatApplies() {
-<span class="nc bnc" id="L135" title="All 2 branches missed.">        return vatType() != AdditionalService.VatType.NONE;</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        return vatType() != AdditionalService.VatType.NONE;</span>
     }
 
 

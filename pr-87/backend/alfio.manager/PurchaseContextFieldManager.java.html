@@ -60,20 +60,20 @@ public class PurchaseContextFieldManager {
 
     public PurchaseContextFieldManager(PurchaseContextFieldRepository purchaseContextFieldRepository,
                                        AdditionalServiceRepository additionalServiceRepository,
-<span class="nc" id="L63">                                       MessageSourceManager messageSourceManager) {</span>
-<span class="nc" id="L64">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
-<span class="nc" id="L65">        this.additionalServiceRepository = additionalServiceRepository;</span>
-<span class="nc" id="L66">        this.messageSourceManager = messageSourceManager;</span>
-<span class="nc" id="L67">    }</span>
+<span class="fc" id="L63">                                       MessageSourceManager messageSourceManager) {</span>
+<span class="fc" id="L64">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
+<span class="fc" id="L65">        this.additionalServiceRepository = additionalServiceRepository;</span>
+<span class="fc" id="L66">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L67">    }</span>
 
     public List&lt;PurchaseContextFieldDescription&gt; findDescriptions(PurchaseContext purchaseContext) {
-<span class="nc" id="L70">        return purchaseContextFieldRepository.findAllDescriptions(eventIdOrNull(purchaseContext), descriptorIdOrNull(purchaseContext));</span>
+<span class="fc" id="L70">        return purchaseContextFieldRepository.findAllDescriptions(eventIdOrNull(purchaseContext), descriptorIdOrNull(purchaseContext));</span>
     }
 
     public Map&lt;Long, List&lt;PurchaseContextFieldDescription&gt;&gt; findDescriptionsGroupedByFieldId(PurchaseContext purchaseContext) {
-<span class="nc" id="L74">        return findDescriptions(purchaseContext)</span>
-<span class="nc" id="L75">            .stream()</span>
-<span class="nc" id="L76">            .collect(Collectors.groupingBy(PurchaseContextFieldDescription::getFieldConfigurationId));</span>
+<span class="fc" id="L74">        return findDescriptions(purchaseContext)</span>
+<span class="fc" id="L75">            .stream()</span>
+<span class="fc" id="L76">            .collect(Collectors.groupingBy(PurchaseContextFieldDescription::getFieldConfigurationId));</span>
     }
 
     public Map&lt;Integer, List&lt;PurchaseContextFieldValue&gt;&gt; findAllValuesByTicketId(Integer ticketId) {
@@ -81,9 +81,9 @@ public class PurchaseContextFieldManager {
     }
 
     public Map&lt;Integer, List&lt;PurchaseContextFieldValue&gt;&gt; findAllValuesByTicketIds(Collection&lt;Integer&gt; ticketIds) {
-<span class="nc" id="L84">        return purchaseContextFieldRepository.findAllValuesByTicketIds(ticketIds)</span>
-<span class="nc" id="L85">            .stream()</span>
-<span class="nc" id="L86">            .collect(Collectors.groupingBy(PurchaseContextFieldValue::getTicketId));</span>
+<span class="fc" id="L84">        return purchaseContextFieldRepository.findAllValuesByTicketIds(ticketIds)</span>
+<span class="fc" id="L85">            .stream()</span>
+<span class="fc" id="L86">            .collect(Collectors.groupingBy(PurchaseContextFieldValue::getTicketId));</span>
     }
 
     public Map&lt;Integer, List&lt;PurchaseContextFieldValue&gt;&gt; findAllConfirmedTicketValues(int eventId) {
@@ -93,36 +93,36 @@ public class PurchaseContextFieldManager {
     }
 
     public Map&lt;UUID, List&lt;PurchaseContextFieldValue&gt;&gt; findAllValuesBySubscriptionIds(Collection&lt;UUID&gt; subscriptionIds) {
-<span class="nc" id="L96">        return purchaseContextFieldRepository.findAllValuesBySubscriptionIds(subscriptionIds)</span>
-<span class="nc" id="L97">            .stream()</span>
-<span class="nc" id="L98">            .collect(Collectors.groupingBy(PurchaseContextFieldValue::getSubscriptionId));</span>
+<span class="fc" id="L96">        return purchaseContextFieldRepository.findAllValuesBySubscriptionIds(subscriptionIds)</span>
+<span class="fc" id="L97">            .stream()</span>
+<span class="fc" id="L98">            .collect(Collectors.groupingBy(PurchaseContextFieldValue::getSubscriptionId));</span>
     }
 
     public List&lt;PurchaseContextFieldConfiguration&gt; findAdditionalFields(PurchaseContext purchaseContext) {
-<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc" id="L103">            return purchaseContextFieldRepository.findAdditionalFieldsForEvent(((Event) purchaseContext).getId());</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L103">            return purchaseContextFieldRepository.findAdditionalFieldsForEvent(((Event) purchaseContext).getId());</span>
         } else{
 <span class="nc" id="L105">            return purchaseContextFieldRepository.findAdditionalFieldsForSubscriptionDescriptor(((SubscriptionDescriptor) purchaseContext).getId());</span>
         }
     }
 
     public void insertAdditionalField(PurchaseContext purchaseContext, AdditionalFieldRequest f, int order) {
-<span class="nc" id="L110">        String serializedRestrictedValues = toSerializedRestrictedValues(f);</span>
-<span class="nc" id="L111">        int additionalServiceId = -1;</span>
+<span class="fc" id="L110">        String serializedRestrictedValues = toSerializedRestrictedValues(f);</span>
+<span class="fc" id="L111">        int additionalServiceId = -1;</span>
         Context context;
-<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc" id="L114">            var event = (Event) purchaseContext;</span>
-<span class="nc" id="L115">            Optional&lt;EventModification.AdditionalService&gt; linkedAdditionalService = Optional.ofNullable(f.getLinkedAdditionalService());</span>
-<span class="nc" id="L116">            additionalServiceId = linkedAdditionalService.map(as -&gt; Optional.ofNullable(as.getId()).orElseGet(() -&gt; findAdditionalService(event, as, event.getCurrency()))).orElse(-1);</span>
-<span class="nc bnc" id="L117" title="All 2 branches missed.">            context = linkedAdditionalService.isPresent() ? Context.ADDITIONAL_SERVICE : Context.ATTENDEE;</span>
-<span class="nc" id="L118">        } else {</span>
-<span class="nc" id="L119">            context = Context.SUBSCRIPTION;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L114">            var event = (Event) purchaseContext;</span>
+<span class="fc" id="L115">            Optional&lt;EventModification.AdditionalService&gt; linkedAdditionalService = Optional.ofNullable(f.getLinkedAdditionalService());</span>
+<span class="pc" id="L116">            additionalServiceId = linkedAdditionalService.map(as -&gt; Optional.ofNullable(as.getId()).orElseGet(() -&gt; findAdditionalService(event, as, event.getCurrency()))).orElse(-1);</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">            context = linkedAdditionalService.isPresent() ? Context.ADDITIONAL_SERVICE : Context.ATTENDEE;</span>
+<span class="fc" id="L118">        } else {</span>
+<span class="fc" id="L119">            context = Context.SUBSCRIPTION;</span>
         }
 
-<span class="nc" id="L122">        long configurationId = purchaseContextFieldRepository.insertConfiguration(eventIdOrNull(purchaseContext), purchaseContext.getOrganizationId(), descriptorIdOrNull(purchaseContext), f.getName(), order, f.getType(), serializedRestrictedValues,</span>
-<span class="nc" id="L123">            f.getMaxLength(), f.getMinLength(), f.isRequired(), context, additionalServiceId, generateJsonForList(f.getLinkedCategoriesIds()), f.isDisplayAtCheckIn()).getKey();</span>
-<span class="nc" id="L124">        f.getDescription().forEach((locale, value) -&gt; purchaseContextFieldRepository.upsertDescription(configurationId, locale, Json.GSON.toJson(value), purchaseContext.getOrganizationId()));</span>
-<span class="nc" id="L125">    }</span>
+<span class="fc" id="L122">        long configurationId = purchaseContextFieldRepository.insertConfiguration(eventIdOrNull(purchaseContext), purchaseContext.getOrganizationId(), descriptorIdOrNull(purchaseContext), f.getName(), order, f.getType(), serializedRestrictedValues,</span>
+<span class="fc" id="L123">            f.getMaxLength(), f.getMinLength(), f.isRequired(), context, additionalServiceId, generateJsonForList(f.getLinkedCategoriesIds()), f.isDisplayAtCheckIn()).getKey();</span>
+<span class="fc" id="L124">        f.getDescription().forEach((locale, value) -&gt; purchaseContextFieldRepository.upsertDescription(configurationId, locale, Json.GSON.toJson(value), purchaseContext.getOrganizationId()));</span>
+<span class="fc" id="L125">    }</span>
 
     public void updateAdditionalField(long id, EventModification.UpdateAdditionalField f, int organizationId) {
 <span class="nc" id="L128">        String serializedRestrictedValues = toSerializedRestrictedValues(f);</span>
@@ -147,17 +147,17 @@ public class PurchaseContextFieldManager {
     }
 
     public void addAdditionalFields(PurchaseContext purchaseContext, List&lt;AdditionalFieldRequest&gt; fields) {
-<span class="nc" id="L150">        fields.forEach(field -&gt; addAdditionalField(purchaseContext, field));</span>
-<span class="nc" id="L151">    }</span>
+<span class="fc" id="L150">        fields.forEach(field -&gt; addAdditionalField(purchaseContext, field));</span>
+<span class="fc" id="L151">    }</span>
 
     public void addAdditionalField(PurchaseContext purchaseContext, AdditionalFieldRequest field) {
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (field.isUseDefinedOrder()) {</span>
-<span class="nc" id="L155">            insertAdditionalField(purchaseContext, field, field.getOrder());</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (field.isUseDefinedOrder()) {</span>
+<span class="fc" id="L155">            insertAdditionalField(purchaseContext, field, field.getOrder());</span>
         } else {
-<span class="nc" id="L157">            Integer order = purchaseContextFieldRepository.findMaxOrderValue(eventIdOrNull(purchaseContext), descriptorIdOrNull(purchaseContext));</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">            insertAdditionalField(purchaseContext, field, order == null ? 0 : order + 1);</span>
+<span class="fc" id="L157">            Integer order = purchaseContextFieldRepository.findMaxOrderValue(eventIdOrNull(purchaseContext), descriptorIdOrNull(purchaseContext));</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            insertAdditionalField(purchaseContext, field, order == null ? 0 : order + 1);</span>
         }
-<span class="nc" id="L160">    }</span>
+<span class="fc" id="L160">    }</span>
 
     public void deleteAdditionalField(long ticketFieldConfigurationId) {
 <span class="nc" id="L163">        purchaseContextFieldRepository.deleteValues(ticketFieldConfigurationId);</span>
@@ -206,7 +206,7 @@ public class PurchaseContextFieldManager {
 <span class="nc" id="L206">    }</span>
 
     private static String toSerializedRestrictedValues(EventModification.WithRestrictedValues f) {
-<span class="nc bnc" id="L209" title="All 2 branches missed.">        return AdditionalInfoRequest.WITH_RESTRICTED_VALUES.contains(f.getType()) ? generateJsonForList(f.getRestrictedValuesAsString()) : null;</span>
+<span class="pc bpc" id="L209" title="1 of 2 branches missed.">        return AdditionalInfoRequest.WITH_RESTRICTED_VALUES.contains(f.getType()) ? generateJsonForList(f.getRestrictedValuesAsString()) : null;</span>
     }
 
     private static String toSerializedDisabledValues(EventModification.WithRestrictedValues f) {
@@ -214,15 +214,15 @@ public class PurchaseContextFieldManager {
     }
 
     private static String generateJsonForList(Collection&lt;?&gt; values) {
-<span class="nc bnc" id="L217" title="All 2 branches missed.">        return CollectionUtils.isNotEmpty(values) ? Json.GSON.toJson(values) : null;</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        return CollectionUtils.isNotEmpty(values) ? Json.GSON.toJson(values) : null;</span>
     }
 
     private static Integer eventIdOrNull(PurchaseContext purchaseContext) {
-<span class="nc bnc" id="L221" title="All 2 branches missed.">        return purchaseContext.ofType(PurchaseContextType.event) ? ((Event) purchaseContext).getId() : null;</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        return purchaseContext.ofType(PurchaseContextType.event) ? ((Event) purchaseContext).getId() : null;</span>
     }
 
     private static UUID descriptorIdOrNull(PurchaseContext purchaseContext) {
-<span class="nc bnc" id="L225" title="All 2 branches missed.">        return purchaseContext.ofType(PurchaseContextType.subscription) ? ((SubscriptionDescriptor) purchaseContext).getId() : null;</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">        return purchaseContext.ofType(PurchaseContextType.subscription) ? ((SubscriptionDescriptor) purchaseContext).getId() : null;</span>
     }
 
     public List&lt;RestrictedValueStats&gt; retrieveStats(long id) {
@@ -234,8 +234,8 @@ public class PurchaseContextFieldManager {
                                            PurchaseContext purchaseContext,
                                            Integer ticketId,
                                            UUID subscriptionId) {
-<span class="nc" id="L237">        purchaseContextFieldRepository.updateOrInsert(form.getAdditional(), purchaseContext, ticketId, subscriptionId);</span>
-<span class="nc" id="L238">    }</span>
+<span class="fc" id="L237">        purchaseContextFieldRepository.updateOrInsert(form.getAdditional(), purchaseContext, ticketId, subscriptionId);</span>
+<span class="fc" id="L238">    }</span>
 
     public List&lt;FieldConfigurationDescriptionAndValue&gt; getFieldDescriptionAndValues(PurchaseContext purchaseContext,
                                                                                     Ticket ticket,
@@ -243,8 +243,8 @@ public class PurchaseContextFieldManager {
                                                                                     List&lt;BookedAdditionalService&gt; additionalServiceItems,
                                                                                     String userLanguage,
                                                                                     boolean formatValues) {
-<span class="nc bnc" id="L246" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc" id="L247">            return getFieldDescriptionAndValuesForTicket(ticket, additionalServiceItems, (Event) purchaseContext, formatValues);</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L247">            return getFieldDescriptionAndValuesForTicket(ticket, additionalServiceItems, (Event) purchaseContext, formatValues);</span>
         } else {
 <span class="nc" id="L249">            return getFieldDescriptionAndValuesForSubscription(subscription, (SubscriptionDescriptor) purchaseContext, userLanguage, formatValues);</span>
         }
@@ -255,33 +255,33 @@ public class PurchaseContextFieldManager {
                                 boolean transformValue,
                                 MessageSource messageSource,
                                 Locale locale) {
-<span class="nc" id="L258">        return Optional.ofNullable(values.get(fieldConfiguration.getName()))</span>
-<span class="nc" id="L259">            .map(pc -&gt; {</span>
-<span class="nc" id="L260">                var value = StringUtils.trimToEmpty(pc.getValue());</span>
-<span class="nc bnc" id="L261" title="All 6 branches missed.">                if (transformValue &amp;&amp; fieldConfiguration.isDateOfBirth() &amp;&amp; !value.isEmpty()) {</span>
+<span class="fc" id="L258">        return Optional.ofNullable(values.get(fieldConfiguration.getName()))</span>
+<span class="fc" id="L259">            .map(pc -&gt; {</span>
+<span class="fc" id="L260">                var value = StringUtils.trimToEmpty(pc.getValue());</span>
+<span class="pc bpc" id="L261" title="4 of 6 branches missed.">                if (transformValue &amp;&amp; fieldConfiguration.isDateOfBirth() &amp;&amp; !value.isEmpty()) {</span>
 <span class="nc" id="L262">                    return LocalDate.parse(value)</span>
 <span class="nc" id="L263">                        .format(DateTimeFormatter.ofPattern(messageSource.getMessage(&quot;common.date-format&quot;, null, locale), locale));</span>
                 }
-<span class="nc" id="L265">                return value;</span>
+<span class="fc" id="L265">                return value;</span>
             })
-<span class="nc" id="L267">            .orElse(&quot;&quot;);</span>
+<span class="fc" id="L267">            .orElse(&quot;&quot;);</span>
     }
 
     private List&lt;FieldConfigurationDescriptionAndValue&gt; getFieldDescriptionAndValuesForTicket(Ticket ticket, List&lt;BookedAdditionalService&gt; additionalServiceItems, Event event, boolean formatValues) {
-<span class="nc" id="L271">        Map&lt;Long, PurchaseContextFieldDescription&gt; descriptions = purchaseContextFieldRepository.findTranslationsFor(LocaleUtil.forLanguageTag(ticket.getUserLanguage()), ticket.getEventId());</span>
-<span class="nc" id="L272">        Map&lt;String, PurchaseContextFieldValue&gt; values = purchaseContextFieldRepository.findAllByTicketIdGroupedByName(ticket.getId(), event.supportsLinkedAdditionalServices());</span>
-<span class="nc" id="L273">        Set&lt;Integer&gt; additionalServiceIds = additionalServiceItems.stream().map(BookedAdditionalService::getAdditionalServiceId).collect(Collectors.toSet());</span>
-<span class="nc" id="L274">        var messageSource = messageSourceManager.getMessageSourceFor(event.getOrganizationId(), event.getId());</span>
-<span class="nc" id="L275">        var locale = Locale.forLanguageTag(ticket.getUserLanguage());</span>
-<span class="nc" id="L276">        return purchaseContextFieldRepository.findAdditionalFieldsForEvent(ticket.getEventId())</span>
-<span class="nc" id="L277">            .stream()</span>
-<span class="nc bnc" id="L278" title="All 4 branches missed.">            .filter(f -&gt; f.getContext() == ATTENDEE || Optional.ofNullable(f.getAdditionalServiceId()).filter(additionalServiceIds::contains).isPresent())</span>
-<span class="nc bnc" id="L279" title="All 4 branches missed.">            .filter(f -&gt; CollectionUtils.isEmpty(f.getCategoryIds()) || f.getCategoryIds().contains(ticket.getCategoryId()))</span>
-<span class="nc" id="L280">            .map(f-&gt; {</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">                int count = Math.max(1, Optional.ofNullable(f.getAdditionalServiceId()).map(id -&gt; (int) additionalServiceItems.stream().filter(i -&gt; i.getAdditionalServiceId() == id).count()).orElse(f.getCount()));</span>
-<span class="nc" id="L282">                return new FieldConfigurationDescriptionAndValue(f, descriptions.getOrDefault(f.getId(), PurchaseContextFieldDescription.MISSING_FIELD), count, extractValue(values, f, formatValues, messageSource, locale));</span>
+<span class="fc" id="L271">        Map&lt;Long, PurchaseContextFieldDescription&gt; descriptions = purchaseContextFieldRepository.findTranslationsFor(LocaleUtil.forLanguageTag(ticket.getUserLanguage()), ticket.getEventId());</span>
+<span class="fc" id="L272">        Map&lt;String, PurchaseContextFieldValue&gt; values = purchaseContextFieldRepository.findAllByTicketIdGroupedByName(ticket.getId(), event.supportsLinkedAdditionalServices());</span>
+<span class="fc" id="L273">        Set&lt;Integer&gt; additionalServiceIds = additionalServiceItems.stream().map(BookedAdditionalService::getAdditionalServiceId).collect(Collectors.toSet());</span>
+<span class="fc" id="L274">        var messageSource = messageSourceManager.getMessageSourceFor(event.getOrganizationId(), event.getId());</span>
+<span class="fc" id="L275">        var locale = Locale.forLanguageTag(ticket.getUserLanguage());</span>
+<span class="fc" id="L276">        return purchaseContextFieldRepository.findAdditionalFieldsForEvent(ticket.getEventId())</span>
+<span class="fc" id="L277">            .stream()</span>
+<span class="pc bpc" id="L278" title="1 of 4 branches missed.">            .filter(f -&gt; f.getContext() == ATTENDEE || Optional.ofNullable(f.getAdditionalServiceId()).filter(additionalServiceIds::contains).isPresent())</span>
+<span class="pc bpc" id="L279" title="3 of 4 branches missed.">            .filter(f -&gt; CollectionUtils.isEmpty(f.getCategoryIds()) || f.getCategoryIds().contains(ticket.getCategoryId()))</span>
+<span class="fc" id="L280">            .map(f-&gt; {</span>
+<span class="pc bnc" id="L281" title="All 2 branches missed.">                int count = Math.max(1, Optional.ofNullable(f.getAdditionalServiceId()).map(id -&gt; (int) additionalServiceItems.stream().filter(i -&gt; i.getAdditionalServiceId() == id).count()).orElse(f.getCount()));</span>
+<span class="fc" id="L282">                return new FieldConfigurationDescriptionAndValue(f, descriptions.getOrDefault(f.getId(), PurchaseContextFieldDescription.MISSING_FIELD), count, extractValue(values, f, formatValues, messageSource, locale));</span>
             })
-<span class="nc" id="L284">            .collect(Collectors.toList());</span>
+<span class="fc" id="L284">            .collect(Collectors.toList());</span>
     }
 
     private List&lt;FieldConfigurationDescriptionAndValue&gt; getFieldDescriptionAndValuesForSubscription(Subscription subscription, SubscriptionDescriptor descriptor, String userLanguage, boolean formatValues) {

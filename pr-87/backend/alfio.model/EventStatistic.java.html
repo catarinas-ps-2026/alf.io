@@ -28,7 +28,7 @@ import java.util.List;
 
 public class EventStatistic implements StatisticsContainer, Comparable&lt;EventStatistic&gt; {
 
-<span class="nc" id="L31">    public static final DateTimeFormatter JSON_DATE_FORMATTER = DateTimeFormatter.ofPattern(&quot;uuuu-MM-dd HH:mm&quot;);</span>
+<span class="fc" id="L31">    public static final DateTimeFormatter JSON_DATE_FORMATTER = DateTimeFormatter.ofPattern(&quot;uuuu-MM-dd HH:mm&quot;);</span>
 
 
     @JsonIgnore
@@ -39,11 +39,11 @@ public class EventStatistic implements StatisticsContainer, Comparable&lt;EventS
     @JsonIgnore
     private final boolean statisticsEnabled;
 
-<span class="nc" id="L42">    public EventStatistic(Event event, EventStatisticView eventStatisticView, boolean statisticsEnabled) {</span>
-<span class="nc" id="L43">        this.event = event;</span>
-<span class="nc" id="L44">        this.eventStatisticView = eventStatisticView;</span>
-<span class="nc" id="L45">        this.statisticsEnabled = statisticsEnabled;</span>
-<span class="nc" id="L46">    }</span>
+<span class="fc" id="L42">    public EventStatistic(Event event, EventStatisticView eventStatisticView, boolean statisticsEnabled) {</span>
+<span class="fc" id="L43">        this.event = event;</span>
+<span class="fc" id="L44">        this.eventStatisticView = eventStatisticView;</span>
+<span class="fc" id="L45">        this.statisticsEnabled = statisticsEnabled;</span>
+<span class="fc" id="L46">    }</span>
 
     public List&lt;PaymentProxy&gt; getAllowedPaymentProxies() {
 <span class="nc" id="L49">        return event.getAllowedPaymentProxies();</span>
@@ -54,7 +54,7 @@ public class EventStatistic implements StatisticsContainer, Comparable&lt;EventS
     }
 
     public int getAvailableSeats() {
-<span class="nc" id="L57">        return eventStatisticView.getAvailableSeats();</span>
+<span class="fc" id="L57">        return eventStatisticView.getAvailableSeats();</span>
     }
 
     public String getFormattedBegin() {
@@ -79,17 +79,17 @@ public class EventStatistic implements StatisticsContainer, Comparable&lt;EventS
 
     @Override
     public int getNotSoldTickets() {
-<span class="nc" id="L82">        return eventStatisticView.getNotSoldTickets();</span>
+<span class="fc" id="L82">        return eventStatisticView.getNotSoldTickets();</span>
     }
 
     @Override
     public int getSoldTickets() {
-<span class="nc" id="L87">        return eventStatisticView.getSoldTickets();</span>
+<span class="fc" id="L87">        return eventStatisticView.getSoldTickets();</span>
     }
 
     @Override
     public int getCheckedInTickets() {
-<span class="nc" id="L92">        return eventStatisticView.getCheckedInTickets();</span>
+<span class="fc" id="L92">        return eventStatisticView.getCheckedInTickets();</span>
     }
 
     @Override

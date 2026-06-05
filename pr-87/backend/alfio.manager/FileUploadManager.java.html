@@ -61,7 +61,7 @@ public class FileUploadManager {
 
     @Transactional(readOnly = true)
     public Optional&lt;FileBlobMetadata&gt; findMetadata(String id) {
-<span class="nc" id="L64">        return repository.findById(id);</span>
+<span class="fc" id="L64">        return repository.findById(id);</span>
     }
 
     public boolean hasCached(String digest) {
@@ -72,16 +72,16 @@ public class FileUploadManager {
 <span class="fc" id="L72">    private static final Pattern IS_HEX = Pattern.compile(&quot;^\\p{XDigit}+$&quot;);</span>
 
     public void outputFile(String id, OutputStream out) {
-<span class="nc" id="L75">        Assert.isTrue(IS_HEX.matcher(id).matches(), &quot;id must be an hex value&quot;);</span>
-<span class="nc" id="L76">        try (var fis = ensureFilePresence(id)) {</span>
-<span class="nc" id="L77">            fis.transferTo(out);</span>
+<span class="fc" id="L75">        Assert.isTrue(IS_HEX.matcher(id).matches(), &quot;id must be an hex value&quot;);</span>
+<span class="fc" id="L76">        try (var fis = ensureFilePresence(id)) {</span>
+<span class="fc" id="L77">            fis.transferTo(out);</span>
 <span class="nc" id="L78">        } catch(EOFException ex){</span>
             // this happens when the browser closes the stream on its end.
 <span class="nc" id="L80">            log.trace(&quot;got EOFException&quot;, ex);</span>
 <span class="nc" id="L81">        } catch (IOException e) {</span>
 <span class="nc" id="L82">            throw new IllegalStateException(&quot;Error while copying data&quot;, e);</span>
-<span class="nc" id="L83">        }</span>
-<span class="nc" id="L84">    }</span>
+<span class="pc" id="L83">        }</span>
+<span class="fc" id="L84">    }</span>
 
     public File getFile(String id) {
 <span class="nc" id="L87">        return fileBlobCacheManager.getFile(FILE_SECTION, id, () -&gt; repository.file(id));</span>
@@ -92,73 +92,73 @@ public class FileUploadManager {
     }
 
     private InputStream ensureFilePresence(String id) throws IOException {
-<span class="nc" id="L95">        return new FileInputStream(fileBlobCacheManager.getFile(FILE_SECTION, id, () -&gt; repository.file(id)));</span>
+<span class="pc" id="L95">        return new FileInputStream(fileBlobCacheManager.getFile(FILE_SECTION, id, () -&gt; repository.file(id)));</span>
     }
 
     private void ensureFilePresence(String id, byte[] content) {
-<span class="nc" id="L99">        fileBlobCacheManager.ensureFileExists(FILE_SECTION, id, () -&gt; content);</span>
-<span class="nc" id="L100">    }</span>
+<span class="fc" id="L99">        fileBlobCacheManager.ensureFileExists(FILE_SECTION, id, () -&gt; content);</span>
+<span class="fc" id="L100">    }</span>
 
     @Transactional
     public String insertFile(UploadBase64FileModification file) {
-<span class="nc" id="L104">        final var mimeType = MimeTypeUtils.parseMimeType(file.getType());</span>
-<span class="nc" id="L105">        var upload = resizeIfNeeded(file, mimeType);</span>
-<span class="nc" id="L106">        Validate.exclusiveBetween(1, MAXIMUM_ALLOWED_SIZE, upload.getFile().length);</span>
-<span class="nc" id="L107">        String digest = DigestUtils.sha256Hex(upload.getFile());</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (!repository.isPresent(digest)) {</span>
-<span class="nc" id="L109">            repository.upload(upload, digest, getAttributes(upload));</span>
+<span class="fc" id="L104">        final var mimeType = MimeTypeUtils.parseMimeType(file.getType());</span>
+<span class="fc" id="L105">        var upload = resizeIfNeeded(file, mimeType);</span>
+<span class="fc" id="L106">        Validate.exclusiveBetween(1, MAXIMUM_ALLOWED_SIZE, upload.getFile().length);</span>
+<span class="fc" id="L107">        String digest = DigestUtils.sha256Hex(upload.getFile());</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        if (!repository.isPresent(digest)) {</span>
+<span class="fc" id="L109">            repository.upload(upload, digest, getAttributes(upload));</span>
         }
         //
-<span class="nc" id="L112">        ensureFilePresence(digest, upload.getFile());</span>
+<span class="fc" id="L112">        ensureFilePresence(digest, upload.getFile());</span>
         //
-<span class="nc" id="L114">        return digest;</span>
+<span class="fc" id="L114">        return digest;</span>
     }
 
     @Transactional
     public void cleanupUnreferencedBlobFiles(Date date) {
-<span class="nc" id="L119">        int deleted = repository.cleanupUnreferencedBlobFiles(date);</span>
-<span class="nc" id="L120">        log.debug(&quot;removed {} unused file_blob&quot;, deleted);</span>
-<span class="nc" id="L121">    }</span>
+<span class="fc" id="L119">        int deleted = repository.cleanupUnreferencedBlobFiles(date);</span>
+<span class="fc" id="L120">        log.debug(&quot;removed {} unused file_blob&quot;, deleted);</span>
+<span class="fc" id="L121">    }</span>
 
     /**
      * @author &lt;a href=&quot;https://github.com/emassip&quot;&gt;Etienne M.&lt;/a&gt;
      */
     private UploadBase64FileModification resizeIfNeeded(UploadBase64FileModification upload, MimeType mimeType) {
-<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (!mimeType.isCompatibleWith(IMAGE_TYPE)) {</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (!mimeType.isCompatibleWith(IMAGE_TYPE)) {</span>
             // not an image, nothing to do here.
-<span class="nc" id="L129">            return upload;</span>
+<span class="fc" id="L129">            return upload;</span>
         }
         try {
-<span class="nc" id="L132">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(upload.getFile()));</span>
+<span class="fc" id="L132">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(upload.getFile()));</span>
             // resize only if the image is bigger than the target size on either side
-<span class="nc bnc" id="L134" title="All 4 branches missed.">            if (image.getWidth() &gt; IMAGE_THUMB_MAX_WIDTH_PX || image.getHeight() &gt; IMAGE_THUMB_MAX_HEIGHT_PX) {</span>
-<span class="nc" id="L135">                UploadBase64FileModification resized = new UploadBase64FileModification();</span>
-<span class="nc" id="L136">                BufferedImage thumbImg = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.AUTOMATIC, IMAGE_THUMB_MAX_WIDTH_PX, IMAGE_THUMB_MAX_HEIGHT_PX);</span>
-<span class="nc" id="L137">                try (final var baos = new ByteArrayOutputStream()) {</span>
-<span class="nc" id="L138">                    ImageIO.write(thumbImg, mimeType.getSubtype(), baos);</span>
-<span class="nc" id="L139">                    resized.setFile(baos.toByteArray());</span>
+<span class="pc bpc" id="L134" title="1 of 4 branches missed.">            if (image.getWidth() &gt; IMAGE_THUMB_MAX_WIDTH_PX || image.getHeight() &gt; IMAGE_THUMB_MAX_HEIGHT_PX) {</span>
+<span class="fc" id="L135">                UploadBase64FileModification resized = new UploadBase64FileModification();</span>
+<span class="fc" id="L136">                BufferedImage thumbImg = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.AUTOMATIC, IMAGE_THUMB_MAX_WIDTH_PX, IMAGE_THUMB_MAX_HEIGHT_PX);</span>
+<span class="fc" id="L137">                try (final var baos = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L138">                    ImageIO.write(thumbImg, mimeType.getSubtype(), baos);</span>
+<span class="fc" id="L139">                    resized.setFile(baos.toByteArray());</span>
                 }
-<span class="nc" id="L141">                resized.setAttributes(upload.getAttributes());</span>
-<span class="nc" id="L142">                resized.setName(upload.getName());</span>
-<span class="nc" id="L143">                resized.setType(upload.getType());</span>
-<span class="nc" id="L144">                return resized;</span>
+<span class="fc" id="L141">                resized.setAttributes(upload.getAttributes());</span>
+<span class="fc" id="L142">                resized.setName(upload.getName());</span>
+<span class="fc" id="L143">                resized.setType(upload.getType());</span>
+<span class="fc" id="L144">                return resized;</span>
             }
-<span class="nc" id="L146">            return upload;</span>
+<span class="fc" id="L146">            return upload;</span>
 <span class="nc" id="L147">        } catch (IOException ex) {</span>
 <span class="nc" id="L148">            throw new IllegalStateException(ex);</span>
         }
     }
 
     private Map&lt;String, String&gt; getAttributes(UploadBase64FileModification file) {
-<span class="nc bnc" id="L153" title="All 2 branches missed.">        if (!StringUtils.startsWith(file.getType(), &quot;image/&quot;)) {</span>
-<span class="nc" id="L154">            return Collections.emptyMap();</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        if (!StringUtils.startsWith(file.getType(), &quot;image/&quot;)) {</span>
+<span class="fc" id="L154">            return Collections.emptyMap();</span>
         }
         try {
-<span class="nc" id="L157">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getFile()));</span>
-<span class="nc" id="L158">            Map&lt;String, String&gt; attributes = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L159">            attributes.put(FileBlobMetadata.ATTR_IMG_WIDTH, String.valueOf(image.getWidth()));</span>
-<span class="nc" id="L160">            attributes.put(FileBlobMetadata.ATTR_IMG_HEIGHT, String.valueOf(image.getHeight()));</span>
-<span class="nc" id="L161">            return attributes;</span>
+<span class="fc" id="L157">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getFile()));</span>
+<span class="fc" id="L158">            Map&lt;String, String&gt; attributes = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L159">            attributes.put(FileBlobMetadata.ATTR_IMG_WIDTH, String.valueOf(image.getWidth()));</span>
+<span class="fc" id="L160">            attributes.put(FileBlobMetadata.ATTR_IMG_HEIGHT, String.valueOf(image.getHeight()));</span>
+<span class="fc" id="L161">            return attributes;</span>
 <span class="nc" id="L162">        } catch (IOException e) {</span>
 <span class="nc" id="L163">            log.error(&quot;error while processing image: &quot;, e);</span>
 <span class="nc" id="L164">            return Collections.emptyMap();</span>

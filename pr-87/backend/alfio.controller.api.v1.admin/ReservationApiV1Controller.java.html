@@ -71,68 +71,68 @@ public class ReservationApiV1Controller {
                                       AdminReservationManager adminReservationManager,
                                       PurchaseContextFieldManager purchaseContextFieldManager,
                                       ConfigurationManager configurationManager,
-<span class="nc" id="L74">                                      AdminReservationRequestManager requestManager) {</span>
-<span class="nc" id="L75">        this.ticketReservationManager = ticketReservationManager;</span>
-<span class="nc" id="L76">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="nc" id="L77">        this.promoCodeRequestManager = promoCodeRequestManager;</span>
-<span class="nc" id="L78">        this.eventManager = eventManager;</span>
-<span class="nc" id="L79">        this.accessService = accessService;</span>
-<span class="nc" id="L80">        this.additionalServiceManager = additionalServiceManager;</span>
-<span class="nc" id="L81">        this.adminReservationManager = adminReservationManager;</span>
-<span class="nc" id="L82">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
-<span class="nc" id="L83">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L84">        this.requestManager = requestManager;</span>
-<span class="nc" id="L85">    }</span>
+<span class="fc" id="L74">                                      AdminReservationRequestManager requestManager) {</span>
+<span class="fc" id="L75">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L76">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L77">        this.promoCodeRequestManager = promoCodeRequestManager;</span>
+<span class="fc" id="L78">        this.eventManager = eventManager;</span>
+<span class="fc" id="L79">        this.accessService = accessService;</span>
+<span class="fc" id="L80">        this.additionalServiceManager = additionalServiceManager;</span>
+<span class="fc" id="L81">        this.adminReservationManager = adminReservationManager;</span>
+<span class="fc" id="L82">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+<span class="fc" id="L83">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L84">        this.requestManager = requestManager;</span>
+<span class="fc" id="L85">    }</span>
 
     @GetMapping(&quot;/{purchaseContextType}/{publicIdentifier}/reservation/{id}&quot;)
     public ResponseEntity&lt;ReservationDetail&gt; retrieveDetail(@PathVariable PurchaseContextType purchaseContextType,
                                                             @PathVariable String publicIdentifier,
                                                             @PathVariable(&quot;id&quot;) String reservationId,
                                                             Principal principal) {
-<span class="nc" id="L92">        accessService.checkReservationOwnership(principal, purchaseContextType, publicIdentifier, reservationId);</span>
+<span class="fc" id="L92">        accessService.checkReservationOwnership(principal, purchaseContextType, publicIdentifier, reservationId);</span>
         // it is guaranteed by the check above, that reservation and purchaseContext exists
-<span class="nc" id="L94">        var reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
-<span class="nc" id="L95">        var purchaseContext = purchaseContextManager.findBy(purchaseContextType, publicIdentifier).orElseThrow();</span>
-<span class="nc" id="L96">        List&lt;AttendeesByCategory&gt; attendeesByCategories = List.of();</span>
-<span class="nc" id="L97">        List&lt;Owner&gt; subscriptionOwners = List.of();</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc" id="L99">            var conf = configurationManager.getFor(EnumSet.of(ENABLE_WALLET, ENABLE_PASS, BASE_URL), purchaseContext.getConfigurationLevel());</span>
-<span class="nc" id="L100">            var tickets = adminReservationManager.findTicketsWithMetadata(reservationId);</span>
-<span class="nc" id="L101">            var valuesByTicketId = purchaseContextFieldManager.findAllValuesByTicketIds(tickets.stream().map(t -&gt; t.getTicket().getId())</span>
-<span class="nc" id="L102">                .toList());</span>
-<span class="nc" id="L103">            var ticketsByCategories = tickets.stream().collect(groupingBy(t -&gt; t.getTicket().getCategoryId()));</span>
-<span class="nc" id="L104">            attendeesByCategories = ticketsByCategories.keySet().stream().map(categoryId -&gt; {</span>
-<span class="nc" id="L105">                var ticketsForCategory = ticketsByCategories.get(categoryId);</span>
-<span class="nc" id="L106">                var attendeesData = ticketsForCategory.stream().map(tfc -&gt; {</span>
-<span class="nc" id="L107">                    var ticket = tfc.getTicket();</span>
-<span class="nc" id="L108">                    var additional = valuesByTicketId.getOrDefault(ticket.getId(), List.of()).stream()</span>
-<span class="nc" id="L109">                        .collect(groupingBy(PurchaseContextFieldValue::getName, mapping(PurchaseContextFieldValue::getValue, toList())));</span>
-<span class="nc" id="L110">                    return new AttendeeData(</span>
-<span class="nc" id="L111">                        ticket.getFirstName(),</span>
-<span class="nc" id="L112">                        ticket.getLastName(),</span>
-<span class="nc" id="L113">                        ticket.getEmail(),</span>
-<span class="nc" id="L114">                        ticket.getExtReference(),</span>
-<span class="nc" id="L115">                        tfc.getAttributes(),</span>
+<span class="fc" id="L94">        var reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
+<span class="fc" id="L95">        var purchaseContext = purchaseContextManager.findBy(purchaseContextType, publicIdentifier).orElseThrow();</span>
+<span class="fc" id="L96">        List&lt;AttendeesByCategory&gt; attendeesByCategories = List.of();</span>
+<span class="fc" id="L97">        List&lt;Owner&gt; subscriptionOwners = List.of();</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L99">            var conf = configurationManager.getFor(EnumSet.of(ENABLE_WALLET, ENABLE_PASS, BASE_URL), purchaseContext.getConfigurationLevel());</span>
+<span class="fc" id="L100">            var tickets = adminReservationManager.findTicketsWithMetadata(reservationId);</span>
+<span class="fc" id="L101">            var valuesByTicketId = purchaseContextFieldManager.findAllValuesByTicketIds(tickets.stream().map(t -&gt; t.getTicket().getId())</span>
+<span class="fc" id="L102">                .toList());</span>
+<span class="fc" id="L103">            var ticketsByCategories = tickets.stream().collect(groupingBy(t -&gt; t.getTicket().getCategoryId()));</span>
+<span class="fc" id="L104">            attendeesByCategories = ticketsByCategories.keySet().stream().map(categoryId -&gt; {</span>
+<span class="fc" id="L105">                var ticketsForCategory = ticketsByCategories.get(categoryId);</span>
+<span class="fc" id="L106">                var attendeesData = ticketsForCategory.stream().map(tfc -&gt; {</span>
+<span class="fc" id="L107">                    var ticket = tfc.getTicket();</span>
+<span class="fc" id="L108">                    var additional = valuesByTicketId.getOrDefault(ticket.getId(), List.of()).stream()</span>
+<span class="fc" id="L109">                        .collect(groupingBy(PurchaseContextFieldValue::getName, mapping(PurchaseContextFieldValue::getValue, toList())));</span>
+<span class="fc" id="L110">                    return new AttendeeData(</span>
+<span class="fc" id="L111">                        ticket.getFirstName(),</span>
+<span class="fc" id="L112">                        ticket.getLastName(),</span>
+<span class="fc" id="L113">                        ticket.getEmail(),</span>
+<span class="fc" id="L114">                        ticket.getExtReference(),</span>
+<span class="fc" id="L115">                        tfc.getAttributes(),</span>
                         additional,
-<span class="nc" id="L117">                        AttendeeResources.fromTicket(ticket, purchaseContext, conf));</span>
-<span class="nc" id="L118">                }).toList();</span>
-<span class="nc" id="L119">                return new AttendeesByCategory(categoryId, ticketsForCategory.size(), attendeesData, List.of());</span>
-<span class="nc" id="L120">            }).toList();</span>
-<span class="nc" id="L121">        } else {</span>
-<span class="nc" id="L122">            var subscriptionDetails = ticketReservationManager.findSubscriptionDetails(reservationId).orElseThrow();</span>
-<span class="nc" id="L123">            var subscription = subscriptionDetails.getSubscription();</span>
-<span class="nc" id="L124">            var subscriptionId = subscription.getId();</span>
-<span class="nc" id="L125">            var metadata = requireNonNullElseGet(adminReservationManager.findSubscriptionMetadata(subscriptionId), SubscriptionMetadata::empty);</span>
-<span class="nc" id="L126">            var fields = purchaseContextFieldManager.findAllValuesBySubscriptionIds(List.of(subscriptionId))</span>
-<span class="nc" id="L127">                .getOrDefault(subscriptionId, List.of())</span>
-<span class="nc" id="L128">                .stream()</span>
-<span class="nc" id="L129">                .collect(groupingBy(PurchaseContextFieldValue::getName, mapping(PurchaseContextFieldValue::getValue, toList())));</span>
-<span class="nc" id="L130">            subscriptionOwners = List.of(</span>
-<span class="nc" id="L131">                new Owner(fields, subscriptionId, subscription.getFirstName(), subscription.getLastName(), subscription.getEmail(), metadata.getProperties())</span>
+<span class="fc" id="L117">                        AttendeeResources.fromTicket(ticket, purchaseContext, conf));</span>
+<span class="fc" id="L118">                }).toList();</span>
+<span class="fc" id="L119">                return new AttendeesByCategory(categoryId, ticketsForCategory.size(), attendeesData, List.of());</span>
+<span class="fc" id="L120">            }).toList();</span>
+<span class="fc" id="L121">        } else {</span>
+<span class="fc" id="L122">            var subscriptionDetails = ticketReservationManager.findSubscriptionDetails(reservationId).orElseThrow();</span>
+<span class="fc" id="L123">            var subscription = subscriptionDetails.getSubscription();</span>
+<span class="fc" id="L124">            var subscriptionId = subscription.getId();</span>
+<span class="fc" id="L125">            var metadata = requireNonNullElseGet(adminReservationManager.findSubscriptionMetadata(subscriptionId), SubscriptionMetadata::empty);</span>
+<span class="fc" id="L126">            var fields = purchaseContextFieldManager.findAllValuesBySubscriptionIds(List.of(subscriptionId))</span>
+<span class="fc" id="L127">                .getOrDefault(subscriptionId, List.of())</span>
+<span class="fc" id="L128">                .stream()</span>
+<span class="fc" id="L129">                .collect(groupingBy(PurchaseContextFieldValue::getName, mapping(PurchaseContextFieldValue::getValue, toList())));</span>
+<span class="fc" id="L130">            subscriptionOwners = List.of(</span>
+<span class="fc" id="L131">                new Owner(fields, subscriptionId, subscription.getFirstName(), subscription.getLastName(), subscription.getEmail(), metadata.getProperties())</span>
             );
         }
-<span class="nc" id="L134">        return ResponseEntity.ok(</span>
-<span class="nc" id="L135">            new ReservationDetail(reservationId, reservation.getStatus(), new ReservationUser(null, reservation.getFirstName(), reservation.getLastName(), reservation.getEmail(), null), attendeesByCategories, subscriptionOwners)</span>
+<span class="fc" id="L134">        return ResponseEntity.ok(</span>
+<span class="fc" id="L135">            new ReservationDetail(reservationId, reservation.getStatus(), new ReservationUser(null, reservation.getFirstName(), reservation.getLastName(), reservation.getEmail(), null), attendeesByCategories, subscriptionOwners)</span>
         );
     }
 
@@ -141,22 +141,22 @@ public class ReservationApiV1Controller {
     public ResponseEntity&lt;CreationResponse&gt; createTicketsReservation(@PathVariable(&quot;slug&quot;) String eventSlug,
                                                                      @RequestBody TicketReservationCreationRequest reservationCreationRequest,
                                                                      Principal principal) {
-<span class="nc" id="L144">        accessService.checkEventReservationCreationRequest(principal, eventSlug, reservationCreationRequest);</span>
-<span class="nc" id="L145">        var bindingResult = new BeanPropertyBindingResult(reservationCreationRequest, &quot;reservation&quot;);</span>
+<span class="fc" id="L144">        accessService.checkEventReservationCreationRequest(principal, eventSlug, reservationCreationRequest);</span>
+<span class="fc" id="L145">        var bindingResult = new BeanPropertyBindingResult(reservationCreationRequest, &quot;reservation&quot;);</span>
 
-<span class="nc" id="L147">        var optionalEvent = purchaseContextManager.findBy(PurchaseContextType.event, eventSlug);</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (optionalEvent.isEmpty()) {</span>
+<span class="fc" id="L147">        var optionalEvent = purchaseContextManager.findBy(PurchaseContextType.event, eventSlug);</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (optionalEvent.isEmpty()) {</span>
 <span class="nc" id="L149">            return ResponseEntity.notFound().build();</span>
         }
-<span class="nc" id="L151">        var event = (Event) optionalEvent.get();</span>
-<span class="nc" id="L152">        Optional&lt;String&gt; promoCodeDiscount = ReservationUtil.checkPromoCode(reservationCreationRequest, event, promoCodeRequestManager, bindingResult);</span>
-<span class="nc" id="L153">        var locale = Locale.forLanguageTag(requireNonNullElseGet(reservationCreationRequest.getLanguage(), () -&gt; event.getContentLanguages().get(0).getLanguage()));</span>
-<span class="nc" id="L154">        var selected = ReservationUtil.validateCreateRequest(reservationCreationRequest, bindingResult, ticketReservationManager, eventManager, additionalServiceManager, &quot;&quot;, event);</span>
-<span class="nc bnc" id="L155" title="All 4 branches missed.">        if(selected.isPresent() &amp;&amp; !bindingResult.hasErrors()) {</span>
-<span class="nc" id="L156">            var pair = selected.get();</span>
-<span class="nc" id="L157">            return handleReservationCreationErrors(() -&gt; ticketReservationManager.createTicketReservation(event, pair.getLeft(), pair.getRight(), promoCodeDiscount, locale, principal), bindingResult, event.getType())</span>
-<span class="nc" id="L158">                .map(id -&gt; ResponseEntity.ok(postCreate(reservationCreationRequest, id, event, locale)))</span>
-<span class="nc" id="L159">                .orElseGet(() -&gt; ResponseEntity.badRequest().build());</span>
+<span class="fc" id="L151">        var event = (Event) optionalEvent.get();</span>
+<span class="fc" id="L152">        Optional&lt;String&gt; promoCodeDiscount = ReservationUtil.checkPromoCode(reservationCreationRequest, event, promoCodeRequestManager, bindingResult);</span>
+<span class="pc" id="L153">        var locale = Locale.forLanguageTag(requireNonNullElseGet(reservationCreationRequest.getLanguage(), () -&gt; event.getContentLanguages().get(0).getLanguage()));</span>
+<span class="fc" id="L154">        var selected = ReservationUtil.validateCreateRequest(reservationCreationRequest, bindingResult, ticketReservationManager, eventManager, additionalServiceManager, &quot;&quot;, event);</span>
+<span class="pc bpc" id="L155" title="2 of 4 branches missed.">        if(selected.isPresent() &amp;&amp; !bindingResult.hasErrors()) {</span>
+<span class="fc" id="L156">            var pair = selected.get();</span>
+<span class="fc" id="L157">            return handleReservationCreationErrors(() -&gt; ticketReservationManager.createTicketReservation(event, pair.getLeft(), pair.getRight(), promoCodeDiscount, locale, principal), bindingResult, event.getType())</span>
+<span class="fc" id="L158">                .map(id -&gt; ResponseEntity.ok(postCreate(reservationCreationRequest, id, event, locale)))</span>
+<span class="pc" id="L159">                .orElseGet(() -&gt; ResponseEntity.badRequest().build());</span>
         } else {
 <span class="nc" id="L161">            return ResponseEntity.badRequest()</span>
 <span class="nc" id="L162">                .body(CreationResponse.error(bindingResult.getAllErrors().stream().map(err -&gt; ErrorCode.custom(&quot;invalid.&quot;+err.getObjectName(), err.getCode())).collect(toList())));</span>
@@ -192,19 +192,19 @@ public class ReservationApiV1Controller {
     public ResponseEntity&lt;CreationResponse&gt; createSubscriptionReservation(@PathVariable(&quot;id&quot;) String subscriptionId,
                                                                           @RequestBody SubscriptionReservationCreationRequest creationRequest,
                                                                           Principal principal) {
-<span class="nc" id="L195">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId);</span>
-<span class="nc" id="L196">        var bindingResult = new BeanPropertyBindingResult(creationRequest, &quot;reservation&quot;);</span>
+<span class="fc" id="L195">        accessService.checkSubscriptionDescriptorOwnership(principal, subscriptionId);</span>
+<span class="fc" id="L196">        var bindingResult = new BeanPropertyBindingResult(creationRequest, &quot;reservation&quot;);</span>
 
-<span class="nc" id="L198">        var optionalDescriptor = purchaseContextManager.findBy(PurchaseContextType.subscription, subscriptionId);</span>
+<span class="fc" id="L198">        var optionalDescriptor = purchaseContextManager.findBy(PurchaseContextType.subscription, subscriptionId);</span>
 
-<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (optionalDescriptor.isEmpty()) {</span>
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">        if (optionalDescriptor.isEmpty()) {</span>
 <span class="nc" id="L201">            return ResponseEntity.notFound().build();</span>
         }
-<span class="nc" id="L203">        var subscriptionDescriptor = (SubscriptionDescriptor) optionalDescriptor.get();</span>
-<span class="nc" id="L204">        var locale = Locale.forLanguageTag(requireNonNullElseGet(creationRequest.getLanguage(), () -&gt; subscriptionDescriptor.getContentLanguages().get(0).getLanguage()));</span>
-<span class="nc" id="L205">        return handleReservationCreationErrors(() -&gt; ticketReservationManager.createSubscriptionReservation(subscriptionDescriptor, locale, principal, creationRequest.getMetadataOrNull()), bindingResult, subscriptionDescriptor.getType())</span>
-<span class="nc" id="L206">            .map(id -&gt; ResponseEntity.ok(postCreate(creationRequest, id, subscriptionDescriptor, locale)))</span>
-<span class="nc" id="L207">            .orElseGet(() -&gt; {</span>
+<span class="fc" id="L203">        var subscriptionDescriptor = (SubscriptionDescriptor) optionalDescriptor.get();</span>
+<span class="pc" id="L204">        var locale = Locale.forLanguageTag(requireNonNullElseGet(creationRequest.getLanguage(), () -&gt; subscriptionDescriptor.getContentLanguages().get(0).getLanguage()));</span>
+<span class="fc" id="L205">        return handleReservationCreationErrors(() -&gt; ticketReservationManager.createSubscriptionReservation(subscriptionDescriptor, locale, principal, creationRequest.getMetadataOrNull()), bindingResult, subscriptionDescriptor.getType())</span>
+<span class="fc" id="L206">            .map(id -&gt; ResponseEntity.ok(postCreate(creationRequest, id, subscriptionDescriptor, locale)))</span>
+<span class="fc" id="L207">            .orElseGet(() -&gt; {</span>
 <span class="nc bnc" id="L208" title="All 2 branches missed.">                if (bindingResult.hasErrors()) {</span>
 <span class="nc" id="L209">                    return ResponseEntity.badRequest()</span>
 <span class="nc" id="L210">                        .body(</span>
@@ -220,32 +220,32 @@ public class ReservationApiV1Controller {
                                                                               @RequestBody ReservationConfirmationRequest reservationConfirmationRequest,
                                                                               Principal principal) {
 
-<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (!reservationConfirmationRequest.isValid()) {</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if (!reservationConfirmationRequest.isValid()) {</span>
 <span class="nc" id="L224">            return ResponseEntity.badRequest().build();</span>
         }
 
-<span class="nc" id="L227">        var result = adminReservationManager.confirmReservation(reservationId,</span>
+<span class="fc" id="L227">        var result = adminReservationManager.confirmReservation(reservationId,</span>
             principal,
-<span class="nc" id="L229">            reservationConfirmationRequest.transaction(),</span>
-<span class="nc" id="L230">            Notification.orEmpty(reservationConfirmationRequest.notification()),</span>
-<span class="nc" id="L231">            reservationConfirmationRequest.reservationBillingData());</span>
+<span class="fc" id="L229">            reservationConfirmationRequest.transaction(),</span>
+<span class="fc" id="L230">            Notification.orEmpty(reservationConfirmationRequest.notification()),</span>
+<span class="fc" id="L231">            reservationConfirmationRequest.reservationBillingData());</span>
 
-<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (result.isSuccess()) {</span>
-<span class="nc" id="L234">            var data = result.getData();</span>
-<span class="nc" id="L235">            var purchaseContext = data.getRight();</span>
-<span class="nc bnc" id="L236" title="All 2 branches missed.">            if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc" id="L237">                return ResponseEntity.ok(new ReservationConfirmationResponse(</span>
-<span class="nc" id="L238">                    data.getMiddle().stream().map(t -&gt; new HolderDetail(t.getUuid(), t.getFirstName(), t.getLastName(), t.getEmail())).collect(toList())</span>
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        if (result.isSuccess()) {</span>
+<span class="fc" id="L234">            var data = result.getData();</span>
+<span class="fc" id="L235">            var purchaseContext = data.getRight();</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">            if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L237">                return ResponseEntity.ok(new ReservationConfirmationResponse(</span>
+<span class="fc" id="L238">                    data.getMiddle().stream().map(t -&gt; new HolderDetail(t.getUuid(), t.getFirstName(), t.getLastName(), t.getEmail())).collect(toList())</span>
                 ));
             } else {
-<span class="nc" id="L241">                var subscriptions = ticketReservationManager.findSubscriptionDetails(data.getLeft().getId())</span>
-<span class="nc" id="L242">                    .map(List::of)</span>
-<span class="nc" id="L243">                    .orElseGet(List::of);</span>
-<span class="nc" id="L244">                return ResponseEntity.ok(new ReservationConfirmationResponse(</span>
-<span class="nc" id="L245">                    subscriptions.stream().map(s -&gt; {</span>
-<span class="nc" id="L246">                        var subscription = s.getSubscription();</span>
-<span class="nc" id="L247">                        return new HolderDetail(subscription.getId().toString(), subscription.getFirstName(), subscription.getLastName(), subscription.getEmail());</span>
-<span class="nc" id="L248">                    }).collect(toList()))</span>
+<span class="fc" id="L241">                var subscriptions = ticketReservationManager.findSubscriptionDetails(data.getLeft().getId())</span>
+<span class="fc" id="L242">                    .map(List::of)</span>
+<span class="fc" id="L243">                    .orElseGet(List::of);</span>
+<span class="fc" id="L244">                return ResponseEntity.ok(new ReservationConfirmationResponse(</span>
+<span class="fc" id="L245">                    subscriptions.stream().map(s -&gt; {</span>
+<span class="fc" id="L246">                        var subscription = s.getSubscription();</span>
+<span class="fc" id="L247">                        return new HolderDetail(subscription.getId().toString(), subscription.getFirstName(), subscription.getLastName(), subscription.getEmail());</span>
+<span class="fc" id="L248">                    }).collect(toList()))</span>
                 );
             }
         } else {
@@ -292,36 +292,36 @@ public class ReservationApiV1Controller {
                                         String id,
                                         PurchaseContext purchaseContext,
                                         Locale locale) {
-<span class="nc" id="L295">        var user = creationRequest.getUser();</span>
-<span class="nc bnc" id="L296" title="All 2 branches missed.">        if(user != null) {</span>
-<span class="nc" id="L297">            ticketReservationManager.setReservationOwner(id, user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), locale.getLanguage());</span>
+<span class="fc" id="L295">        var user = creationRequest.getUser();</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        if(user != null) {</span>
+<span class="fc" id="L297">            ticketReservationManager.setReservationOwner(id, user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), locale.getLanguage());</span>
         }
-<span class="nc" id="L299">        var reservationConfiguration = creationRequest.getReservationConfiguration();</span>
-<span class="nc bnc" id="L300" title="All 2 branches missed.">        if(reservationConfiguration != null) {</span>
-<span class="nc" id="L301">            var reservationMetadata = new ReservationMetadata(reservationConfiguration.isHideContactData(),</span>
-<span class="nc" id="L302">                false,</span>
-<span class="nc" id="L303">                false,</span>
-<span class="nc" id="L304">                reservationConfiguration.isHideConfirmationButtons(),</span>
-<span class="nc" id="L305">                reservationConfiguration.isLockEmailEdit());</span>
-<span class="nc" id="L306">            ticketReservationManager.setReservationMetadata(id, reservationMetadata);</span>
+<span class="fc" id="L299">        var reservationConfiguration = creationRequest.getReservationConfiguration();</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">        if(reservationConfiguration != null) {</span>
+<span class="fc" id="L301">            var reservationMetadata = new ReservationMetadata(reservationConfiguration.isHideContactData(),</span>
+<span class="fc" id="L302">                false,</span>
+<span class="fc" id="L303">                false,</span>
+<span class="fc" id="L304">                reservationConfiguration.isHideConfirmationButtons(),</span>
+<span class="fc" id="L305">                reservationConfiguration.isLockEmailEdit());</span>
+<span class="fc" id="L306">            ticketReservationManager.setReservationMetadata(id, reservationMetadata);</span>
         }
-<span class="nc bnc" id="L308" title="All 2 branches missed.">        var descriptorId = creationRequest instanceof TicketReservationCreationRequest trcr ? trcr.getSubscriptionId() : null;</span>
-<span class="nc bnc" id="L309" title="All 4 branches missed.">        if (creationRequest instanceof SubscriptionReservationCreationRequest request &amp;&amp; request.hasAdditionalInfo()) {</span>
-<span class="nc" id="L310">            var subscriptionId = ticketReservationManager.findSubscriptionDetails(id).orElseThrow().getSubscription().getId();</span>
-<span class="nc" id="L311">            purchaseContextFieldManager.updateFieldsForReservation(request.getSubscriptionOwner(), purchaseContext,</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">        var descriptorId = creationRequest instanceof TicketReservationCreationRequest trcr ? trcr.getSubscriptionId() : null;</span>
+<span class="fc bfc" id="L309" title="All 4 branches covered.">        if (creationRequest instanceof SubscriptionReservationCreationRequest request &amp;&amp; request.hasAdditionalInfo()) {</span>
+<span class="fc" id="L310">            var subscriptionId = ticketReservationManager.findSubscriptionDetails(id).orElseThrow().getSubscription().getId();</span>
+<span class="fc" id="L311">            purchaseContextFieldManager.updateFieldsForReservation(request.getSubscriptionOwner(), purchaseContext,</span>
                 null, subscriptionId);
         }
-<span class="nc bnc" id="L314" title="All 2 branches missed.">        return CreationResponse.success(id, ticketReservationManager.reservationUrlForExternalClients(id, purchaseContext, locale.getLanguage(), user != null, descriptorId));</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">        return CreationResponse.success(id, ticketReservationManager.reservationUrlForExternalClients(id, purchaseContext, locale.getLanguage(), user != null, descriptorId));</span>
     }
 
-<span class="nc" id="L317">    public record CreationResponse(String id, String href, List&lt;ErrorCode&gt; errors) {</span>
+<span class="fc" id="L317">    public record CreationResponse(String id, String href, List&lt;ErrorCode&gt; errors) {</span>
 
         public boolean isSuccess() {
-<span class="nc bnc" id="L320" title="All 4 branches missed.">            return CollectionUtils.isEmpty(errors) &amp;&amp; StringUtils.isNotEmpty(id);</span>
+<span class="pc bpc" id="L320" title="2 of 4 branches missed.">            return CollectionUtils.isEmpty(errors) &amp;&amp; StringUtils.isNotEmpty(id);</span>
         }
 
         static CreationResponse success(String id, String href) {
-<span class="nc" id="L324">            return new CreationResponse(id, href, null);</span>
+<span class="fc" id="L324">            return new CreationResponse(id, href, null);</span>
         }
 
         static CreationResponse error(List&lt;ErrorCode&gt; errors) {

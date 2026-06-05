@@ -31,11 +31,11 @@ public class EventListItem {
     private final String requestContextPath;
     private final List&lt;EventDescription&gt; eventDescriptions;
 
-<span class="nc" id="L34">    public EventListItem(Event event, String requestContextPath, List&lt;EventDescription&gt; eventDescriptions) {</span>
-<span class="nc" id="L35">        this.event = event;</span>
-<span class="nc" id="L36">        this.requestContextPath = requestContextPath;</span>
-<span class="nc" id="L37">        this.eventDescriptions = eventDescriptions;</span>
-<span class="nc" id="L38">    }</span>
+<span class="fc" id="L34">    public EventListItem(Event event, String requestContextPath, List&lt;EventDescription&gt; eventDescriptions) {</span>
+<span class="fc" id="L35">        this.event = event;</span>
+<span class="fc" id="L36">        this.requestContextPath = requestContextPath;</span>
+<span class="fc" id="L37">        this.eventDescriptions = eventDescriptions;</span>
+<span class="fc" id="L38">    }</span>
 
     public String getImageUrl() {
 <span class="nc bnc" id="L41" title="All 2 branches missed.">        return event.getFileBlobIdIsPresent() ? requestContextPath + &quot;/file/&quot; + event.getFileBlobId() : event.getImageUrl();</span>
@@ -50,7 +50,7 @@ public class EventListItem {
     }
 
     public String getKey() {
-<span class="nc" id="L53">        return event.getShortName();</span>
+<span class="fc" id="L53">        return event.getShortName();</span>
     }
 
     public List&lt;PublicEventDescription&gt; getDescriptions() {

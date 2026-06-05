@@ -47,26 +47,26 @@ import static java.util.Objects.requireNonNullElseGet;
 @Getter
 public class SubscriptionDescriptor implements PurchaseContext {
 
-<span class="nc" id="L50">    public enum SubscriptionUsageType {</span>
-<span class="nc" id="L51">        ONCE_PER_EVENT, UNLIMITED</span>
+<span class="fc" id="L50">    public enum SubscriptionUsageType {</span>
+<span class="fc" id="L51">        ONCE_PER_EVENT, UNLIMITED</span>
     }
 
-<span class="nc" id="L54">    public enum SubscriptionTimeUnit {</span>
-<span class="nc" id="L55">        DAYS(ChronoUnit.DAYS), MONTHS(ChronoUnit.MONTHS), YEARS(ChronoUnit.YEARS);</span>
+<span class="fc" id="L54">    public enum SubscriptionTimeUnit {</span>
+<span class="fc" id="L55">        DAYS(ChronoUnit.DAYS), MONTHS(ChronoUnit.MONTHS), YEARS(ChronoUnit.YEARS);</span>
 
         private final TemporalUnit temporalUnit;
 
-<span class="nc" id="L59">        SubscriptionTimeUnit(TemporalUnit temporalUnit) {</span>
-<span class="nc" id="L60">            this.temporalUnit = temporalUnit;</span>
-<span class="nc" id="L61">        }</span>
+<span class="fc" id="L59">        SubscriptionTimeUnit(TemporalUnit temporalUnit) {</span>
+<span class="fc" id="L60">            this.temporalUnit = temporalUnit;</span>
+<span class="fc" id="L61">        }</span>
 
         public TemporalUnit getTemporalUnit() {
-<span class="nc" id="L64">            return temporalUnit;</span>
+<span class="fc" id="L64">            return temporalUnit;</span>
         }
     }
 
-<span class="nc" id="L68">    public enum SubscriptionValidityType {</span>
-<span class="nc" id="L69">        STANDARD, CUSTOM, NOT_SET</span>
+<span class="fc" id="L68">    public enum SubscriptionValidityType {</span>
+<span class="fc" id="L69">        STANDARD, CUSTOM, NOT_SET</span>
     }
 
     private final UUID id;
@@ -127,90 +127,90 @@ public class SubscriptionDescriptor implements PurchaseContext {
                                   @Column(&quot;allowed_payment_proxies&quot;) @Array List&lt;String&gt; paymentProxies,
                                   @Column(&quot;private_key&quot;) String privateKey,
                                   @Column(&quot;time_zone&quot;) String timeZone,
-<span class="nc" id="L130">                                  @Column(&quot;supports_tickets_generation&quot;) Boolean supportsTicketsGeneration) {</span>
-<span class="nc" id="L131">        var zoneId = ZoneId.of(timeZone);</span>
-<span class="nc" id="L132">        this.id = id;</span>
-<span class="nc" id="L133">        this.title = title;</span>
-<span class="nc" id="L134">        this.description = description;</span>
-<span class="nc" id="L135">        this.maxAvailable = maxAvailable;</span>
-<span class="nc" id="L136">        this.creation = creation;</span>
-<span class="nc" id="L137">        this.timeZone = timeZone;</span>
-<span class="nc" id="L138">        this.onSaleFrom = LocaleUtil.atZone(onSaleFrom, zoneId);</span>
-<span class="nc" id="L139">        this.onSaleTo = LocaleUtil.atZone(onSaleTo, zoneId);</span>
-<span class="nc" id="L140">        this.price = price;</span>
-<span class="nc" id="L141">        this.vat = vat;</span>
-<span class="nc" id="L142">        this.vatStatus = vatStatus;</span>
-<span class="nc" id="L143">        this.currency = currency;</span>
-<span class="nc" id="L144">        this.isPublic = isPublic;</span>
-<span class="nc" id="L145">        this.organizationId = organizationId;</span>
+<span class="fc" id="L130">                                  @Column(&quot;supports_tickets_generation&quot;) Boolean supportsTicketsGeneration) {</span>
+<span class="fc" id="L131">        var zoneId = ZoneId.of(timeZone);</span>
+<span class="fc" id="L132">        this.id = id;</span>
+<span class="fc" id="L133">        this.title = title;</span>
+<span class="fc" id="L134">        this.description = description;</span>
+<span class="fc" id="L135">        this.maxAvailable = maxAvailable;</span>
+<span class="fc" id="L136">        this.creation = creation;</span>
+<span class="fc" id="L137">        this.timeZone = timeZone;</span>
+<span class="fc" id="L138">        this.onSaleFrom = LocaleUtil.atZone(onSaleFrom, zoneId);</span>
+<span class="fc" id="L139">        this.onSaleTo = LocaleUtil.atZone(onSaleTo, zoneId);</span>
+<span class="fc" id="L140">        this.price = price;</span>
+<span class="fc" id="L141">        this.vat = vat;</span>
+<span class="fc" id="L142">        this.vatStatus = vatStatus;</span>
+<span class="fc" id="L143">        this.currency = currency;</span>
+<span class="fc" id="L144">        this.isPublic = isPublic;</span>
+<span class="fc" id="L145">        this.organizationId = organizationId;</span>
 
-<span class="nc" id="L147">        this.maxEntries = maxEntries;</span>
-<span class="nc" id="L148">        this.validityType = validityType;</span>
-<span class="nc" id="L149">        this.validityTimeUnit = validityTimeUnit;</span>
-<span class="nc" id="L150">        this.validityUnits = validityUnits;</span>
-<span class="nc" id="L151">        this.validityFrom = LocaleUtil.atZone(validityFrom, zoneId);</span>
-<span class="nc" id="L152">        this.validityTo = LocaleUtil.atZone(validityTo, zoneId);</span>
-<span class="nc" id="L153">        this.usageType = usageType;</span>
+<span class="fc" id="L147">        this.maxEntries = maxEntries;</span>
+<span class="fc" id="L148">        this.validityType = validityType;</span>
+<span class="fc" id="L149">        this.validityTimeUnit = validityTimeUnit;</span>
+<span class="fc" id="L150">        this.validityUnits = validityUnits;</span>
+<span class="fc" id="L151">        this.validityFrom = LocaleUtil.atZone(validityFrom, zoneId);</span>
+<span class="fc" id="L152">        this.validityTo = LocaleUtil.atZone(validityTo, zoneId);</span>
+<span class="fc" id="L153">        this.usageType = usageType;</span>
 
-<span class="nc" id="L155">        this.termsAndConditionsUrl = termsAndConditionsUrl;</span>
-<span class="nc" id="L156">        this.privacyPolicyUrl = privacyPolicyUrl;</span>
-<span class="nc" id="L157">        this.fileBlobId = fileBlobId;</span>
-<span class="nc" id="L158">        this.paymentProxies = paymentProxies.stream().map(PaymentProxy::valueOf).collect(Collectors.toList());</span>
+<span class="fc" id="L155">        this.termsAndConditionsUrl = termsAndConditionsUrl;</span>
+<span class="fc" id="L156">        this.privacyPolicyUrl = privacyPolicyUrl;</span>
+<span class="fc" id="L157">        this.fileBlobId = fileBlobId;</span>
+<span class="fc" id="L158">        this.paymentProxies = paymentProxies.stream().map(PaymentProxy::valueOf).collect(Collectors.toList());</span>
 
-<span class="nc" id="L160">        this.privateKey = privateKey;</span>
-<span class="nc" id="L161">        this.supportsTicketsGeneration = Boolean.TRUE.equals(supportsTicketsGeneration);</span>
-<span class="nc" id="L162">    }</span>
+<span class="fc" id="L160">        this.privateKey = privateKey;</span>
+<span class="fc" id="L161">        this.supportsTicketsGeneration = Boolean.TRUE.equals(supportsTicketsGeneration);</span>
+<span class="fc" id="L162">    }</span>
 
     @Override
     public List&lt;ContentLanguage&gt; getContentLanguages() {
-<span class="nc" id="L166">        var languages = title.keySet();</span>
-<span class="nc" id="L167">        return ContentLanguage.ALL_LANGUAGES.stream()</span>
-<span class="nc" id="L168">            .filter(l -&gt; languages.contains(l.getLanguage()))</span>
-<span class="nc" id="L169">            .collect(Collectors.toList());</span>
+<span class="fc" id="L166">        var languages = title.keySet();</span>
+<span class="fc" id="L167">        return ContentLanguage.ALL_LANGUAGES.stream()</span>
+<span class="fc" id="L168">            .filter(l -&gt; languages.contains(l.getLanguage()))</span>
+<span class="fc" id="L169">            .collect(Collectors.toList());</span>
     }
 
     @JsonIgnore
     @Override
     public ConfigurationLevel getConfigurationLevel() {
-<span class="nc" id="L175">        return ConfigurationLevel.subscriptionDescriptor(this);</span>
+<span class="fc" id="L175">        return ConfigurationLevel.subscriptionDescriptor(this);</span>
     }
 
     @Override
     public List&lt;PaymentProxy&gt; getAllowedPaymentProxies() {
-<span class="nc" id="L180">        return getPaymentProxies();</span>
+<span class="fc" id="L180">        return getPaymentProxies();</span>
     }
 
     @Override
     public String getPrivacyPolicyLinkOrNull() {
-<span class="nc" id="L185">        return StringUtils.trimToNull(privacyPolicyUrl);</span>
+<span class="fc" id="L185">        return StringUtils.trimToNull(privacyPolicyUrl);</span>
     }
 
     @Override
     public String getPublicIdentifier() {
-<span class="nc" id="L190">        return getId().toString();</span>
+<span class="fc" id="L190">        return getId().toString();</span>
     }
 
     @JsonIgnore
     @Override
     public PurchaseContextType getType() {
-<span class="nc" id="L196">        return PurchaseContextType.subscription;</span>
+<span class="fc" id="L196">        return PurchaseContextType.subscription;</span>
     }
 
     @JsonIgnore
     @Override
     public ZoneId getZoneId() {
-<span class="nc" id="L202">        return ZoneId.of(timeZone);</span>
+<span class="fc" id="L202">        return ZoneId.of(timeZone);</span>
     }
 
     @Override
     public String getDisplayName() {
-<span class="nc" id="L207">        return title.keySet().stream().findFirst().map(title::get).orElse(&quot;Subscription&quot;); //FIXME</span>
+<span class="fc" id="L207">        return title.keySet().stream().findFirst().map(title::get).orElse(&quot;Subscription&quot;); //FIXME</span>
     }
 
     @JsonIgnore
     @Override
     public Optional&lt;Event&gt; event() {
-<span class="nc" id="L213">        return Optional.empty();</span>
+<span class="fc" id="L213">        return Optional.empty();</span>
     }
 
     @JsonIgnore
@@ -221,7 +221,7 @@ public class SubscriptionDescriptor implements PurchaseContext {
 
     @Override
     public ZonedDateTime getBegin() {
-<span class="nc bnc" id="L224" title="All 2 branches missed.">        return validityFrom != null ? validityFrom : ZonedDateTime.now(ClockProvider.clock()).plusMonths(2);</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">        return validityFrom != null ? validityFrom : ZonedDateTime.now(ClockProvider.clock()).plusMonths(2);</span>
     }
 
     @JsonIgnore
@@ -231,20 +231,20 @@ public class SubscriptionDescriptor implements PurchaseContext {
 
     @Override
     public boolean isFreeOfCharge() {
-<span class="nc" id="L234">        return false;</span>
+<span class="fc" id="L234">        return false;</span>
     }
 
     public String getLocalizedTitle(Locale locale) {
-<span class="nc" id="L238">        var fallbackLocale = title.keySet().stream().findFirst().orElse(&quot;en&quot;);</span>
-<span class="nc" id="L239">        return MustacheCustomTag.renderToTextCommonmark(title.getOrDefault(locale.toLanguageTag(), fallbackLocale));</span>
+<span class="fc" id="L238">        var fallbackLocale = title.keySet().stream().findFirst().orElse(&quot;en&quot;);</span>
+<span class="fc" id="L239">        return MustacheCustomTag.renderToTextCommonmark(title.getOrDefault(locale.toLanguageTag(), fallbackLocale));</span>
     }
 
     public Map&lt;String, String&gt; getTitleAsText() {
-<span class="nc" id="L243">        return renderTextCommonMark(title);</span>
+<span class="fc" id="L243">        return renderTextCommonMark(title);</span>
     }
 
     public Map&lt;String, String&gt; getDescriptionAsText() {
-<span class="nc" id="L247">        return renderTextCommonMark(description);</span>
+<span class="fc" id="L247">        return renderTextCommonMark(description);</span>
     }
 
     public boolean withinSalePeriod(Clock clock) {
@@ -254,13 +254,13 @@ public class SubscriptionDescriptor implements PurchaseContext {
     }
 
     private Map&lt;String, String&gt; renderTextCommonMark(Map&lt;String, String&gt; original) {
-<span class="nc" id="L257">        return original.entrySet().stream()</span>
-<span class="nc" id="L258">            .map(entry -&gt; Map.entry(entry.getKey(), MustacheCustomTag.renderToTextCommonmark(entry.getValue())))</span>
-<span class="nc" id="L259">            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
+<span class="fc" id="L257">        return original.entrySet().stream()</span>
+<span class="fc" id="L258">            .map(entry -&gt; Map.entry(entry.getKey(), MustacheCustomTag.renderToTextCommonmark(entry.getValue())))</span>
+<span class="fc" id="L259">            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
     }
 
     public String getFormattedPrice() {
-<span class="nc" id="L263">        return MonetaryUtil.formatCents(price, currency);</span>
+<span class="fc" id="L263">        return MonetaryUtil.formatCents(price, currency);</span>
     }
 
 }

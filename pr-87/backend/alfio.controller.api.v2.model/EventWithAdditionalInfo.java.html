@@ -77,123 +77,123 @@ public class EventWithAdditionalInfo implements DateValidity, ApiPurchaseContext
     private final boolean canApplySubscriptions;
 
     public String getShortName() {
-<span class="nc" id="L80">        return event.getShortName();</span>
+<span class="fc" id="L80">        return event.getShortName();</span>
     }
 
     public String getDisplayName() {
-<span class="nc" id="L84">        return event.getDisplayName();</span>
+<span class="fc" id="L84">        return event.getDisplayName();</span>
     }
 
     public String getFileBlobId() {
-<span class="nc" id="L88">        return event.getFileBlobId();</span>
+<span class="fc" id="L88">        return event.getFileBlobId();</span>
     }
 
     public String getWebsiteUrl() {
-<span class="nc" id="L92">        return event.getWebsiteUrl();</span>
+<span class="fc" id="L92">        return event.getWebsiteUrl();</span>
     }
 
     public Integer getAvailableTicketsCount() {
-<span class="nc" id="L96">        return availableTicketsCount;</span>
+<span class="fc" id="L96">        return availableTicketsCount;</span>
     }
 
     public String getMapUrl() {
-<span class="nc" id="L100">        return mapUrl;</span>
+<span class="fc" id="L100">        return mapUrl;</span>
     }
 
     @Override
     public String getOrganizationName() {
-<span class="nc" id="L105">        return organization.getName();</span>
+<span class="fc" id="L105">        return organization.getName();</span>
     }
 
     @Override
     public String getOrganizationEmail() {
-<span class="nc" id="L110">        return organization.getEmail();</span>
+<span class="fc" id="L110">        return organization.getEmail();</span>
     }
 
     public String getLocation() {
-<span class="nc" id="L114">        return event.getLocation();</span>
+<span class="fc" id="L114">        return event.getLocation();</span>
     }
 
     @Override
     public Map&lt;String, String&gt; getDescription() {
-<span class="nc" id="L119">        return description;</span>
+<span class="fc" id="L119">        return description;</span>
     }
 
     @Override
     public String getPrivacyPolicyUrl() {
-<span class="nc" id="L124">        return event.getPrivacyPolicyLinkOrNull();</span>
+<span class="fc" id="L124">        return event.getPrivacyPolicyLinkOrNull();</span>
     }
 
     @Override
     public String getTermsAndConditionsUrl() {
-<span class="nc" id="L129">        return event.getTermsAndConditionsUrl();</span>
+<span class="fc" id="L129">        return event.getTermsAndConditionsUrl();</span>
     }
 
     @Override
     public String getCurrency() {
-<span class="nc" id="L134">        return event.getCurrency();</span>
+<span class="fc" id="L134">        return event.getCurrency();</span>
     }
 
     @Override
     public boolean isVatIncluded() {
-<span class="nc" id="L139">        return event.isVatIncluded();</span>
+<span class="fc" id="L139">        return event.isVatIncluded();</span>
     }
 
     @Override
     public String getVat() {
-<span class="nc" id="L144">        return event.getVat().toString();</span>
+<span class="fc" id="L144">        return event.getVat().toString();</span>
     }
 
     @Override
     public boolean isFree() {
-<span class="nc" id="L149">        return event.getFree();</span>
+<span class="fc" id="L149">        return event.getFree();</span>
     }
 
     @Override
     public String getBankAccount() {
-<span class="nc" id="L154">        return bankAccount;</span>
+<span class="fc" id="L154">        return bankAccount;</span>
     }
 
     @Override
     public List&lt;String&gt; getBankAccountOwner() {
-<span class="nc" id="L159">        return bankAccountOwner;</span>
+<span class="fc" id="L159">        return bankAccountOwner;</span>
     }
 
 
     // date related fields
     @Override
     public boolean isSameDay() {
-<span class="nc" id="L166">        return event.getSameDay();</span>
+<span class="fc" id="L166">        return event.getSameDay();</span>
     }
 
     @Override
     public Map&lt;String, String&gt; getFormattedBeginDate() {
-<span class="nc" id="L171">        return formattedBeginDate;</span>
+<span class="fc" id="L171">        return formattedBeginDate;</span>
     }
 
     @Override
     public Map&lt;String, String&gt; getFormattedBeginTime() {
-<span class="nc" id="L176">        return formattedBeginTime;</span>
+<span class="fc" id="L176">        return formattedBeginTime;</span>
     }
 
     @Override
     public Map&lt;String, String&gt; getFormattedEndDate() {
-<span class="nc" id="L181">        return formattedEndDate;</span>
+<span class="fc" id="L181">        return formattedEndDate;</span>
     }
 
     @Override
     public Map&lt;String, String&gt; getFormattedEndTime() {
-<span class="nc" id="L186">        return formattedEndTime;</span>
+<span class="fc" id="L186">        return formattedEndTime;</span>
     }
 
     @Override
     public String getTimeZone() {
-<span class="nc" id="L191">        return event.getTimeZone();</span>
+<span class="fc" id="L191">        return event.getTimeZone();</span>
     }
 
     @Override
     public DatesWithTimeZoneOffset getDatesWithOffset() {
-<span class="nc" id="L196">        return DatesWithTimeZoneOffset.fromEvent(event);</span>
+<span class="fc" id="L196">        return DatesWithTimeZoneOffset.fromEvent(event);</span>
     }
 
     //
@@ -201,53 +201,53 @@ public class EventWithAdditionalInfo implements DateValidity, ApiPurchaseContext
 
     @Override
     public InvoicingConfiguration getInvoicingConfiguration() {
-<span class="nc" id="L204">        return invoicingConfiguration;</span>
+<span class="fc" id="L204">        return invoicingConfiguration;</span>
     }
 
     @Override
     public CaptchaConfiguration getCaptchaConfiguration() {
-<span class="nc" id="L209">        return captchaConfiguration;</span>
+<span class="fc" id="L209">        return captchaConfiguration;</span>
     }
 
     @Override
     public AssignmentConfiguration getAssignmentConfiguration() {
-<span class="nc" id="L214">        return assignmentConfiguration;</span>
+<span class="fc" id="L214">        return assignmentConfiguration;</span>
     }
 
     public PromotionsConfiguration getPromotionsConfiguration() {
-<span class="nc" id="L218">        return promotionsConfiguration;</span>
+<span class="fc" id="L218">        return promotionsConfiguration;</span>
     }
 
     @Override
     public AnalyticsConfiguration getAnalyticsConfiguration() {
-<span class="nc" id="L223">        return analyticsConfiguration;</span>
+<span class="fc" id="L223">        return analyticsConfiguration;</span>
     }
 
     public Map&lt;String, Map&lt;String, String&gt;&gt; getI18nOverride() {
-<span class="nc" id="L227">        return i18nOverride;</span>
+<span class="fc" id="L227">        return i18nOverride;</span>
     }
 
     public EventFormat getFormat() {
-<span class="nc" id="L231">        return event.getFormat();</span>
+<span class="fc" id="L231">        return event.getFormat();</span>
     }
 
     public String getCustomCss() {
-<span class="nc" id="L235">        return customCss;</span>
+<span class="fc" id="L235">        return customCss;</span>
     }
 
     @Override
     public Map&lt;String, String&gt; getTitle() {
-<span class="nc" id="L240">        return event.getTitle();</span>
+<span class="fc" id="L240">        return event.getTitle();</span>
     }
 
     @Override
     public OfflinePaymentConfiguration getOfflinePaymentConfiguration() {
-<span class="nc" id="L245">        return offlinePaymentConfiguration;</span>
+<span class="fc" id="L245">        return offlinePaymentConfiguration;</span>
     }
 
     @Override
     public EmbeddingConfiguration getEmbeddingConfiguration() {
-<span class="nc" id="L250">        return embeddingConfiguration;</span>
+<span class="fc" id="L250">        return embeddingConfiguration;</span>
     }
 
     @AllArgsConstructor
@@ -276,12 +276,12 @@ public class EventWithAdditionalInfo implements DateValidity, ApiPurchaseContext
     @JsonIgnore
     @Override
     public PurchaseContext purchaseContext() {
-<span class="nc" id="L279">        return event;</span>
+<span class="fc" id="L279">        return event;</span>
     }
 
     @Override
     public boolean isCanApplySubscriptions() {
-<span class="nc" id="L284">        return canApplySubscriptions;</span>
+<span class="fc" id="L284">        return canApplySubscriptions;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

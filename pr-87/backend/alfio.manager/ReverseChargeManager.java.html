@@ -87,7 +87,7 @@ public class ReverseChargeManager {
 <span class="fc" id="L87">        boolean isEvent = purchaseContext.ofType(PurchaseContextType.event);</span>
         // we must take into account specific configuration only if the purchase context is an Event.
         // Otherwise, specific settings do not apply
-<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        boolean reverseChargeInPerson = !isEvent || reverseChargeConfiguration.get(ENABLE_REVERSE_CHARGE_IN_PERSON).getValueAsBooleanOrDefault();</span>
+<span class="fc bfc" id="L90" title="All 4 branches covered.">        boolean reverseChargeInPerson = !isEvent || reverseChargeConfiguration.get(ENABLE_REVERSE_CHARGE_IN_PERSON).getValueAsBooleanOrDefault();</span>
 <span class="fc bfc" id="L91" title="All 4 branches covered.">        boolean reverseChargeOnline = !isEvent || reverseChargeConfiguration.get(ENABLE_REVERSE_CHARGE_ONLINE).getValueAsBooleanOrDefault();</span>
 
         try {
@@ -109,7 +109,7 @@ public class ReverseChargeManager {
 <span class="fc" id="L109">                handleValidationResult(purchaseContext, reservationId, contactAndTicketsForm, bindingResult, country, isEvent, reverseChargeInPerson, reverseChargeOnline, categoriesList, noTaxCategories, vatDetail.get());</span>
 <span class="fc bfc" id="L110" title="All 4 branches covered.">            } else if (optionalReservation.isPresent() &amp;&amp; contactAndTicketsForm.isItalyEInvoicingSplitPayment()) {</span>
 <span class="fc" id="L111">                handleSplitPayment(purchaseContext, reservationId, contactAndTicketsForm, country, optionalReservation.get(), categoriesList, noTaxCategories);</span>
-<span class="pc bpc" id="L112" title="1 of 4 branches missed.">            } else if (optionalReservation.isPresent() &amp;&amp; !noTaxCategories.isEmpty()) {</span>
+<span class="fc bfc" id="L112" title="All 4 branches covered.">            } else if (optionalReservation.isPresent() &amp;&amp; !noTaxCategories.isEmpty()) {</span>
                 // if there is at least one category with custom tax policy, we need to update its tickets
 <span class="fc" id="L114">                var reservation = optionalReservation.get();</span>
 <span class="fc" id="L115">                updateTicketsWithNoTaxSetting(purchaseContext, reservationId, reservation, categoriesList, noTaxCategories);</span>
@@ -123,13 +123,13 @@ public class ReverseChargeManager {
     private Optional&lt;VatDetail&gt; performReverseChargeCheck(PurchaseContext purchaseContext, ContactAndTicketsForm contactAndTicketsForm, String country, boolean reverseChargeInPerson, boolean reverseChargeOnline, Optional&lt;TicketReservation&gt; optionalReservation, List&lt;TicketCategory&gt; categoriesList) {
 <span class="fc" id="L124">        return optionalReservation</span>
 <span class="fc" id="L125">            .filter(e -&gt; {</span>
-<span class="pc bpc" id="L126" title="1 of 6 branches missed.">                if (purchaseContext.ofType(PurchaseContextType.event) &amp;&amp; (!reverseChargeInPerson || !reverseChargeOnline)) {</span>
+<span class="fc bfc" id="L126" title="All 6 branches covered.">                if (purchaseContext.ofType(PurchaseContextType.event) &amp;&amp; (!reverseChargeInPerson || !reverseChargeOnline)) {</span>
 <span class="fc" id="L127">                    var eventFormat = purchaseContext.event().orElseThrow().getFormat();</span>
                     // if we find at least one category matching the criteria, then we can proceed
 <span class="fc" id="L129">                    return categoriesList.stream().anyMatch(findReverseChargeCategory(reverseChargeInPerson, reverseChargeOnline, eventFormat));</span>
                 }
 <span class="fc" id="L131">                var vatStatus = purchaseContext.getVatStatus();</span>
-<span class="pc bpc" id="L132" title="3 of 4 branches missed.">                return vatStatus == INCLUDED || vatStatus == NOT_INCLUDED;</span>
+<span class="pc bpc" id="L132" title="1 of 4 branches missed.">                return vatStatus == INCLUDED || vatStatus == NOT_INCLUDED;</span>
             })
 <span class="fc" id="L134">            .filter(e -&gt; vatChecker.isReverseChargeEnabledFor(purchaseContext))</span>
 <span class="fc" id="L135">            .flatMap(e -&gt; vatChecker.checkVat(contactAndTicketsForm.getVatNr(), country, purchaseContext));</span>
@@ -169,7 +169,7 @@ public class ReverseChargeManager {
 <span class="fc" id="L169">            PriceContainer.VatStatus vatStatus = determineVatStatus(purchaseContext.getVatStatus(), vatValidation.isVatExempt());</span>
             // standard case: Reverse Charge is applied to the entire reservation
 <span class="fc" id="L171">            var discount = getDiscountOrNull(reservation);</span>
-<span class="pc bpc" id="L172" title="1 of 6 branches missed.">            if(!isEvent || (reverseChargeOnline &amp;&amp; reverseChargeInPerson)) {</span>
+<span class="fc bfc" id="L172" title="All 6 branches covered.">            if(!isEvent || (reverseChargeOnline &amp;&amp; reverseChargeInPerson)) {</span>
 <span class="fc bfc" id="L173" title="All 2 branches covered.">                if(isEvent) {</span>
 <span class="fc" id="L174">                    var event = purchaseContext.event().orElseThrow();</span>
 <span class="fc" id="L175">                    var priceContainers = mapPriceContainersByCategoryId(categoriesList,</span>
@@ -204,10 +204,10 @@ public class ReverseChargeManager {
 <span class="fc" id="L204">    }</span>
 
     private PromoCodeDiscount getDiscountOrNull(TicketReservation reservation) {
-<span class="pc bpc" id="L207" title="1 of 2 branches missed.">        if (reservation.getPromoCodeDiscountId() != null) {</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (reservation.getPromoCodeDiscountId() != null) {</span>
 <span class="fc" id="L208">            return promoCodeDiscountRepository.findById(reservation.getPromoCodeDiscountId());</span>
         }
-<span class="nc" id="L210">        return null;</span>
+<span class="fc" id="L210">        return null;</span>
     }
 
     public void applyCustomTaxPolicy(PurchaseContext purchaseContext,

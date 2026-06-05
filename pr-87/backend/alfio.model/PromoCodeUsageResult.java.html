@@ -35,17 +35,17 @@ public class PromoCodeUsageResult {
     public PromoCodeUsageResult(@Column(&quot;promo_code&quot;) String promoCode,
                                 @Column(&quot;event_short_name&quot;) String eventShortName,
                                 @Column(&quot;event_display_name&quot;) String eventDisplayName,
-<span class="nc" id="L38">                                @Column(&quot;reservations&quot;) String reservationsJson) {</span>
-<span class="nc" id="L39">        this.promoCode = promoCode;</span>
-<span class="nc" id="L40">        this.event = new EventBasicInfo(eventShortName, eventDisplayName);</span>
-<span class="nc" id="L41">        List&lt;ReservationInfo&gt; parsed = Json.fromJson(reservationsJson, new TypeReference&lt;&gt;() {});</span>
-<span class="nc" id="L42">        this.reservations = parsed.stream()</span>
-<span class="nc" id="L43">            .sorted(Comparator.comparing(ReservationInfo::getConfirmationTimestamp))</span>
-<span class="nc" id="L44">            .collect(Collectors.toList());</span>
-<span class="nc" id="L45">    }</span>
+<span class="fc" id="L38">                                @Column(&quot;reservations&quot;) String reservationsJson) {</span>
+<span class="fc" id="L39">        this.promoCode = promoCode;</span>
+<span class="fc" id="L40">        this.event = new EventBasicInfo(eventShortName, eventDisplayName);</span>
+<span class="fc" id="L41">        List&lt;ReservationInfo&gt; parsed = Json.fromJson(reservationsJson, new TypeReference&lt;&gt;() {});</span>
+<span class="fc" id="L42">        this.reservations = parsed.stream()</span>
+<span class="fc" id="L43">            .sorted(Comparator.comparing(ReservationInfo::getConfirmationTimestamp))</span>
+<span class="fc" id="L44">            .collect(Collectors.toList());</span>
+<span class="fc" id="L45">    }</span>
 
     public String getPromoCode() {
-<span class="nc" id="L48">        return promoCode;</span>
+<span class="fc" id="L48">        return promoCode;</span>
     }
 
     public EventBasicInfo getEvent() {
@@ -53,7 +53,7 @@ public class PromoCodeUsageResult {
     }
 
     public List&lt;ReservationInfo&gt; getReservations() {
-<span class="nc" id="L56">        return reservations;</span>
+<span class="fc" id="L56">        return reservations;</span>
     }
 
 }

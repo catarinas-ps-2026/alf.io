@@ -51,14 +51,14 @@ public class TicketWithStatistic implements Comparable&lt;TicketWithStatistic&gt
                                TicketReservation ticketReservation,
                                ZoneId zoneId,
                                Optional&lt;Transaction&gt; tx,
-<span class="nc" id="L54">                               String promoCodeOrToken) {</span>
-<span class="nc" id="L55">        this.ticket = ticket;</span>
-<span class="nc" id="L56">        this.ticketReservation = ticketReservation;</span>
-<span class="nc" id="L57">        this.zoneId = zoneId;</span>
-<span class="nc" id="L58">        this.tx = tx;</span>
-<span class="nc" id="L59">        this.dateMapper = d -&gt; d.withZoneSameInstant(this.zoneId).toLocalDateTime();</span>
-<span class="nc" id="L60">        this.promoCodeOrToken = promoCodeOrToken;</span>
-<span class="nc" id="L61">    }</span>
+<span class="fc" id="L54">                               String promoCodeOrToken) {</span>
+<span class="fc" id="L55">        this.ticket = ticket;</span>
+<span class="fc" id="L56">        this.ticketReservation = ticketReservation;</span>
+<span class="fc" id="L57">        this.zoneId = zoneId;</span>
+<span class="fc" id="L58">        this.tx = tx;</span>
+<span class="fc" id="L59">        this.dateMapper = d -&gt; d.withZoneSameInstant(this.zoneId).toLocalDateTime();</span>
+<span class="fc" id="L60">        this.promoCodeOrToken = promoCodeOrToken;</span>
+<span class="fc" id="L61">    }</span>
 
     public boolean isStuck() {
 <span class="nc" id="L64">        return ticketReservation.isStuck();</span>
@@ -81,12 +81,12 @@ public class TicketWithStatistic implements Comparable&lt;TicketWithStatistic&gt
     }
 
     public LocalDateTime getTimestamp() {
-<span class="nc" id="L84">        return Optional.ofNullable(ticketReservation.getConfirmationTimestamp()).map(dateMapper).orElse(null);</span>
+<span class="fc" id="L84">        return Optional.ofNullable(ticketReservation.getConfirmationTimestamp()).map(dateMapper).orElse(null);</span>
     }
 
     @Override
     public int compareTo(TicketWithStatistic o) {
-<span class="nc" id="L89">        return new CompareToBuilder().append(getTimestamp(), o.getTimestamp()).toComparison();</span>
+<span class="fc" id="L89">        return new CompareToBuilder().append(getTimestamp(), o.getTimestamp()).toComparison();</span>
     }
 
     @Override

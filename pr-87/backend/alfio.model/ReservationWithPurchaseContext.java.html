@@ -79,29 +79,29 @@ public class ReservationWithPurchaseContext implements PriceContainer {
                                           @Column(&quot;pc_time_zone&quot;) String purchaseContextTimezone,
                                           @Column(&quot;pc_start_date&quot;) ZonedDateTime purchaseContextStartDate,
                                           @Column(&quot;pc_end_date&quot;) ZonedDateTime purchaseContextEndDate,
-<span class="nc" id="L82">                                          @Column(&quot;pc_items&quot;) String itemsJson) {</span>
-<span class="nc" id="L83">        var zoneId = ZoneId.of(purchaseContextTimezone);</span>
-<span class="nc" id="L84">        this.id = id;</span>
-<span class="nc" id="L85">        this.validity = atZone(validity, zoneId);</span>
-<span class="nc" id="L86">        this.status = status;</span>
-<span class="nc" id="L87">        this.confirmationTs = atZone(confirmationTs, zoneId);</span>
-<span class="nc" id="L88">        this.registrationTs = atZone(registrationTs, zoneId);</span>
-<span class="nc" id="L89">        this.paymentMethod = paymentMethod;</span>
-<span class="nc" id="L90">        this.invoiceNumber = invoiceNumber;</span>
-<span class="nc" id="L91">        this.vatStatus = vatStatus;</span>
-<span class="nc" id="L92">        this.vatPercentage = vatPercentage;</span>
-<span class="nc" id="L93">        this.srcPriceCts = srcPriceCts;</span>
-<span class="nc" id="L94">        this.finalPriceCts = finalPriceCts;</span>
-<span class="nc" id="L95">        this.vatCts = vatCts;</span>
-<span class="nc" id="L96">        this.discountCts = discountCts;</span>
-<span class="nc" id="L97">        this.currencyCode = currencyCode;</span>
-<span class="nc" id="L98">        this.purchaseContextType = purchaseContextType;</span>
-<span class="nc" id="L99">        this.purchaseContextPublicIdentifier = purchaseContextPublicIdentifier;</span>
-<span class="nc" id="L100">        this.purchaseContextTitle = purchaseContextTitle;</span>
-<span class="nc" id="L101">        this.purchaseContextStartDate = atZone(purchaseContextStartDate, zoneId);</span>
-<span class="nc" id="L102">        this.purchaseContextEndDate = atZone(purchaseContextEndDate, zoneId);</span>
-<span class="nc" id="L103">        this.items = Json.fromJson(itemsJson, new TypeReference&lt;&gt;() {});</span>
-<span class="nc" id="L104">    }</span>
+<span class="fc" id="L82">                                          @Column(&quot;pc_items&quot;) String itemsJson) {</span>
+<span class="fc" id="L83">        var zoneId = ZoneId.of(purchaseContextTimezone);</span>
+<span class="fc" id="L84">        this.id = id;</span>
+<span class="fc" id="L85">        this.validity = atZone(validity, zoneId);</span>
+<span class="fc" id="L86">        this.status = status;</span>
+<span class="fc" id="L87">        this.confirmationTs = atZone(confirmationTs, zoneId);</span>
+<span class="fc" id="L88">        this.registrationTs = atZone(registrationTs, zoneId);</span>
+<span class="fc" id="L89">        this.paymentMethod = paymentMethod;</span>
+<span class="fc" id="L90">        this.invoiceNumber = invoiceNumber;</span>
+<span class="fc" id="L91">        this.vatStatus = vatStatus;</span>
+<span class="fc" id="L92">        this.vatPercentage = vatPercentage;</span>
+<span class="fc" id="L93">        this.srcPriceCts = srcPriceCts;</span>
+<span class="fc" id="L94">        this.finalPriceCts = finalPriceCts;</span>
+<span class="fc" id="L95">        this.vatCts = vatCts;</span>
+<span class="fc" id="L96">        this.discountCts = discountCts;</span>
+<span class="fc" id="L97">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L98">        this.purchaseContextType = purchaseContextType;</span>
+<span class="fc" id="L99">        this.purchaseContextPublicIdentifier = purchaseContextPublicIdentifier;</span>
+<span class="fc" id="L100">        this.purchaseContextTitle = purchaseContextTitle;</span>
+<span class="fc" id="L101">        this.purchaseContextStartDate = atZone(purchaseContextStartDate, zoneId);</span>
+<span class="fc" id="L102">        this.purchaseContextEndDate = atZone(purchaseContextEndDate, zoneId);</span>
+<span class="fc" id="L103">        this.items = Json.fromJson(itemsJson, new TypeReference&lt;&gt;() {});</span>
+<span class="fc" id="L104">    }</span>
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
@@ -110,7 +110,7 @@ public class ReservationWithPurchaseContext implements PriceContainer {
 
     @Override
     public BigDecimal getFinalPrice() {
-<span class="nc" id="L113">        return centsToUnit(finalPriceCts, currencyCode);</span>
+<span class="fc" id="L113">        return centsToUnit(finalPriceCts, currencyCode);</span>
     }
 
     @Override

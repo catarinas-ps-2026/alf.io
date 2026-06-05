@@ -33,15 +33,15 @@ import java.util.Optional;
 @RequestMapping(&quot;/admin/api/events/{eventName}/messages&quot;)
 public class CustomMessagesApiController {
 
-<span class="nc" id="L36">    private static final Logger log = LoggerFactory.getLogger(CustomMessagesApiController.class);</span>
+<span class="fc" id="L36">    private static final Logger log = LoggerFactory.getLogger(CustomMessagesApiController.class);</span>
     private final CustomMessageManager customMessageManager;
     private final AccessService accessService;
 
     public CustomMessagesApiController(CustomMessageManager customMessageManager,
-<span class="nc" id="L41">                                       AccessService accessService) {</span>
-<span class="nc" id="L42">        this.customMessageManager = customMessageManager;</span>
-<span class="nc" id="L43">        this.accessService = accessService;</span>
-<span class="nc" id="L44">    }</span>
+<span class="fc" id="L41">                                       AccessService accessService) {</span>
+<span class="fc" id="L42">        this.customMessageManager = customMessageManager;</span>
+<span class="fc" id="L43">        this.accessService = accessService;</span>
+<span class="fc" id="L44">    }</span>
 
     @ExceptionHandler(IllegalStateException.class)
     @ResponseBody

@@ -30,7 +30,7 @@ public interface ConfigurationLevel {
 
     ConfigurationPathLevel getPathLevel(); //waiting for pattern matching...
     default OptionalInt getOrganizationId() {
-<span class="nc" id="L33">        return OptionalInt.empty();</span>
+<span class="fc" id="L33">        return OptionalInt.empty();</span>
     }
 
     default OptionalInt getEventId() {
@@ -62,14 +62,14 @@ public interface ConfigurationLevel {
     }
 
     static ConfigurationLevel subscriptionDescriptor(SubscriptionDescriptor subscriptionDescriptor) {
-<span class="nc" id="L65">        return new ConfigurationLevels.SubscriptionDescriptorLevel(subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId());</span>
+<span class="fc" id="L65">        return new ConfigurationLevels.SubscriptionDescriptorLevel(subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId());</span>
     }
 
     static ConfigurationLevel purchaseContext(PurchaseContext purchaseContext) {
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
-<span class="nc" id="L70">            return event(purchaseContext.event().orElseThrow());</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
+<span class="fc" id="L70">            return event(purchaseContext.event().orElseThrow());</span>
         }
-<span class="nc" id="L72">        return subscriptionDescriptor((SubscriptionDescriptor) purchaseContext);</span>
+<span class="fc" id="L72">        return subscriptionDescriptor((SubscriptionDescriptor) purchaseContext);</span>
     }
 
     static ConfigurationLevel organization(int organizationId) {

@@ -31,12 +31,12 @@ public class I18nManager {
 
     private final EventRepository eventRepository;
 
-<span class="nc" id="L34">    public I18nManager(EventRepository eventRepository) {</span>
-<span class="nc" id="L35">        this.eventRepository = eventRepository;</span>
-<span class="nc" id="L36">    }</span>
+<span class="fc" id="L34">    public I18nManager(EventRepository eventRepository) {</span>
+<span class="fc" id="L35">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L36">    }</span>
 
     public List&lt;ContentLanguage&gt; getAvailableLanguages() {
-<span class="nc" id="L39">        return ContentLanguage.ALL_LANGUAGES;</span>
+<span class="fc" id="L39">        return ContentLanguage.ALL_LANGUAGES;</span>
     }
 
     public List&lt;ContentLanguage&gt; getEventLanguages(String eventName) {
@@ -46,11 +46,11 @@ public class I18nManager {
     }
 
     public List&lt;ContentLanguage&gt; getEventLanguages(int eventLocales) {
-<span class="nc" id="L49">        List&lt;ContentLanguage&gt; system = getAvailableLanguages();</span>
-<span class="nc" id="L50">        return ContentLanguage.findAllFor(eventLocales)</span>
-<span class="nc" id="L51">            .stream()</span>
-<span class="nc" id="L52">            .filter(system::contains)</span>
-<span class="nc" id="L53">            .collect(Collectors.toList());</span>
+<span class="fc" id="L49">        List&lt;ContentLanguage&gt; system = getAvailableLanguages();</span>
+<span class="fc" id="L50">        return ContentLanguage.findAllFor(eventLocales)</span>
+<span class="fc" id="L51">            .stream()</span>
+<span class="fc" id="L52">            .filter(system::contains)</span>
+<span class="fc" id="L53">            .collect(Collectors.toList());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

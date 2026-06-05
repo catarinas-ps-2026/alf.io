@@ -93,7 +93,7 @@ public class GroupManager {
                                   int eventId,
                                   LinkedGroupModification modification) {
 <span class="fc" id="L95">        Objects.requireNonNull(groupRepository.getById(groupId), &quot;Group not found&quot;);</span>
-<span class="pc bpc" id="L96" title="1 of 4 branches missed.">        Validate.isTrue(modification.getType() != LIMITED_QUANTITY || modification.getMaxAllocation() != null, &quot;Missing max allocation&quot;);</span>
+<span class="fc bfc" id="L96" title="All 4 branches covered.">        Validate.isTrue(modification.getType() != LIMITED_QUANTITY || modification.getMaxAllocation() != null, &quot;Missing max allocation&quot;);</span>
 <span class="fc" id="L97">        AffectedRowCountAndKey&lt;Integer&gt; configuration = groupRepository.createConfiguration(groupId, eventId,</span>
 <span class="fc" id="L98">            modification.getTicketCategoryId(), modification.getType(), modification.getMatchType(), modification.getMaxAllocation());</span>
 <span class="fc" id="L99">        return groupRepository.getConfiguration(configuration.getKey());</span>
@@ -192,7 +192,7 @@ public class GroupManager {
 <span class="fc bfc" id="L192" title="All 4 branches covered.">        if(limitAssignments &amp;&amp; ticketFailsValidation(matchingMember, ticket, configuration.getId())) {</span>
 <span class="fc" id="L193">            return false;</span>
         }
-<span class="pc bpc" id="L195" title="1 of 4 branches missed.">        groupRepository.insertWhitelistedTicket(item.getId(), configuration.getId(), ticket.getId(), preventDuplication &amp;&amp; matchingMember.matchType == MatchType.FULL ? Boolean.TRUE : null);</span>
+<span class="fc bfc" id="L195" title="All 4 branches covered.">        groupRepository.insertWhitelistedTicket(item.getId(), configuration.getId(), ticket.getId(), preventDuplication &amp;&amp; matchingMember.matchType == MatchType.FULL ? Boolean.TRUE : null);</span>
 <span class="fc" id="L196">        Map&lt;String, Object&gt; modifications = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L197">        modifications.put(&quot;itemId&quot;, item.getId());</span>
 <span class="fc" id="L198">        modifications.put(&quot;configurationId&quot;, configuration.getId());</span>
@@ -258,7 +258,7 @@ public class GroupManager {
 
 <span class="fc" id="L259">        List&lt;String&gt; existingValues = groupRepository.getAllValuesIncludingNotActive(listId);</span>
 <span class="fc" id="L260">        List&lt;GroupMemberModification&gt; notPresent = modification.getItems().stream()</span>
-<span class="pc bpc" id="L261" title="1 of 4 branches missed.">            .filter(i -&gt; i.getId() == null &amp;&amp; !existingValues.contains(i.getValue().strip().toLowerCase()))</span>
+<span class="fc bfc" id="L261" title="All 4 branches covered.">            .filter(i -&gt; i.getId() == null &amp;&amp; !existingValues.contains(i.getValue().strip().toLowerCase()))</span>
 <span class="fc" id="L262">            .distinct()</span>
 <span class="fc" id="L263">            .toList();</span>
 

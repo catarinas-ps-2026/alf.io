@@ -108,7 +108,7 @@ public class SpecialPriceManager {
 <span class="fc" id="L108">        Validate.isTrue(set.stream().allMatch(IS_CODE_PRESENT), &quot;There are missing codes. Please check input file.&quot;);</span>
 <span class="fc" id="L109">        List&lt;ContentLanguage&gt; eventLanguages = i18nManager.getEventLanguages(event.getLocales());</span>
 <span class="pc bpc" id="L110" title="1 of 2 branches missed.">        Validate.isTrue(!eventLanguages.isEmpty(), &quot;No locales have been defined for the event. Please check the configuration&quot;);</span>
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">        ContentLanguage defaultLocale = eventLanguages.contains(ContentLanguage.ENGLISH) ? ContentLanguage.ENGLISH : eventLanguages.get(0);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        ContentLanguage defaultLocale = eventLanguages.contains(ContentLanguage.ENGLISH) ? ContentLanguage.ENGLISH : eventLanguages.get(0);</span>
 <span class="fc" id="L112">        set.forEach(m -&gt; {</span>
 <span class="fc" id="L113">            var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
 <span class="fc" id="L114">            Locale locale = LocaleUtil.forLanguageTag(Objects.toString(StringUtils.trimToNull(m.language()), defaultLocale.getLanguage()));</span>

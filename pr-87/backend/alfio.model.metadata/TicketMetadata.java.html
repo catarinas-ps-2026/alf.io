@@ -50,11 +50,11 @@ public class TicketMetadata {
     @JsonCreator
     public TicketMetadata(@JsonProperty(&quot;joinLink&quot;) JoinLink joinLink,
                           @JsonProperty(&quot;joinMessages&quot;) Map&lt;String, String&gt; linkDescription,
-<span class="nc" id="L53">                          @JsonProperty(&quot;attributes&quot;) Map&lt;String, String&gt; attributes) {</span>
-<span class="nc" id="L54">        this.joinLink = joinLink;</span>
-<span class="nc" id="L55">        this.attributes = requireNonNullElse(attributes, Map.of());</span>
-<span class="nc" id="L56">        this.linkDescription = requireNonNullElse(linkDescription, Map.of());</span>
-<span class="nc" id="L57">    }</span>
+<span class="fc" id="L53">                          @JsonProperty(&quot;attributes&quot;) Map&lt;String, String&gt; attributes) {</span>
+<span class="fc" id="L54">        this.joinLink = joinLink;</span>
+<span class="fc" id="L55">        this.attributes = requireNonNullElse(attributes, Map.of());</span>
+<span class="fc" id="L56">        this.linkDescription = requireNonNullElse(linkDescription, Map.of());</span>
+<span class="fc" id="L57">    }</span>
 
     public String getLocalizedDescription(String lang, LocalizedContent fallback) {
 <span class="nc" id="L60">        return EventUtil.getLocalizedMessage(linkDescription, lang, fallback);</span>
@@ -78,7 +78,7 @@ public class TicketMetadata {
     }
 
     public static TicketMetadata empty() {
-<span class="nc" id="L81">        return new TicketMetadata(null, null, Map.of());</span>
+<span class="fc" id="L81">        return new TicketMetadata(null, null, Map.of());</span>
     }
     public TicketMetadata withAttributes(Map&lt;String, String&gt; attributes) {
 <span class="nc" id="L84">        return new TicketMetadata(joinLink, Map.copyOf(linkDescription), Map.copyOf(attributes));</span>

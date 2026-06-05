@@ -57,15 +57,15 @@ public class AdminReservationApiController {
     private final BookingInfoTicketLoader bookingInfoTicketLoader;
     private final AccessService accessService;
 
-<span class="nc" id="L60">    public AdminReservationApiController(AdminReservationManager adminReservationManager, EventManager eventManager, PurchaseContextManager purchaseContextManager, PurchaseContextSearchManager purchaseContextSearchManager, TicketReservationManager ticketReservationManager, BookingInfoTicketLoader bookingInfoTicketLoader, AccessService accessService) {</span>
-<span class="nc" id="L61">        this.adminReservationManager = adminReservationManager;</span>
-<span class="nc" id="L62">        this.eventManager = eventManager;</span>
-<span class="nc" id="L63">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="nc" id="L64">        this.purchaseContextSearchManager = purchaseContextSearchManager;</span>
-<span class="nc" id="L65">        this.ticketReservationManager = ticketReservationManager;</span>
-<span class="nc" id="L66">        this.bookingInfoTicketLoader = bookingInfoTicketLoader;</span>
-<span class="nc" id="L67">        this.accessService = accessService;</span>
-<span class="nc" id="L68">    }</span>
+<span class="fc" id="L60">    public AdminReservationApiController(AdminReservationManager adminReservationManager, EventManager eventManager, PurchaseContextManager purchaseContextManager, PurchaseContextSearchManager purchaseContextSearchManager, TicketReservationManager ticketReservationManager, BookingInfoTicketLoader bookingInfoTicketLoader, AccessService accessService) {</span>
+<span class="fc" id="L61">        this.adminReservationManager = adminReservationManager;</span>
+<span class="fc" id="L62">        this.eventManager = eventManager;</span>
+<span class="fc" id="L63">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L64">        this.purchaseContextSearchManager = purchaseContextSearchManager;</span>
+<span class="fc" id="L65">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L66">        this.bookingInfoTicketLoader = bookingInfoTicketLoader;</span>
+<span class="fc" id="L67">        this.accessService = accessService;</span>
+<span class="fc" id="L68">    }</span>
 
     @PostMapping(&quot;/{purchaseContextType}/{publicIdentifier}/new&quot;)
     public Result&lt;String&gt; createNew(@PathVariable PurchaseContextType purchaseContextType,
@@ -239,20 +239,20 @@ public class AdminReservationApiController {
                                          @PathVariable String reservationId,
                                          @RequestBody RemoveTicketsModification toRemove,
                                          Principal principal) {
-<span class="nc" id="L242">        accessService.checkReservationMembership(principal, PurchaseContextType.event, publicIdentifier, reservationId);</span>
-<span class="nc" id="L243">        List&lt;Integer&gt; toRefund = toRemove.getRefundTo().entrySet().stream()</span>
-<span class="nc" id="L244">            .filter(Map.Entry::getValue)</span>
-<span class="nc" id="L245">            .map(Map.Entry::getKey)</span>
-<span class="nc" id="L246">            .collect(Collectors.toList());</span>
+<span class="fc" id="L242">        accessService.checkReservationMembership(principal, PurchaseContextType.event, publicIdentifier, reservationId);</span>
+<span class="fc" id="L243">        List&lt;Integer&gt; toRefund = toRemove.getRefundTo().entrySet().stream()</span>
+<span class="fc" id="L244">            .filter(Map.Entry::getValue)</span>
+<span class="fc" id="L245">            .map(Map.Entry::getKey)</span>
+<span class="fc" id="L246">            .collect(Collectors.toList());</span>
 
-<span class="nc" id="L248">        boolean issueCreditNote = adminReservationManager.removeTickets(publicIdentifier,</span>
+<span class="fc" id="L248">        boolean issueCreditNote = adminReservationManager.removeTickets(publicIdentifier,</span>
             reservationId,
-<span class="nc" id="L250">            toRemove.getTicketIds(),</span>
+<span class="fc" id="L250">            toRemove.getTicketIds(),</span>
             toRefund,
-<span class="nc" id="L252">            toRemove.getNotify(),</span>
-<span class="nc" id="L253">            toRemove.issueCreditNote,</span>
-<span class="nc" id="L254">            principal.getName()).getData();</span>
-<span class="nc" id="L255">        return Result.success(new RemoveResult(true, issueCreditNote));</span>
+<span class="fc" id="L252">            toRemove.getNotify(),</span>
+<span class="fc" id="L253">            toRemove.issueCreditNote,</span>
+<span class="fc" id="L254">            principal.getName()).getData();</span>
+<span class="fc" id="L255">        return Result.success(new RemoveResult(true, issueCreditNote));</span>
     }
 
     @GetMapping(&quot;/{purchaseContextType}/{publicIdentifier}/{reservationId}/payment-info&quot;)
@@ -362,15 +362,15 @@ public class AdminReservationApiController {
         private final Boolean issueCreditNote;
 
         @ConstructorProperties({&quot;ticketIds&quot;, &quot;refundTo&quot;, &quot;notify&quot;, &quot;issueCreditNote&quot;})
-<span class="nc" id="L365">        public RemoveTicketsModification(List&lt;Integer&gt; ticketIds, Map&lt;Integer, Boolean&gt; refundTo, Boolean notify, Boolean issueCreditNote) {</span>
-<span class="nc" id="L366">            this.ticketIds = ticketIds;</span>
-<span class="nc" id="L367">            this.refundTo = refundTo;</span>
-<span class="nc" id="L368">            this.notify = notify;</span>
-<span class="nc" id="L369">            this.issueCreditNote = issueCreditNote;</span>
-<span class="nc" id="L370">        }</span>
+<span class="fc" id="L365">        public RemoveTicketsModification(List&lt;Integer&gt; ticketIds, Map&lt;Integer, Boolean&gt; refundTo, Boolean notify, Boolean issueCreditNote) {</span>
+<span class="fc" id="L366">            this.ticketIds = ticketIds;</span>
+<span class="fc" id="L367">            this.refundTo = refundTo;</span>
+<span class="fc" id="L368">            this.notify = notify;</span>
+<span class="fc" id="L369">            this.issueCreditNote = issueCreditNote;</span>
+<span class="fc" id="L370">        }</span>
 
         public Boolean getNotify() {
-<span class="nc" id="L373">            return Boolean.TRUE.equals(notify);</span>
+<span class="fc" id="L373">            return Boolean.TRUE.equals(notify);</span>
         }
 
         public Boolean getIssueCreditNote() {
@@ -394,17 +394,17 @@ public class AdminReservationApiController {
         private final boolean success;
         private final boolean creditNoteGenerated;
 
-<span class="nc" id="L397">        public RemoveResult(boolean success, boolean creditNoteGenerated) {</span>
-<span class="nc" id="L398">            this.success = success;</span>
-<span class="nc" id="L399">            this.creditNoteGenerated = creditNoteGenerated;</span>
-<span class="nc" id="L400">        }</span>
+<span class="fc" id="L397">        public RemoveResult(boolean success, boolean creditNoteGenerated) {</span>
+<span class="fc" id="L398">            this.success = success;</span>
+<span class="fc" id="L399">            this.creditNoteGenerated = creditNoteGenerated;</span>
+<span class="fc" id="L400">        }</span>
 
         public boolean isSuccess() {
 <span class="nc" id="L403">            return success;</span>
         }
 
         public boolean isCreditNoteGenerated() {
-<span class="nc" id="L407">            return creditNoteGenerated;</span>
+<span class="fc" id="L407">            return creditNoteGenerated;</span>
         }
     }
 }

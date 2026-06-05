@@ -122,7 +122,7 @@ public class SubscriptionDescriptorModification {
 <span class="fc" id="L122">    }</span>
 
     public int getPriceCts() {
-<span class="nc" id="L125">        return MonetaryUtil.unitToCents(price, currency);</span>
+<span class="fc" id="L125">        return MonetaryUtil.unitToCents(price, currency);</span>
     }
 
     public DateTimeModification getValidityFromModel() {
@@ -175,22 +175,22 @@ public class SubscriptionDescriptorModification {
     }
 
     public static Result&lt;SubscriptionDescriptorModification&gt; validate(SubscriptionDescriptorModification input) {
-<span class="nc" id="L178">        return new Result.Builder&lt;SubscriptionDescriptorModification&gt;()</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">            .checkPrecondition(() -&gt; !input.title.isEmpty(), ErrorCode.custom(&quot;title&quot;, &quot;Title is mandatory&quot;))</span>
-<span class="nc bnc" id="L180" title="All 2 branches missed.">            .checkPrecondition(() -&gt; !input.description.isEmpty(), ErrorCode.custom(&quot;description&quot;, &quot;Description is mandatory&quot;))</span>
-<span class="nc" id="L181">            .checkPrecondition(() -&gt; input.title.keySet().equals(input.description.keySet()), ErrorCode.custom(&quot;locale-mismatch&quot;, &quot;Mismatch between supported translations&quot;))</span>
-<span class="nc" id="L182">            .checkPrecondition(() -&gt; isNotBlank(input.termsAndConditionsUrl), ErrorCode.custom(&quot;terms&quot;, &quot;Terms and Conditions are mandatory&quot;))</span>
-<span class="nc" id="L183">            .checkPrecondition(() -&gt; isNotBlank(input.fileBlobId), ErrorCode.custom(&quot;logo&quot;, &quot;Logo is required&quot;))</span>
-<span class="nc bnc" id="L184" title="All 4 branches missed.">            .checkPrecondition(() -&gt; isNotBlank(input.currency) &amp;&amp; length(input.currency) == 3, ErrorCode.custom(&quot;currency&quot;, &quot;Currency Code is required&quot;))</span>
-<span class="nc bnc" id="L185" title="All 2 branches missed.">            .checkPrecondition(() -&gt; input.vatStatus != null, ErrorCode.custom(&quot;taxPolicy&quot;, &quot;Tax Policy is required&quot;))</span>
-<span class="nc bnc" id="L186" title="All 2 branches missed.">            .checkPrecondition(() -&gt; input.vat != null, ErrorCode.custom(&quot;taxes&quot;, &quot;Tax percentage is required&quot;))</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">            .checkPrecondition(() -&gt; input.onSaleFrom != null, ErrorCode.custom(&quot;onSaleFrom&quot;, &quot;'On Sale From' is required&quot;))</span>
-<span class="nc bnc" id="L188" title="All 2 branches missed.">            .checkPrecondition(() -&gt; input.timeZone != null, ErrorCode.custom(&quot;timeZone&quot;, &quot;Time Zone is required&quot;))</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">            .checkPrecondition(() -&gt; !input.paymentProxies.isEmpty(), ErrorCode.custom(&quot;paymentMethods&quot;, &quot;At least one Payment Method is required&quot;))</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">            .checkPrecondition(() -&gt; input.price != null, ErrorCode.custom(&quot;price&quot;, &quot;Price is mandatory&quot;))</span>
-<span class="nc bnc" id="L191" title="All 2 branches missed.">            .checkPrecondition(() -&gt; input.usageType != null, ErrorCode.custom(&quot;usageType&quot;, &quot;UsageType is mandatory&quot;))</span>
-<span class="nc" id="L192">            .checkPrecondition(() -&gt; isNotBlank(input.fileBlobId), ErrorCode.custom(&quot;logo&quot;, &quot;Logo is required&quot;))</span>
-<span class="nc" id="L193">            .build(() -&gt; input);</span>
+<span class="fc" id="L178">        return new Result.Builder&lt;SubscriptionDescriptorModification&gt;()</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; !input.title.isEmpty(), ErrorCode.custom(&quot;title&quot;, &quot;Title is mandatory&quot;))</span>
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; !input.description.isEmpty(), ErrorCode.custom(&quot;description&quot;, &quot;Description is mandatory&quot;))</span>
+<span class="fc" id="L181">            .checkPrecondition(() -&gt; input.title.keySet().equals(input.description.keySet()), ErrorCode.custom(&quot;locale-mismatch&quot;, &quot;Mismatch between supported translations&quot;))</span>
+<span class="fc" id="L182">            .checkPrecondition(() -&gt; isNotBlank(input.termsAndConditionsUrl), ErrorCode.custom(&quot;terms&quot;, &quot;Terms and Conditions are mandatory&quot;))</span>
+<span class="fc" id="L183">            .checkPrecondition(() -&gt; isNotBlank(input.fileBlobId), ErrorCode.custom(&quot;logo&quot;, &quot;Logo is required&quot;))</span>
+<span class="pc bpc" id="L184" title="2 of 4 branches missed.">            .checkPrecondition(() -&gt; isNotBlank(input.currency) &amp;&amp; length(input.currency) == 3, ErrorCode.custom(&quot;currency&quot;, &quot;Currency Code is required&quot;))</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; input.vatStatus != null, ErrorCode.custom(&quot;taxPolicy&quot;, &quot;Tax Policy is required&quot;))</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; input.vat != null, ErrorCode.custom(&quot;taxes&quot;, &quot;Tax percentage is required&quot;))</span>
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; input.onSaleFrom != null, ErrorCode.custom(&quot;onSaleFrom&quot;, &quot;'On Sale From' is required&quot;))</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; input.timeZone != null, ErrorCode.custom(&quot;timeZone&quot;, &quot;Time Zone is required&quot;))</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; !input.paymentProxies.isEmpty(), ErrorCode.custom(&quot;paymentMethods&quot;, &quot;At least one Payment Method is required&quot;))</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; input.price != null, ErrorCode.custom(&quot;price&quot;, &quot;Price is mandatory&quot;))</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">            .checkPrecondition(() -&gt; input.usageType != null, ErrorCode.custom(&quot;usageType&quot;, &quot;UsageType is mandatory&quot;))</span>
+<span class="fc" id="L192">            .checkPrecondition(() -&gt; isNotBlank(input.fileBlobId), ErrorCode.custom(&quot;logo&quot;, &quot;Logo is required&quot;))</span>
+<span class="fc" id="L193">            .build(() -&gt; input);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

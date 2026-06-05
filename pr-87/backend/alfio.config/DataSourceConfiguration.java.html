@@ -129,34 +129,34 @@ import java.util.function.Supplier;
 
     @Bean
     public PlatformTransactionManager platformTransactionManager(DataSource dataSource) {
-<span class="nc" id="L132">        return new CustomDataSourceTransactionManager(dataSource);</span>
+<span class="fc" id="L132">        return new CustomDataSourceTransactionManager(dataSource);</span>
     }
 
     private static class CustomDataSourceTransactionManager extends DataSourceTransactionManager {
         CustomDataSourceTransactionManager(DataSource dataSource) {
-<span class="nc" id="L137">            super(dataSource);</span>
-<span class="nc" id="L138">        }</span>
+<span class="fc" id="L137">            super(dataSource);</span>
+<span class="fc" id="L138">        }</span>
 
         @Override
         protected void prepareTransactionalConnection(Connection con, TransactionDefinition definition) throws SQLException {
-<span class="nc" id="L142">            super.prepareTransactionalConnection(con, definition);</span>
-<span class="nc" id="L143">            RoleAndOrganizationsTransactionPreparer.prepareTransactionalConnection(con);</span>
-<span class="nc" id="L144">        }</span>
+<span class="fc" id="L142">            super.prepareTransactionalConnection(con, definition);</span>
+<span class="fc" id="L143">            RoleAndOrganizationsTransactionPreparer.prepareTransactionalConnection(con);</span>
+<span class="fc" id="L144">        }</span>
     }
 
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
-<span class="nc" id="L149">        return new NamedParameterJdbcTemplate(dataSource);</span>
+<span class="fc" id="L149">        return new NamedParameterJdbcTemplate(dataSource);</span>
     }
 
     @Bean
     public List&lt;ColumnMapperFactory&gt; getAdditionalColumnMappers() {
-<span class="nc" id="L154">        return Arrays.asList(new JSONColumnMapper.Factory(), new ArrayColumnMapper.Factory(), new EnumTypeColumnMapper.Factory());</span>
+<span class="fc" id="L154">        return Arrays.asList(new JSONColumnMapper.Factory(), new ArrayColumnMapper.Factory(), new EnumTypeColumnMapper.Factory());</span>
     }
 
     @Bean
     public List&lt;ParameterConverter&gt; getAdditionalParameterConverters() {
-<span class="nc" id="L159">        return Arrays.asList(new JSONColumnMapper.Converter(), new ArrayColumnMapper.Converter(), new EnumTypeColumnMapper.Converter());</span>
+<span class="fc" id="L159">        return Arrays.asList(new JSONColumnMapper.Converter(), new ArrayColumnMapper.Converter(), new EnumTypeColumnMapper.Converter());</span>
     }
 
     @Bean
@@ -167,49 +167,49 @@ import java.util.function.Supplier;
 
     @Bean
     public Flyway migrator(DataSource dataSource, Environment environment) {
-<span class="nc" id="L170">        boolean dryRun = environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_APP_CDS));</span>
-<span class="nc" id="L171">        var configuration = Flyway.configure();</span>
-<span class="nc" id="L172">        String tableName = configuration.getTable();</span>
-<span class="nc bnc" id="L173" title="All 2 branches missed.">        if (!dryRun) {</span>
-<span class="nc" id="L174">            var jdbcTemplate = new JdbcTemplate(dataSource);</span>
-<span class="nc" id="L175">            var matches = jdbcTemplate.queryForObject(&quot;select count(*) from information_schema.tables where table_name = 'schema_version'&quot;, Integer.class);</span>
-<span class="nc bnc" id="L176" title="All 4 branches missed.">            tableName = matches != null &amp;&amp; matches &gt; 0 ? &quot;schema_version&quot; : configuration.getTable();</span>
+<span class="fc" id="L170">        boolean dryRun = environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_APP_CDS));</span>
+<span class="fc" id="L171">        var configuration = Flyway.configure();</span>
+<span class="fc" id="L172">        String tableName = configuration.getTable();</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">        if (!dryRun) {</span>
+<span class="fc" id="L174">            var jdbcTemplate = new JdbcTemplate(dataSource);</span>
+<span class="fc" id="L175">            var matches = jdbcTemplate.queryForObject(&quot;select count(*) from information_schema.tables where table_name = 'schema_version'&quot;, Integer.class);</span>
+<span class="pc bpc" id="L176" title="2 of 4 branches missed.">            tableName = matches != null &amp;&amp; matches &gt; 0 ? &quot;schema_version&quot; : configuration.getTable();</span>
         }
-<span class="nc" id="L178">        configuration.table(tableName)</span>
-<span class="nc" id="L179">            .dataSource(dataSource)</span>
-<span class="nc" id="L180">            .validateOnMigrate(false)</span>
-<span class="nc" id="L181">            .target(MigrationVersion.LATEST)</span>
-<span class="nc" id="L182">            .outOfOrder(true)</span>
-<span class="nc" id="L183">            .locations(&quot;alfio/db/PGSQL/&quot;);</span>
-<span class="nc" id="L184">        Flyway migration = new Flyway(configuration);</span>
-<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (!dryRun) {</span>
-<span class="nc" id="L186">            migration.migrate();</span>
+<span class="fc" id="L178">        configuration.table(tableName)</span>
+<span class="fc" id="L179">            .dataSource(dataSource)</span>
+<span class="fc" id="L180">            .validateOnMigrate(false)</span>
+<span class="fc" id="L181">            .target(MigrationVersion.LATEST)</span>
+<span class="fc" id="L182">            .outOfOrder(true)</span>
+<span class="fc" id="L183">            .locations(&quot;alfio/db/PGSQL/&quot;);</span>
+<span class="fc" id="L184">        Flyway migration = new Flyway(configuration);</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">        if (!dryRun) {</span>
+<span class="fc" id="L186">            migration.migrate();</span>
         }
-<span class="nc" id="L188">        return migration;</span>
+<span class="fc" id="L188">        return migration;</span>
     }
     
     @Bean
     public PasswordEncoder getPasswordEncoder() {
-<span class="nc" id="L193">         return new BCryptPasswordEncoder();</span>
+<span class="fc" id="L193">         return new BCryptPasswordEncoder();</span>
      }
 
     @Bean
     public MessageSourceManager messageSourceManager(ConfigurationRepository configurationRepository) {
 
-<span class="nc" id="L199">        var source = new CustomResourceBundleMessageSource();</span>
-<span class="nc" id="L200">        source.setBasenames(&quot;alfio.i18n.public&quot;, &quot;alfio.i18n.admin&quot;);</span>
-<span class="nc" id="L201">        source.setDefaultEncoding(StandardCharsets.UTF_8.displayName());</span>
+<span class="fc" id="L199">        var source = new CustomResourceBundleMessageSource();</span>
+<span class="fc" id="L200">        source.setBasenames(&quot;alfio.i18n.public&quot;, &quot;alfio.i18n.admin&quot;);</span>
+<span class="fc" id="L201">        source.setDefaultEncoding(StandardCharsets.UTF_8.displayName());</span>
         //since we have all the english translations in the default file, we don't need
         //the fallback to the system locale.
-<span class="nc" id="L204">        source.setFallbackToSystemLocale(false);</span>
-<span class="nc" id="L205">        source.setAlwaysUseMessageFormat(true);</span>
+<span class="fc" id="L204">        source.setFallbackToSystemLocale(false);</span>
+<span class="fc" id="L205">        source.setAlwaysUseMessageFormat(true);</span>
 
-<span class="nc" id="L207">        return new MessageSourceManager(source, configurationRepository);</span>
+<span class="fc" id="L207">        return new MessageSourceManager(source, configurationRepository);</span>
     }
 
     @Bean
     public Json getJson() {
-<span class="nc" id="L212">        return new Json();</span>
+<span class="fc" id="L212">        return new Json();</span>
     }
 
     @Bean
@@ -217,17 +217,17 @@ import java.util.function.Supplier;
                                               UploadedResourceManager uploadedResourceManager,
                                               ConfigurationManager configurationManager,
                                               PurchaseContextFieldManager purchaseContextFieldManager) {
-<span class="nc" id="L220">        return new TemplateManager(messageSourceManager, uploadedResourceManager, configurationManager, purchaseContextFieldManager);</span>
+<span class="fc" id="L220">        return new TemplateManager(messageSourceManager, uploadedResourceManager, configurationManager, purchaseContextFieldManager);</span>
     }
 
     @Bean
     public HttpClient getHttpClient() {
-<span class="nc" id="L225">        return HttpClient.newBuilder()</span>
-<span class="nc" id="L226">            .version(HttpClient.Version.HTTP_1_1)</span>
-<span class="nc" id="L227">            .executor(Executors.newCachedThreadPool(new BasicThreadFactory.Builder()</span>
-<span class="nc" id="L228">                .namingPattern(&quot;httpClient-thread-%d&quot;)</span>
-<span class="nc" id="L229">                .build()))</span>
-<span class="nc" id="L230">            .build();</span>
+<span class="fc" id="L225">        return HttpClient.newBuilder()</span>
+<span class="fc" id="L226">            .version(HttpClient.Version.HTTP_1_1)</span>
+<span class="fc" id="L227">            .executor(Executors.newCachedThreadPool(new BasicThreadFactory.Builder()</span>
+<span class="fc" id="L228">                .namingPattern(&quot;httpClient-thread-%d&quot;)</span>
+<span class="fc" id="L229">                .build()))</span>
+<span class="fc" id="L230">            .build();</span>
     }
 
     @Bean
@@ -262,8 +262,8 @@ import java.util.function.Supplier;
                                     AssignTicketToSubscriberJobExecutor assignTicketToSubscriberJobExecutor,
                                     RetryFailedExtensionJobExecutor retryFailedExtensionJobExecutor,
                                     RetryFailedReservationConfirmationExecutor retryFailedReservationConfirmationExecutor) {
-<span class="nc" id="L265">        return new AdminJobManager(</span>
-<span class="nc" id="L266">            List.of(reservationJobExecutor, billingDocumentJobExecutor, assignTicketToSubscriberJobExecutor, retryFailedExtensionJobExecutor, retryFailedReservationConfirmationExecutor),</span>
+<span class="fc" id="L265">        return new AdminJobManager(</span>
+<span class="fc" id="L266">            List.of(reservationJobExecutor, billingDocumentJobExecutor, assignTicketToSubscriberJobExecutor, retryFailedExtensionJobExecutor, retryFailedReservationConfirmationExecutor),</span>
             adminJobQueueRepository,
             transactionManager,
             clockProvider);
@@ -271,7 +271,7 @@ import java.util.function.Supplier;
 
     @Bean
     ReservationJobExecutor reservationJobExecutor(TicketReservationManager ticketReservationManager) {
-<span class="nc" id="L274">        return new ReservationJobExecutor(ticketReservationManager);</span>
+<span class="fc" id="L274">        return new ReservationJobExecutor(ticketReservationManager);</span>
     }
 
     @Bean
@@ -280,7 +280,7 @@ import java.util.function.Supplier;
                                                           EventRepository eventRepository,
                                                           NotificationManager notificationManager,
                                                           OrganizationRepository organizationRepository) {
-<span class="nc" id="L283">        return new BillingDocumentJobExecutor(billingDocumentManager, ticketReservationManager, eventRepository, notificationManager, organizationRepository);</span>
+<span class="fc" id="L283">        return new BillingDocumentJobExecutor(billingDocumentManager, ticketReservationManager, eventRepository, notificationManager, organizationRepository);</span>
     }
 
     @Bean
@@ -291,7 +291,7 @@ import java.util.function.Supplier;
                                                                             ClockProvider clockProvider,
                                                                             TicketCategoryRepository ticketCategoryRepository,
                                                                             PurchaseContextFieldRepository purchaseContextFieldRepository) {
-<span class="nc" id="L294">        return new AssignTicketToSubscriberJobExecutor(requestManager,</span>
+<span class="fc" id="L294">        return new AssignTicketToSubscriberJobExecutor(requestManager,</span>
             configurationManager,
             subscriptionRepository,
             eventRepository,
@@ -302,12 +302,12 @@ import java.util.function.Supplier;
 
     @Bean
     RetryFailedExtensionJobExecutor retryFailedExtensionJobExecutor(ExtensionService extensionService) {
-<span class="nc" id="L305">        return new RetryFailedExtensionJobExecutor(extensionService);</span>
+<span class="fc" id="L305">        return new RetryFailedExtensionJobExecutor(extensionService);</span>
     }
 
     @Bean
     RetryFailedReservationConfirmationExecutor retryFailedReservationConfirmationExecutor(ReservationFinalizer reservationFinalizer, Json json) {
-<span class="nc" id="L310">        return new RetryFailedReservationConfirmationExecutor(reservationFinalizer, json);</span>
+<span class="fc" id="L310">        return new RetryFailedReservationConfirmationExecutor(reservationFinalizer, json);</span>
     }
 
     @Bean
@@ -319,7 +319,7 @@ import java.util.function.Supplier;
                                             EventRepository eventRepository,
                                             ConfigurationManager configurationManager,
                                             OrganizationDeleterRepository organizationDeleterRepository) {
-<span class="nc" id="L322">        return new DemoModeDataManager(userRepository, userOrganizationRepository, organizationRepository,</span>
+<span class="fc" id="L322">        return new DemoModeDataManager(userRepository, userOrganizationRepository, organizationRepository,</span>
             eventDeleterRepository, eventRepository, configurationManager, organizationDeleterRepository);
     }
 

@@ -49,21 +49,21 @@ public class UserModification {
                             @JsonProperty(&quot;emailAddress&quot;) String emailAddress,
                             @JsonProperty(&quot;type&quot;) User.Type type,
                             @JsonProperty(&quot;validTo&quot;) Long validTo,
-<span class="nc" id="L52">                            @JsonProperty(&quot;description&quot;) String description) {</span>
-<span class="nc" id="L53">        this.id = id;</span>
-<span class="nc" id="L54">        this.organizationId = organizationId;</span>
-<span class="nc" id="L55">        this.role = role;</span>
-<span class="nc" id="L56">        this.username = username;</span>
-<span class="nc" id="L57">        this.firstName = firstName;</span>
-<span class="nc" id="L58">        this.lastName = lastName;</span>
-<span class="nc" id="L59">        this.emailAddress = emailAddress;</span>
-<span class="nc" id="L60">        this.type = type;</span>
-<span class="nc" id="L61">        this.validTo = validTo;</span>
-<span class="nc" id="L62">        this.description = description;</span>
-<span class="nc" id="L63">    }</span>
+<span class="fc" id="L52">                            @JsonProperty(&quot;description&quot;) String description) {</span>
+<span class="fc" id="L53">        this.id = id;</span>
+<span class="fc" id="L54">        this.organizationId = organizationId;</span>
+<span class="fc" id="L55">        this.role = role;</span>
+<span class="fc" id="L56">        this.username = username;</span>
+<span class="fc" id="L57">        this.firstName = firstName;</span>
+<span class="fc" id="L58">        this.lastName = lastName;</span>
+<span class="fc" id="L59">        this.emailAddress = emailAddress;</span>
+<span class="fc" id="L60">        this.type = type;</span>
+<span class="fc" id="L61">        this.validTo = validTo;</span>
+<span class="fc" id="L62">        this.description = description;</span>
+<span class="fc" id="L63">    }</span>
 
     public ZonedDateTime getValidToAsDateTime() {
-<span class="nc bnc" id="L66" title="All 2 branches missed.">        return validTo == null ? null : ZonedDateTime.ofInstant(Instant.ofEpochSecond(validTo), ZoneId.of(&quot;UTC&quot;));</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        return validTo == null ? null : ZonedDateTime.ofInstant(Instant.ofEpochSecond(validTo), ZoneId.of(&quot;UTC&quot;));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -45,7 +45,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 @RequestMapping(&quot;/admin/api/payments&quot;)
 public class AdminPaymentsApiController {
 
-<span class="nc" id="L48">    private static final String[] EXPORT_COLUMNS = new String[] {</span>
+<span class="fc" id="L48">    private static final String[] EXPORT_COLUMNS = new String[] {</span>
         &quot;ID&quot;,
         &quot;Name&quot;,
         &quot;Email&quot;,
@@ -55,7 +55,7 @@ public class AdminPaymentsApiController {
         &quot;Payment Date/Time&quot;,
         &quot;Notes&quot;
     };
-<span class="nc" id="L58">    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;);</span>
+<span class="fc" id="L58">    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;);</span>
 
     private final PurchaseContextSearchManager purchaseContextSearchManager;
     private final PurchaseContextManager purchaseContextManager;
@@ -67,13 +67,13 @@ public class AdminPaymentsApiController {
                                       PurchaseContextManager purchaseContextManager,
                                       PaymentManager paymentManager,
                                       ConfigurationManager configurationManager,
-<span class="nc" id="L70">                                      AccessService accessService) {</span>
-<span class="nc" id="L71">        this.purchaseContextSearchManager = purchaseContextSearchManager;</span>
-<span class="nc" id="L72">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="nc" id="L73">        this.paymentManager = paymentManager;</span>
-<span class="nc" id="L74">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L75">        this.accessService = accessService;</span>
-<span class="nc" id="L76">    }</span>
+<span class="fc" id="L70">                                      AccessService accessService) {</span>
+<span class="fc" id="L71">        this.purchaseContextSearchManager = purchaseContextSearchManager;</span>
+<span class="fc" id="L72">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L73">        this.paymentManager = paymentManager;</span>
+<span class="fc" id="L74">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L75">        this.accessService = accessService;</span>
+<span class="fc" id="L76">    }</span>
 
     @GetMapping(&quot;/{purchaseContextType}/{publicIdentifier}/list&quot;)
     PageAndContent&lt;List&lt;ReservationPaymentDetail&gt;&gt; getPaymentsForPurchaseContext(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,

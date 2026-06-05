@@ -31,38 +31,38 @@ import static alfio.model.system.ConfigurationKeys.MAIL_SET_ORG_REPLY_TO;
 
 class MockMailer extends BaseMailer {
 
-<span class="nc" id="L34">    private static final Logger log = LoggerFactory.getLogger(MockMailer.class);</span>
+<span class="fc" id="L34">    private static final Logger log = LoggerFactory.getLogger(MockMailer.class);</span>
     private final ConfigurationManager configurationManager;
     private final Environment environment;
 
     MockMailer(ConfigurationManager configurationManager,
                Environment environment,
                OrganizationRepository organizationRepository) {
-<span class="nc" id="L41">        super(organizationRepository);</span>
-<span class="nc" id="L42">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L43">        this.environment = environment;</span>
-<span class="nc" id="L44">    }</span>
+<span class="fc" id="L41">        super(organizationRepository);</span>
+<span class="fc" id="L42">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L43">        this.environment = environment;</span>
+<span class="fc" id="L44">    }</span>
 
     @Override
     public void send(Configurable configurable, String fromName, String to, List&lt;String&gt; cc, String subject, String text, Optional&lt;String&gt; html, Attachment... attachments) {
 
-<span class="nc" id="L49">        subject = decorateSubjectIfDemo(subject, environment);</span>
+<span class="fc" id="L49">        subject = decorateSubjectIfDemo(subject, environment);</span>
 
-<span class="nc" id="L51">        String printedAttachments = Optional.ofNullable(attachments)</span>
-<span class="nc" id="L52">            .map(Arrays::asList)</span>
-<span class="nc" id="L53">            .orElse(Collections.emptyList())</span>
-<span class="nc" id="L54">            .stream().map(a -&gt; &quot;{filename:&quot; +a.getFilename() + &quot;, contentType: &quot; + a.getContentType() + &quot;}&quot;)</span>
-<span class="nc" id="L55">            .collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="fc" id="L51">        String printedAttachments = Optional.ofNullable(attachments)</span>
+<span class="fc" id="L52">            .map(Arrays::asList)</span>
+<span class="fc" id="L53">            .orElse(Collections.emptyList())</span>
+<span class="fc" id="L54">            .stream().map(a -&gt; &quot;{filename:&quot; +a.getFilename() + &quot;, contentType: &quot; + a.getContentType() + &quot;}&quot;)</span>
+<span class="fc" id="L55">            .collect(Collectors.joining(&quot;, &quot;));</span>
 
-<span class="nc" id="L57">        var conf = configurationManager.getFor(EnumSet.of(MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO), configurable.getConfigurationLevel());</span>
-<span class="nc" id="L58">        var replyTo = new AtomicReference&lt;String&gt;(null);</span>
-<span class="nc" id="L59">        setReplyToIfPresent(conf, configurable.getOrganizationId(), replyTo::set);</span>
+<span class="fc" id="L57">        var conf = configurationManager.getFor(EnumSet.of(MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO), configurable.getConfigurationLevel());</span>
+<span class="fc" id="L58">        var replyTo = new AtomicReference&lt;String&gt;(null);</span>
+<span class="fc" id="L59">        setReplyToIfPresent(conf, configurable.getOrganizationId(), replyTo::set);</span>
 
-<span class="nc" id="L61">        log.info(&quot;Email: from: {}, replyTo: {}, to: {}, cc: {}, subject: {}, text: {}, html: {}, attachments: {}&quot;,</span>
+<span class="fc" id="L61">        log.info(&quot;Email: from: {}, replyTo: {}, to: {}, cc: {}, subject: {}, text: {}, html: {}, attachments: {}&quot;,</span>
             fromName,
-<span class="nc" id="L63">            replyTo.get(),</span>
+<span class="fc" id="L63">            replyTo.get(),</span>
             to, cc, subject, text,
-<span class="nc" id="L65">            html.orElse(&quot;no html&quot;), printedAttachments);</span>
-<span class="nc" id="L66">    }</span>
+<span class="fc" id="L65">            html.orElse(&quot;no html&quot;), printedAttachments);</span>
+<span class="fc" id="L66">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

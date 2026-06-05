@@ -99,7 +99,7 @@ public class SubscriptionManager {
         }
 
         // pre-generate subscriptions if descriptor has a limited quantity
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if(maxAvailable &gt; 0) {</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if(maxAvailable &gt; 0) {</span>
 <span class="fc" id="L103">            subscriptionRepository.preGenerateSubscriptions(subscriptionDescriptor, id, maxAvailable);</span>
         }
 
@@ -108,63 +108,63 @@ public class SubscriptionManager {
 
     public Optional&lt;UUID&gt; updateSubscriptionDescriptor(SubscriptionDescriptorModification subscriptionDescriptor) {
 
-<span class="nc" id="L111">        var subscriptionDescriptorId = subscriptionDescriptor.getId();</span>
-<span class="nc" id="L112">        return subscriptionRepository.findOne(subscriptionDescriptorId, subscriptionDescriptor.getOrganizationId())</span>
-<span class="nc" id="L113">            .flatMap(original -&gt; {</span>
-<span class="nc" id="L114">                int maxAvailable = requireNonNullElse(subscriptionDescriptor.getMaxAvailable(), -1);</span>
-<span class="nc" id="L115">                int result = subscriptionRepository.updateSubscriptionDescriptor(</span>
-<span class="nc" id="L116">                    subscriptionDescriptor.getTitle(),</span>
-<span class="nc" id="L117">                    subscriptionDescriptor.getDescription(),</span>
+<span class="fc" id="L111">        var subscriptionDescriptorId = subscriptionDescriptor.getId();</span>
+<span class="fc" id="L112">        return subscriptionRepository.findOne(subscriptionDescriptorId, subscriptionDescriptor.getOrganizationId())</span>
+<span class="fc" id="L113">            .flatMap(original -&gt; {</span>
+<span class="fc" id="L114">                int maxAvailable = requireNonNullElse(subscriptionDescriptor.getMaxAvailable(), -1);</span>
+<span class="fc" id="L115">                int result = subscriptionRepository.updateSubscriptionDescriptor(</span>
+<span class="fc" id="L116">                    subscriptionDescriptor.getTitle(),</span>
+<span class="fc" id="L117">                    subscriptionDescriptor.getDescription(),</span>
                     maxAvailable,
-<span class="nc" id="L119">                    subscriptionDescriptor.getOnSaleFrom(),</span>
-<span class="nc" id="L120">                    subscriptionDescriptor.getOnSaleTo(),</span>
-<span class="nc" id="L121">                    subscriptionDescriptor.getPriceCts(),</span>
-<span class="nc" id="L122">                    subscriptionDescriptor.getVat(),</span>
-<span class="nc" id="L123">                    subscriptionDescriptor.getVatStatus(),</span>
-<span class="nc" id="L124">                    subscriptionDescriptor.getCurrency(),</span>
-<span class="nc" id="L125">                    Boolean.TRUE.equals(subscriptionDescriptor.getIsPublic()),</span>
+<span class="fc" id="L119">                    subscriptionDescriptor.getOnSaleFrom(),</span>
+<span class="fc" id="L120">                    subscriptionDescriptor.getOnSaleTo(),</span>
+<span class="fc" id="L121">                    subscriptionDescriptor.getPriceCts(),</span>
+<span class="fc" id="L122">                    subscriptionDescriptor.getVat(),</span>
+<span class="fc" id="L123">                    subscriptionDescriptor.getVatStatus(),</span>
+<span class="fc" id="L124">                    subscriptionDescriptor.getCurrency(),</span>
+<span class="fc" id="L125">                    Boolean.TRUE.equals(subscriptionDescriptor.getIsPublic()),</span>
 
-<span class="nc" id="L127">                    requireNonNullElse(subscriptionDescriptor.getMaxEntries(), -1),</span>
-<span class="nc" id="L128">                    subscriptionDescriptor.getValidityType(),</span>
-<span class="nc" id="L129">                    subscriptionDescriptor.getValidityTimeUnit(),</span>
-<span class="nc" id="L130">                    subscriptionDescriptor.getValidityUnits(),</span>
-<span class="nc" id="L131">                    subscriptionDescriptor.getValidityFrom(),</span>
-<span class="nc" id="L132">                    subscriptionDescriptor.getValidityTo(),</span>
-<span class="nc" id="L133">                    subscriptionDescriptor.getUsageType(),</span>
+<span class="fc" id="L127">                    requireNonNullElse(subscriptionDescriptor.getMaxEntries(), -1),</span>
+<span class="fc" id="L128">                    subscriptionDescriptor.getValidityType(),</span>
+<span class="fc" id="L129">                    subscriptionDescriptor.getValidityTimeUnit(),</span>
+<span class="fc" id="L130">                    subscriptionDescriptor.getValidityUnits(),</span>
+<span class="fc" id="L131">                    subscriptionDescriptor.getValidityFrom(),</span>
+<span class="fc" id="L132">                    subscriptionDescriptor.getValidityTo(),</span>
+<span class="fc" id="L133">                    subscriptionDescriptor.getUsageType(),</span>
 
-<span class="nc" id="L135">                    subscriptionDescriptor.getTermsAndConditionsUrl(),</span>
-<span class="nc" id="L136">                    subscriptionDescriptor.getPrivacyPolicyUrl(),</span>
-<span class="nc" id="L137">                    subscriptionDescriptor.getFileBlobId(),</span>
-<span class="nc" id="L138">                    subscriptionDescriptor.getPaymentProxies(),</span>
+<span class="fc" id="L135">                    subscriptionDescriptor.getTermsAndConditionsUrl(),</span>
+<span class="fc" id="L136">                    subscriptionDescriptor.getPrivacyPolicyUrl(),</span>
+<span class="fc" id="L137">                    subscriptionDescriptor.getFileBlobId(),</span>
+<span class="fc" id="L138">                    subscriptionDescriptor.getPaymentProxies(),</span>
 
                     subscriptionDescriptorId,
-<span class="nc" id="L141">                    original.getOrganizationId(),</span>
-<span class="nc" id="L142">                    subscriptionDescriptor.getTimeZone().toString(),</span>
-<span class="nc" id="L143">                    Boolean.TRUE.equals(subscriptionDescriptor.getSupportsTicketsGeneration())</span>
+<span class="fc" id="L141">                    original.getOrganizationId(),</span>
+<span class="fc" id="L142">                    subscriptionDescriptor.getTimeZone().toString(),</span>
+<span class="fc" id="L143">                    Boolean.TRUE.equals(subscriptionDescriptor.getSupportsTicketsGeneration())</span>
                 );
 
-<span class="nc bnc" id="L146" title="All 2 branches missed.">                if (result != 1) {</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">                if (result != 1) {</span>
 <span class="nc" id="L147">                    return Optional.empty();</span>
                 }
 
-<span class="nc bnc" id="L150" title="All 4 branches missed.">                if(maxAvailable &gt; 0 &amp;&amp; maxAvailable &gt; original.getMaxAvailable()) {</span>
-<span class="nc" id="L151">                    int existing = Math.max(0, original.getMaxAvailable());</span>
-<span class="nc" id="L152">                    subscriptionRepository.preGenerateSubscriptions(subscriptionDescriptor, subscriptionDescriptorId, maxAvailable - existing);</span>
-<span class="nc bnc" id="L153" title="All 4 branches missed.">                } else if(maxAvailable &gt; -1 &amp;&amp; maxAvailable &lt; original.getMaxAvailable()) {</span>
-<span class="nc" id="L154">                    int amount = original.getMaxAvailable() - maxAvailable;</span>
-<span class="nc" id="L155">                    int invalidated = subscriptionRepository.invalidateSubscriptions(subscriptionDescriptorId, amount);</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">                    Validate.isTrue(amount == invalidated, &quot;Cannot invalidate existing subscriptions. (wanted: %d got: %d)&quot;, amount, invalidated);</span>
+<span class="fc bfc" id="L150" title="All 4 branches covered.">                if(maxAvailable &gt; 0 &amp;&amp; maxAvailable &gt; original.getMaxAvailable()) {</span>
+<span class="fc" id="L151">                    int existing = Math.max(0, original.getMaxAvailable());</span>
+<span class="fc" id="L152">                    subscriptionRepository.preGenerateSubscriptions(subscriptionDescriptor, subscriptionDescriptorId, maxAvailable - existing);</span>
+<span class="fc bfc" id="L153" title="All 4 branches covered.">                } else if(maxAvailable &gt; -1 &amp;&amp; maxAvailable &lt; original.getMaxAvailable()) {</span>
+<span class="fc" id="L154">                    int amount = original.getMaxAvailable() - maxAvailable;</span>
+<span class="fc" id="L155">                    int invalidated = subscriptionRepository.invalidateSubscriptions(subscriptionDescriptorId, amount);</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">                    Validate.isTrue(amount == invalidated, &quot;Cannot invalidate existing subscriptions. (wanted: %d got: %d)&quot;, amount, invalidated);</span>
                 }
-<span class="nc bnc" id="L158" title="All 2 branches missed.">                if(original.getPrice() != subscriptionDescriptor.getPriceCts()) {</span>
-<span class="nc" id="L159">                    subscriptionRepository.updatePriceForSubscriptions(subscriptionDescriptorId, subscriptionDescriptor.getPriceCts());</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">                if(original.getPrice() != subscriptionDescriptor.getPriceCts()) {</span>
+<span class="fc" id="L159">                    subscriptionRepository.updatePriceForSubscriptions(subscriptionDescriptorId, subscriptionDescriptor.getPriceCts());</span>
                 }
-<span class="nc bnc" id="L161" title="All 2 branches missed.">                if(!Objects.equals(original.getMaxEntries(), subscriptionDescriptor.getMaxEntries())) {</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">                if(!Objects.equals(original.getMaxEntries(), subscriptionDescriptor.getMaxEntries())) {</span>
 <span class="nc" id="L162">                    int maxEntries = requireNonNullElse(subscriptionDescriptor.getMaxEntries(), -1);</span>
 <span class="nc" id="L163">                    int updatedSubscriptions = subscriptionRepository.updateMaxEntriesForSubscriptions(subscriptionDescriptorId, maxEntries);</span>
 <span class="nc" id="L164">                    log.debug(&quot;SubscriptionDescriptor #{}: updated {} subscriptions. Modified max entries to {}&quot;,</span>
 <span class="nc" id="L165">                        subscriptionDescriptorId, updatedSubscriptions, maxEntries);</span>
                 }
-<span class="nc" id="L167">                return Optional.of(subscriptionDescriptorId);</span>
+<span class="fc" id="L167">                return Optional.of(subscriptionDescriptorId);</span>
             });
     }
 
@@ -173,22 +173,22 @@ public class SubscriptionManager {
     }
 
     public boolean setPublicStatus(UUID id, int organizationId, boolean isPublic) {
-<span class="nc bnc" id="L176" title="All 2 branches missed.">        if(environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if(environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
 <span class="nc" id="L177">            throw new IllegalStateException(&quot;Cannot publish subscriptions while in demo mode&quot;);</span>
         }
-<span class="nc bnc" id="L179" title="All 2 branches missed.">        return subscriptionRepository.setPublicStatus(id, organizationId, isPublic) == 1;</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        return subscriptionRepository.setPublicStatus(id, organizationId, isPublic) == 1;</span>
     }
 
     public List&lt;SubscriptionDescriptor&gt; getActivePublicSubscriptionsDescriptor(ZonedDateTime from, SearchOptions searchOptions) {
-<span class="nc" id="L183">        return subscriptionRepository.findAllActiveAndPublic(from, searchOptions.getOrganizerSlug());</span>
+<span class="fc" id="L183">        return subscriptionRepository.findAllActiveAndPublic(from, searchOptions.getOrganizerSlug());</span>
     }
 
     public Optional&lt;SubscriptionDescriptor&gt; getSubscriptionById(UUID id) {
-<span class="nc" id="L187">        return subscriptionRepository.findOne(id);</span>
+<span class="fc" id="L187">        return subscriptionRepository.findOne(id);</span>
     }
 
     public List&lt;SubscriptionDescriptorWithStatistics&gt; loadSubscriptionsWithStatistics(int organizationId) {
-<span class="nc" id="L191">        return subscriptionRepository.findAllWithStatistics(organizationId);</span>
+<span class="fc" id="L191">        return subscriptionRepository.findAllWithStatistics(organizationId);</span>
     }
 
     public Optional&lt;SubscriptionDescriptorWithStatistics&gt; loadSubscriptionWithStatistics(UUID id, int organizationId) {
@@ -196,11 +196,11 @@ public class SubscriptionManager {
     }
 
     public int linkSubscriptionToEvent(UUID subscriptionId, int eventId, int organizationId, int pricePerTicket, List&lt;Integer&gt; compatibleCategories) {
-<span class="nc" id="L199">        return subscriptionRepository.linkSubscriptionAndEvent(subscriptionId, eventId, pricePerTicket, organizationId, Objects.requireNonNullElse(compatibleCategories, List.of()));</span>
+<span class="fc" id="L199">        return subscriptionRepository.linkSubscriptionAndEvent(subscriptionId, eventId, pricePerTicket, organizationId, Objects.requireNonNullElse(compatibleCategories, List.of()));</span>
     }
 
     public List&lt;EventSubscriptionLink&gt; getLinkedEvents(int organizationId, UUID id) {
-<span class="nc" id="L203">        return subscriptionRepository.findLinkedEvents(organizationId, id);</span>
+<span class="fc" id="L203">        return subscriptionRepository.findLinkedEvents(organizationId, id);</span>
     }
 
     public int countFree(UUID subscriptionDescriptorId) {
@@ -208,43 +208,43 @@ public class SubscriptionManager {
     }
 
     public List&lt;SubscriptionDescriptor&gt; loadActiveSubscriptionDescriptors(int organizationId) {
-<span class="nc" id="L211">        return subscriptionRepository.findActiveSubscriptionsForOrganization(organizationId);</span>
+<span class="fc" id="L211">        return subscriptionRepository.findActiveSubscriptionsForOrganization(organizationId);</span>
     }
 
     public Result&lt;Boolean&gt; deactivateDescriptor(int organizationId, UUID descriptorId) {
         // 1. remove all links
-<span class="nc" id="L216">        removeAllEventLinksForSubscription(organizationId, descriptorId);</span>
-<span class="nc" id="L217">        int result = subscriptionRepository.deactivateDescriptor(descriptorId, organizationId);</span>
-<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (result == 1) {</span>
-<span class="nc" id="L219">            return Result.success(true);</span>
+<span class="fc" id="L216">        removeAllEventLinksForSubscription(organizationId, descriptorId);</span>
+<span class="fc" id="L217">        int result = subscriptionRepository.deactivateDescriptor(descriptorId, organizationId);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (result == 1) {</span>
+<span class="fc" id="L219">            return Result.success(true);</span>
         }
 <span class="nc" id="L221">        return Result.error(ErrorCode.custom(&quot;cannot-deactivate-subscription&quot;,</span>
             &quot;Cannot deactivate subscription descriptor&quot;));
     }
 
     public Result&lt;List&lt;EventSubscriptionLink&gt;&gt; updateLinkedEvents(int organizationId, UUID subscriptionId, List&lt;LinkEventsToSubscriptionRequest&gt; requests){
-<span class="nc" id="L226">        removeAllEventLinksForSubscription(organizationId, subscriptionId);</span>
-<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (requests.isEmpty()) {</span>
+<span class="fc" id="L226">        removeAllEventLinksForSubscription(organizationId, subscriptionId);</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        if (requests.isEmpty()) {</span>
 <span class="nc" id="L228">            return Result.success(List.of());</span>
         } else {
-<span class="nc" id="L230">            var byName = requests.stream().collect(Collectors.groupingBy(LinkEventsToSubscriptionRequest::getSlug));</span>
-<span class="nc" id="L231">            var allEvents = eventRepository.findEventsByShortNames(organizationId, byName.keySet());</span>
-<span class="nc" id="L232">            var parameters = byName.entrySet().stream()</span>
-<span class="nc" id="L233">                .map(entry -&gt; {</span>
-<span class="nc" id="L234">                    var event = allEvents.stream().filter(e -&gt; e.getShortName().equals(entry.getKey()))</span>
-<span class="nc" id="L235">                        .findFirst()</span>
-<span class="nc" id="L236">                        .orElseThrow();</span>
-<span class="nc" id="L237">                    return new MapSqlParameterSource(&quot;eventId&quot;, event.getId())</span>
-<span class="nc" id="L238">                            .addValue(&quot;subscriptionId&quot;, subscriptionId)</span>
-<span class="nc" id="L239">                            .addValue(&quot;pricePerTicket&quot;, 0)</span>
-<span class="nc" id="L240">                            .addValue(&quot;organizationId&quot;, organizationId)</span>
-<span class="nc" id="L241">                            .addValue(&quot;compatibleCategories&quot;, Json.toJson(entry.getValue().stream().flatMap(v -&gt; v.getCategories().stream()).collect(Collectors.toSet())));</span>
+<span class="fc" id="L230">            var byName = requests.stream().collect(Collectors.groupingBy(LinkEventsToSubscriptionRequest::getSlug));</span>
+<span class="fc" id="L231">            var allEvents = eventRepository.findEventsByShortNames(organizationId, byName.keySet());</span>
+<span class="fc" id="L232">            var parameters = byName.entrySet().stream()</span>
+<span class="fc" id="L233">                .map(entry -&gt; {</span>
+<span class="fc" id="L234">                    var event = allEvents.stream().filter(e -&gt; e.getShortName().equals(entry.getKey()))</span>
+<span class="fc" id="L235">                        .findFirst()</span>
+<span class="fc" id="L236">                        .orElseThrow();</span>
+<span class="fc" id="L237">                    return new MapSqlParameterSource(&quot;eventId&quot;, event.getId())</span>
+<span class="fc" id="L238">                            .addValue(&quot;subscriptionId&quot;, subscriptionId)</span>
+<span class="fc" id="L239">                            .addValue(&quot;pricePerTicket&quot;, 0)</span>
+<span class="fc" id="L240">                            .addValue(&quot;organizationId&quot;, organizationId)</span>
+<span class="fc" id="L241">                            .addValue(&quot;compatibleCategories&quot;, Json.toJson(entry.getValue().stream().flatMap(v -&gt; v.getCategories().stream()).collect(Collectors.toSet())));</span>
                 })
-<span class="nc" id="L243">                .toArray(MapSqlParameterSource[]::new);</span>
-<span class="nc" id="L244">            var result = jdbcTemplate.batchUpdate(SubscriptionRepository.INSERT_SUBSCRIPTION_LINK, parameters);</span>
-<span class="nc" id="L245">            return new Result.Builder&lt;List&lt;EventSubscriptionLink&gt;&gt;()</span>
-<span class="nc bnc" id="L246" title="All 2 branches missed.">                .checkPrecondition(() -&gt; Arrays.stream(result).allMatch(r -&gt; r == 1), ErrorCode.custom(&quot;cannot-link&quot;, &quot;Cannot link events&quot;))</span>
-<span class="nc" id="L247">                .build(() -&gt; getLinkedEvents(organizationId, subscriptionId));</span>
+<span class="fc" id="L243">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L244">            var result = jdbcTemplate.batchUpdate(SubscriptionRepository.INSERT_SUBSCRIPTION_LINK, parameters);</span>
+<span class="fc" id="L245">            return new Result.Builder&lt;List&lt;EventSubscriptionLink&gt;&gt;()</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">                .checkPrecondition(() -&gt; Arrays.stream(result).allMatch(r -&gt; r == 1), ErrorCode.custom(&quot;cannot-link&quot;, &quot;Cannot link events&quot;))</span>
+<span class="fc" id="L247">                .build(() -&gt; getLinkedEvents(organizationId, subscriptionId));</span>
         }
     }
 
@@ -253,8 +253,8 @@ public class SubscriptionManager {
     }
 
     private void removeAllEventLinksForSubscription(int organizationId, UUID subscriptionId) {
-<span class="nc" id="L256">        int removed = subscriptionRepository.removeAllLinksForSubscription(subscriptionId, organizationId);</span>
-<span class="nc" id="L257">        log.info(&quot;removed all event links ({}) for subscription {}&quot;, removed, subscriptionId);</span>
-<span class="nc" id="L258">    }</span>
+<span class="fc" id="L256">        int removed = subscriptionRepository.removeAllLinksForSubscription(subscriptionId, organizationId);</span>
+<span class="fc" id="L257">        log.info(&quot;removed all event links ({}) for subscription {}&quot;, removed, subscriptionId);</span>
+<span class="fc" id="L258">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

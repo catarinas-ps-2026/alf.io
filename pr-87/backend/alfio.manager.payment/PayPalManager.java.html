@@ -69,7 +69,7 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 @AllArgsConstructor
 public class PayPalManager implements PaymentProvider, RefundRequest, PaymentInfo, ExtractPaymentTokenFromTransaction {
 
-<span class="nc" id="L72">    private static final Logger log = LoggerFactory.getLogger(PayPalManager.class);</span>
+<span class="fc" id="L72">    private static final Logger log = LoggerFactory.getLogger(PayPalManager.class);</span>
     private final Cache&lt;String, PayPalHttpClient&gt; cachedClients = Caffeine.newBuilder()
         .expireAfterAccess(Duration.ofHours(1L))
         .build();
@@ -166,7 +166,7 @@ public class PayPalManager implements PaymentProvider, RefundRequest, PaymentInf
 <span class="nc" id="L166">        }</span>
     }
 
-<span class="nc" id="L169">    private static final Set&lt;String&gt; MAPPED_ERROR = Set.of(&quot;FAILED_TO_CHARGE_CC&quot;, &quot;INSUFFICIENT_FUNDS&quot;, &quot;EXPIRED_CREDIT_CARD&quot;, &quot;INSTRUMENT_DECLINED&quot;);</span>
+<span class="fc" id="L169">    private static final Set&lt;String&gt; MAPPED_ERROR = Set.of(&quot;FAILED_TO_CHARGE_CC&quot;, &quot;INSUFFICIENT_FUNDS&quot;, &quot;EXPIRED_CREDIT_CARD&quot;, &quot;INSTRUMENT_DECLINED&quot;);</span>
 
     private static Optional&lt;String&gt; mappedException(HttpException e) {
         //https://developer.paypal.com/docs/api/#errors
@@ -318,12 +318,12 @@ public class PayPalManager implements PaymentProvider, RefundRequest, PaymentInf
 
     @Override
     public PaymentProxy getPaymentProxy() {
-<span class="nc" id="L321">        return PaymentProxy.PAYPAL;</span>
+<span class="fc" id="L321">        return PaymentProxy.PAYPAL;</span>
     }
 
     @Override
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-<span class="nc bnc" id="L326" title="All 4 branches missed.">        return paymentMethod == StaticPaymentMethods.PAYPAL &amp;&amp; isActive(context);</span>
+<span class="pc bpc" id="L326" title="3 of 4 branches missed.">        return paymentMethod == StaticPaymentMethods.PAYPAL &amp;&amp; isActive(context);</span>
     }
 
     @Override

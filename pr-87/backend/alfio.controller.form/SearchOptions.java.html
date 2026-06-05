@@ -27,14 +27,14 @@ import java.util.UUID;
 
 @Data
 public class SearchOptions {
-<span class="nc" id="L30">    private static final Logger log = LoggerFactory.getLogger(SearchOptions.class);</span>
+<span class="fc" id="L30">    private static final Logger log = LoggerFactory.getLogger(SearchOptions.class);</span>
     private String subscription;
     private Integer organizer;
     private String organizerSlug;
     private List&lt;String&gt; tags;
 
     public static SearchOptions empty() {
-<span class="nc" id="L37">        return new SearchOptions();</span>
+<span class="fc" id="L37">        return new SearchOptions();</span>
     }
 
     public boolean isEmpty() {
@@ -45,8 +45,8 @@ public class SearchOptions {
 
     public UUID getSubscriptionCodeUUIDOrNull() {
         try {
-<span class="nc bnc" id="L48" title="All 2 branches missed.">            if(StringUtils.isEmpty(subscription)) {</span>
-<span class="nc" id="L49">                return null;</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">            if(StringUtils.isEmpty(subscription)) {</span>
+<span class="fc" id="L49">                return null;</span>
             }
 <span class="nc" id="L51">            return UUID.fromString(subscription);</span>
 <span class="nc" id="L52">        } catch (Exception e) {</span>

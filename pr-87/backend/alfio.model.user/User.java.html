@@ -48,17 +48,17 @@ public class User implements Serializable {
                 @Column(&quot;enabled&quot;) boolean enabled,
                 @Column(&quot;user_type&quot;) Type type,
                 @Column(&quot;valid_to&quot;) ZonedDateTime validTo,
-<span class="nc" id="L51">                @Column(&quot;description&quot;) String description) {</span>
-<span class="nc" id="L52">        this.id = id;</span>
-<span class="nc" id="L53">        this.username = username;</span>
-<span class="nc" id="L54">        this.firstName = firstName;</span>
-<span class="nc" id="L55">        this.lastName = lastName;</span>
-<span class="nc" id="L56">        this.emailAddress = emailAddress;</span>
-<span class="nc" id="L57">        this.enabled=enabled;</span>
-<span class="nc" id="L58">        this.type = type;</span>
-<span class="nc" id="L59">        this.validTo = validTo;</span>
-<span class="nc" id="L60">        this.description = description;</span>
-<span class="nc" id="L61">    }</span>
+<span class="fc" id="L51">                @Column(&quot;description&quot;) String description) {</span>
+<span class="fc" id="L52">        this.id = id;</span>
+<span class="fc" id="L53">        this.username = username;</span>
+<span class="fc" id="L54">        this.firstName = firstName;</span>
+<span class="fc" id="L55">        this.lastName = lastName;</span>
+<span class="fc" id="L56">        this.emailAddress = emailAddress;</span>
+<span class="fc" id="L57">        this.enabled=enabled;</span>
+<span class="fc" id="L58">        this.type = type;</span>
+<span class="fc" id="L59">        this.validTo = validTo;</span>
+<span class="fc" id="L60">        this.description = description;</span>
+<span class="fc" id="L61">    }</span>
 
     public boolean isCurrentlyValid(ZonedDateTime date) {
 <span class="nc bnc" id="L64" title="All 4 branches missed.">        return validTo == null || validTo.isAfter(date);</span>

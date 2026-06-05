@@ -42,14 +42,14 @@ public class FileBlobMetadata {
                             @Column(&quot;name&quot;) String name,
                             @Column(&quot;content_size&quot;) int contentSize,
                             @Column(&quot;content_type&quot;) String contentType,
-<span class="nc" id="L45">                            @Column(&quot;attributes&quot;) String attributes) {</span>
-<span class="nc" id="L46">        this.id = id;</span>
-<span class="nc" id="L47">        this.name = name;</span>
-<span class="nc" id="L48">        this.contentSize = contentSize;</span>
-<span class="nc" id="L49">        this.contentType = contentType;</span>
-<span class="nc" id="L50">        Map&lt;String, String&gt; parsed = Json.GSON.fromJson(attributes, new TypeToken&lt;Map&lt;String, String&gt;&gt;() {}.getType());</span>
-<span class="nc" id="L51">        this.attributes = ObjectUtils.firstNonNull(parsed, Collections.emptyMap());</span>
-<span class="nc" id="L52">    }</span>
+<span class="fc" id="L45">                            @Column(&quot;attributes&quot;) String attributes) {</span>
+<span class="fc" id="L46">        this.id = id;</span>
+<span class="fc" id="L47">        this.name = name;</span>
+<span class="fc" id="L48">        this.contentSize = contentSize;</span>
+<span class="fc" id="L49">        this.contentType = contentType;</span>
+<span class="fc" id="L50">        Map&lt;String, String&gt; parsed = Json.GSON.fromJson(attributes, new TypeToken&lt;Map&lt;String, String&gt;&gt;() {}.getType());</span>
+<span class="fc" id="L51">        this.attributes = ObjectUtils.firstNonNull(parsed, Collections.emptyMap());</span>
+<span class="fc" id="L52">    }</span>
 
 <span class="fc" id="L54">    private static final Set&lt;String&gt; VALID_TYPE = Set.of(</span>
         &quot;image/jpeg&quot;,
@@ -63,10 +63,10 @@ public class FileBlobMetadata {
         // - fonts
         // - css
         // - pdf files etc...
-<span class="nc bnc" id="L66" title="All 4 branches missed.">        if (contentType != null &amp;&amp; VALID_TYPE.contains(contentType)) {</span>
+<span class="pc bpc" id="L66" title="2 of 4 branches missed.">        if (contentType != null &amp;&amp; VALID_TYPE.contains(contentType)) {</span>
 <span class="nc" id="L67">            return contentType;</span>
         } else {
-<span class="nc" id="L69">            return &quot;application/octet-stream&quot;;</span>
+<span class="fc" id="L69">            return &quot;application/octet-stream&quot;;</span>
         }
     }
 }

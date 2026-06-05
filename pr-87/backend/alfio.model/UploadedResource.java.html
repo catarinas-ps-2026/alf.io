@@ -43,15 +43,15 @@ public class UploadedResource {
                             @Column(&quot;content_type&quot;) String contentType,
                             @Column(&quot;content_size&quot;) int contentSize,
                             @Column(&quot;creation_time&quot;) Date creationTime,
-<span class="nc" id="L46">                            @Column(&quot;attributes&quot;) String attributes) {</span>
-<span class="nc" id="L47">        this.name = name;</span>
-<span class="nc" id="L48">        this.organizationId = organizationId;</span>
-<span class="nc" id="L49">        this.eventId = eventId;</span>
-<span class="nc" id="L50">        this.contentType = contentType;</span>
-<span class="nc" id="L51">        this.contentSize = contentSize;</span>
-<span class="nc" id="L52">        this.creationTime = creationTime;</span>
-<span class="nc" id="L53">        Map&lt;String, String&gt; parsed = Json.GSON.fromJson(attributes, new TypeToken&lt;Map&lt;String, String&gt;&gt;() {}.getType());</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        this.attributes = parsed != null ? parsed : Collections.emptyMap();</span>
-<span class="nc" id="L55">    }</span>
+<span class="fc" id="L46">                            @Column(&quot;attributes&quot;) String attributes) {</span>
+<span class="fc" id="L47">        this.name = name;</span>
+<span class="fc" id="L48">        this.organizationId = organizationId;</span>
+<span class="fc" id="L49">        this.eventId = eventId;</span>
+<span class="fc" id="L50">        this.contentType = contentType;</span>
+<span class="fc" id="L51">        this.contentSize = contentSize;</span>
+<span class="fc" id="L52">        this.creationTime = creationTime;</span>
+<span class="fc" id="L53">        Map&lt;String, String&gt; parsed = Json.GSON.fromJson(attributes, new TypeToken&lt;Map&lt;String, String&gt;&gt;() {}.getType());</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        this.attributes = parsed != null ? parsed : Collections.emptyMap();</span>
+<span class="fc" id="L55">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

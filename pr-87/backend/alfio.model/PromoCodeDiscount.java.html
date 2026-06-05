@@ -44,7 +44,7 @@ public class PromoCodeDiscount {
 <span class="fc" id="L44">        FIXED_AMOUNT, PERCENTAGE, FIXED_AMOUNT_RESERVATION, NONE;</span>
 
         public static boolean isFixedAmount(DiscountType discountType) {
-<span class="nc bnc" id="L47" title="All 4 branches missed.">            return discountType == FIXED_AMOUNT || discountType == FIXED_AMOUNT_RESERVATION;</span>
+<span class="pc bpc" id="L47" title="1 of 4 branches missed.">            return discountType == FIXED_AMOUNT || discountType == FIXED_AMOUNT_RESERVATION;</span>
         }
     }
 
@@ -78,32 +78,32 @@ public class PromoCodeDiscount {
                              @Column(&quot;email_reference&quot;) String emailReference,
                              @Column(&quot;code_type&quot;) CodeType codeType,
                              @Column(&quot;hidden_category_id&quot;) Integer hiddenCategoryId,
-<span class="nc" id="L81">                             @Column(&quot;currency_code&quot;) String currencyCode) {</span>
+<span class="fc" id="L81">                             @Column(&quot;currency_code&quot;) String currencyCode) {</span>
 
-<span class="nc" id="L83">        this.id = id;</span>
-<span class="nc" id="L84">        this.promoCode = promoCode;</span>
-<span class="nc" id="L85">        this.eventId = eventId;</span>
-<span class="nc" id="L86">        this.organizationId = organizationId;</span>
-<span class="nc" id="L87">        this.utcStart = utcStart;</span>
-<span class="nc" id="L88">        this.utcEnd = utcEnd;</span>
-<span class="nc" id="L89">        this.discountAmount = discountAmount;</span>
-<span class="nc" id="L90">        this.discountType = discountType;</span>
-<span class="nc" id="L91">        this.maxUsage = maxUsage;</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        if(categories != null) {</span>
-<span class="nc" id="L93">            List&lt;Integer&gt; categoriesId = Json.GSON.fromJson(categories, new TypeToken&lt;List&lt;Integer&gt;&gt;(){}.getType());</span>
-<span class="nc bnc" id="L94" title="All 2 branches missed.">            this.categories = categoriesId == null ? Collections.emptySet() : new TreeSet&lt;&gt;(categoriesId);</span>
-<span class="nc" id="L95">        } else {</span>
-<span class="nc" id="L96">            this.categories = Collections.emptySet();</span>
+<span class="fc" id="L83">        this.id = id;</span>
+<span class="fc" id="L84">        this.promoCode = promoCode;</span>
+<span class="fc" id="L85">        this.eventId = eventId;</span>
+<span class="fc" id="L86">        this.organizationId = organizationId;</span>
+<span class="fc" id="L87">        this.utcStart = utcStart;</span>
+<span class="fc" id="L88">        this.utcEnd = utcEnd;</span>
+<span class="fc" id="L89">        this.discountAmount = discountAmount;</span>
+<span class="fc" id="L90">        this.discountType = discountType;</span>
+<span class="fc" id="L91">        this.maxUsage = maxUsage;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if(categories != null) {</span>
+<span class="fc" id="L93">            List&lt;Integer&gt; categoriesId = Json.GSON.fromJson(categories, new TypeToken&lt;List&lt;Integer&gt;&gt;(){}.getType());</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            this.categories = categoriesId == null ? Collections.emptySet() : new TreeSet&lt;&gt;(categoriesId);</span>
+<span class="fc" id="L95">        } else {</span>
+<span class="fc" id="L96">            this.categories = Collections.emptySet();</span>
         }
-<span class="nc" id="L98">        this.description = description;</span>
-<span class="nc" id="L99">        this.emailReference = emailReference;</span>
-<span class="nc" id="L100">        this.codeType = codeType;</span>
-<span class="nc" id="L101">        this.hiddenCategoryId = hiddenCategoryId;</span>
-<span class="nc" id="L102">        this.currencyCode = currencyCode;</span>
-<span class="nc" id="L103">    }</span>
+<span class="fc" id="L98">        this.description = description;</span>
+<span class="fc" id="L99">        this.emailReference = emailReference;</span>
+<span class="fc" id="L100">        this.codeType = codeType;</span>
+<span class="fc" id="L101">        this.hiddenCategoryId = hiddenCategoryId;</span>
+<span class="fc" id="L102">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L103">    }</span>
     
     public boolean isCurrentlyValid(ZoneId eventZoneId, ZonedDateTime now) {
-<span class="nc bnc" id="L106" title="All 4 branches missed.">        return utcStart.withZoneSameInstant(eventZoneId).isBefore(now) &amp;&amp; utcEnd.withZoneSameInstant(eventZoneId).isAfter(now);</span>
+<span class="pc bpc" id="L106" title="2 of 4 branches missed.">        return utcStart.withZoneSameInstant(eventZoneId).isBefore(now) &amp;&amp; utcEnd.withZoneSameInstant(eventZoneId).isAfter(now);</span>
     }
     
     public boolean isExpired(ZoneId eventZoneId, ZonedDateTime now) {
@@ -111,37 +111,37 @@ public class PromoCodeDiscount {
     }
     
     public boolean getFixedAmount() {
-<span class="nc bnc" id="L114" title="All 4 branches missed.">        return DiscountType.FIXED_AMOUNT == discountType || DiscountType.FIXED_AMOUNT_RESERVATION == discountType;</span>
+<span class="pc bpc" id="L114" title="1 of 4 branches missed.">        return DiscountType.FIXED_AMOUNT == discountType || DiscountType.FIXED_AMOUNT_RESERVATION == discountType;</span>
     }
 
     public static Set&lt;Integer&gt; categoriesOrNull(PromoCodeDiscount code) {
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        if(code.codeType == CodeType.DYNAMIC) {</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        if(code.codeType == CodeType.DYNAMIC) {</span>
 <span class="nc" id="L119">            return null;</span>
         }
-<span class="nc bnc" id="L121" title="All 2 branches missed.">        if(code.codeType == CodeType.DISCOUNT) {</span>
-<span class="nc" id="L122">            Set&lt;Integer&gt; categories = code.getCategories();</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">            return CollectionUtils.isEmpty(categories) ? null : categories;</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if(code.codeType == CodeType.DISCOUNT) {</span>
+<span class="fc" id="L122">            Set&lt;Integer&gt; categories = code.getCategories();</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">            return CollectionUtils.isEmpty(categories) ? null : categories;</span>
         }
-<span class="nc" id="L125">        return Set.of(code.hiddenCategoryId);</span>
+<span class="fc" id="L125">        return Set.of(code.hiddenCategoryId);</span>
     }
 
     public boolean isDynamic() {
-<span class="nc bnc" id="L129" title="All 2 branches missed.">        return codeType == CodeType.DYNAMIC;</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        return codeType == CodeType.DYNAMIC;</span>
     }
 
     public boolean hasCurrencyCode() {
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        return StringUtils.length(currencyCode) == 3;</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">        return StringUtils.length(currencyCode) == 3;</span>
     }
 
     public static String format(PromoCodeDiscount discount, String eventCurrencyCode) {
-<span class="nc bnc" id="L137" title="All 2 branches missed.">        if(discount.getDiscountType() == DiscountType.PERCENTAGE) {</span>
-<span class="nc" id="L138">            return Integer.toString(discount.getDiscountAmount());</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if(discount.getDiscountType() == DiscountType.PERCENTAGE) {</span>
+<span class="fc" id="L138">            return Integer.toString(discount.getDiscountAmount());</span>
         }
-<span class="nc" id="L140">        return MonetaryUtil.formatCents(discount.getDiscountAmount(), eventCurrencyCode);</span>
+<span class="fc" id="L140">        return MonetaryUtil.formatCents(discount.getDiscountAmount(), eventCurrencyCode);</span>
     }
 
     public static boolean supportsCurrencyCode(CodeType codeType, DiscountType discountType) {
-<span class="nc bnc" id="L144" title="All 4 branches missed.">        return codeType == CodeType.DISCOUNT &amp;&amp; discountType != DiscountType.PERCENTAGE;</span>
+<span class="fc bfc" id="L144" title="All 4 branches covered.">        return codeType == CodeType.DISCOUNT &amp;&amp; discountType != DiscountType.PERCENTAGE;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

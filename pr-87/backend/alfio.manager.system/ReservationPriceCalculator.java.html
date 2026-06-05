@@ -67,7 +67,7 @@ public class ReservationPriceCalculator implements PriceContainer {
     public BigDecimal getAppliedDiscount() {
 
 <span class="fc" id="L69">        int subscriptionDiscount = appliedSubscription</span>
-<span class="pc" id="L70">            .map(subscription -&gt; tickets.stream().filter(t -&gt; Objects.equals(t.getSubscriptionId(), subscription.getId())).mapToInt(Ticket::getSrcPriceCts).sum())</span>
+<span class="fc" id="L70">            .map(subscription -&gt; tickets.stream().filter(t -&gt; Objects.equals(t.getSubscriptionId(), subscription.getId())).mapToInt(Ticket::getSrcPriceCts).sum())</span>
 <span class="fc" id="L71">            .orElse(0);</span>
 
 <span class="fc bfc" id="L73" title="All 2 branches covered.">        if(discount != null) {</span>
@@ -110,14 +110,14 @@ public class ReservationPriceCalculator implements PriceContainer {
 <span class="fc" id="L110">            .map(t -&gt; TicketPriceContainer.from(t, reservation.getVatStatus(), getVatPercentageOrZero(), purchaseContext.getVatStatus(), discount).getTaxablePrice())</span>
 <span class="fc" id="L111">            .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
 <span class="fc" id="L112">        var additionalServiceTaxablePrice = additionalServiceItems.stream()</span>
-<span class="pc bpc" id="L113" title="1 of 2 branches missed.">            .map(asi -&gt; AdditionalServiceItemPriceContainer.from(asi, additionalServices.stream().filter(as -&gt; as.id() == asi.getAdditionalServiceId()).findFirst().orElseThrow(), purchaseContext, discount).getTaxablePrice())</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            .map(asi -&gt; AdditionalServiceItemPriceContainer.from(asi, additionalServices.stream().filter(as -&gt; as.id() == asi.getAdditionalServiceId()).findFirst().orElseThrow(), purchaseContext, discount).getTaxablePrice())</span>
 <span class="fc" id="L114">            .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
-<span class="pc" id="L115">        var subscriptionsPrice = subscriptions.stream().map(s -&gt; SubscriptionPriceContainer.from(s, purchaseContext, discount).getTaxablePrice())</span>
+<span class="fc" id="L115">        var subscriptionsPrice = subscriptions.stream().map(s -&gt; SubscriptionPriceContainer.from(s, purchaseContext, discount).getTaxablePrice())</span>
 <span class="fc" id="L116">            .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
 <span class="fc" id="L117">        var totalTicketsAndAdditional = ticketsTaxablePrice.add(additionalServiceTaxablePrice).add(subscriptionsPrice);</span>
-<span class="pc bpc" id="L118" title="3 of 4 branches missed.">        if(discount != null &amp;&amp; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
+<span class="pc bpc" id="L118" title="1 of 4 branches missed.">        if(discount != null &amp;&amp; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
             // no need to add the discounted price here, since the single items are already taking it into account
-<span class="nc" id="L120">            return totalTicketsAndAdditional;</span>
+<span class="fc" id="L120">            return totalTicketsAndAdditional;</span>
         }
 <span class="fc" id="L122">        return totalTicketsAndAdditional.subtract(getAppliedDiscount());</span>
     }
@@ -130,8 +130,8 @@ public class ReservationPriceCalculator implements PriceContainer {
     }
 
     private int getTicketSrcPriceCts(Ticket t) {
-<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if(VatStatus.isVatExempt(t.getVatStatus())) {</span>
-<span class="nc" id="L134">            return t.getSrcPriceCts() - Math.abs(t.getVatCts()); // VAT can be negative in some cases</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">        if(VatStatus.isVatExempt(t.getVatStatus())) {</span>
+<span class="fc" id="L134">            return t.getSrcPriceCts() - Math.abs(t.getVatCts()); // VAT can be negative in some cases</span>
         }
 <span class="fc" id="L136">        return t.getSrcPriceCts();</span>
     }

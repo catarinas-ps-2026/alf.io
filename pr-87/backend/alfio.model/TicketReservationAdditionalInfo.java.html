@@ -50,24 +50,24 @@ public class TicketReservationAdditionalInfo {
                                            @Column(&quot;add_company_billing_details&quot;) Boolean addCompanyBillingDetails,
                                            @Column(&quot;invoicing_additional_information&quot;) @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInformation,
                                            @Column(&quot;vat_country&quot;) String vatCountry,
-<span class="nc" id="L53">                                           @Column(&quot;vat_nr&quot;) String vatNr) {</span>
-<span class="nc" id="L54">        this.billingAddressCompany = billingAddressCompany;</span>
-<span class="nc" id="L55">        this.billingAddressLine1 = billingAddressLine1;</span>
-<span class="nc" id="L56">        this.billingAddressLine2 = billingAddressLine2;</span>
-<span class="nc" id="L57">        this.billingAddressZip = billingAddressZip;</span>
-<span class="nc" id="L58">        this.billingAddressCity = billingAddressCity;</span>
-<span class="nc" id="L59">        this.billingAddressState = billingAddressState;</span>
-<span class="nc" id="L60">        this.addCompanyBillingDetails = addCompanyBillingDetails;</span>
-<span class="nc" id="L61">        this.validated = validated;</span>
-<span class="nc" id="L62">        this.skipVatNr = skipVatNr;</span>
-<span class="nc" id="L63">        this.invoicingAdditionalInfo = Objects.requireNonNullElseGet(invoicingAdditionalInformation, () -&gt; new TicketReservationInvoicingAdditionalInfo(null));</span>
-<span class="nc" id="L64">        this.billingAddressCountry = vatCountry;</span>
-<span class="nc" id="L65">        this.vatNr = vatNr;</span>
-<span class="nc" id="L66">    }</span>
+<span class="fc" id="L53">                                           @Column(&quot;vat_nr&quot;) String vatNr) {</span>
+<span class="fc" id="L54">        this.billingAddressCompany = billingAddressCompany;</span>
+<span class="fc" id="L55">        this.billingAddressLine1 = billingAddressLine1;</span>
+<span class="fc" id="L56">        this.billingAddressLine2 = billingAddressLine2;</span>
+<span class="fc" id="L57">        this.billingAddressZip = billingAddressZip;</span>
+<span class="fc" id="L58">        this.billingAddressCity = billingAddressCity;</span>
+<span class="fc" id="L59">        this.billingAddressState = billingAddressState;</span>
+<span class="fc" id="L60">        this.addCompanyBillingDetails = addCompanyBillingDetails;</span>
+<span class="fc" id="L61">        this.validated = validated;</span>
+<span class="fc" id="L62">        this.skipVatNr = skipVatNr;</span>
+<span class="fc" id="L63">        this.invoicingAdditionalInfo = Objects.requireNonNullElseGet(invoicingAdditionalInformation, () -&gt; new TicketReservationInvoicingAdditionalInfo(null));</span>
+<span class="fc" id="L64">        this.billingAddressCountry = vatCountry;</span>
+<span class="fc" id="L65">        this.vatNr = vatNr;</span>
+<span class="fc" id="L66">    }</span>
 
 
     public boolean hasBeenValidated() {
-<span class="nc" id="L70">        return Optional.ofNullable(validated).orElse(false);</span>
+<span class="fc" id="L70">        return Optional.ofNullable(validated).orElse(false);</span>
     }
 
     public boolean hasSkipVatNr() {
@@ -75,7 +75,7 @@ public class TicketReservationAdditionalInfo {
     }
 
     public BillingDetails getBillingDetails() {
-<span class="nc" id="L78">        return new BillingDetails(billingAddressCompany,</span>
+<span class="fc" id="L78">        return new BillingDetails(billingAddressCompany,</span>
             billingAddressLine1,
             billingAddressLine2,
             billingAddressZip,

@@ -40,7 +40,7 @@ public interface WebhookHandler extends Capability {
     PaymentWebhookResult forceTransactionCheck(TicketReservation reservation, Transaction transaction, PaymentContext paymentContext);
 
     default boolean requiresSignedBody() {
-<span class="nc" id="L43">        return true;</span>
+<span class="fc" id="L43">        return true;</span>
     }
 
     default Optional&lt;PaymentContext&gt; detectPaymentContext(String payload) {

@@ -85,7 +85,7 @@ public class AdditionalServiceItemPriceContainer implements SummaryPriceContaine
     }
 
     public static AdditionalServiceItemPriceContainer from(AdditionalServiceItem item, AdditionalService additionalService, PurchaseContext purchaseContext, PromoCodeDiscount discount) {
-<span class="pc bpc" id="L88" title="1 of 4 branches missed.">        var discountToApply = isDiscountCompatible(discount) &amp;&amp; additionalService.type() != AdditionalService.AdditionalServiceType.DONATION ? discount : null;</span>
+<span class="fc bfc" id="L88" title="All 4 branches covered.">        var discountToApply = isDiscountCompatible(discount) &amp;&amp; additionalService.type() != AdditionalService.AdditionalServiceType.DONATION ? discount : null;</span>
 <span class="fc" id="L89">        return new AdditionalServiceItemPriceContainer(item, additionalService, purchaseContext.getCurrency(), discountToApply, purchaseContext.getVatStatus(), purchaseContext.getVat());</span>
     }
 

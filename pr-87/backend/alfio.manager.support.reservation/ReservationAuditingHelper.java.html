@@ -44,13 +44,13 @@ public class ReservationAuditingHelper {
                                      int eventId,
                                      TicketMetadataContainer newMetadata,
                                      TicketMetadataContainer oldMetadata) {
-<span class="nc" id="L47">        List&lt;Map&lt;String, Object&gt;&gt; changes = ObjectDiffUtil.diff(oldMetadata, newMetadata, TicketMetadataContainer.class).stream()</span>
-<span class="nc" id="L48">            .map(this::processChange)</span>
-<span class="nc" id="L49">            .collect(Collectors.toList());</span>
+<span class="fc" id="L47">        List&lt;Map&lt;String, Object&gt;&gt; changes = ObjectDiffUtil.diff(oldMetadata, newMetadata, TicketMetadataContainer.class).stream()</span>
+<span class="fc" id="L48">            .map(this::processChange)</span>
+<span class="fc" id="L49">            .collect(Collectors.toList());</span>
 
-<span class="nc" id="L51">        auditingRepository.insert(reservationId, null, eventId, Audit.EventType.UPDATE_TICKET_METADATA, new Date(),</span>
-<span class="nc" id="L52">            TICKET, Integer.toString(ticketId), changes);</span>
-<span class="nc" id="L53">    }</span>
+<span class="fc" id="L51">        auditingRepository.insert(reservationId, null, eventId, Audit.EventType.UPDATE_TICKET_METADATA, new Date(),</span>
+<span class="fc" id="L52">            TICKET, Integer.toString(ticketId), changes);</span>
+<span class="fc" id="L53">    }</span>
 
     public void auditUpdateTicket(Ticket preUpdateTicket, Map&lt;String, List&lt;String&gt;&gt; preUpdateTicketFields, Ticket postUpdateTicket, Map&lt;String, List&lt;String&gt;&gt; postUpdateTicketFields, int eventId) {
 <span class="fc" id="L56">        List&lt;ObjectDiffUtil.Change&gt; diffTicket = ObjectDiffUtil.diff(preUpdateTicket, postUpdateTicket);</span>
@@ -65,12 +65,12 @@ public class ReservationAuditingHelper {
 <span class="fc" id="L65">    }</span>
 
     private HashMap&lt;String, Object&gt; processChange(ObjectDiffUtil.Change change) {
-<span class="nc" id="L68">        var v = new HashMap&lt;String, Object&gt;();</span>
-<span class="nc" id="L69">        v.put(&quot;propertyName&quot;, change.getPropertyName());</span>
-<span class="nc" id="L70">        v.put(&quot;state&quot;, change.getState());</span>
-<span class="nc" id="L71">        v.put(&quot;oldValue&quot;, change.getOldValue());</span>
-<span class="nc" id="L72">        v.put(&quot;newValue&quot;, change.getNewValue());</span>
-<span class="nc" id="L73">        return v;</span>
+<span class="fc" id="L68">        var v = new HashMap&lt;String, Object&gt;();</span>
+<span class="fc" id="L69">        v.put(&quot;propertyName&quot;, change.getPropertyName());</span>
+<span class="fc" id="L70">        v.put(&quot;state&quot;, change.getState());</span>
+<span class="fc" id="L71">        v.put(&quot;oldValue&quot;, change.getOldValue());</span>
+<span class="fc" id="L72">        v.put(&quot;newValue&quot;, change.getNewValue());</span>
+<span class="fc" id="L73">        return v;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

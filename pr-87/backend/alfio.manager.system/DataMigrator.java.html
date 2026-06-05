@@ -101,57 +101,57 @@ public class DataMigrator {
                         AdditionalServiceItemRepository additionalServiceItemRepository,
                         AdditionalServiceRepository additionalServiceRepository,
                         BillingDocumentManager billingDocumentManager,
-<span class="nc" id="L104">                        ClockProvider clockProvider) {</span>
-<span class="nc" id="L105">        this.eventMigrationRepository = eventMigrationRepository;</span>
-<span class="nc" id="L106">        this.eventRepository = eventRepository;</span>
-<span class="nc" id="L107">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
-<span class="nc" id="L108">        this.configurationRepository = configurationRepository;</span>
-<span class="nc" id="L109">        this.jdbc = jdbc;</span>
-<span class="nc" id="L110">        this.currentVersion = parseVersion(currentVersion);</span>
-<span class="nc" id="L111">        this.currentVersionAsString = currentVersion;</span>
-<span class="nc" id="L112">        this.buildTimestamp = ZonedDateTime.parse(buildTimestamp);</span>
-<span class="nc" id="L113">        this.transactionTemplate = new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));</span>
-<span class="nc" id="L114">        this.ticketReservationManager = ticketReservationManager;</span>
-<span class="nc" id="L115">        this.ticketSearchRepository = ticketSearchRepository;</span>
-<span class="nc" id="L116">        this.promoCodeDiscountRepository = promoCodeDiscountRepository;</span>
-<span class="nc" id="L117">        this.additionalServiceItemRepository = additionalServiceItemRepository;</span>
-<span class="nc" id="L118">        this.additionalServiceRepository = additionalServiceRepository;</span>
-<span class="nc" id="L119">        this.billingDocumentManager = billingDocumentManager;</span>
-<span class="nc" id="L120">        this.clockProvider = clockProvider;</span>
-<span class="nc" id="L121">    }</span>
+<span class="fc" id="L104">                        ClockProvider clockProvider) {</span>
+<span class="fc" id="L105">        this.eventMigrationRepository = eventMigrationRepository;</span>
+<span class="fc" id="L106">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L107">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L108">        this.configurationRepository = configurationRepository;</span>
+<span class="fc" id="L109">        this.jdbc = jdbc;</span>
+<span class="fc" id="L110">        this.currentVersion = parseVersion(currentVersion);</span>
+<span class="fc" id="L111">        this.currentVersionAsString = currentVersion;</span>
+<span class="fc" id="L112">        this.buildTimestamp = ZonedDateTime.parse(buildTimestamp);</span>
+<span class="fc" id="L113">        this.transactionTemplate = new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));</span>
+<span class="fc" id="L114">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L115">        this.ticketSearchRepository = ticketSearchRepository;</span>
+<span class="fc" id="L116">        this.promoCodeDiscountRepository = promoCodeDiscountRepository;</span>
+<span class="fc" id="L117">        this.additionalServiceItemRepository = additionalServiceItemRepository;</span>
+<span class="fc" id="L118">        this.additionalServiceRepository = additionalServiceRepository;</span>
+<span class="fc" id="L119">        this.billingDocumentManager = billingDocumentManager;</span>
+<span class="fc" id="L120">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L121">    }</span>
 
     public void migrateEventsToCurrentVersion() {
-<span class="nc" id="L124">        List&lt;Event&gt; events = eventRepository.findAll();</span>
-<span class="nc" id="L125">        events.forEach(this::migrateEventToCurrentVersion);</span>
-<span class="nc" id="L126">        fillReservationsLanguage();</span>
-<span class="nc" id="L127">        fillDefaultOptions();</span>
-<span class="nc" id="L128">        fixReservationPrice(events);</span>
-<span class="nc" id="L129">        fixVatStatus();</span>
-<span class="nc" id="L130">    }</span>
+<span class="fc" id="L124">        List&lt;Event&gt; events = eventRepository.findAll();</span>
+<span class="fc" id="L125">        events.forEach(this::migrateEventToCurrentVersion);</span>
+<span class="fc" id="L126">        fillReservationsLanguage();</span>
+<span class="fc" id="L127">        fillDefaultOptions();</span>
+<span class="fc" id="L128">        fixReservationPrice(events);</span>
+<span class="fc" id="L129">        fixVatStatus();</span>
+<span class="fc" id="L130">    }</span>
 
     private void fixVatStatus() {
-<span class="nc" id="L133">        transactionTemplate.execute(ts -&gt; {</span>
-<span class="nc" id="L134">            int rows = jdbc.update(&quot;update tickets_reservation set vat_status = e.vat_status from event e where tickets_reservation.vat_status is null and tickets_reservation.event_id_fk = e.id&quot;, Map.of());</span>
-<span class="nc" id="L135">            log.debug(&quot;update VAT/GST on {} reservations&quot;, rows);</span>
-<span class="nc" id="L136">            return null;</span>
+<span class="fc" id="L133">        transactionTemplate.execute(ts -&gt; {</span>
+<span class="fc" id="L134">            int rows = jdbc.update(&quot;update tickets_reservation set vat_status = e.vat_status from event e where tickets_reservation.vat_status is null and tickets_reservation.event_id_fk = e.id&quot;, Map.of());</span>
+<span class="fc" id="L135">            log.debug(&quot;update VAT/GST on {} reservations&quot;, rows);</span>
+<span class="fc" id="L136">            return null;</span>
         });
-<span class="nc" id="L138">    }</span>
+<span class="fc" id="L138">    }</span>
 
     private void fixReservationPrice(List&lt;Event&gt; events) {
-<span class="nc" id="L141">        transactionTemplate.execute(ts -&gt; {</span>
-<span class="nc" id="L142">            Map&lt;Integer, List&lt;String&gt;&gt; candidates = jdbc.queryForList(&quot;select id, event_id_fk from tickets_reservation where event_id_fk is not null and src_price_cts = 0 and payment_method &lt;&gt; 'NONE' and status not in ('CANCELLED', 'CREDIT_NOTE_ISSUED') order by 2&quot;, Map.of())</span>
-<span class="nc" id="L143">                .stream()</span>
-<span class="nc" id="L144">                .map(m -&gt; Pair.of((Integer) m.get(&quot;event_id_fk&quot;), (String) m.get(&quot;id&quot;)))</span>
-<span class="nc" id="L145">                .collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toList())));</span>
+<span class="fc" id="L141">        transactionTemplate.execute(ts -&gt; {</span>
+<span class="fc" id="L142">            Map&lt;Integer, List&lt;String&gt;&gt; candidates = jdbc.queryForList(&quot;select id, event_id_fk from tickets_reservation where event_id_fk is not null and src_price_cts = 0 and payment_method &lt;&gt; 'NONE' and status not in ('CANCELLED', 'CREDIT_NOTE_ISSUED') order by 2&quot;, Map.of())</span>
+<span class="fc" id="L143">                .stream()</span>
+<span class="pc" id="L144">                .map(m -&gt; Pair.of((Integer) m.get(&quot;event_id_fk&quot;), (String) m.get(&quot;id&quot;)))</span>
+<span class="fc" id="L145">                .collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toList())));</span>
 
-<span class="nc bnc" id="L147" title="All 2 branches missed.">            for(var entry : candidates.entrySet()) {</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">            for(var entry : candidates.entrySet()) {</span>
 <span class="nc bnc" id="L148" title="All 2 branches missed.">                var event = events.stream().filter(e -&gt; e.getId() == entry.getKey()).findFirst().orElseThrow();</span>
 <span class="nc" id="L149">                ListUtils.partition(entry.getValue(), 1000) // limit query size and batch update size</span>
 <span class="nc" id="L150">                    .forEach(reservations -&gt; fixReservationsForEvent(event, reservations));</span>
 <span class="nc" id="L151">            }</span>
-<span class="nc" id="L152">            return null;</span>
+<span class="fc" id="L152">            return null;</span>
         });
-<span class="nc" id="L154">    }</span>
+<span class="fc" id="L154">    }</span>
 
     private void fixReservationsForEvent(Event event, List&lt;String&gt; reservations) {
 <span class="nc" id="L157">        var byReservationId = ticketSearchRepository.loadAllReservationsWithTickets(event.getId(), reservations).stream()</span>
@@ -185,50 +185,50 @@ public class DataMigrator {
 <span class="nc" id="L185">    }</span>
 
     private void fillDefaultOptions() {
-<span class="nc" id="L188">        transactionTemplate.execute(ts -&gt; {</span>
-<span class="nc" id="L189">            Integer count = jdbc.queryForObject(&quot;select count(*) from configuration where c_key = :key&quot;, new MapSqlParameterSource(&quot;key&quot;, ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue()), Integer.class);</span>
-<span class="nc bnc" id="L190" title="All 4 branches missed.">            if(count == null || count == 0) {</span>
-<span class="nc" id="L191">                configurationRepository.insert(ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue(), &quot;true&quot;, ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getDescription());</span>
+<span class="fc" id="L188">        transactionTemplate.execute(ts -&gt; {</span>
+<span class="fc" id="L189">            Integer count = jdbc.queryForObject(&quot;select count(*) from configuration where c_key = :key&quot;, new MapSqlParameterSource(&quot;key&quot;, ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue()), Integer.class);</span>
+<span class="pc bpc" id="L190" title="2 of 4 branches missed.">            if(count == null || count == 0) {</span>
+<span class="fc" id="L191">                configurationRepository.insert(ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue(), &quot;true&quot;, ConfigurationKeys.GOOGLE_ANALYTICS_ANONYMOUS_MODE.getDescription());</span>
             }
-<span class="nc" id="L193">            return null;</span>
+<span class="fc" id="L193">            return null;</span>
         });
-<span class="nc" id="L195">    }</span>
+<span class="fc" id="L195">    }</span>
 
     private void migrateEventToCurrentVersion(Event event) {
-<span class="nc" id="L198">        Optional&lt;EventMigration&gt; optional = optionally(() -&gt; eventMigrationRepository.loadEventMigration(event.getId()));</span>
-<span class="nc" id="L199">        boolean alreadyDefined = optional.isPresent();</span>
-<span class="nc bnc" id="L200" title="All 4 branches missed.">        if(!alreadyDefined || optional.filter(this::needsFixing).isPresent()) {</span>
-<span class="nc" id="L201">            transactionTemplate.execute(s -&gt; {</span>
+<span class="fc" id="L198">        Optional&lt;EventMigration&gt; optional = optionally(() -&gt; eventMigrationRepository.loadEventMigration(event.getId()));</span>
+<span class="fc" id="L199">        boolean alreadyDefined = optional.isPresent();</span>
+<span class="fc bfc" id="L200" title="All 4 branches covered.">        if(!alreadyDefined || optional.filter(this::needsFixing).isPresent()) {</span>
+<span class="fc" id="L201">            transactionTemplate.execute(s -&gt; {</span>
                 //optional.ifPresent(eventMigration -&gt; eventMigrationRepository.lockEventMigrationForUpdate(eventMigration.getId()));
-<span class="nc bnc" id="L203" title="All 2 branches missed.">                if(event.now(clockProvider).isBefore(event.getEnd())) {</span>
-<span class="nc" id="L204">                    fixAvailableSeats(event);</span>
-<span class="nc" id="L205">                    fillDescriptions(event);</span>
-<span class="nc" id="L206">                    fixCategoriesSize(event);</span>
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">                if(event.now(clockProvider).isBefore(event.getEnd())) {</span>
+<span class="fc" id="L204">                    fixAvailableSeats(event);</span>
+<span class="fc" id="L205">                    fillDescriptions(event);</span>
+<span class="fc" id="L206">                    fixCategoriesSize(event);</span>
                 }
 
                 //migrate prices to new structure. This should be done for all events, regardless of the expiration date.
-<span class="nc" id="L210">                migratePrices(event.getId());</span>
-<span class="nc" id="L211">                fixStuckTickets(event.getId());</span>
-<span class="nc" id="L212">                createBillingDocuments(event);</span>
+<span class="fc" id="L210">                migratePrices(event.getId());</span>
+<span class="fc" id="L211">                fixStuckTickets(event.getId());</span>
+<span class="fc" id="L212">                createBillingDocuments(event);</span>
 
-<span class="nc bnc" id="L214" title="All 2 branches missed.">                if(alreadyDefined) {</span>
-<span class="nc" id="L215">                    EventMigration eventMigration = optional.get();</span>
-<span class="nc" id="L216">                    int result = eventMigrationRepository.updateMigrationData(eventMigration.getId(), currentVersionAsString, buildTimestamp, EventMigration.Status.COMPLETE.name());</span>
-<span class="nc bnc" id="L217" title="All 2 branches missed.">                    Validate.isTrue(result == 1, &quot;error during update &quot; + result);</span>
-<span class="nc" id="L218">                } else {</span>
-<span class="nc" id="L219">                    eventMigrationRepository.insertMigrationData(event.getId(), currentVersionAsString, buildTimestamp, EventMigration.Status.COMPLETE.name());</span>
+<span class="fc bfc" id="L214" title="All 2 branches covered.">                if(alreadyDefined) {</span>
+<span class="fc" id="L215">                    EventMigration eventMigration = optional.get();</span>
+<span class="fc" id="L216">                    int result = eventMigrationRepository.updateMigrationData(eventMigration.getId(), currentVersionAsString, buildTimestamp, EventMigration.Status.COMPLETE.name());</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">                    Validate.isTrue(result == 1, &quot;error during update &quot; + result);</span>
+<span class="fc" id="L218">                } else {</span>
+<span class="fc" id="L219">                    eventMigrationRepository.insertMigrationData(event.getId(), currentVersionAsString, buildTimestamp, EventMigration.Status.COMPLETE.name());</span>
                 }
 
-<span class="nc" id="L222">                return null;</span>
+<span class="fc" id="L222">                return null;</span>
             });
         }
-<span class="nc" id="L225">    }</span>
+<span class="fc" id="L225">    }</span>
 
     private void createBillingDocuments(Event event) {
-<span class="nc bnc" id="L228" title="All 2 branches missed.">        if(event.getEnd().isAfter(event.now(clockProvider))) {</span>
-<span class="nc" id="L229">            List&lt;String&gt; reservations = jdbc.queryForList(&quot;select id from tickets_reservation where event_id_fk = :eventId and status in ('OFFLINE_PAYMENT', 'COMPLETE') and invoice_number is not null and id not in(select distinct reservation_id_fk from billing_document where event_id_fk = :eventId)&quot;, new MapSqlParameterSource(&quot;eventId&quot;, event.getId()), String.class);</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">            if(reservations.isEmpty()) {</span>
-<span class="nc" id="L231">                return;</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">        if(event.getEnd().isAfter(event.now(clockProvider))) {</span>
+<span class="fc" id="L229">            List&lt;String&gt; reservations = jdbc.queryForList(&quot;select id from tickets_reservation where event_id_fk = :eventId and status in ('OFFLINE_PAYMENT', 'COMPLETE') and invoice_number is not null and id not in(select distinct reservation_id_fk from billing_document where event_id_fk = :eventId)&quot;, new MapSqlParameterSource(&quot;eventId&quot;, event.getId()), String.class);</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">            if(reservations.isEmpty()) {</span>
+<span class="fc" id="L231">                return;</span>
             }
 <span class="nc" id="L233">            log.info(&quot;creating BillingDocument(s) for event {}&quot;, event.getDisplayName());</span>
 <span class="nc bnc" id="L234" title="All 2 branches missed.">            for (String reservationId : reservations) {</span>
@@ -240,47 +240,47 @@ public class DataMigrator {
 <span class="nc" id="L240">    }</span>
 
     void fixStuckTickets(int eventId) {
-<span class="nc" id="L243">        List&lt;Integer&gt; ticketIds = jdbc.queryForList(&quot;select a.id from ticket a, tickets_reservation b where a.event_id = :eventId and a.status in('PENDING','TO_BE_PAID') and a.tickets_reservation_id = b.id and b.status = 'CANCELLED'&quot;, new MapSqlParameterSource(&quot;eventId&quot;, eventId), Integer.class);</span>
-<span class="nc bnc" id="L244" title="All 2 branches missed.">        if(!ticketIds.isEmpty()) {</span>
-<span class="nc" id="L245">            int toBeFixed = ticketIds.size();</span>
-<span class="nc" id="L246">            log.warn(&quot;********* reverting {} stuck tickets ({}) for event id {}&quot;, toBeFixed, ticketIds, eventId);</span>
-<span class="nc" id="L247">            int[] results = jdbc.batchUpdate(&quot;update ticket set status = 'RELEASED',&quot; + RESET_TICKET + &quot; where id = :ticketId&quot;, ticketIds.stream().map(id -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, id)).toArray(MapSqlParameterSource[]::new));</span>
-<span class="nc" id="L248">            int result = Arrays.stream(results).sum();</span>
-<span class="nc bnc" id="L249" title="All 2 branches missed.">            Validate.isTrue(result == toBeFixed, &quot;Error while fixing stuck tickets: expected &quot;+toBeFixed+&quot;, got &quot;+result);</span>
+<span class="fc" id="L243">        List&lt;Integer&gt; ticketIds = jdbc.queryForList(&quot;select a.id from ticket a, tickets_reservation b where a.event_id = :eventId and a.status in('PENDING','TO_BE_PAID') and a.tickets_reservation_id = b.id and b.status = 'CANCELLED'&quot;, new MapSqlParameterSource(&quot;eventId&quot;, eventId), Integer.class);</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">        if(!ticketIds.isEmpty()) {</span>
+<span class="fc" id="L245">            int toBeFixed = ticketIds.size();</span>
+<span class="fc" id="L246">            log.warn(&quot;********* reverting {} stuck tickets ({}) for event id {}&quot;, toBeFixed, ticketIds, eventId);</span>
+<span class="fc" id="L247">            int[] results = jdbc.batchUpdate(&quot;update ticket set status = 'RELEASED',&quot; + RESET_TICKET + &quot; where id = :ticketId&quot;, ticketIds.stream().map(id -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, id)).toArray(MapSqlParameterSource[]::new));</span>
+<span class="fc" id="L248">            int result = Arrays.stream(results).sum();</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">            Validate.isTrue(result == toBeFixed, &quot;Error while fixing stuck tickets: expected &quot;+toBeFixed+&quot;, got &quot;+result);</span>
         }
-<span class="nc" id="L251">    }</span>
+<span class="fc" id="L251">    }</span>
 
     void fixCategoriesSize(EventAndOrganizationId event) {
-<span class="nc" id="L254">        ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
-<span class="nc" id="L255">            .filter(TicketCategory::isBounded)</span>
-<span class="nc" id="L256">            .forEach(tc -&gt; {</span>
-<span class="nc" id="L257">                Integer result = jdbc.queryForObject(&quot;select count(*) from ticket where event_id = :eventId and category_id = :categoryId and status &lt;&gt; 'INVALIDATED'&quot;, new MapSqlParameterSource(&quot;eventId&quot;, tc.getEventId()).addValue(&quot;categoryId&quot;, tc.getId()), Integer.class);</span>
-<span class="nc bnc" id="L258" title="All 4 branches missed.">                if(result != null &amp;&amp; result != tc.getMaxTickets()) {</span>
-<span class="nc" id="L259">                    log.warn(&quot;********* updating category size for {} from {} to {} tickets&quot;, tc.getName(), tc.getMaxTickets(), result);</span>
-<span class="nc" id="L260">                    ticketCategoryRepository.updateSeatsAvailability(tc.getId(), result);</span>
+<span class="fc" id="L254">        ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
+<span class="fc" id="L255">            .filter(TicketCategory::isBounded)</span>
+<span class="fc" id="L256">            .forEach(tc -&gt; {</span>
+<span class="fc" id="L257">                Integer result = jdbc.queryForObject(&quot;select count(*) from ticket where event_id = :eventId and category_id = :categoryId and status &lt;&gt; 'INVALIDATED'&quot;, new MapSqlParameterSource(&quot;eventId&quot;, tc.getEventId()).addValue(&quot;categoryId&quot;, tc.getId()), Integer.class);</span>
+<span class="pc bpc" id="L258" title="2 of 4 branches missed.">                if(result != null &amp;&amp; result != tc.getMaxTickets()) {</span>
+<span class="fc" id="L259">                    log.warn(&quot;********* updating category size for {} from {} to {} tickets&quot;, tc.getName(), tc.getMaxTickets(), result);</span>
+<span class="fc" id="L260">                    ticketCategoryRepository.updateSeatsAvailability(tc.getId(), result);</span>
                 }
-<span class="nc" id="L262">            });</span>
+<span class="fc" id="L262">            });</span>
 
-<span class="nc" id="L264">    }</span>
+<span class="fc" id="L264">    }</span>
 
     void fillReservationsLanguage() {
-<span class="nc" id="L267">        transactionTemplate.execute(s -&gt; {</span>
-<span class="nc" id="L268">            jdbc.queryForList(&quot;select id from tickets_reservation where user_language is null and event_id_fk is not null&quot;, EmptySqlParameterSource.INSTANCE, String.class)</span>
-<span class="nc" id="L269">                    .forEach(id -&gt; {</span>
+<span class="fc" id="L267">        transactionTemplate.execute(s -&gt; {</span>
+<span class="fc" id="L268">            jdbc.queryForList(&quot;select id from tickets_reservation where user_language is null and event_id_fk is not null&quot;, EmptySqlParameterSource.INSTANCE, String.class)</span>
+<span class="fc" id="L269">                    .forEach(id -&gt; {</span>
 <span class="nc" id="L270">                        MapSqlParameterSource param = new MapSqlParameterSource(&quot;reservationId&quot;, id);</span>
 <span class="nc" id="L271">                        String language = optionally(() -&gt; jdbc.queryForObject(&quot;select user_language from ticket where tickets_reservation_id = :reservationId limit 1&quot;, param, String.class)).orElse(&quot;en&quot;);</span>
 <span class="nc" id="L272">                        jdbc.update(&quot;update tickets_reservation set user_language = :userLanguage where id = :reservationId&quot;, param.addValue(&quot;userLanguage&quot;, language));</span>
 <span class="nc" id="L273">                    });</span>
-<span class="nc" id="L274">            return null;</span>
+<span class="fc" id="L274">            return null;</span>
         });
-<span class="nc" id="L276">    }</span>
+<span class="fc" id="L276">    }</span>
 
     private void fillDescriptions(Event event) {
-<span class="nc" id="L279">        int result = eventRepository.fillDisplayNameIfRequired(event.getId());</span>
-<span class="nc bnc" id="L280" title="All 2 branches missed.">        if(result &gt; 0) {</span>
-<span class="nc" id="L281">            log.debug(&quot;Event {} didn't have displayName, filled with shortName&quot;, event.getShortName());</span>
+<span class="fc" id="L279">        int result = eventRepository.fillDisplayNameIfRequired(event.getId());</span>
+<span class="fc bfc" id="L280" title="All 2 branches covered.">        if(result &gt; 0) {</span>
+<span class="fc" id="L281">            log.debug(&quot;Event {} didn't have displayName, filled with shortName&quot;, event.getShortName());</span>
         }
-<span class="nc" id="L283">    }</span>
+<span class="fc" id="L283">    }</span>
 
     /*
      * even if we don't actively use the &quot;available_seats&quot; event property anymore, it makes sense to keep it synchronized
@@ -288,17 +288,17 @@ public class DataMigrator {
      */
     private void fixAvailableSeats(Event event) {
         try {
-<span class="nc" id="L291">            int availableSeats = eventRepository.countExistingTickets(event.getId());</span>
-<span class="nc" id="L292">            var paymentProxies = event.getAllowedPaymentProxies().stream().map(PaymentProxy::name).collect(joining(&quot;,&quot;));</span>
-<span class="nc" id="L293">            eventRepository.updatePrices(event.getCurrency(), availableSeats, event.isVatIncluded(),</span>
-<span class="nc" id="L294">                event.getVat(), paymentProxies, event.getId(), event.getVatStatus(), event.getSrcPriceCts());</span>
+<span class="fc" id="L291">            int availableSeats = eventRepository.countExistingTickets(event.getId());</span>
+<span class="fc" id="L292">            var paymentProxies = event.getAllowedPaymentProxies().stream().map(PaymentProxy::name).collect(joining(&quot;,&quot;));</span>
+<span class="fc" id="L293">            eventRepository.updatePrices(event.getCurrency(), availableSeats, event.isVatIncluded(),</span>
+<span class="fc" id="L294">                event.getVat(), paymentProxies, event.getId(), event.getVatStatus(), event.getSrcPriceCts());</span>
 <span class="nc" id="L295">        } catch (Exception ex) {</span>
 <span class="nc" id="L296">            log.trace(&quot;got exception while fixing available seats&quot;, ex);</span>
-<span class="nc" id="L297">        }</span>
-<span class="nc" id="L298">    }</span>
+<span class="fc" id="L297">        }</span>
+<span class="fc" id="L298">    }</span>
 
     boolean needsFixing(EventMigration eventMigration) {
-<span class="nc bnc" id="L301" title="All 4 branches missed.">        return eventMigration.getBuildTimestamp().isBefore(buildTimestamp) || parseVersion(eventMigration.getCurrentVersion()).compareTo(currentVersion) &lt; 0;</span>
+<span class="pc bpc" id="L301" title="1 of 4 branches missed.">        return eventMigration.getBuildTimestamp().isBefore(buildTimestamp) || parseVersion(eventMigration.getCurrentVersion()).compareTo(currentVersion) &lt; 0;</span>
     }
 
     static BigDecimal parseVersion(String version) {
@@ -310,11 +310,11 @@ public class DataMigrator {
     }
 
     private void migratePrices(final int eventId) {
-<span class="nc" id="L313">        final Map&lt;String, Integer&gt; eventIdParam = Collections.singletonMap(&quot;eventId&quot;, eventId);</span>
-<span class="nc" id="L314">        final String srcPriceCtsParam = &quot;srcPriceCts&quot;;</span>
-<span class="nc" id="L315">        Map&lt;String, List&lt;MapSqlParameterSource&gt;&gt; migrationData = jdbc.queryForList(&quot;select * from event where type = :type and id = :eventId and regular_price_cts &gt; 0&quot;, new MapSqlParameterSource(&quot;type&quot;, &quot;INTERNAL&quot;).addValue(&quot;eventId&quot;, eventId))</span>
-<span class="nc" id="L316">            .stream()</span>
-<span class="nc" id="L317">            .flatMap(event -&gt; {</span>
+<span class="fc" id="L313">        final Map&lt;String, Integer&gt; eventIdParam = Collections.singletonMap(&quot;eventId&quot;, eventId);</span>
+<span class="fc" id="L314">        final String srcPriceCtsParam = &quot;srcPriceCts&quot;;</span>
+<span class="fc" id="L315">        Map&lt;String, List&lt;MapSqlParameterSource&gt;&gt; migrationData = jdbc.queryForList(&quot;select * from event where type = :type and id = :eventId and regular_price_cts &gt; 0&quot;, new MapSqlParameterSource(&quot;type&quot;, &quot;INTERNAL&quot;).addValue(&quot;eventId&quot;, eventId))</span>
+<span class="fc" id="L316">            .stream()</span>
+<span class="fc" id="L317">            .flatMap(event -&gt; {</span>
                 //fill the event prices
 <span class="nc" id="L319">                boolean eventVatIncluded = (boolean) event.get(&quot;vat_included&quot;);</span>
 <span class="nc" id="L320">                BigDecimal vatPercentage = Optional.ofNullable((BigDecimal) event.get(&quot;vat&quot;)).orElse(BigDecimal.ZERO);</span>
@@ -344,9 +344,9 @@ public class DataMigrator {
 
 <span class="nc" id="L345">                log.debug(&quot;Price migration: got {} modifications for event {}&quot;, modifications.size(), event.get(&quot;short_name&quot;));</span>
 <span class="nc" id="L346">                return modifications.stream();</span>
-<span class="nc" id="L347">            }).collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toList())));</span>
+<span class="fc" id="L347">            }).collect(groupingBy(Pair::getKey, mapping(Pair::getValue, toList())));</span>
 
-<span class="nc bnc" id="L349" title="All 2 branches missed.">        if(migrationData.size() &gt; 0) {</span>
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">        if(migrationData.size() &gt; 0) {</span>
 <span class="nc" id="L350">            log.debug(&quot;Price migration: got modifications for: {}&quot;, migrationData.keySet());</span>
 <span class="nc" id="L351">            PRICE_UPDATE_BY_KEY.entrySet().stream()</span>
 <span class="nc" id="L352">                .filter(e -&gt; migrationData.containsKey(e.getKey()))</span>
@@ -357,7 +357,7 @@ public class DataMigrator {
 <span class="nc" id="L357">                    performPriceMigration(entry.getValue(), p.getRight(), jdbc);</span>
 <span class="nc" id="L358">                });</span>
         }
-<span class="nc" id="L360">    }</span>
+<span class="fc" id="L360">    }</span>
 
     private static void performPriceMigration(String updateStatement, List&lt;MapSqlParameterSource&gt; data, NamedParameterJdbcTemplate jdbc) {
 <span class="nc" id="L363">        int size = data.size();</span>

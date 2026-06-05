@@ -57,7 +57,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 @RequestMapping(&quot;/admin/api&quot;)
 public class UsersApiController {
 
-<span class="nc" id="L60">    private static final Logger log = LoggerFactory.getLogger(UsersApiController.class);</span>
+<span class="fc" id="L60">    private static final Logger log = LoggerFactory.getLogger(UsersApiController.class);</span>
     private static final String OK = &quot;OK&quot;;
 
     private final UserManager userManager;
@@ -65,12 +65,12 @@ public class UsersApiController {
     private final AccessService accessService;
     private final FileUploadManager fileUploadManager;
 
-<span class="nc" id="L68">    public UsersApiController(UserManager userManager, ConfigurationManager configurationManager, AccessService accessService, FileUploadManager fileUploadManager) {</span>
-<span class="nc" id="L69">        this.userManager = userManager;</span>
-<span class="nc" id="L70">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L71">        this.accessService = accessService;</span>
-<span class="nc" id="L72">        this.fileUploadManager = fileUploadManager;</span>
-<span class="nc" id="L73">    }</span>
+<span class="fc" id="L68">    public UsersApiController(UserManager userManager, ConfigurationManager configurationManager, AccessService accessService, FileUploadManager fileUploadManager) {</span>
+<span class="fc" id="L69">        this.userManager = userManager;</span>
+<span class="fc" id="L70">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L71">        this.accessService = accessService;</span>
+<span class="fc" id="L72">        this.fileUploadManager = fileUploadManager;</span>
+<span class="fc" id="L73">    }</span>
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -124,12 +124,12 @@ public class UsersApiController {
     @GetMapping(&quot;/organizations&quot;)
     @ResponseStatus(HttpStatus.OK)
     public List&lt;Organization&gt; getAllOrganizations(Principal principal) {
-<span class="nc" id="L127">        return userManager.findUserOrganizations(principal.getName());</span>
+<span class="fc" id="L127">        return userManager.findUserOrganizations(principal.getName());</span>
     }
 
     @GetMapping(&quot;/organizations/{id}&quot;)
     public Organization getOrganization(@PathVariable int id, Principal principal) {
-<span class="nc" id="L132">        return userManager.findOrganizationById(id, principal.getName());</span>
+<span class="fc" id="L132">        return userManager.findOrganizationById(id, principal.getName());</span>
     }
 
     @GetMapping(&quot;/users&quot;)
@@ -195,17 +195,17 @@ public class UsersApiController {
 
     @PostMapping(&quot;/users/new&quot;)
     public UserWithPasswordAndQRCode insertUser(@RequestBody UserModification userModification, @RequestParam(&quot;baseUrl&quot;) String baseUrl, Principal principal) {
-<span class="nc" id="L198">        accessService.checkOrganizationOwnership(principal, userModification.getOrganizationId());</span>
-<span class="nc" id="L199">        Role requested = Role.valueOf(userModification.getRole());</span>
-<span class="nc" id="L200">        Validate.isTrue(userManager.getAvailableRoles(principal.getName()).stream().anyMatch(requested::equals), String.format(&quot;Requested role %s is not available for current user&quot;, userModification.getRole()));</span>
-<span class="nc" id="L201">        User.Type type = userModification.getType();</span>
-<span class="nc" id="L202">        UserWithPassword userWithPassword = userManager.insertUser(userModification.getOrganizationId(), userModification.getUsername(),</span>
-<span class="nc" id="L203">            userModification.getFirstName(), userModification.getLastName(),</span>
-<span class="nc" id="L204">            userModification.getEmailAddress(), requested,</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">            type == null ? User.Type.INTERNAL : type,</span>
-<span class="nc" id="L206">            userModification.getValidToAsDateTime(), userModification.getDescription(), principal);</span>
-<span class="nc bnc" id="L207" title="All 2 branches missed.">        String qrCode = type != User.Type.API_KEY ? Base64.getEncoder().encodeToString(generateQRCode(userWithPassword, baseUrl)) : null;</span>
-<span class="nc" id="L208">        return new UserWithPasswordAndQRCode(userWithPassword, qrCode);</span>
+<span class="fc" id="L198">        accessService.checkOrganizationOwnership(principal, userModification.getOrganizationId());</span>
+<span class="fc" id="L199">        Role requested = Role.valueOf(userModification.getRole());</span>
+<span class="fc" id="L200">        Validate.isTrue(userManager.getAvailableRoles(principal.getName()).stream().anyMatch(requested::equals), String.format(&quot;Requested role %s is not available for current user&quot;, userModification.getRole()));</span>
+<span class="fc" id="L201">        User.Type type = userModification.getType();</span>
+<span class="fc" id="L202">        UserWithPassword userWithPassword = userManager.insertUser(userModification.getOrganizationId(), userModification.getUsername(),</span>
+<span class="fc" id="L203">            userModification.getFirstName(), userModification.getLastName(),</span>
+<span class="fc" id="L204">            userModification.getEmailAddress(), requested,</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">            type == null ? User.Type.INTERNAL : type,</span>
+<span class="fc" id="L206">            userModification.getValidToAsDateTime(), userModification.getDescription(), principal);</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">        String qrCode = type != User.Type.API_KEY ? Base64.getEncoder().encodeToString(generateQRCode(userWithPassword, baseUrl)) : null;</span>
+<span class="fc" id="L208">        return new UserWithPasswordAndQRCode(userWithPassword, qrCode);</span>
     }
 
     @GetMapping(&quot;/api-keys/organization/{organizationId}/all&quot;)
@@ -233,11 +233,11 @@ public class UsersApiController {
     }
 
     private static byte[] generateQRCode(UserWithPassword userWithPassword, String baseUrl) {
-<span class="nc" id="L236">        Map&lt;String, Object&gt; info = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L237">        info.put(&quot;username&quot;, userWithPassword.getUsername());</span>
-<span class="nc" id="L238">        info.put(&quot;password&quot;, userWithPassword.getPassword());</span>
-<span class="nc" id="L239">        info.put(&quot;baseUrl&quot;, baseUrl);</span>
-<span class="nc" id="L240">        return ImageUtil.createQRCode(Json.GSON.toJson(info));</span>
+<span class="fc" id="L236">        Map&lt;String, Object&gt; info = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L237">        info.put(&quot;username&quot;, userWithPassword.getUsername());</span>
+<span class="fc" id="L238">        info.put(&quot;password&quot;, userWithPassword.getPassword());</span>
+<span class="fc" id="L239">        info.put(&quot;baseUrl&quot;, baseUrl);</span>
+<span class="fc" id="L240">        return ImageUtil.createQRCode(Json.GSON.toJson(info));</span>
     }
 
     @DeleteMapping(&quot;/users/{id}&quot;)
@@ -294,9 +294,9 @@ public class UsersApiController {
         private final String qrCode;
 
         UserWithPasswordAndQRCode(UserWithPassword userWithPassword, String qrCode) {
-<span class="nc" id="L297">            super(userWithPassword.getUser(), userWithPassword.getPassword(), userWithPassword.getUniqueId());</span>
-<span class="nc" id="L298">            this.qrCode = qrCode;</span>
-<span class="nc" id="L299">        }</span>
+<span class="fc" id="L297">            super(userWithPassword.getUser(), userWithPassword.getPassword(), userWithPassword.getUniqueId());</span>
+<span class="fc" id="L298">            this.qrCode = qrCode;</span>
+<span class="fc" id="L299">        }</span>
     }
 
     private static final class RoleDescriptor {

@@ -127,7 +127,7 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
 <span class="fc" id="L127">        this.begin = begin.withZoneSameInstant(zoneId);</span>
 <span class="fc" id="L128">        this.end = end.withZoneSameInstant(zoneId);</span>
 <span class="fc" id="L129">        this.currency = currency;</span>
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        this.vatIncluded = vatStatus == PriceContainer.VatStatus.INCLUDED;</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        this.vatIncluded = vatStatus == PriceContainer.VatStatus.INCLUDED;</span>
 <span class="fc" id="L131">        this.vat = vat;</span>
 <span class="fc" id="L132">        this.privateKey = privateKey;</span>
 
@@ -144,33 +144,33 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
 
     @Override
     public Map&lt;String, String&gt; getTitle() {
-<span class="nc" id="L147">        return buildTitle(displayName, locales);</span>
+<span class="fc" id="L147">        return buildTitle(displayName, locales);</span>
     }
 
     static Map&lt;String, String&gt; buildTitle(String displayName, int locales) {
-<span class="nc" id="L151">        return ContentLanguage.findAllFor(locales).stream()</span>
-<span class="nc" id="L152">            .collect(Collectors.toMap(cl -&gt; cl.locale().getLanguage(), cl -&gt; displayName));</span>
+<span class="fc" id="L151">        return ContentLanguage.findAllFor(locales).stream()</span>
+<span class="fc" id="L152">            .collect(Collectors.toMap(cl -&gt; cl.locale().getLanguage(), cl -&gt; displayName));</span>
     }
 
     public BigDecimal getRegularPrice() {
-<span class="nc" id="L156">        return MonetaryUtil.centsToUnit(srcPriceCts, currency);</span>
+<span class="fc" id="L156">        return MonetaryUtil.centsToUnit(srcPriceCts, currency);</span>
     }
     
     
     public boolean getSameDay() {
-<span class="nc" id="L161">        return begin.truncatedTo(ChronoUnit.DAYS).equals(end.truncatedTo(ChronoUnit.DAYS));</span>
+<span class="fc" id="L161">        return begin.truncatedTo(ChronoUnit.DAYS).equals(end.truncatedTo(ChronoUnit.DAYS));</span>
     }
 
     @Override
     @JsonIgnore
     public String getPrivateKey() {
-<span class="nc" id="L167">        return privateKey;</span>
+<span class="fc" id="L167">        return privateKey;</span>
     }
     
     @Override
     @JsonIgnore
     public Pair&lt;String, String&gt; getLatLong() {
-<span class="nc" id="L173">        return Pair.of(latitude, longitude);</span>
+<span class="fc" id="L173">        return Pair.of(latitude, longitude);</span>
     }
 
     /**
@@ -178,7 +178,7 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
      * @return Date
      */
     public ZonedDateTime getBegin() {
-<span class="nc" id="L181">        return begin;</span>
+<span class="fc" id="L181">        return begin;</span>
     }
 
     /**
@@ -186,7 +186,7 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
      * @return Date
      */
     public ZonedDateTime getEnd() {
-<span class="nc" id="L189">        return end;</span>
+<span class="fc" id="L189">        return end;</span>
     }
 
     /**
@@ -194,7 +194,7 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
      * @return timeZone
      */
     public String getTimeZone() {
-<span class="nc" id="L197">        return timeZone.toString();</span>
+<span class="fc" id="L197">        return timeZone.toString();</span>
     }
 
     @Override
@@ -205,28 +205,28 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
 
     @Override
     public boolean isFreeOfCharge() {
-<span class="nc bnc" id="L208" title="All 2 branches missed.">        return srcPriceCts == 0;</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">        return srcPriceCts == 0;</span>
     }
 
     public boolean getFree() {
-<span class="nc" id="L212">        return isFreeOfCharge();</span>
+<span class="fc" id="L212">        return isFreeOfCharge();</span>
     }
     
     public boolean getImageIsPresent() {
-<span class="nc bnc" id="L216" title="All 4 branches missed.">        return StringUtils.isNotBlank(imageUrl) || StringUtils.isNotBlank(fileBlobId);</span>
+<span class="pc bpc" id="L216" title="3 of 4 branches missed.">        return StringUtils.isNotBlank(imageUrl) || StringUtils.isNotBlank(fileBlobId);</span>
     }
 
     @Override
     public boolean getFileBlobIdIsPresent() {
-<span class="nc" id="L221">        return StringUtils.isNotBlank(fileBlobId);</span>
+<span class="fc" id="L221">        return StringUtils.isNotBlank(fileBlobId);</span>
     }
 
     public boolean getMultiplePaymentMethods() {
-<span class="nc bnc" id="L225" title="All 2 branches missed.">        return allowedPaymentProxies.size() &gt; 1;</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">        return allowedPaymentProxies.size() &gt; 1;</span>
     }
 
     public PaymentProxy getFirstPaymentMethod() {
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        return allowedPaymentProxies.isEmpty() ? null : allowedPaymentProxies.get(0);//it is guaranteed that this list is not null. </span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">        return allowedPaymentProxies.isEmpty() ? null : allowedPaymentProxies.get(0);//it is guaranteed that this list is not null. </span>
     }
 
     public boolean supportsPaymentMethod(PaymentProxy paymentProxy) {
@@ -234,20 +234,20 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     }
 
     public List&lt;ContentLanguage&gt; getContentLanguages() {
-<span class="nc" id="L237">        return ContentLanguage.findAllFor(getLocales());</span>
+<span class="fc" id="L237">        return ContentLanguage.findAllFor(getLocales());</span>
     }
 
     public boolean isOnline() {
-<span class="nc bnc" id="L241" title="All 2 branches missed.">        return format == EventFormat.ONLINE;</span>
+<span class="fc bfc" id="L241" title="All 2 branches covered.">        return format == EventFormat.ONLINE;</span>
     }
     
     // mustache
     public boolean getOnline() {
-<span class="nc" id="L246">    	return isOnline();</span>
+<span class="fc" id="L246">    	return isOnline();</span>
     }
 
     public boolean getUseFirstAndLastName() {
-<span class="nc" id="L250">        return mustUseFirstAndLastName();</span>
+<span class="fc" id="L250">        return mustUseFirstAndLastName();</span>
     }
 
     @Override
@@ -256,51 +256,51 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     }
 
     public boolean supportsQRCodeCaseInsensitive() {
-<span class="nc" id="L259">        return EventUtil.supportsCaseInsensitiveQRCode(version);</span>
+<span class="fc" id="L259">        return EventUtil.supportsCaseInsensitiveQRCode(version);</span>
     }
 
     @Override
     public boolean supportsAdditionalServicesOrdinal() {
-<span class="nc" id="L264">        return EventUtil.supportsAdditionalItemsOrdinal(version);</span>
+<span class="fc" id="L264">        return EventUtil.supportsAdditionalItemsOrdinal(version);</span>
     }
 
     @Override
     public boolean supportsLinkedAdditionalServices() {
-<span class="nc" id="L269">        return EventUtil.supportsLinkedAdditionalServices(version);</span>
+<span class="fc" id="L269">        return EventUtil.supportsLinkedAdditionalServices(version);</span>
     }
 
     private static boolean mustUseFirstAndLastName(Event event) {
-<span class="pc bpc" id="L273" title="1 of 2 branches missed.">        return event.getVersion() != null</span>
-<span class="pc bnc" id="L274" title="All 2 branches missed.">            &amp;&amp; MigrationVersion.fromVersion(event.getVersion()).compareTo(MigrationVersion.fromVersion(VERSION_FOR_FIRST_AND_LAST_NAME)) &gt;= 0;</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">        return event.getVersion() != null</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">            &amp;&amp; MigrationVersion.fromVersion(event.getVersion()).compareTo(MigrationVersion.fromVersion(VERSION_FOR_FIRST_AND_LAST_NAME)) &gt;= 0;</span>
     }
 
     public boolean expired() {
-<span class="nc" id="L278">        return expiredSince(0);</span>
+<span class="fc" id="L278">        return expiredSince(0);</span>
     }
 
     public boolean expiredSince(int days) {
-<span class="nc" id="L282">        return ZonedDateTime.now(ClockProvider.clock().withZone(getZoneId())).truncatedTo(ChronoUnit.DAYS).minusDays(days).isAfter(getEnd().truncatedTo(ChronoUnit.DAYS));</span>
+<span class="fc" id="L282">        return ZonedDateTime.now(ClockProvider.clock().withZone(getZoneId())).truncatedTo(ChronoUnit.DAYS).minusDays(days).isAfter(getEnd().truncatedTo(ChronoUnit.DAYS));</span>
     }
 
     public String getPrivacyPolicyLinkOrNull() {
-<span class="nc" id="L286">        return StringUtils.trimToNull(privacyPolicyUrl);</span>
+<span class="fc" id="L286">        return StringUtils.trimToNull(privacyPolicyUrl);</span>
     }
 
     public int getBeginTimeZoneOffset() {
-<span class="nc" id="L290">        return getBegin().getOffset().get(OFFSET_SECONDS);</span>
+<span class="fc" id="L290">        return getBegin().getOffset().get(OFFSET_SECONDS);</span>
     }
 
     public int getEndTimeZoneOffset() {
-<span class="nc" id="L294">        return getEnd().getOffset().get(OFFSET_SECONDS);</span>
+<span class="fc" id="L294">        return getEnd().getOffset().get(OFFSET_SECONDS);</span>
     }
 
     public boolean getIsOnline() {
-<span class="nc bnc" id="L298" title="All 2 branches missed.">        return format == EventFormat.ONLINE;</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">        return format == EventFormat.ONLINE;</span>
     }
 
     @Override
     public String getPublicIdentifier() {
-<span class="nc" id="L303">        return getShortName();</span>
+<span class="fc" id="L303">        return getShortName();</span>
     }
 
     @Override

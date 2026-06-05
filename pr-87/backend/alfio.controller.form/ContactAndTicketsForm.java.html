@@ -93,10 +93,10 @@ public class ContactAndTicketsForm implements Serializable {
 
     private static void rejectIfOverLength(BindingResult bindingResult, String field, String errorCode,
             String value, int maxLength) {
-<span class="nc bnc" id="L96" title="All 4 branches missed.">        if (value != null &amp;&amp; value.length() &gt; maxLength) {</span>
+<span class="pc bpc" id="L96" title="1 of 4 branches missed.">        if (value != null &amp;&amp; value.length() &gt; maxLength) {</span>
 <span class="nc" id="L97">            bindingResult.rejectValue(field, errorCode, new Object[] {maxLength}, null);</span>
         }
-<span class="nc" id="L99">    }</span>
+<span class="fc" id="L99">    }</span>
 
 
 
@@ -110,31 +110,31 @@ public class ContactAndTicketsForm implements Serializable {
                          Supplier&lt;List&lt;AdditionalServiceItem&gt;&gt; additionalServiceItemsSupplier) {
 
 
-<span class="nc" id="L113">        formalValidation(bindingResult, formValidationParameters.getOrDefault(ConfigurationKeys.ENABLE_ITALY_E_INVOICING, false), reservationRequiresPayment);</span>
+<span class="fc" id="L113">        formalValidation(bindingResult, formValidationParameters.getOrDefault(ConfigurationKeys.ENABLE_ITALY_E_INVOICING, false), reservationRequiresPayment);</span>
 
-<span class="nc" id="L115">        var fieldsFilterer = additionalFieldsFilterer.orElseThrow();</span>
-<span class="nc" id="L116">        purchaseContext.event().ifPresent(event -&gt; {</span>
-<span class="nc" id="L117">            checkAdditionalServiceItemsLink(event, bindingResult, additionalServiceItemsSupplier, vatValidator, fieldsFilterer);</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">            if(!postponeAssignment) {</span>
-<span class="nc" id="L119">                Optional&lt;List&lt;ValidationResult&gt;&gt; validationResults = Optional.ofNullable(tickets)</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">                    .filter(m -&gt; !m.isEmpty())</span>
-<span class="nc" id="L121">                    .map(m -&gt; m.entrySet().stream().map(e -&gt; {</span>
-<span class="nc" id="L122">                        var filteredForTicket = fieldsFilterer.getFieldsForTicket(UUID.fromString(e.getKey()), EnumSet.of(ATTENDEE));</span>
-<span class="nc" id="L123">                        return Validator.validateTicketAssignment(e.getValue(), filteredForTicket, Optional.of(bindingResult), event, &quot;tickets[&quot; + e.getKey() + &quot;]&quot;, vatValidator, extensionManager);</span>
+<span class="fc" id="L115">        var fieldsFilterer = additionalFieldsFilterer.orElseThrow();</span>
+<span class="fc" id="L116">        purchaseContext.event().ifPresent(event -&gt; {</span>
+<span class="fc" id="L117">            checkAdditionalServiceItemsLink(event, bindingResult, additionalServiceItemsSupplier, vatValidator, fieldsFilterer);</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">            if(!postponeAssignment) {</span>
+<span class="fc" id="L119">                Optional&lt;List&lt;ValidationResult&gt;&gt; validationResults = Optional.ofNullable(tickets)</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">                    .filter(m -&gt; !m.isEmpty())</span>
+<span class="fc" id="L121">                    .map(m -&gt; m.entrySet().stream().map(e -&gt; {</span>
+<span class="fc" id="L122">                        var filteredForTicket = fieldsFilterer.getFieldsForTicket(UUID.fromString(e.getKey()), EnumSet.of(ATTENDEE));</span>
+<span class="fc" id="L123">                        return Validator.validateTicketAssignment(e.getValue(), filteredForTicket, Optional.of(bindingResult), event, &quot;tickets[&quot; + e.getKey() + &quot;]&quot;, vatValidator, extensionManager);</span>
                     }))
-<span class="nc" id="L125">                    .map(s -&gt; s.collect(Collectors.toList()));</span>
+<span class="fc" id="L125">                    .map(s -&gt; s.collect(Collectors.toList()));</span>
 
-<span class="nc" id="L127">                boolean success = validationResults</span>
-<span class="nc" id="L128">                    .filter(l -&gt; l.stream().allMatch(ValidationResult::isSuccess))</span>
-<span class="nc" id="L129">                    .isPresent();</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">                if(!success) {</span>
-<span class="nc bnc" id="L131" title="All 2 branches missed.">                    String errorCode = validationResults.filter(this::containsVatValidationError).isPresent() ? STEP_2_INVALID_VAT : STEP_2_MISSING_ATTENDEE_DATA;</span>
-<span class="nc" id="L132">                    bindingResult.reject(errorCode);</span>
+<span class="fc" id="L127">                boolean success = validationResults</span>
+<span class="fc" id="L128">                    .filter(l -&gt; l.stream().allMatch(ValidationResult::isSuccess))</span>
+<span class="fc" id="L129">                    .isPresent();</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">                if(!success) {</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">                    String errorCode = validationResults.filter(this::containsVatValidationError).isPresent() ? STEP_2_INVALID_VAT : STEP_2_MISSING_ATTENDEE_DATA;</span>
+<span class="fc" id="L132">                    bindingResult.reject(errorCode);</span>
                 }
             }
-<span class="nc" id="L135">        });</span>
+<span class="fc" id="L135">        });</span>
 
-<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.subscription)) {</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.subscription)) {</span>
 <span class="nc bnc" id="L138" title="All 2 branches missed.">            if (differentSubscriptionOwner) {</span>
 <span class="nc" id="L139">                ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;subscriptionOwner.firstName&quot;, ErrorsCode.STEP_2_EMPTY_FIRSTNAME);</span>
 <span class="nc" id="L140">                ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;subscriptionOwner.lastName&quot;, ErrorsCode.STEP_2_EMPTY_LASTNAME);</span>
@@ -146,88 +146,88 @@ public class ContactAndTicketsForm implements Serializable {
 <span class="nc" id="L146">            }</span>
         }
 
-<span class="nc" id="L149">    }</span>
+<span class="fc" id="L149">    }</span>
 
     private void checkAdditionalServiceItemsLink(Event event,
                                                  BindingResult bindingResult,
                                                  Supplier&lt;List&lt;AdditionalServiceItem&gt;&gt; additionalServiceItemsCount,
                                                  SameCountryValidator vatValidator,
                                                  Validator.AdditionalFieldsFilterer additionalFieldsFilterer) {
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (!event.supportsLinkedAdditionalServices()) {</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        if (!event.supportsLinkedAdditionalServices()) {</span>
 <span class="nc" id="L157">            return;</span>
         }
-<span class="nc" id="L159">        Map&lt;String, List&lt;AdditionalServiceLinkForm&gt;&gt; form = Objects.requireNonNullElseGet(additionalServices, Map::of);</span>
-<span class="nc" id="L160">        var additionalServiceItems = additionalServiceItemsCount.get();</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (additionalServiceItems.size() != form.values().stream().mapToInt(List::size).sum()</span>
-<span class="nc bnc" id="L162" title="All 2 branches missed.">            || form.values().stream().anyMatch(v -&gt; v.stream().anyMatch(Predicate.not(AdditionalServiceLinkForm::isValid)))) {</span>
+<span class="fc" id="L159">        Map&lt;String, List&lt;AdditionalServiceLinkForm&gt;&gt; form = Objects.requireNonNullElseGet(additionalServices, Map::of);</span>
+<span class="fc" id="L160">        var additionalServiceItems = additionalServiceItemsCount.get();</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if (additionalServiceItems.size() != form.values().stream().mapToInt(List::size).sum()</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">            || form.values().stream().anyMatch(v -&gt; v.stream().anyMatch(Predicate.not(AdditionalServiceLinkForm::isValid)))) {</span>
 <span class="nc" id="L163">            bindingResult.reject(STEP_2_ADDITIONAL_ITEMS_NOT_ASSIGNED);</span>
         }
-<span class="nc" id="L165">        var result = ValidationResult.success();</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">        for (var ticketAndFields : form.entrySet()) {</span>
-<span class="nc" id="L167">            var filteredForTicket = additionalFieldsFilterer.getFieldsForTicket(UUID.fromString(ticketAndFields.getKey()), EnumSet.of(ADDITIONAL_SERVICE));</span>
-<span class="nc" id="L168">            var fieldForms = ticketAndFields.getValue();</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">            for (int i = 0; i &lt; fieldForms.size(); i++) {</span>
-<span class="nc" id="L170">                result = result.or(Validator.validateAdditionalItemFieldsForTicket(fieldForms.get(i), filteredForTicket, bindingResult, &quot;additionalServices[&quot;+ticketAndFields.getKey()+&quot;][&quot;+i+&quot;]&quot;, vatValidator, fieldForms, additionalServiceItems));</span>
+<span class="fc" id="L165">        var result = ValidationResult.success();</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        for (var ticketAndFields : form.entrySet()) {</span>
+<span class="fc" id="L167">            var filteredForTicket = additionalFieldsFilterer.getFieldsForTicket(UUID.fromString(ticketAndFields.getKey()), EnumSet.of(ADDITIONAL_SERVICE));</span>
+<span class="fc" id="L168">            var fieldForms = ticketAndFields.getValue();</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">            for (int i = 0; i &lt; fieldForms.size(); i++) {</span>
+<span class="fc" id="L170">                result = result.or(Validator.validateAdditionalItemFieldsForTicket(fieldForms.get(i), filteredForTicket, bindingResult, &quot;additionalServices[&quot;+ticketAndFields.getKey()+&quot;][&quot;+i+&quot;]&quot;, vatValidator, fieldForms, additionalServiceItems));</span>
             }
-<span class="nc" id="L172">        }</span>
+<span class="fc" id="L172">        }</span>
 
-<span class="nc" id="L174">        boolean success = result.isSuccess();</span>
-<span class="nc bnc" id="L175" title="All 2 branches missed.">        if(!success) {</span>
-<span class="nc bnc" id="L176" title="All 2 branches missed.">            String errorCode = containsVatValidationError(List.of(result)) ? STEP_2_INVALID_VAT : STEP_2_MISSING_ATTENDEE_DATA;</span>
-<span class="nc" id="L177">            bindingResult.reject(errorCode);</span>
+<span class="fc" id="L174">        boolean success = result.isSuccess();</span>
+<span class="fc bfc" id="L175" title="All 2 branches covered.">        if(!success) {</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">            String errorCode = containsVatValidationError(List.of(result)) ? STEP_2_INVALID_VAT : STEP_2_MISSING_ATTENDEE_DATA;</span>
+<span class="fc" id="L177">            bindingResult.reject(errorCode);</span>
         }
-<span class="nc" id="L179">    }</span>
+<span class="fc" id="L179">    }</span>
 
     public void formalValidation(CustomBindingResult bindingResult,
                                  boolean italianEInvoicingEnabled,
                                  boolean reservationRequiresPayment) {
-<span class="nc" id="L184">        email = StringUtils.trim(email);</span>
+<span class="fc" id="L184">        email = StringUtils.trim(email);</span>
 
-<span class="nc" id="L186">        fullName = StringUtils.trim(fullName);</span>
-<span class="nc" id="L187">        firstName = StringUtils.trim(firstName);</span>
-<span class="nc" id="L188">        lastName = StringUtils.trim(lastName);</span>
+<span class="fc" id="L186">        fullName = StringUtils.trim(fullName);</span>
+<span class="fc" id="L187">        firstName = StringUtils.trim(firstName);</span>
+<span class="fc" id="L188">        lastName = StringUtils.trim(lastName);</span>
 
-<span class="nc" id="L190">        billingAddress = StringUtils.trim(billingAddress);</span>
+<span class="fc" id="L190">        billingAddress = StringUtils.trim(billingAddress);</span>
 
-<span class="nc" id="L192">        ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;email&quot;, ErrorsCode.STEP_2_EMPTY_EMAIL);</span>
-<span class="nc" id="L193">        rejectIfOverLength(bindingResult, &quot;email&quot;, ErrorsCode.STEP_2_MAX_LENGTH_EMAIL, email, 255);</span>
-
-
-<span class="nc" id="L196">        ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;firstName&quot;, ErrorsCode.STEP_2_EMPTY_FIRSTNAME);</span>
-<span class="nc" id="L197">        rejectIfOverLength(bindingResult, &quot;firstName&quot;, ErrorsCode.STEP_2_MAX_LENGTH_FIRSTNAME, fullName, 255);</span>
-<span class="nc" id="L198">        ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;lastName&quot;, ErrorsCode.STEP_2_EMPTY_LASTNAME);</span>
-<span class="nc" id="L199">        rejectIfOverLength(bindingResult, &quot;lastName&quot;, ErrorsCode.STEP_2_MAX_LENGTH_LASTNAME, fullName, 255);</span>
+<span class="fc" id="L192">        ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;email&quot;, ErrorsCode.STEP_2_EMPTY_EMAIL);</span>
+<span class="fc" id="L193">        rejectIfOverLength(bindingResult, &quot;email&quot;, ErrorsCode.STEP_2_MAX_LENGTH_EMAIL, email, 255);</span>
 
 
-<span class="nc bnc" id="L202" title="All 2 branches missed.">        if(invoiceRequested) {</span>
-<span class="nc" id="L203">            ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;billingAddressLine1&quot;, ErrorsCode.EMPTY_FIELD);</span>
-<span class="nc" id="L204">            rejectIfOverLength(bindingResult, &quot;billingAddressLine1&quot;, &quot;error.tooLong&quot;, billingAddressLine1, 256);</span>
+<span class="fc" id="L196">        ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;firstName&quot;, ErrorsCode.STEP_2_EMPTY_FIRSTNAME);</span>
+<span class="fc" id="L197">        rejectIfOverLength(bindingResult, &quot;firstName&quot;, ErrorsCode.STEP_2_MAX_LENGTH_FIRSTNAME, fullName, 255);</span>
+<span class="fc" id="L198">        ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;lastName&quot;, ErrorsCode.STEP_2_EMPTY_LASTNAME);</span>
+<span class="fc" id="L199">        rejectIfOverLength(bindingResult, &quot;lastName&quot;, ErrorsCode.STEP_2_MAX_LENGTH_LASTNAME, fullName, 255);</span>
 
-<span class="nc" id="L206">            rejectIfOverLength(bindingResult, &quot;billingAddressLine2&quot;, &quot;error.tooLong&quot;, billingAddressLine2, 256);</span>
 
-<span class="nc" id="L208">            ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;billingAddressZip&quot;, ErrorsCode.EMPTY_FIELD);</span>
-<span class="nc" id="L209">            rejectIfOverLength(bindingResult, &quot;billingAddressZip&quot;, &quot;error.tooLong&quot;, billingAddressZip, 51);</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        if(invoiceRequested) {</span>
+<span class="fc" id="L203">            ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;billingAddressLine1&quot;, ErrorsCode.EMPTY_FIELD);</span>
+<span class="fc" id="L204">            rejectIfOverLength(bindingResult, &quot;billingAddressLine1&quot;, &quot;error.tooLong&quot;, billingAddressLine1, 256);</span>
 
-<span class="nc" id="L211">            ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;billingAddressCity&quot;, ErrorsCode.EMPTY_FIELD);</span>
-<span class="nc" id="L212">            rejectIfOverLength(bindingResult, &quot;billingAddressCity&quot;, &quot;error.tooLong&quot;, billingAddressCity, 256);</span>
+<span class="fc" id="L206">            rejectIfOverLength(bindingResult, &quot;billingAddressLine2&quot;, &quot;error.tooLong&quot;, billingAddressLine2, 256);</span>
 
-<span class="nc" id="L214">            ValidationUtils.rejectIfEmpty(bindingResult, &quot;vatCountryCode&quot;, ErrorsCode.EMPTY_FIELD);</span>
+<span class="fc" id="L208">            ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;billingAddressZip&quot;, ErrorsCode.EMPTY_FIELD);</span>
+<span class="fc" id="L209">            rejectIfOverLength(bindingResult, &quot;billingAddressZip&quot;, &quot;error.tooLong&quot;, billingAddressZip, 51);</span>
 
-<span class="nc bnc" id="L216" title="All 4 branches missed.">            if(StringUtils.trimToNull(billingAddressCompany) != null &amp;&amp; !canSkipVatNrCheck()) {</span>
-<span class="nc" id="L217">                ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;vatNr&quot;, ErrorsCode.EMPTY_FIELD);</span>
+<span class="fc" id="L211">            ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;billingAddressCity&quot;, ErrorsCode.EMPTY_FIELD);</span>
+<span class="fc" id="L212">            rejectIfOverLength(bindingResult, &quot;billingAddressCity&quot;, &quot;error.tooLong&quot;, billingAddressCity, 256);</span>
+
+<span class="fc" id="L214">            ValidationUtils.rejectIfEmpty(bindingResult, &quot;vatCountryCode&quot;, ErrorsCode.EMPTY_FIELD);</span>
+
+<span class="pc bpc" id="L216" title="1 of 4 branches missed.">            if(StringUtils.trimToNull(billingAddressCompany) != null &amp;&amp; !canSkipVatNrCheck()) {</span>
+<span class="fc" id="L217">                ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;vatNr&quot;, ErrorsCode.EMPTY_FIELD);</span>
             }
 
         }
 
         // https://github.com/alfio-event/alf.io/issues/573
         // only for IT and only if enabled!
-<span class="nc bnc" id="L224" title="All 6 branches missed.">        if (italianEInvoicingEnabled &amp;&amp; StringUtils.isNotEmpty(vatCountryCode) &amp;&amp; reservationRequiresPayment) {</span>
+<span class="pc bpc" id="L224" title="2 of 6 branches missed.">        if (italianEInvoicingEnabled &amp;&amp; StringUtils.isNotEmpty(vatCountryCode) &amp;&amp; reservationRequiresPayment) {</span>
             // mandatory
-<span class="nc" id="L226">            ValidationUtils.rejectIfEmpty(bindingResult, &quot;italyEInvoicingFiscalCode&quot;, ErrorsCode.EMPTY_FIELD);</span>
-<span class="nc" id="L227">            rejectIfOverLength(bindingResult, &quot;italyEInvoicingFiscalCode&quot;, &quot;error.tooLong&quot;, italyEInvoicingFiscalCode, 28);</span>
+<span class="fc" id="L226">            ValidationUtils.rejectIfEmpty(bindingResult, &quot;italyEInvoicingFiscalCode&quot;, ErrorsCode.EMPTY_FIELD);</span>
+<span class="fc" id="L227">            rejectIfOverLength(bindingResult, &quot;italyEInvoicingFiscalCode&quot;, &quot;error.tooLong&quot;, italyEInvoicingFiscalCode, 28);</span>
         }
 
-<span class="nc bnc" id="L230" title="All 6 branches missed.">        if (italianEInvoicingEnabled &amp;&amp; &quot;IT&quot;.equals(vatCountryCode) &amp;&amp; reservationRequiresPayment) {</span>
+<span class="pc bpc" id="L230" title="3 of 6 branches missed.">        if (italianEInvoicingEnabled &amp;&amp; &quot;IT&quot;.equals(vatCountryCode) &amp;&amp; reservationRequiresPayment) {</span>
             //
 <span class="nc" id="L232">            ValidationUtils.rejectIfEmpty(bindingResult, &quot;italyEInvoicingReferenceType&quot;, &quot;error.italyEInvoicingReferenceTypeSelectValue&quot;);</span>
             //
@@ -274,33 +274,33 @@ public class ContactAndTicketsForm implements Serializable {
 
         }
 
-<span class="nc bnc" id="L277" title="All 4 branches missed.">        if (email != null &amp;&amp; !bindingResult.hasFieldErrors(&quot;email&quot;)) {</span>
-<span class="nc bnc" id="L278" title="All 2 branches missed.">            if (!Validator.isEmailValid(email)) {</span>
+<span class="pc bpc" id="L277" title="1 of 4 branches missed.">        if (email != null &amp;&amp; !bindingResult.hasFieldErrors(&quot;email&quot;)) {</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">            if (!Validator.isEmailValid(email)) {</span>
 <span class="nc" id="L279">                bindingResult.rejectValue(&quot;email&quot;, ErrorsCode.STEP_2_INVALID_EMAIL, new Object[] {}, null);</span>
-<span class="nc bnc" id="L280" title="All 2 branches missed.">            } else if (!Validator.isCanonicalMailAddress(email)) {</span>
+<span class="pc bpc" id="L280" title="1 of 2 branches missed.">            } else if (!Validator.isCanonicalMailAddress(email)) {</span>
 <span class="nc" id="L281">                bindingResult.addWarning(new WarningMessage(ErrorsCode.STEP_2_EMAIL_TYPO, List.of(email)));</span>
             }
         }
-<span class="nc" id="L284">    }</span>
+<span class="fc" id="L284">    }</span>
 
     private boolean containsVatValidationError(List&lt;ValidationResult&gt; l) {
-<span class="nc bnc" id="L287" title="All 4 branches missed.">        return l.stream().anyMatch(v -&gt; !v.isSuccess() &amp;&amp; v.getErrorDescriptors().stream().anyMatch(ed -&gt; ed.getCode().equals(STEP_2_INVALID_VAT)));</span>
+<span class="pc bpc" id="L287" title="2 of 4 branches missed.">        return l.stream().anyMatch(v -&gt; !v.isSuccess() &amp;&amp; v.getErrorDescriptors().stream().anyMatch(ed -&gt; ed.getCode().equals(STEP_2_INVALID_VAT)));</span>
     }
 
     public boolean canSkipVatNrCheck() {
-<span class="nc" id="L291">        return Boolean.TRUE.equals(skipVatNr);</span>
+<span class="fc" id="L291">        return Boolean.TRUE.equals(skipVatNr);</span>
     }
 
     public boolean isBusiness() {
-<span class="nc bnc" id="L295" title="All 6 branches missed.">        return getAddCompanyBillingDetails() &amp;&amp; !canSkipVatNrCheck() &amp;&amp; invoiceRequested;</span>
+<span class="pc bpc" id="L295" title="1 of 6 branches missed.">        return getAddCompanyBillingDetails() &amp;&amp; !canSkipVatNrCheck() &amp;&amp; invoiceRequested;</span>
     }
 
     public boolean getAddCompanyBillingDetails() {
-<span class="nc" id="L299">        return Boolean.TRUE.equals(addCompanyBillingDetails);</span>
+<span class="fc" id="L299">        return Boolean.TRUE.equals(addCompanyBillingDetails);</span>
     }
 
     public boolean hasAdditionalServices() {
-<span class="nc" id="L303">        return MapUtils.isNotEmpty(additionalServices);</span>
+<span class="fc" id="L303">        return MapUtils.isNotEmpty(additionalServices);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

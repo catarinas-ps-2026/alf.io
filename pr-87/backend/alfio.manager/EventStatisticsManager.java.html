@@ -71,55 +71,55 @@ public class EventStatisticsManager {
                                   UserManager userManager,
                                   SubscriptionRepository subscriptionRepository,
                                   ExtensionManager extensionManager,
-<span class="nc" id="L74">                                  PurchaseContextFieldManager purchaseContextFieldManager) {</span>
-<span class="nc" id="L75">        this.eventRepository = eventRepository;</span>
-<span class="nc" id="L76">        this.eventDescriptionRepository = eventDescriptionRepository;</span>
-<span class="nc" id="L77">        this.ticketSearchRepository = ticketSearchRepository;</span>
-<span class="nc" id="L78">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
-<span class="nc" id="L79">        this.ticketCategoryDescriptionRepository = ticketCategoryDescriptionRepository;</span>
-<span class="nc" id="L80">        this.ticketReservationRepository = ticketReservationRepository;</span>
-<span class="nc" id="L81">        this.specialPriceRepository = specialPriceRepository;</span>
-<span class="nc" id="L82">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L83">        this.userManager = userManager;</span>
-<span class="nc" id="L84">        this.subscriptionRepository = subscriptionRepository;</span>
-<span class="nc" id="L85">        this.extensionManager = extensionManager;</span>
-<span class="nc" id="L86">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
-<span class="nc" id="L87">    }</span>
+<span class="fc" id="L74">                                  PurchaseContextFieldManager purchaseContextFieldManager) {</span>
+<span class="fc" id="L75">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L76">        this.eventDescriptionRepository = eventDescriptionRepository;</span>
+<span class="fc" id="L77">        this.ticketSearchRepository = ticketSearchRepository;</span>
+<span class="fc" id="L78">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L79">        this.ticketCategoryDescriptionRepository = ticketCategoryDescriptionRepository;</span>
+<span class="fc" id="L80">        this.ticketReservationRepository = ticketReservationRepository;</span>
+<span class="fc" id="L81">        this.specialPriceRepository = specialPriceRepository;</span>
+<span class="fc" id="L82">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L83">        this.userManager = userManager;</span>
+<span class="fc" id="L84">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="fc" id="L85">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L86">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+<span class="fc" id="L87">    }</span>
 
     private List&lt;Event&gt; getAllEvents(String username) {
-<span class="nc" id="L90">        List&lt;Integer&gt; orgIds = userManager.findUserOrganizations(username).stream().map(Organization::getId).collect(toList());</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        return orgIds.isEmpty() ? Collections.emptyList() : eventRepository.findByOrganizationIds(orgIds);</span>
+<span class="fc" id="L90">        List&lt;Integer&gt; orgIds = userManager.findUserOrganizations(username).stream().map(Organization::getId).collect(toList());</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        return orgIds.isEmpty() ? Collections.emptyList() : eventRepository.findByOrganizationIds(orgIds);</span>
     }
 
 
     public List&lt;EventStatistic&gt; getAllEventsWithStatisticsFilteredBy(String username, Predicate&lt;Event&gt; predicate) {
-<span class="nc" id="L96">        List&lt;Event&gt; events = getAllEvents(username).stream().filter(predicate).collect(toList());</span>
-<span class="nc" id="L97">        Map&lt;Integer, Event&gt; mappedEvent = events.stream().collect(Collectors.toMap(Event::getId, Function.identity()));</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        if(!mappedEvent.isEmpty()) {</span>
-<span class="nc" id="L99">            boolean isOwner = userManager.isOwner(userManager.findUserByUsername(username));</span>
-<span class="nc" id="L100">            Set&lt;Integer&gt; ids = mappedEvent.keySet();</span>
+<span class="fc" id="L96">        List&lt;Event&gt; events = getAllEvents(username).stream().filter(predicate).collect(toList());</span>
+<span class="fc" id="L97">        Map&lt;Integer, Event&gt; mappedEvent = events.stream().collect(Collectors.toMap(Event::getId, Function.identity()));</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if(!mappedEvent.isEmpty()) {</span>
+<span class="fc" id="L99">            boolean isOwner = userManager.isOwner(userManager.findUserByUsername(username));</span>
+<span class="fc" id="L100">            Set&lt;Integer&gt; ids = mappedEvent.keySet();</span>
             final Stream&lt;EventStatisticView&gt; stats;
-<span class="nc bnc" id="L102" title="All 2 branches missed.">            if(isOwner) {</span>
-<span class="nc" id="L103">                stats = eventRepository.findStatisticsFor(ids).stream();</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            if(isOwner) {</span>
+<span class="fc" id="L103">                stats = eventRepository.findStatisticsFor(ids).stream();</span>
             } else {
 <span class="nc" id="L105">                stats = ids.stream().map(EventStatisticView::empty);</span>
             }
-<span class="nc" id="L107">            return stats.map(stat -&gt; {</span>
-<span class="nc" id="L108">                Event event = mappedEvent.get(stat.getEventId());</span>
-<span class="nc" id="L109">                return new EventStatistic(event, stat, displayStatisticsForEvent(event));</span>
-<span class="nc" id="L110">            }).collect(Collectors.toList());</span>
+<span class="fc" id="L107">            return stats.map(stat -&gt; {</span>
+<span class="fc" id="L108">                Event event = mappedEvent.get(stat.getEventId());</span>
+<span class="fc" id="L109">                return new EventStatistic(event, stat, displayStatisticsForEvent(event));</span>
+<span class="fc" id="L110">            }).collect(Collectors.toList());</span>
         } else {
 <span class="nc" id="L112">            return Collections.emptyList();</span>
         }
     }
 
     private boolean displayStatisticsForEvent(EventAndOrganizationId event) {
-<span class="nc" id="L117">        return configurationManager.getFor(DISPLAY_STATS_IN_EVENT_DETAIL, event.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L117">        return configurationManager.getFor(DISPLAY_STATS_IN_EVENT_DETAIL, event.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
     }
 
 
     public List&lt;EventStatistic&gt; getAllEventsWithStatistics(String username) {
-<span class="nc" id="L122">        return getAllEventsWithStatisticsFilteredBy(username, e -&gt; true);</span>
+<span class="fc" id="L122">        return getAllEventsWithStatisticsFilteredBy(username, e -&gt; true);</span>
     }
 
     public List&lt;EventWithAdditionalInfo&gt; getAllEventsWithAdditionalInfo(String username) {
@@ -130,80 +130,80 @@ public class EventStatisticsManager {
     }
 
     public EventWithAdditionalInfo getEventWithAdditionalInfo(String eventName, String username) {
-<span class="nc" id="L133">        Event event = getEventAndCheckOwnership(eventName, username);</span>
-<span class="nc" id="L134">        return getEventWithAdditionalInfo(username, event);</span>
+<span class="fc" id="L133">        Event event = getEventAndCheckOwnership(eventName, username);</span>
+<span class="fc" id="L134">        return getEventWithAdditionalInfo(username, event);</span>
     }
 
     private EventWithAdditionalInfo getEventWithAdditionalInfo(String username, Event event) {
-<span class="nc" id="L138">        Map&lt;String, String&gt; description = eventDescriptionRepository.findByEventIdAsMap(event.getId());</span>
-<span class="nc" id="L139">        boolean owner = userManager.isOwner(userManager.findUserByUsername(username));</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">        EventStatisticView statistics = owner ? eventRepository.findStatisticsFor(event.getId()) : EventStatisticView.empty(event.getId());</span>
-<span class="nc" id="L141">        EventStatistic eventStatistic = new EventStatistic(event, statistics, displayStatisticsForEvent(event));</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">        BigDecimal grossIncome = owner ? MonetaryUtil.centsToUnit(eventRepository.getGrossIncome(event.getId()), event.getCurrency()) : BigDecimal.ZERO;</span>
+<span class="fc" id="L138">        Map&lt;String, String&gt; description = eventDescriptionRepository.findByEventIdAsMap(event.getId());</span>
+<span class="fc" id="L139">        boolean owner = userManager.isOwner(userManager.findUserByUsername(username));</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        EventStatisticView statistics = owner ? eventRepository.findStatisticsFor(event.getId()) : EventStatisticView.empty(event.getId());</span>
+<span class="fc" id="L141">        EventStatistic eventStatistic = new EventStatistic(event, statistics, displayStatisticsForEvent(event));</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        BigDecimal grossIncome = owner ? MonetaryUtil.centsToUnit(eventRepository.getGrossIncome(event.getId()), event.getCurrency()) : BigDecimal.ZERO;</span>
 
-<span class="nc" id="L144">        List&lt;TicketCategory&gt; ticketCategories = ticketCategoryRepository.findAllTicketCategories(event.getId());</span>
-<span class="nc" id="L145">        List&lt;Integer&gt; ticketCategoriesIds = ticketCategories.stream().map(TicketCategory::getId).collect(Collectors.toList());</span>
+<span class="fc" id="L144">        List&lt;TicketCategory&gt; ticketCategories = ticketCategoryRepository.findAllTicketCategories(event.getId());</span>
+<span class="fc" id="L145">        List&lt;Integer&gt; ticketCategoriesIds = ticketCategories.stream().map(TicketCategory::getId).collect(Collectors.toList());</span>
 
-<span class="nc" id="L147">        Map&lt;Integer, Map&lt;String, String&gt;&gt; descriptions = ticketCategoryDescriptionRepository.descriptionsByTicketCategory(ticketCategoriesIds);</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">        Map&lt;Integer, TicketCategoryStatisticView&gt; ticketCategoriesStatistics = owner ? ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId()) : ticketCategoriesIds.stream().collect(toMap(Function.identity(), id -&gt; TicketCategoryStatisticView.empty(id, event.getId())));</span>
-<span class="nc bnc" id="L149" title="All 2 branches missed.">        Map&lt;Integer, List&lt;SpecialPrice&gt;&gt; specialPrices = ticketCategoriesIds.isEmpty() ? Collections.emptyMap() : specialPriceRepository.findAllByCategoriesIdsMapped(ticketCategoriesIds);</span>
+<span class="fc" id="L147">        Map&lt;Integer, Map&lt;String, String&gt;&gt; descriptions = ticketCategoryDescriptionRepository.descriptionsByTicketCategory(ticketCategoriesIds);</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        Map&lt;Integer, TicketCategoryStatisticView&gt; ticketCategoriesStatistics = owner ? ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId()) : ticketCategoriesIds.stream().collect(toMap(Function.identity(), id -&gt; TicketCategoryStatisticView.empty(id, event.getId())));</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">        Map&lt;Integer, List&lt;SpecialPrice&gt;&gt; specialPrices = ticketCategoriesIds.isEmpty() ? Collections.emptyMap() : specialPriceRepository.findAllByCategoriesIdsMapped(ticketCategoriesIds);</span>
 
-<span class="nc" id="L151">        var metadata = ticketCategoryRepository.findCategoryMetadataForEventGroupByCategoryId(event.getId());</span>
+<span class="fc" id="L151">        var metadata = ticketCategoryRepository.findCategoryMetadataForEventGroupByCategoryId(event.getId());</span>
 
-<span class="nc" id="L153">        List&lt;TicketCategoryWithAdditionalInfo&gt; tWithInfo = ticketCategories.stream()</span>
-<span class="nc" id="L154">            .map(t -&gt; new TicketCategoryWithAdditionalInfo(event, t, ticketCategoriesStatistics.get(t.getId()), descriptions.get(t.getId()), specialPrices.get(t.getId()), metadata.get(t.getId())))</span>
-<span class="nc" id="L155">            .toList();</span>
+<span class="fc" id="L153">        List&lt;TicketCategoryWithAdditionalInfo&gt; tWithInfo = ticketCategories.stream()</span>
+<span class="fc" id="L154">            .map(t -&gt; new TicketCategoryWithAdditionalInfo(event, t, ticketCategoriesStatistics.get(t.getId()), descriptions.get(t.getId()), specialPrices.get(t.getId()), metadata.get(t.getId())))</span>
+<span class="fc" id="L155">            .toList();</span>
 
-<span class="nc" id="L157">        Set&lt;ExtensionCapabilitySummary&gt; supportedCapabilities = extensionManager.getSupportedCapabilities(EnumSet.allOf(ExtensionCapability.class), event);</span>
+<span class="fc" id="L157">        Set&lt;ExtensionCapabilitySummary&gt; supportedCapabilities = extensionManager.getSupportedCapabilities(EnumSet.allOf(ExtensionCapability.class), event);</span>
 
         // TODO category and event settings
 
-<span class="nc" id="L161">        return new EventWithAdditionalInfo(event,</span>
+<span class="fc" id="L161">        return new EventWithAdditionalInfo(event,</span>
             tWithInfo,
             eventStatistic,
             description,
             grossIncome,
-<span class="nc" id="L166">            eventRepository.getMetadataForEvent(event.getId()),</span>
-<span class="nc" id="L167">            subscriptionRepository.findLinkedSubscriptionIds(event.getId(), event.getOrganizationId()),</span>
+<span class="fc" id="L166">            eventRepository.getMetadataForEvent(event.getId()),</span>
+<span class="fc" id="L167">            subscriptionRepository.findLinkedSubscriptionIds(event.getId(), event.getOrganizationId()),</span>
             supportedCapabilities,
-<span class="nc" id="L169">            purchaseContextFieldManager.findAdditionalFields(event)</span>
+<span class="fc" id="L169">            purchaseContextFieldManager.findAdditionalFields(event)</span>
         );
     }
 
     private Event getEventAndCheckOwnership(String eventName, String username) {
-<span class="nc" id="L174">        Event event = eventRepository.findByShortName(eventName);</span>
-<span class="nc" id="L175">        userManager.findOrganizationById(event.getOrganizationId(), username);</span>
-<span class="nc" id="L176">        return event;</span>
+<span class="fc" id="L174">        Event event = eventRepository.findByShortName(eventName);</span>
+<span class="fc" id="L175">        userManager.findOrganizationById(event.getOrganizationId(), username);</span>
+<span class="fc" id="L176">        return event;</span>
     }
 
     private static String prepareSearchTerm(String search) {
-<span class="nc" id="L180">        String toSearch = StringUtils.trimToNull(search);</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">        return toSearch == null ? null : (&quot;%&quot; + toSearch + &quot;%&quot;);</span>
+<span class="fc" id="L180">        String toSearch = StringUtils.trimToNull(search);</span>
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">        return toSearch == null ? null : (&quot;%&quot; + toSearch + &quot;%&quot;);</span>
     }
 
     public List&lt;TicketWithStatistic&gt; loadModifiedTickets(int eventId, int categoryId, int page, String search) {
-<span class="nc" id="L185">        Event event = eventRepository.findById(eventId);</span>
-<span class="nc" id="L186">        String toSearch = prepareSearchTerm(search);</span>
-<span class="nc" id="L187">        final int pageSize = 30;</span>
-<span class="nc" id="L188">        return ticketSearchRepository.findAllModifiedTicketsWithReservationAndTransaction(eventId, categoryId, page * pageSize, pageSize, toSearch).stream()</span>
-<span class="nc" id="L189">            .map(t -&gt; new TicketWithStatistic(t.getTicket(), t.getTicketReservation(), event.getZoneId(), t.getTransaction(), firstNonNull(t.getPromoCode(), t.getSpecialPriceToken())))</span>
-<span class="nc" id="L190">            .sorted()</span>
-<span class="nc" id="L191">            .collect(Collectors.toList());</span>
+<span class="fc" id="L185">        Event event = eventRepository.findById(eventId);</span>
+<span class="fc" id="L186">        String toSearch = prepareSearchTerm(search);</span>
+<span class="fc" id="L187">        final int pageSize = 30;</span>
+<span class="fc" id="L188">        return ticketSearchRepository.findAllModifiedTicketsWithReservationAndTransaction(eventId, categoryId, page * pageSize, pageSize, toSearch).stream()</span>
+<span class="fc" id="L189">            .map(t -&gt; new TicketWithStatistic(t.getTicket(), t.getTicketReservation(), event.getZoneId(), t.getTransaction(), firstNonNull(t.getPromoCode(), t.getSpecialPriceToken())))</span>
+<span class="fc" id="L190">            .sorted()</span>
+<span class="fc" id="L191">            .collect(Collectors.toList());</span>
     }
 
     public Integer countModifiedTicket(int eventId, int categoryId, String search) {
-<span class="nc" id="L195">        String toSearch = prepareSearchTerm(search);</span>
-<span class="nc" id="L196">        return ticketSearchRepository.countAllModifiedTicketsWithReservationAndTransaction(eventId, categoryId, toSearch);</span>
+<span class="fc" id="L195">        String toSearch = prepareSearchTerm(search);</span>
+<span class="fc" id="L196">        return ticketSearchRepository.countAllModifiedTicketsWithReservationAndTransaction(eventId, categoryId, toSearch);</span>
     }
 
     public Predicate&lt;EventAndOrganizationId&gt; noSeatsAvailable() {
-<span class="nc" id="L200">        return event -&gt; {</span>
-<span class="nc" id="L201">            Map&lt;Integer, TicketCategoryStatisticView&gt; stats = ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId());</span>
-<span class="nc" id="L202">            EventStatisticView eventStatisticView = eventRepository.findStatisticsFor(event.getId());</span>
-<span class="nc" id="L203">            return ticketCategoryRepository.findAllTicketCategories(event.getId())</span>
-<span class="nc" id="L204">                .stream()</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">                .filter(tc -&gt; !tc.isAccessRestricted())</span>
-<span class="nc bnc" id="L206" title="All 2 branches missed.">                .allMatch(tc -&gt; EventUtil.determineAvailableSeats(stats.get(tc.getId()), eventStatisticView) == 0);</span>
+<span class="fc" id="L200">        return event -&gt; {</span>
+<span class="fc" id="L201">            Map&lt;Integer, TicketCategoryStatisticView&gt; stats = ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId());</span>
+<span class="fc" id="L202">            EventStatisticView eventStatisticView = eventRepository.findStatisticsFor(event.getId());</span>
+<span class="fc" id="L203">            return ticketCategoryRepository.findAllTicketCategories(event.getId())</span>
+<span class="fc" id="L204">                .stream()</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">                .filter(tc -&gt; !tc.isAccessRestricted())</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">                .allMatch(tc -&gt; EventUtil.determineAvailableSeats(stats.get(tc.getId()), eventStatisticView) == 0);</span>
         };
     }
 
@@ -216,7 +216,7 @@ public class EventStatisticsManager {
     }
 
     public List&lt;TicketsByDateStatistic&gt; getTicketSoldStatistics(int eventId, ZonedDateTime from, ZonedDateTime to, String granularity) {
-<span class="nc" id="L219">        return ticketReservationRepository.getSoldStatistic(eventId, from, to, granularity);</span>
+<span class="fc" id="L219">        return ticketReservationRepository.getSoldStatistic(eventId, from, to, granularity);</span>
     }
 
     public List&lt;TicketsByDateStatistic&gt; getTicketReservedStatistics(int eventId, ZonedDateTime from, ZonedDateTime to, String granularity) {

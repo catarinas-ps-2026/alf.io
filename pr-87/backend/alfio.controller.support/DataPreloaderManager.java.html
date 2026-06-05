@@ -78,19 +78,19 @@ public class DataPreloaderManager {
     private final EventDescriptionRepository eventDescriptionRepository;
     private final Json json;
 
-<span class="nc" id="L81">    public DataPreloaderManager(ConfigurationManager configurationManager, CsrfTokenRepository csrfTokenRepository, EventLoader eventLoader, CSPConfigurer cspConfigurer, PurchaseContextManager purchaseContextManager, EventRepository eventRepository, MessageSourceManager messageSourceManager, OrganizationRepository organizationRepository, FileUploadRepository fileUploadRepository, EventDescriptionRepository eventDescriptionRepository, Json json) {</span>
-<span class="nc" id="L82">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L83">        this.csrfTokenRepository = csrfTokenRepository;</span>
-<span class="nc" id="L84">        this.eventLoader = eventLoader;</span>
-<span class="nc" id="L85">        this.cspConfigurer = cspConfigurer;</span>
-<span class="nc" id="L86">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="nc" id="L87">        this.eventRepository = eventRepository;</span>
-<span class="nc" id="L88">        this.messageSourceManager = messageSourceManager;</span>
-<span class="nc" id="L89">        this.organizationRepository = organizationRepository;</span>
-<span class="nc" id="L90">        this.fileUploadRepository = fileUploadRepository;</span>
-<span class="nc" id="L91">        this.eventDescriptionRepository = eventDescriptionRepository;</span>
-<span class="nc" id="L92">        this.json = json;</span>
-<span class="nc" id="L93">    }</span>
+<span class="fc" id="L81">    public DataPreloaderManager(ConfigurationManager configurationManager, CsrfTokenRepository csrfTokenRepository, EventLoader eventLoader, CSPConfigurer cspConfigurer, PurchaseContextManager purchaseContextManager, EventRepository eventRepository, MessageSourceManager messageSourceManager, OrganizationRepository organizationRepository, FileUploadRepository fileUploadRepository, EventDescriptionRepository eventDescriptionRepository, Json json) {</span>
+<span class="fc" id="L82">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L83">        this.csrfTokenRepository = csrfTokenRepository;</span>
+<span class="fc" id="L84">        this.eventLoader = eventLoader;</span>
+<span class="fc" id="L85">        this.cspConfigurer = cspConfigurer;</span>
+<span class="fc" id="L86">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L87">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L88">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L89">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L90">        this.fileUploadRepository = fileUploadRepository;</span>
+<span class="fc" id="L91">        this.eventDescriptionRepository = eventDescriptionRepository;</span>
+<span class="fc" id="L92">        this.json = json;</span>
+<span class="fc" id="L93">    }</span>
 
     @Transactional
     public Document generateIndexDocument(String eventShortName,
@@ -103,79 +103,79 @@ public class DataPreloaderManager {
                                           Authentication authentication,
                                           Document openGraphPage,
                                           Document indexPage) {
-<span class="nc" id="L106">        var nonce = cspConfigurer.addCspHeader(response, detectConfigurationLevel(eventShortName, subscriptionId), true);</span>
-<span class="nc bnc" id="L107" title="All 6 branches missed.">        if (eventShortName != null &amp;&amp; RequestUtils.isSocialMediaShareUA(userAgent) &amp;&amp; eventRepository.existsByShortName(eventShortName)) {</span>
-<span class="nc" id="L108">            return getOpenGraphPage((Document) openGraphPage.cloneNode(true), eventShortName, request, lang);</span>
+<span class="fc" id="L106">        var nonce = cspConfigurer.addCspHeader(response, detectConfigurationLevel(eventShortName, subscriptionId), true);</span>
+<span class="pc bpc" id="L107" title="2 of 6 branches missed.">        if (eventShortName != null &amp;&amp; RequestUtils.isSocialMediaShareUA(userAgent) &amp;&amp; eventRepository.existsByShortName(eventShortName)) {</span>
+<span class="fc" id="L108">            return getOpenGraphPage((Document) openGraphPage.cloneNode(true), eventShortName, request, lang);</span>
         } else {
-<span class="nc" id="L110">            var baseCustomCss = configurationManager.getForSystem(BASE_CUSTOM_CSS).getValueOrNull();</span>
-<span class="nc" id="L111">            Document idx = (Document) indexPage.cloneNode(true);</span>
-<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (authentication instanceof OAuth2AuthenticationToken oauth</span>
+<span class="fc" id="L110">            var baseCustomCss = configurationManager.getForSystem(BASE_CUSTOM_CSS).getValueOrNull();</span>
+<span class="fc" id="L111">            Document idx = (Document) indexPage.cloneNode(true);</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">            if (authentication instanceof OAuth2AuthenticationToken oauth</span>
 <span class="nc bnc" id="L113" title="All 2 branches missed.">                &amp;&amp; oauth.getPrincipal() instanceof OpenIdPrincipal principal</span>
 <span class="nc bnc" id="L114" title="All 2 branches missed.">                &amp;&amp; principal.isSignedUp()</span>
 <span class="nc bnc" id="L115" title="All 2 branches missed.">                &amp;&amp; session.isNew()) {</span>
 <span class="nc" id="L116">                Optional.ofNullable(IterableUtils.get(idx.getElementsByTagName(&quot;html&quot;), 0))</span>
 <span class="nc" id="L117">                    .ifPresent(html -&gt; html.setAttribute(&quot;data-signed-up&quot;, &quot;true&quot;));</span>
             }
-<span class="nc" id="L119">            idx.getElementsByTagName(&quot;script&quot;).forEach(element -&gt; element.setAttribute(NONCE, nonce));</span>
-<span class="nc" id="L120">            var head = idx.getElementsByTagName(&quot;head&quot;).get(0);</span>
-<span class="nc" id="L121">            head.appendChild(buildScripTag(json.asJsonString(configurationManager.getInfo(session)), APPLICATION_JSON, &quot;preload-info&quot;, null));</span>
-<span class="nc" id="L122">            var httpServletRequest = requireNonNull(request.getNativeRequest(HttpServletRequest.class));</span>
-<span class="nc" id="L123">            head.appendChild(buildMetaTag(&quot;GID&quot;, request.getSessionId()));</span>
-<span class="nc" id="L124">            var csrf = csrfTokenRepository.loadToken(httpServletRequest);</span>
-<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (csrf == null) {</span>
-<span class="nc" id="L126">                csrf = csrfTokenRepository.generateToken(httpServletRequest);</span>
+<span class="pc" id="L119">            idx.getElementsByTagName(&quot;script&quot;).forEach(element -&gt; element.setAttribute(NONCE, nonce));</span>
+<span class="fc" id="L120">            var head = idx.getElementsByTagName(&quot;head&quot;).get(0);</span>
+<span class="fc" id="L121">            head.appendChild(buildScripTag(json.asJsonString(configurationManager.getInfo(session)), APPLICATION_JSON, &quot;preload-info&quot;, null));</span>
+<span class="fc" id="L122">            var httpServletRequest = requireNonNull(request.getNativeRequest(HttpServletRequest.class));</span>
+<span class="fc" id="L123">            head.appendChild(buildMetaTag(&quot;GID&quot;, request.getSessionId()));</span>
+<span class="fc" id="L124">            var csrf = csrfTokenRepository.loadToken(httpServletRequest);</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">            if (csrf == null) {</span>
+<span class="fc" id="L126">                csrf = csrfTokenRepository.generateToken(httpServletRequest);</span>
             }
-<span class="nc" id="L128">            head.appendChild(buildMetaTag(&quot;XSRF_TOKEN&quot;, csrf.getToken()));</span>
-<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (baseCustomCss != null) {</span>
+<span class="fc" id="L128">            head.appendChild(buildMetaTag(&quot;XSRF_TOKEN&quot;, csrf.getToken()));</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">            if (baseCustomCss != null) {</span>
 <span class="nc" id="L130">                var style = new Element(&quot;style&quot;);</span>
 <span class="nc" id="L131">                style.setAttribute(&quot;type&quot;, &quot;text/css&quot;);</span>
 <span class="nc" id="L132">                style.appendChild(new Text(baseCustomCss));</span>
 <span class="nc" id="L133">                head.appendChild(style);</span>
             }
-<span class="nc" id="L135">            head.appendChild(buildMetaTag(&quot;authentication-enabled&quot;, Boolean.toString(configurationManager.isPublicOpenIdEnabled())));</span>
-<span class="nc" id="L136">            preloadEventData(eventShortName, request, session, eventLoader, head, messageSourceManager, idx, json, lang);</span>
-<span class="nc" id="L137">            return idx;</span>
+<span class="fc" id="L135">            head.appendChild(buildMetaTag(&quot;authentication-enabled&quot;, Boolean.toString(configurationManager.isPublicOpenIdEnabled())));</span>
+<span class="fc" id="L136">            preloadEventData(eventShortName, request, session, eventLoader, head, messageSourceManager, idx, json, lang);</span>
+<span class="fc" id="L137">            return idx;</span>
         }
     }
 
     private ConfigurationLevel detectConfigurationLevel(String eventShortName, String subscriptionId) {
-<span class="nc" id="L142">        return purchaseContextManager.detectConfigurationLevel(eventShortName, subscriptionId)</span>
-<span class="nc" id="L143">            .orElseGet(ConfigurationLevel::system);</span>
+<span class="fc" id="L142">        return purchaseContextManager.detectConfigurationLevel(eventShortName, subscriptionId)</span>
+<span class="fc" id="L143">            .orElseGet(ConfigurationLevel::system);</span>
     }
 
     // see https://github.com/alfio-event/alf.io/issues/708
     // use ngrok to test the preview
     private Document getOpenGraphPage(Document eventOpenGraph, String eventShortName, ServletWebRequest request, String lang) {
-<span class="nc" id="L149">        var event = eventRepository.findByShortName(eventShortName);</span>
-<span class="nc" id="L150">        var locale = getMatchingLocale(request, event.getContentLanguages().stream().map(ContentLanguage::getLanguage).toList(), lang);</span>
+<span class="fc" id="L149">        var event = eventRepository.findByShortName(eventShortName);</span>
+<span class="fc" id="L150">        var locale = getMatchingLocale(request, event.getContentLanguages().stream().map(ContentLanguage::getLanguage).toList(), lang);</span>
 
-<span class="nc" id="L152">        var baseUrl = configurationManager.getForSystem(ConfigurationKeys.BASE_URL).getRequiredValue();</span>
+<span class="fc" id="L152">        var baseUrl = configurationManager.getForSystem(ConfigurationKeys.BASE_URL).getRequiredValue();</span>
 
-<span class="nc" id="L154">        var title = messageSourceManager.getMessageSourceFor(event).getMessage(&quot;event.get-your-ticket-for&quot;, new String[] {event.getDisplayName()}, locale);</span>
+<span class="fc" id="L154">        var title = messageSourceManager.getMessageSourceFor(event).getMessage(&quot;event.get-your-ticket-for&quot;, new String[] {event.getDisplayName()}, locale);</span>
 
-<span class="nc" id="L156">        var head = eventOpenGraph.getElementsByTagName(&quot;head&quot;).get(0);</span>
+<span class="fc" id="L156">        var head = eventOpenGraph.getElementsByTagName(&quot;head&quot;).get(0);</span>
 
-<span class="nc" id="L158">        eventOpenGraph.getElementsByTagName(&quot;html&quot;).get(0).setAttribute(&quot;lang&quot;, locale.getLanguage());</span>
+<span class="fc" id="L158">        eventOpenGraph.getElementsByTagName(&quot;html&quot;).get(0).setAttribute(&quot;lang&quot;, locale.getLanguage());</span>
 
         //
 
-<span class="nc" id="L162">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;twitter:image&quot;).setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
+<span class="fc" id="L162">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;twitter:image&quot;).setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
         //
 
-<span class="nc" id="L165">        eventOpenGraph.getElementsByTagName(&quot;title&quot;).get(0).appendChild(new Text(title));</span>
-<span class="nc" id="L166">        getMetaElement(eventOpenGraph, PROPERTY, &quot;og:title&quot;).setAttribute(CONTENT, title);</span>
-<span class="nc" id="L167">        getMetaElement(eventOpenGraph, PROPERTY,&quot;og:image&quot;).setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
+<span class="fc" id="L165">        eventOpenGraph.getElementsByTagName(&quot;title&quot;).get(0).appendChild(new Text(title));</span>
+<span class="fc" id="L166">        getMetaElement(eventOpenGraph, PROPERTY, &quot;og:title&quot;).setAttribute(CONTENT, title);</span>
+<span class="fc" id="L167">        getMetaElement(eventOpenGraph, PROPERTY,&quot;og:image&quot;).setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
 
-<span class="nc" id="L169">        var eventDesc = eventDescriptionRepository.findDescriptionByEventIdTypeAndLocale(event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, locale.toLanguageTag()).orElse(&quot;&quot;).trim();</span>
-<span class="nc" id="L170">        var firstLine = Pattern.compile(&quot;\n&quot;).splitAsStream(MustacheCustomTag.renderToTextCommonmark(eventDesc)).findFirst().orElse(&quot;&quot;);</span>
-<span class="nc" id="L171">        getMetaElement(eventOpenGraph, PROPERTY,&quot;og:description&quot;).setAttribute(CONTENT, firstLine);</span>
+<span class="fc" id="L169">        var eventDesc = eventDescriptionRepository.findDescriptionByEventIdTypeAndLocale(event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, locale.toLanguageTag()).orElse(&quot;&quot;).trim();</span>
+<span class="fc" id="L170">        var firstLine = Pattern.compile(&quot;\n&quot;).splitAsStream(MustacheCustomTag.renderToTextCommonmark(eventDesc)).findFirst().orElse(&quot;&quot;);</span>
+<span class="fc" id="L171">        getMetaElement(eventOpenGraph, PROPERTY,&quot;og:description&quot;).setAttribute(CONTENT, firstLine);</span>
 
 
-<span class="nc" id="L174">        var org = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="nc" id="L175">        var author = String.format(&quot;%s &lt;%s&gt;&quot;, org.getName(), org.getEmail());</span>
-<span class="nc" id="L176">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;author&quot;).setAttribute(CONTENT, author);</span>
+<span class="fc" id="L174">        var org = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L175">        var author = String.format(&quot;%s &lt;%s&gt;&quot;, org.getName(), org.getEmail());</span>
+<span class="fc" id="L176">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;author&quot;).setAttribute(CONTENT, author);</span>
 
-<span class="nc" id="L178">        fileUploadRepository.findById(event.getFileBlobId()).ifPresent(metadata -&gt; {</span>
+<span class="fc" id="L178">        fileUploadRepository.findById(event.getFileBlobId()).ifPresent(metadata -&gt; {</span>
 <span class="nc" id="L179">            var attributes = metadata.getAttributes();</span>
 <span class="nc bnc" id="L180" title="All 4 branches missed.">            if (attributes.containsKey(FileBlobMetadata.ATTR_IMG_HEIGHT) &amp;&amp; attributes.containsKey(FileBlobMetadata.ATTR_IMG_WIDTH)) {</span>
 <span class="nc" id="L181">                head.appendChild(buildOGMetaTag(&quot;og:image:width&quot;, attributes.get(FileBlobMetadata.ATTR_IMG_WIDTH)));</span>
@@ -183,7 +183,7 @@ public class DataPreloaderManager {
             }
 <span class="nc" id="L184">        });</span>
 
-<span class="nc" id="L186">        return eventOpenGraph;</span>
+<span class="fc" id="L186">        return eventOpenGraph;</span>
     }
 
     private static Element buildOGMetaTag(String propertyValue, String contentValue) {
@@ -202,7 +202,7 @@ public class DataPreloaderManager {
     }
 
     private static Element getMetaElement(Document document, String attrName, String propertyValue) {
-<span class="nc" id="L205">        return (Element) document.getAllNodesMatching(Selector.select().element(&quot;meta&quot;).attrValEq(attrName, propertyValue).toMatcher(), true).get(0);</span>
+<span class="fc" id="L205">        return (Element) document.getAllNodesMatching(Selector.select().element(&quot;meta&quot;).attrValEq(attrName, propertyValue).toMatcher(), true).get(0);</span>
     }
 
     /**
@@ -227,7 +227,7 @@ public class DataPreloaderManager {
 <span class="fc" id="L227">        e.appendChild(new Text(encodedContent));</span>
 <span class="fc" id="L228">        e.setAttribute(&quot;type&quot;, type);</span>
 <span class="fc" id="L229">        e.setAttribute(&quot;id&quot;, id);</span>
-<span class="pc bpc" id="L230" title="1 of 2 branches missed.">        if (param != null) {</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">        if (param != null) {</span>
 <span class="fc" id="L231">            e.setAttribute(&quot;data-param&quot;, param);</span>
         }
 <span class="fc" id="L233">        return e;</span>

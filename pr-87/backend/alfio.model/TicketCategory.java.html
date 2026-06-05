@@ -30,10 +30,10 @@ import java.util.Comparator;
 @Getter
 public class TicketCategory {
 
-<span class="pc" id="L33">    public static final Comparator&lt;TicketCategory&gt; COMPARATOR = (tc1, tc2) -&gt; new CompareToBuilder().append(tc1.utcInception, tc2.utcInception).append(tc1.utcExpiration, tc2.utcExpiration).toComparison();</span>
+<span class="fc" id="L33">    public static final Comparator&lt;TicketCategory&gt; COMPARATOR = (tc1, tc2) -&gt; new CompareToBuilder().append(tc1.utcInception, tc2.utcInception).append(tc1.utcExpiration, tc2.utcExpiration).toComparison();</span>
 
-<span class="nc" id="L35">    public enum Status {</span>
-<span class="nc" id="L36">        ACTIVE, NOT_ACTIVE</span>
+<span class="fc" id="L35">    public enum Status {</span>
+<span class="fc" id="L36">        ACTIVE, NOT_ACTIVE</span>
     }
 
     /**
@@ -114,64 +114,64 @@ public class TicketCategory {
                           @JsonProperty(&quot;currencyCode&quot;) @Column(&quot;currency_code&quot;) String currencyCode,
                           @JsonProperty(&quot;ordinal&quot;) @Column(&quot;ordinal&quot;) Integer ordinal,
                           @JsonProperty(&quot;ticketCheckInStrategy&quot;) @Column(&quot;ticket_checkin_strategy&quot;) TicketCheckInStrategy ticketCheckInStrategy,
-<span class="nc" id="L117">                          @JsonProperty(&quot;ticketAccessType&quot;) @Column(&quot;ticket_access_type&quot;) TicketAccessType ticketAccessType) {</span>
-<span class="nc" id="L118">        this.id = id;</span>
-<span class="nc" id="L119">        this.utcInception = utcInception;</span>
-<span class="nc" id="L120">        this.utcExpiration = utcExpiration;</span>
-<span class="nc" id="L121">        this.maxTickets = maxTickets;</span>
-<span class="nc" id="L122">        this.name = name;</span>
-<span class="nc" id="L123">        this.accessRestricted = accessRestricted;</span>
-<span class="nc" id="L124">        this.status = status;</span>
-<span class="nc" id="L125">        this.eventId = eventId;</span>
-<span class="nc" id="L126">        this.bounded = bounded;</span>
-<span class="nc" id="L127">        this.srcPriceCts = srcPriceCts;</span>
-<span class="nc" id="L128">        this.code = code;</span>
-<span class="nc" id="L129">        this.validCheckInFrom = validCheckInFrom;</span>
-<span class="nc" id="L130">        this.validCheckInTo = validCheckInTo;</span>
-<span class="nc" id="L131">        this.ticketValidityStart = ticketValidityStart;</span>
-<span class="nc" id="L132">        this.ticketValidityEnd = ticketValidityEnd;</span>
-<span class="nc" id="L133">        this.currencyCode = currencyCode;</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">        this.ordinal = ordinal != null ? ordinal : 0;</span>
-<span class="nc" id="L135">        this.ticketCheckInStrategy = ticketCheckInStrategy;</span>
-<span class="nc" id="L136">        this.ticketAccessType = ticketAccessType;</span>
-<span class="nc" id="L137">    }</span>
+<span class="fc" id="L117">                          @JsonProperty(&quot;ticketAccessType&quot;) @Column(&quot;ticket_access_type&quot;) TicketAccessType ticketAccessType) {</span>
+<span class="fc" id="L118">        this.id = id;</span>
+<span class="fc" id="L119">        this.utcInception = utcInception;</span>
+<span class="fc" id="L120">        this.utcExpiration = utcExpiration;</span>
+<span class="fc" id="L121">        this.maxTickets = maxTickets;</span>
+<span class="fc" id="L122">        this.name = name;</span>
+<span class="fc" id="L123">        this.accessRestricted = accessRestricted;</span>
+<span class="fc" id="L124">        this.status = status;</span>
+<span class="fc" id="L125">        this.eventId = eventId;</span>
+<span class="fc" id="L126">        this.bounded = bounded;</span>
+<span class="fc" id="L127">        this.srcPriceCts = srcPriceCts;</span>
+<span class="fc" id="L128">        this.code = code;</span>
+<span class="fc" id="L129">        this.validCheckInFrom = validCheckInFrom;</span>
+<span class="fc" id="L130">        this.validCheckInTo = validCheckInTo;</span>
+<span class="fc" id="L131">        this.ticketValidityStart = ticketValidityStart;</span>
+<span class="fc" id="L132">        this.ticketValidityEnd = ticketValidityEnd;</span>
+<span class="fc" id="L133">        this.currencyCode = currencyCode;</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        this.ordinal = ordinal != null ? ordinal : 0;</span>
+<span class="fc" id="L135">        this.ticketCheckInStrategy = ticketCheckInStrategy;</span>
+<span class="fc" id="L136">        this.ticketAccessType = ticketAccessType;</span>
+<span class="fc" id="L137">    }</span>
 
     public BigDecimal getPrice() {
-<span class="nc" id="L140">        return MonetaryUtil.centsToUnit(srcPriceCts, currencyCode);</span>
+<span class="fc" id="L140">        return MonetaryUtil.centsToUnit(srcPriceCts, currencyCode);</span>
     }
     
     public boolean getFree() {
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        return srcPriceCts == 0;</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        return srcPriceCts == 0;</span>
     }
 
     public ZonedDateTime getInception(ZoneId zoneId) {
-<span class="nc" id="L148">        return utcInception.withZoneSameInstant(zoneId);</span>
+<span class="fc" id="L148">        return utcInception.withZoneSameInstant(zoneId);</span>
     }
 
     public ZonedDateTime getExpiration(ZoneId zoneId) {
-<span class="nc" id="L152">        return utcExpiration.withZoneSameInstant(zoneId);</span>
+<span class="fc" id="L152">        return utcExpiration.withZoneSameInstant(zoneId);</span>
     }
 
     public ZonedDateTime getValidCheckInFrom(ZoneId zoneId) {
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        return validCheckInFrom == null ? null : validCheckInFrom.withZoneSameInstant(zoneId);</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        return validCheckInFrom == null ? null : validCheckInFrom.withZoneSameInstant(zoneId);</span>
     }
 
     public ZonedDateTime getValidCheckInTo(ZoneId zoneId) {
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        return validCheckInTo == null ? null : validCheckInTo.withZoneSameInstant(zoneId);</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        return validCheckInTo == null ? null : validCheckInTo.withZoneSameInstant(zoneId);</span>
     }
 
     public ZonedDateTime getTicketValidityStart(ZoneId zoneId) {
-<span class="nc bnc" id="L164" title="All 2 branches missed.">        return ticketValidityStart == null ? null : ticketValidityStart.withZoneSameInstant(zoneId);</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        return ticketValidityStart == null ? null : ticketValidityStart.withZoneSameInstant(zoneId);</span>
     }
 
     public ZonedDateTime getTicketValidityEnd(ZoneId zoneId) {
-<span class="nc bnc" id="L168" title="All 2 branches missed.">        return ticketValidityEnd == null ? null : ticketValidityEnd.withZoneSameInstant(zoneId);</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        return ticketValidityEnd == null ? null : ticketValidityEnd.withZoneSameInstant(zoneId);</span>
     }
 
     public boolean hasValidCheckIn(ZonedDateTime now, ZoneId eventZoneId) {
         // check from boundary -&gt; from cannot be after now
         // check to boundary -&gt; to cannot be before now
-<span class="nc bnc" id="L174" title="All 8 branches missed.">        return (validCheckInFrom == null || !getValidCheckInFrom(eventZoneId).isAfter(now)) &amp;&amp; (validCheckInTo == null || !getValidCheckInTo(eventZoneId).isBefore(now));</span>
+<span class="pc bpc" id="L174" title="6 of 8 branches missed.">        return (validCheckInFrom == null || !getValidCheckInFrom(eventZoneId).isAfter(now)) &amp;&amp; (validCheckInTo == null || !getValidCheckInTo(eventZoneId).isBefore(now));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

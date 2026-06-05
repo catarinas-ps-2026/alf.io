@@ -41,7 +41,7 @@ public class Wrappers {
 
     public static &lt;T&gt; Optional&lt;T&gt; safeSupplier(Supplier&lt;T&gt; supplier) {
         try {
-<span class="nc" id="L44">            return Optional.ofNullable(supplier.get());</span>
+<span class="fc" id="L44">            return Optional.ofNullable(supplier.get());</span>
 <span class="nc" id="L45">        } catch (Exception e) {</span>
 <span class="nc" id="L46">            return Optional.empty();</span>
         }
@@ -50,8 +50,8 @@ public class Wrappers {
     public static &lt;T&gt; Optional&lt;T&gt; optionally(Supplier&lt;T&gt; s) {
         try {
 <span class="fc" id="L52">            return Optional.ofNullable(s.get());</span>
-<span class="nc" id="L53">        } catch (EmptyResultDataAccessException | IllegalArgumentException | IllegalStateException e) {</span>
-<span class="nc" id="L54">            return Optional.empty();</span>
+<span class="fc" id="L53">        } catch (EmptyResultDataAccessException | IllegalArgumentException | IllegalStateException e) {</span>
+<span class="fc" id="L54">            return Optional.empty();</span>
         }
     }
 }

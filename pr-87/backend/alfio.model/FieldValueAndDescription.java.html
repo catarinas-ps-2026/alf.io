@@ -34,10 +34,10 @@ public class FieldValueAndDescription {
                                     @Column(&quot;field_name&quot;) String name,
                                     @Column(&quot;field_value&quot;) String value,
                                     @Column(&quot;context&quot;) PurchaseContextFieldConfiguration.Context context,
-<span class="nc" id="L37">                                    @Column(&quot;description&quot;) String description) {</span>
-<span class="nc" id="L38">        purchaseContextFieldValue = new PurchaseContextFieldValue(ticketId, subscriptionId, additionalServiceItemId, fieldConfigurationId, name, value, context);</span>
-<span class="nc" id="L39">        this.description = description;</span>
-<span class="nc" id="L40">    }</span>
+<span class="fc" id="L37">                                    @Column(&quot;description&quot;) String description) {</span>
+<span class="fc" id="L38">        purchaseContextFieldValue = new PurchaseContextFieldValue(ticketId, subscriptionId, additionalServiceItemId, fieldConfigurationId, name, value, context);</span>
+<span class="fc" id="L39">        this.description = description;</span>
+<span class="fc" id="L40">    }</span>
 
     public String getDescription() {
 <span class="nc" id="L43">        return description;</span>

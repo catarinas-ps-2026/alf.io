@@ -27,7 +27,7 @@ public interface ErrorCode {
     String DUPLICATE = &quot;duplicate&quot;;
 
     default String getLocation() {
-<span class="nc" id="L30">        return &quot;&quot;;</span>
+<span class="fc" id="L30">        return &quot;&quot;;</span>
     }
 
     String getCode();
@@ -130,12 +130,12 @@ public interface ErrorCode {
 
             @Override
             public String toString() {
-<span class="nc" id="L133">                return description;</span>
+<span class="fc" id="L133">                return description;</span>
             }
 
             @Override
             public Object[] getArguments() {
-<span class="nc" id="L138">                return null;</span>
+<span class="fc" id="L138">                return null;</span>
             }
         };
     }
@@ -147,7 +147,7 @@ public interface ErrorCode {
 
             @Override
             public String getCode() {
-<span class="nc" id="L150">                return get().getCode();</span>
+<span class="fc" id="L150">                return get().getCode();</span>
             }
 
             @Override
@@ -161,8 +161,8 @@ public interface ErrorCode {
             }
 
             private synchronized ErrorCode get() {
-<span class="pc bpc" id="L164" title="1 of 2 branches missed.">                if(delegate != null) {</span>
-<span class="nc" id="L165">                    return delegate;</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">                if(delegate != null) {</span>
+<span class="fc" id="L165">                    return delegate;</span>
                 }
 <span class="fc" id="L167">                delegate = supplier.get();</span>
 <span class="fc" id="L168">                return delegate;</span>

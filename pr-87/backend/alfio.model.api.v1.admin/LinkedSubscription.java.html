@@ -26,17 +26,17 @@ public class LinkedSubscription {
     private final Map&lt;UUID, List&lt;Integer&gt;&gt; subscriptions;
 
     public LinkedSubscription(String eventSlug,
-<span class="nc" id="L29">                              Map&lt;UUID, List&lt;Integer&gt;&gt; subscriptions) {</span>
-<span class="nc" id="L30">        this.eventSlug = eventSlug;</span>
-<span class="nc" id="L31">        this.subscriptions = subscriptions;</span>
-<span class="nc" id="L32">    }</span>
+<span class="fc" id="L29">                              Map&lt;UUID, List&lt;Integer&gt;&gt; subscriptions) {</span>
+<span class="fc" id="L30">        this.eventSlug = eventSlug;</span>
+<span class="fc" id="L31">        this.subscriptions = subscriptions;</span>
+<span class="fc" id="L32">    }</span>
 
     public String getEventSlug() {
-<span class="nc" id="L35">        return eventSlug;</span>
+<span class="fc" id="L35">        return eventSlug;</span>
     }
 
     public Map&lt;UUID, List&lt;Integer&gt;&gt; getSubscriptions() {
-<span class="nc" id="L39">        return Objects.requireNonNullElse(subscriptions, Map.of());</span>
+<span class="fc" id="L39">        return Objects.requireNonNullElse(subscriptions, Map.of());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

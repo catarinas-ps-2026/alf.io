@@ -40,14 +40,14 @@ public class SubscriptionReservationCreationRequest implements ReservationAPICre
                                                   @JsonProperty(&quot;language&quot;) String language,
                                                   @JsonProperty(&quot;configuration&quot;) ReservationConfiguration reservationConfiguration,
                                                   @JsonProperty(&quot;subscriptionConfiguration&quot;) SubscriptionConfiguration subscriptionConfiguration,
-<span class="nc" id="L43">                                                  @JsonProperty(&quot;owner&quot;) Owner owner) {</span>
-<span class="nc" id="L44">        this.metadata = metadata;</span>
-<span class="nc" id="L45">        this.user = user;</span>
-<span class="nc" id="L46">        this.language = language;</span>
-<span class="nc" id="L47">        this.reservationConfiguration = reservationConfiguration;</span>
-<span class="nc" id="L48">        this.subscriptionConfiguration = requireNonNullElseGet(subscriptionConfiguration, SubscriptionConfiguration::defaultConfiguration);</span>
-<span class="nc" id="L49">        this.owner = requireNonNullElseGet(owner, Owner::empty);</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L43">                                                  @JsonProperty(&quot;owner&quot;) Owner owner) {</span>
+<span class="fc" id="L44">        this.metadata = metadata;</span>
+<span class="fc" id="L45">        this.user = user;</span>
+<span class="fc" id="L46">        this.language = language;</span>
+<span class="fc" id="L47">        this.reservationConfiguration = reservationConfiguration;</span>
+<span class="fc" id="L48">        this.subscriptionConfiguration = requireNonNullElseGet(subscriptionConfiguration, SubscriptionConfiguration::defaultConfiguration);</span>
+<span class="fc" id="L49">        this.owner = requireNonNullElseGet(owner, Owner::empty);</span>
+<span class="fc" id="L50">    }</span>
 
     public Map&lt;String, String&gt; getMetadata() {
 <span class="nc" id="L53">        return metadata;</span>
@@ -55,17 +55,17 @@ public class SubscriptionReservationCreationRequest implements ReservationAPICre
 
     @Override
     public ReservationUser getUser() {
-<span class="nc" id="L58">        return user;</span>
+<span class="fc" id="L58">        return user;</span>
     }
 
     @Override
     public String getLanguage() {
-<span class="nc" id="L63">        return language;</span>
+<span class="fc" id="L63">        return language;</span>
     }
 
     @Override
     public ReservationConfiguration getReservationConfiguration() {
-<span class="nc" id="L68">        return reservationConfiguration;</span>
+<span class="fc" id="L68">        return reservationConfiguration;</span>
     }
 
     public SubscriptionConfiguration getSubscriptionConfiguration() {
@@ -73,18 +73,18 @@ public class SubscriptionReservationCreationRequest implements ReservationAPICre
     }
 
     public SubscriptionMetadata getMetadataOrNull() {
-<span class="nc bnc" id="L76" title="All 4 branches missed.">        if (metadata != null &amp;&amp; !metadata.isEmpty()) {</span>
-<span class="nc" id="L77">            return new SubscriptionMetadata(metadata, subscriptionConfiguration);</span>
+<span class="pc bpc" id="L76" title="2 of 4 branches missed.">        if (metadata != null &amp;&amp; !metadata.isEmpty()) {</span>
+<span class="fc" id="L77">            return new SubscriptionMetadata(metadata, subscriptionConfiguration);</span>
         }
 <span class="nc" id="L79">        return null;</span>
     }
 
     public Owner getSubscriptionOwner() {
-<span class="nc" id="L83">        return owner;</span>
+<span class="fc" id="L83">        return owner;</span>
     }
 
     public boolean hasAdditionalInfo() {
-<span class="nc" id="L87">        return getSubscriptionOwner().hasAdditionalInfo();</span>
+<span class="fc" id="L87">        return getSubscriptionOwner().hasAdditionalInfo();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

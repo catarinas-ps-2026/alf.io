@@ -58,36 +58,36 @@ public class TicketCategory {
                           Map&lt;String, String&gt; formattedInception,
                           Map&lt;String, String&gt; formattedExpiration,
                           boolean displayTicketsLeft,
-<span class="nc" id="L61">                          boolean displayTaxInformation) {</span>
+<span class="fc" id="L61">                          boolean displayTaxInformation) {</span>
 
-<span class="nc" id="L63">        this.description = description;</span>
-<span class="nc" id="L64">        this.id = saleableTicketCategory.getId();</span>
-<span class="nc" id="L65">        this.name = saleableTicketCategory.getName();</span>
-<span class="nc" id="L66">        this.ticketAccessType = saleableTicketCategory.getTicketAccessType();</span>
-<span class="nc" id="L67">        this.bounded = saleableTicketCategory.isBounded();</span>
-<span class="nc" id="L68">        this.maximumSaleableTickets = max(0, min(saleableTicketCategory.getMaxTicketsAfterConfiguration(), saleableTicketCategory.getAvailableTickets()));</span>
-<span class="nc" id="L69">        this.free = saleableTicketCategory.getFree();</span>
-<span class="nc" id="L70">        this.formattedFinalPrice = saleableTicketCategory.getFormattedFinalPrice();</span>
-<span class="nc" id="L71">        this.hasDiscount = saleableTicketCategory.getSupportsDiscount();</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        this.formattedDiscountedPrice = hasDiscount ? saleableTicketCategory.getDiscountedPrice() : &quot;&quot;;</span>
-
-        //
-<span class="nc" id="L75">        this.expired = saleableTicketCategory.getExpired();</span>
-<span class="nc" id="L76">        this.saleInFuture = saleableTicketCategory.getSaleInFuture();</span>
-<span class="nc" id="L77">        this.containsPendingTickets = saleableTicketCategory.hasPendingTickets();</span>
-<span class="nc" id="L78">        this.formattedInception = formattedInception;</span>
-<span class="nc" id="L79">        this.formattedExpiration = formattedExpiration;</span>
-        //
+<span class="fc" id="L63">        this.description = description;</span>
+<span class="fc" id="L64">        this.id = saleableTicketCategory.getId();</span>
+<span class="fc" id="L65">        this.name = saleableTicketCategory.getName();</span>
+<span class="fc" id="L66">        this.ticketAccessType = saleableTicketCategory.getTicketAccessType();</span>
+<span class="fc" id="L67">        this.bounded = saleableTicketCategory.isBounded();</span>
+<span class="fc" id="L68">        this.maximumSaleableTickets = max(0, min(saleableTicketCategory.getMaxTicketsAfterConfiguration(), saleableTicketCategory.getAvailableTickets()));</span>
+<span class="fc" id="L69">        this.free = saleableTicketCategory.getFree();</span>
+<span class="fc" id="L70">        this.formattedFinalPrice = saleableTicketCategory.getFormattedFinalPrice();</span>
+<span class="fc" id="L71">        this.hasDiscount = saleableTicketCategory.getSupportsDiscount();</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        this.formattedDiscountedPrice = hasDiscount ? saleableTicketCategory.getDiscountedPrice() : &quot;&quot;;</span>
 
         //
-<span class="nc" id="L83">        this.saleableAndLimitNotReached = saleableTicketCategory.getSaleableAndLimitNotReached();</span>
-<span class="nc" id="L84">        this.accessRestricted = saleableTicketCategory.getAccessRestricted();</span>
-<span class="nc" id="L85">        this.soldOutOrLimitReached = saleableTicketCategory.getSouldOutOrLimitReached();</span>
+<span class="fc" id="L75">        this.expired = saleableTicketCategory.getExpired();</span>
+<span class="fc" id="L76">        this.saleInFuture = saleableTicketCategory.getSaleInFuture();</span>
+<span class="fc" id="L77">        this.containsPendingTickets = saleableTicketCategory.hasPendingTickets();</span>
+<span class="fc" id="L78">        this.formattedInception = formattedInception;</span>
+<span class="fc" id="L79">        this.formattedExpiration = formattedExpiration;</span>
         //
-<span class="nc bnc" id="L87" title="All 4 branches missed.">        this.availableTickets = displayTicketsLeft &amp;&amp; saleableTicketCategory.isBounded() ? saleableTicketCategory.getAvailableTickets() : null;</span>
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        this.ordinal = saleableTicketCategory.isAccessRestricted() ? -1 : saleableTicketCategory.getOrdinal();</span>
 
-<span class="nc" id="L90">        this.displayTaxInformation = displayTaxInformation;</span>
-<span class="nc" id="L91">    }</span>
+        //
+<span class="fc" id="L83">        this.saleableAndLimitNotReached = saleableTicketCategory.getSaleableAndLimitNotReached();</span>
+<span class="fc" id="L84">        this.accessRestricted = saleableTicketCategory.getAccessRestricted();</span>
+<span class="fc" id="L85">        this.soldOutOrLimitReached = saleableTicketCategory.getSouldOutOrLimitReached();</span>
+        //
+<span class="pc bpc" id="L87" title="3 of 4 branches missed.">        this.availableTickets = displayTicketsLeft &amp;&amp; saleableTicketCategory.isBounded() ? saleableTicketCategory.getAvailableTickets() : null;</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        this.ordinal = saleableTicketCategory.isAccessRestricted() ? -1 : saleableTicketCategory.getOrdinal();</span>
+
+<span class="fc" id="L90">        this.displayTaxInformation = displayTaxInformation;</span>
+<span class="fc" id="L91">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

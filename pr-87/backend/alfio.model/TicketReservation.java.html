@@ -161,7 +161,7 @@ public class TicketReservation implements PriceContainer {
 <span class="fc" id="L161">    }</span>
 
     public boolean isStuck() {
-<span class="nc bnc" id="L164" title="All 2 branches missed.">        return status == TicketReservationStatus.STUCK;</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        return status == TicketReservationStatus.STUCK;</span>
     }
 
     public boolean isReminderSent() {
@@ -169,7 +169,7 @@ public class TicketReservation implements PriceContainer {
     }
 
     public boolean getHasBillingAddress() {
-<span class="nc" id="L172">        return StringUtils.isNotBlank(billingAddress);</span>
+<span class="fc" id="L172">        return StringUtils.isNotBlank(billingAddress);</span>
     }
 
     public Optional&lt;ZonedDateTime&gt; latestNotificationTimestamp(ZoneId zoneId) {
@@ -177,56 +177,56 @@ public class TicketReservation implements PriceContainer {
     }
 
     public String getFullName() {
-<span class="pc bpc" id="L180" title="3 of 4 branches missed.">        return (firstName != null &amp;&amp; lastName != null) ? (firstName + &quot; &quot; + lastName) : fullName;</span>
+<span class="pc bpc" id="L180" title="1 of 4 branches missed.">        return (firstName != null &amp;&amp; lastName != null) ? (firstName + &quot; &quot; + lastName) : fullName;</span>
     }
 
     public boolean getHasInvoiceNumber() {
-<span class="nc bnc" id="L184" title="All 2 branches missed.">        return invoiceNumber != null;</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        return invoiceNumber != null;</span>
     }
 
     public boolean getHasInvoiceOrReceiptDocument() {
-<span class="nc bnc" id="L188" title="All 2 branches missed.">        return invoiceModel != null;</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">        return invoiceModel != null;</span>
     }
 
     public boolean getHasBeenPaid() {
-<span class="nc bnc" id="L192" title="All 4 branches missed.">        return status == TicketReservationStatus.COMPLETE &amp;&amp; !EnumSet.of(PaymentProxy.NONE, PaymentProxy.ADMIN).contains(paymentMethod);</span>
+<span class="fc bfc" id="L192" title="All 4 branches covered.">        return status == TicketReservationStatus.COMPLETE &amp;&amp; !EnumSet.of(PaymentProxy.NONE, PaymentProxy.ADMIN).contains(paymentMethod);</span>
     }
 
     public boolean getHasVatNumber() {
-<span class="nc" id="L196">        return StringUtils.isNotEmpty(vatNr);</span>
+<span class="fc" id="L196">        return StringUtils.isNotEmpty(vatNr);</span>
     }
 
     public List&lt;String&gt; getLineSplittedBillingAddress() {
-<span class="nc bnc" id="L200" title="All 2 branches missed.">        if(billingAddress == null) {</span>
-<span class="nc" id="L201">            return Collections.emptyList();</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">        if(billingAddress == null) {</span>
+<span class="fc" id="L201">            return Collections.emptyList();</span>
         }
-<span class="nc" id="L203">        return Arrays.asList(StringUtils.split(billingAddress, '\n'));</span>
+<span class="fc" id="L203">        return Arrays.asList(StringUtils.split(billingAddress, '\n'));</span>
     }
 
     public boolean isCancelled() {
-<span class="nc bnc" id="L207" title="All 2 branches missed.">        return status == TicketReservationStatus.CANCELLED;</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">        return status == TicketReservationStatus.CANCELLED;</span>
     }
 
     public String getPaidAmount() {
-<span class="nc bnc" id="L211" title="All 2 branches missed.">        if(finalPriceCts &gt; 0) {</span>
-<span class="nc" id="L212">            return MonetaryUtil.formatCents(finalPriceCts, currencyCode);</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        if(finalPriceCts &gt; 0) {</span>
+<span class="fc" id="L212">            return MonetaryUtil.formatCents(finalPriceCts, currencyCode);</span>
         }
-<span class="nc" id="L214">        return null;</span>
+<span class="fc" id="L214">        return null;</span>
     }
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="nc" id="L219">        return Optional.ofNullable(usedVatPercent);</span>
+<span class="fc" id="L219">        return Optional.ofNullable(usedVatPercent);</span>
     }
 
     public boolean isPendingOfflinePayment() {
-<span class="pc bpc" id="L223" title="5 of 6 branches missed.">        return status == TicketReservationStatus.OFFLINE_PAYMENT</span>
+<span class="fc bfc" id="L223" title="All 6 branches covered.">        return status == TicketReservationStatus.OFFLINE_PAYMENT</span>
             || status == TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT
             || status == TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
     }
 
     public TicketReservation withVatStatus(VatStatus vatStatus) {
-<span class="nc" id="L229">        return new TicketReservation(id,</span>
+<span class="fc" id="L229">        return new TicketReservation(id,</span>
             validity,
             status,
             fullName,
@@ -253,10 +253,10 @@ public class TicketReservation implements PriceContainer {
             creationTimestamp,
             customerReference,
             registrationTimestamp,
-<span class="nc" id="L256">            srcPriceCts,</span>
-<span class="nc" id="L257">            finalPriceCts,</span>
-<span class="nc" id="L258">            vatCts,</span>
-<span class="nc" id="L259">            discountCts,</span>
+<span class="fc" id="L256">            srcPriceCts,</span>
+<span class="fc" id="L257">            finalPriceCts,</span>
+<span class="fc" id="L258">            vatCts,</span>
+<span class="fc" id="L259">            discountCts,</span>
             currencyCode);
     }
 }

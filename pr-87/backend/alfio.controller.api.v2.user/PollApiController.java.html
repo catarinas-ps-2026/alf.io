@@ -33,24 +33,24 @@ public class PollApiController {
 
     private final PollManager pollManager;
 
-<span class="nc" id="L36">    public PollApiController(PollManager pollManager) {</span>
-<span class="nc" id="L37">        this.pollManager = pollManager;</span>
-<span class="nc" id="L38">    }</span>
+<span class="fc" id="L36">    public PollApiController(PollManager pollManager) {</span>
+<span class="fc" id="L37">        this.pollManager = pollManager;</span>
+<span class="fc" id="L38">    }</span>
 
     @GetMapping(&quot;&quot;)
     ResponseEntity&lt;ValidatedResponse&lt;List&lt;Poll&gt;&gt;&gt; getAll(@PathVariable String eventName, @RequestParam(&quot;pin&quot;) String pin) {
-<span class="nc" id="L42">        var result = pollManager.getActiveForEvent(eventName, pin);</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if(result.isSuccess()) {</span>
-<span class="nc" id="L44">            return ResponseEntity.ok(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
+<span class="fc" id="L42">        var result = pollManager.getActiveForEvent(eventName, pin);</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if(result.isSuccess()) {</span>
+<span class="fc" id="L44">            return ResponseEntity.ok(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
         }
-<span class="nc" id="L46">        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
+<span class="fc" id="L46">        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
     }
 
     @GetMapping(&quot;/{pollId}&quot;)
     ResponseEntity&lt;ValidatedResponse&lt;PollWithOptions&gt;&gt; getSingle(@PathVariable String eventName, @PathVariable Long pollId, @RequestParam(&quot;pin&quot;) String pin) {
-<span class="nc" id="L51">        var result = pollManager.getSingleActiveForEvent(eventName, pollId, pin);</span>
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        if(result.isSuccess()) {</span>
-<span class="nc" id="L53">            return ResponseEntity.ok(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
+<span class="fc" id="L51">        var result = pollManager.getSingleActiveForEvent(eventName, pollId, pin);</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if(result.isSuccess()) {</span>
+<span class="fc" id="L53">            return ResponseEntity.ok(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
         }
 <span class="nc" id="L55">        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
     }
@@ -60,11 +60,11 @@ public class PollApiController {
                                      @PathVariable Long pollId,
                                      @RequestBody PollVoteForm form) {
 
-<span class="nc" id="L63">        var result = pollManager.registerAnswer(eventName, pollId, form.getOptionId(), form.getPin());</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        if(result.isSuccess()) {</span>
-<span class="nc" id="L65">            return ResponseEntity.ok(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
+<span class="fc" id="L63">        var result = pollManager.registerAnswer(eventName, pollId, form.getOptionId(), form.getPin());</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if(result.isSuccess()) {</span>
+<span class="fc" id="L65">            return ResponseEntity.ok(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
         }
-<span class="nc" id="L67">        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
+<span class="fc" id="L67">        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, &quot;pin&quot;));</span>
     }
 
 }

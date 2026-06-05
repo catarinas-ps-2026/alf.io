@@ -32,11 +32,11 @@ public sealed interface ChallengeConfiguration permits EmptyChallengeConfigurati
     String providerId();
 
     static ChallengeConfiguration build(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; configuration) {
-<span class="nc bnc" id="L35" title="All 2 branches missed.">        if (configuration.get(ConfigurationKeys.CF_TURNSTILE_ENABLED).getValueAsBooleanOrDefault()) {</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (configuration.get(ConfigurationKeys.CF_TURNSTILE_ENABLED).getValueAsBooleanOrDefault()) {</span>
 <span class="nc" id="L36">            var siteKey = configuration.get(ConfigurationKeys.CF_TURNSTILE_SITE_KEY).getRequiredValue();</span>
 <span class="nc" id="L37">            return new TurnstileChallengeConfiguration(siteKey, true);</span>
         }
-<span class="nc" id="L39">        return new EmptyChallengeConfiguration();</span>
+<span class="fc" id="L39">        return new EmptyChallengeConfiguration();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

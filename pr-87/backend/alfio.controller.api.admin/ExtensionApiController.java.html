@@ -55,17 +55,17 @@ import java.util.stream.Collectors;
 @RequestMapping(&quot;/admin/api/extensions&quot;)
 public class ExtensionApiController {
 
-<span class="nc" id="L58">    private static final Logger log = LoggerFactory.getLogger(ExtensionApiController.class);</span>
+<span class="fc" id="L58">    private static final Logger log = LoggerFactory.getLogger(ExtensionApiController.class);</span>
     private static final String SAMPLE_JS;
 
 
     static {
-<span class="nc" id="L63">        try (InputStream is = new ClassPathResource(&quot;/alfio/extension/sample.js&quot;).getInputStream()){</span>
-<span class="nc" id="L64">            SAMPLE_JS = StreamUtils.copyToString(is, StandardCharsets.UTF_8);</span>
+<span class="fc" id="L63">        try (InputStream is = new ClassPathResource(&quot;/alfio/extension/sample.js&quot;).getInputStream()){</span>
+<span class="fc" id="L64">            SAMPLE_JS = StreamUtils.copyToString(is, StandardCharsets.UTF_8);</span>
 <span class="nc" id="L65">        } catch (IOException e) {</span>
 <span class="nc" id="L66">            throw new IllegalStateException(&quot;cannot read sample file&quot;, e);</span>
-<span class="nc" id="L67">        }</span>
-<span class="nc" id="L68">    }</span>
+<span class="fc" id="L67">        }</span>
+<span class="fc" id="L68">    }</span>
 
     private final ExtensionService extensionService;
     private final UserManager userManager;

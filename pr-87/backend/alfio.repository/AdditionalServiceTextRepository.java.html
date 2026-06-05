@@ -50,15 +50,15 @@ public interface AdditionalServiceTextRepository {
 
 
     default Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; getDescriptionsByAdditionalServiceIds(Collection&lt;Integer&gt; additionalServiceIds) {
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (additionalServiceIds.isEmpty()) {</span>
-<span class="nc" id="L54">            return Collections.emptyMap();</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (additionalServiceIds.isEmpty()) {</span>
+<span class="fc" id="L54">            return Collections.emptyMap();</span>
         }
 
 <span class="fc" id="L57">        Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; res = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L58">        findAllByAdditionalServiceIds(additionalServiceIds).forEach(t -&gt; {</span>
 <span class="fc" id="L59">            var id = t.getAdditionalServiceId();</span>
 
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">            if (!res.containsKey(id)) {</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            if (!res.containsKey(id)) {</span>
 <span class="fc" id="L62">                res.put(id, new EnumMap&lt;&gt;(AdditionalServiceText.TextType.class));</span>
             }
 

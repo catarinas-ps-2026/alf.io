@@ -27,8 +27,8 @@ import java.util.Map;
 @Getter
 public class AdminJobSchedule {
 
-<span class="nc" id="L30">    public enum Status {</span>
-<span class="nc" id="L31">        SCHEDULED, RUNNING, EXECUTED, FAILED</span>
+<span class="fc" id="L30">    public enum Status {</span>
+<span class="fc" id="L31">        SCHEDULED, RUNNING, EXECUTED, FAILED</span>
     }
 
     private final long id;
@@ -45,14 +45,14 @@ public class AdminJobSchedule {
                             @Column(&quot;status&quot;) Status status,
                             @Column(&quot;execution_ts&quot;) ZonedDateTime executionTimestamp,
                             @Column(&quot;metadata&quot;) @JSONData Map&lt;String, Object&gt; metadata,
-<span class="nc" id="L48">                            @Column(&quot;attempts&quot;) int attempts) {</span>
-<span class="nc" id="L49">        this.id = id;</span>
-<span class="nc" id="L50">        this.jobName = JobName.safeValueOf(jobName);</span>
-<span class="nc" id="L51">        this.requestTimestamp = requestTimestamp;</span>
-<span class="nc" id="L52">        this.status = status;</span>
-<span class="nc" id="L53">        this.executionTimestamp = executionTimestamp;</span>
-<span class="nc" id="L54">        this.metadata = metadata;</span>
-<span class="nc" id="L55">        this.attempts = attempts;</span>
-<span class="nc" id="L56">    }</span>
+<span class="fc" id="L48">                            @Column(&quot;attempts&quot;) int attempts) {</span>
+<span class="fc" id="L49">        this.id = id;</span>
+<span class="fc" id="L50">        this.jobName = JobName.safeValueOf(jobName);</span>
+<span class="fc" id="L51">        this.requestTimestamp = requestTimestamp;</span>
+<span class="fc" id="L52">        this.status = status;</span>
+<span class="fc" id="L53">        this.executionTimestamp = executionTimestamp;</span>
+<span class="fc" id="L54">        this.metadata = metadata;</span>
+<span class="fc" id="L55">        this.attempts = attempts;</span>
+<span class="fc" id="L56">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

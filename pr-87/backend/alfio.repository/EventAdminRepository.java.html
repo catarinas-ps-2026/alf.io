@@ -38,7 +38,7 @@ public interface EventAdminRepository {
     default boolean existsBySlug(String slug) {
 <span class="fc" id="L39">        var jdbcTemplate = getJdbcTemplate();</span>
 <span class="fc" id="L40">        boolean rlsEnabled = Boolean.TRUE.equals(jdbcTemplate.queryForObject(&quot;select coalesce(current_setting('alfio.checkRowAccess', true), 'false') = 'true'&quot;, EmptySqlParameterSource.INSTANCE, Boolean.class));</span>
-<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (rlsEnabled) {</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (rlsEnabled) {</span>
 <span class="fc" id="L42">            jdbcTemplate.queryForObject(&quot;select set_config('alfio.checkRowAccess', 'false', true)&quot;, EmptySqlParameterSource.INSTANCE, Boolean.class);</span>
         }
 <span class="fc" id="L44">        boolean exists = Boolean.TRUE.equals(jdbcTemplate.queryForObject(</span>
@@ -46,7 +46,7 @@ public interface EventAdminRepository {
 <span class="fc" id="L46">            Map.of(&quot;slug&quot;, slug),</span>
             Boolean.class));
 
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if (rlsEnabled) {</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (rlsEnabled) {</span>
 <span class="fc" id="L50">            jdbcTemplate.queryForObject(&quot;select set_config('alfio.checkRowAccess', 'true', true)&quot;, EmptySqlParameterSource.INSTANCE, Boolean.class);</span>
         }
 <span class="fc" id="L52">        return exists;</span>

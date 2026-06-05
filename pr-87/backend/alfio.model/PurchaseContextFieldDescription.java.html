@@ -47,23 +47,23 @@ public class PurchaseContextFieldDescription {
 
     @JsonIgnore
     public String getLabelDescription() {
-<span class="nc" id="L50">        return description.get(&quot;label&quot;).toString();</span>
+<span class="fc" id="L50">        return description.get(&quot;label&quot;).toString();</span>
     }
 
     @JsonIgnore
     public boolean isPlaceholderDescriptionDefined() {
-<span class="nc" id="L55">        return description.containsKey(&quot;placeholder&quot;);</span>
+<span class="fc" id="L55">        return description.containsKey(&quot;placeholder&quot;);</span>
     }
 
     @JsonIgnore
     public String getPlaceholderDescription() {
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        return isPlaceholderDescriptionDefined() ? description.get(&quot;placeholder&quot;).toString() : null;</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        return isPlaceholderDescriptionDefined() ? description.get(&quot;placeholder&quot;).toString() : null;</span>
     }
 
     @JsonIgnore
     @SuppressWarnings(&quot;unchecked&quot;)
     public Map&lt;String, String&gt; getRestrictedValuesDescription() {
-<span class="nc" id="L66">        return (Map&lt;String, String&gt;) description.getOrDefault(&quot;restrictedValues&quot;, Collections.emptyMap());</span>
+<span class="fc" id="L66">        return (Map&lt;String, String&gt;) description.getOrDefault(&quot;restrictedValues&quot;, Collections.emptyMap());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

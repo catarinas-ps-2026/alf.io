@@ -104,20 +104,20 @@ public class WaitingQueueSubscriptionProcessor {
 <span class="fc" id="L104">        int eventId = event.getId();</span>
 <span class="fc" id="L105">        List&lt;TicketInfo&gt; releasedButExpired = ticketRepository.findReleasedBelongingToExpiredCategories(eventId, event.now(clockProvider));</span>
 <span class="fc" id="L106">        Map&lt;Pair&lt;Integer, Boolean&gt;, List&lt;Integer&gt;&gt; releasedByCategory = releasedButExpired.stream().collect(Collectors.groupingBy(</span>
-<span class="nc" id="L107">            t-&gt; Pair.of(t.getTicketCategoryId(), t.isTicketCategoryBounded()),</span>
+<span class="fc" id="L107">            t-&gt; Pair.of(t.getTicketCategoryId(), t.isTicketCategoryBounded()),</span>
 <span class="fc" id="L108">            Collectors.mapping(TicketInfo::getTicketId, toList())</span>
         ));
 <span class="fc" id="L110">        releasedByCategory.forEach((ticketCategory, ticketIds) -&gt; {</span>
-<span class="nc" id="L111">            int ticketCategoryId = ticketCategory.getKey();</span>
-<span class="nc" id="L112">            boolean isTicketCategoryBounded = ticketCategory.getRight();</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">            if(!ticketIds.isEmpty()) {</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (isTicketCategoryBounded) {</span>
-<span class="nc" id="L115">                    ticketRepository.revertToFree(eventId, ticketCategoryId, ticketIds);</span>
+<span class="fc" id="L111">            int ticketCategoryId = ticketCategory.getKey();</span>
+<span class="fc" id="L112">            boolean isTicketCategoryBounded = ticketCategory.getRight();</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">            if(!ticketIds.isEmpty()) {</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">                if (isTicketCategoryBounded) {</span>
+<span class="fc" id="L115">                    ticketRepository.revertToFree(eventId, ticketCategoryId, ticketIds);</span>
                 } else {
 <span class="nc" id="L117">                    ticketRepository.unbindTicketsFromCategory(eventId, ticketCategoryId, ticketIds);</span>
                 }
             }
-<span class="nc" id="L120">        });</span>
+<span class="fc" id="L120">        });</span>
 <span class="fc" id="L121">    }</span>
 
     private boolean isWaitingListFormEnabled(EventAndOrganizationId event) {
@@ -140,7 +140,7 @@ public class WaitingQueueSubscriptionProcessor {
                     reservationId,
 <span class="fc" id="L141">                    subscription.getEmailAddress(),</span>
                     subject,
-<span class="nc" id="L143">                    () -&gt; templateManager.renderTemplate(event, TemplateResource.WAITING_QUEUE_RESERVATION_EMAIL, model, locale));</span>
+<span class="fc" id="L143">                    () -&gt; templateManager.renderTemplate(event, TemplateResource.WAITING_QUEUE_RESERVATION_EMAIL, model, locale));</span>
 <span class="fc" id="L144">            waitingQueueRepository.flagAsPending(reservationId, subscription.getId());</span>
 <span class="fc" id="L145">        });</span>
 <span class="fc" id="L146">    }</span>

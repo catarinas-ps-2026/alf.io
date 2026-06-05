@@ -40,9 +40,9 @@ public class PublicUserProfile {
                              @Column(&quot;vat_country&quot;) String country,
                              @Column(&quot;vat_nr&quot;) String taxId,
                              @Column(&quot;invoicing_additional_information&quot;) @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo,
-<span class="nc" id="L43">                             @Column(&quot;additional_fields&quot;) String additionalData) {</span>
-<span class="nc" id="L44">        this.billingDetails = new BillingDetails(companyName, addressLine1, addressLine2, zip, city, state, country, taxId, invoicingAdditionalInfo);</span>
-<span class="nc" id="L45">        this.additionalData = Json.fromJson(additionalData, new TypeReference&lt;&gt;() { });</span>
-<span class="nc" id="L46">    }</span>
+<span class="fc" id="L43">                             @Column(&quot;additional_fields&quot;) String additionalData) {</span>
+<span class="fc" id="L44">        this.billingDetails = new BillingDetails(companyName, addressLine1, addressLine2, zip, city, state, country, taxId, invoicingAdditionalInfo);</span>
+<span class="fc" id="L45">        this.additionalData = Json.fromJson(additionalData, new TypeReference&lt;&gt;() { });</span>
+<span class="fc" id="L46">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

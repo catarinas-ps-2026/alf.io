@@ -30,17 +30,17 @@ public class LinkSubscriptionsToEventRequest {
 
     @JsonCreator
     public LinkSubscriptionsToEventRequest(@JsonProperty(&quot;descriptorId&quot;) UUID descriptorId,
-<span class="nc" id="L33">                                           @JsonProperty(&quot;categories&quot;) List&lt;Integer&gt; categories) {</span>
-<span class="nc" id="L34">        this.descriptorId = descriptorId;</span>
-<span class="nc" id="L35">        this.categories = categories;</span>
-<span class="nc" id="L36">    }</span>
+<span class="fc" id="L33">                                           @JsonProperty(&quot;categories&quot;) List&lt;Integer&gt; categories) {</span>
+<span class="fc" id="L34">        this.descriptorId = descriptorId;</span>
+<span class="fc" id="L35">        this.categories = categories;</span>
+<span class="fc" id="L36">    }</span>
 
     public UUID getDescriptorId() {
-<span class="nc" id="L39">        return descriptorId;</span>
+<span class="fc" id="L39">        return descriptorId;</span>
     }
 
     public List&lt;Integer&gt; getCategories() {
-<span class="nc" id="L43">        return Objects.requireNonNullElse(categories, List.of());</span>
+<span class="fc" id="L43">        return Objects.requireNonNullElse(categories, List.of());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

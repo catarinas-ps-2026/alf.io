@@ -126,21 +126,21 @@ public class FullTicketInfo implements TicketInfoContainer {
                           @Column(&quot;tc_ordinal&quot;) int ordinal,
                           @Column(&quot;tc_ticket_checkin_strategy&quot;) TicketCategory.TicketCheckInStrategy ticketCheckInStrategy,
                           @Column(&quot;tc_ticket_access_type&quot;) TicketCategory.TicketAccessType ticketAccessType
-<span class="nc" id="L129">                          ) {</span>
+<span class="fc" id="L129">                          ) {</span>
 
-<span class="nc" id="L131">        this.ticket = new Ticket(id, uuid, publicUuid, creation, categoryId, status, eventId, ticketsReservationId, fullName,</span>
+<span class="fc" id="L131">        this.ticket = new Ticket(id, uuid, publicUuid, creation, categoryId, status, eventId, ticketsReservationId, fullName,</span>
             firstName, lastName, email, lockedAssignment, userLanguage, ticketSrcPriceCts, ticketFinalPriceCts,
             ticketVatCts, ticketDiscountCts, extReference, currencyCode, ticketTags, ticketSubscriptionId, ticketVatStatus);
-<span class="nc" id="L134">        this.ticketReservation = new TicketReservation(trId, trValidity, trStatus, trFullName, trFirstName, trLastName, trEmail, trBillingAddress,</span>
+<span class="fc" id="L134">        this.ticketReservation = new TicketReservation(trId, trValidity, trStatus, trFullName, trFirstName, trLastName, trEmail, trBillingAddress,</span>
                 trConfirmationTimestamp, trLatestReminder, trPaymentMethod, trReminderSent, trPromoCodeDiscountId, trAutomatic, resUserLanguage,
             directAssignment, invoiceNumber, invoiceModel, reservationVatStatus, vatNr, vatCountry, invoiceRequested, usedVatPercent, vatIncluded, reservationCreationTimestamp, customerReference,
-<span class="nc" id="L137">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
-<span class="nc" id="L138">        this.ticketCategory = new TicketCategory(tcId, tcUtcInception, tcUtcExpiration, tcMaxTickets, tcName,</span>
+<span class="fc" id="L137">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
+<span class="fc" id="L138">        this.ticketCategory = new TicketCategory(tcId, tcUtcInception, tcUtcExpiration, tcMaxTickets, tcName,</span>
                 tcAccessRestricted, tcStatus, tcEventId, bounded, tcSrcPriceCts, code, validCheckInFrom, validCheckInTo,
-<span class="nc" id="L140">                ticketValidityStart, ticketValidityEnd, currencyCode, ordinal, ticketCheckInStrategy, ticketAccessType);</span>
+<span class="fc" id="L140">                ticketValidityStart, ticketValidityEnd, currencyCode, ordinal, ticketCheckInStrategy, ticketAccessType);</span>
 
-<span class="nc" id="L142">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountry, vatNr, invoicingAdditionalInfo);</span>
+<span class="fc" id="L142">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountry, vatNr, invoicingAdditionalInfo);</span>
 
-<span class="nc" id="L144">    }</span>
+<span class="fc" id="L144">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

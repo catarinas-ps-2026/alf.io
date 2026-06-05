@@ -29,10 +29,10 @@ public class PublicOpenIdRequestResolver implements OAuth2AuthorizationRequestRe
     private final AntPathRequestMatcher authorizationRequestMatcher;
     private final DefaultOAuth2AuthorizationRequestResolver delegate;
 
-<span class="nc" id="L32">    public PublicOpenIdRequestResolver(UserProvidedClientRegistrationRepository repository) {</span>
-<span class="nc" id="L33">        this.authorizationRequestMatcher = new AntPathRequestMatcher(OPENID_AUTHENTICATION_PATH);</span>
-<span class="nc" id="L34">        delegate = new DefaultOAuth2AuthorizationRequestResolver(repository, OPENID_AUTHENTICATION_PATH);</span>
-<span class="nc" id="L35">    }</span>
+<span class="fc" id="L32">    public PublicOpenIdRequestResolver(UserProvidedClientRegistrationRepository repository) {</span>
+<span class="fc" id="L33">        this.authorizationRequestMatcher = new AntPathRequestMatcher(OPENID_AUTHENTICATION_PATH);</span>
+<span class="fc" id="L34">        delegate = new DefaultOAuth2AuthorizationRequestResolver(repository, OPENID_AUTHENTICATION_PATH);</span>
+<span class="fc" id="L35">    }</span>
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {

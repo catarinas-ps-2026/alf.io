@@ -74,13 +74,13 @@ public class SubscriptionDescriptorWithStatistics {
         @Column(&quot;s_pending_count&quot;) int pendingCount,
         @Column(&quot;s_sold_count&quot;) int soldCount,
         @Column(&quot;s_reservations_count&quot;) int reservationsCount,
-<span class="nc" id="L77">        @Column(&quot;s_events_count&quot;) int linkedEventsCount) {</span>
+<span class="fc" id="L77">        @Column(&quot;s_events_count&quot;) int linkedEventsCount) {</span>
 
-<span class="nc" id="L79">        this.pendingCount = pendingCount;</span>
-<span class="nc" id="L80">        this.soldCount = soldCount;</span>
-<span class="nc" id="L81">        this.linkedEventsCount = linkedEventsCount;</span>
-<span class="nc" id="L82">        this.reservationsCount = reservationsCount;</span>
-<span class="nc" id="L83">        this.descriptor = new SubscriptionDescriptor(id,</span>
+<span class="fc" id="L79">        this.pendingCount = pendingCount;</span>
+<span class="fc" id="L80">        this.soldCount = soldCount;</span>
+<span class="fc" id="L81">        this.linkedEventsCount = linkedEventsCount;</span>
+<span class="fc" id="L82">        this.reservationsCount = reservationsCount;</span>
+<span class="fc" id="L83">        this.descriptor = new SubscriptionDescriptor(id,</span>
             title,
             description,
             maxAvailable,
@@ -107,7 +107,7 @@ public class SubscriptionDescriptorWithStatistics {
             privateKey,
             timeZone,
             supportsTicketsGeneration);
-<span class="nc" id="L110">    }</span>
+<span class="fc" id="L110">    }</span>
 
     public BigDecimal getUnitPrice() {
 <span class="nc" id="L113">        return MonetaryUtil.centsToUnit(descriptor.getPrice(), descriptor.getCurrency());</span>

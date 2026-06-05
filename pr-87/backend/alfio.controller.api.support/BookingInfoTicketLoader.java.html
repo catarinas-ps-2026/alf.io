@@ -91,19 +91,19 @@ public class BookingInfoTicketLoader {
                                                  boolean onlineEventStarted,
                                                  Set&lt;PurchaseContextFieldConfiguration.Context&gt; contexts) {
         // TODO: n+1, should be cleaned up! see TicketDecorator.getCancellationEnabled
-<span class="nc" id="L94">        var configuration = configurationManager.getFor(EnumSet.of(ALLOW_FREE_TICKETS_CANCELLATION, SEND_TICKETS_AUTOMATICALLY, ALLOW_TICKET_DOWNLOAD), ConfigurationLevel.ticketCategory(event, t.getCategoryId()));</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        boolean cancellationEnabled = t.getFinalPriceCts() == 0 &amp;&amp;</span>
-<span class="nc bnc" id="L96" title="All 4 branches missed.">            !event.expired() &amp;&amp;</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">            (!hasPaidSupplement &amp;&amp; configuration.get(ALLOW_FREE_TICKETS_CANCELLATION).getValueAsBooleanOrDefault()) &amp;&amp; // freeCancellationEnabled</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">            eventManager.checkTicketCancellationPrerequisites().apply(t); // cancellationPrerequisitesMet</span>
+<span class="fc" id="L94">        var configuration = configurationManager.getFor(EnumSet.of(ALLOW_FREE_TICKETS_CANCELLATION, SEND_TICKETS_AUTOMATICALLY, ALLOW_TICKET_DOWNLOAD), ConfigurationLevel.ticketCategory(event, t.getCategoryId()));</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        boolean cancellationEnabled = t.getFinalPriceCts() == 0 &amp;&amp;</span>
+<span class="pc bpc" id="L96" title="2 of 4 branches missed.">            !event.expired() &amp;&amp;</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            (!hasPaidSupplement &amp;&amp; configuration.get(ALLOW_FREE_TICKETS_CANCELLATION).getValueAsBooleanOrDefault()) &amp;&amp; // freeCancellationEnabled</span>
+<span class="pc bnc" id="L98" title="All 2 branches missed.">            eventManager.checkTicketCancellationPrerequisites().apply(t); // cancellationPrerequisitesMet</span>
         //
-<span class="nc" id="L100">        return toBookingInfoTicket(t,</span>
+<span class="fc" id="L100">        return toBookingInfoTicket(t,</span>
             cancellationEnabled,
-<span class="nc" id="L102">            configuration.get(SEND_TICKETS_AUTOMATICALLY).getValueAsBooleanOrDefault(),</span>
-<span class="nc" id="L103">            configuration.get(ALLOW_TICKET_DOWNLOAD).getValueAsBooleanOrDefault(),</span>
-<span class="nc" id="L104">            additionalFieldsFilterer.getFieldsForTicket(t.getPublicUuid(), contexts),</span>
+<span class="fc" id="L102">            configuration.get(SEND_TICKETS_AUTOMATICALLY).getValueAsBooleanOrDefault(),</span>
+<span class="fc" id="L103">            configuration.get(ALLOW_TICKET_DOWNLOAD).getValueAsBooleanOrDefault(),</span>
+<span class="fc" id="L104">            additionalFieldsFilterer.getFieldsForTicket(t.getPublicUuid(), contexts),</span>
             descriptionsByTicketFieldId,
-<span class="nc" id="L106">            valuesByTicketIds.getOrDefault(t.getId(), Collections.emptyList()),</span>
+<span class="fc" id="L106">            valuesByTicketIds.getOrDefault(t.getId(), Collections.emptyList()),</span>
             formattedOnlineCheckInDate,
             onlineEventStarted);
     }
@@ -116,11 +116,11 @@ public class BookingInfoTicketLoader {
 <span class="nc" id="L116">            List.of());</span>
     }
     public Validator.AdditionalFieldsFilterer getTicketFieldsFilterer(String reservationId, Event event) {
-<span class="nc" id="L119">        var fields = purchaseContextFieldManager.findAdditionalFields(event);</span>
-<span class="nc" id="L120">        return new Validator.AdditionalFieldsFilterer(fields,</span>
-<span class="nc" id="L121">            ticketReservationManager.findTicketsInReservation(reservationId),</span>
-<span class="nc" id="L122">            event.supportsLinkedAdditionalServices(),</span>
-<span class="nc" id="L123">            additionalServiceItemRepository.findByReservationUuid(event.getId(), reservationId));</span>
+<span class="fc" id="L119">        var fields = purchaseContextFieldManager.findAdditionalFields(event);</span>
+<span class="fc" id="L120">        return new Validator.AdditionalFieldsFilterer(fields,</span>
+<span class="fc" id="L121">            ticketReservationManager.findTicketsInReservation(reservationId),</span>
+<span class="fc" id="L122">            event.supportsLinkedAdditionalServices(),</span>
+<span class="fc" id="L123">            additionalServiceItemRepository.findByReservationUuid(event.getId(), reservationId));</span>
     }
 
     private static BookingInfoTicket toBookingInfoTicket(Ticket ticket,
@@ -134,26 +134,26 @@ public class BookingInfoTicketLoader {
                                                          boolean onlineEventStarted) {
 
 
-<span class="nc" id="L137">        var valuesById = purchaseContextFieldValues.stream()</span>
-<span class="nc" id="L138">            .collect(Collectors.groupingBy(PurchaseContextFieldValue::getFieldConfigurationId));</span>
+<span class="fc" id="L137">        var valuesById = purchaseContextFieldValues.stream()</span>
+<span class="fc" id="L138">            .collect(Collectors.groupingBy(PurchaseContextFieldValue::getFieldConfigurationId));</span>
 
 
-<span class="nc" id="L141">        var ticketFieldsAdditional = ticketFields.stream()</span>
+<span class="fc" id="L141">        var ticketFieldsAdditional = ticketFields.stream()</span>
             // hide additional service related fields
-<span class="nc bnc" id="L143" title="All 2 branches missed.">            .filter(ticketFieldConfiguration -&gt; ticketFieldConfiguration.getAdditionalServiceId() != null)</span>
-<span class="nc" id="L144">            .sorted(Comparator.comparing(PurchaseContextFieldConfiguration::getOrder))</span>
-<span class="nc" id="L145">            .flatMap(tfc -&gt; toAdditionalFieldsStream(descriptionsByTicketFieldId, tfc, valuesById))</span>
-<span class="nc" id="L146">            .collect(Collectors.toList());</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">            .filter(ticketFieldConfiguration -&gt; ticketFieldConfiguration.getAdditionalServiceId() != null)</span>
+<span class="fc" id="L144">            .sorted(Comparator.comparing(PurchaseContextFieldConfiguration::getOrder))</span>
+<span class="fc" id="L145">            .flatMap(tfc -&gt; toAdditionalFieldsStream(descriptionsByTicketFieldId, tfc, valuesById))</span>
+<span class="fc" id="L146">            .collect(Collectors.toList());</span>
 
-<span class="nc" id="L148">        return new BookingInfoTicket(ticket.getPublicUuid().toString(),</span>
-<span class="nc" id="L149">            ticket.getFirstName(),</span>
-<span class="nc" id="L150">            ticket.getLastName(),</span>
-<span class="nc" id="L151">            ticket.getEmail(),</span>
-<span class="nc" id="L152">            ticket.getFullName(),</span>
-<span class="nc" id="L153">            ticket.getUserLanguage(),</span>
-<span class="nc" id="L154">            ticket.getAssigned(),</span>
-<span class="nc" id="L155">            ticket.getLockedAssignment(),</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">            ticket.getStatus() == Ticket.TicketStatus.ACQUIRED,</span>
+<span class="fc" id="L148">        return new BookingInfoTicket(ticket.getPublicUuid().toString(),</span>
+<span class="fc" id="L149">            ticket.getFirstName(),</span>
+<span class="fc" id="L150">            ticket.getLastName(),</span>
+<span class="fc" id="L151">            ticket.getEmail(),</span>
+<span class="fc" id="L152">            ticket.getFullName(),</span>
+<span class="fc" id="L153">            ticket.getUserLanguage(),</span>
+<span class="fc" id="L154">            ticket.getAssigned(),</span>
+<span class="fc" id="L155">            ticket.getLockedAssignment(),</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">            ticket.getStatus() == Ticket.TicketStatus.ACQUIRED,</span>
             cancellationEnabled,
             sendMailEnabled,
             downloadEnabled,
@@ -163,33 +163,33 @@ public class BookingInfoTicketLoader {
     }
 
     public static Stream&lt;AdditionalField&gt; toAdditionalFieldsStream(Map&lt;Long, List&lt;PurchaseContextFieldDescription&gt;&gt; descriptionsByTicketFieldId, PurchaseContextFieldConfiguration tfc, Map&lt;Long, List&lt;PurchaseContextFieldValue&gt;&gt; valuesById) {
-<span class="nc" id="L166">        var tfd = descriptionsByTicketFieldId.get(tfc.getId()).get(0);//take first, temporary!</span>
-<span class="nc" id="L167">        var fieldValues = valuesById.get(tfc.getId());</span>
-<span class="nc" id="L168">        var descriptions = fromFieldDescriptions(descriptionsByTicketFieldId.get(tfc.getId()));</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (fieldValues == null) {</span>
-<span class="nc" id="L170">            var t = new FieldConfigurationDescriptionAndValue(tfc, tfd, tfc.getCount(), null);</span>
-<span class="nc" id="L171">            return Stream.of(toAdditionalField(t, descriptions));</span>
+<span class="fc" id="L166">        var tfd = descriptionsByTicketFieldId.get(tfc.getId()).get(0);//take first, temporary!</span>
+<span class="fc" id="L167">        var fieldValues = valuesById.get(tfc.getId());</span>
+<span class="fc" id="L168">        var descriptions = fromFieldDescriptions(descriptionsByTicketFieldId.get(tfc.getId()));</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        if (fieldValues == null) {</span>
+<span class="fc" id="L170">            var t = new FieldConfigurationDescriptionAndValue(tfc, tfd, tfc.getCount(), null);</span>
+<span class="fc" id="L171">            return Stream.of(toAdditionalField(t, descriptions));</span>
         }
-<span class="nc" id="L173">        return fieldValues.stream()</span>
-<span class="nc" id="L174">            .map(fieldValue -&gt; {</span>
-<span class="nc" id="L175">                var t = new FieldConfigurationDescriptionAndValue(tfc, tfd, tfc.getCount(), fieldValue.getValue());</span>
-<span class="nc" id="L176">                return toAdditionalField(t, descriptions);</span>
+<span class="fc" id="L173">        return fieldValues.stream()</span>
+<span class="fc" id="L174">            .map(fieldValue -&gt; {</span>
+<span class="fc" id="L175">                var t = new FieldConfigurationDescriptionAndValue(tfc, tfd, tfc.getCount(), fieldValue.getValue());</span>
+<span class="fc" id="L176">                return toAdditionalField(t, descriptions);</span>
             });
     }
 
     public static AdditionalField toAdditionalField(FieldConfigurationDescriptionAndValue t, Map&lt;String, Description&gt; description) {
-<span class="nc" id="L181">        var fields = t.getFields().stream().map(f -&gt; new Field(f.getFieldIndex(), f.getFieldValue())).collect(Collectors.toList());</span>
-<span class="nc" id="L182">        var restrictedValues = t.getRestrictedValues().stream()</span>
-<span class="nc bnc" id="L183" title="All 4 branches missed.">            .filter(rv -&gt; Objects.equals(t.getValue(), rv) || !t.getDisabledValues().contains(rv))</span>
-<span class="nc" id="L184">            .collect(Collectors.toList());</span>
-<span class="nc" id="L185">        return new AdditionalField(t.getName(), t.getValue(), t.getType(), t.isRequired(), t.isEditable(),</span>
-<span class="nc" id="L186">            t.getMinLength(), t.getMaxLength(), restrictedValues,</span>
-<span class="nc" id="L187">            fields, t.isBeforeStandardFields(), description);</span>
+<span class="fc" id="L181">        var fields = t.getFields().stream().map(f -&gt; new Field(f.getFieldIndex(), f.getFieldValue())).collect(Collectors.toList());</span>
+<span class="fc" id="L182">        var restrictedValues = t.getRestrictedValues().stream()</span>
+<span class="pc bnc" id="L183" title="All 4 branches missed.">            .filter(rv -&gt; Objects.equals(t.getValue(), rv) || !t.getDisabledValues().contains(rv))</span>
+<span class="fc" id="L184">            .collect(Collectors.toList());</span>
+<span class="fc" id="L185">        return new AdditionalField(t.getName(), t.getValue(), t.getType(), t.isRequired(), t.isEditable(),</span>
+<span class="fc" id="L186">            t.getMinLength(), t.getMaxLength(), restrictedValues,</span>
+<span class="fc" id="L187">            fields, t.isBeforeStandardFields(), description);</span>
     }
 
     public static Map&lt;String, Description&gt; fromFieldDescriptions(List&lt;PurchaseContextFieldDescription&gt; descs) {
-<span class="nc" id="L191">        return descs.stream().collect(Collectors.toMap(PurchaseContextFieldDescription::getLocale,</span>
-<span class="nc" id="L192">            d -&gt; new Description(d.getLabelDescription(), d.getPlaceholderDescription(), d.getRestrictedValuesDescription())));</span>
+<span class="fc" id="L191">        return descs.stream().collect(Collectors.toMap(PurchaseContextFieldDescription::getLocale,</span>
+<span class="fc" id="L192">            d -&gt; new Description(d.getLabelDescription(), d.getPlaceholderDescription(), d.getRestrictedValuesDescription())));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

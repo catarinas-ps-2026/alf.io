@@ -61,7 +61,7 @@ import static alfio.util.MiscUtils.removeTabsAndNewlines;
 @Transactional
 public class GoogleWalletManager {
 
-<span class="nc" id="L64">    private static final Logger log = LoggerFactory.getLogger(GoogleWalletManager.class);</span>
+<span class="fc" id="L64">    private static final Logger log = LoggerFactory.getLogger(GoogleWalletManager.class);</span>
     private static final String WALLET_OBJECT_ID = &quot;gWalletObjectId&quot;;
     private static final String AUTHORIZATION = &quot;Authorization&quot;;
     private static final String BEARER_PLACEHOLDER = &quot;Bearer %s&quot;;
@@ -102,8 +102,8 @@ public class GoogleWalletManager {
     @EventListener
     public void invalidateAccessForTicket(InvalidateAccess invalidateAccess) {
         try {
-<span class="nc" id="L105">            Map&lt;ConfigurationKeys, String&gt; passConf = getConfigurationKeys(invalidateAccess.event());</span>
-<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (!passConf.isEmpty()) {</span>
+<span class="fc" id="L105">            Map&lt;ConfigurationKeys, String&gt; passConf = getConfigurationKeys(invalidateAccess.event());</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">            if (!passConf.isEmpty()) {</span>
 <span class="nc" id="L107">                invalidateAccess.ticketMetadataContainer()</span>
 <span class="nc" id="L108">                    .getMetadataForKey(TicketMetadataContainer.GENERAL)</span>
 <span class="nc" id="L109">                    .map(m -&gt; m.getAttributes().get(WALLET_OBJECT_ID))</span>
@@ -111,8 +111,8 @@ public class GoogleWalletManager {
             }
 <span class="nc" id="L112">        } catch (Exception e) {</span>
 <span class="nc" id="L113">            log.warn(&quot;Error while invalidating access for ticket &quot; + invalidateAccess.ticket().getUuid(), e);</span>
-<span class="nc" id="L114">        }</span>
-<span class="nc" id="L115">    }</span>
+<span class="fc" id="L114">        }</span>
+<span class="fc" id="L115">    }</span>
 
     private void invalidateObject(String ticketId, String objectId, Map&lt;ConfigurationKeys, String&gt; passConf) {
         try {
@@ -139,16 +139,16 @@ public class GoogleWalletManager {
 <span class="nc" id="L139">    }</span>
 
     private Map&lt;ConfigurationKeys, String&gt; getConfigurationKeys(EventAndOrganizationId event) {
-<span class="nc" id="L142">        var conf = configurationManager.getFor(Set.of(</span>
+<span class="fc" id="L142">        var conf = configurationManager.getFor(Set.of(</span>
                 ENABLE_WALLET,
                 WALLET_ISSUER_IDENTIFIER,
                 WALLET_SERVICE_ACCOUNT_KEY,
                 WALLET_OVERWRITE_PREVIOUS_CLASSES_AND_EVENTS,
                 BASE_URL),
-<span class="nc" id="L148">            event.getConfigurationLevel());</span>
+<span class="fc" id="L148">            event.getConfigurationLevel());</span>
 
-<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (!conf.get(ENABLE_WALLET).getValueAsBooleanOrDefault()) {</span>
-<span class="nc" id="L151">            return Map.of();</span>
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">        if (!conf.get(ENABLE_WALLET).getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L151">            return Map.of();</span>
         }
 <span class="nc" id="L153">        var configValues = Map.of(</span>
 <span class="nc" id="L154">            WALLET_ISSUER_IDENTIFIER, conf.get(WALLET_ISSUER_IDENTIFIER).getValue(),</span>

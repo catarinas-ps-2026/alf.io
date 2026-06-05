@@ -45,11 +45,11 @@ public class GroupApiController {
     private final EventManager eventManager;
     private final AccessService accessService;
 
-<span class="nc" id="L48">    public GroupApiController(GroupManager groupManager, EventManager eventManager, AccessService accessService) {</span>
-<span class="nc" id="L49">        this.groupManager = groupManager;</span>
-<span class="nc" id="L50">        this.eventManager = eventManager;</span>
-<span class="nc" id="L51">        this.accessService = accessService;</span>
-<span class="nc" id="L52">    }</span>
+<span class="fc" id="L48">    public GroupApiController(GroupManager groupManager, EventManager eventManager, AccessService accessService) {</span>
+<span class="fc" id="L49">        this.groupManager = groupManager;</span>
+<span class="fc" id="L50">        this.eventManager = eventManager;</span>
+<span class="fc" id="L51">        this.accessService = accessService;</span>
+<span class="fc" id="L52">    }</span>
 
     @ExceptionHandler(DuplicateGroupItemException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

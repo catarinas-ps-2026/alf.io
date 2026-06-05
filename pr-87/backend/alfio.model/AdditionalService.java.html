@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-<span class="nc" id="L37">public record AdditionalService(@Column(&quot;id&quot;) int id,</span>
+<span class="fc" id="L37">public record AdditionalService(@Column(&quot;id&quot;) int id,</span>
                                 @Column(&quot;event_id_fk&quot;) int eventId,
                                 @Column(&quot;fix_price&quot;) boolean fixPrice,
                                 @Column(&quot;ordinal&quot;) int ordinal,
@@ -78,7 +78,7 @@ import java.util.stream.Collectors;
 <span class="fc" id="L78">        OPTIONAL_MAX_AMOUNT_PER_TICKET {</span>
             @Override
             public boolean isValid(int quantity, AdditionalService as, int ticketsCount) {
-<span class="nc bnc" id="L81" title="All 2 branches missed.">                return quantity &lt;= ticketsCount * as.maxQtyPerOrder();</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">                return quantity &lt;= ticketsCount * as.maxQtyPerOrder();</span>
             }
         },
 <span class="fc" id="L84">        OPTIONAL_MAX_AMOUNT_PER_RESERVATION {</span>
@@ -104,44 +104,44 @@ import java.util.stream.Collectors;
         }
 
         public boolean isMandatory() {
-<span class="nc" id="L107">            return mandatory;</span>
+<span class="fc" id="L107">            return mandatory;</span>
         }
 
         public static Set&lt;SupplementPolicy&gt; userSelected() {
-<span class="nc" id="L111">            return Arrays.stream(values()).filter(Predicate.not(SupplementPolicy::isMandatory)).collect(Collectors.toSet());</span>
+<span class="fc" id="L111">            return Arrays.stream(values()).filter(Predicate.not(SupplementPolicy::isMandatory)).collect(Collectors.toSet());</span>
         }
 
         public static boolean isMandatoryPercentage(SupplementPolicy policy) {
-<span class="pc bpc" id="L115" title="2 of 4 branches missed.">            return policy == SupplementPolicy.MANDATORY_PERCENTAGE_RESERVATION</span>
+<span class="fc bfc" id="L115" title="All 4 branches covered.">            return policy == SupplementPolicy.MANDATORY_PERCENTAGE_RESERVATION</span>
                 || policy == SupplementPolicy.MANDATORY_PERCENTAGE_FOR_TICKET;
         }
     }
 
     public ZonedDateTime getInception(ZoneId zoneId) {
-<span class="nc" id="L121">        return Optional.ofNullable(utcInception).map(i -&gt; i.withZoneSameInstant(zoneId)).orElseGet(() -&gt; ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).minus(1L, ChronoUnit.HOURS));</span>
+<span class="pc" id="L121">        return Optional.ofNullable(utcInception).map(i -&gt; i.withZoneSameInstant(zoneId)).orElseGet(() -&gt; ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).minus(1L, ChronoUnit.HOURS));</span>
     }
 
     public ZonedDateTime getExpiration(ZoneId zoneId) {
-<span class="nc" id="L125">        return Optional.ofNullable(utcExpiration).map(i -&gt; i.withZoneSameInstant(zoneId)).orElseGet(() -&gt; ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).plus(1L, ChronoUnit.HOURS));</span>
+<span class="pc" id="L125">        return Optional.ofNullable(utcExpiration).map(i -&gt; i.withZoneSameInstant(zoneId)).orElseGet(() -&gt; ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).plus(1L, ChronoUnit.HOURS));</span>
     }
 
     public boolean getSaleable() {
-<span class="nc" id="L129">        ZonedDateTime now = ZonedDateTime.now(ClockProvider.clock());</span>
-<span class="nc bnc" id="L130" title="All 4 branches missed.">        return utcInception().isBefore(now) &amp;&amp; utcExpiration().isAfter(now);</span>
+<span class="fc" id="L129">        ZonedDateTime now = ZonedDateTime.now(ClockProvider.clock());</span>
+<span class="pc bpc" id="L130" title="2 of 4 branches missed.">        return utcInception().isBefore(now) &amp;&amp; utcExpiration().isAfter(now);</span>
     }
 
     public BigDecimal getMinPrice() {
-<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (minPriceCts != null) {</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (minPriceCts != null) {</span>
 <span class="nc" id="L135">            return MonetaryUtil.centsToUnit(minPriceCts, currencyCode);</span>
         }
-<span class="nc" id="L137">        return null;</span>
+<span class="fc" id="L137">        return null;</span>
     }
 
     public BigDecimal getMaxPrice() {
-<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (maxPriceCts != null) {</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (maxPriceCts != null) {</span>
 <span class="nc" id="L142">            return MonetaryUtil.centsToUnit(maxPriceCts, currencyCode);</span>
         }
-<span class="nc" id="L144">        return null;</span>
+<span class="fc" id="L144">        return null;</span>
     }
 
     public String getChecksum() {
@@ -166,8 +166,8 @@ import java.util.stream.Collectors;
     }
 
     public static PriceContainer.VatStatus getVatStatus(VatType vatType, PriceContainer.VatStatus eventVatStatus) {
-<span class="nc bnc" id="L169" title="All 4 branches missed.">        return switch (vatType) {</span>
-<span class="nc" id="L170">            case INHERITED -&gt; eventVatStatus;</span>
+<span class="pc bpc" id="L169" title="3 of 4 branches missed.">        return switch (vatType) {</span>
+<span class="fc" id="L170">            case INHERITED -&gt; eventVatStatus;</span>
 <span class="nc" id="L171">            case NONE -&gt; PriceContainer.VatStatus.NONE;</span>
 <span class="nc" id="L172">            case CUSTOM_INCLUDED -&gt; PriceContainer.VatStatus.INCLUDED;</span>
 <span class="nc" id="L173">            default -&gt; PriceContainer.VatStatus.NOT_INCLUDED;</span>

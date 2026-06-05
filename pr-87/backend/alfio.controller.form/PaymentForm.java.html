@@ -43,19 +43,19 @@ public class PaymentForm implements Serializable {
 
 
     public void validate(BindingResult bindingResult, PurchaseContext purchaseContext, TotalPrice reservationCost) {
-<span class="nc" id="L46">        List&lt;PaymentProxy&gt; allowedProxies = purchaseContext.getAllowedPaymentProxies();</span>
+<span class="fc" id="L46">        List&lt;PaymentProxy&gt; allowedProxies = purchaseContext.getAllowedPaymentProxies();</span>
 
-<span class="nc" id="L48">        Optional&lt;PaymentProxy&gt; paymentProxyOptional = Optional.ofNullable(paymentProxy);</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        boolean priceGreaterThanZero = reservationCost.getPriceWithVAT() &gt; 0;</span>
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        boolean multipleProxies = allowedProxies.size() &gt; 1;</span>
-<span class="nc bnc" id="L51" title="All 6 branches missed.">        if (multipleProxies &amp;&amp; priceGreaterThanZero &amp;&amp; paymentProxyOptional.isEmpty()) {</span>
+<span class="fc" id="L48">        Optional&lt;PaymentProxy&gt; paymentProxyOptional = Optional.ofNullable(paymentProxy);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        boolean priceGreaterThanZero = reservationCost.getPriceWithVAT() &gt; 0;</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        boolean multipleProxies = allowedProxies.size() &gt; 1;</span>
+<span class="pc bpc" id="L51" title="5 of 6 branches missed.">        if (multipleProxies &amp;&amp; priceGreaterThanZero &amp;&amp; paymentProxyOptional.isEmpty()) {</span>
 <span class="nc" id="L52">            bindingResult.reject(ErrorsCode.STEP_2_MISSING_PAYMENT_METHOD);</span>
         }
 
-<span class="nc bnc" id="L55" title="All 4 branches missed.">        if (Objects.isNull(termAndConditionsAccepted) || !termAndConditionsAccepted</span>
-<span class="nc bnc" id="L56" title="All 6 branches missed.">            || (StringUtils.isNotEmpty(purchaseContext.getPrivacyPolicyUrl()) &amp;&amp; (Objects.isNull(privacyPolicyAccepted) || !privacyPolicyAccepted))) {</span>
-<span class="nc" id="L57">            bindingResult.reject(ErrorsCode.STEP_2_TERMS_NOT_ACCEPTED);</span>
+<span class="pc bpc" id="L55" title="1 of 4 branches missed.">        if (Objects.isNull(termAndConditionsAccepted) || !termAndConditionsAccepted</span>
+<span class="pc bpc" id="L56" title="3 of 6 branches missed.">            || (StringUtils.isNotEmpty(purchaseContext.getPrivacyPolicyUrl()) &amp;&amp; (Objects.isNull(privacyPolicyAccepted) || !privacyPolicyAccepted))) {</span>
+<span class="fc" id="L57">            bindingResult.reject(ErrorsCode.STEP_2_TERMS_NOT_ACCEPTED);</span>
         }
-<span class="nc" id="L59">    }</span>
+<span class="fc" id="L59">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

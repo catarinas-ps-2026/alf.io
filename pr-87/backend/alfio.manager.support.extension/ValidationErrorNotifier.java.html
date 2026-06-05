@@ -23,10 +23,10 @@ public class ValidationErrorNotifier {
     private final BindingResult bindingResult;
     private final String prefix;
 
-<span class="nc" id="L26">    public ValidationErrorNotifier(BindingResult bindingResult, String prefix) {</span>
-<span class="nc" id="L27">        this.bindingResult = bindingResult;</span>
-<span class="nc" id="L28">        this.prefix = StringUtils.trimToEmpty(prefix);</span>
-<span class="nc" id="L29">    }</span>
+<span class="fc" id="L26">    public ValidationErrorNotifier(BindingResult bindingResult, String prefix) {</span>
+<span class="fc" id="L27">        this.bindingResult = bindingResult;</span>
+<span class="fc" id="L28">        this.prefix = StringUtils.trimToEmpty(prefix);</span>
+<span class="fc" id="L29">    }</span>
 
     public void notifyError(String path, String errorKey) {
 <span class="nc" id="L32">        bindingResult.rejectValue(prefix + path, errorKey, null);</span>

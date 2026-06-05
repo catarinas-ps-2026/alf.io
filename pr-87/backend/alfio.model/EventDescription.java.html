@@ -34,22 +34,22 @@ public class EventDescription {
 
     public EventDescription(@Column(&quot;event_id_fk&quot;) Integer eventId, @Column(&quot;locale&quot;) String locale,
                             @Column(&quot;type&quot;) EventDescriptionType eventDescriptionType,
-<span class="nc" id="L37">                            @Column(&quot;description&quot;) String description) {</span>
-<span class="nc" id="L38">        this.eventId = eventId;</span>
-<span class="nc" id="L39">        this.locale = locale;</span>
-<span class="nc" id="L40">        this.eventDescriptionType = eventDescriptionType;</span>
-<span class="nc" id="L41">        this.description = description;</span>
-<span class="nc" id="L42">    }</span>
+<span class="fc" id="L37">                            @Column(&quot;description&quot;) String description) {</span>
+<span class="fc" id="L38">        this.eventId = eventId;</span>
+<span class="fc" id="L39">        this.locale = locale;</span>
+<span class="fc" id="L40">        this.eventDescriptionType = eventDescriptionType;</span>
+<span class="fc" id="L41">        this.description = description;</span>
+<span class="fc" id="L42">    }</span>
 
     @Getter
     public static class LocaleDescription {
         private final String locale;
         private final String description;
 
-<span class="nc" id="L49">        public LocaleDescription(@Column(&quot;locale&quot;) String locale, @Column(&quot;description&quot;) String description) {</span>
-<span class="nc" id="L50">            this.locale = locale;</span>
-<span class="nc" id="L51">            this.description = description;</span>
-<span class="nc" id="L52">        }</span>
+<span class="fc" id="L49">        public LocaleDescription(@Column(&quot;locale&quot;) String locale, @Column(&quot;description&quot;) String description) {</span>
+<span class="fc" id="L50">            this.locale = locale;</span>
+<span class="fc" id="L51">            this.description = description;</span>
+<span class="fc" id="L52">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

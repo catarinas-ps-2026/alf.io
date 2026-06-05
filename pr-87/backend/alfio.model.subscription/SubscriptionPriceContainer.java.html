@@ -36,22 +36,22 @@ public class SubscriptionPriceContainer implements PriceContainer {
 
     @Override
     public int getSrcPriceCts() {
-<span class="nc" id="L39">        return subscription.getSrcPriceCts();</span>
+<span class="fc" id="L39">        return subscription.getSrcPriceCts();</span>
     }
 
     @Override
     public String getCurrencyCode() {
-<span class="nc" id="L44">        return subscription.getCurrency();</span>
+<span class="fc" id="L44">        return subscription.getCurrency();</span>
     }
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="nc" id="L49">        return Optional.ofNullable(descriptor.getVat());</span>
+<span class="fc" id="L49">        return Optional.ofNullable(descriptor.getVat());</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="nc" id="L54">        return descriptor.getVatStatus();</span>
+<span class="fc" id="L54">        return descriptor.getVatStatus();</span>
     }
 
     @Override
@@ -61,26 +61,26 @@ public class SubscriptionPriceContainer implements PriceContainer {
 
     // FIXME remove once merged, as it has been implemented in Master
     public BigDecimal getNetPrice() {
-<span class="nc" id="L64">        var vatStatus = getVatStatus();</span>
-<span class="nc" id="L65">        var currencyCode = getCurrencyCode();</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">        if(vatStatus == VatStatus.NOT_INCLUDED_EXEMPT) {</span>
+<span class="fc" id="L64">        var vatStatus = getVatStatus();</span>
+<span class="fc" id="L65">        var currencyCode = getCurrencyCode();</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if(vatStatus == VatStatus.NOT_INCLUDED_EXEMPT) {</span>
 <span class="nc" id="L67">            return centsToUnit(getSrcPriceCts(), currencyCode);</span>
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        } else if(vatStatus == VatStatus.INCLUDED_EXEMPT) {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        } else if(vatStatus == VatStatus.INCLUDED_EXEMPT) {</span>
 <span class="nc" id="L69">            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());</span>
 <span class="nc" id="L70">            return centsToUnit(getSrcPriceCts(), currencyCode).add(rawVat);</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">        } else if(vatStatus == VatStatus.INCLUDED) {</span>
-<span class="nc" id="L72">            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());</span>
-<span class="nc" id="L73">            return centsToUnit(getSrcPriceCts(), currencyCode).subtract(rawVat);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        } else if(vatStatus == VatStatus.INCLUDED) {</span>
+<span class="fc" id="L72">            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());</span>
+<span class="fc" id="L73">            return centsToUnit(getSrcPriceCts(), currencyCode).subtract(rawVat);</span>
         } else {
 <span class="nc" id="L75">            return centsToUnit(getSrcPriceCts(), currencyCode);</span>
         }
     }
 
     public int getSummarySrcPriceCts() {
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if(VatStatus.isVatExempt(getVatStatus())) {</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if(VatStatus.isVatExempt(getVatStatus())) {</span>
 <span class="nc" id="L81">            return unitToCents(getFinalPrice(), getCurrencyCode());</span>
         }
-<span class="nc" id="L83">        return getSrcPriceCts();</span>
+<span class="fc" id="L83">        return getSrcPriceCts();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

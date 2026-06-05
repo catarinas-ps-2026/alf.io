@@ -44,17 +44,17 @@ public class OnSiteManager implements PaymentProvider {
 
     @Override
     public Set&lt;? extends PaymentMethod&gt; getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
-<span class="nc" id="L47">        return EnumSet.of(StaticPaymentMethods.ON_SITE);</span>
+<span class="fc" id="L47">        return EnumSet.of(StaticPaymentMethods.ON_SITE);</span>
     }
 
     @Override
     public PaymentProxy getPaymentProxy() {
-<span class="nc" id="L52">        return PaymentProxy.ON_SITE;</span>
+<span class="fc" id="L52">        return PaymentProxy.ON_SITE;</span>
     }
 
     @Override
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-<span class="pc bpc" id="L57" title="1 of 4 branches missed.">        return paymentMethod == StaticPaymentMethods.ON_SITE &amp;&amp; isActive(context);</span>
+<span class="fc bfc" id="L57" title="All 4 branches covered.">        return paymentMethod == StaticPaymentMethods.ON_SITE &amp;&amp; isActive(context);</span>
     }
 
     @Override

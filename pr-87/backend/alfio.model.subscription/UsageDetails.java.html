@@ -27,10 +27,10 @@ public class UsageDetails {
     private final Integer available;
 
     public static UsageDetails fromSubscription(Subscription subscription, int usageCount) {
-<span class="nc" id="L30">        int maxEntries = Math.max(subscription.getMaxEntries(), 0);</span>
-<span class="nc bnc" id="L31" title="All 2 branches missed.">        return new UsageDetails(maxEntries == 0 ? null : maxEntries,</span>
-<span class="nc" id="L32">                                usageCount,</span>
-<span class="nc bnc" id="L33" title="All 2 branches missed.">                                maxEntries == 0 ? null : maxEntries - usageCount);</span>
+<span class="fc" id="L30">        int maxEntries = Math.max(subscription.getMaxEntries(), 0);</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        return new UsageDetails(maxEntries == 0 ? null : maxEntries,</span>
+<span class="fc" id="L32">                                usageCount,</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">                                maxEntries == 0 ? null : maxEntries - usageCount);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

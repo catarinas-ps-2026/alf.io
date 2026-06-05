@@ -33,12 +33,12 @@ public class ReservationsByEvent {
     public ReservationsByEvent(@Column(&quot;event_id&quot;) int eventId,
                                @Column(&quot;event_short_name&quot;) String eventShortName,
                                @Column(&quot;event_display_name&quot;) String displayName,
-<span class="nc" id="L36">                               @Column(&quot;reservations&quot;) String reservations) {</span>
-<span class="nc" id="L37">        this.eventId = eventId;</span>
-<span class="nc" id="L38">        this.eventShortName = eventShortName;</span>
-<span class="nc" id="L39">        this.displayName = displayName;</span>
-<span class="nc" id="L40">        this.reservations = Json.fromJson(reservations, new TypeReference&lt;&gt;() {});</span>
-<span class="nc" id="L41">    }</span>
+<span class="fc" id="L36">                               @Column(&quot;reservations&quot;) String reservations) {</span>
+<span class="fc" id="L37">        this.eventId = eventId;</span>
+<span class="fc" id="L38">        this.eventShortName = eventShortName;</span>
+<span class="fc" id="L39">        this.displayName = displayName;</span>
+<span class="fc" id="L40">        this.reservations = Json.fromJson(reservations, new TypeReference&lt;&gt;() {});</span>
+<span class="fc" id="L41">    }</span>
 
     public int getEventId() {
 <span class="nc" id="L44">        return eventId;</span>
@@ -53,7 +53,7 @@ public class ReservationsByEvent {
     }
 
     public List&lt;ReservationInfo&gt; getReservations() {
-<span class="nc" id="L56">        return reservations;</span>
+<span class="fc" id="L56">        return reservations;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

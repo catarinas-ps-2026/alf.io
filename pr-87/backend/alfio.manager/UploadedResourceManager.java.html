@@ -88,23 +88,23 @@ public class UploadedResourceManager {
 <span class="fc" id="L88">    }</span>
 
     public Optional&lt;Integer&gt; saveResource(UploadBase64FileModification file) {
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (hasResource(file.getName())) {</span>
-<span class="nc" id="L92">            uploadedResourceRepository.delete(file.getName());</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (hasResource(file.getName())) {</span>
+<span class="fc" id="L92">            uploadedResourceRepository.delete(file.getName());</span>
         }
 
 <span class="fc" id="L95">        return Optional.ofNullable(uploadedResourceRepository.upload(null, null, file, getAttributes(file)));</span>
     }
 
     public Optional&lt;Integer&gt; saveResource(int organizationId, UploadBase64FileModification file) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (hasResource(organizationId, file.getName())) {</span>
-<span class="nc" id="L100">            uploadedResourceRepository.delete(organizationId, file.getName());</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (hasResource(organizationId, file.getName())) {</span>
+<span class="fc" id="L100">            uploadedResourceRepository.delete(organizationId, file.getName());</span>
         }
 
-<span class="nc" id="L103">        return Optional.ofNullable(uploadedResourceRepository.upload(organizationId, null, file, getAttributes(file)));</span>
+<span class="fc" id="L103">        return Optional.ofNullable(uploadedResourceRepository.upload(organizationId, null, file, getAttributes(file)));</span>
     }
 
     public Optional&lt;Integer&gt; saveResource(int organizationId, int eventId, UploadBase64FileModification file) {
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (hasResource(organizationId, eventId, file.getName())) {</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        if (hasResource(organizationId, eventId, file.getName())) {</span>
 <span class="fc" id="L108">            uploadedResourceRepository.delete(organizationId, eventId, file.getName());</span>
         }
 
@@ -154,7 +154,7 @@ public class UploadedResourceManager {
 
     public Optional&lt;byte[]&gt; findCascading(int organizationId, Integer eventId, String savedName) {
 <span class="fc" id="L156">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="pc bpc" id="L157" title="1 of 4 branches missed.">        if(eventId != null &amp;&amp; hasResource(organizationId, eventId, savedName)) {</span>
+<span class="fc bfc" id="L157" title="All 4 branches covered.">        if(eventId != null &amp;&amp; hasResource(organizationId, eventId, savedName)) {</span>
 <span class="fc" id="L158">            outputResource(organizationId, eventId, savedName, baos);</span>
 <span class="fc" id="L159">            return Optional.of(baos.toByteArray());</span>
 <span class="fc bfc" id="L160" title="All 2 branches covered.">        } else if (hasResource(organizationId, savedName)) {</span>

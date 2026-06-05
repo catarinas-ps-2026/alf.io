@@ -152,8 +152,8 @@ class BaseStripeManager {
 
     protected Map&lt;String, Object&gt; createParams(PaymentSpecification spec, Map&lt;String, String&gt; baseMetadata) {
         final int items;
-<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        if(spec.getPurchaseContext().getType() == PurchaseContextType.event) {</span>
-<span class="nc" id="L156">            items = ticketRepository.countTicketsInReservation(spec.getReservationId());</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        if(spec.getPurchaseContext().getType() == PurchaseContextType.event) {</span>
+<span class="fc" id="L156">            items = ticketRepository.countTicketsInReservation(spec.getReservationId());</span>
         } else {
 <span class="fc" id="L158">            items = 1;</span>
         }
@@ -165,7 +165,7 @@ class BaseStripeManager {
 <span class="pc bnc" id="L165" title="All 2 branches missed.">            .filter(l -&gt; l &gt; 0)</span>
 <span class="pc" id="L166">            .ifPresent(fee -&gt; chargeParams.put(&quot;application_fee_amount&quot;, fee));</span>
 <span class="fc" id="L167">        chargeParams.put(&quot;currency&quot;, purchaseContext.getCurrency());</span>
-<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        var description = purchaseContext.ofType(PurchaseContextType.event) ? &quot;ticket(s) for event&quot; : &quot;x subscription&quot;;</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">        var description = purchaseContext.ofType(PurchaseContextType.event) ? &quot;ticket(s) for event&quot; : &quot;x subscription&quot;;</span>
 <span class="fc" id="L169">        chargeParams.put(&quot;description&quot;, String.format(&quot;%d %s %s&quot;, items, description, purchaseContext.getDisplayName()));</span>
 <span class="fc" id="L170">        chargeParams.put(&quot;metadata&quot;, MetadataBuilder.buildMetadata(spec, baseMetadata));</span>
 <span class="fc" id="L171">        return chargeParams;</span>
@@ -196,11 +196,11 @@ class BaseStripeManager {
     }
 
     BalanceTransaction retrieveBalanceTransaction(String balanceTransaction, RequestOptions options) throws StripeException {
-<span class="nc" id="L199">        return BalanceTransaction.retrieve(balanceTransaction, options);</span>
+<span class="fc" id="L199">        return BalanceTransaction.retrieve(balanceTransaction, options);</span>
     }
 
     Charge retrieveCharge(String chargeId, RequestOptions requestOptions) throws StripeException {
-<span class="nc" id="L203">        return Charge.retrieve(chargeId, requestOptions);</span>
+<span class="fc" id="L203">        return Charge.retrieve(chargeId, requestOptions);</span>
     }
 
     Optional&lt;RequestOptions&gt; options(PurchaseContext purchaseContext) {
@@ -209,7 +209,7 @@ class BaseStripeManager {
 
     Optional&lt;RequestOptions&gt; options(PurchaseContext purchaseContext, UnaryOperator&lt;RequestOptions.RequestOptionsBuilder&gt; optionsBuilderConfigurer) {
 <span class="fc" id="L211">        RequestOptions.RequestOptionsBuilder builder = optionsBuilderConfigurer.apply(RequestOptions.builder());</span>
-<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if(isConnectEnabled(new PaymentContext(purchaseContext))) {</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if(isConnectEnabled(new PaymentContext(purchaseContext))) {</span>
 <span class="fc" id="L213">            return configurationManager.getFor(STRIPE_CONNECTED_ID, purchaseContext.getConfigurationLevel()).getValue()</span>
 <span class="fc" id="L214">                .map(connectedId -&gt; {</span>
                     //connected stripe account
@@ -217,7 +217,7 @@ class BaseStripeManager {
 <span class="nc" id="L217">                    return builder.setApiKey(getSystemSecretKey()).build();</span>
                 });
         }
-<span class="nc" id="L220">        return Optional.of(builder.setApiKey(getSecretKey(purchaseContext)).build());</span>
+<span class="fc" id="L220">        return Optional.of(builder.setApiKey(getSecretKey(purchaseContext)).build());</span>
     }
 
     Optional&lt;String&gt; getConnectedAccount(PaymentContext paymentContext) {

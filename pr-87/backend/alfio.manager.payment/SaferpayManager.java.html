@@ -84,18 +84,18 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
 
     @Override
     public PaymentProxy getPaymentProxy() {
-<span class="nc" id="L87">        return PaymentProxy.SAFERPAY;</span>
+<span class="fc" id="L87">        return PaymentProxy.SAFERPAY;</span>
     }
 
     @Override
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        return paymentMethod == StaticPaymentMethods.CREDIT_CARD</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">            &amp;&amp; isActive(context);</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        return paymentMethod == StaticPaymentMethods.CREDIT_CARD</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">            &amp;&amp; isActive(context);</span>
     }
 
     @Override
     public boolean accept(Transaction transaction) {
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        return transaction.getPaymentProxy() == PaymentProxy.SAFERPAY;</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        return transaction.getPaymentProxy() == PaymentProxy.SAFERPAY;</span>
     }
 
     @Override
@@ -105,11 +105,11 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
 
     @Override
     public boolean isActive(PaymentContext paymentContext) {
-<span class="nc" id="L108">        var configurationMap = configurationManager.getFor(EnumSet.of(SAFERPAY_ENABLED, SAFERPAY_API_USERNAME, SAFERPAY_API_PASSWORD, SAFERPAY_CUSTOMER_ID, SAFERPAY_TERMINAL_ID), paymentContext.getConfigurationLevel());</span>
-<span class="nc" id="L109">        return configurationMap</span>
-<span class="nc" id="L110">            .values()</span>
-<span class="nc" id="L111">            .stream()</span>
-<span class="nc" id="L112">            .allMatch(ConfigurationManager.MaybeConfiguration::isPresent);</span>
+<span class="fc" id="L108">        var configurationMap = configurationManager.getFor(EnumSet.of(SAFERPAY_ENABLED, SAFERPAY_API_USERNAME, SAFERPAY_API_PASSWORD, SAFERPAY_CUSTOMER_ID, SAFERPAY_TERMINAL_ID), paymentContext.getConfigurationLevel());</span>
+<span class="fc" id="L109">        return configurationMap</span>
+<span class="fc" id="L110">            .values()</span>
+<span class="fc" id="L111">            .stream()</span>
+<span class="fc" id="L112">            .allMatch(ConfigurationManager.MaybeConfiguration::isPresent);</span>
     }
 
     @Override

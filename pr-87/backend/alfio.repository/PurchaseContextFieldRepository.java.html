@@ -119,7 +119,7 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
     int deleteAllSubscriptionValuesForReservations(@Bind(&quot;reservationIds&quot;) List&lt;String&gt; reservationIds);
 
     default int deleteAllValuesForReservations(List&lt;String&gt; reservationIds) {
-<span class="nc" id="L122">        return deleteAllTicketValuesForReservations(reservationIds) + deleteAllAdditionalItemsValuesForReservations(reservationIds) + deleteAllSubscriptionValuesForReservations(reservationIds);</span>
+<span class="fc" id="L122">        return deleteAllTicketValuesForReservations(reservationIds) + deleteAllAdditionalItemsValuesForReservations(reservationIds) + deleteAllSubscriptionValuesForReservations(reservationIds);</span>
     }
 
     @Query(&quot;&quot;&quot;
@@ -182,8 +182,8 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
 <span class="nc" id="L182">                        deleteValue(field.getTicketId(), field.getSubscriptionId(), field.getFieldConfigurationId());</span>
                     }
 <span class="fc" id="L184">                }</span>
-<span class="pc bpc" id="L185" title="2 of 4 branches missed.">            } else if(fieldNameToId.containsKey(fieldName) &amp;&amp; isNotBlank) {</span>
-<span class="pc bpc" id="L186" title="1 of 2 branches missed.">                var context = ticketId != null ? PurchaseContextFieldConfiguration.Context.ATTENDEE : PurchaseContextFieldConfiguration.Context.SUBSCRIPTION;</span>
+<span class="pc bpc" id="L185" title="1 of 4 branches missed.">            } else if(fieldNameToId.containsKey(fieldName) &amp;&amp; isNotBlank) {</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">                var context = ticketId != null ? PurchaseContextFieldConfiguration.Context.ATTENDEE : PurchaseContextFieldConfiguration.Context.SUBSCRIPTION;</span>
 <span class="fc" id="L187">                insertValue(ticketId, subscriptionId, purchaseContext.getOrganizationId(), fieldNameToId.get(fieldName), fieldValue, context);</span>
             }
 <span class="fc" id="L189">        });</span>
@@ -203,8 +203,8 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
 
     default Map&lt;String, PurchaseContextFieldValue&gt; findAllByTicketIdGroupedByName(Integer id, boolean eventSupportsLink) {
         List&lt;PurchaseContextFieldValue&gt; values;
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        if (eventSupportsLink) {</span>
-<span class="nc" id="L207">            values = findAllForContextByTicketId(id, PurchaseContextFieldConfiguration.Context.ATTENDEE);</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">        if (eventSupportsLink) {</span>
+<span class="fc" id="L207">            values = findAllForContextByTicketId(id, PurchaseContextFieldConfiguration.Context.ATTENDEE);</span>
         } else {
 <span class="fc" id="L209">            values = findAllByTicketId(id);</span>
         }
@@ -262,14 +262,14 @@ public interface PurchaseContextFieldRepository extends FieldRepository {
     Integer findMaxOrderValue(@Bind(&quot;eventId&quot;) Integer eventId, @Bind(&quot;subscriptionId&quot;) UUID subscriptionId);
 
     default Map&lt;Long, PurchaseContextFieldDescription&gt; findTranslationsFor(Locale locale, int eventId) {
-<span class="nc" id="L265">        return findDescriptionsForLocale(eventId, locale.getLanguage()).stream().collect(Collectors.toMap(PurchaseContextFieldDescription::getFieldConfigurationId, Function.identity()));</span>
+<span class="fc" id="L265">        return findDescriptionsForLocale(eventId, locale.getLanguage()).stream().collect(Collectors.toMap(PurchaseContextFieldDescription::getFieldConfigurationId, Function.identity()));</span>
     }
 
     default Map&lt;String, List&lt;String&gt;&gt; findAllValuesForTicketId(int ticketId) {
-<span class="nc" id="L269">        return findNameAndValue(ticketId)</span>
-<span class="nc" id="L270">            .stream()</span>
-<span class="nc bnc" id="L271" title="All 4 branches missed.">            .filter(t -&gt; t.getName() != null &amp;&amp; t.getValue() != null)</span>
-<span class="nc" id="L272">            .collect(Collectors.groupingBy(FieldNameAndValue::getName, Collectors.mapping(FieldNameAndValue::getValue, Collectors.toList())));</span>
+<span class="fc" id="L269">        return findNameAndValue(ticketId)</span>
+<span class="fc" id="L270">            .stream()</span>
+<span class="pc bpc" id="L271" title="2 of 4 branches missed.">            .filter(t -&gt; t.getName() != null &amp;&amp; t.getValue() != null)</span>
+<span class="fc" id="L272">            .collect(Collectors.groupingBy(FieldNameAndValue::getName, Collectors.mapping(FieldNameAndValue::getValue, Collectors.toList())));</span>
     }
 
     // required for deleting a field

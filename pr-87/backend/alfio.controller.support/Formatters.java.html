@@ -38,16 +38,16 @@ public class Formatters {
     }
 
     public static Map&lt;String, String&gt; getFormattedDate(LocalizedContent localizedContent, ZonedDateTime date, String code, MessageSource messageSource) {
-<span class="nc bnc" id="L41" title="All 4 branches missed.">        if(localizedContent != null &amp;&amp; date != null) {</span>
-<span class="nc" id="L42">            return getFormattedDate(localizedContent.getContentLanguages(), date, code, messageSource);</span>
+<span class="pc bpc" id="L41" title="2 of 4 branches missed.">        if(localizedContent != null &amp;&amp; date != null) {</span>
+<span class="fc" id="L42">            return getFormattedDate(localizedContent.getContentLanguages(), date, code, messageSource);</span>
         }
 <span class="nc" id="L44">        return null;</span>
     }
 
     private static Map&lt;String, String&gt; getFormattedDate(List&lt;ContentLanguage&gt; languages, ZonedDateTime date, String code, MessageSource messageSource) {
-<span class="nc" id="L48">        Map&lt;String, String&gt; formatted = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L49">        languages.forEach(cl -&gt; formatDateForLocale(date, code, messageSource, formatted::put, cl, false));</span>
-<span class="nc" id="L50">        return formatted;</span>
+<span class="fc" id="L48">        Map&lt;String, String&gt; formatted = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L49">        languages.forEach(cl -&gt; formatDateForLocale(date, code, messageSource, formatted::put, cl, false));</span>
+<span class="fc" id="L50">        return formatted;</span>
     }
 
     static void formatDateForLocale(ZonedDateTime date,
@@ -71,11 +71,11 @@ public class Formatters {
 <span class="fc" id="L71">    }</span>
 
     public static FormattedEventDates getFormattedDates(Event e, MessageSource messageSource, List&lt;ContentLanguage&gt; contentLanguages) {
-<span class="nc" id="L74">        return new FormattedEventDates(</span>
-<span class="nc" id="L75">            getFormattedDate(contentLanguages, e.getBegin(), &quot;common.event.date-format&quot;, messageSource),</span>
-<span class="nc" id="L76">            getFormattedDate(contentLanguages, e.getBegin(), &quot;common.event.time-format&quot;, messageSource),</span>
-<span class="nc" id="L77">            getFormattedDate(contentLanguages, e.getEnd(), &quot;common.event.date-format&quot;, messageSource),</span>
-<span class="nc" id="L78">            getFormattedDate(contentLanguages, e.getEnd(), &quot;common.event.time-format&quot;, messageSource)</span>
+<span class="fc" id="L74">        return new FormattedEventDates(</span>
+<span class="fc" id="L75">            getFormattedDate(contentLanguages, e.getBegin(), &quot;common.event.date-format&quot;, messageSource),</span>
+<span class="fc" id="L76">            getFormattedDate(contentLanguages, e.getBegin(), &quot;common.event.time-format&quot;, messageSource),</span>
+<span class="fc" id="L77">            getFormattedDate(contentLanguages, e.getEnd(), &quot;common.event.date-format&quot;, messageSource),</span>
+<span class="fc" id="L78">            getFormattedDate(contentLanguages, e.getEnd(), &quot;common.event.time-format&quot;, messageSource)</span>
         );
     }
 

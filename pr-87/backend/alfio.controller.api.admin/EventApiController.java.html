@@ -102,7 +102,7 @@ import static java.util.stream.Collectors.toList;
 @AllArgsConstructor
 public class EventApiController {
 
-<span class="nc" id="L105">    private static final Logger log = LoggerFactory.getLogger(EventApiController.class);</span>
+<span class="fc" id="L105">    private static final Logger log = LoggerFactory.getLogger(EventApiController.class);</span>
     private static final String OK = &quot;OK&quot;;
     private static final String CUSTOM_FIELDS_PREFIX = &quot;custom:&quot;;
     public static final String UNHANDLED_EXCEPTION = &quot;unhandled exception&quot;;
@@ -166,15 +166,15 @@ public class EventApiController {
     public List&lt;EventListItem&gt; getAllEventsForExternal(Authentication authentication,
                                                        HttpServletRequest request,
                                                        @RequestParam(value = &quot;includeOnline&quot;, required = false, defaultValue = &quot;false&quot;) boolean includeOnline) {
-<span class="nc" id="L169">        List&lt;Integer&gt; userOrganizations = userManager.findUserOrganizations(authentication.getName())</span>
-<span class="nc" id="L170">            .stream().map(Organization::getId).toList();</span>
+<span class="fc" id="L169">        List&lt;Integer&gt; userOrganizations = userManager.findUserOrganizations(authentication.getName())</span>
+<span class="fc" id="L170">            .stream().map(Organization::getId).toList();</span>
         // we let sponsors see past events, so that they can modify data if needed.
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        int dateRangeForEvents = isSponsor(authentication) ? 10 : 1;</span>
-<span class="nc" id="L173">        return eventManager.getEventsByDateRange(dateRangeForEvents).stream()</span>
-<span class="nc bnc" id="L174" title="All 6 branches missed.">            .filter(e -&gt; userOrganizations.contains(e.getOrganizationId()) &amp;&amp; (includeOnline || e.getFormat() != Event.EventFormat.ONLINE))</span>
-<span class="nc" id="L175">            .sorted(Comparator.comparing(e -&gt; e.getBegin().withZoneSameInstant(ZoneId.systemDefault())))</span>
-<span class="nc" id="L176">            .map(s -&gt; new EventListItem(s, request.getContextPath(), eventDescriptionRepository.findByEventId(s.getId())))</span>
-<span class="nc" id="L177">            .collect(toList());</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        int dateRangeForEvents = isSponsor(authentication) ? 10 : 1;</span>
+<span class="fc" id="L173">        return eventManager.getEventsByDateRange(dateRangeForEvents).stream()</span>
+<span class="pc bpc" id="L174" title="1 of 6 branches missed.">            .filter(e -&gt; userOrganizations.contains(e.getOrganizationId()) &amp;&amp; (includeOnline || e.getFormat() != Event.EventFormat.ONLINE))</span>
+<span class="pc" id="L175">            .sorted(Comparator.comparing(e -&gt; e.getBegin().withZoneSameInstant(ZoneId.systemDefault())))</span>
+<span class="fc" id="L176">            .map(s -&gt; new EventListItem(s, request.getContextPath(), eventDescriptionRepository.findByEventId(s.getId())))</span>
+<span class="fc" id="L177">            .collect(toList());</span>
     }
 
     @GetMapping(&quot;/events&quot;)
@@ -247,33 +247,33 @@ public class EventApiController {
     }
 
     public static ValidationResult validateEvent(EventModification eventModification, Errors errors, int descriptionMaxLength) {
-<span class="nc" id="L250">        ValidationResult base = validateEventHeader(Optional.empty(), eventModification, descriptionMaxLength, errors)</span>
-<span class="nc" id="L251">            .or(validateEventDates(eventModification, errors))</span>
-<span class="nc" id="L252">            .or(validateTicketCategories(eventModification, errors))</span>
-<span class="nc" id="L253">            .or(validateEventPrices(eventModification, errors))</span>
-<span class="nc" id="L254">            .or(eventModification.getAdditionalServices().stream().map(as -&gt; validateAdditionalService(as, eventModification, errors)).reduce(ValidationResult::or).orElse(ValidationResult.success()));</span>
-<span class="nc" id="L255">        AtomicInteger counter = new AtomicInteger();</span>
-<span class="nc" id="L256">        return base.or(eventModification.getTicketCategories().stream()</span>
-<span class="nc" id="L257">                .map(c -&gt; validateCategory(c, errors, &quot;ticketCategories[&quot; + counter.getAndIncrement() + &quot;].&quot;, eventModification, descriptionMaxLength))</span>
-<span class="nc" id="L258">                .reduce(ValidationResult::or)</span>
-<span class="nc" id="L259">                .orElse(ValidationResult.success()))</span>
-<span class="nc" id="L260">            .or(validateAdditionalTicketFields(eventModification.getTicketFields(), errors));</span>
+<span class="fc" id="L250">        ValidationResult base = validateEventHeader(Optional.empty(), eventModification, descriptionMaxLength, errors)</span>
+<span class="fc" id="L251">            .or(validateEventDates(eventModification, errors))</span>
+<span class="fc" id="L252">            .or(validateTicketCategories(eventModification, errors))</span>
+<span class="fc" id="L253">            .or(validateEventPrices(eventModification, errors))</span>
+<span class="pc" id="L254">            .or(eventModification.getAdditionalServices().stream().map(as -&gt; validateAdditionalService(as, eventModification, errors)).reduce(ValidationResult::or).orElse(ValidationResult.success()));</span>
+<span class="fc" id="L255">        AtomicInteger counter = new AtomicInteger();</span>
+<span class="fc" id="L256">        return base.or(eventModification.getTicketCategories().stream()</span>
+<span class="fc" id="L257">                .map(c -&gt; validateCategory(c, errors, &quot;ticketCategories[&quot; + counter.getAndIncrement() + &quot;].&quot;, eventModification, descriptionMaxLength))</span>
+<span class="fc" id="L258">                .reduce(ValidationResult::or)</span>
+<span class="fc" id="L259">                .orElse(ValidationResult.success()))</span>
+<span class="fc" id="L260">            .or(validateAdditionalTicketFields(eventModification.getTicketFields(), errors));</span>
     }
 
 
     private static ValidationResult validateAdditionalTicketFields(List&lt;AdditionalFieldRequest&gt; ticketFields, Errors errors) {
         //meh
-<span class="nc" id="L266">        AtomicInteger cnt = new AtomicInteger();</span>
-<span class="nc" id="L267">        return Optional.ofNullable(ticketFields).orElseGet(Collections::emptyList).stream().map(field -&gt; {</span>
-<span class="nc" id="L268">            String prefix = &quot;ticketFields[&quot;+cnt.getAndIncrement()+&quot;]&quot;;</span>
-<span class="nc bnc" id="L269" title="All 2 branches missed.">            if (StringUtils.isBlank(field.getName())) {</span>
+<span class="fc" id="L266">        AtomicInteger cnt = new AtomicInteger();</span>
+<span class="fc" id="L267">        return Optional.ofNullable(ticketFields).orElseGet(Collections::emptyList).stream().map(field -&gt; {</span>
+<span class="fc" id="L268">            String prefix = &quot;ticketFields[&quot;+cnt.getAndIncrement()+&quot;]&quot;;</span>
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">            if (StringUtils.isBlank(field.getName())) {</span>
 <span class="nc" id="L270">                errors.rejectValue(prefix + &quot;.name&quot;, &quot;error.required&quot;);</span>
             }
             //TODO: check label value is present for all the locales
             //TODO: for select check option value+label
 
-<span class="nc" id="L275">            return Validator.evaluateValidationResult(errors);</span>
-<span class="nc" id="L276">        }).reduce(ValidationResult::or).orElseGet(ValidationResult::success);</span>
+<span class="fc" id="L275">            return Validator.evaluateValidationResult(errors);</span>
+<span class="fc" id="L276">        }).reduce(ValidationResult::or).orElseGet(ValidationResult::success);</span>
     }
 
     @GetMapping(&quot;/events/name-by-ids&quot;)
@@ -340,24 +340,24 @@ public class EventApiController {
         @PathVariable int categoryId,
         Principal principal
     ) throws PassedIdDoesNotExistException {
-<span class="nc" id="L343">        accessService.checkCategoryOwnership(principal, eventId, categoryId);</span>
+<span class="fc" id="L343">        accessService.checkCategoryOwnership(principal, eventId, categoryId);</span>
 
-<span class="nc" id="L345">        var event = eventManager.getSingleEventById(eventId, principal.getName());</span>
-<span class="nc bnc" id="L346" title="All 2 branches missed.">        if(event == null) {</span>
+<span class="fc" id="L345">        var event = eventManager.getSingleEventById(eventId, principal.getName());</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">        if(event == null) {</span>
 <span class="nc" id="L347">            throw new PassedIdDoesNotExistException(&quot;Event matching passed ID does not exist.&quot;);</span>
         }
 
-<span class="nc" id="L350">        var category = ticketCategoryRepository.getById(categoryId);</span>
-<span class="nc bnc" id="L351" title="All 2 branches missed.">        if(category == null) {</span>
+<span class="fc" id="L350">        var category = ticketCategoryRepository.getById(categoryId);</span>
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">        if(category == null) {</span>
 <span class="nc" id="L352">            throw new PassedIdDoesNotExistException(&quot;Category matching passed ID does not exist.&quot;);</span>
         }
 
-<span class="nc" id="L355">        var deniedPaymentMethods = customOfflineConfigurationManager.getDeniedPaymentMethodsByTicketCategory(</span>
+<span class="fc" id="L355">        var deniedPaymentMethods = customOfflineConfigurationManager.getDeniedPaymentMethodsByTicketCategory(</span>
             event,
             category
         );
 
-<span class="nc" id="L360">        return ResponseEntity.ok(deniedPaymentMethods.stream().map(pm -&gt; pm.getPaymentMethodId()).toList());</span>
+<span class="fc" id="L360">        return ResponseEntity.ok(deniedPaymentMethods.stream().map(pm -&gt; pm.getPaymentMethodId()).toList());</span>
     }
 
     @PostMapping(&quot;/events/{eventId}/categories/{categoryId}/denied-custom-payment-methods&quot;)
@@ -367,28 +367,28 @@ public class EventApiController {
         @RequestBody List&lt;String&gt; paymentMethodIds,
         Principal principal
     ) throws PassedIdDoesNotExistException, CustomOfflinePaymentMethodDoesNotExistException {
-<span class="nc" id="L370">        accessService.checkCategoryOwnership(principal, eventId, categoryId);</span>
+<span class="fc" id="L370">        accessService.checkCategoryOwnership(principal, eventId, categoryId);</span>
 
-<span class="nc" id="L372">        var event = eventManager.getSingleEventById(eventId, principal.getName());</span>
-<span class="nc bnc" id="L373" title="All 2 branches missed.">        if(event == null) {</span>
+<span class="fc" id="L372">        var event = eventManager.getSingleEventById(eventId, principal.getName());</span>
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">        if(event == null) {</span>
 <span class="nc" id="L374">            throw new PassedIdDoesNotExistException(&quot;Event corresponding to passed ID does not exist.&quot;);</span>
         }
 
-<span class="nc" id="L377">        var category = ticketCategoryRepository.getById(categoryId);</span>
-<span class="nc bnc" id="L378" title="All 2 branches missed.">        if(category == null) {</span>
+<span class="fc" id="L377">        var category = ticketCategoryRepository.getById(categoryId);</span>
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">        if(category == null) {</span>
 <span class="nc" id="L379">            throw new PassedIdDoesNotExistException(&quot;Ticket category corresponding to passed ID does not exist.&quot;);</span>
         }
 
-<span class="nc" id="L382">        var paymentMethodsToDeny = customOfflineConfigurationManager</span>
-<span class="nc" id="L383">            .getOrganizationCustomOfflinePaymentMethods(event.getOrganizationId())</span>
-<span class="nc" id="L384">            .stream()</span>
-<span class="nc" id="L385">            .filter(pm -&gt;</span>
-<span class="nc" id="L386">                paymentMethodIds.stream().anyMatch(id -&gt; id.equals(pm.getPaymentMethodId()))</span>
+<span class="fc" id="L382">        var paymentMethodsToDeny = customOfflineConfigurationManager</span>
+<span class="fc" id="L383">            .getOrganizationCustomOfflinePaymentMethods(event.getOrganizationId())</span>
+<span class="fc" id="L384">            .stream()</span>
+<span class="fc" id="L385">            .filter(pm -&gt;</span>
+<span class="fc" id="L386">                paymentMethodIds.stream().anyMatch(id -&gt; id.equals(pm.getPaymentMethodId()))</span>
             )
-<span class="nc" id="L388">            .toList();</span>
+<span class="fc" id="L388">            .toList();</span>
 
         try {
-<span class="nc" id="L391">            customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(</span>
+<span class="fc" id="L391">            customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(</span>
                 event,
                 category,
                 paymentMethodsToDeny
@@ -398,9 +398,9 @@ public class EventApiController {
                 &quot;One or more of the passed payment method IDs do not exist in the organization&quot;,
                 e
             );
-<span class="nc" id="L401">        }</span>
+<span class="fc" id="L401">        }</span>
 
-<span class="nc" id="L403">        return ResponseEntity.ok(OK);</span>
+<span class="fc" id="L403">        return ResponseEntity.ok(OK);</span>
     }
 
     @PutMapping(&quot;/events/reallocate&quot;)
@@ -436,26 +436,26 @@ public class EventApiController {
 
     private static final String PAYMENT_METHOD = &quot;Payment Method&quot;;
     private static final String EXTERNAL_REFERENCE = &quot;External Reference&quot;;
-<span class="nc" id="L439">    static final List&lt;String&gt; FIXED_FIELDS = Arrays.asList(&quot;ID&quot;, &quot;Category&quot;, &quot;Event&quot;, &quot;Status&quot;, &quot;OriginalPrice&quot;, &quot;PaidPrice&quot;, &quot;Discount&quot;, &quot;VAT&quot;, &quot;ReservationID&quot;, &quot;Full Name&quot;, &quot;First Name&quot;, &quot;Last Name&quot;, &quot;E-Mail&quot;, &quot;Locked&quot;, &quot;Language&quot;, &quot;Confirmation&quot;, &quot;Billing Address&quot;, &quot;Country Code&quot;, &quot;Promo Code&quot;,&quot;Payment ID&quot;, PAYMENT_METHOD, EXTERNAL_REFERENCE);</span>
-<span class="nc" id="L440">    private static final List&lt;SerializablePair&lt;String, String&gt;&gt; FIXED_PAIRS = FIXED_FIELDS.stream().map(f -&gt; SerializablePair.of(f, f)).collect(toList());</span>
+<span class="fc" id="L439">    static final List&lt;String&gt; FIXED_FIELDS = Arrays.asList(&quot;ID&quot;, &quot;Category&quot;, &quot;Event&quot;, &quot;Status&quot;, &quot;OriginalPrice&quot;, &quot;PaidPrice&quot;, &quot;Discount&quot;, &quot;VAT&quot;, &quot;ReservationID&quot;, &quot;Full Name&quot;, &quot;First Name&quot;, &quot;Last Name&quot;, &quot;E-Mail&quot;, &quot;Locked&quot;, &quot;Language&quot;, &quot;Confirmation&quot;, &quot;Billing Address&quot;, &quot;Country Code&quot;, &quot;Promo Code&quot;,&quot;Payment ID&quot;, PAYMENT_METHOD, EXTERNAL_REFERENCE);</span>
+<span class="fc" id="L440">    private static final List&lt;SerializablePair&lt;String, String&gt;&gt; FIXED_PAIRS = FIXED_FIELDS.stream().map(f -&gt; SerializablePair.of(f, f)).collect(toList());</span>
     private static final String FISCAL_CODE = &quot;Fiscal Code&quot;;
     private static final String REFERENCE_TYPE = &quot;Reference Type&quot;;
-<span class="nc" id="L443">    private static final List&lt;String&gt; ITALIAN_E_INVOICING_FIELDS = List.of(FISCAL_CODE, REFERENCE_TYPE, &quot;Addressee Code&quot;, &quot;PEC&quot;);</span>
+<span class="fc" id="L443">    private static final List&lt;String&gt; ITALIAN_E_INVOICING_FIELDS = List.of(FISCAL_CODE, REFERENCE_TYPE, &quot;Addressee Code&quot;, &quot;PEC&quot;);</span>
 
     @GetMapping(&quot;/events/{eventName}/export&quot;)
     public void downloadAllTicketsCSV(@PathVariable String eventName, @RequestParam(name = &quot;format&quot;, defaultValue = &quot;excel&quot;) String format, HttpServletRequest request, HttpServletResponse response, Principal principal) throws IOException {
-<span class="nc" id="L447">        accessService.checkEventOwnership(principal, eventName);</span>
-<span class="nc" id="L448">        List&lt;String&gt; fields = Arrays.asList(Optional.ofNullable(request.getParameterValues(&quot;fields&quot;)).orElse(new String[] {}));</span>
-<span class="nc" id="L449">        Event event = loadEvent(eventName, principal);</span>
-<span class="nc" id="L450">        Map&lt;Integer, TicketCategory&gt; categoriesMap = eventManager.loadTicketCategories(event).stream().collect(Collectors.toMap(TicketCategory::getId, Function.identity()));</span>
-<span class="nc" id="L451">        ZoneId eventZoneId = event.getZoneId();</span>
+<span class="fc" id="L447">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L448">        List&lt;String&gt; fields = Arrays.asList(Optional.ofNullable(request.getParameterValues(&quot;fields&quot;)).orElse(new String[] {}));</span>
+<span class="fc" id="L449">        Event event = loadEvent(eventName, principal);</span>
+<span class="fc" id="L450">        Map&lt;Integer, TicketCategory&gt; categoriesMap = eventManager.loadTicketCategories(event).stream().collect(Collectors.toMap(TicketCategory::getId, Function.identity()));</span>
+<span class="fc" id="L451">        ZoneId eventZoneId = event.getZoneId();</span>
 
-<span class="nc bnc" id="L453" title="All 2 branches missed.">        if (&quot;excel&quot;.equals(format)) {</span>
+<span class="pc bpc" id="L453" title="1 of 2 branches missed.">        if (&quot;excel&quot;.equals(format)) {</span>
 <span class="nc" id="L454">            exportTicketExcel(event.getShortName(), response, principal, fields, categoriesMap, eventZoneId);</span>
         } else {
-<span class="nc" id="L456">            exportTicketCSV(event.getShortName(), response, principal, fields, categoriesMap, eventZoneId);</span>
+<span class="fc" id="L456">            exportTicketCSV(event.getShortName(), response, principal, fields, categoriesMap, eventZoneId);</span>
         }
-<span class="nc" id="L458">    }</span>
+<span class="fc" id="L458">    }</span>
 
     private void exportTicketExcel(String eventName, HttpServletResponse response, Principal principal, List&lt;String&gt; fields, Map&lt;Integer,TicketCategory&gt; categoriesMap, ZoneId eventZoneId) throws IOException {
 <span class="nc" id="L461">        ExportUtils.exportExcel(eventName + &quot;-export.xlsx&quot;,</span>
@@ -469,56 +469,56 @@ public class EventApiController {
                            Principal principal, List&lt;String&gt; fields,
                            Map&lt;Integer, TicketCategory&gt; categoriesMap,
                            ZoneId eventZoneId) throws IOException {
-<span class="nc" id="L472">        ExportUtils.exportCsv(eventName + &quot;-export.csv&quot;, exportHeader(fields), exportLines(eventName, principal, fields, categoriesMap, eventZoneId), response);</span>
-<span class="nc" id="L473">    }</span>
+<span class="fc" id="L472">        ExportUtils.exportCsv(eventName + &quot;-export.csv&quot;, exportHeader(fields), exportLines(eventName, principal, fields, categoriesMap, eventZoneId), response);</span>
+<span class="fc" id="L473">    }</span>
 
     private String[] exportHeader(List&lt;String&gt; fields) {
-<span class="nc" id="L476">        return fields.stream().map(f -&gt; {</span>
-<span class="nc bnc" id="L477" title="All 2 branches missed.">            if(f.startsWith(CUSTOM_FIELDS_PREFIX)) {</span>
+<span class="fc" id="L476">        return fields.stream().map(f -&gt; {</span>
+<span class="pc bpc" id="L477" title="1 of 2 branches missed.">            if(f.startsWith(CUSTOM_FIELDS_PREFIX)) {</span>
 <span class="nc" id="L478">                return f.substring(CUSTOM_FIELDS_PREFIX.length());</span>
             }
-<span class="nc" id="L480">            return f;</span>
-<span class="nc" id="L481">        }).toArray(String[]::new);</span>
+<span class="fc" id="L480">            return f;</span>
+<span class="fc" id="L481">        }).toArray(String[]::new);</span>
     }
 
     private Stream&lt;String[]&gt; exportLines(String eventName, Principal principal, List&lt;String&gt; fields, Map&lt;Integer, TicketCategory&gt; categoriesMap, ZoneId eventZoneId) {
-<span class="nc" id="L485">        var username = principal.getName();</span>
-<span class="nc" id="L486">        var eInvoicingEnabled = configurationManager.isItalianEInvoicingEnabled(eventManager.getEventAndOrganizationId(eventName, username));</span>
+<span class="fc" id="L485">        var username = principal.getName();</span>
+<span class="fc" id="L486">        var eInvoicingEnabled = configurationManager.isItalianEInvoicingEnabled(eventManager.getEventAndOrganizationId(eventName, username));</span>
 
-<span class="nc" id="L488">        return eventManager.findAllConfirmedTicketsForCSV(eventName, username).stream().map(trs -&gt; {</span>
-<span class="nc" id="L489">            Ticket t = trs.getTicket();</span>
-<span class="nc" id="L490">            var currencyCode = t.getCurrencyCode();</span>
-<span class="nc" id="L491">            TicketReservation reservation = trs.getTicketReservation();</span>
-<span class="nc" id="L492">            List&lt;String&gt; line = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L493" title="All 2 branches missed.">            if(fields.contains(&quot;ID&quot;)) {line.add(t.getUuid());}</span>
-<span class="nc bnc" id="L494" title="All 2 branches missed.">            if(fields.contains(&quot;Category&quot;)) {line.add(categoriesMap.get(t.getCategoryId()).getName());}</span>
-<span class="nc bnc" id="L495" title="All 2 branches missed.">            if(fields.contains(&quot;Event&quot;)) {line.add(eventName);}</span>
-<span class="nc bnc" id="L496" title="All 2 branches missed.">            if(fields.contains(&quot;Status&quot;)) {line.add(t.getStatus().toString());}</span>
-<span class="nc bnc" id="L497" title="All 2 branches missed.">            if(fields.contains(&quot;OriginalPrice&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getSrcPriceCts(), currencyCode).toString());}</span>
-<span class="nc bnc" id="L498" title="All 2 branches missed.">            if(fields.contains(&quot;PaidPrice&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getFinalPriceCts(), currencyCode).toString());}</span>
-<span class="nc bnc" id="L499" title="All 2 branches missed.">            if(fields.contains(&quot;Discount&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getDiscountCts(), currencyCode).toString());}</span>
-<span class="nc bnc" id="L500" title="All 2 branches missed.">            if(fields.contains(&quot;VAT&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getVatCts(), currencyCode).toString());}</span>
-<span class="nc bnc" id="L501" title="All 2 branches missed.">            if(fields.contains(&quot;ReservationID&quot;)) {line.add(t.getTicketsReservationId());}</span>
-<span class="nc bnc" id="L502" title="All 2 branches missed.">            if(fields.contains(&quot;Full Name&quot;)) {line.add(t.getFullName());}</span>
-<span class="nc bnc" id="L503" title="All 2 branches missed.">            if(fields.contains(&quot;First Name&quot;)) {line.add(t.getFirstName());}</span>
-<span class="nc bnc" id="L504" title="All 2 branches missed.">            if(fields.contains(&quot;Last Name&quot;)) {line.add(t.getLastName());}</span>
-<span class="nc bnc" id="L505" title="All 2 branches missed.">            if(fields.contains(&quot;E-Mail&quot;)) {line.add(t.getEmail());}</span>
-<span class="nc bnc" id="L506" title="All 2 branches missed.">            if(fields.contains(&quot;Locked&quot;)) {line.add(String.valueOf(t.getLockedAssignment()));}</span>
-<span class="nc bnc" id="L507" title="All 2 branches missed.">            if(fields.contains(&quot;Language&quot;)) {line.add(String.valueOf(t.getUserLanguage()));}</span>
-<span class="nc bnc" id="L508" title="All 2 branches missed.">            if(fields.contains(&quot;Confirmation&quot;)) {line.add(reservation.getConfirmationTimestamp().withZoneSameInstant(eventZoneId).toString());}</span>
-<span class="nc bnc" id="L509" title="All 2 branches missed.">            if(fields.contains(&quot;Billing Address&quot;)) {line.add(reservation.getBillingAddress());}</span>
-<span class="nc bnc" id="L510" title="All 2 branches missed.">            if(fields.contains(&quot;Country Code&quot;)) {line.add(reservation.getVatCountryCode());}</span>
-<span class="nc bnc" id="L511" title="All 2 branches missed.">            if(fields.contains(&quot;Promo Code&quot;)) {line.add(trs.getPromoCode());}</span>
-<span class="nc" id="L512">            boolean paymentIdRequested = fields.contains(&quot;Payment ID&quot;);</span>
-<span class="nc" id="L513">            boolean paymentGatewayRequested = fields.contains(PAYMENT_METHOD);</span>
-<span class="nc bnc" id="L514" title="All 4 branches missed.">            if((paymentIdRequested || paymentGatewayRequested)) {</span>
-<span class="nc" id="L515">                Optional&lt;Transaction&gt; transaction = trs.getTransaction();</span>
-<span class="nc bnc" id="L516" title="All 2 branches missed.">                if(paymentIdRequested) { line.add(Objects.toString(transaction.map(Transaction::getPaymentId).orElse(null), transaction.map(Transaction::getTransactionId).orElse(&quot;&quot;))); }</span>
-<span class="nc bnc" id="L517" title="All 2 branches missed.">                if(paymentGatewayRequested) { line.add(transaction.map(tr -&gt; tr.getPaymentProxy().name()).orElse(&quot;&quot;)); }</span>
+<span class="fc" id="L488">        return eventManager.findAllConfirmedTicketsForCSV(eventName, username).stream().map(trs -&gt; {</span>
+<span class="fc" id="L489">            Ticket t = trs.getTicket();</span>
+<span class="fc" id="L490">            var currencyCode = t.getCurrencyCode();</span>
+<span class="fc" id="L491">            TicketReservation reservation = trs.getTicketReservation();</span>
+<span class="fc" id="L492">            List&lt;String&gt; line = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L493" title="1 of 2 branches missed.">            if(fields.contains(&quot;ID&quot;)) {line.add(t.getUuid());}</span>
+<span class="pc bpc" id="L494" title="1 of 2 branches missed.">            if(fields.contains(&quot;Category&quot;)) {line.add(categoriesMap.get(t.getCategoryId()).getName());}</span>
+<span class="pc bpc" id="L495" title="1 of 2 branches missed.">            if(fields.contains(&quot;Event&quot;)) {line.add(eventName);}</span>
+<span class="pc bpc" id="L496" title="1 of 2 branches missed.">            if(fields.contains(&quot;Status&quot;)) {line.add(t.getStatus().toString());}</span>
+<span class="pc bpc" id="L497" title="1 of 2 branches missed.">            if(fields.contains(&quot;OriginalPrice&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getSrcPriceCts(), currencyCode).toString());}</span>
+<span class="pc bpc" id="L498" title="1 of 2 branches missed.">            if(fields.contains(&quot;PaidPrice&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getFinalPriceCts(), currencyCode).toString());}</span>
+<span class="pc bpc" id="L499" title="1 of 2 branches missed.">            if(fields.contains(&quot;Discount&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getDiscountCts(), currencyCode).toString());}</span>
+<span class="pc bpc" id="L500" title="1 of 2 branches missed.">            if(fields.contains(&quot;VAT&quot;)) {line.add(MonetaryUtil.centsToUnit(t.getVatCts(), currencyCode).toString());}</span>
+<span class="pc bpc" id="L501" title="1 of 2 branches missed.">            if(fields.contains(&quot;ReservationID&quot;)) {line.add(t.getTicketsReservationId());}</span>
+<span class="pc bpc" id="L502" title="1 of 2 branches missed.">            if(fields.contains(&quot;Full Name&quot;)) {line.add(t.getFullName());}</span>
+<span class="pc bpc" id="L503" title="1 of 2 branches missed.">            if(fields.contains(&quot;First Name&quot;)) {line.add(t.getFirstName());}</span>
+<span class="pc bpc" id="L504" title="1 of 2 branches missed.">            if(fields.contains(&quot;Last Name&quot;)) {line.add(t.getLastName());}</span>
+<span class="pc bpc" id="L505" title="1 of 2 branches missed.">            if(fields.contains(&quot;E-Mail&quot;)) {line.add(t.getEmail());}</span>
+<span class="pc bpc" id="L506" title="1 of 2 branches missed.">            if(fields.contains(&quot;Locked&quot;)) {line.add(String.valueOf(t.getLockedAssignment()));}</span>
+<span class="pc bpc" id="L507" title="1 of 2 branches missed.">            if(fields.contains(&quot;Language&quot;)) {line.add(String.valueOf(t.getUserLanguage()));}</span>
+<span class="pc bpc" id="L508" title="1 of 2 branches missed.">            if(fields.contains(&quot;Confirmation&quot;)) {line.add(reservation.getConfirmationTimestamp().withZoneSameInstant(eventZoneId).toString());}</span>
+<span class="pc bpc" id="L509" title="1 of 2 branches missed.">            if(fields.contains(&quot;Billing Address&quot;)) {line.add(reservation.getBillingAddress());}</span>
+<span class="pc bpc" id="L510" title="1 of 2 branches missed.">            if(fields.contains(&quot;Country Code&quot;)) {line.add(reservation.getVatCountryCode());}</span>
+<span class="pc bpc" id="L511" title="1 of 2 branches missed.">            if(fields.contains(&quot;Promo Code&quot;)) {line.add(trs.getPromoCode());}</span>
+<span class="fc" id="L512">            boolean paymentIdRequested = fields.contains(&quot;Payment ID&quot;);</span>
+<span class="fc" id="L513">            boolean paymentGatewayRequested = fields.contains(PAYMENT_METHOD);</span>
+<span class="pc bpc" id="L514" title="3 of 4 branches missed.">            if((paymentIdRequested || paymentGatewayRequested)) {</span>
+<span class="fc" id="L515">                Optional&lt;Transaction&gt; transaction = trs.getTransaction();</span>
+<span class="pc bpc" id="L516" title="1 of 2 branches missed.">                if(paymentIdRequested) { line.add(Objects.toString(transaction.map(Transaction::getPaymentId).orElse(null), transaction.map(Transaction::getTransactionId).orElse(&quot;&quot;))); }</span>
+<span class="pc bpc" id="L517" title="1 of 2 branches missed.">                if(paymentGatewayRequested) { line.add(transaction.map(tr -&gt; tr.getPaymentProxy().name()).orElse(&quot;&quot;)); }</span>
             }
-<span class="nc bnc" id="L519" title="All 2 branches missed.">            if(fields.contains(EXTERNAL_REFERENCE)) {line.add(t.getExtReference());}</span>
+<span class="pc bpc" id="L519" title="1 of 2 branches missed.">            if(fields.contains(EXTERNAL_REFERENCE)) {line.add(t.getExtReference());}</span>
 
-<span class="nc bnc" id="L521" title="All 2 branches missed.">            if(eInvoicingEnabled) {</span>
+<span class="pc bpc" id="L521" title="1 of 2 branches missed.">            if(eInvoicingEnabled) {</span>
 <span class="nc" id="L522">                var billingDetails = trs.getBillingDetails();</span>
 <span class="nc" id="L523">                var optionalInvoicingData = Optional.ofNullable(billingDetails.getInvoicingAdditionalInfo()).map(TicketReservationInvoicingAdditionalInfo::getItalianEInvoicing);</span>
 <span class="nc bnc" id="L524" title="All 2 branches missed.">                if(fields.contains(FISCAL_CODE)) {line.add(optionalInvoicingData.map(ItalianEInvoicing::getFiscalCode).orElse(&quot;&quot;));}</span>
@@ -528,72 +528,72 @@ public class EventApiController {
             }
 
             //obviously not optimized
-<span class="nc" id="L531">            Map&lt;String, List&lt;String&gt;&gt; additionalValues = purchaseContextFieldRepository.findAllValuesForTicketId(t.getId());</span>
+<span class="fc" id="L531">            Map&lt;String, List&lt;String&gt;&gt; additionalValues = purchaseContextFieldRepository.findAllValuesForTicketId(t.getId());</span>
 
-<span class="nc" id="L533">            Predicate&lt;String&gt; contains = FIXED_FIELDS::contains;</span>
+<span class="fc" id="L533">            Predicate&lt;String&gt; contains = FIXED_FIELDS::contains;</span>
 
-<span class="nc" id="L535">            fields.stream().filter(contains.negate()).filter(f -&gt; f.startsWith(CUSTOM_FIELDS_PREFIX)).forEachOrdered(field -&gt; {</span>
+<span class="pc" id="L535">            fields.stream().filter(contains.negate()).filter(f -&gt; f.startsWith(CUSTOM_FIELDS_PREFIX)).forEachOrdered(field -&gt; {</span>
 <span class="nc" id="L536">                String customFieldName = field.substring(CUSTOM_FIELDS_PREFIX.length());</span>
 <span class="nc" id="L537">                line.add(String.join(&quot;; &quot;, additionalValues.getOrDefault(customFieldName, List.of())).replace(&quot;\&quot;&quot;, &quot;&quot;));</span>
 <span class="nc" id="L538">            });</span>
 
-<span class="nc" id="L540">            return line.toArray(new String[0]);</span>
+<span class="fc" id="L540">            return line.toArray(new String[0]);</span>
         });
     }
 
     @GetMapping(&quot;/events/{eventName}/sponsor-scan/export&quot;)
     public void downloadSponsorScanExport(@PathVariable String eventName, @RequestParam(name = &quot;format&quot;, defaultValue = &quot;excel&quot;) String format, HttpServletResponse response, Principal principal) throws IOException {
-<span class="nc" id="L546">        accessService.checkEventOwnership(principal, eventName);</span>
-<span class="nc" id="L547">        var event = eventManager.getSingleEvent(eventName, principal.getName());</span>
-<span class="nc" id="L548">        List&lt;PurchaseContextFieldConfiguration&gt; fields = purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId());</span>
+<span class="fc" id="L546">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L547">        var event = eventManager.getSingleEvent(eventName, principal.getName());</span>
+<span class="fc" id="L548">        List&lt;PurchaseContextFieldConfiguration&gt; fields = purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId());</span>
 
-<span class="nc" id="L550">        List&lt;String&gt; header = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L551">        header.add(&quot;Username/Api Key&quot;);</span>
-<span class="nc" id="L552">        header.add(&quot;Description&quot;);</span>
-<span class="nc" id="L553">        header.add(&quot;Timestamp&quot;);</span>
-<span class="nc" id="L554">        header.add(&quot;Full name&quot;);</span>
-<span class="nc" id="L555">        header.add(&quot;Email&quot;);</span>
-<span class="nc" id="L556">        header.addAll(fields.stream().map(PurchaseContextFieldConfiguration::getName).toList());</span>
-<span class="nc" id="L557">        header.add(&quot;Sponsor notes&quot;);</span>
-<span class="nc" id="L558">        header.add(&quot;Lead Status&quot;);</span>
-<span class="nc" id="L559">        header.add(&quot;Operator&quot;);</span>
+<span class="fc" id="L550">        List&lt;String&gt; header = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L551">        header.add(&quot;Username/Api Key&quot;);</span>
+<span class="fc" id="L552">        header.add(&quot;Description&quot;);</span>
+<span class="fc" id="L553">        header.add(&quot;Timestamp&quot;);</span>
+<span class="fc" id="L554">        header.add(&quot;Full name&quot;);</span>
+<span class="fc" id="L555">        header.add(&quot;Email&quot;);</span>
+<span class="fc" id="L556">        header.addAll(fields.stream().map(PurchaseContextFieldConfiguration::getName).toList());</span>
+<span class="fc" id="L557">        header.add(&quot;Sponsor notes&quot;);</span>
+<span class="fc" id="L558">        header.add(&quot;Lead Status&quot;);</span>
+<span class="fc" id="L559">        header.add(&quot;Operator&quot;);</span>
 
-<span class="nc" id="L561">        Stream&lt;String[]&gt; sponsorScans = userManager.findAllEnabledUsers(principal.getName()).stream()</span>
-<span class="nc" id="L562">            .map(u -&gt; Pair.of(u, userManager.getUserRole(u)))</span>
-<span class="nc bnc" id="L563" title="All 2 branches missed.">            .filter(p -&gt; p.getRight() == Role.SPONSOR)</span>
-<span class="nc" id="L564">            .flatMap(p -&gt; sponsorScanRepository.loadSponsorData(event.getId(), p.getKey().getId(), SponsorScanRepository.DEFAULT_TIMESTAMP)</span>
-<span class="nc" id="L565">                .stream()</span>
-<span class="nc" id="L566">                .map(v -&gt; Pair.of(v, purchaseContextFieldRepository.findAllValuesForTicketId(v.getTicket().getId()))))</span>
-<span class="nc" id="L567">            .map(p -&gt; {</span>
-<span class="nc" id="L568">                DetailedScanData data = p.getLeft();</span>
-<span class="nc" id="L569">                Map&lt;String, List&lt;String&gt;&gt; descriptions = p.getRight();</span>
-<span class="nc" id="L570">                return Pair.of(data, fields.stream()</span>
-<span class="nc" id="L571">                    .map(x -&gt; String.join(&quot;; &quot;, descriptions.getOrDefault(x.getName(), List.of()))).collect(toList()));</span>
-<span class="nc" id="L572">            }).map(p -&gt; {</span>
-<span class="nc" id="L573">                List&lt;String&gt; line = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L574">                Ticket ticket = p.getLeft().getTicket();</span>
-<span class="nc" id="L575">                SponsorScan sponsorScan = p.getLeft().getSponsorScan();</span>
-<span class="nc" id="L576">                User user = userManager.findUser(sponsorScan.getUserId(), principal);</span>
-<span class="nc" id="L577">                line.add(user.getUsername());</span>
-<span class="nc" id="L578">                line.add(user.getDescription());</span>
-<span class="nc" id="L579">                line.add(sponsorScan.getTimestamp().toString());</span>
-<span class="nc" id="L580">                line.add(ticket.getFullName());</span>
-<span class="nc" id="L581">                line.add(ticket.getEmail());</span>
+<span class="fc" id="L561">        Stream&lt;String[]&gt; sponsorScans = userManager.findAllEnabledUsers(principal.getName()).stream()</span>
+<span class="fc" id="L562">            .map(u -&gt; Pair.of(u, userManager.getUserRole(u)))</span>
+<span class="fc bfc" id="L563" title="All 2 branches covered.">            .filter(p -&gt; p.getRight() == Role.SPONSOR)</span>
+<span class="fc" id="L564">            .flatMap(p -&gt; sponsorScanRepository.loadSponsorData(event.getId(), p.getKey().getId(), SponsorScanRepository.DEFAULT_TIMESTAMP)</span>
+<span class="fc" id="L565">                .stream()</span>
+<span class="fc" id="L566">                .map(v -&gt; Pair.of(v, purchaseContextFieldRepository.findAllValuesForTicketId(v.getTicket().getId()))))</span>
+<span class="fc" id="L567">            .map(p -&gt; {</span>
+<span class="fc" id="L568">                DetailedScanData data = p.getLeft();</span>
+<span class="fc" id="L569">                Map&lt;String, List&lt;String&gt;&gt; descriptions = p.getRight();</span>
+<span class="fc" id="L570">                return Pair.of(data, fields.stream()</span>
+<span class="fc" id="L571">                    .map(x -&gt; String.join(&quot;; &quot;, descriptions.getOrDefault(x.getName(), List.of()))).collect(toList()));</span>
+<span class="fc" id="L572">            }).map(p -&gt; {</span>
+<span class="fc" id="L573">                List&lt;String&gt; line = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L574">                Ticket ticket = p.getLeft().getTicket();</span>
+<span class="fc" id="L575">                SponsorScan sponsorScan = p.getLeft().getSponsorScan();</span>
+<span class="fc" id="L576">                User user = userManager.findUser(sponsorScan.getUserId(), principal);</span>
+<span class="fc" id="L577">                line.add(user.getUsername());</span>
+<span class="fc" id="L578">                line.add(user.getDescription());</span>
+<span class="fc" id="L579">                line.add(sponsorScan.getTimestamp().toString());</span>
+<span class="fc" id="L580">                line.add(ticket.getFullName());</span>
+<span class="fc" id="L581">                line.add(ticket.getEmail());</span>
 
-<span class="nc" id="L583">                line.addAll(p.getRight());</span>
+<span class="fc" id="L583">                line.addAll(p.getRight());</span>
 
-<span class="nc" id="L585">                line.add(sponsorScan.getNotes());</span>
-<span class="nc" id="L586">                line.add(sponsorScan.getLeadStatus().name());</span>
-<span class="nc" id="L587">                line.add(sponsorScan.getOperator());</span>
-<span class="nc" id="L588">                return line.toArray(new String[0]);</span>
+<span class="fc" id="L585">                line.add(sponsorScan.getNotes());</span>
+<span class="fc" id="L586">                line.add(sponsorScan.getLeadStatus().name());</span>
+<span class="fc" id="L587">                line.add(sponsorScan.getOperator());</span>
+<span class="fc" id="L588">                return line.toArray(new String[0]);</span>
             });
 
-<span class="nc bnc" id="L591" title="All 2 branches missed.">        if (&quot;excel&quot;.equals(format)) {</span>
+<span class="pc bpc" id="L591" title="1 of 2 branches missed.">        if (&quot;excel&quot;.equals(format)) {</span>
 <span class="nc" id="L592">            exportSponsorScanExcel(event.getShortName(), header, sponsorScans, response);</span>
         } else {
-<span class="nc" id="L594">            exportSponsorScanCSV(event.getShortName(), header, sponsorScans, response);</span>
+<span class="fc" id="L594">            exportSponsorScanCSV(event.getShortName(), header, sponsorScans, response);</span>
         }
-<span class="nc" id="L596">    }</span>
+<span class="fc" id="L596">    }</span>
 
     private void exportSponsorScanExcel(String eventName, List&lt;String&gt; header, Stream&lt;String[]&gt; sponsorScans,
                                         HttpServletResponse response) throws IOException {
@@ -605,8 +605,8 @@ public class EventApiController {
 
     private void exportSponsorScanCSV(String eventName, List&lt;String&gt; header, Stream&lt;String[]&gt; sponsorScans,
                                       HttpServletResponse response) throws IOException {
-<span class="nc" id="L608">        ExportUtils.exportCsv(eventName + &quot;-sponsor-scan.csv&quot;, header.toArray(new String[0]), sponsorScans, response);</span>
-<span class="nc" id="L609">    }</span>
+<span class="fc" id="L608">        ExportUtils.exportCsv(eventName + &quot;-sponsor-scan.csv&quot;, header.toArray(new String[0]), sponsorScans, response);</span>
+<span class="fc" id="L609">    }</span>
 
     @GetMapping(&quot;/events/{eventName}/fields&quot;)
     public List&lt;SerializablePair&lt;String, String&gt;&gt; getAllFields(@PathVariable String eventName, Principal principal) {
@@ -622,8 +622,8 @@ public class EventApiController {
 
     @GetMapping(&quot;/events/{eventName}/pending-payments&quot;)
     public List&lt;TicketReservationWithTransaction&gt; getPendingPayments(@PathVariable String eventName, Principal principal) {
-<span class="nc" id="L625">        accessService.checkEventOwnership(principal, eventName);</span>
-<span class="nc" id="L626">        return ticketReservationManager.getPendingPayments(eventName);</span>
+<span class="fc" id="L625">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="fc" id="L626">        return ticketReservationManager.getPendingPayments(eventName);</span>
     }
 
     @GetMapping(&quot;/events/{eventName}/pending-payments-count&quot;)
@@ -639,16 +639,16 @@ public class EventApiController {
                                  @PathVariable String reservationId,
                                  @RequestBody TransactionMetadataModification transactionMetadataModification,
                                  Principal principal) {
-<span class="nc" id="L642">        accessService.checkEventAndReservationOwnership(principal, eventName, Set.of(reservationId));</span>
-<span class="nc" id="L643">        var event = loadEvent(eventName, principal);</span>
-<span class="nc" id="L644">        ticketReservationManager.confirmOfflinePayment(event, reservationId, transactionMetadataModification, principal.getName());</span>
-<span class="nc" id="L645">        ticketReservationManager.findById(reservationId)</span>
-<span class="nc" id="L646">            .filter(TicketReservation::isDirectAssignmentRequested)</span>
-<span class="nc" id="L647">            .ifPresent(reservation -&gt; {</span>
+<span class="fc" id="L642">        accessService.checkEventAndReservationOwnership(principal, eventName, Set.of(reservationId));</span>
+<span class="fc" id="L643">        var event = loadEvent(eventName, principal);</span>
+<span class="fc" id="L644">        ticketReservationManager.confirmOfflinePayment(event, reservationId, transactionMetadataModification, principal.getName());</span>
+<span class="fc" id="L645">        ticketReservationManager.findById(reservationId)</span>
+<span class="fc" id="L646">            .filter(TicketReservation::isDirectAssignmentRequested)</span>
+<span class="fc" id="L647">            .ifPresent(reservation -&gt; {</span>
 <span class="nc" id="L648">                Locale locale = LocaleUtil.forLanguageTag(reservation.getUserLanguage(), event);</span>
 <span class="nc" id="L649">                ticketHelper.directTicketAssignment(eventName, reservationId, reservation.getEmail(), reservation.getFullName(), reservation.getFirstName(), reservation.getLastName(), reservation.getUserLanguage(), Optional.empty(), locale);</span>
 <span class="nc" id="L650">            });</span>
-<span class="nc" id="L651">        return OK;</span>
+<span class="fc" id="L651">        return OK;</span>
     }
 
     @DeleteMapping(&quot;/events/{eventName}/pending-payments/{reservationId}&quot;)
@@ -963,9 +963,9 @@ public class EventApiController {
     }
 
     private Event loadEvent(String eventName, Principal principal) {
-<span class="nc" id="L966">        Optional&lt;Event&gt; singleEvent = eventManager.getOptionalByName(eventName, principal.getName());</span>
-<span class="nc" id="L967">        Validate.isTrue(singleEvent.isPresent(), &quot;event not found&quot;);</span>
-<span class="nc" id="L968">        return singleEvent.orElseThrow();</span>
+<span class="fc" id="L966">        Optional&lt;Event&gt; singleEvent = eventManager.getOptionalByName(eventName, principal.getName());</span>
+<span class="fc" id="L967">        Validate.isTrue(singleEvent.isPresent(), &quot;event not found&quot;);</span>
+<span class="fc" id="L968">        return singleEvent.orElseThrow();</span>
     }
 
 <span class="nc" id="L971">    record TicketsStatistics(String granularity, List&lt;TicketsByDateStatistic&gt; sold,</span>
@@ -973,8 +973,8 @@ public class EventApiController {
     }
 
     private static boolean isSponsor(Authentication authentication) {
-<span class="nc" id="L976">        return CollectionUtils.emptyIfNull(authentication.getAuthorities()).stream()</span>
-<span class="nc" id="L977">            .anyMatch(ga -&gt; ga.getAuthority().equals(&quot;ROLE_&quot; + AuthenticationConstants.SPONSOR));</span>
+<span class="fc" id="L976">        return CollectionUtils.emptyIfNull(authentication.getAuthorities()).stream()</span>
+<span class="pc" id="L977">            .anyMatch(ga -&gt; ga.getAuthority().equals(&quot;ROLE_&quot; + AuthenticationConstants.SPONSOR));</span>
     }
 
     @ExceptionHandler({

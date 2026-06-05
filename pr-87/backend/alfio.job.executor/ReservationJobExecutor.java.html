@@ -31,13 +31,13 @@ public class ReservationJobExecutor implements AdminJobExecutor {
 
     private final TicketReservationManager ticketReservationManager;
 
-<span class="nc" id="L34">    public ReservationJobExecutor(TicketReservationManager ticketReservationManager) {</span>
-<span class="nc" id="L35">        this.ticketReservationManager = ticketReservationManager;</span>
-<span class="nc" id="L36">    }</span>
+<span class="fc" id="L34">    public ReservationJobExecutor(TicketReservationManager ticketReservationManager) {</span>
+<span class="fc" id="L35">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L36">    }</span>
 
     @Override
     public Set&lt;JobName&gt; getJobNames() {
-<span class="nc" id="L40">        return EnumSet.of(</span>
+<span class="fc" id="L40">        return EnumSet.of(</span>
             CHECK_OFFLINE_PAYMENTS,
             SEND_TICKET_ASSIGNMENT_REMINDER,
             SEND_OFFLINE_PAYMENT_REMINDER,

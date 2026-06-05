@@ -61,17 +61,17 @@ public class OpenIdUserSynchronizer {
                                   NamedParameterJdbcTemplate jdbcTemplate,
                                   AuthorityRepository authorityRepository,
                                   OrganizationRepository organizationRepository,
-<span class="nc" id="L64">                                  ExtensionManager extensionManager) {</span>
-<span class="nc" id="L65">        this.transactionTemplate = new TransactionTemplate(transactionManager);</span>
-<span class="nc" id="L66">        this.passwordEncoder = passwordEncoder;</span>
-<span class="nc" id="L67">        this.userManager = userManager;</span>
-<span class="nc" id="L68">        this.userRepository = userRepository;</span>
-<span class="nc" id="L69">        this.userOrganizationRepository = userOrganizationRepository;</span>
-<span class="nc" id="L70">        this.jdbcTemplate = jdbcTemplate;</span>
-<span class="nc" id="L71">        this.authorityRepository = authorityRepository;</span>
-<span class="nc" id="L72">        this.organizationRepository = organizationRepository;</span>
-<span class="nc" id="L73">        this.extensionManager = extensionManager;</span>
-<span class="nc" id="L74">    }</span>
+<span class="fc" id="L64">                                  ExtensionManager extensionManager) {</span>
+<span class="fc" id="L65">        this.transactionTemplate = new TransactionTemplate(transactionManager);</span>
+<span class="fc" id="L66">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L67">        this.userManager = userManager;</span>
+<span class="fc" id="L68">        this.userRepository = userRepository;</span>
+<span class="fc" id="L69">        this.userOrganizationRepository = userOrganizationRepository;</span>
+<span class="fc" id="L70">        this.jdbcTemplate = jdbcTemplate;</span>
+<span class="fc" id="L71">        this.authorityRepository = authorityRepository;</span>
+<span class="fc" id="L72">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L73">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L74">    }</span>
 
     public boolean syncUser(OidcUser oidcUser,
                          OpenIdAlfioUser internalUser,

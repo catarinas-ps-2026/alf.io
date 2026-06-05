@@ -42,18 +42,18 @@ public interface ApiPurchaseContext {
     String getVat();
 
     default List&lt;Language&gt; getContentLanguages() {
-<span class="nc" id="L45">        return purchaseContext().getContentLanguages()</span>
-<span class="nc" id="L46">            .stream()</span>
-<span class="nc" id="L47">            .map(cl -&gt; new Language(cl.locale().getLanguage(), cl.getDisplayLanguage()))</span>
-<span class="nc" id="L48">            .collect(Collectors.toList());</span>
+<span class="fc" id="L45">        return purchaseContext().getContentLanguages()</span>
+<span class="fc" id="L46">            .stream()</span>
+<span class="fc" id="L47">            .map(cl -&gt; new Language(cl.locale().getLanguage(), cl.getDisplayLanguage()))</span>
+<span class="fc" id="L48">            .collect(Collectors.toList());</span>
     }
 
     default CurrencyDescriptor getCurrencyDescriptor() {
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        if(purchaseContext().isFreeOfCharge()) {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if(purchaseContext().isFreeOfCharge()) {</span>
 <span class="nc" id="L53">            return null;</span>
         }
-<span class="nc" id="L55">        var currencyUnit = CurrencyUnit.of(getCurrency());</span>
-<span class="nc" id="L56">        return new CurrencyDescriptor(currencyUnit.getCode(), currencyUnit.toCurrency().getDisplayName(), currencyUnit.getSymbol(), currencyUnit.getDecimalPlaces());</span>
+<span class="fc" id="L55">        var currencyUnit = CurrencyUnit.of(getCurrency());</span>
+<span class="fc" id="L56">        return new CurrencyDescriptor(currencyUnit.getCode(), currencyUnit.toCurrency().getDisplayName(), currencyUnit.getSymbol(), currencyUnit.getDecimalPlaces());</span>
     }
 
     String getPrivacyPolicyUrl();

@@ -34,41 +34,41 @@ public class ArrayColumnMapper extends ColumnMapper {
     private static final int ORDER = Integer.MAX_VALUE - 31;
 
     private ArrayColumnMapper(String name, Class&lt;?&gt; paramType) {
-<span class="nc" id="L37">        super(name, paramType);</span>
-<span class="nc" id="L38">    }</span>
+<span class="fc" id="L37">        super(name, paramType);</span>
+<span class="fc" id="L38">    }</span>
 
     @Override
     public Object getObject(ResultSet rs) throws SQLException {
-<span class="nc" id="L42">        var array = rs.getArray(name);</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if(array != null) {</span>
-<span class="nc" id="L44">            return Arrays.asList((Object[]) array.getArray());</span>
+<span class="fc" id="L42">        var array = rs.getArray(name);</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if(array != null) {</span>
+<span class="fc" id="L44">            return Arrays.asList((Object[]) array.getArray());</span>
         }
 <span class="nc" id="L46">        return null;</span>
     }
 
     private static boolean hasAnnotation(Annotation[] annotations) {
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        return annotations != null</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">            &amp;&amp; Arrays.stream(annotations).anyMatch(ArrayColumnMapper::annotationFinder);</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        return annotations != null</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">            &amp;&amp; Arrays.stream(annotations).anyMatch(ArrayColumnMapper::annotationFinder);</span>
     }
 
     private static boolean annotationFinder(Annotation annotation){
-<span class="nc bnc" id="L55" title="All 2 branches missed.">        return annotation.annotationType() == Array.class;</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        return annotation.annotationType() == Array.class;</span>
     }
 
-<span class="nc" id="L58">    public static class Factory implements ColumnMapperFactory {</span>
+<span class="fc" id="L58">    public static class Factory implements ColumnMapperFactory {</span>
         @Override
         public ColumnMapper build(String name, Class&lt;?&gt; paramType) {
-<span class="nc" id="L61">            return new ArrayColumnMapper(name, paramType);</span>
+<span class="fc" id="L61">            return new ArrayColumnMapper(name, paramType);</span>
         }
 
         @Override
         public int order() {
-<span class="nc" id="L66">            return ORDER;</span>
+<span class="fc" id="L66">            return ORDER;</span>
         }
 
         @Override
         public boolean accept(Class&lt;?&gt; paramType, Annotation[] annotations) {
-<span class="nc" id="L71">            return hasAnnotation(annotations);</span>
+<span class="fc" id="L71">            return hasAnnotation(annotations);</span>
         }
 
         @Override
@@ -83,33 +83,33 @@ public class ArrayColumnMapper extends ColumnMapper {
         }
     }
 
-<span class="nc" id="L86">    public static class Converter implements ParameterConverter.AdvancedParameterConverter {</span>
+<span class="fc" id="L86">    public static class Converter implements ParameterConverter.AdvancedParameterConverter {</span>
         @Override
         public boolean accept(Class&lt;?&gt; parameterType, Annotation[] annotations) {
-<span class="nc bnc" id="L89" title="All 4 branches missed.">            return hasAnnotation(annotations) &amp;&amp; List.class.isAssignableFrom(parameterType);</span>
+<span class="pc bpc" id="L89" title="1 of 4 branches missed.">            return hasAnnotation(annotations) &amp;&amp; List.class.isAssignableFrom(parameterType);</span>
         }
 
 
         @Override
         public void processParameter(ProcessParameterContext processParameterContext) {
-<span class="nc" id="L95">            var arg = processParameterContext.getArg();</span>
-<span class="nc" id="L96">            var ps = processParameterContext.getParameterSource();</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">            if(arg == null) {</span>
+<span class="fc" id="L95">            var arg = processParameterContext.getArg();</span>
+<span class="fc" id="L96">            var ps = processParameterContext.getParameterSource();</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            if(arg == null) {</span>
 <span class="nc" id="L98">                ps.addValue(processParameterContext.getParameterName(), null, Types.ARRAY);</span>
             } else {
-<span class="nc" id="L100">                Array def = (Array) Arrays.stream(processParameterContext.getParameterAnnotations()).filter(ArrayColumnMapper::annotationFinder).findFirst().orElseThrow();</span>
+<span class="fc" id="L100">                Array def = (Array) Arrays.stream(processParameterContext.getParameterAnnotations()).filter(ArrayColumnMapper::annotationFinder).findFirst().orElseThrow();</span>
                 try {
-<span class="nc" id="L102">                    var array = processParameterContext.getConnection().createArrayOf(def.type(), ((List&lt;?&gt;) arg).toArray());</span>
-<span class="nc" id="L103">                    ps.addValue(processParameterContext.getParameterName(), array);</span>
+<span class="fc" id="L102">                    var array = processParameterContext.getConnection().createArrayOf(def.type(), ((List&lt;?&gt;) arg).toArray());</span>
+<span class="fc" id="L103">                    ps.addValue(processParameterContext.getParameterName(), array);</span>
 <span class="nc" id="L104">                } catch (SQLException e) {</span>
 <span class="nc" id="L105">                    throw new IllegalStateException(e);</span>
-<span class="nc" id="L106">                }</span>
+<span class="fc" id="L106">                }</span>
             }
-<span class="nc" id="L108">        }</span>
+<span class="fc" id="L108">        }</span>
 
         @Override
         public int order() {
-<span class="nc" id="L112">            return ORDER;</span>
+<span class="fc" id="L112">            return ORDER;</span>
         }
     }
 }

@@ -76,25 +76,25 @@ public class RevolutBankTransferManager implements PaymentProvider, OfflineProce
 
     @Override
     public Set&lt;? extends PaymentMethod&gt; getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
-<span class="nc" id="L79">        return bankTransferManager.getSupportedPaymentMethods(paymentContext, transactionRequest);</span>
+<span class="fc" id="L79">        return bankTransferManager.getSupportedPaymentMethods(paymentContext, transactionRequest);</span>
     }
 
     @Override
     public PaymentProxy getPaymentProxy() {
-<span class="nc" id="L84">        return bankTransferManager.getPaymentProxy();</span>
+<span class="fc" id="L84">        return bankTransferManager.getPaymentProxy();</span>
     }
 
     @Override
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-<span class="nc bnc" id="L89" title="All 4 branches missed.">        return paymentMethod == StaticPaymentMethods.BANK_TRANSFER &amp;&amp; isActive(context);</span>
+<span class="pc bpc" id="L89" title="3 of 4 branches missed.">        return paymentMethod == StaticPaymentMethods.BANK_TRANSFER &amp;&amp; isActive(context);</span>
     }
 
     @Override
     public boolean isActive(PaymentContext paymentContext) {
-<span class="nc" id="L94">        var options = bankTransferManager.options(paymentContext);</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        return bankTransferManager.bankTransferActive(paymentContext, options)</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            &amp;&amp; options.get(REVOLUT_ENABLED).getValueAsBooleanOrDefault()</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">            &amp;&amp; options.get(REVOLUT_API_KEY).isPresent();</span>
+<span class="fc" id="L94">        var options = bankTransferManager.options(paymentContext);</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        return bankTransferManager.bankTransferActive(paymentContext, options)</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">            &amp;&amp; options.get(REVOLUT_ENABLED).getValueAsBooleanOrDefault()</span>
+<span class="pc bnc" id="L97" title="All 2 branches missed.">            &amp;&amp; options.get(REVOLUT_API_KEY).isPresent();</span>
     }
 
     @Override

@@ -72,8 +72,8 @@ public class FieldConfigurationDescriptionAndValue {
     }
 
     public List&lt;TicketFieldValue&gt; getFields() {
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if(count == 1) {</span>
-<span class="nc" id="L76">            return Collections.singletonList(new TicketFieldValue(0, 1, value, isAcceptingValues()));</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if(count == 1) {</span>
+<span class="fc" id="L76">            return Collections.singletonList(new TicketFieldValue(0, 1, value, isAcceptingValues()));</span>
         }
 <span class="nc bnc" id="L78" title="All 2 branches missed.">        List&lt;String&gt; values = StringUtils.isBlank(value) ? Collections.emptyList() : Json.fromJson(value, new TypeReference&lt;&gt;() {});</span>
 <span class="nc" id="L79">        return IntStream.range(0, count)</span>
@@ -116,15 +116,15 @@ public class FieldConfigurationDescriptionAndValue {
     }
 
     public String getValue() {
-<span class="nc" id="L119">        return value;</span>
+<span class="fc" id="L119">        return value;</span>
     }
 
     private boolean isAcceptingValues() {
-<span class="nc bnc" id="L123" title="All 4 branches missed.">        return isEditable() || StringUtils.isBlank(value);</span>
+<span class="pc bpc" id="L123" title="3 of 4 branches missed.">        return isEditable() || StringUtils.isBlank(value);</span>
     }
 
     public boolean isBeforeStandardFields() {
-<span class="nc" id="L127">        return isBeforeStandardFields(purchaseContextFieldConfiguration);</span>
+<span class="fc" id="L127">        return isBeforeStandardFields(purchaseContextFieldConfiguration);</span>
     }
 
     private static boolean isFieldValueEnabled(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration, String value) {
@@ -142,16 +142,16 @@ public class FieldConfigurationDescriptionAndValue {
         private final Boolean editable;
 
         @ConstructorProperties({&quot;fieldIndex&quot;, &quot;fieldCounter&quot;, &quot;fieldValue&quot;, &quot;editable&quot;})
-<span class="nc" id="L145">        public TicketFieldValue(int fieldIndex, int fieldCounter, String fieldValue, Boolean editable) {</span>
-<span class="nc" id="L146">            this.fieldIndex = fieldIndex;</span>
-<span class="nc" id="L147">            this.fieldCounter = fieldCounter;</span>
-<span class="nc" id="L148">            this.fieldValue = fieldValue;</span>
-<span class="nc" id="L149">            this.editable = editable;</span>
-<span class="nc" id="L150">        }</span>
+<span class="fc" id="L145">        public TicketFieldValue(int fieldIndex, int fieldCounter, String fieldValue, Boolean editable) {</span>
+<span class="fc" id="L146">            this.fieldIndex = fieldIndex;</span>
+<span class="fc" id="L147">            this.fieldCounter = fieldCounter;</span>
+<span class="fc" id="L148">            this.fieldValue = fieldValue;</span>
+<span class="fc" id="L149">            this.editable = editable;</span>
+<span class="fc" id="L150">        }</span>
     }
 
     public static boolean isBeforeStandardFields(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration) {
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        return purchaseContextFieldConfiguration.getOrder() &lt; 0;</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        return purchaseContextFieldConfiguration.getOrder() &lt; 0;</span>
     }
 
 }

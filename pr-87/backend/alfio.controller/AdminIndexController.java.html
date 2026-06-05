@@ -67,21 +67,21 @@ public class AdminIndexController {
                                 CSPConfigurer cspConfigurer,
                                 TemplateManager templateManager,
                                 ObjectMapper objectMapper,
-<span class="nc" id="L70">                                I18nManager i18nManager) throws IOException {</span>
-<span class="nc" id="L71">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L72">        this.environment = environment;</span>
-<span class="nc" id="L73">        this.cspConfigurer = cspConfigurer;</span>
-<span class="nc" id="L74">        this.templateManager = templateManager;</span>
-<span class="nc" id="L75">        this.i18nManager = i18nManager;</span>
-<span class="nc" id="L76">        var cpr = new ClassPathResource(&quot;/resources/alfio-admin-frontend/.vite/manifest.json&quot;);</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (cpr.exists()) {</span>
+<span class="fc" id="L70">                                I18nManager i18nManager) throws IOException {</span>
+<span class="fc" id="L71">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L72">        this.environment = environment;</span>
+<span class="fc" id="L73">        this.cspConfigurer = cspConfigurer;</span>
+<span class="fc" id="L74">        this.templateManager = templateManager;</span>
+<span class="fc" id="L75">        this.i18nManager = i18nManager;</span>
+<span class="fc" id="L76">        var cpr = new ClassPathResource(&quot;/resources/alfio-admin-frontend/.vite/manifest.json&quot;);</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (cpr.exists()) {</span>
 <span class="nc" id="L78">            try (var descriptor = cpr.getInputStream()) {</span>
 <span class="nc" id="L79">                this.manifestEntry = objectMapper.readValue(descriptor, new TypeReference&lt;Map&lt;String, ManifestEntry&gt;&gt;() {}).get(&quot;src/main.ts&quot;);</span>
             }
         } else {
-<span class="nc" id="L82">            manifestEntry = null;</span>
+<span class="fc" id="L82">            manifestEntry = null;</span>
         }
-<span class="nc" id="L84">    }</span>
+<span class="fc" id="L84">    }</span>
 
     @GetMapping({&quot;/admin&quot;, &quot;/admin/&quot;})
     public void adminHome(Model model, @Value(&quot;${alfio.version}&quot;) String version, HttpServletRequest request, HttpServletResponse response, Principal principal) throws IOException {
@@ -133,7 +133,7 @@ public class AdminIndexController {
      * {{#render-json}}property-to-render{{/render-json}}
      * If the property does not exist, we render it as 'null'
      */
-<span class="nc" id="L136">    static final Function&lt;Map&lt;String, Object&gt;, Mustache.Lambda&gt; RENDER_JSON = model -&gt; (frag, out) -&gt; {</span>
+<span class="pc" id="L136">    static final Function&lt;Map&lt;String, Object&gt;, Mustache.Lambda&gt; RENDER_JSON = model -&gt; (frag, out) -&gt; {</span>
 <span class="nc bnc" id="L137" title="All 2 branches missed.">        if (model == null) {</span>
 <span class="nc" id="L138">            out.write(&quot;null&quot;);</span>
 <span class="nc" id="L139">            return;</span>

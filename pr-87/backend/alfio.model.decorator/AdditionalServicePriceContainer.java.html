@@ -47,18 +47,18 @@ public class AdditionalServicePriceContainer implements PriceContainer {
 
     @Override
     public int getSrcPriceCts() {
-<span class="pc bpc" id="L50" title="3 of 4 branches missed.">        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(additionalService.supplementPolicy()) &amp;&amp; customAmount != null) {</span>
-<span class="nc" id="L51">            return MonetaryUtil.unitToCents(customAmount, currencyCode);</span>
+<span class="pc bpc" id="L50" title="1 of 4 branches missed.">        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(additionalService.supplementPolicy()) &amp;&amp; customAmount != null) {</span>
+<span class="fc" id="L51">            return MonetaryUtil.unitToCents(customAmount, currencyCode);</span>
         }
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if(additionalService.fixPrice()) {</span>
-<span class="nc" id="L54">            return additionalService.srcPriceCts();</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if(additionalService.fixPrice()) {</span>
+<span class="fc" id="L54">            return additionalService.srcPriceCts();</span>
         }
 <span class="fc" id="L56">        return Optional.ofNullable(customAmount).map(a -&gt; MonetaryUtil.unitToCents(a, currencyCode)).orElse(0);</span>
     }
 
     @Override
     public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
-<span class="pc bnc" id="L61" title="All 2 branches missed.">        return Optional.ofNullable(promoCodeDiscount).filter(d -&gt; additionalService.type() != AdditionalService.AdditionalServiceType.DONATION);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        return Optional.ofNullable(promoCodeDiscount).filter(d -&gt; additionalService.type() != AdditionalService.AdditionalServiceType.DONATION);</span>
     }
 
     @Override
@@ -68,8 +68,8 @@ public class AdditionalServicePriceContainer implements PriceContainer {
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {</span>
-<span class="nc" id="L72">            return Optional.ofNullable(vatPercentage);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {</span>
+<span class="fc" id="L72">            return Optional.ofNullable(vatPercentage);</span>
         } else {
 <span class="fc" id="L74">            return Optional.empty();</span>
         }
@@ -77,8 +77,8 @@ public class AdditionalServicePriceContainer implements PriceContainer {
 
     @Override
     public VatStatus getVatStatus() {
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {</span>
-<span class="nc" id="L81">            return vatStatus;</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {</span>
+<span class="fc" id="L81">            return vatStatus;</span>
         } else {
 <span class="fc" id="L83">            return VatStatus.NONE;</span>
         }

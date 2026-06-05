@@ -41,7 +41,7 @@ public final class ValidationResult {
 <span class="fc" id="L41">    }</span>
 
     public List&lt;ErrorDescriptor&gt; getValidationErrors() {
-<span class="nc" id="L44">        return getErrorDescriptors();</span>
+<span class="fc" id="L44">        return getErrorDescriptors();</span>
     }
 
     public static ValidationResult success() {
@@ -53,11 +53,11 @@ public final class ValidationResult {
     }
 
     public static ValidationResult failed(List&lt;ErrorDescriptor&gt; errors, List&lt;WarningMessage&gt; warnings) {
-<span class="nc" id="L56">        return new ValidationResult(errors, warnings);</span>
+<span class="fc" id="L56">        return new ValidationResult(errors, warnings);</span>
     }
 
     public static ValidationResult failed(ErrorDescriptor... errors) {
-<span class="nc" id="L60">        return failed(Arrays.asList(errors));</span>
+<span class="fc" id="L60">        return failed(Arrays.asList(errors));</span>
     }
 
     public static ValidationResult of(List&lt;ErrorDescriptor&gt; errors) {
@@ -65,14 +65,14 @@ public final class ValidationResult {
     }
 
     public ValidationResult ifSuccess(Operation operation) {
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        if(errorCount == 0) {</span>
-<span class="nc" id="L69">            operation.doIt();</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if(errorCount == 0) {</span>
+<span class="fc" id="L69">            operation.doIt();</span>
         }
-<span class="nc" id="L71">        return this;</span>
+<span class="fc" id="L71">        return this;</span>
     }
 
     public ValidationResult or(ValidationResult second) {
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if(!isSuccess()) {</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if(!isSuccess()) {</span>
 <span class="nc" id="L76">            List&lt;ErrorDescriptor&gt; joined = new ArrayList&lt;&gt;();</span>
 <span class="nc" id="L77">            joined.addAll(errorDescriptors);</span>
 <span class="nc" id="L78">            joined.addAll(second.getErrorDescriptors());</span>
@@ -80,7 +80,7 @@ public final class ValidationResult {
 <span class="nc" id="L80">            allWarnings.addAll(second.getWarnings());</span>
 <span class="nc" id="L81">            return new ValidationResult(joined, allWarnings);</span>
         }
-<span class="nc" id="L83">        return second;</span>
+<span class="fc" id="L83">        return second;</span>
     }
 
     public boolean isSuccess() {
@@ -99,8 +99,8 @@ public final class ValidationResult {
 <span class="nc" id="L99">        }</span>
 
         public ErrorDescriptor(String fieldName, String message, String code) {
-<span class="nc" id="L102">            this(fieldName, message, code, null);</span>
-<span class="nc" id="L103">        }</span>
+<span class="fc" id="L102">            this(fieldName, message, code, null);</span>
+<span class="fc" id="L103">        }</span>
 
 <span class="fc" id="L105">        public ErrorDescriptor(String fieldName, String message, String code, Object[] arguments) {</span>
 <span class="fc" id="L106">            this.fieldName = fieldName;</span>
@@ -116,7 +116,7 @@ public final class ValidationResult {
 
         @Override
         public String getCode() {
-<span class="nc" id="L119">            return code;</span>
+<span class="fc" id="L119">            return code;</span>
         }
 
         @Override
@@ -126,7 +126,7 @@ public final class ValidationResult {
 
         @Override
         public Object[] getArguments() {
-<span class="nc" id="L129">            return arguments;</span>
+<span class="fc" id="L129">            return arguments;</span>
         }
 
         @Override

@@ -41,34 +41,34 @@ public class PurchaseContextWithReservations {
     private final List&lt;ReservationHeader&gt; reservations;
 
     @ConstructorProperties({&quot;title&quot;, &quot;publicIdentifier&quot;, &quot;type&quot;, &quot;formattedStartDate&quot;, &quot;formattedEndDate&quot;, &quot;sameDay&quot;, &quot;reservations&quot;})
-<span class="nc" id="L44">    public PurchaseContextWithReservations(Map&lt;String, String&gt; title, String publicIdentifier, PurchaseContext.PurchaseContextType type, Map&lt;String, String&gt; formattedStartDate, Map&lt;String, String&gt; formattedEndDate, boolean sameDay, List&lt;ReservationHeader&gt; reservations) {</span>
-<span class="nc" id="L45">        this.title = title;</span>
-<span class="nc" id="L46">        this.publicIdentifier = publicIdentifier;</span>
-<span class="nc" id="L47">        this.type = type;</span>
-<span class="nc" id="L48">        this.formattedStartDate = formattedStartDate;</span>
-<span class="nc" id="L49">        this.formattedEndDate = formattedEndDate;</span>
-<span class="nc" id="L50">        this.sameDay = sameDay;</span>
-<span class="nc" id="L51">        this.reservations = reservations;</span>
-<span class="nc" id="L52">    }</span>
+<span class="fc" id="L44">    public PurchaseContextWithReservations(Map&lt;String, String&gt; title, String publicIdentifier, PurchaseContext.PurchaseContextType type, Map&lt;String, String&gt; formattedStartDate, Map&lt;String, String&gt; formattedEndDate, boolean sameDay, List&lt;ReservationHeader&gt; reservations) {</span>
+<span class="fc" id="L45">        this.title = title;</span>
+<span class="fc" id="L46">        this.publicIdentifier = publicIdentifier;</span>
+<span class="fc" id="L47">        this.type = type;</span>
+<span class="fc" id="L48">        this.formattedStartDate = formattedStartDate;</span>
+<span class="fc" id="L49">        this.formattedEndDate = formattedEndDate;</span>
+<span class="fc" id="L50">        this.sameDay = sameDay;</span>
+<span class="fc" id="L51">        this.reservations = reservations;</span>
+<span class="fc" id="L52">    }</span>
 
     public static PurchaseContextWithReservations from(List&lt;ReservationWithPurchaseContext&gt; reservations,
                                                        Map&lt;Locale, String&gt; datePatternsMap) {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        Validate.isTrue(!reservations.isEmpty(), &quot;Cannot build PurchaseContextWithReservation out of an empty list&quot;);</span>
-<span class="nc" id="L57">        var first = reservations.get(0);</span>
-<span class="nc" id="L58">        return new PurchaseContextWithReservations(first.getPurchaseContextTitle(),</span>
-<span class="nc" id="L59">            first.getPurchaseContextPublicIdentifier(),</span>
-<span class="nc" id="L60">            first.getPurchaseContextType(),</span>
-<span class="nc" id="L61">            LocaleUtil.formatDate(first.getPurchaseContextStartDate(), datePatternsMap),</span>
-<span class="nc" id="L62">            LocaleUtil.formatDate(first.getPurchaseContextEndDate(), datePatternsMap),</span>
-<span class="nc" id="L63">            isSameDay(first.getPurchaseContextStartDate(), first.getPurchaseContextEndDate()),</span>
-<span class="nc" id="L64">            reservations.stream().map(r -&gt; ReservationHeader.from(r, datePatternsMap)).collect(Collectors.toList())</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        Validate.isTrue(!reservations.isEmpty(), &quot;Cannot build PurchaseContextWithReservation out of an empty list&quot;);</span>
+<span class="fc" id="L57">        var first = reservations.get(0);</span>
+<span class="fc" id="L58">        return new PurchaseContextWithReservations(first.getPurchaseContextTitle(),</span>
+<span class="fc" id="L59">            first.getPurchaseContextPublicIdentifier(),</span>
+<span class="fc" id="L60">            first.getPurchaseContextType(),</span>
+<span class="fc" id="L61">            LocaleUtil.formatDate(first.getPurchaseContextStartDate(), datePatternsMap),</span>
+<span class="fc" id="L62">            LocaleUtil.formatDate(first.getPurchaseContextEndDate(), datePatternsMap),</span>
+<span class="fc" id="L63">            isSameDay(first.getPurchaseContextStartDate(), first.getPurchaseContextEndDate()),</span>
+<span class="fc" id="L64">            reservations.stream().map(r -&gt; ReservationHeader.from(r, datePatternsMap)).collect(Collectors.toList())</span>
         );
     }
 
     private static boolean isSameDay(ZonedDateTime startDate, ZonedDateTime endDate) {
-<span class="nc bnc" id="L69" title="All 4 branches missed.">        return startDate != null</span>
+<span class="pc bpc" id="L69" title="2 of 4 branches missed.">        return startDate != null</span>
             &amp;&amp; endDate != null
-<span class="nc bnc" id="L71" title="All 2 branches missed.">            &amp;&amp; startDate.truncatedTo(ChronoUnit.DAYS).equals(endDate.truncatedTo(ChronoUnit.DAYS));</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">            &amp;&amp; startDate.truncatedTo(ChronoUnit.DAYS).equals(endDate.truncatedTo(ChronoUnit.DAYS));</span>
     }
 
 }

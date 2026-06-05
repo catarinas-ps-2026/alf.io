@@ -50,12 +50,12 @@ public class PayPalCallbackController {
     public PayPalCallbackController(PurchaseContextManager purchaseContextManager,
                                     TicketReservationManager ticketReservationManager,
                                     PayPalManager payPalManager,
-<span class="nc" id="L53">                                    TemplateManager templateManager) {</span>
-<span class="nc" id="L54">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="nc" id="L55">        this.ticketReservationManager = ticketReservationManager;</span>
-<span class="nc" id="L56">        this.payPalManager = payPalManager;</span>
-<span class="nc" id="L57">        this.templateManager = templateManager;</span>
-<span class="nc" id="L58">    }</span>
+<span class="fc" id="L53">                                    TemplateManager templateManager) {</span>
+<span class="fc" id="L54">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L55">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L56">        this.payPalManager = payPalManager;</span>
+<span class="fc" id="L57">        this.templateManager = templateManager;</span>
+<span class="fc" id="L58">    }</span>
 
     @GetMapping(&quot;/payment/paypal/redirect/{operation}&quot;)
     public void payPalRedirect(@PathVariable String operation,

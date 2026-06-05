@@ -58,21 +58,21 @@ public class AdditionalFieldRequest implements EventModification.WithRestrictedV
                                   @JsonProperty(&quot;description&quot;) Map&lt;String, EventModification.Description&gt; description,
                                   @JsonProperty(&quot;forAdditionalService&quot;) EventModification.AdditionalService linkedAdditionalService,
                                   @JsonProperty(&quot;categoryIds&quot;) List&lt;Integer&gt; linkedCategoryIds,
-<span class="nc" id="L61">                                  @JsonProperty(&quot;displayAtCheckIn&quot;) Boolean displayAtCheckIn) {</span>
-<span class="nc" id="L62">        this.order = order;</span>
-<span class="nc" id="L63">        this.useDefinedOrder = Boolean.TRUE.equals(useDefinedOrder);</span>
-<span class="nc" id="L64">        this.name = name;</span>
-<span class="nc" id="L65">        this.type = type;</span>
-<span class="nc" id="L66">        this.required = required;</span>
-<span class="nc" id="L67">        this.readOnly = readOnly;</span>
-<span class="nc" id="L68">        this.minLength = minLength;</span>
-<span class="nc" id="L69">        this.maxLength = maxLength;</span>
-<span class="nc" id="L70">        this.restrictedValues = restrictedValues;</span>
-<span class="nc" id="L71">        this.description = description;</span>
-<span class="nc" id="L72">        this.linkedAdditionalService = linkedAdditionalService;</span>
-<span class="nc" id="L73">        this.linkedCategoryIds = linkedCategoryIds;</span>
-<span class="nc" id="L74">        this.displayAtCheckIn = Boolean.TRUE.equals(displayAtCheckIn);</span>
-<span class="nc" id="L75">    }</span>
+<span class="fc" id="L61">                                  @JsonProperty(&quot;displayAtCheckIn&quot;) Boolean displayAtCheckIn) {</span>
+<span class="fc" id="L62">        this.order = order;</span>
+<span class="fc" id="L63">        this.useDefinedOrder = Boolean.TRUE.equals(useDefinedOrder);</span>
+<span class="fc" id="L64">        this.name = name;</span>
+<span class="fc" id="L65">        this.type = type;</span>
+<span class="fc" id="L66">        this.required = required;</span>
+<span class="fc" id="L67">        this.readOnly = readOnly;</span>
+<span class="fc" id="L68">        this.minLength = minLength;</span>
+<span class="fc" id="L69">        this.maxLength = maxLength;</span>
+<span class="fc" id="L70">        this.restrictedValues = restrictedValues;</span>
+<span class="fc" id="L71">        this.description = description;</span>
+<span class="fc" id="L72">        this.linkedAdditionalService = linkedAdditionalService;</span>
+<span class="fc" id="L73">        this.linkedCategoryIds = linkedCategoryIds;</span>
+<span class="fc" id="L74">        this.displayAtCheckIn = Boolean.TRUE.equals(displayAtCheckIn);</span>
+<span class="fc" id="L75">    }</span>
 
     @Override
     public List&lt;String&gt; getRestrictedValuesAsString() {
@@ -86,7 +86,7 @@ public class AdditionalFieldRequest implements EventModification.WithRestrictedV
 
     @Override
     public List&lt;Integer&gt; getLinkedCategoriesIds() {
-<span class="nc bnc" id="L89" title="All 2 branches missed.">        return linkedCategoryIds == null ? Collections.emptyList() : linkedCategoryIds;</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        return linkedCategoryIds == null ? Collections.emptyList() : linkedCategoryIds;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

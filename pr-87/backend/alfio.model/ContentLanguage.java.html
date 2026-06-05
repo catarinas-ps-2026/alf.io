@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
     public static List&lt;ContentLanguage&gt; findAllFor(int bitMask) {
 <span class="fc" id="L48">        return ALL_LANGUAGES.stream()</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            .filter(cl -&gt; (cl.value() &amp; bitMask) == cl.value())</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">            .filter(cl -&gt; (cl.value() &amp; bitMask) == cl.value())</span>
 <span class="fc" id="L50">            .collect(Collectors.toList());</span>
     }
 

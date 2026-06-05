@@ -60,23 +60,23 @@ public class IndexController {
     public IndexController(EventRepository eventRepository,
                            TicketReservationRepository ticketReservationRepository,
                            SubscriptionRepository subscriptionRepository,
-<span class="nc" id="L63">                           DataPreloaderManager dataPreloaderManager) {</span>
+<span class="fc" id="L63">                           DataPreloaderManager dataPreloaderManager) {</span>
 
-<span class="nc" id="L65">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L65">        this.eventRepository = eventRepository;</span>
 
-<span class="nc" id="L67">        this.ticketReservationRepository = ticketReservationRepository;</span>
-<span class="nc" id="L68">        this.subscriptionRepository = subscriptionRepository;</span>
-<span class="nc" id="L69">        this.dataPreloaderManager = dataPreloaderManager;</span>
-<span class="nc" id="L70">        try (var idxIs = new ClassPathResource(&quot;alfio-public-frontend-index.html&quot;).getInputStream();</span>
-<span class="nc" id="L71">             var idxOpenIs = new ClassPathResource(&quot;alfio/web-templates/event-open-graph-page.html&quot;).getInputStream();</span>
-<span class="nc" id="L72">             var idxIsR = new InputStreamReader(idxIs, StandardCharsets.UTF_8);</span>
-<span class="nc" id="L73">             var idxOpenGraphReader = new InputStreamReader(idxOpenIs, StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L74">            indexPage = JFiveParse.parse(idxIsR);</span>
-<span class="nc" id="L75">            openGraphPage = JFiveParse.parse(idxOpenGraphReader);</span>
+<span class="fc" id="L67">        this.ticketReservationRepository = ticketReservationRepository;</span>
+<span class="fc" id="L68">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="fc" id="L69">        this.dataPreloaderManager = dataPreloaderManager;</span>
+<span class="fc" id="L70">        try (var idxIs = new ClassPathResource(&quot;alfio-public-frontend-index.html&quot;).getInputStream();</span>
+<span class="fc" id="L71">             var idxOpenIs = new ClassPathResource(&quot;alfio/web-templates/event-open-graph-page.html&quot;).getInputStream();</span>
+<span class="fc" id="L72">             var idxIsR = new InputStreamReader(idxIs, StandardCharsets.UTF_8);</span>
+<span class="fc" id="L73">             var idxOpenGraphReader = new InputStreamReader(idxOpenIs, StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L74">            indexPage = JFiveParse.parse(idxIsR);</span>
+<span class="fc" id="L75">            openGraphPage = JFiveParse.parse(idxOpenGraphReader);</span>
 <span class="nc" id="L76">        } catch (IOException e) {</span>
 <span class="nc" id="L77">            throw new IllegalStateException(e);</span>
-<span class="nc" id="L78">        }</span>
-<span class="nc" id="L79">    }</span>
+<span class="fc" id="L78">        }</span>
+<span class="fc" id="L79">    }</span>
 
 
     @RequestMapping(value = &quot;/&quot;, method = RequestMethod.HEAD)
@@ -173,11 +173,11 @@ public class IndexController {
                              HttpSession session,
                              Authentication authentication) throws IOException {
 
-<span class="nc" id="L176">        response.setContentType(TEXT_HTML_CHARSET_UTF_8);</span>
-<span class="nc" id="L177">        response.setCharacterEncoding(UTF_8);</span>
+<span class="fc" id="L176">        response.setContentType(TEXT_HTML_CHARSET_UTF_8);</span>
+<span class="fc" id="L177">        response.setCharacterEncoding(UTF_8);</span>
 
-<span class="nc" id="L179">        try (var os = response.getOutputStream(); var osw = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L180">            var doc = dataPreloaderManager.generateIndexDocument(</span>
+<span class="fc" id="L179">        try (var os = response.getOutputStream(); var osw = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L180">            var doc = dataPreloaderManager.generateIndexDocument(</span>
                 eventShortName,
                 subscriptionId,
                 userAgent,
@@ -189,22 +189,22 @@ public class IndexController {
                 openGraphPage,
                 indexPage
             );
-<span class="nc" id="L192">            JFiveParse.serialize(doc, osw);</span>
+<span class="fc" id="L192">            JFiveParse.serialize(doc, osw);</span>
         }
-<span class="nc" id="L194">    }</span>
+<span class="fc" id="L194">    }</span>
 
     @GetMapping(&quot;/event/{eventShortName}/reservation/{reservationId}&quot;)
     public String redirectEventToReservation(@PathVariable(value = EVENT_SHORT_NAME) String eventShortName,
                                              @PathVariable String reservationId,
                                              @RequestParam(value = &quot;subscription&quot;, required = false) String subscriptionId) {
-<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (eventRepository.existsByShortName(eventShortName)) {</span>
-<span class="nc" id="L201">            var reservationStatusUrlSegment = ticketReservationRepository.findOptionalStatusAndValidationById(reservationId)</span>
-<span class="nc" id="L202">                .map(IndexController::reservationStatusToUrlMapping).orElse(NOT_FOUND);</span>
-<span class="nc" id="L203">            return REDIRECT + UriComponentsBuilder.fromPath(&quot;/event/{eventShortName}/reservation/{reservationId}/{status}&quot;)</span>
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">        if (eventRepository.existsByShortName(eventShortName)) {</span>
+<span class="fc" id="L201">            var reservationStatusUrlSegment = ticketReservationRepository.findOptionalStatusAndValidationById(reservationId)</span>
+<span class="fc" id="L202">                .map(IndexController::reservationStatusToUrlMapping).orElse(NOT_FOUND);</span>
+<span class="fc" id="L203">            return REDIRECT + UriComponentsBuilder.fromPath(&quot;/event/{eventShortName}/reservation/{reservationId}/{status}&quot;)</span>
                 // if subscription param is present, we forward it to the reservation resource
-<span class="nc" id="L205">                .queryParamIfPresent(&quot;subscription&quot;, Optional.ofNullable(StringUtils.trimToNull(subscriptionId)))</span>
-<span class="nc" id="L206">                .buildAndExpand(Map.of(EVENT_SHORT_NAME, eventShortName, &quot;reservationId&quot;, reservationId, &quot;status&quot;,reservationStatusUrlSegment))</span>
-<span class="nc" id="L207">                .toUriString();</span>
+<span class="fc" id="L205">                .queryParamIfPresent(&quot;subscription&quot;, Optional.ofNullable(StringUtils.trimToNull(subscriptionId)))</span>
+<span class="fc" id="L206">                .buildAndExpand(Map.of(EVENT_SHORT_NAME, eventShortName, &quot;reservationId&quot;, reservationId, &quot;status&quot;,reservationStatusUrlSegment))</span>
+<span class="fc" id="L207">                .toUriString();</span>
         } else {
 <span class="nc" id="L209">            return &quot;redirect:/&quot;;</span>
         }
@@ -225,9 +225,9 @@ public class IndexController {
     }
 
     private static String reservationStatusToUrlMapping(TicketReservationStatusAndValidation status) {
-<span class="nc bnc" id="L228" title="All 7 branches missed.">        return switch (status.getStatus()) {</span>
+<span class="pc bpc" id="L228" title="6 of 7 branches missed.">        return switch (status.getStatus()) {</span>
 <span class="nc bnc" id="L229" title="All 2 branches missed.">            case PENDING -&gt; Boolean.TRUE.equals(status.getValidated()) ? &quot;overview&quot; : &quot;book&quot;;</span>
-<span class="nc" id="L230">            case COMPLETE, FINALIZING -&gt; &quot;success&quot;;</span>
+<span class="fc" id="L230">            case COMPLETE, FINALIZING -&gt; &quot;success&quot;;</span>
 <span class="nc" id="L231">            case OFFLINE_PAYMENT, OFFLINE_FINALIZING -&gt; &quot;waiting-payment&quot;;</span>
 <span class="nc" id="L232">            case DEFERRED_OFFLINE_PAYMENT -&gt; &quot;deferred-payment&quot;;</span>
 <span class="nc" id="L233">            case EXTERNAL_PROCESSING_PAYMENT, WAITING_EXTERNAL_CONFIRMATION -&gt; &quot;processing-payment&quot;;</span>
@@ -243,12 +243,12 @@ public class IndexController {
                                @PathVariable String code,
                                @RequestHeader(value = &quot;User-Agent&quot;, required = false) String userAgent) {
 
-<span class="nc bnc" id="L246" title="All 2 branches missed.">        if (RequestUtils.isSocialMediaShareUA(userAgent)) {</span>
-<span class="nc" id="L247">            return REDIRECT + UriComponentsBuilder.fromPath(&quot;/event/{eventShortName}&quot;).build(Map.of(EVENT_SHORT_NAME, eventName));</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">        if (RequestUtils.isSocialMediaShareUA(userAgent)) {</span>
+<span class="fc" id="L247">            return REDIRECT + UriComponentsBuilder.fromPath(&quot;/event/{eventShortName}&quot;).build(Map.of(EVENT_SHORT_NAME, eventName));</span>
         }
 
-<span class="nc" id="L250">        return REDIRECT + UriComponentsBuilder.fromPath(&quot;/api/v2/public/event/{eventShortName}/code/{code}&quot;)</span>
-<span class="nc" id="L251">            .build(Map.of(EVENT_SHORT_NAME, eventName, &quot;code&quot;, code));</span>
+<span class="fc" id="L250">        return REDIRECT + UriComponentsBuilder.fromPath(&quot;/api/v2/public/event/{eventShortName}/code/{code}&quot;)</span>
+<span class="fc" id="L251">            .build(Map.of(EVENT_SHORT_NAME, eventName, &quot;code&quot;, code));</span>
     }
 
     @GetMapping(&quot;/e/{eventShortName}&quot;)

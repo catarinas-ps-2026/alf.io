@@ -144,8 +144,8 @@ public interface TicketRepository {
 <span class="fc" id="L144">            .map(id -&gt; {</span>
 <span class="fc" id="L145">                var attendee = Objects.requireNonNullElse(attendeeDataSupplier.apply(idx.getAndIncrement()), AttendeeData.empty());</span>
 <span class="fc" id="L146">                String metadata = null;</span>
-<span class="pc bpc" id="L147" title="1 of 2 branches missed.">                if (attendee.hasMetadata()) {</span>
-<span class="nc" id="L148">                    metadata = Json.toJson(TicketMetadataContainer.fromMetadata(new TicketMetadata(null, null, attendee.getMetadata())));</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">                if (attendee.hasMetadata()) {</span>
+<span class="fc" id="L148">                    metadata = Json.toJson(TicketMetadataContainer.fromMetadata(new TicketMetadata(null, null, attendee.getMetadata())));</span>
                 }
 <span class="fc" id="L150">                return new MapSqlParameterSource(&quot;reservationId&quot;, reservationId)</span>
 <span class="fc" id="L151">                    .addValue(&quot;id&quot;, id)</span>
@@ -379,7 +379,7 @@ public interface TicketRepository {
     List&lt;String&gt; internalFindAllReservationsConfirmedButNotAssignedForUpdate(@Bind(&quot;eventId&quot;) int eventId);
 
     default Set&lt;String&gt; findAllReservationsConfirmedButNotAssignedForUpdate(int eventId) {
-<span class="nc" id="L382">        return new TreeSet&lt;&gt;(internalFindAllReservationsConfirmedButNotAssignedForUpdate(eventId));</span>
+<span class="fc" id="L382">        return new TreeSet&lt;&gt;(internalFindAllReservationsConfirmedButNotAssignedForUpdate(eventId));</span>
     }
     //
 

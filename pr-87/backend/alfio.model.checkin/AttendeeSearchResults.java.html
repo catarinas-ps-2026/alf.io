@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-<span class="nc" id="L26">public record AttendeeSearchResults(</span>
+<span class="fc" id="L26">public record AttendeeSearchResults(</span>
     int totalResults,
     int checkedIn,
     int totalPages,
@@ -32,10 +32,10 @@ import java.util.UUID;
 ) {
 
     public boolean hasMorePages() {
-<span class="nc bnc" id="L35" title="All 2 branches missed.">        return numPage &lt; totalPages - 1;</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        return numPage &lt; totalPages - 1;</span>
     }
 
-<span class="nc" id="L38">    public record AttendeeResult(</span>
+<span class="fc" id="L38">    public record AttendeeResult(</span>
         String uuid,
         UUID publicUUID,
         String firstName,
@@ -48,7 +48,7 @@ import java.util.UUID;
 
         @Override
         public Map&lt;String, List&lt;String&gt;&gt; additionalInfo() {
-<span class="nc" id="L51">                return Objects.requireNonNullElse(additionalInfo, Map.of());</span>
+<span class="fc" id="L51">                return Objects.requireNonNullElse(additionalInfo, Map.of());</span>
             }
         }
 }

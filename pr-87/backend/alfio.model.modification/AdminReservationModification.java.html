@@ -107,7 +107,7 @@ public class AdminReservationModification implements Serializable {
 <span class="fc" id="L107">        }</span>
 
         public String getFullName() {
-<span class="nc" id="L110">            return firstName + &quot; &quot; + lastName;</span>
+<span class="fc" id="L110">            return firstName + &quot; &quot; + lastName;</span>
         }
     }
 
@@ -159,7 +159,7 @@ public class AdminReservationModification implements Serializable {
 <span class="fc" id="L159">        }</span>
 
         public boolean isExisting() {
-<span class="nc bnc" id="L162" title="All 2 branches missed.">            return existingCategoryId != null;</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">            return existingCategoryId != null;</span>
         }
     }
 
@@ -200,11 +200,11 @@ public class AdminReservationModification implements Serializable {
 <span class="fc" id="L200">        }</span>
 
         public boolean isEmpty() {
-<span class="nc" id="L203">            return StringUtils.isAnyBlank(firstName, lastName, emailAddress);</span>
+<span class="fc" id="L203">            return StringUtils.isAnyBlank(firstName, lastName, emailAddress);</span>
         }
 
         public String getFullName() {
-<span class="nc" id="L207">            return firstName + &quot; &quot; + lastName;</span>
+<span class="fc" id="L207">            return firstName + &quot; &quot; + lastName;</span>
         }
     }
 
@@ -236,7 +236,7 @@ public class AdminReservationModification implements Serializable {
 <span class="fc" id="L236">        }</span>
 
         public static Notification orEmpty(Notification notification) {
-<span class="nc bnc" id="L239" title="All 2 branches missed.">            return notification != null ? notification : EMPTY;</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">            return notification != null ? notification : EMPTY;</span>
         }
     }
 
@@ -262,19 +262,19 @@ public class AdminReservationModification implements Serializable {
 <span class="fc" id="L262">        }</span>
 
         public String getId() {
-<span class="nc" id="L265">            return id;</span>
+<span class="fc" id="L265">            return id;</span>
         }
 
         public BigDecimal getPaidAmount() {
-<span class="nc" id="L269">            return paidAmount;</span>
+<span class="fc" id="L269">            return paidAmount;</span>
         }
 
         public LocalDateTime getTimestamp() {
-<span class="nc" id="L273">            return timestamp;</span>
+<span class="fc" id="L273">            return timestamp;</span>
         }
 
         public String getNotes() {
-<span class="nc" id="L277">            return notes;</span>
+<span class="fc" id="L277">            return notes;</span>
         }
 
         public PaymentProxy getPaymentProvider() {
@@ -312,27 +312,27 @@ public class AdminReservationModification implements Serializable {
 
     public static String summary(AdminReservationModification src) {
         try {
-<span class="nc" id="L315">            List&lt;TicketsInfo&gt; ticketsInfo = src.ticketsInfo.stream().map(ti -&gt; {</span>
-<span class="nc" id="L316">                List&lt;Attendee&gt; attendees = ti.getAttendees()</span>
-<span class="nc" id="L317">                    .stream()</span>
-<span class="nc" id="L318">                    .map(a -&gt; new Attendee(a.ticketId,</span>
-<span class="nc" id="L319">                        placeholderIfNotEmpty(a.firstName),</span>
-<span class="nc" id="L320">                        placeholderIfNotEmpty(a.lastName),</span>
-<span class="nc" id="L321">                        placeholderIfNotEmpty(a.emailAddress),</span>
+<span class="fc" id="L315">            List&lt;TicketsInfo&gt; ticketsInfo = src.ticketsInfo.stream().map(ti -&gt; {</span>
+<span class="fc" id="L316">                List&lt;Attendee&gt; attendees = ti.getAttendees()</span>
+<span class="fc" id="L317">                    .stream()</span>
+<span class="fc" id="L318">                    .map(a -&gt; new Attendee(a.ticketId,</span>
+<span class="fc" id="L319">                        placeholderIfNotEmpty(a.firstName),</span>
+<span class="fc" id="L320">                        placeholderIfNotEmpty(a.lastName),</span>
+<span class="fc" id="L321">                        placeholderIfNotEmpty(a.emailAddress),</span>
                         a.language,
-<span class="nc" id="L323">                        a.reassignmentForbidden,</span>
+<span class="fc" id="L323">                        a.reassignmentForbidden,</span>
                         a.reference,
                         a.subscriptionId,
-<span class="nc" id="L326">                        singletonMap(&quot;hasAdditionalInfo&quot;, singletonList(String.valueOf(a.additionalInfo.isEmpty()))),</span>
-<span class="nc" id="L327">                        Map.of())).collect(toList());</span>
-<span class="nc" id="L328">                return new TicketsInfo(ti.getCategory(), attendees, ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees());</span>
-<span class="nc" id="L329">            }).collect(toList());</span>
-<span class="nc" id="L330">            return Json.toJson(new AdminReservationModification(src.expiration,</span>
-<span class="nc" id="L331">                summaryForCustomerData(src.customerData),</span>
+<span class="fc" id="L326">                        singletonMap(&quot;hasAdditionalInfo&quot;, singletonList(String.valueOf(a.additionalInfo.isEmpty()))),</span>
+<span class="fc" id="L327">                        Map.of())).collect(toList());</span>
+<span class="fc" id="L328">                return new TicketsInfo(ti.getCategory(), attendees, ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees());</span>
+<span class="fc" id="L329">            }).collect(toList());</span>
+<span class="fc" id="L330">            return Json.toJson(new AdminReservationModification(src.expiration,</span>
+<span class="fc" id="L331">                summaryForCustomerData(src.customerData),</span>
                 ticketsInfo,
-<span class="nc" id="L333">                src.getLanguage(),</span>
-<span class="nc" id="L334">                src.updateContactData,</span>
-<span class="nc" id="L335">                src.updateAdvancedBillingOptions,</span>
+<span class="fc" id="L333">                src.getLanguage(),</span>
+<span class="fc" id="L334">                src.updateContactData,</span>
+<span class="fc" id="L335">                src.updateAdvancedBillingOptions,</span>
                 src.advancedBillingOptions,
                 src.notification,
                 src.subscriptionDetails,
@@ -343,22 +343,22 @@ public class AdminReservationModification implements Serializable {
     }
 
     private static CustomerData summaryForCustomerData(CustomerData in) {
-<span class="nc bnc" id="L346" title="All 2 branches missed.">        if(in != null) {</span>
-<span class="nc" id="L347">            return new CustomerData(placeholderIfNotEmpty(in.firstName),</span>
-<span class="nc" id="L348">                placeholderIfNotEmpty(in.lastName),</span>
-<span class="nc" id="L349">                placeholderIfNotEmpty(in.emailAddress),</span>
-<span class="nc" id="L350">                placeholderIfNotEmpty(in.billingAddress),</span>
-<span class="nc" id="L351">                placeholderIfNotEmpty(in.userLanguage),</span>
-<span class="nc" id="L352">                placeholderIfNotEmpty(in.customerReference),</span>
-<span class="nc" id="L353">                placeholderIfNotEmpty(in.vatNr),</span>
-<span class="nc" id="L354">                placeholderIfNotEmpty(in.vatCountryCode),</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">        if(in != null) {</span>
+<span class="fc" id="L347">            return new CustomerData(placeholderIfNotEmpty(in.firstName),</span>
+<span class="fc" id="L348">                placeholderIfNotEmpty(in.lastName),</span>
+<span class="fc" id="L349">                placeholderIfNotEmpty(in.emailAddress),</span>
+<span class="fc" id="L350">                placeholderIfNotEmpty(in.billingAddress),</span>
+<span class="fc" id="L351">                placeholderIfNotEmpty(in.userLanguage),</span>
+<span class="fc" id="L352">                placeholderIfNotEmpty(in.customerReference),</span>
+<span class="fc" id="L353">                placeholderIfNotEmpty(in.vatNr),</span>
+<span class="fc" id="L354">                placeholderIfNotEmpty(in.vatCountryCode),</span>
                 in.invoicingAdditionalInfo);
         }
 <span class="nc" id="L357">        else return null;</span>
     }
 
     private static String placeholderIfNotEmpty(String in) {
-<span class="nc bnc" id="L361" title="All 2 branches missed.">        return StringUtils.isNotEmpty(in) ? &quot;xxx&quot; : null;</span>
+<span class="pc bpc" id="L361" title="1 of 2 branches missed.">        return StringUtils.isNotEmpty(in) ? &quot;xxx&quot; : null;</span>
     }
 }
 

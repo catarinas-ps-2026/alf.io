@@ -31,8 +31,8 @@ public class DatesWithTimeZoneOffset {
     private final int endTimeZoneOffset;
 
     public static DatesWithTimeZoneOffset fromEvent(Event event) {
-<span class="nc" id="L34">        return new DatesWithTimeZoneOffset(toEpochMilli(event.getBegin()),</span>
-<span class="nc" id="L35">            event.getBeginTimeZoneOffset(), toEpochMilli(event.getEnd()), event.getEndTimeZoneOffset());</span>
+<span class="fc" id="L34">        return new DatesWithTimeZoneOffset(toEpochMilli(event.getBegin()),</span>
+<span class="fc" id="L35">            event.getBeginTimeZoneOffset(), toEpochMilli(event.getEnd()), event.getEndTimeZoneOffset());</span>
     }
 
     public static DatesWithTimeZoneOffset fromDates(ZonedDateTime start, ZonedDateTime end) {
@@ -40,8 +40,8 @@ public class DatesWithTimeZoneOffset {
     }
 
     private static long toEpochMilli(ZonedDateTime in) {
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if(in != null) {</span>
-<span class="nc" id="L44">            return in.toInstant().toEpochMilli();</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if(in != null) {</span>
+<span class="fc" id="L44">            return in.toInstant().toEpochMilli();</span>
         }
 <span class="nc" id="L46">        return 0;</span>
     }

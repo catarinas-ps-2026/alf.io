@@ -138,7 +138,7 @@ public class PollManager {
 <span class="fc" id="L138">                var existingPollWithOptions = getSingleForEvent(pollId, event).orElseThrow();</span>
 <span class="fc" id="L139">                var existingPoll = existingPollWithOptions.getPoll();</span>
 <span class="fc" id="L140">                var tags = existingPoll.allowedTags();</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">                if(form.isAccessRestricted() == existingPoll.allowedTags().isEmpty()) {</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">                if(form.isAccessRestricted() == existingPoll.allowedTags().isEmpty()) {</span>
 <span class="pc bpc" id="L142" title="1 of 2 branches missed.">                    tags = form.isAccessRestricted() ? List.of(UUID.randomUUID().toString()) : List.of();</span>
                 }
 <span class="pc bpc" id="L144" title="1 of 2 branches missed.">                Validate.isTrue(pollRepository.update(form.getTitle(), form.getDescription(), tags, form.getOrder(), pollId, event.getId()) == 1);</span>

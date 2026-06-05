@@ -53,19 +53,19 @@ import static alfio.util.Wrappers.optionally;
 @RequestMapping(&quot;/admin/api&quot;)
 public class CheckInApiController {
 
-<span class="nc" id="L56">    private static final Logger log = LoggerFactory.getLogger(CheckInApiController.class);</span>
+<span class="fc" id="L56">    private static final Logger log = LoggerFactory.getLogger(CheckInApiController.class);</span>
     private static final String ALFIO_TIMESTAMP_HEADER = &quot;Alfio-TIME&quot;;
     private final CheckInManager checkInManager;
     private final EventManager eventManager;
     private final ConfigurationManager configurationManager;
     private final AccessService accessService;
 
-<span class="nc" id="L63">    public CheckInApiController(CheckInManager checkInManager, EventManager eventManager, ConfigurationManager configurationManager, AccessService accessService) {</span>
-<span class="nc" id="L64">        this.checkInManager = checkInManager;</span>
-<span class="nc" id="L65">        this.eventManager = eventManager;</span>
-<span class="nc" id="L66">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L67">        this.accessService = accessService;</span>
-<span class="nc" id="L68">    }</span>
+<span class="fc" id="L63">    public CheckInApiController(CheckInManager checkInManager, EventManager eventManager, ConfigurationManager configurationManager, AccessService accessService) {</span>
+<span class="fc" id="L64">        this.checkInManager = checkInManager;</span>
+<span class="fc" id="L65">        this.eventManager = eventManager;</span>
+<span class="fc" id="L66">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L67">        this.accessService = accessService;</span>
+<span class="fc" id="L68">    }</span>
 
     @Data
     public static class TicketCode {
@@ -80,8 +80,8 @@ public class CheckInApiController {
     
     @GetMapping(&quot;/check-in/{eventId}/ticket/{ticketIdentifier}&quot;)
     public TicketAndCheckInResult findTicketWithUUID(@PathVariable int eventId, @PathVariable String ticketIdentifier, @RequestParam(&quot;qrCode&quot;) String qrCode, Principal principal) {
-<span class="nc" id="L83">        accessService.checkEventTicketIdentifierMembership(principal, eventId, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
-<span class="nc" id="L84">        return checkInManager.evaluateTicketStatus(eventId, ticketIdentifier, Optional.ofNullable(qrCode));</span>
+<span class="fc" id="L83">        accessService.checkEventTicketIdentifierMembership(principal, eventId, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
+<span class="fc" id="L84">        return checkInManager.evaluateTicketStatus(eventId, ticketIdentifier, Optional.ofNullable(qrCode));</span>
     }
 
     @GetMapping(&quot;/check-in/event/{eventName}/ticket/{ticketIdentifier}&quot;)
@@ -92,8 +92,8 @@ public class CheckInApiController {
 
     @GetMapping(&quot;/check-in/event/{eventName}/ticket/{ticketIdentifier}/status&quot;)
     public TicketCheckInStatusResult getTicketStatus(@PathVariable String eventName, @PathVariable String ticketIdentifier, Principal principal) {
-<span class="nc" id="L95">        accessService.checkEventTicketIdentifierMembership(principal, eventName, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
-<span class="nc" id="L96">        return checkInManager.retrieveTicketStatus(ticketIdentifier);</span>
+<span class="fc" id="L95">        accessService.checkEventTicketIdentifierMembership(principal, eventName, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
+<span class="fc" id="L96">        return checkInManager.retrieveTicketStatus(ticketIdentifier);</span>
     }
 
     @PostMapping(&quot;/check-in/{eventId}/ticket/{ticketIdentifier}&quot;)
@@ -101,8 +101,8 @@ public class CheckInApiController {
                                           @PathVariable String ticketIdentifier,
                                           @RequestBody TicketCode ticketCode,
                                           Principal principal) {
-<span class="nc" id="L104">        accessService.checkEventTicketIdentifierMembership(principal, eventId, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
-<span class="nc" id="L105">        return checkInManager.checkIn(eventId, ticketIdentifier, Optional.ofNullable(ticketCode).map(TicketCode::getCode), principal.getName());</span>
+<span class="fc" id="L104">        accessService.checkEventTicketIdentifierMembership(principal, eventId, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
+<span class="fc" id="L105">        return checkInManager.checkIn(eventId, ticketIdentifier, Optional.ofNullable(ticketCode).map(TicketCode::getCode), principal.getName());</span>
     }
 
     @PostMapping(&quot;/check-in/event/{eventName}/ticket/{ticketIdentifier}&quot;)
@@ -164,9 +164,9 @@ public class CheckInApiController {
     public boolean revertCheckIn(@PathVariable int eventId,
                                  @PathVariable String ticketIdentifier,
                                  Principal principal) {
-<span class="nc" id="L167">        accessService.checkEventTicketIdentifierMembership(principal, eventId, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
-<span class="nc" id="L168">        log.warn(&quot;for event id : {} and ticket : {}, a revert of the check in has been done by {}&quot;, eventId, removeTabsAndNewlines(ticketIdentifier), principal.getName());</span>
-<span class="nc" id="L169">        return checkInManager.revertCheckIn(eventId, ticketIdentifier, principal.getName());</span>
+<span class="fc" id="L167">        accessService.checkEventTicketIdentifierMembership(principal, eventId, ticketIdentifier, AccessService.CHECKIN_ROLES);</span>
+<span class="fc" id="L168">        log.warn(&quot;for event id : {} and ticket : {}, a revert of the check in has been done by {}&quot;, eventId, removeTabsAndNewlines(ticketIdentifier), principal.getName());</span>
+<span class="fc" id="L169">        return checkInManager.revertCheckIn(eventId, ticketIdentifier, principal.getName());</span>
     }
 
     @PostMapping(&quot;/check-in/event/{eventName}/ticket/{ticketIdentifier}/revert-check-in&quot;)
@@ -220,13 +220,13 @@ public class CheckInApiController {
                                                                  @RequestParam(value = &quot;query&quot;, required = false) String query,
                                                                  @RequestParam(value = &quot;page&quot;, required = false, defaultValue = &quot;0&quot;) int page,
                                                                  Principal principal) {
-<span class="nc" id="L223">        accessService.checkEventMembership(principal, publicIdentifier, MEMBERSHIP_ROLES);</span>
-<span class="nc bnc" id="L224" title="All 4 branches missed.">        if (StringUtils.isBlank(query) || StringUtils.isBlank(publicIdentifier)) {</span>
+<span class="fc" id="L223">        accessService.checkEventMembership(principal, publicIdentifier, MEMBERSHIP_ROLES);</span>
+<span class="pc bpc" id="L224" title="2 of 4 branches missed.">        if (StringUtils.isBlank(query) || StringUtils.isBlank(publicIdentifier)) {</span>
 <span class="nc" id="L225">            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
         }
 
-<span class="nc" id="L228">        return ResponseEntity.of(eventManager.getOptionalByName(publicIdentifier, principal.getName())</span>
-<span class="nc" id="L229">            .map(event -&gt; checkInManager.searchAttendees(event, query, page, principal)));</span>
+<span class="fc" id="L228">        return ResponseEntity.of(eventManager.getOptionalByName(publicIdentifier, principal.getName())</span>
+<span class="fc" id="L229">            .map(event -&gt; checkInManager.searchAttendees(event, query, page, principal)));</span>
 
     }
 
@@ -254,17 +254,17 @@ public class CheckInApiController {
                                               @RequestParam(value = &quot;changedSince&quot;, required = false) Long changedSince,
                                               HttpServletResponse resp,
                                               Principal principal) {
-<span class="nc" id="L257">        var event = accessService.checkEventMembership(principal, eventName, AccessService.CHECKIN_ROLES);</span>
-<span class="nc bnc" id="L258" title="All 2 branches missed.">        Date since = changedSince == null ? new Date(0) : DateUtils.addSeconds(new Date(changedSince), -1);</span>
+<span class="fc" id="L257">        var event = accessService.checkEventMembership(principal, eventName, AccessService.CHECKIN_ROLES);</span>
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">        Date since = changedSince == null ? new Date(0) : DateUtils.addSeconds(new Date(changedSince), -1);</span>
         List&lt;Integer&gt; ids;
-<span class="nc" id="L260">        boolean offlineEnabled = checkInManager.isOfflineCheckInEnabled().test(event);</span>
-<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (offlineEnabled) {</span>
-<span class="nc" id="L262">            ids = checkInManager.getAttendeesIdentifiers(event, since, principal.getName());</span>
+<span class="fc" id="L260">        boolean offlineEnabled = checkInManager.isOfflineCheckInEnabled().test(event);</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">        if (offlineEnabled) {</span>
+<span class="fc" id="L262">            ids = checkInManager.getAttendeesIdentifiers(event, since, principal.getName());</span>
         } else {
-<span class="nc" id="L264">            ids = List.of();</span>
+<span class="fc" id="L264">            ids = List.of();</span>
         }
-<span class="nc bnc" id="L266" title="All 2 branches missed.">        resp.setHeader(ALFIO_TIMESTAMP_HEADER, offlineEnabled ? Long.toString(new Date().getTime()) : &quot;0&quot;);</span>
-<span class="nc" id="L267">        return ids;</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">        resp.setHeader(ALFIO_TIMESTAMP_HEADER, offlineEnabled ? Long.toString(new Date().getTime()) : &quot;0&quot;);</span>
+<span class="fc" id="L267">        return ids;</span>
     }
 
     @PostMapping(&quot;/check-in/{eventName}/offline&quot;)
@@ -272,13 +272,13 @@ public class CheckInApiController {
                                                        @RequestParam(value = &quot;additionalField&quot;, required = false) List&lt;String&gt; additionalFields,
                                                        @RequestBody List&lt;Integer&gt; ids,
                                                        Principal principal) {
-<span class="nc" id="L275">        accessService.checkEventMembership(principal, eventName, AccessService.CHECKIN_ROLES);</span>
+<span class="fc" id="L275">        accessService.checkEventMembership(principal, eventName, AccessService.CHECKIN_ROLES);</span>
 
-<span class="nc" id="L277">        validateIdList(ids);</span>
-<span class="nc" id="L278">        return eventManager.getOptionalByName(eventName, principal.getName())</span>
-<span class="nc" id="L279">            .map(event -&gt; {</span>
-<span class="nc" id="L280">                Set&lt;String&gt; addFields = loadLabelLayout(event)</span>
-<span class="nc" id="L281">                    .map(layout -&gt; {</span>
+<span class="fc" id="L277">        validateIdList(ids);</span>
+<span class="fc" id="L278">        return eventManager.getOptionalByName(eventName, principal.getName())</span>
+<span class="fc" id="L279">            .map(event -&gt; {</span>
+<span class="fc" id="L280">                Set&lt;String&gt; addFields = loadLabelLayout(event)</span>
+<span class="fc" id="L281">                    .map(layout -&gt; {</span>
 <span class="nc" id="L282">                        Set&lt;String&gt; union = new HashSet&lt;&gt;(layout.content.thirdRow);</span>
 <span class="nc" id="L283">                        union.addAll(layout.content.additionalRows);</span>
 <span class="nc" id="L284">                        union.addAll(layout.qrCode.additionalInfo);</span>
@@ -287,20 +287,20 @@ public class CheckInApiController {
                         }
 <span class="nc" id="L288">                        return union;</span>
                     })
-<span class="nc" id="L290">                    .orElseGet(() -&gt; {</span>
-<span class="nc bnc" id="L291" title="All 4 branches missed.">                        if(additionalFields != null &amp;&amp; !additionalFields.isEmpty()) {</span>
+<span class="fc" id="L290">                    .orElseGet(() -&gt; {</span>
+<span class="pc bpc" id="L291" title="2 of 4 branches missed.">                        if(additionalFields != null &amp;&amp; !additionalFields.isEmpty()) {</span>
 <span class="nc" id="L292">                            return new HashSet&lt;&gt;(additionalFields);</span>
                         }
-<span class="nc" id="L294">                        return Collections.singleton(&quot;company&quot;);</span>
+<span class="fc" id="L294">                        return Collections.singleton(&quot;company&quot;);</span>
                     });
-<span class="nc" id="L296">                return checkInManager.getEncryptedAttendeesInformation(event, addFields, ids);</span>
-<span class="nc" id="L297">            }).orElse(Collections.emptyMap());</span>
+<span class="fc" id="L296">                return checkInManager.getEncryptedAttendeesInformation(event, addFields, ids);</span>
+<span class="fc" id="L297">            }).orElse(Collections.emptyMap());</span>
     }
 
     private static void validateIdList(@RequestBody List&lt;Integer&gt; ids) {
-<span class="nc bnc" id="L301" title="All 4 branches missed.">        Validate.isTrue(ids!= null &amp;&amp; !ids.isEmpty());</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">        Validate.isTrue(ids.size() &lt;= 200, &quot;Cannot ask more than 200 ids&quot;);</span>
-<span class="nc" id="L303">    }</span>
+<span class="pc bpc" id="L301" title="2 of 4 branches missed.">        Validate.isTrue(ids!= null &amp;&amp; !ids.isEmpty());</span>
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">        Validate.isTrue(ids.size() &lt;= 200, &quot;Cannot ask more than 200 ids&quot;);</span>
+<span class="fc" id="L303">    }</span>
 
     private ResponseEntity&lt;LabelLayout&gt; parseLabelLayout(EventAndOrganizationId event) {
 <span class="nc" id="L306">        return loadLabelLayout(event)</span>
@@ -309,8 +309,8 @@ public class CheckInApiController {
     }
 
     private Optional&lt;LabelLayout&gt; loadLabelLayout(EventAndOrganizationId event) {
-<span class="nc" id="L312">        return configurationManager.getFor(ConfigurationKeys.LABEL_LAYOUT, event.getConfigurationLevel()).getValue()</span>
-<span class="nc" id="L313">            .flatMap(str -&gt; optionally(() -&gt; Json.fromJson(str, LabelLayout.class)));</span>
+<span class="fc" id="L312">        return configurationManager.getFor(ConfigurationKeys.LABEL_LAYOUT, event.getConfigurationLevel()).getValue()</span>
+<span class="pc" id="L313">            .flatMap(str -&gt; optionally(() -&gt; Json.fromJson(str, LabelLayout.class)));</span>
     }
 
     @Data

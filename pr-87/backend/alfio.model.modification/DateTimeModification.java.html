@@ -41,7 +41,7 @@ public class DateTimeModification {
     }
 
     public boolean isAfter(DateTimeModification other) {
-<span class="nc" id="L44">        return toLocalDateTime().isAfter(other.toLocalDateTime());</span>
+<span class="fc" id="L44">        return toLocalDateTime().isAfter(other.toLocalDateTime());</span>
     }
 
     public LocalDateTime toLocalDateTime() {
@@ -49,11 +49,11 @@ public class DateTimeModification {
     }
 
     public static DateTimeModification fromZonedDateTime(ZonedDateTime zonedDateTime) {
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        return zonedDateTime == null ? null : new DateTimeModification(zonedDateTime.toLocalDate(), zonedDateTime.toLocalTime());</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        return zonedDateTime == null ? null : new DateTimeModification(zonedDateTime.toLocalDate(), zonedDateTime.toLocalTime());</span>
     }
 
     public static ZonedDateTime atZone(DateTimeModification t, ZoneId zoneId) {
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        return t == null ? null : t.toZonedDateTime(zoneId);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        return t == null ? null : t.toZonedDateTime(zoneId);</span>
     }
 
 }

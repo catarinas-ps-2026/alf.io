@@ -142,23 +142,23 @@ public class CheckInFullInfo {
                            @Column(&quot;e_version&quot;) String eventVersion,
 
                            @Column(&quot;tai_additional_info&quot;) @JSONData Map&lt;String, List&lt;String&gt;&gt; ticketAdditionalInfo
-<span class="nc" id="L145">                                 ) {</span>
+<span class="fc" id="L145">                                 ) {</span>
 
-<span class="nc" id="L147">        this.ticket = new Ticket(id, uuid, publicUuid, creation, categoryId, status, eventId, ticketsReservationId, fullName, firstName, lastName, email,</span>
+<span class="fc" id="L147">        this.ticket = new Ticket(id, uuid, publicUuid, creation, categoryId, status, eventId, ticketsReservationId, fullName, firstName, lastName, email,</span>
             lockedAssignment, userLanguage, ticketSrcPriceCts, ticketFinalPriceCts, ticketVatCts, ticketDiscountCts, extReference, currencyCode,
             ticketTags, ticketSubscriptionId, ticketVatStatus);
-<span class="nc" id="L150">        this.ticketReservation = new TicketReservation(trId, trValidity, trStatus, trFullName, trFirstName, trLastName, trEmail, trBillingAddress,</span>
+<span class="fc" id="L150">        this.ticketReservation = new TicketReservation(trId, trValidity, trStatus, trFullName, trFirstName, trLastName, trEmail, trBillingAddress,</span>
                 trConfirmationTimestamp, trLatestReminder, trPaymentMethod, trReminderSent, trPromoCodeDiscountId, trAutomatic, resUserLanguage,
             directAssignment, invoiceNumber, invoiceModel, reservationVatStatus, vatNr, vatCountry, invoiceRequested, usedVatPercent, vatIncluded, reservationCreationTimestamp, customerReference,
-<span class="nc" id="L153">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
-<span class="nc" id="L154">        this.ticketCategory = new TicketCategory(tcId, tcUtcInception, tcUtcExpiration, tcMaxTickets, tcName,</span>
+<span class="fc" id="L153">            reservationRegistrationTimestamp, reservationSrcPriceCts, reservationFinalPriceCts, reservationVatCts, reservationDiscountCts, reservationCurrencyCode);</span>
+<span class="fc" id="L154">        this.ticketCategory = new TicketCategory(tcId, tcUtcInception, tcUtcExpiration, tcMaxTickets, tcName,</span>
                 tcAccessRestricted, tcStatus, tcEventId, bounded, tcSrcPriceCts, code, validCheckInFrom, validCheckInTo,
-<span class="nc" id="L156">                ticketValidityStart, ticketValidityEnd, currencyCode, ordinal, ticketCheckInStrategy, ticketAccessType);</span>
+<span class="fc" id="L156">                ticketValidityStart, ticketValidityEnd, currencyCode, ordinal, ticketCheckInStrategy, ticketAccessType);</span>
 
-<span class="nc" id="L158">        this.categoryMetadata = categoryMetadata;</span>
-<span class="nc" id="L159">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountry, vatNr, invoicingAdditionalInfo);</span>
-<span class="nc" id="L160">        this.eventWithCheckInInfo = new EventWithCheckInInfo(eventId, eventFormat, eventShortName, eventDisplayName, eventStartTs, eventEndTs, timezone, eventPrivateKey, eventOrgId, eventMetadata, locales, eventVersion);</span>
-<span class="nc" id="L161">        this.ticketAdditionalInfo = ticketAdditionalInfo;</span>
-<span class="nc" id="L162">    }</span>
+<span class="fc" id="L158">        this.categoryMetadata = categoryMetadata;</span>
+<span class="fc" id="L159">        this.billingDetails = new BillingDetails(billingAddressCompany, billingAddressLine1, billingAddressLine2, billingAddressZip, billingAddressCity, billingAddressState, vatCountry, vatNr, invoicingAdditionalInfo);</span>
+<span class="fc" id="L160">        this.eventWithCheckInInfo = new EventWithCheckInInfo(eventId, eventFormat, eventShortName, eventDisplayName, eventStartTs, eventEndTs, timezone, eventPrivateKey, eventOrgId, eventMetadata, locales, eventVersion);</span>
+<span class="fc" id="L161">        this.ticketAdditionalInfo = ticketAdditionalInfo;</span>
+<span class="fc" id="L162">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

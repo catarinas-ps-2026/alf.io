@@ -70,7 +70,7 @@ public class TicketHelper {
 
 
     public BiFunction&lt;Ticket, Event, List&lt;FieldConfigurationDescriptionAndValue&gt;&gt; buildRetrieveFieldValuesFunction(boolean formatValues) {
-<span class="nc" id="L73">        return EventUtil.retrieveFieldValues(ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, formatValues);</span>
+<span class="fc" id="L73">        return EventUtil.retrieveFieldValues(ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, formatValues);</span>
     }
 
     public Optional&lt;Triple&lt;ValidationResult, Event, Ticket&gt;&gt; assignTicket(String eventName,
@@ -81,8 +81,8 @@ public class TicketHelper {
                                                                           Optional&lt;UserDetails&gt; userDetails,
                                                                           boolean addPrefix) {
 
-<span class="nc" id="L84">        return ticketReservationManager.fetchComplete(eventName, ticketIdentifier)</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">                .map(result -&gt; assignTicket(updateTicketOwner, bindingResult, fallbackLocale, userDetails, result, addPrefix ? &quot;tickets[&quot;+ticketIdentifier+&quot;]&quot; : &quot;&quot;));</span>
+<span class="fc" id="L84">        return ticketReservationManager.fetchComplete(eventName, ticketIdentifier)</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">                .map(result -&gt; assignTicket(updateTicketOwner, bindingResult, fallbackLocale, userDetails, result, addPrefix ? &quot;tickets[&quot;+ticketIdentifier+&quot;]&quot; : &quot;&quot;));</span>
     }
 
     private Triple&lt;ValidationResult, Event, Ticket&gt; assignTicket(UpdateTicketOwnerForm updateTicketOwner,
@@ -91,9 +91,9 @@ public class TicketHelper {
                                                                  Optional&lt;UserDetails&gt; userDetails,
                                                                  Triple&lt;Event, TicketReservation, Ticket&gt; result,
                                                                  String formPrefix) {
-<span class="nc" id="L94">        Ticket t = result.getRight();</span>
-<span class="nc" id="L95">        final Event event = result.getLeft();</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        if(t.getLockedAssignment()) {</span>
+<span class="fc" id="L94">        Ticket t = result.getRight();</span>
+<span class="fc" id="L95">        final Event event = result.getLeft();</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if(t.getLockedAssignment()) {</span>
             //in case of locked assignment, fullName and Email will be overwritten
 <span class="nc" id="L98">            updateTicketOwner.setFirstName(t.getFirstName());</span>
 <span class="nc" id="L99">            updateTicketOwner.setLastName(t.getLastName());</span>
@@ -101,28 +101,28 @@ public class TicketHelper {
 <span class="nc" id="L101">            updateTicketOwner.setEmail(t.getEmail());</span>
         }
 
-<span class="nc" id="L104">        final TicketReservation ticketReservation = result.getMiddle();</span>
-<span class="nc" id="L105">        List&lt;PurchaseContextFieldConfiguration&gt; fieldConf = purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId());</span>
-<span class="nc" id="L106">        var sameCountryValidator = new SameCountryValidator(configurationManager, extensionManager, event, ticketReservation.getId(), vatChecker);</span>
-<span class="nc" id="L107">        AdvancedTicketAssignmentValidator advancedValidator = new AdvancedTicketAssignmentValidator(sameCountryValidator,</span>
-<span class="nc" id="L108">            new GroupManager.WhitelistValidator(event.getId(), groupManager));</span>
+<span class="fc" id="L104">        final TicketReservation ticketReservation = result.getMiddle();</span>
+<span class="fc" id="L105">        List&lt;PurchaseContextFieldConfiguration&gt; fieldConf = purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId());</span>
+<span class="fc" id="L106">        var sameCountryValidator = new SameCountryValidator(configurationManager, extensionManager, event, ticketReservation.getId(), vatChecker);</span>
+<span class="fc" id="L107">        AdvancedTicketAssignmentValidator advancedValidator = new AdvancedTicketAssignmentValidator(sameCountryValidator,</span>
+<span class="fc" id="L108">            new GroupManager.WhitelistValidator(event.getId(), groupManager));</span>
 
 
-<span class="nc" id="L111">        var additionalServiceItems = additionalServiceItemRepository.findByReservationUuid(event.getId(), ticketReservation.getId());</span>
+<span class="fc" id="L111">        var additionalServiceItems = additionalServiceItemRepository.findByReservationUuid(event.getId(), ticketReservation.getId());</span>
 
-<span class="nc" id="L113">        List&lt;Ticket&gt; ticketsInReservation = ticketRepository.findTicketsInReservation(ticketReservation.getId());</span>
-<span class="nc" id="L114">        var ticketFieldFilterer = new Validator.AdditionalFieldsFilterer(fieldConf,</span>
+<span class="fc" id="L113">        List&lt;Ticket&gt; ticketsInReservation = ticketRepository.findTicketsInReservation(ticketReservation.getId());</span>
+<span class="fc" id="L114">        var ticketFieldFilterer = new Validator.AdditionalFieldsFilterer(fieldConf,</span>
             ticketsInReservation,
-<span class="nc" id="L116">            event.supportsLinkedAdditionalServices(),</span>
+<span class="fc" id="L116">            event.supportsLinkedAdditionalServices(),</span>
             additionalServiceItems);
 
-<span class="nc" id="L119">        Validator.AdvancedValidationContext context = new Validator.AdvancedValidationContext(updateTicketOwner, fieldConf, t.getCategoryId(), t.getUuid(), formPrefix);</span>
+<span class="fc" id="L119">        Validator.AdvancedValidationContext context = new Validator.AdvancedValidationContext(updateTicketOwner, fieldConf, t.getCategoryId(), t.getUuid(), formPrefix);</span>
 
-<span class="nc" id="L121">        ValidationResult validationResult = Validator.validateTicketAssignment(updateTicketOwner, ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ATTENDEE)), bindingResult, event, formPrefix, sameCountryValidator, extensionManager)</span>
-<span class="nc" id="L122">                .or(validateAdditionalItemsFields(event, updateTicketOwner, t.getPublicUuid(), ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ADDITIONAL_SERVICE)), additionalServiceItems, bindingResult.orElse(null), sameCountryValidator))</span>
-<span class="nc" id="L123">                .or(Validator.performAdvancedValidation(advancedValidator, context, bindingResult.orElse(null)))</span>
-<span class="nc" id="L124">                .ifSuccess(() -&gt; updateTicketOwner(updateTicketOwner, fallbackLocale, t, event, ticketReservation, userDetails));</span>
-<span class="nc" id="L125">        return Triple.of(validationResult, event, ticketsInReservation.stream().filter(t2 -&gt; t2.getUuid().equals(t.getUuid())).findFirst().orElseThrow());</span>
+<span class="fc" id="L121">        ValidationResult validationResult = Validator.validateTicketAssignment(updateTicketOwner, ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ATTENDEE)), bindingResult, event, formPrefix, sameCountryValidator, extensionManager)</span>
+<span class="fc" id="L122">                .or(validateAdditionalItemsFields(event, updateTicketOwner, t.getPublicUuid(), ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ADDITIONAL_SERVICE)), additionalServiceItems, bindingResult.orElse(null), sameCountryValidator))</span>
+<span class="fc" id="L123">                .or(Validator.performAdvancedValidation(advancedValidator, context, bindingResult.orElse(null)))</span>
+<span class="fc" id="L124">                .ifSuccess(() -&gt; updateTicketOwner(updateTicketOwner, fallbackLocale, t, event, ticketReservation, userDetails));</span>
+<span class="fc" id="L125">        return Triple.of(validationResult, event, ticketsInReservation.stream().filter(t2 -&gt; t2.getUuid().equals(t.getUuid())).findFirst().orElseThrow());</span>
     }
 
     private ValidationResult validateAdditionalItemsFields(Event event,
@@ -133,8 +133,8 @@ public class TicketHelper {
                                                            BindingResult bindingResult,
                                                            SameCountryValidator vatValidator) {
 
-<span class="nc bnc" id="L136" title="All 6 branches missed.">        if (!event.supportsLinkedAdditionalServices() || fieldsForTicket.isEmpty() || bindingResult == null) {</span>
-<span class="nc" id="L137">            return ValidationResult.success();</span>
+<span class="pc bpc" id="L136" title="2 of 6 branches missed.">        if (!event.supportsLinkedAdditionalServices() || fieldsForTicket.isEmpty() || bindingResult == null) {</span>
+<span class="fc" id="L137">            return ValidationResult.success();</span>
         }
 <span class="nc" id="L139">        final String publicUUIDAsString = ticketPublicUUID.toString();</span>
 <span class="nc" id="L140">        Map&lt;String, List&lt;AdditionalServiceLinkForm&gt;&gt; map = requireNonNullElse(updateTicketOwner.getAdditionalServices(), Map.of());</span>
@@ -178,9 +178,9 @@ public class TicketHelper {
                                                                              Optional&lt;BindingResult&gt; bindingResult,
                                                                              Locale fallbackLocale) {
 
-<span class="nc" id="L181">        return ticketReservationManager.from(eventName, reservationId, publicTicketUUID)</span>
-<span class="nc bnc" id="L182" title="All 4 branches missed.">            .filter(temp -&gt; PENDING_RESERVATION_STATUSES.contains(temp.getMiddle().getStatus()) &amp;&amp; temp.getRight().getStatus() == Ticket.TicketStatus.PENDING)</span>
-<span class="nc" id="L183">            .map(result -&gt; assignTicket(updateTicketOwner, bindingResult, fallbackLocale,Optional.empty(), result,&quot;tickets[&quot;+publicTicketUUID.toString()+&quot;]&quot;));</span>
+<span class="fc" id="L181">        return ticketReservationManager.from(eventName, reservationId, publicTicketUUID)</span>
+<span class="pc bpc" id="L182" title="2 of 4 branches missed.">            .filter(temp -&gt; PENDING_RESERVATION_STATUSES.contains(temp.getMiddle().getStatus()) &amp;&amp; temp.getRight().getStatus() == Ticket.TicketStatus.PENDING)</span>
+<span class="fc" id="L183">            .map(result -&gt; assignTicket(updateTicketOwner, bindingResult, fallbackLocale,Optional.empty(), result,&quot;tickets[&quot;+publicTicketUUID.toString()+&quot;]&quot;));</span>
     }
 
     public Optional&lt;Triple&lt;ValidationResult, Event, Ticket&gt;&gt; assignTicket(String eventName,
@@ -236,8 +236,8 @@ public class TicketHelper {
     }
 
     public static List&lt;Pair&lt;String, String&gt;&gt; getLocalizedEUCountriesForVat(Locale locale, String euCountries) {
-<span class="nc" id="L239">        return fixVAT(mapISOCountries(Stream.of(Locale.getISOCountries())</span>
-<span class="nc bnc" id="L240" title="All 4 branches missed.">            .filter(isoCode -&gt; Strings.CS.contains(euCountries, isoCode) || &quot;GR&quot;.equals(isoCode)), locale));</span>
+<span class="fc" id="L239">        return fixVAT(mapISOCountries(Stream.of(Locale.getISOCountries())</span>
+<span class="fc bfc" id="L240" title="All 4 branches covered.">            .filter(isoCode -&gt; Strings.CS.contains(euCountries, isoCode) || &quot;GR&quot;.equals(isoCode)), locale));</span>
     }
 
     public static List&lt;Pair&lt;String, String&gt;&gt; getLocalizedCountriesForVat(Locale locale) {
@@ -262,34 +262,34 @@ public class TicketHelper {
     }
 
     private void updateTicketOwner(UpdateTicketOwnerForm updateTicketOwner, Locale fallBackLocale, Ticket t, Event event, TicketReservation ticketReservation, Optional&lt;UserDetails&gt; userDetails) {
-<span class="nc" id="L265">        Locale language = Optional.ofNullable(updateTicketOwner.getUserLanguage())</span>
-<span class="nc" id="L266">                .filter(StringUtils::isNotBlank)</span>
-<span class="nc" id="L267">                .map(LocaleUtil::forLanguageTag)</span>
-<span class="nc" id="L268">                .orElse(fallBackLocale);</span>
-<span class="nc" id="L269">        var ticketLanguage = LocaleUtil.getTicketLanguage(t, fallBackLocale);</span>
-<span class="nc" id="L270">        ticketReservationManager.updateTicketOwner(t, language, event, updateTicketOwner,</span>
-<span class="nc" id="L271">                getConfirmationTextBuilder(ticketLanguage, event, ticketReservation, t),</span>
-<span class="nc" id="L272">                getOwnerChangeTextBuilder(ticketLanguage, t, event),</span>
+<span class="fc" id="L265">        Locale language = Optional.ofNullable(updateTicketOwner.getUserLanguage())</span>
+<span class="fc" id="L266">                .filter(StringUtils::isNotBlank)</span>
+<span class="fc" id="L267">                .map(LocaleUtil::forLanguageTag)</span>
+<span class="fc" id="L268">                .orElse(fallBackLocale);</span>
+<span class="fc" id="L269">        var ticketLanguage = LocaleUtil.getTicketLanguage(t, fallBackLocale);</span>
+<span class="fc" id="L270">        ticketReservationManager.updateTicketOwner(t, language, event, updateTicketOwner,</span>
+<span class="fc" id="L271">                getConfirmationTextBuilder(ticketLanguage, event, ticketReservation, t),</span>
+<span class="fc" id="L272">                getOwnerChangeTextBuilder(ticketLanguage, t, event),</span>
                 userDetails);
-<span class="nc bnc" id="L274" title="All 4 branches missed.">        if(t.hasBeenSold() &amp;&amp; !groupManager.findLinks(event.getId(), t.getCategoryId()).isEmpty()) {</span>
+<span class="pc bpc" id="L274" title="1 of 4 branches missed.">        if(t.hasBeenSold() &amp;&amp; !groupManager.findLinks(event.getId(), t.getCategoryId()).isEmpty()) {</span>
 <span class="nc" id="L275">            ticketRepository.forbidReassignment(Collections.singletonList(t.getId()));</span>
         }
-<span class="nc" id="L277">    }</span>
+<span class="fc" id="L277">    }</span>
 
     private PartialTicketTextGenerator getOwnerChangeTextBuilder(Locale ticketLanguage, Ticket t, Event event) {
-<span class="nc" id="L280">        Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="nc" id="L281">        String ticketUrl = ReservationUtil.ticketUpdateUrl(event, t, configurationManager);</span>
-<span class="nc" id="L282">        return TemplateProcessor.buildEmailForOwnerChange(event, t, organization, ticketUrl, templateManager, ticketLanguage);</span>
+<span class="fc" id="L280">        Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L281">        String ticketUrl = ReservationUtil.ticketUpdateUrl(event, t, configurationManager);</span>
+<span class="fc" id="L282">        return TemplateProcessor.buildEmailForOwnerChange(event, t, organization, ticketUrl, templateManager, ticketLanguage);</span>
     }
 
     public PartialTicketTextGenerator getConfirmationTextBuilder(Locale ticketLanguage,
                                                                  Event event,
                                                                  TicketReservation ticketReservation,
                                                                  Ticket ticket) {
-<span class="nc" id="L289">        return ticketReservationManager.getTicketEmailGenerator(event,</span>
+<span class="fc" id="L289">        return ticketReservationManager.getTicketEmailGenerator(event,</span>
             ticketReservation,
             ticketLanguage,
-<span class="nc" id="L292">            ticketReservationManager.retrieveAttendeeAdditionalInfoForTicket(ticket));</span>
+<span class="fc" id="L292">            ticketReservationManager.retrieveAttendeeAdditionalInfoForTicket(ticket));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

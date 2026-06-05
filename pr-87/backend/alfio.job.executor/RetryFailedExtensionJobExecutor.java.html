@@ -28,32 +28,32 @@ import java.util.Map;
 import java.util.Set;
 
 public class RetryFailedExtensionJobExecutor implements AdminJobExecutor {
-<span class="nc" id="L31">    private static final Logger log = LoggerFactory.getLogger(RetryFailedExtensionJobExecutor.class);</span>
+<span class="fc" id="L31">    private static final Logger log = LoggerFactory.getLogger(RetryFailedExtensionJobExecutor.class);</span>
     private final ExtensionService extensionService;
 
-<span class="nc" id="L34">    public RetryFailedExtensionJobExecutor(ExtensionService extensionService) {</span>
-<span class="nc" id="L35">        this.extensionService = extensionService;</span>
-<span class="nc" id="L36">    }</span>
+<span class="fc" id="L34">    public RetryFailedExtensionJobExecutor(ExtensionService extensionService) {</span>
+<span class="fc" id="L35">        this.extensionService = extensionService;</span>
+<span class="fc" id="L36">    }</span>
 
     @Override
     public Set&lt;JobName&gt; getJobNames() {
-<span class="nc" id="L40">        return EnumSet.of(JobName.EXECUTE_EXTENSION);</span>
+<span class="fc" id="L40">        return EnumSet.of(JobName.EXECUTE_EXTENSION);</span>
     }
 
     @Override
     public String process(AdminJobSchedule schedule) {
-<span class="nc" id="L45">        var metadata = schedule.getMetadata();</span>
-<span class="nc" id="L46">        var name = (String) metadata.get(ScriptingExecutionService.EXTENSION_NAME);</span>
-<span class="nc" id="L47">        var path = (String) metadata.get(ScriptingExecutionService.EXTENSION_PATH);</span>
+<span class="fc" id="L45">        var metadata = schedule.getMetadata();</span>
+<span class="fc" id="L46">        var name = (String) metadata.get(ScriptingExecutionService.EXTENSION_NAME);</span>
+<span class="fc" id="L47">        var path = (String) metadata.get(ScriptingExecutionService.EXTENSION_PATH);</span>
         @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L49">        var payload = (Map&lt;String, Object&gt;) metadata.get(ScriptingExecutionService.EXTENSION_PARAMS);</span>
+<span class="fc" id="L49">        var payload = (Map&lt;String, Object&gt;) metadata.get(ScriptingExecutionService.EXTENSION_PARAMS);</span>
         try {
-<span class="nc" id="L51">            extensionService.retryFailedAsyncScript(path, name, payload);</span>
-<span class="nc" id="L52">        } catch (RuntimeException ex) {</span>
-<span class="nc" id="L53">            log.warn(&quot;Caught error while retrying extension &quot; + name, ex);</span>
-<span class="nc" id="L54">            throw ex;</span>
-<span class="nc" id="L55">        }</span>
-<span class="nc" id="L56">        return &quot;OK&quot;;</span>
+<span class="fc" id="L51">            extensionService.retryFailedAsyncScript(path, name, payload);</span>
+<span class="fc" id="L52">        } catch (RuntimeException ex) {</span>
+<span class="fc" id="L53">            log.warn(&quot;Caught error while retrying extension &quot; + name, ex);</span>
+<span class="fc" id="L54">            throw ex;</span>
+<span class="fc" id="L55">        }</span>
+<span class="fc" id="L56">        return &quot;OK&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

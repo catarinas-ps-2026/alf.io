@@ -44,14 +44,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 class SmtpMailer extends BaseMailer {
 
-<span class="nc" id="L47">    private static final Logger log = LoggerFactory.getLogger(SmtpMailer.class);</span>
+<span class="fc" id="L47">    private static final Logger log = LoggerFactory.getLogger(SmtpMailer.class);</span>
     private final ConfigurationManager configurationManager;
 
     SmtpMailer(ConfigurationManager configurationManager,
                OrganizationRepository organizationRepository) {
-<span class="nc" id="L52">        super(organizationRepository);</span>
-<span class="nc" id="L53">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L54">    }</span>
+<span class="fc" id="L52">        super(organizationRepository);</span>
+<span class="fc" id="L53">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L54">    }</span>
 
     @Override
     public void send(Configurable configurable, String fromName, String to, List&lt;String&gt; cc, String subject, String text,

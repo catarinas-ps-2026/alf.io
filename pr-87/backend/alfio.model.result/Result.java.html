@@ -64,10 +64,10 @@ public class Result&lt;T&gt; {
 <span class="fc" id="L64">    }</span>
 
     public &lt;K&gt; Result&lt;K&gt; map(Function&lt;T, K&gt; mapper) {
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if(isSuccess()) {</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if(isSuccess()) {</span>
 <span class="fc" id="L68">            return Result.success(mapper.apply(data));</span>
         }
-<span class="nc" id="L70">        return Result.error(this.errors);</span>
+<span class="fc" id="L70">        return Result.error(this.errors);</span>
     }
 
     public &lt;K&gt; Result&lt;K&gt; flatMap(Function&lt;T, Result&lt;K&gt;&gt; mapper) {
@@ -111,7 +111,7 @@ public class Result&lt;T&gt; {
         }
 
         public Result&lt;T&gt; buildAndEvaluate(Supplier&lt;Result&lt;T&gt;&gt; resultSupplier) {
-<span class="pc" id="L114">            return performValidation().map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))</span>
+<span class="fc" id="L114">            return performValidation().map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))</span>
 <span class="fc" id="L115">                .orElseGet(resultSupplier);</span>
         }
 
@@ -124,10 +124,10 @@ public class Result&lt;T&gt; {
     }
 
     public static &lt;T&gt; Result&lt;T&gt; fromNullable(T nullable, ErrorCode justInCase) {
-<span class="nc bnc" id="L127" title="All 2 branches missed.">        if(nullable == null) {</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if(nullable == null) {</span>
 <span class="nc" id="L128">            return Result.error(justInCase);</span>
         }
-<span class="nc" id="L130">        return Result.success(nullable);</span>
+<span class="fc" id="L130">        return Result.success(nullable);</span>
     }
 
     @FunctionalInterface

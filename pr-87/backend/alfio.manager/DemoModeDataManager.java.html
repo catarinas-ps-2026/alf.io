@@ -74,7 +74,7 @@ public class DemoModeDataManager {
         try {
 <span class="fc" id="L75">            int expirationDate = configurationManager.getForSystem(ConfigurationKeys.DEMO_MODE_ACCOUNT_EXPIRATION_DAYS).getValueAsIntOrDefault(20);</span>
 <span class="fc" id="L76">            List&lt;Integer&gt; userIds = findExpiredUsers(DateUtils.addDays(new Date(), -expirationDate));</span>
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (!userIds.isEmpty()) {</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">            if (!userIds.isEmpty()) {</span>
 <span class="fc" id="L78">                deleteAccounts(userIds);</span>
             }
         } finally {

@@ -34,17 +34,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
-<span class="nc" id="L37">public class WebSecurityConfig {</span>
+<span class="fc" id="L37">public class WebSecurityConfig {</span>
 
     public static final String CSRF_PARAM_NAME = &quot;_csrf&quot;;
     private static final String CSRF_SESSION_ATTRIBUTE = &quot;CSRF_SESSION_ATTRIBUTE&quot;;
 
     @Bean
     public CsrfTokenRepository getCsrfTokenRepository() {
-<span class="nc" id="L44">        HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();</span>
-<span class="nc" id="L45">        repository.setSessionAttributeName(CSRF_SESSION_ATTRIBUTE);</span>
-<span class="nc" id="L46">        repository.setParameterName(CSRF_PARAM_NAME);</span>
-<span class="nc" id="L47">        return repository;</span>
+<span class="fc" id="L44">        HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();</span>
+<span class="fc" id="L45">        repository.setSessionAttributeName(CSRF_SESSION_ATTRIBUTE);</span>
+<span class="fc" id="L46">        repository.setParameterName(CSRF_PARAM_NAME);</span>
+<span class="fc" id="L47">        return repository;</span>
     }
 
     @Bean
@@ -57,7 +57,7 @@ import org.springframework.transaction.PlatformTransactionManager;
                                                          AuthorityRepository authorityRepository,
                                                          OrganizationRepository organizationRepository,
                                                          ExtensionManager extensionManager) {
-<span class="nc" id="L60">        return new OpenIdUserSynchronizer(transactionManager,</span>
+<span class="fc" id="L60">        return new OpenIdUserSynchronizer(transactionManager,</span>
             passwordEncoder,
             userManager,
             userRepository,

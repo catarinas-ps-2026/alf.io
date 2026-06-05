@@ -135,7 +135,7 @@ public class Configuration implements Comparable&lt;Configuration&gt; {
     }
 
     private static ConfigurationPath organization(int id) {
-<span class="nc" id="L138">        return new OrganizationConfigurationPath(id);</span>
+<span class="fc" id="L138">        return new OrganizationConfigurationPath(id);</span>
     }
 
     private static ConfigurationPath ticketCategory(int organizationId, int eventId, int id) {
@@ -148,11 +148,11 @@ public class Configuration implements Comparable&lt;Configuration&gt; {
     //
 
     private static ConfigurationPathKey getOrganizationConfiguration(int organizationId, ConfigurationKeys configurationKey) {
-<span class="nc" id="L151">        return new ConfigurationPathKey(organization(organizationId), configurationKey);</span>
+<span class="fc" id="L151">        return new ConfigurationPathKey(organization(organizationId), configurationKey);</span>
     }
 
     private static ConfigurationPathKey getEventConfiguration(int organizationId, int eventId, ConfigurationKeys configurationKey) {
-<span class="nc" id="L155">        return new ConfigurationPathKey(new EventConfigurationPath(organizationId, eventId), configurationKey);</span>
+<span class="fc" id="L155">        return new ConfigurationPathKey(new EventConfigurationPath(organizationId, eventId), configurationKey);</span>
     }
 
     private static ConfigurationPathKey getTicketCategoryConfiguration(int organizationId, int eventId, int ticketCategoryId, ConfigurationKeys configurationKey) {
@@ -160,11 +160,11 @@ public class Configuration implements Comparable&lt;Configuration&gt; {
     }
 
     public static ConfigurationPathKey from(int organizationId, ConfigurationKeys key) {
-<span class="nc" id="L163">        return getOrganizationConfiguration(organizationId, key);</span>
+<span class="fc" id="L163">        return getOrganizationConfiguration(organizationId, key);</span>
     }
 
     public static ConfigurationPathKey from(EventAndOrganizationId eventAndOrganizationId, ConfigurationKeys key) {
-<span class="nc" id="L167">        return getEventConfiguration(eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId(), key);</span>
+<span class="fc" id="L167">        return getEventConfiguration(eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId(), key);</span>
     }
 
     public static ConfigurationPathKey from(SubscriptionDescriptor subscriptionDescriptor, ConfigurationKeys key) {

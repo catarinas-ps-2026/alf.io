@@ -28,11 +28,11 @@ public interface PaymentMethod {
 
     @Nullable
     public static PaymentMethod safeParse(String asString) {
-<span class="nc" id="L31">        return Arrays</span>
-<span class="nc" id="L32">            .stream(StaticPaymentMethods.values())</span>
-<span class="nc" id="L33">            .filter(v -&gt; v.name().equals(asString))</span>
-<span class="nc" id="L34">            .findFirst()</span>
-<span class="nc" id="L35">            .orElse(null);</span>
+<span class="fc" id="L31">        return Arrays</span>
+<span class="fc" id="L32">            .stream(StaticPaymentMethods.values())</span>
+<span class="fc" id="L33">            .filter(v -&gt; v.name().equals(asString))</span>
+<span class="fc" id="L34">            .findFirst()</span>
+<span class="fc" id="L35">            .orElse(null);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

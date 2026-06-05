@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 
 import static alfio.util.Wrappers.optionally;
 
-<span class="nc" id="L49">public class V22_1_14_8__MigrateMailchimp extends BaseJavaMigration {</span>
+<span class="fc" id="L49">public class V22_1_14_8__MigrateMailchimp extends BaseJavaMigration {</span>
 
     private static String getMailChimpScript() {
 <span class="nc" id="L52">        try (InputStream is = new ClassPathResource(&quot;/alfio/extension/mailchimp.js&quot;).getInputStream()){</span>
@@ -58,10 +58,10 @@ import static alfio.util.Wrappers.optionally;
 
     @Override
     public void migrate(Context context) throws Exception {
-<span class="nc" id="L61">        var jdbcTemplate = new JdbcTemplate(new SingleConnectionDataSource(context.getConnection(), true));</span>
-<span class="nc" id="L62">        Integer enabledCount = jdbcTemplate.queryForObject(&quot;select count(*) from plugin_configuration where plugin_id = 'alfio.mailchimp' and conf_name = 'enabled' and conf_value = 'true'&quot;, Integer.class);</span>
-<span class="nc bnc" id="L63" title="All 4 branches missed.">        if (enabledCount == null || enabledCount == 0) {</span>
-<span class="nc" id="L64">            return;</span>
+<span class="fc" id="L61">        var jdbcTemplate = new JdbcTemplate(new SingleConnectionDataSource(context.getConnection(), true));</span>
+<span class="fc" id="L62">        Integer enabledCount = jdbcTemplate.queryForObject(&quot;select count(*) from plugin_configuration where plugin_id = 'alfio.mailchimp' and conf_name = 'enabled' and conf_value = 'true'&quot;, Integer.class);</span>
+<span class="pc bpc" id="L63" title="2 of 4 branches missed.">        if (enabledCount == null || enabledCount == 0) {</span>
+<span class="fc" id="L64">            return;</span>
         }
 
 <span class="nc" id="L67">        DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());</span>

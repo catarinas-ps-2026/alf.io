@@ -38,12 +38,12 @@ public class AnalyticsConfiguration {
 
 
     public static AnalyticsConfiguration build(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; conf, HttpSession session) {
-<span class="nc" id="L41">        var googAnalyticsKey = StringUtils.trimToNull(conf.get(GOOGLE_ANALYTICS_KEY).getValueOrNull());</span>
-<span class="nc" id="L42">        var googAnalyticsScrambled = conf.get(GOOGLE_ANALYTICS_ANONYMOUS_MODE).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L41">        var googAnalyticsKey = StringUtils.trimToNull(conf.get(GOOGLE_ANALYTICS_KEY).getValueOrNull());</span>
+<span class="fc" id="L42">        var googAnalyticsScrambled = conf.get(GOOGLE_ANALYTICS_ANONYMOUS_MODE).getValueAsBooleanOrDefault();</span>
 
-<span class="nc" id="L44">        var sessionId = session.getId();</span>
-<span class="nc bnc" id="L45" title="All 6 branches missed.">        var clientId = googAnalyticsKey != null &amp;&amp; googAnalyticsScrambled &amp;&amp; sessionId != null ? DigestUtils.sha256Hex(sessionId) : null;</span>
-<span class="nc" id="L46">        return new AnalyticsConfiguration(googAnalyticsKey, googAnalyticsScrambled, clientId);</span>
+<span class="fc" id="L44">        var sessionId = session.getId();</span>
+<span class="pc bpc" id="L45" title="5 of 6 branches missed.">        var clientId = googAnalyticsKey != null &amp;&amp; googAnalyticsScrambled &amp;&amp; sessionId != null ? DigestUtils.sha256Hex(sessionId) : null;</span>
+<span class="fc" id="L46">        return new AnalyticsConfiguration(googAnalyticsKey, googAnalyticsScrambled, clientId);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

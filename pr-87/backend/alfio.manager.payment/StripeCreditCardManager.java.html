@@ -66,10 +66,10 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
                                    ConfigurationRepository configurationRepository,
                                    Environment environment,
                                    ClockProvider clockProvider) {
-<span class="nc" id="L69">        this(transactionRepository,</span>
+<span class="fc" id="L69">        this(transactionRepository,</span>
             new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, environment),
             clockProvider);
-<span class="nc" id="L72">    }</span>
+<span class="fc" id="L72">    }</span>
 
     StripeCreditCardManager(TransactionRepository transactionRepository,
                             BaseStripeManager baseStripeManager,
@@ -106,15 +106,15 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
 
     @Override
     public Set&lt;? extends PaymentMethod&gt; getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        if(!isActive(paymentContext)) {</span>
-<span class="nc" id="L110">            return EnumSet.noneOf(StaticPaymentMethods.class);</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">        if(!isActive(paymentContext)) {</span>
+<span class="fc" id="L110">            return EnumSet.noneOf(StaticPaymentMethods.class);</span>
         }
-<span class="nc" id="L112">        return EnumSet.of(StaticPaymentMethods.CREDIT_CARD);</span>
+<span class="fc" id="L112">        return EnumSet.of(StaticPaymentMethods.CREDIT_CARD);</span>
     }
 
     @Override
     public PaymentProxy getPaymentProxy() {
-<span class="nc" id="L117">        return PaymentProxy.STRIPE;</span>
+<span class="fc" id="L117">        return PaymentProxy.STRIPE;</span>
     }
 
     @Override
@@ -123,7 +123,7 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
     }
 
     private boolean checkConfiguration(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; config) {
-<span class="pc bpc" id="L126" title="1 of 2 branches missed.">        return !config.get(STRIPE_ENABLE_SCA).getValueAsBooleanOrDefault()</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        return !config.get(STRIPE_ENABLE_SCA).getValueAsBooleanOrDefault()</span>
 <span class="pc bpc" id="L127" title="1 of 4 branches missed.">            &amp;&amp; config.get(STRIPE_SECRET_KEY).isPresent() &amp;&amp; config.get(STRIPE_PUBLIC_KEY).isPresent();</span>
     }
 
@@ -142,7 +142,7 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
 
     @Override
     public boolean isActive(PaymentContext paymentContext) {
-<span class="nc" id="L145">        return baseStripeManager.isActive(paymentContext, OPTIONS_TO_LOAD, this::checkConfiguration);</span>
+<span class="fc" id="L145">        return baseStripeManager.isActive(paymentContext, OPTIONS_TO_LOAD, this::checkConfiguration);</span>
     }
 
     @Override

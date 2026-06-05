@@ -29,7 +29,7 @@ import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 
-<span class="nc" id="L32">public class Json {</span>
+<span class="fc" id="L32">public class Json {</span>
 
 <span class="fc" id="L34">    public static final Gson GSON = Converters.registerAll(new GsonBuilder()).create();</span>
 
@@ -45,11 +45,11 @@ import java.io.IOException;
 <span class="fc" id="L45">    }</span>
 
     public String asJsonString(Object o) {
-<span class="nc" id="L48">        return toJson(o);</span>
+<span class="fc" id="L48">        return toJson(o);</span>
     }
 
     public &lt;T&gt; T fromJsonString(String value, Class&lt;T&gt; valueType) {
-<span class="nc" id="L52">        return fromJson(value, valueType);</span>
+<span class="fc" id="L52">        return fromJson(value, valueType);</span>
     }
 
     public static String toJson(Object o) {

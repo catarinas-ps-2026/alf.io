@@ -31,10 +31,10 @@ public class SaferpayCallbackController {
     private final TicketReservationManager ticketReservationManager;
     private final PurchaseContextManager purchaseContextManager;
 
-<span class="nc" id="L34">    public SaferpayCallbackController(TicketReservationManager ticketReservationManager, PurchaseContextManager purchaseContextManager) {</span>
-<span class="nc" id="L35">        this.ticketReservationManager = ticketReservationManager;</span>
-<span class="nc" id="L36">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="nc" id="L37">    }</span>
+<span class="fc" id="L34">    public SaferpayCallbackController(TicketReservationManager ticketReservationManager, PurchaseContextManager purchaseContextManager) {</span>
+<span class="fc" id="L35">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L36">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L37">    }</span>
 
     @GetMapping(PaymentPageInitializeRequestBuilder.CANCEL_URL_TEMPLATE)
     public String saferpayCancel(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,

@@ -116,28 +116,28 @@ public interface UploadedResourceRepository {
 <span class="fc" id="L116">        LobHandler lobHandler = new DefaultLobHandler();</span>
 
 <span class="fc" id="L118">        String query = &quot;insert into resource_global (name, content_size, content, content_type, attributes) values(?, ?, ?, ?, ?)&quot;;</span>
-<span class="pc bpc" id="L119" title="2 of 4 branches missed.">        if (organizationId != null &amp;&amp; eventId != null) {</span>
+<span class="fc bfc" id="L119" title="All 4 branches covered.">        if (organizationId != null &amp;&amp; eventId != null) {</span>
 <span class="fc" id="L120">            query = &quot;insert into resource_event (name, content_size, content, content_type, attributes, organization_id_fk, event_id_fk) values(?, ?, ?, ?, ?, ?, ?)&quot;;</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">        } else if(organizationId != null) {</span>
-<span class="nc" id="L122">            query = &quot;insert into resource_organizer (name, content_size, content, content_type, attributes, organization_id_fk) values(?, ?, ?, ?, ?, ?)&quot;;</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        } else if(organizationId != null) {</span>
+<span class="fc" id="L122">            query = &quot;insert into resource_organizer (name, content_size, content, content_type, attributes, organization_id_fk) values(?, ?, ?, ?, ?, ?)&quot;;</span>
         }
 
 <span class="fc" id="L125">        return Objects.requireNonNullElse(getNamedParameterJdbcTemplate().getJdbcOperations().execute(query,</span>
 <span class="fc" id="L126">            new AbstractLobCreatingPreparedStatementCallback(lobHandler) {</span>
                 @Override
                 protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
-<span class="nc" id="L129">                    ps.setString(1, file.getName());</span>
-<span class="nc" id="L130">                    ps.setLong(2, file.getFile().length);</span>
-<span class="nc" id="L131">                    lobCreator.setBlobAsBytes(ps, 3, file.getFile());</span>
-<span class="nc" id="L132">                    ps.setString(4, file.getType());</span>
-<span class="nc" id="L133">                    ps.setString(5, Json.GSON.toJson(attributes));</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">                    if (organizationId != null) {</span>
-<span class="nc" id="L135">                        ps.setInt(6, organizationId);</span>
+<span class="fc" id="L129">                    ps.setString(1, file.getName());</span>
+<span class="fc" id="L130">                    ps.setLong(2, file.getFile().length);</span>
+<span class="fc" id="L131">                    lobCreator.setBlobAsBytes(ps, 3, file.getFile());</span>
+<span class="fc" id="L132">                    ps.setString(4, file.getType());</span>
+<span class="fc" id="L133">                    ps.setString(5, Json.GSON.toJson(attributes));</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">                    if (organizationId != null) {</span>
+<span class="fc" id="L135">                        ps.setInt(6, organizationId);</span>
                     }
-<span class="nc bnc" id="L137" title="All 2 branches missed.">                    if (eventId != null) {</span>
-<span class="nc" id="L138">                        ps.setInt(7, eventId);</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">                    if (eventId != null) {</span>
+<span class="fc" id="L138">                        ps.setInt(7, eventId);</span>
                     }
-<span class="nc" id="L140">                }</span>
+<span class="fc" id="L140">                }</span>
             }
 <span class="fc" id="L142">        ), 0);</span>
     }

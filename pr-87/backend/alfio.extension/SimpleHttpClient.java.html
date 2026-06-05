@@ -55,69 +55,69 @@ public class SimpleHttpClient {
 <span class="fc" id="L55">    }</span>
 
     public SimpleHttpClientResponse get(String url) throws IOException {
-<span class="nc" id="L58">        return get(url, Collections.emptyMap());</span>
+<span class="fc" id="L58">        return get(url, Collections.emptyMap());</span>
     }
 
     public SimpleHttpClientResponse get(String url, Map&lt;String, String&gt; headers) throws IOException {
-<span class="nc" id="L62">        return doRequest(url, headers, &quot;GET&quot;, null);</span>
+<span class="fc" id="L62">        return doRequest(url, headers, &quot;GET&quot;, null);</span>
     }
 
 
     public SimpleHttpClientResponse head(String url) throws IOException {
-<span class="nc" id="L67">        return head(url, Collections.emptyMap());</span>
+<span class="fc" id="L67">        return head(url, Collections.emptyMap());</span>
     }
 
     public SimpleHttpClientResponse head(String url, Map&lt;String, String&gt; headers) throws IOException {
-<span class="nc" id="L71">        return doRequest(url, headers, &quot;HEAD&quot;, null);</span>
+<span class="fc" id="L71">        return doRequest(url, headers, &quot;HEAD&quot;, null);</span>
     }
 
     public SimpleHttpClientResponse post(String url) throws IOException {
-<span class="nc" id="L75">        return post(url, Collections.emptyMap());</span>
+<span class="fc" id="L75">        return post(url, Collections.emptyMap());</span>
     }
 
     public SimpleHttpClientResponse post(String url, Map&lt;String, String&gt; headers) throws IOException {
-<span class="nc" id="L79">        return post(url, headers, null);</span>
+<span class="fc" id="L79">        return post(url, headers, null);</span>
     }
 
     public SimpleHttpClientResponse post(String url, Map&lt;String, String&gt; headers, Object body) throws IOException {
-<span class="nc" id="L83">        return postJSON(url, headers, body);</span>
+<span class="fc" id="L83">        return postJSON(url, headers, body);</span>
     }
 
     public SimpleHttpClientResponse postJSON(String url, Map&lt;String, String&gt; headers, Object body) throws IOException {
-<span class="nc" id="L87">        return doRequest(url, headers, &quot;POST&quot;, body);</span>
+<span class="fc" id="L87">        return doRequest(url, headers, &quot;POST&quot;, body);</span>
     }
 
     public SimpleHttpClientResponse postForm(String url, Map&lt;String, String&gt; headers, Map&lt;String, String&gt; params) throws IOException {
-<span class="nc" id="L91">        HttpRequest request = buildUrlAndHeader(url, headers, HttpUtils.APPLICATION_FORM_URLENCODED)</span>
-<span class="nc" id="L92">            .POST(HttpUtils.ofFormUrlEncodedBody(params))</span>
-<span class="nc" id="L93">            .build();</span>
-<span class="nc" id="L94">        return callRemote(request);</span>
+<span class="fc" id="L91">        HttpRequest request = buildUrlAndHeader(url, headers, HttpUtils.APPLICATION_FORM_URLENCODED)</span>
+<span class="fc" id="L92">            .POST(HttpUtils.ofFormUrlEncodedBody(params))</span>
+<span class="fc" id="L93">            .build();</span>
+<span class="fc" id="L94">        return callRemote(request);</span>
     }
 
     public SimpleHttpClientCachedResponse postFileAndSaveResponse(String url, Map&lt;String, String&gt; headers, String file, String filename, String contentType) throws IOException {
-<span class="nc" id="L98">        Path resolved = Path.of(file).normalize().toAbsolutePath();</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (!resolved.startsWith(ALLOWED_TMP_FILE_DIR)) {</span>
+<span class="fc" id="L98">        Path resolved = Path.of(file).normalize().toAbsolutePath();</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (!resolved.startsWith(ALLOWED_TMP_FILE_DIR)) {</span>
 <span class="nc" id="L100">            throw new SecurityException(&quot;File access outside allowed base directory (&quot;+ALLOWED_TMP_FILE_DIR+&quot;)&quot;);</span>
         }
-<span class="nc" id="L102">        var mpb = new HttpUtils.MultiPartBodyPublisher();</span>
-<span class="nc" id="L103">        mpb.addPart(&quot;file&quot;, () -&gt; {</span>
+<span class="fc" id="L102">        var mpb = new HttpUtils.MultiPartBodyPublisher();</span>
+<span class="fc" id="L103">        mpb.addPart(&quot;file&quot;, () -&gt; {</span>
             try {
-<span class="nc" id="L105">                return new FileInputStream(file);</span>
+<span class="fc" id="L105">                return new FileInputStream(file);</span>
 <span class="nc" id="L106">            } catch (FileNotFoundException e) {</span>
 <span class="nc" id="L107">                throw new IllegalStateException(e);</span>
             }
         }, filename, contentType);
-<span class="nc" id="L110">        HttpRequest request = buildUrlAndHeader(url, headers, HttpUtils.MULTIPART_FORM_DATA+&quot;;boundary=\&quot;&quot;+mpb.getBoundary()+&quot;\&quot;&quot;)</span>
-<span class="nc" id="L111">            .POST(mpb.build())</span>
-<span class="nc" id="L112">            .build();</span>
-<span class="nc" id="L113">        return callRemoteAndSaveResponse(request);</span>
+<span class="fc" id="L110">        HttpRequest request = buildUrlAndHeader(url, headers, HttpUtils.MULTIPART_FORM_DATA+&quot;;boundary=\&quot;&quot;+mpb.getBoundary()+&quot;\&quot;&quot;)</span>
+<span class="fc" id="L111">            .POST(mpb.build())</span>
+<span class="fc" id="L112">            .build();</span>
+<span class="fc" id="L113">        return callRemoteAndSaveResponse(request);</span>
     }
 
     public SimpleHttpClientCachedResponse postBodyAndSaveResponse(String url, Map&lt;String, String&gt; headers, String content, String contentType) throws IOException {
-<span class="nc" id="L117">        HttpRequest request = buildUrlAndHeader(url, headers, contentType)</span>
-<span class="nc" id="L118">            .POST(HttpRequest.BodyPublishers.ofString(content))</span>
-<span class="nc" id="L119">            .build();</span>
-<span class="nc" id="L120">        return callRemoteAndSaveResponse(request);</span>
+<span class="fc" id="L117">        HttpRequest request = buildUrlAndHeader(url, headers, contentType)</span>
+<span class="fc" id="L118">            .POST(HttpRequest.BodyPublishers.ofString(content))</span>
+<span class="fc" id="L119">            .build();</span>
+<span class="fc" id="L120">        return callRemoteAndSaveResponse(request);</span>
     }
 
     public SimpleHttpClientResponse delete(String url) throws IOException {
@@ -163,26 +163,26 @@ public class SimpleHttpClient {
     }
 
     private SimpleHttpClientResponse doRequest(String url, Map&lt;String, String&gt; headers, String method, Object requestBody) throws IOException {
-<span class="nc bnc" id="L166" title="All 2 branches missed.">        HttpRequest request = buildUrlAndHeader(url, headers, NULL_REQUEST_BODY.contains(method) ? null : HttpUtils.APPLICATION_JSON)</span>
-<span class="nc" id="L167">            .method(method, buildRequestBody(requestBody))</span>
-<span class="nc" id="L168">            .build();</span>
-<span class="nc" id="L169">        return callRemote(request);</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        HttpRequest request = buildUrlAndHeader(url, headers, NULL_REQUEST_BODY.contains(method) ? null : HttpUtils.APPLICATION_JSON)</span>
+<span class="fc" id="L167">            .method(method, buildRequestBody(requestBody))</span>
+<span class="fc" id="L168">            .build();</span>
+<span class="fc" id="L169">        return callRemote(request);</span>
     }
 
     private SimpleHttpClientResponse callRemote(HttpRequest request) throws IOException {
-<span class="nc" id="L173">        HttpResponse&lt;String&gt; response = null;</span>
+<span class="fc" id="L173">        HttpResponse&lt;String&gt; response = null;</span>
         try {
-<span class="nc" id="L175">            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="fc" id="L175">            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
 <span class="nc" id="L176">        } catch (InterruptedException exception) {</span>
 <span class="nc" id="L177">            Thread.currentThread().interrupt();</span>
 <span class="nc" id="L178">            logInterruption(exception);</span>
-<span class="nc" id="L179">        }</span>
-<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (response != null) {</span>
-<span class="nc" id="L181">            return new SimpleHttpClientResponse(</span>
-<span class="nc" id="L182">                HttpUtils.callSuccessful(response),</span>
-<span class="nc" id="L183">                response.statusCode(),</span>
-<span class="nc" id="L184">                response.headers().map(),</span>
-<span class="nc" id="L185">                response.body());</span>
+<span class="fc" id="L179">        }</span>
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        if (response != null) {</span>
+<span class="fc" id="L181">            return new SimpleHttpClientResponse(</span>
+<span class="fc" id="L182">                HttpUtils.callSuccessful(response),</span>
+<span class="fc" id="L183">                response.statusCode(),</span>
+<span class="fc" id="L184">                response.headers().map(),</span>
+<span class="fc" id="L185">                response.body());</span>
         } else {
 <span class="nc" id="L187">            return new SimpleHttpClientResponse(false, 0, Map.of(), &quot;&quot;);</span>
         }
@@ -193,29 +193,29 @@ public class SimpleHttpClient {
 <span class="nc" id="L193">    }</span>
 
     private SimpleHttpClientCachedResponse callRemoteAndSaveResponse(HttpRequest request) throws IOException {
-<span class="nc" id="L196">        HttpResponse&lt;InputStream&gt; response = null;</span>
+<span class="fc" id="L196">        HttpResponse&lt;InputStream&gt; response = null;</span>
         try {
-<span class="nc" id="L198">            response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());</span>
+<span class="fc" id="L198">            response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());</span>
 <span class="nc" id="L199">        } catch (InterruptedException exception) {</span>
 <span class="nc" id="L200">            Thread.currentThread().interrupt();</span>
 <span class="nc" id="L201">            logInterruption(exception);</span>
 <span class="nc" id="L202">            throw new IllegalStateException(exception);</span>
-<span class="nc" id="L203">        }</span>
-<span class="nc" id="L204">        Path tempFile = null;</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (HttpUtils.callSuccessful(response)) {</span>
-<span class="nc" id="L206">            InputStream body = response.body();</span>
-<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (body != null) {</span>
-<span class="nc" id="L208">                tempFile = Files.createTempFile(OUTPUT_FILE_DIR, &quot;extension-out&quot;, &quot;.tmp&quot;);</span>
-<span class="nc" id="L209">                try (FileOutputStream out = new FileOutputStream(tempFile.toFile())) {</span>
-<span class="nc" id="L210">                    body.transferTo(out);</span>
+<span class="fc" id="L203">        }</span>
+<span class="fc" id="L204">        Path tempFile = null;</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">        if (HttpUtils.callSuccessful(response)) {</span>
+<span class="fc" id="L206">            InputStream body = response.body();</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">            if (body != null) {</span>
+<span class="fc" id="L208">                tempFile = Files.createTempFile(OUTPUT_FILE_DIR, &quot;extension-out&quot;, &quot;.tmp&quot;);</span>
+<span class="fc" id="L209">                try (FileOutputStream out = new FileOutputStream(tempFile.toFile())) {</span>
+<span class="fc" id="L210">                    body.transferTo(out);</span>
                 }
             }
         }
-<span class="nc" id="L214">        return new SimpleHttpClientCachedResponse(</span>
-<span class="nc" id="L215">            HttpUtils.callSuccessful(response),</span>
-<span class="nc" id="L216">            response.statusCode(),</span>
-<span class="nc" id="L217">            response.headers().map(),</span>
-<span class="nc bnc" id="L218" title="All 2 branches missed.">            tempFile != null ? tempFile.toAbsolutePath().toString() : null);</span>
+<span class="fc" id="L214">        return new SimpleHttpClientCachedResponse(</span>
+<span class="fc" id="L215">            HttpUtils.callSuccessful(response),</span>
+<span class="fc" id="L216">            response.statusCode(),</span>
+<span class="fc" id="L217">            response.headers().map(),</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">            tempFile != null ? tempFile.toAbsolutePath().toString() : null);</span>
     }
 
     // Thanks to: https://stackoverflow.com/questions/54208945/java-11-httpclient-not-sending-basic-authentication
@@ -224,19 +224,19 @@ public class SimpleHttpClient {
     }
 
     private static HttpRequest.Builder buildUrlAndHeader(String url, Map&lt;?, ?&gt; headers, String contentType) {
-<span class="nc" id="L227">        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();</span>
-<span class="nc" id="L228">        requestBuilder.uri(URI.create(url));</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (headers != null) {</span>
-<span class="nc" id="L230">            headers.forEach((k, v) -&gt; requestBuilder.header(String.valueOf(k), String.valueOf(v)));</span>
+<span class="fc" id="L227">        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();</span>
+<span class="fc" id="L228">        requestBuilder.uri(URI.create(url));</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">        if (headers != null) {</span>
+<span class="fc" id="L230">            headers.forEach((k, v) -&gt; requestBuilder.header(String.valueOf(k), String.valueOf(v)));</span>
         }
-<span class="nc bnc" id="L232" title="All 2 branches missed.">        if (contentType != null) {</span>
-<span class="nc" id="L233">            requestBuilder.header(HttpUtils.CONTENT_TYPE, contentType);</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">        if (contentType != null) {</span>
+<span class="fc" id="L233">            requestBuilder.header(HttpUtils.CONTENT_TYPE, contentType);</span>
         }
-<span class="nc" id="L235">        return requestBuilder;</span>
+<span class="fc" id="L235">        return requestBuilder;</span>
     }
 
     private static HttpRequest.BodyPublisher buildRequestBody(Object body) {
-<span class="nc bnc" id="L239" title="All 2 branches missed.">        return body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(ExtensionUtils.convertToJson(body));</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">        return body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(ExtensionUtils.convertToJson(body));</span>
     }
 
 }

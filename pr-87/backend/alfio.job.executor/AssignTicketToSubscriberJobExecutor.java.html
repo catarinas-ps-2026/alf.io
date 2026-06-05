@@ -56,7 +56,7 @@ public class AssignTicketToSubscriberJobExecutor implements AdminJobExecutor {
     public static final String EVENT_ID = &quot;eventId&quot;;
     public static final String ORGANIZATION_ID = &quot;organizationId&quot;;
     public static final String FORCE_GENERATION = &quot;forceGeneration&quot;;
-<span class="nc" id="L59">    private static final Logger log = LoggerFactory.getLogger(AssignTicketToSubscriberJobExecutor.class);</span>
+<span class="fc" id="L59">    private static final Logger log = LoggerFactory.getLogger(AssignTicketToSubscriberJobExecutor.class);</span>
     private final AdminReservationRequestManager requestManager;
     private final ConfigurationManager configurationManager;
     private final SubscriptionRepository subscriptionRepository;
@@ -71,96 +71,96 @@ public class AssignTicketToSubscriberJobExecutor implements AdminJobExecutor {
                                                EventRepository eventRepository,
                                                ClockProvider clockProvider,
                                                TicketCategoryRepository ticketCategoryRepository,
-<span class="nc" id="L74">                                               PurchaseContextFieldRepository purchaseContextFieldRepository) {</span>
-<span class="nc" id="L75">        this.requestManager = requestManager;</span>
-<span class="nc" id="L76">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L77">        this.subscriptionRepository = subscriptionRepository;</span>
-<span class="nc" id="L78">        this.eventRepository = eventRepository;</span>
-<span class="nc" id="L79">        this.clockProvider = clockProvider;</span>
-<span class="nc" id="L80">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
-<span class="nc" id="L81">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
-<span class="nc" id="L82">    }</span>
+<span class="fc" id="L74">                                               PurchaseContextFieldRepository purchaseContextFieldRepository) {</span>
+<span class="fc" id="L75">        this.requestManager = requestManager;</span>
+<span class="fc" id="L76">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L77">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="fc" id="L78">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L79">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L80">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L81">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
+<span class="fc" id="L82">    }</span>
 
     @Override
     public Set&lt;JobName&gt; getJobNames() {
-<span class="nc" id="L86">        return EnumSet.of(JobName.ASSIGN_TICKETS_TO_SUBSCRIBERS);</span>
+<span class="fc" id="L86">        return EnumSet.of(JobName.ASSIGN_TICKETS_TO_SUBSCRIBERS);</span>
     }
 
     @Override
     public String process(AdminJobSchedule schedule) {
-<span class="nc" id="L91">        var metadata = schedule.getMetadata();</span>
-<span class="nc" id="L92">        log.debug(&quot;Executing AssignTicketToSubscribers with metadata {}&quot;, metadata);</span>
+<span class="fc" id="L91">        var metadata = schedule.getMetadata();</span>
+<span class="fc" id="L92">        log.debug(&quot;Executing AssignTicketToSubscribers with metadata {}&quot;, metadata);</span>
         // 1. Find all subscriptions bought until now. Filters:
         //     - subscription_descriptor_fk is linked to the current event
         //     - id does not have any reservations attached to the current event
         //     - validity_from is &lt;= now()
         //     - validity_to is null or &gt; now()
         //     - status = 'ACQUIRED'
-<span class="nc" id="L99">        var subscriptionsByEvent = subscriptionRepository.loadAvailableSubscriptionsByEvent((Integer) metadata.get(EVENT_ID), (Integer) metadata.get(ORGANIZATION_ID));</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (!subscriptionsByEvent.isEmpty()) {</span>
-<span class="nc" id="L101">            boolean forceGeneration = Boolean.TRUE.equals(metadata.get(FORCE_GENERATION));</span>
-<span class="nc" id="L102">            Set&lt;Integer&gt; ids = subscriptionsByEvent.keySet();</span>
-<span class="nc" id="L103">            var fieldsByEventId = purchaseContextFieldRepository.findAdditionalFieldNamesForEvents(ids);</span>
-<span class="nc" id="L104">            eventRepository.findByIds(ids).forEach(event -&gt; {</span>
+<span class="fc" id="L99">        var subscriptionsByEvent = subscriptionRepository.loadAvailableSubscriptionsByEvent((Integer) metadata.get(EVENT_ID), (Integer) metadata.get(ORGANIZATION_ID));</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (!subscriptionsByEvent.isEmpty()) {</span>
+<span class="fc" id="L101">            boolean forceGeneration = Boolean.TRUE.equals(metadata.get(FORCE_GENERATION));</span>
+<span class="fc" id="L102">            Set&lt;Integer&gt; ids = subscriptionsByEvent.keySet();</span>
+<span class="fc" id="L103">            var fieldsByEventId = purchaseContextFieldRepository.findAdditionalFieldNamesForEvents(ids);</span>
+<span class="fc" id="L104">            eventRepository.findByIds(ids).forEach(event -&gt; {</span>
                 // 2. for each event check if the flag is active, unless forceGeneration has been specified
-<span class="nc bnc" id="L106" title="All 2 branches missed.">                boolean generationEnabled = forceGeneration || configurationManager.getFor(GENERATE_TICKETS_FOR_SUBSCRIPTIONS, event.getConfigurationLevel())</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">                    .getValueAsBooleanOrDefault();</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">                if (generationEnabled) {</span>
-<span class="nc" id="L109">                    var subscriptions = subscriptionsByEvent.get(event.getId());</span>
-<span class="nc" id="L110">                    var availableCategories = ticketCategoryRepository.findAllWithAvailableTickets(event.getId());</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">                    if (CollectionUtils.isNotEmpty(availableCategories)) {</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">                boolean generationEnabled = forceGeneration || configurationManager.getFor(GENERATE_TICKETS_FOR_SUBSCRIPTIONS, event.getConfigurationLevel())</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">                    .getValueAsBooleanOrDefault();</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">                if (generationEnabled) {</span>
+<span class="fc" id="L109">                    var subscriptions = subscriptionsByEvent.get(event.getId());</span>
+<span class="fc" id="L110">                    var availableCategories = ticketCategoryRepository.findAllWithAvailableTickets(event.getId());</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">                    if (CollectionUtils.isNotEmpty(availableCategories)) {</span>
                         // 3. create reservation import request for the subscribers. ID is &quot;AUTO_${eventShortName}_${now_ISO}&quot;
-<span class="nc" id="L113">                        var requestId = String.format(&quot;AUTO_%s_%s&quot;, event.getShortName(), LocalDateTime.now(clockProvider.getClock()).format(DateTimeFormatter.ISO_DATE_TIME));</span>
-<span class="nc" id="L114">                        requestManager.insertRequest(requestId,</span>
-<span class="nc" id="L115">                            buildBody(event, subscriptions, availableCategories, fieldsByEventId.getOrDefault(event.getId(), Set.of())),</span>
+<span class="fc" id="L113">                        var requestId = String.format(&quot;AUTO_%s_%s&quot;, event.getShortName(), LocalDateTime.now(clockProvider.getClock()).format(DateTimeFormatter.ISO_DATE_TIME));</span>
+<span class="fc" id="L114">                        requestManager.insertRequest(requestId,</span>
+<span class="fc" id="L115">                            buildBody(event, subscriptions, availableCategories, fieldsByEventId.getOrDefault(event.getId(), Set.of())),</span>
                             event,
                             false,
                             &quot;admin&quot;);
 
-<span class="nc" id="L120">                    } else {</span>
+<span class="fc" id="L120">                    } else {</span>
 <span class="nc" id="L121">                        log.warn(&quot;Cannot find a suitable ticket category for event {}&quot;, event.getId());</span>
                     }
                 }
-<span class="nc" id="L124">            });</span>
-<span class="nc" id="L125">        } else {</span>
+<span class="fc" id="L124">            });</span>
+<span class="fc" id="L125">        } else {</span>
 <span class="nc" id="L126">            log.debug(&quot;No subscriptions found for metadata {}&quot;, metadata);</span>
         }
-<span class="nc" id="L128">        return null;</span>
+<span class="fc" id="L128">        return null;</span>
     }
 
     private AdminReservationModification buildBody(Event event,
                                                    List&lt;AvailableSubscriptionsByEvent&gt; subscriptions,
                                                    List&lt;TicketCategory&gt; availableCategories,
                                                    Set&lt;String&gt; fieldsForEvent) {
-<span class="nc" id="L135">        var clock = clockProvider.getClock();</span>
-<span class="nc" id="L136">        var subscriptionsByDescriptor = subscriptions.stream().collect(Collectors.groupingBy(AvailableSubscriptionsByEvent::getDescriptorId));</span>
-<span class="nc" id="L137">        var tickets = subscriptionsByDescriptor.values().stream().flatMap(availableSubscriptionsByEvents -&gt; {</span>
-<span class="nc" id="L138">            var firstValue = availableSubscriptionsByEvents.get(0);</span>
-<span class="nc" id="L139">            var categoryOptional = availableCategories.stream()</span>
-<span class="nc bnc" id="L140" title="All 4 branches missed.">                .filter(c -&gt; CollectionUtils.isEmpty(firstValue.getCompatibleCategoryIds()) || firstValue.getCompatibleCategoryIds().contains(c.getId()))</span>
-<span class="nc" id="L141">                .findFirst();</span>
+<span class="fc" id="L135">        var clock = clockProvider.getClock();</span>
+<span class="fc" id="L136">        var subscriptionsByDescriptor = subscriptions.stream().collect(Collectors.groupingBy(AvailableSubscriptionsByEvent::getDescriptorId));</span>
+<span class="fc" id="L137">        var tickets = subscriptionsByDescriptor.values().stream().flatMap(availableSubscriptionsByEvents -&gt; {</span>
+<span class="fc" id="L138">            var firstValue = availableSubscriptionsByEvents.get(0);</span>
+<span class="fc" id="L139">            var categoryOptional = availableCategories.stream()</span>
+<span class="pc bpc" id="L140" title="1 of 4 branches missed.">                .filter(c -&gt; CollectionUtils.isEmpty(firstValue.getCompatibleCategoryIds()) || firstValue.getCompatibleCategoryIds().contains(c.getId()))</span>
+<span class="fc" id="L141">                .findFirst();</span>
 
-<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (categoryOptional.isEmpty()) {</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">            if (categoryOptional.isEmpty()) {</span>
 <span class="nc" id="L144">                var categoriesIds = availableCategories.stream().map(TicketCategory::getId).collect(Collectors.toSet());</span>
 <span class="nc" id="L145">                log.warn(&quot;Skipping descriptor {}. No compatible category found (wanted: one of {}, available: {})&quot;, firstValue.getDescriptorId(), firstValue.getCompatibleCategoryIds(), categoriesIds);</span>
             }
 
-<span class="nc" id="L148">            return categoryOptional.stream()</span>
-<span class="nc" id="L149">                .map(category -&gt; new TicketsInfo(</span>
-<span class="nc" id="L150">                    new Category(category.getId(), category.getName(), category.getPrice(), category.getTicketAccessType()),</span>
-<span class="nc" id="L151">                    toAttendees(availableSubscriptionsByEvents, fieldsForEvent),</span>
+<span class="fc" id="L148">            return categoryOptional.stream()</span>
+<span class="fc" id="L149">                .map(category -&gt; new TicketsInfo(</span>
+<span class="fc" id="L150">                    new Category(category.getId(), category.getName(), category.getPrice(), category.getTicketAccessType()),</span>
+<span class="fc" id="L151">                    toAttendees(availableSubscriptionsByEvents, fieldsForEvent),</span>
                     false,
-<span class="nc" id="L153">                    false</span>
+<span class="fc" id="L153">                    false</span>
                 ));
-<span class="nc" id="L155">        }).collect(Collectors.toList());</span>
+<span class="fc" id="L155">        }).collect(Collectors.toList());</span>
 
-<span class="nc" id="L157">        return new AdminReservationModification(</span>
-<span class="nc" id="L158">            new DateTimeModification(LocalDate.now(clock), LocalTime.now(clock).plusMinutes(5L)),</span>
+<span class="fc" id="L157">        return new AdminReservationModification(</span>
+<span class="fc" id="L158">            new DateTimeModification(LocalDate.now(clock), LocalTime.now(clock).plusMinutes(5L)),</span>
             new CustomerData(&quot;&quot;, &quot;&quot;, &quot;&quot;, null, &quot;&quot;, null, null, null, null),
             tickets,
-<span class="nc" id="L161">            event.getContentLanguages().get(0).getLanguage(),</span>
-<span class="nc" id="L162">            false,</span>
-<span class="nc" id="L163">            false,</span>
+<span class="fc" id="L161">            event.getContentLanguages().get(0).getLanguage(),</span>
+<span class="fc" id="L162">            false,</span>
+<span class="fc" id="L163">            false,</span>
             null,
             new Notification(false, true),
             null,
@@ -170,31 +170,31 @@ public class AssignTicketToSubscriberJobExecutor implements AdminJobExecutor {
 
     private List&lt;Attendee&gt; toAttendees(List&lt;AvailableSubscriptionsByEvent&gt; subscriptions,
                                        Set&lt;String&gt; fieldsForEvent) {
-<span class="nc" id="L173">        return subscriptions.stream()</span>
-<span class="nc" id="L174">            .map(s -&gt; {</span>
-<span class="nc" id="L175">                Map&lt;String, String&gt; metadata = Map.of();</span>
-<span class="nc bnc" id="L176" title="All 2 branches missed.">                if (!s.getEmailAddress().strip().equalsIgnoreCase(s.getReservationEmail().strip())) {</span>
-<span class="nc" id="L177">                    metadata = Map.of(SEND_TICKET_CC, &quot;[\&quot;&quot;+s.getReservationEmail()+&quot;\&quot;]&quot;);</span>
+<span class="fc" id="L173">        return subscriptions.stream()</span>
+<span class="fc" id="L174">            .map(s -&gt; {</span>
+<span class="fc" id="L175">                Map&lt;String, String&gt; metadata = Map.of();</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                if (!s.getEmailAddress().strip().equalsIgnoreCase(s.getReservationEmail().strip())) {</span>
+<span class="fc" id="L177">                    metadata = Map.of(SEND_TICKET_CC, &quot;[\&quot;&quot;+s.getReservationEmail()+&quot;\&quot;]&quot;);</span>
                 }
 
-<span class="nc" id="L180">                return new Attendee(null,</span>
-<span class="nc" id="L181">                        s.getFirstName(),</span>
-<span class="nc" id="L182">                        s.getLastName(),</span>
-<span class="nc" id="L183">                        s.getEmailAddress(),</span>
-<span class="nc" id="L184">                        s.getUserLanguage(),</span>
-<span class="nc" id="L185">                        false,</span>
-<span class="nc" id="L186">                        s.getSubscriptionId() + &quot;_auto&quot;,</span>
-<span class="nc" id="L187">                        s.getSubscriptionId(),</span>
-<span class="nc" id="L188">                        parseExistingFields(s, fieldsForEvent),</span>
+<span class="fc" id="L180">                return new Attendee(null,</span>
+<span class="fc" id="L181">                        s.getFirstName(),</span>
+<span class="fc" id="L182">                        s.getLastName(),</span>
+<span class="fc" id="L183">                        s.getEmailAddress(),</span>
+<span class="fc" id="L184">                        s.getUserLanguage(),</span>
+<span class="fc" id="L185">                        false,</span>
+<span class="fc" id="L186">                        s.getSubscriptionId() + &quot;_auto&quot;,</span>
+<span class="fc" id="L187">                        s.getSubscriptionId(),</span>
+<span class="fc" id="L188">                        parseExistingFields(s, fieldsForEvent),</span>
                         metadata);
                 }
-<span class="nc" id="L191">            ).collect(Collectors.toList());</span>
+<span class="fc" id="L191">            ).collect(Collectors.toList());</span>
     }
 
     private static Map&lt;String, List&lt;String&gt;&gt; parseExistingFields(AvailableSubscriptionsByEvent s, Set&lt;String&gt; eventFieldNames) {
-<span class="nc" id="L195">        return s.getAdditionalFields().stream()</span>
-<span class="nc" id="L196">            .filter(f -&gt; eventFieldNames.contains(f.getName()))</span>
-<span class="nc" id="L197">            .collect(Collectors.groupingBy(FieldNameAndValue::getName, Collectors.mapping(FieldNameAndValue::getValue, Collectors.toList())));</span>
+<span class="fc" id="L195">        return s.getAdditionalFields().stream()</span>
+<span class="pc" id="L196">            .filter(f -&gt; eventFieldNames.contains(f.getName()))</span>
+<span class="fc" id="L197">            .collect(Collectors.groupingBy(FieldNameAndValue::getName, Collectors.mapping(FieldNameAndValue::getValue, Collectors.toList())));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

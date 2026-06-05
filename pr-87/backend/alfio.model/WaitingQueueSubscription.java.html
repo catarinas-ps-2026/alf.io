@@ -75,11 +75,11 @@ public class WaitingQueueSubscription {
 <span class="fc" id="L75">    }</span>
 
     public Locale getLocale() {
-<span class="nc" id="L78">        return LocaleUtil.forLanguageTag(userLanguage);</span>
+<span class="fc" id="L78">        return LocaleUtil.forLanguageTag(userLanguage);</span>
     }
 
     public boolean isPreSales() {
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        return Optional.ofNullable(subscriptionType).map(s -&gt; s == Type.PRE_SALES).orElse(false);</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        return Optional.ofNullable(subscriptionType).map(s -&gt; s == Type.PRE_SALES).orElse(false);</span>
     }
 
     @Override

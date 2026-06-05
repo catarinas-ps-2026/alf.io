@@ -67,7 +67,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @RequestMapping(&quot;/api/v1/admin/event&quot;)
 public class EventApiV1Controller {
 
-<span class="nc" id="L70">    private static final Logger log = LoggerFactory.getLogger(EventApiV1Controller.class);</span>
+<span class="fc" id="L70">    private static final Logger log = LoggerFactory.getLogger(EventApiV1Controller.class);</span>
     private final EventManager eventManager;
     private final EventNameManager eventNameManager;
     private final FileUploadManager fileUploadManager;
@@ -96,71 +96,71 @@ public class EventApiV1Controller {
                                 AdminJobManager adminJobManager,
                                 CheckInManager checkInManager,
                                 AccessService accessService,
-<span class="nc" id="L99">                                PurchaseContextFieldManager purchaseContextFieldManager) {</span>
-<span class="nc" id="L100">        this.eventManager = eventManager;</span>
-<span class="nc" id="L101">        this.eventNameManager = eventNameManager;</span>
-<span class="nc" id="L102">        this.fileUploadManager = fileUploadManager;</span>
-<span class="nc" id="L103">        this.fileDownloadManager = fileDownloadManager;</span>
-<span class="nc" id="L104">        this.userManager = userManager;</span>
-<span class="nc" id="L105">        this.eventStatisticsManager = eventStatisticsManager;</span>
-<span class="nc" id="L106">        this.groupManager = groupManager;</span>
-<span class="nc" id="L107">        this.extensionService = extensionService;</span>
-<span class="nc" id="L108">        this.extensionRepository = extensionRepository;</span>
-<span class="nc" id="L109">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L110">        this.adminJobManager = adminJobManager;</span>
-<span class="nc" id="L111">        this.checkInManager = checkInManager;</span>
-<span class="nc" id="L112">        this.accessService = accessService;</span>
-<span class="nc" id="L113">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
-<span class="nc" id="L114">    }</span>
+<span class="fc" id="L99">                                PurchaseContextFieldManager purchaseContextFieldManager) {</span>
+<span class="fc" id="L100">        this.eventManager = eventManager;</span>
+<span class="fc" id="L101">        this.eventNameManager = eventNameManager;</span>
+<span class="fc" id="L102">        this.fileUploadManager = fileUploadManager;</span>
+<span class="fc" id="L103">        this.fileDownloadManager = fileDownloadManager;</span>
+<span class="fc" id="L104">        this.userManager = userManager;</span>
+<span class="fc" id="L105">        this.eventStatisticsManager = eventStatisticsManager;</span>
+<span class="fc" id="L106">        this.groupManager = groupManager;</span>
+<span class="fc" id="L107">        this.extensionService = extensionService;</span>
+<span class="fc" id="L108">        this.extensionRepository = extensionRepository;</span>
+<span class="fc" id="L109">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L110">        this.adminJobManager = adminJobManager;</span>
+<span class="fc" id="L111">        this.checkInManager = checkInManager;</span>
+<span class="fc" id="L112">        this.accessService = accessService;</span>
+<span class="fc" id="L113">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+<span class="fc" id="L114">    }</span>
 
     @PostMapping(&quot;/create&quot;)
     @Transactional
     public ResponseEntity&lt;String&gt; create(@RequestBody EventCreationRequest request, Principal user) {
-<span class="nc" id="L119">        String imageRef = Optional.ofNullable(request.getImageUrl()).map(this::fetchImage).orElse(null);</span>
-<span class="nc" id="L120">        Organization organization = userManager.findUserOrganizations(user.getName()).get(0);</span>
-<span class="nc" id="L121">        AtomicReference&lt;Errors&gt; errorsContainer = new AtomicReference&lt;&gt;();</span>
-<span class="nc" id="L122">        Result&lt;String&gt; result =  new Result.Builder&lt;String&gt;()</span>
-<span class="nc" id="L123">            .checkPrecondition(() -&gt; isNotBlank(request.getTitle()), ErrorCode.custom(&quot;invalid.title&quot;, &quot;Invalid title&quot;))</span>
-<span class="nc bnc" id="L124" title="All 4 branches missed.">            .checkPrecondition(() -&gt; isBlank(request.getSlug()) || eventNameManager.isUnique(request.getSlug()), ErrorCode.custom(&quot;invalid.slug&quot;, &quot;Invalid slug&quot;))</span>
-<span class="nc" id="L125">            .checkPrecondition(() -&gt; isNotBlank(request.getWebsiteUrl()), ErrorCode.custom(&quot;invalid.websiteUrl&quot;, &quot;Invalid Website URL&quot;))</span>
-<span class="nc" id="L126">            .checkPrecondition(() -&gt; isNotBlank(request.getTermsAndConditionsUrl()), ErrorCode.custom(&quot;invalid.tc&quot;, &quot;Invalid Terms and Conditions&quot;))</span>
-<span class="nc" id="L127">            .checkPrecondition(() -&gt; isNotBlank(request.getImageUrl()), ErrorCode.custom(&quot;invalid.imageUrl&quot;, &quot;Invalid Image URL&quot;))</span>
-<span class="nc" id="L128">            .checkPrecondition(() -&gt; isNotBlank(request.getTimezone()), ErrorCode.custom(&quot;invalid.timezone&quot;, &quot;Invalid Timezone&quot;))</span>
-<span class="nc" id="L129">            .checkPrecondition(() -&gt; isNotBlank(imageRef), ErrorCode.custom(&quot;invalid.image&quot;, &quot;Image is either missing or too big (max 200kb)&quot;))</span>
-<span class="nc" id="L130">            .checkPrecondition(() -&gt; validateCategoriesSalesPeriod(request), ErrorCode.custom(&quot;invalid.categories&quot;, &quot;Ticket categories: sales period not compatible with event dates&quot;))</span>
-<span class="nc" id="L131">            .checkPrecondition(() -&gt; validateAdditionalFields(request), ErrorCode.custom(&quot;invalid.additionalInfo&quot;, &quot;Additional info not valid&quot;))</span>
-<span class="nc" id="L132">            .checkPrecondition(() -&gt; {</span>
-<span class="nc" id="L133">                EventModification eventModification = request.toEventModification(organization, eventNameManager::generateShortName, imageRef);</span>
-<span class="nc" id="L134">                errorsContainer.set(new BeanPropertyBindingResult(eventModification, &quot;event&quot;));</span>
-<span class="nc" id="L135">                int descriptionMaxLength = configurationManager.getFor(ConfigurationKeys.DESCRIPTION_MAXLENGTH, ConfigurationLevel.system()).getValueAsIntOrDefault(4096);</span>
-<span class="nc" id="L136">                ValidationResult validationResult = validateEvent(eventModification, errorsContainer.get(), descriptionMaxLength);</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">                if(!validationResult.isSuccess()) {</span>
+<span class="fc" id="L119">        String imageRef = Optional.ofNullable(request.getImageUrl()).map(this::fetchImage).orElse(null);</span>
+<span class="fc" id="L120">        Organization organization = userManager.findUserOrganizations(user.getName()).get(0);</span>
+<span class="fc" id="L121">        AtomicReference&lt;Errors&gt; errorsContainer = new AtomicReference&lt;&gt;();</span>
+<span class="fc" id="L122">        Result&lt;String&gt; result =  new Result.Builder&lt;String&gt;()</span>
+<span class="fc" id="L123">            .checkPrecondition(() -&gt; isNotBlank(request.getTitle()), ErrorCode.custom(&quot;invalid.title&quot;, &quot;Invalid title&quot;))</span>
+<span class="pc bpc" id="L124" title="2 of 4 branches missed.">            .checkPrecondition(() -&gt; isBlank(request.getSlug()) || eventNameManager.isUnique(request.getSlug()), ErrorCode.custom(&quot;invalid.slug&quot;, &quot;Invalid slug&quot;))</span>
+<span class="fc" id="L125">            .checkPrecondition(() -&gt; isNotBlank(request.getWebsiteUrl()), ErrorCode.custom(&quot;invalid.websiteUrl&quot;, &quot;Invalid Website URL&quot;))</span>
+<span class="fc" id="L126">            .checkPrecondition(() -&gt; isNotBlank(request.getTermsAndConditionsUrl()), ErrorCode.custom(&quot;invalid.tc&quot;, &quot;Invalid Terms and Conditions&quot;))</span>
+<span class="fc" id="L127">            .checkPrecondition(() -&gt; isNotBlank(request.getImageUrl()), ErrorCode.custom(&quot;invalid.imageUrl&quot;, &quot;Invalid Image URL&quot;))</span>
+<span class="fc" id="L128">            .checkPrecondition(() -&gt; isNotBlank(request.getTimezone()), ErrorCode.custom(&quot;invalid.timezone&quot;, &quot;Invalid Timezone&quot;))</span>
+<span class="fc" id="L129">            .checkPrecondition(() -&gt; isNotBlank(imageRef), ErrorCode.custom(&quot;invalid.image&quot;, &quot;Image is either missing or too big (max 200kb)&quot;))</span>
+<span class="fc" id="L130">            .checkPrecondition(() -&gt; validateCategoriesSalesPeriod(request), ErrorCode.custom(&quot;invalid.categories&quot;, &quot;Ticket categories: sales period not compatible with event dates&quot;))</span>
+<span class="fc" id="L131">            .checkPrecondition(() -&gt; validateAdditionalFields(request), ErrorCode.custom(&quot;invalid.additionalInfo&quot;, &quot;Additional info not valid&quot;))</span>
+<span class="fc" id="L132">            .checkPrecondition(() -&gt; {</span>
+<span class="fc" id="L133">                EventModification eventModification = request.toEventModification(organization, eventNameManager::generateShortName, imageRef);</span>
+<span class="fc" id="L134">                errorsContainer.set(new BeanPropertyBindingResult(eventModification, &quot;event&quot;));</span>
+<span class="fc" id="L135">                int descriptionMaxLength = configurationManager.getFor(ConfigurationKeys.DESCRIPTION_MAXLENGTH, ConfigurationLevel.system()).getValueAsIntOrDefault(4096);</span>
+<span class="fc" id="L136">                ValidationResult validationResult = validateEvent(eventModification, errorsContainer.get(), descriptionMaxLength);</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">                if(!validationResult.isSuccess()) {</span>
 <span class="nc" id="L138">                    log.warn(&quot;validation failed {}&quot;, validationResult.getValidationErrors());</span>
                 }
-<span class="nc" id="L140">                return validationResult.isSuccess();</span>
-<span class="nc" id="L141">            }, ErrorCode.lazy(() -&gt; toErrorCode(errorsContainer.get())))</span>
+<span class="fc" id="L140">                return validationResult.isSuccess();</span>
+<span class="pc" id="L141">            }, ErrorCode.lazy(() -&gt; toErrorCode(errorsContainer.get())))</span>
             //TODO all location validation
             //TODO language validation, for all the description the same languages
-<span class="nc" id="L144">            .build(() -&gt; insertEvent(request, user, imageRef).orElseThrow(IllegalStateException::new));</span>
+<span class="fc" id="L144">            .build(() -&gt; insertEvent(request, user, imageRef).orElseThrow(IllegalStateException::new));</span>
 
-<span class="nc bnc" id="L146" title="All 2 branches missed.">        if(result.isSuccess()) {</span>
-<span class="nc" id="L147">            return ResponseEntity.ok(result.getData());</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        if(result.isSuccess()) {</span>
+<span class="fc" id="L147">            return ResponseEntity.ok(result.getData());</span>
         } else {
-<span class="nc" id="L149">            return ResponseEntity.badRequest().body(Json.toJson(result.getErrors()));</span>
+<span class="fc" id="L149">            return ResponseEntity.badRequest().body(Json.toJson(result.getErrors()));</span>
         }
 
     }
 
     private boolean validateAdditionalFields(EventCreationRequest request) {
-<span class="nc bnc" id="L155" title="All 2 branches missed.">        return CollectionUtils.isEmpty(request.getAdditionalInfo()) || request.getAdditionalInfo()</span>
-<span class="nc" id="L156">            .stream()</span>
-<span class="nc bnc" id="L157" title="All 2 branches missed.">            .allMatch(f -&gt; Validator.validateAdditionalInfoName(f.getName()));</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        return CollectionUtils.isEmpty(request.getAdditionalInfo()) || request.getAdditionalInfo()</span>
+<span class="fc" id="L156">            .stream()</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">            .allMatch(f -&gt; Validator.validateAdditionalInfoName(f.getName()));</span>
     }
 
     private boolean validateCategoriesSalesPeriod(EventCreationRequest request) {
-<span class="nc" id="L161">        var eventEnd = request.getEndDate();</span>
-<span class="nc" id="L162">        return request.getTickets().getCategories().stream()</span>
-<span class="nc bnc" id="L163" title="All 4 branches missed.">            .allMatch(tc -&gt; tc.getStartSellingDate().isBefore(tc.getEndSellingDate()) &amp;&amp; tc.getEndSellingDate().isBefore(eventEnd));</span>
+<span class="fc" id="L161">        var eventEnd = request.getEndDate();</span>
+<span class="fc" id="L162">        return request.getTickets().getCategories().stream()</span>
+<span class="pc bpc" id="L163" title="2 of 4 branches missed.">            .allMatch(tc -&gt; tc.getStartSellingDate().isBefore(tc.getEndSellingDate()) &amp;&amp; tc.getEndSellingDate().isBefore(eventEnd));</span>
     }
 
     private ErrorCode toErrorCode(Errors errors) {
@@ -178,12 +178,12 @@ public class EventApiV1Controller {
     @GetMapping(&quot;/{slug}/stats&quot;)
     @JsonView(JsonViews.AdminPublicApi.class)
     public ResponseEntity&lt;EventWithAdditionalInfo&gt; stats(@PathVariable String slug, Principal user) {
-<span class="nc" id="L181">        accessService.checkEventOwnership(user, slug);</span>
-<span class="nc" id="L182">        Result&lt;EventWithAdditionalInfo&gt; result = new Result.Builder&lt;EventWithAdditionalInfo&gt;()</span>
-<span class="nc" id="L183">            .build(() -&gt; eventStatisticsManager.getEventWithAdditionalInfo(slug,user.getName()));</span>
+<span class="fc" id="L181">        accessService.checkEventOwnership(user, slug);</span>
+<span class="fc" id="L182">        Result&lt;EventWithAdditionalInfo&gt; result = new Result.Builder&lt;EventWithAdditionalInfo&gt;()</span>
+<span class="fc" id="L183">            .build(() -&gt; eventStatisticsManager.getEventWithAdditionalInfo(slug,user.getName()));</span>
 
-<span class="nc bnc" id="L185" title="All 2 branches missed.">        if(result.isSuccess()) {</span>
-<span class="nc" id="L186">            return ResponseEntity.ok(result.getData());</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">        if(result.isSuccess()) {</span>
+<span class="fc" id="L186">            return ResponseEntity.ok(result.getData());</span>
         } else {
 <span class="nc" id="L188">            return ResponseEntity.badRequest().build();</span>
         }
@@ -239,14 +239,14 @@ public class EventApiV1Controller {
     @PostMapping(&quot;/update/{slug}&quot;)
     @Transactional
     public ResponseEntity&lt;String&gt; update(@PathVariable String slug, @RequestBody EventCreationRequest request, Principal user) {
-<span class="nc" id="L242">        accessService.checkEventOwnership(user, slug);</span>
-<span class="nc" id="L243">        String imageRef = fetchImage(request.getImageUrl());</span>
+<span class="fc" id="L242">        accessService.checkEventOwnership(user, slug);</span>
+<span class="fc" id="L243">        String imageRef = fetchImage(request.getImageUrl());</span>
 
-<span class="nc" id="L245">        Result&lt;String&gt; result =  new Result.Builder&lt;String&gt;()</span>
-<span class="nc" id="L246">            .build(() -&gt; updateEvent(slug, request, user, imageRef).map(Event::getShortName).orElseThrow());</span>
+<span class="fc" id="L245">        Result&lt;String&gt; result =  new Result.Builder&lt;String&gt;()</span>
+<span class="fc" id="L246">            .build(() -&gt; updateEvent(slug, request, user, imageRef).map(Event::getShortName).orElseThrow());</span>
 
-<span class="nc bnc" id="L248" title="All 2 branches missed.">        if(result.isSuccess()) {</span>
-<span class="nc" id="L249">            return ResponseEntity.ok(result.getData());</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        if(result.isSuccess()) {</span>
+<span class="fc" id="L249">            return ResponseEntity.ok(result.getData());</span>
         } else {
 <span class="nc" id="L251">            return ResponseEntity.badRequest().build();</span>
         }
@@ -254,8 +254,8 @@ public class EventApiV1Controller {
 
     @GetMapping(&quot;/{slug}/subscriptions&quot;)
     public ResponseEntity&lt;LinkedSubscription&gt; getLinkedSubscriptions(@PathVariable String slug, Principal user) {
-<span class="nc" id="L257">        var event = accessService.checkEventOwnership(user, slug);</span>
-<span class="nc" id="L258">        return ResponseEntity.ok(retrieveLinkedSubscriptionsForEvent(slug, event.getId(), event.getOrganizationId()));</span>
+<span class="fc" id="L257">        var event = accessService.checkEventOwnership(user, slug);</span>
+<span class="fc" id="L258">        return ResponseEntity.ok(retrieveLinkedSubscriptionsForEvent(slug, event.getId(), event.getOrganizationId()));</span>
     }
 
     @PutMapping(&quot;/{slug}/subscriptions&quot;)
@@ -292,59 +292,59 @@ public class EventApiV1Controller {
     }
 
     private LinkedSubscription retrieveLinkedSubscriptionsForEvent(String slug, int id, int organizationId) {
-<span class="nc" id="L295">        var subscriptions = eventManager.getLinkedSubscriptions(id, organizationId);</span>
-<span class="nc" id="L296">        return new LinkedSubscription(slug,</span>
-<span class="nc" id="L297">            subscriptions.stream().collect(Collectors.toMap(EventSubscriptionLink::getSubscriptionDescriptorId, EventSubscriptionLink::getCompatibleCategories))</span>
+<span class="fc" id="L295">        var subscriptions = eventManager.getLinkedSubscriptions(id, organizationId);</span>
+<span class="fc" id="L296">        return new LinkedSubscription(slug,</span>
+<span class="fc" id="L297">            subscriptions.stream().collect(Collectors.toMap(EventSubscriptionLink::getSubscriptionDescriptorId, EventSubscriptionLink::getCompatibleCategories))</span>
         );
     }
 
     private Optional&lt;Event&gt; updateEvent(String slug, EventCreationRequest request, Principal user, String imageRef) {
-<span class="nc" id="L302">        Organization organization = userManager.findUserOrganizations(user.getName()).get(0);</span>
-<span class="nc" id="L303">        EventWithAdditionalInfo original = eventStatisticsManager.getEventWithAdditionalInfo(slug,user.getName());</span>
+<span class="fc" id="L302">        Organization organization = userManager.findUserOrganizations(user.getName()).get(0);</span>
+<span class="fc" id="L303">        EventWithAdditionalInfo original = eventStatisticsManager.getEventWithAdditionalInfo(slug,user.getName());</span>
 
-<span class="nc" id="L305">        Event event = original.getEvent();</span>
-<span class="nc" id="L306">        int originalSeats = original.getAvailableSeats();</span>
+<span class="fc" id="L305">        Event event = original.getEvent();</span>
+<span class="fc" id="L306">        int originalSeats = original.getAvailableSeats();</span>
 
-<span class="nc" id="L308">        EventModification em = request.toEventModificationUpdate(original, organization, imageRef);</span>
+<span class="fc" id="L308">        EventModification em = request.toEventModificationUpdate(original, organization, imageRef);</span>
 
-<span class="nc" id="L310">        eventManager.updateEventHeader(event, em, user.getName());</span>
+<span class="fc" id="L310">        eventManager.updateEventHeader(event, em, user.getName());</span>
 
 
-<span class="nc bnc" id="L313" title="All 2 branches missed.">        if (originalSeats &gt; em.getAvailableSeats()) {</span>
+<span class="fc bfc" id="L313" title="All 2 branches covered.">        if (originalSeats &gt; em.getAvailableSeats()) {</span>
             // if the caller wants to decrease the number of seats, we have to shrink categories first
-<span class="nc" id="L315">            handleCategoriesUpdate(user, em, original, event);</span>
-<span class="nc" id="L316">            eventManager.updateEventSeatsAndPrices(event, em, user.getName(), false);</span>
+<span class="fc" id="L315">            handleCategoriesUpdate(user, em, original, event);</span>
+<span class="fc" id="L316">            eventManager.updateEventSeatsAndPrices(event, em, user.getName(), false);</span>
         } else {
             // in all other cases, we need to modify the event first
-<span class="nc" id="L319">            eventManager.updateEventSeatsAndPrices(event, em, user.getName(), false);</span>
-<span class="nc" id="L320">            handleCategoriesUpdate(user, em, original, event);</span>
+<span class="fc" id="L319">            eventManager.updateEventSeatsAndPrices(event, em, user.getName(), false);</span>
+<span class="fc" id="L320">            handleCategoriesUpdate(user, em, original, event);</span>
         }
 
-<span class="nc" id="L323">        return eventManager.getOptionalByName(slug,user.getName());</span>
+<span class="fc" id="L323">        return eventManager.getOptionalByName(slug,user.getName());</span>
     }
 
     private void handleCategoriesUpdate(Principal user, EventModification em, EventWithAdditionalInfo original, Event event) {
-<span class="nc bnc" id="L327" title="All 4 branches missed.">        if (em.getTicketCategories() != null &amp;&amp; !em.getTicketCategories().isEmpty()) {</span>
-<span class="nc" id="L328">            var existingCategories = original.getTicketCategories();</span>
-<span class="nc" id="L329">            em.getTicketCategories().stream().sorted(Comparator.comparing(TicketCategoryModification::getMaxTickets)).forEach(c -&gt; {</span>
-<span class="nc" id="L330">                var existingCategory = findExistingCategory(existingCategories, c.getName(), c.getId());</span>
-<span class="nc bnc" id="L331" title="All 2 branches missed.">                if (existingCategory.isPresent()) {</span>
-<span class="nc" id="L332">                    eventManager.updateCategory(existingCategory.get().getId(), event.getId(), c, user.getName());</span>
+<span class="pc bpc" id="L327" title="2 of 4 branches missed.">        if (em.getTicketCategories() != null &amp;&amp; !em.getTicketCategories().isEmpty()) {</span>
+<span class="fc" id="L328">            var existingCategories = original.getTicketCategories();</span>
+<span class="fc" id="L329">            em.getTicketCategories().stream().sorted(Comparator.comparing(TicketCategoryModification::getMaxTickets)).forEach(c -&gt; {</span>
+<span class="fc" id="L330">                var existingCategory = findExistingCategory(existingCategories, c.getName(), c.getId());</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">                if (existingCategory.isPresent()) {</span>
+<span class="fc" id="L332">                    eventManager.updateCategory(existingCategory.get().getId(), event.getId(), c, user.getName());</span>
                 } else {
-<span class="nc" id="L334">                    eventManager.insertCategory(event.getId(), c, user.getName());</span>
+<span class="fc" id="L334">                    eventManager.insertCategory(event.getId(), c, user.getName());</span>
                 }
-<span class="nc" id="L336">            });</span>
+<span class="fc" id="L336">            });</span>
         }
-<span class="nc" id="L338">    }</span>
+<span class="fc" id="L338">    }</span>
 
     private Optional&lt;String&gt; insertEvent(EventCreationRequest request, Principal user, String imageRef) {
         try {
-<span class="nc" id="L342">            Organization organization = userManager.findUserOrganizations(user.getName()).get(0);</span>
-<span class="nc" id="L343">            EventModification em = request.toEventModification(organization,eventNameManager::generateShortName,imageRef);</span>
-<span class="nc" id="L344">            eventManager.createEvent(em, user.getName());</span>
-<span class="nc" id="L345">            var eventWithStatistics = eventStatisticsManager.getEventWithAdditionalInfo(em.getShortName(),user.getName());</span>
-<span class="nc" id="L346">            var event = eventWithStatistics.getEvent();</span>
-<span class="nc" id="L347">            Optional.ofNullable(request.getTickets().getPromoCodes()).ifPresent(promoCodes -&gt;</span>
+<span class="fc" id="L342">            Organization organization = userManager.findUserOrganizations(user.getName()).get(0);</span>
+<span class="fc" id="L343">            EventModification em = request.toEventModification(organization,eventNameManager::generateShortName,imageRef);</span>
+<span class="fc" id="L344">            eventManager.createEvent(em, user.getName());</span>
+<span class="fc" id="L345">            var eventWithStatistics = eventStatisticsManager.getEventWithAdditionalInfo(em.getShortName(),user.getName());</span>
+<span class="fc" id="L346">            var event = eventWithStatistics.getEvent();</span>
+<span class="fc" id="L347">            Optional.ofNullable(request.getTickets().getPromoCodes()).ifPresent(promoCodes -&gt;</span>
 <span class="nc" id="L348">                promoCodes.forEach(pc -&gt; //TODO add ref to categories</span>
 <span class="nc" id="L349">                    eventManager.addPromoCode(</span>
 <span class="nc" id="L350">                        pc.getName(),</span>
@@ -365,10 +365,10 @@ public class EventApiV1Controller {
                 )
             );
             //link categories to groups, if any
-<span class="nc" id="L368">            request.getTickets().getCategories().stream()</span>
-<span class="nc bnc" id="L369" title="All 4 branches missed.">                .filter(cr -&gt; cr.getGroupLink() != null &amp;&amp; cr.getGroupLink().getGroupId() != null)</span>
-<span class="nc" id="L370">                .map(cr -&gt; Pair.of(cr, groupManager.findById(cr.getGroupLink().getGroupId(), organization.getId())))</span>
-<span class="nc" id="L371">                .forEach(link -&gt; {</span>
+<span class="fc" id="L368">            request.getTickets().getCategories().stream()</span>
+<span class="pc bpc" id="L369" title="3 of 4 branches missed.">                .filter(cr -&gt; cr.getGroupLink() != null &amp;&amp; cr.getGroupLink().getGroupId() != null)</span>
+<span class="pc" id="L370">                .map(cr -&gt; Pair.of(cr, groupManager.findById(cr.getGroupLink().getGroupId(), organization.getId())))</span>
+<span class="fc" id="L371">                .forEach(link -&gt; {</span>
 <span class="nc bnc" id="L372" title="All 2 branches missed.">                    if(link.getRight().isPresent()) {</span>
 <span class="nc" id="L373">                        Group group = link.getRight().get();</span>
 <span class="nc" id="L374">                        EventCreationRequest.CategoryRequest categoryRequest = link.getLeft();</span>
@@ -385,7 +385,7 @@ public class EventApiV1Controller {
 <span class="nc" id="L385">                        });</span>
                     }
 <span class="nc" id="L387">                });</span>
-<span class="nc bnc" id="L388" title="All 2 branches missed.">            if(!CollectionUtils.isEmpty(request.getExtensionSettings())) {</span>
+<span class="pc bpc" id="L388" title="1 of 2 branches missed.">            if(!CollectionUtils.isEmpty(request.getExtensionSettings())) {</span>
 <span class="nc" id="L389">                request.getExtensionSettings().stream()</span>
 <span class="nc" id="L390">                    .collect(Collectors.groupingBy(EventCreationRequest.ExtensionSetting::getExtensionId))</span>
 <span class="nc" id="L391">                    .forEach((id,settings) -&gt; {</span>
@@ -407,7 +407,7 @@ public class EventApiV1Controller {
 <span class="nc" id="L407">                    });</span>
 
             }
-<span class="nc" id="L410">            return Optional.of(event.getShortName());</span>
+<span class="fc" id="L410">            return Optional.of(event.getShortName());</span>
 <span class="nc" id="L411">        } catch (Exception ex) {</span>
 <span class="nc" id="L412">            log.error(&quot;Error while inserting event&quot;, ex);</span>
 <span class="nc" id="L413">            return Optional.empty();</span>
@@ -415,11 +415,11 @@ public class EventApiV1Controller {
     }
 
     private String fetchImage(String url) {
-<span class="nc bnc" id="L418" title="All 2 branches missed.">        if(url != null) {</span>
-<span class="nc" id="L419">            FileDownloadManager.DownloadedFile file = fileDownloadManager.downloadFile(url);</span>
-<span class="nc bnc" id="L420" title="All 2 branches missed.">            return file != null ? fileUploadManager.insertFile(file.toUploadBase64FileModification()) : null;</span>
+<span class="fc bfc" id="L418" title="All 2 branches covered.">        if(url != null) {</span>
+<span class="fc" id="L419">            FileDownloadManager.DownloadedFile file = fileDownloadManager.downloadFile(url);</span>
+<span class="pc bpc" id="L420" title="1 of 2 branches missed.">            return file != null ? fileUploadManager.insertFile(file.toUploadBase64FileModification()) : null;</span>
         } else {
-<span class="nc" id="L422">            return null;</span>
+<span class="fc" id="L422">            return null;</span>
         }
     }
 }

@@ -33,14 +33,14 @@ import java.net.URI;
 import java.util.Map;
 
 public class OpenIdLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-<span class="nc" id="L36">    private final RequestCache requestCache = new HttpSessionRequestCache();</span>
+<span class="fc" id="L36">    private final RequestCache requestCache = new HttpSessionRequestCache();</span>
     private final TemplateManager templateManager;
     private final ContextAwareCookieSerializer cookieSerializer;
 
-<span class="nc" id="L40">    public OpenIdLoginSuccessHandler(TemplateManager templateManager, ContextAwareCookieSerializer cookieSerializer) {</span>
-<span class="nc" id="L41">        this.templateManager = templateManager;</span>
-<span class="nc" id="L42">        this.cookieSerializer = cookieSerializer;</span>
-<span class="nc" id="L43">    }</span>
+<span class="fc" id="L40">    public OpenIdLoginSuccessHandler(TemplateManager templateManager, ContextAwareCookieSerializer cookieSerializer) {</span>
+<span class="fc" id="L41">        this.templateManager = templateManager;</span>
+<span class="fc" id="L42">        this.cookieSerializer = cookieSerializer;</span>
+<span class="fc" id="L43">    }</span>
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,

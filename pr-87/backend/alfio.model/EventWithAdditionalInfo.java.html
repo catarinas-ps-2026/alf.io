@@ -52,7 +52,7 @@ public class EventWithAdditionalInfo implements StatisticsContainer, PriceContai
 
     @JsonIgnore
     public Event getEvent() {
-<span class="nc" id="L55">        return event;</span>
+<span class="fc" id="L55">        return event;</span>
     }
 
     @JsonIgnore
@@ -63,23 +63,23 @@ public class EventWithAdditionalInfo implements StatisticsContainer, PriceContai
     @Override
     @JsonIgnore
     public int getSrcPriceCts() {
-<span class="nc" id="L66">        return event.getSrcPriceCts();</span>
+<span class="fc" id="L66">        return event.getSrcPriceCts();</span>
     }
 
     @Override
     public String getCurrencyCode() {
-<span class="nc" id="L71">        return getCurrency();</span>
+<span class="fc" id="L71">        return getCurrency();</span>
     }
 
     @Override
     @JsonIgnore
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        return getVatStatus() != VatStatus.NONE ? Optional.ofNullable(event.getVat()) : Optional.empty();</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        return getVatStatus() != VatStatus.NONE ? Optional.ofNullable(event.getVat()) : Optional.empty();</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="nc" id="L82">        return event.getVatStatus();</span>
+<span class="fc" id="L82">        return event.getVatStatus();</span>
     }
 
     public BigDecimal getVatPercentage() {
@@ -87,7 +87,7 @@ public class EventWithAdditionalInfo implements StatisticsContainer, PriceContai
     }
 
     public BigDecimal getVat() {
-<span class="nc" id="L90">        return getVAT();</span>
+<span class="fc" id="L90">        return getVAT();</span>
     }
 
     public boolean isAddCategoryEnabled() {

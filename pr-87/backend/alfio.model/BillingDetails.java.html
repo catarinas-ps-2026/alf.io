@@ -40,21 +40,21 @@ public class BillingDetails {
                           @Column(&quot;billing_address_state&quot;) String state,
                           @Column(&quot;vat_country&quot;) String country,
                           @Column(&quot;vat_nr&quot;) String taxId,
-<span class="nc" id="L43">                          @Column(&quot;invoicing_additional_information&quot;) @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo) {</span>
+<span class="fc" id="L43">                          @Column(&quot;invoicing_additional_information&quot;) @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo) {</span>
 
-<span class="nc" id="L45">        this.companyName = companyName;</span>
-<span class="nc" id="L46">        this.addressLine1 = addressLine1;</span>
-<span class="nc" id="L47">        this.addressLine2 = addressLine2;</span>
-<span class="nc" id="L48">        this.zip = zip;</span>
-<span class="nc" id="L49">        this.city = city;</span>
-<span class="nc" id="L50">        this.state = state;</span>
-<span class="nc" id="L51">        this.country = country;</span>
-<span class="nc" id="L52">        this.taxId = taxId;</span>
-<span class="nc" id="L53">        this.invoicingAdditionalInfo = invoicingAdditionalInfo;</span>
-<span class="nc" id="L54">    }</span>
+<span class="fc" id="L45">        this.companyName = companyName;</span>
+<span class="fc" id="L46">        this.addressLine1 = addressLine1;</span>
+<span class="fc" id="L47">        this.addressLine2 = addressLine2;</span>
+<span class="fc" id="L48">        this.zip = zip;</span>
+<span class="fc" id="L49">        this.city = city;</span>
+<span class="fc" id="L50">        this.state = state;</span>
+<span class="fc" id="L51">        this.country = country;</span>
+<span class="fc" id="L52">        this.taxId = taxId;</span>
+<span class="fc" id="L53">        this.invoicingAdditionalInfo = invoicingAdditionalInfo;</span>
+<span class="fc" id="L54">    }</span>
 
     public boolean getHasTaxId() {
-<span class="nc bnc" id="L57" title="All 4 branches missed.">        return taxId != null &amp;&amp; !taxId.isEmpty();</span>
+<span class="pc bpc" id="L57" title="1 of 4 branches missed.">        return taxId != null &amp;&amp; !taxId.isEmpty();</span>
     }
 
 }

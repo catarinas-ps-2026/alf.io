@@ -159,37 +159,37 @@ public final class EventUtil {
     }
 
     public static int determineAvailableSeats(TicketCategoryStatisticView tc, EventStatisticView e) {
-<span class="nc bnc" id="L162" title="All 2 branches missed.">        return tc.isBounded() ? tc.getNotSoldTicketsCount() : e.getDynamicAllocation();</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">        return tc.isBounded() ? tc.getNotSoldTicketsCount() : e.getDynamicAllocation();</span>
     }
 
     public static Optional&lt;byte[]&gt; getIcalForEvent(Event event, TicketCategory ticketCategory, String description, Organization organization) {
-<span class="nc" id="L166">    	 ICalendar ical = new ICalendar();</span>
-<span class="nc" id="L167">    	 ical.setProductId(&quot;-//Alf.io//Alf.io v2.0//EN&quot;);</span>
-<span class="nc" id="L168">    	 ical.setMethod(Method.PUBLISH);</span>
+<span class="fc" id="L166">    	 ICalendar ical = new ICalendar();</span>
+<span class="fc" id="L167">    	 ical.setProductId(&quot;-//Alf.io//Alf.io v2.0//EN&quot;);</span>
+<span class="fc" id="L168">    	 ical.setMethod(Method.PUBLISH);</span>
 
-<span class="nc" id="L170">         VEvent vEvent = new VEvent();</span>
-<span class="nc" id="L171">         vEvent.setSummary(event.getDisplayName());</span>
-<span class="nc" id="L172">         vEvent.setDescription(MustacheCustomTag.renderToTextCommonmark(description));</span>
-<span class="nc bnc" id="L173" title="All 2 branches missed.">         if (!isAccessOnline(ticketCategory, event)) {</span>
+<span class="fc" id="L170">         VEvent vEvent = new VEvent();</span>
+<span class="fc" id="L171">         vEvent.setSummary(event.getDisplayName());</span>
+<span class="fc" id="L172">         vEvent.setDescription(MustacheCustomTag.renderToTextCommonmark(description));</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">         if (!isAccessOnline(ticketCategory, event)) {</span>
              // add location only if the attendee can access the location
-<span class="nc" id="L175">            vEvent.setLocation(RegExUtils.replacePattern(event.getLocation(), &quot;[\n\r\t]+&quot;, &quot; &quot;));</span>
+<span class="fc" id="L175">            vEvent.setLocation(RegExUtils.replacePattern(event.getLocation(), &quot;[\n\r\t]+&quot;, &quot; &quot;));</span>
          }
-<span class="nc" id="L177">         ZonedDateTime begin = Optional.ofNullable(ticketCategory).map(tc -&gt; tc.getTicketValidityStart(event.getZoneId())).orElse(event.getBegin());</span>
-<span class="nc" id="L178">         ZonedDateTime end = Optional.ofNullable(ticketCategory).map(tc -&gt; tc.getTicketValidityEnd(event.getZoneId())).orElse(event.getEnd());</span>
-<span class="nc" id="L179">         vEvent.setDateStart(Date.from(begin.toInstant()));</span>
-<span class="nc" id="L180">         vEvent.setDateEnd(Date.from(end.toInstant()));</span>
-<span class="nc" id="L181">         vEvent.setUrl(event.getWebsiteUrl());</span>
-<span class="nc" id="L182">         vEvent.setStatus(Status.confirmed());</span>
+<span class="fc" id="L177">         ZonedDateTime begin = Optional.ofNullable(ticketCategory).map(tc -&gt; tc.getTicketValidityStart(event.getZoneId())).orElse(event.getBegin());</span>
+<span class="fc" id="L178">         ZonedDateTime end = Optional.ofNullable(ticketCategory).map(tc -&gt; tc.getTicketValidityEnd(event.getZoneId())).orElse(event.getEnd());</span>
+<span class="fc" id="L179">         vEvent.setDateStart(Date.from(begin.toInstant()));</span>
+<span class="fc" id="L180">         vEvent.setDateEnd(Date.from(end.toInstant()));</span>
+<span class="fc" id="L181">         vEvent.setUrl(event.getWebsiteUrl());</span>
+<span class="fc" id="L182">         vEvent.setStatus(Status.confirmed());</span>
 
-<span class="nc bnc" id="L184" title="All 2 branches missed.">         if(organization != null) {</span>
-<span class="nc" id="L185">        	 vEvent.setOrganizer(new Organizer(organization.getName(), organization.getEmail()));</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">         if(organization != null) {</span>
+<span class="fc" id="L185">        	 vEvent.setOrganizer(new Organizer(organization.getName(), organization.getEmail()));</span>
          }
 
-<span class="nc" id="L188">         ical.addEvent(vEvent);</span>
-<span class="nc" id="L189">         StringWriter strWriter = new StringWriter();</span>
-<span class="nc" id="L190">         try (ICalWriter writer = new ICalWriter(strWriter, ICalVersion.V2_0)) {</span>
-<span class="nc" id="L191">             writer.write(ical);</span>
-<span class="nc" id="L192">             return Optional.of(strWriter.toString().getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L188">         ical.addEvent(vEvent);</span>
+<span class="fc" id="L189">         StringWriter strWriter = new StringWriter();</span>
+<span class="fc" id="L190">         try (ICalWriter writer = new ICalWriter(strWriter, ICalVersion.V2_0)) {</span>
+<span class="fc" id="L191">             writer.write(ical);</span>
+<span class="fc" id="L192">             return Optional.of(strWriter.toString().getBytes(StandardCharsets.UTF_8));</span>
 <span class="nc" id="L193">         } catch (IOException e) {</span>
 <span class="nc" id="L194">             log.warn(&quot;was not able to generate iCal for event &quot; + event.getShortName(), e);</span>
 <span class="nc" id="L195">             return Optional.empty();</span>
@@ -197,37 +197,37 @@ public final class EventUtil {
     }
 
     public static Optional&lt;byte[]&gt; getIcalForEvent(Event event, TicketCategory ticketCategory, String description) {
-<span class="nc" id="L200">    	return getIcalForEvent(event, ticketCategory, description, null);</span>
+<span class="fc" id="L200">    	return getIcalForEvent(event, ticketCategory, description, null);</span>
     }
 
     public static String getGoogleCalendarURL(Event event, TicketCategory category, String description) {
-<span class="nc" id="L204">        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyMMdd'T'HHmmss&quot;);</span>
-<span class="nc" id="L205">        ZonedDateTime validityStart = Optional.ofNullable(category).map(TicketCategory::getTicketValidityStart).map(d -&gt; d.withZoneSameInstant(event.getZoneId())).orElse(event.getBegin());</span>
-<span class="nc" id="L206">        ZonedDateTime validityEnd = Optional.ofNullable(category).map(TicketCategory::getTicketValidityEnd).map(d -&gt; d.withZoneSameInstant(event.getZoneId())).orElse(event.getEnd());</span>
-<span class="nc" id="L207">        return UriComponentsBuilder.fromUriString(&quot;https://www.google.com/calendar/event&quot;)</span>
-<span class="nc" id="L208">            .queryParam(&quot;action&quot;, &quot;TEMPLATE&quot;)</span>
-<span class="nc" id="L209">            .queryParam(&quot;dates&quot;, validityStart.format(formatter) + &quot;/&quot; + validityEnd.format(formatter))</span>
-<span class="nc" id="L210">            .queryParam(&quot;ctz&quot;, event.getTimeZone())</span>
-<span class="nc" id="L211">            .queryParam(&quot;text&quot;, event.getDisplayName())</span>
-<span class="nc" id="L212">            .queryParam(&quot;location&quot;, event.getLocation())</span>
-<span class="nc" id="L213">            .queryParam(&quot;details&quot;, StringUtils.abbreviate(MustacheCustomTag.renderToTextCommonmark(description), 1024))</span>
-<span class="nc" id="L214">            .toUriString();</span>
+<span class="fc" id="L204">        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyMMdd'T'HHmmss&quot;);</span>
+<span class="pc" id="L205">        ZonedDateTime validityStart = Optional.ofNullable(category).map(TicketCategory::getTicketValidityStart).map(d -&gt; d.withZoneSameInstant(event.getZoneId())).orElse(event.getBegin());</span>
+<span class="pc" id="L206">        ZonedDateTime validityEnd = Optional.ofNullable(category).map(TicketCategory::getTicketValidityEnd).map(d -&gt; d.withZoneSameInstant(event.getZoneId())).orElse(event.getEnd());</span>
+<span class="fc" id="L207">        return UriComponentsBuilder.fromUriString(&quot;https://www.google.com/calendar/event&quot;)</span>
+<span class="fc" id="L208">            .queryParam(&quot;action&quot;, &quot;TEMPLATE&quot;)</span>
+<span class="fc" id="L209">            .queryParam(&quot;dates&quot;, validityStart.format(formatter) + &quot;/&quot; + validityEnd.format(formatter))</span>
+<span class="fc" id="L210">            .queryParam(&quot;ctz&quot;, event.getTimeZone())</span>
+<span class="fc" id="L211">            .queryParam(&quot;text&quot;, event.getDisplayName())</span>
+<span class="fc" id="L212">            .queryParam(&quot;location&quot;, event.getLocation())</span>
+<span class="fc" id="L213">            .queryParam(&quot;details&quot;, StringUtils.abbreviate(MustacheCustomTag.renderToTextCommonmark(description), 1024))</span>
+<span class="fc" id="L214">            .toUriString();</span>
     }
 
     public static BiFunction&lt;Ticket, Event, List&lt;FieldConfigurationDescriptionAndValue&gt;&gt; retrieveFieldValues(TicketRepository ticketRepository,
                                                                                                              PurchaseContextFieldManager purchaseContextFieldManager,
                                                                                                              AdditionalServiceItemRepository additionalServiceItemRepository,
                                                                                                              boolean formatValues) {
-<span class="nc" id="L221">        return (ticket, event) -&gt; {</span>
-<span class="nc" id="L222">            String reservationId = ticket.getTicketsReservationId();</span>
-<span class="nc" id="L223">            var additionalServiceItems = getBookedAdditionalServices(ticketRepository, additionalServiceItemRepository, ticket, event, reservationId);</span>
-<span class="nc" id="L224">            return purchaseContextFieldManager.getFieldDescriptionAndValues(event, ticket, null, additionalServiceItems, ticket.getUserLanguage(), formatValues);</span>
+<span class="fc" id="L221">        return (ticket, event) -&gt; {</span>
+<span class="fc" id="L222">            String reservationId = ticket.getTicketsReservationId();</span>
+<span class="fc" id="L223">            var additionalServiceItems = getBookedAdditionalServices(ticketRepository, additionalServiceItemRepository, ticket, event, reservationId);</span>
+<span class="fc" id="L224">            return purchaseContextFieldManager.getFieldDescriptionAndValues(event, ticket, null, additionalServiceItems, ticket.getUserLanguage(), formatValues);</span>
         };
     }
 
     private static List&lt;BookedAdditionalService&gt; getBookedAdditionalServices(TicketRepository ticketRepository, AdditionalServiceItemRepository additionalServiceItemRepository, Ticket ticket, Event event, String reservationId) {
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (event.supportsLinkedAdditionalServices()) {</span>
-<span class="nc" id="L230">            return additionalServiceItemRepository.getAdditionalServicesBookedForTicket(reservationId, ticket.getId(), ticket.getUserLanguage(), event.getId());</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">        if (event.supportsLinkedAdditionalServices()) {</span>
+<span class="fc" id="L230">            return additionalServiceItemRepository.getAdditionalServicesBookedForTicket(reservationId, ticket.getId(), ticket.getUserLanguage(), event.getId());</span>
         } else {
 <span class="nc" id="L232">            var ticketsInReservation = ticketRepository.findFirstTicketIdInReservation(reservationId);</span>
 <span class="nc bnc" id="L233" title="All 4 branches missed.">            if (ticketsInReservation.filter(id -&gt; id == ticket.getId()).isPresent()) {</span>
@@ -258,7 +258,7 @@ public final class EventUtil {
 
     public static boolean isAccessOnline(TicketCategory category, EventCheckInInfo event) {
 <span class="fc bfc" id="L260" title="All 2 branches covered.">        return event.getFormat() == Event.EventFormat.ONLINE</span>
-<span class="pc bpc" id="L261" title="1 of 4 branches missed.">            || event.getFormat() == Event.EventFormat.HYBRID</span>
+<span class="fc bfc" id="L261" title="All 4 branches covered.">            || event.getFormat() == Event.EventFormat.HYBRID</span>
             &amp;&amp; category != null
 <span class="fc bfc" id="L263" title="All 2 branches covered.">            &amp;&amp; category.getTicketAccessType() == TicketCategory.TicketAccessType.ONLINE;</span>
     }
@@ -289,18 +289,18 @@ public final class EventUtil {
     }
 
     public static boolean supportsCaseInsensitiveQRCode(String version) {
-<span class="nc bnc" id="L292" title="All 2 branches missed.">        return version != null</span>
-<span class="nc bnc" id="L293" title="All 2 branches missed.">            &amp;&amp; MigrationVersion.fromVersion(version).compareTo(MigrationVersion.fromVersion(VERSION_FOR_CODE_CASE_INSENSITIVE)) &gt;= 0;</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">        return version != null</span>
+<span class="pc bpc" id="L293" title="1 of 2 branches missed.">            &amp;&amp; MigrationVersion.fromVersion(version).compareTo(MigrationVersion.fromVersion(VERSION_FOR_CODE_CASE_INSENSITIVE)) &gt;= 0;</span>
     }
 
     public static boolean supportsLinkedAdditionalServices(String version) {
-<span class="nc bnc" id="L297" title="All 2 branches missed.">        return version != null</span>
-<span class="nc bnc" id="L298" title="All 2 branches missed.">            &amp;&amp; MigrationVersion.fromVersion(version).compareTo(MigrationVersion.fromVersion(VERSION_FOR_LINKED_ADDITIONAL_SERVICE)) &gt;= 0;</span>
+<span class="pc bpc" id="L297" title="1 of 2 branches missed.">        return version != null</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">            &amp;&amp; MigrationVersion.fromVersion(version).compareTo(MigrationVersion.fromVersion(VERSION_FOR_LINKED_ADDITIONAL_SERVICE)) &gt;= 0;</span>
     }
 
     public static boolean supportsAdditionalItemsOrdinal(String version) {
-<span class="nc bnc" id="L302" title="All 2 branches missed.">        return version != null</span>
-<span class="nc bnc" id="L303" title="All 2 branches missed.">            &amp;&amp; MigrationVersion.fromVersion(version).compareTo(MigrationVersion.fromVersion(VERSION_FOR_ADDITIONAL_ITEMS_ORDINAL)) &gt;= 0;</span>
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">        return version != null</span>
+<span class="pc bpc" id="L303" title="1 of 2 branches missed.">            &amp;&amp; MigrationVersion.fromVersion(version).compareTo(MigrationVersion.fromVersion(VERSION_FOR_ADDITIONAL_ITEMS_ORDINAL)) &gt;= 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

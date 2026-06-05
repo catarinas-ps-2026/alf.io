@@ -38,13 +38,13 @@ import static alfio.model.system.ConfigurationKeys.*;
 @RequestMapping(&quot;/admin/api&quot;)
 public class LocationApiController {
 
-<span class="nc" id="L41">    private static final Logger log = LoggerFactory.getLogger(LocationApiController.class);</span>
+<span class="fc" id="L41">    private static final Logger log = LoggerFactory.getLogger(LocationApiController.class);</span>
     private final ConfigurationManager configurationManager;
 
     @Autowired
-<span class="nc" id="L45">    public LocationApiController(ConfigurationManager configurationManager) {</span>
-<span class="nc" id="L46">        this.configurationManager = configurationManager;</span>
-<span class="nc" id="L47">    }</span>
+<span class="fc" id="L45">    public LocationApiController(ConfigurationManager configurationManager) {</span>
+<span class="fc" id="L46">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L47">    }</span>
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

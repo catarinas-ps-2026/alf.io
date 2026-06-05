@@ -45,34 +45,34 @@ public class ReservationHeader {
 
     @ConstructorProperties({&quot;id&quot;, &quot;status&quot;, &quot;formattedExpiresOn&quot;, &quot;formattedConfirmedOn&quot;, &quot;formattedCreatedOn&quot;, &quot;invoiceNumber&quot;,
         &quot;finalPrice&quot;, &quot;finalPrice&quot;, &quot;currencyCode&quot;, &quot;usedVatPercent&quot;, &quot;vatStatus&quot;, &quot;items&quot;})
-<span class="nc" id="L48">    public ReservationHeader(String id, TicketReservation.TicketReservationStatus status, Map&lt;String, String&gt; formattedExpiresOn, Map&lt;String, String&gt; formattedConfirmedOn, Map&lt;String, String&gt; formattedCreatedOn, String invoiceNumber, BigDecimal finalPrice, String currencyCode, BigDecimal usedVatPercent, PriceContainer.VatStatus vatStatus, List&lt;ReservationWithPurchaseContext.PurchaseContextItem&gt; items) {</span>
-<span class="nc" id="L49">        this.id = id;</span>
-<span class="nc" id="L50">        this.status = status;</span>
-<span class="nc" id="L51">        this.formattedExpiresOn = formattedExpiresOn;</span>
-<span class="nc" id="L52">        this.formattedConfirmedOn = formattedConfirmedOn;</span>
-<span class="nc" id="L53">        this.formattedCreatedOn = formattedCreatedOn;</span>
-<span class="nc" id="L54">        this.invoiceNumber = invoiceNumber;</span>
-<span class="nc" id="L55">        this.finalPrice = finalPrice;</span>
-<span class="nc" id="L56">        this.currencyCode = currencyCode;</span>
-<span class="nc" id="L57">        this.usedVatPercent = usedVatPercent;</span>
-<span class="nc" id="L58">        this.vatStatus = vatStatus;</span>
-<span class="nc" id="L59">        this.items = items;</span>
-<span class="nc" id="L60">    }</span>
+<span class="fc" id="L48">    public ReservationHeader(String id, TicketReservation.TicketReservationStatus status, Map&lt;String, String&gt; formattedExpiresOn, Map&lt;String, String&gt; formattedConfirmedOn, Map&lt;String, String&gt; formattedCreatedOn, String invoiceNumber, BigDecimal finalPrice, String currencyCode, BigDecimal usedVatPercent, PriceContainer.VatStatus vatStatus, List&lt;ReservationWithPurchaseContext.PurchaseContextItem&gt; items) {</span>
+<span class="fc" id="L49">        this.id = id;</span>
+<span class="fc" id="L50">        this.status = status;</span>
+<span class="fc" id="L51">        this.formattedExpiresOn = formattedExpiresOn;</span>
+<span class="fc" id="L52">        this.formattedConfirmedOn = formattedConfirmedOn;</span>
+<span class="fc" id="L53">        this.formattedCreatedOn = formattedCreatedOn;</span>
+<span class="fc" id="L54">        this.invoiceNumber = invoiceNumber;</span>
+<span class="fc" id="L55">        this.finalPrice = finalPrice;</span>
+<span class="fc" id="L56">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L57">        this.usedVatPercent = usedVatPercent;</span>
+<span class="fc" id="L58">        this.vatStatus = vatStatus;</span>
+<span class="fc" id="L59">        this.items = items;</span>
+<span class="fc" id="L60">    }</span>
 
 
     public static ReservationHeader from(ReservationWithPurchaseContext r, Map&lt;Locale, String&gt; datePatternsMap) {
-<span class="nc" id="L64">        return new ReservationHeader(</span>
-<span class="nc" id="L65">            r.getId(),</span>
-<span class="nc" id="L66">            r.getStatus(),</span>
-<span class="nc" id="L67">            formatDate(r.getValidity(), datePatternsMap),</span>
-<span class="nc" id="L68">            formatDate(r.getConfirmationTs(), datePatternsMap),</span>
-<span class="nc" id="L69">            formatDate(r.getRegistrationTs(), datePatternsMap),</span>
-<span class="nc" id="L70">            r.getInvoiceNumber(),</span>
-<span class="nc" id="L71">            r.getFinalPrice(),</span>
-<span class="nc" id="L72">            r.getCurrencyCode(),</span>
-<span class="nc" id="L73">            r.getVatPercentage(),</span>
-<span class="nc" id="L74">            r.getVatStatus(),</span>
-<span class="nc" id="L75">            r.getItems()</span>
+<span class="fc" id="L64">        return new ReservationHeader(</span>
+<span class="fc" id="L65">            r.getId(),</span>
+<span class="fc" id="L66">            r.getStatus(),</span>
+<span class="fc" id="L67">            formatDate(r.getValidity(), datePatternsMap),</span>
+<span class="fc" id="L68">            formatDate(r.getConfirmationTs(), datePatternsMap),</span>
+<span class="fc" id="L69">            formatDate(r.getRegistrationTs(), datePatternsMap),</span>
+<span class="fc" id="L70">            r.getInvoiceNumber(),</span>
+<span class="fc" id="L71">            r.getFinalPrice(),</span>
+<span class="fc" id="L72">            r.getCurrencyCode(),</span>
+<span class="fc" id="L73">            r.getVatPercentage(),</span>
+<span class="fc" id="L74">            r.getVatStatus(),</span>
+<span class="fc" id="L75">            r.getItems()</span>
         );
     }
 }

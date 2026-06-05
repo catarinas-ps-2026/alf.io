@@ -41,59 +41,59 @@ public class RetryFinalizeReservation {
                                     @JsonProperty(&quot;username&quot;) String username,
                                     @JsonProperty(&quot;tcAccepted&quot;) boolean tcAccepted,
                                     @JsonProperty(&quot;privacyPolicyAccepted&quot;) boolean privacyPolicyAccepted,
-<span class="nc" id="L44">                                    @JsonProperty(&quot;originalStatus&quot;) TicketReservationStatus originalStatus) {</span>
-<span class="nc" id="L45">        this.reservationId = reservationId;</span>
-<span class="nc" id="L46">        this.paymentProxy = paymentProxy;</span>
-<span class="nc" id="L47">        this.sendReservationConfirmationEmail = sendReservationConfirmationEmail;</span>
-<span class="nc" id="L48">        this.sendTickets = sendTickets;</span>
-<span class="nc" id="L49">        this.username = username;</span>
-<span class="nc" id="L50">        this.tcAccepted = tcAccepted;</span>
-<span class="nc" id="L51">        this.privacyPolicyAccepted = privacyPolicyAccepted;</span>
-<span class="nc" id="L52">        this.originalStatus = originalStatus;</span>
-<span class="nc" id="L53">    }</span>
+<span class="fc" id="L44">                                    @JsonProperty(&quot;originalStatus&quot;) TicketReservationStatus originalStatus) {</span>
+<span class="fc" id="L45">        this.reservationId = reservationId;</span>
+<span class="fc" id="L46">        this.paymentProxy = paymentProxy;</span>
+<span class="fc" id="L47">        this.sendReservationConfirmationEmail = sendReservationConfirmationEmail;</span>
+<span class="fc" id="L48">        this.sendTickets = sendTickets;</span>
+<span class="fc" id="L49">        this.username = username;</span>
+<span class="fc" id="L50">        this.tcAccepted = tcAccepted;</span>
+<span class="fc" id="L51">        this.privacyPolicyAccepted = privacyPolicyAccepted;</span>
+<span class="fc" id="L52">        this.originalStatus = originalStatus;</span>
+<span class="fc" id="L53">    }</span>
 
     public String getReservationId() {
-<span class="nc" id="L56">        return reservationId;</span>
+<span class="fc" id="L56">        return reservationId;</span>
     }
 
     public PaymentProxy getPaymentProxy() {
-<span class="nc" id="L60">        return paymentProxy;</span>
+<span class="fc" id="L60">        return paymentProxy;</span>
     }
 
     public boolean isSendReservationConfirmationEmail() {
-<span class="nc" id="L64">        return sendReservationConfirmationEmail;</span>
+<span class="fc" id="L64">        return sendReservationConfirmationEmail;</span>
     }
 
     public boolean isSendTickets() {
-<span class="nc" id="L68">        return sendTickets;</span>
+<span class="fc" id="L68">        return sendTickets;</span>
     }
 
     public String getUsername() {
-<span class="nc" id="L72">        return username;</span>
+<span class="fc" id="L72">        return username;</span>
     }
 
     public boolean isTcAccepted() {
-<span class="nc" id="L76">        return tcAccepted;</span>
+<span class="fc" id="L76">        return tcAccepted;</span>
     }
 
     public boolean isPrivacyPolicyAccepted() {
-<span class="nc" id="L80">        return privacyPolicyAccepted;</span>
+<span class="fc" id="L80">        return privacyPolicyAccepted;</span>
     }
 
     public TicketReservationStatus getOriginalStatus() {
-<span class="nc" id="L84">        return originalStatus;</span>
+<span class="fc" id="L84">        return originalStatus;</span>
     }
 
     public static RetryFinalizeReservation fromFinalizeReservation(FinalizeReservation finalizeReservation) {
-<span class="nc" id="L88">        var paymentSpecification = finalizeReservation.getPaymentSpecification();</span>
-<span class="nc" id="L89">        return new RetryFinalizeReservation(paymentSpecification.getReservationId(),</span>
-<span class="nc" id="L90">            finalizeReservation.getPaymentProxy(),</span>
-<span class="nc" id="L91">            finalizeReservation.isSendReservationConfirmationEmail(),</span>
-<span class="nc" id="L92">            finalizeReservation.isSendTickets(),</span>
-<span class="nc" id="L93">            finalizeReservation.getUsername(),</span>
-<span class="nc" id="L94">            paymentSpecification.isTcAccepted(),</span>
-<span class="nc" id="L95">            paymentSpecification.isPrivacyAccepted(),</span>
-<span class="nc" id="L96">            finalizeReservation.getOriginalStatus()</span>
+<span class="fc" id="L88">        var paymentSpecification = finalizeReservation.getPaymentSpecification();</span>
+<span class="fc" id="L89">        return new RetryFinalizeReservation(paymentSpecification.getReservationId(),</span>
+<span class="fc" id="L90">            finalizeReservation.getPaymentProxy(),</span>
+<span class="fc" id="L91">            finalizeReservation.isSendReservationConfirmationEmail(),</span>
+<span class="fc" id="L92">            finalizeReservation.isSendTickets(),</span>
+<span class="fc" id="L93">            finalizeReservation.getUsername(),</span>
+<span class="fc" id="L94">            paymentSpecification.isTcAccepted(),</span>
+<span class="fc" id="L95">            paymentSpecification.isPrivacyAccepted(),</span>
+<span class="fc" id="L96">            finalizeReservation.getOriginalStatus()</span>
         );
     }
 }

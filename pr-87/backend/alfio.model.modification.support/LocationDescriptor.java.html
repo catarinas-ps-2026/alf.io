@@ -48,8 +48,8 @@ public record LocationDescriptor(String timeZone, String latitude, String longit
     }
 
     public static LocationDescriptor fromGeoData(EventFormat format, Pair&lt;String, String&gt; coordinates, TimeZone timeZone, Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; geoConf) {
-<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        if (format == EventFormat.ONLINE) {</span>
-<span class="nc" id="L52">            return new LocationDescriptor(timeZone.getID(), null, null, null);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (format == EventFormat.ONLINE) {</span>
+<span class="fc" id="L52">            return new LocationDescriptor(timeZone.getID(), null, null, null);</span>
         }
 <span class="fc" id="L54">        String lat = coordinates.getLeft();</span>
 <span class="fc" id="L55">        String lng = coordinates.getRight();</span>
@@ -71,10 +71,10 @@ public record LocationDescriptor(String timeZone, String latitude, String longit
 
     // for backward compatibility reason, the logic is not straightforward
     public static ConfigurationKeys.GeoInfoProvider getProvider(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; geoConf) {
-<span class="pc bpc" id="L74" title="1 of 4 branches missed.">        if ((!geoConf.containsKey(ConfigurationKeys.MAPS_PROVIDER) || geoConf.get(ConfigurationKeys.MAPS_PROVIDER).isEmpty()) &amp;&amp;</span>
-<span class="pc bpc" id="L75" title="1 of 4 branches missed.">            (geoConf.containsKey(ConfigurationKeys.MAPS_CLIENT_API_KEY) &amp;&amp; geoConf.get(ConfigurationKeys.MAPS_CLIENT_API_KEY).isPresent())) {</span>
+<span class="fc bfc" id="L74" title="All 4 branches covered.">        if ((!geoConf.containsKey(ConfigurationKeys.MAPS_PROVIDER) || geoConf.get(ConfigurationKeys.MAPS_PROVIDER).isEmpty()) &amp;&amp;</span>
+<span class="fc bfc" id="L75" title="All 4 branches covered.">            (geoConf.containsKey(ConfigurationKeys.MAPS_CLIENT_API_KEY) &amp;&amp; geoConf.get(ConfigurationKeys.MAPS_CLIENT_API_KEY).isPresent())) {</span>
 <span class="fc" id="L76">            return ConfigurationKeys.GeoInfoProvider.GOOGLE;</span>
-<span class="pc bpc" id="L77" title="1 of 4 branches missed.">        } else if (geoConf.containsKey(ConfigurationKeys.MAPS_PROVIDER) &amp;&amp; geoConf.get(ConfigurationKeys.MAPS_PROVIDER).isPresent()) {</span>
+<span class="fc bfc" id="L77" title="All 4 branches covered.">        } else if (geoConf.containsKey(ConfigurationKeys.MAPS_PROVIDER) &amp;&amp; geoConf.get(ConfigurationKeys.MAPS_PROVIDER).isPresent()) {</span>
 <span class="fc" id="L78">            return geoConf.get(ConfigurationKeys.MAPS_PROVIDER).getValue().map(ConfigurationKeys.GeoInfoProvider::valueOf).orElseThrow(IllegalStateException::new);</span>
         } else {
 <span class="fc" id="L80">            return ConfigurationKeys.GeoInfoProvider.NONE;</span>

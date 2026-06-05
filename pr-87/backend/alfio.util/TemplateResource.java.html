@@ -340,7 +340,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 
     public String getSavedName(Locale locale) {
-<span class="nc" id="L343">        return name() + &quot;_&quot; + locale.getLanguage() + &quot;.ms&quot;;</span>
+<span class="fc" id="L343">        return name() + &quot;_&quot; + locale.getLanguage() + &quot;.ms&quot;;</span>
     }
 
     public boolean overridable() {
@@ -348,15 +348,15 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
     }
 
     public String classPath() {
-<span class="nc bnc" id="L351" title="All 2 branches missed.">        return isMultipart() ? classPathUrl + PLAIN_TEMPLATE_SUFFIX : classPathUrl;</span>
+<span class="fc bfc" id="L351" title="All 2 branches covered.">        return isMultipart() ? classPathUrl + PLAIN_TEMPLATE_SUFFIX : classPathUrl;</span>
     }
 
     public String htmlClassPath() {
-<span class="nc bnc" id="L355" title="All 2 branches missed.">    	return isMultipart() ? classPathUrl + HTML_TEMPLATE_SUFFIX : null;</span>
+<span class="pc bpc" id="L355" title="1 of 2 branches missed.">    	return isMultipart() ? classPathUrl + HTML_TEMPLATE_SUFFIX : null;</span>
     }
 
     public boolean isMultipart() {
-<span class="nc" id="L359">    	return MULTIPART_ALTERNATIVE_MIMETYPE.equals(renderedContentType);</span>
+<span class="fc" id="L359">    	return MULTIPART_ALTERNATIVE_MIMETYPE.equals(renderedContentType);</span>
     }
 
     public String getRenderedContentType() {
@@ -364,7 +364,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
     }
 
     public TemplateManager.TemplateOutput getTemplateOutput() {
-<span class="nc" id="L367">        return templateOutput;</span>
+<span class="fc" id="L367">        return templateOutput;</span>
     }
 
     public PurchaseContextType getPurchaseContextType() {
@@ -465,54 +465,54 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
                                                                        Optional&lt;String&gt; bankAccountNr,
                                                                        Optional&lt;String&gt; bankAccountOwner,
                                                                        Map&lt;String, Object&gt; additionalModelObjects) {
-<span class="nc" id="L468">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;(additionalModelObjects);</span>
-<span class="nc" id="L469">        model.put(ORGANIZATION, organization);</span>
-<span class="nc" id="L470">        model.put(EVENT, purchaseContext.event().orElse(null));</span>
-<span class="nc" id="L471">        model.put(&quot;purchaseContext&quot;, purchaseContext);</span>
-<span class="nc" id="L472">        model.put(&quot;purchaseContextTitle&quot;, purchaseContext.getTitle().get(reservation.getUserLanguage()));</span>
-<span class="nc" id="L473">        model.put(&quot;ticketReservation&quot;, reservation);</span>
-<span class="nc" id="L474">        model.put(&quot;hasVat&quot;, vat.isPresent());</span>
-<span class="nc" id="L475">        model.put(&quot;vatNr&quot;, vat.orElse(&quot;&quot;));</span>
-<span class="nc" id="L476">        model.put(&quot;tickets&quot;, tickets);</span>
-<span class="nc" id="L477">        model.put(&quot;orderSummary&quot;, orderSummary);</span>
-<span class="nc" id="L478">        model.put(&quot;publicId&quot;, reservationShortID);</span>
-<span class="nc" id="L479">        model.put(BASE_URL, baseUrl);</span>
-<span class="nc" id="L480">        model.put(RESERVATION_URL, reservationUrl);</span>
-<span class="nc" id="L481">        model.put(&quot;locale&quot;, reservation.getUserLanguage());</span>
+<span class="fc" id="L468">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;(additionalModelObjects);</span>
+<span class="fc" id="L469">        model.put(ORGANIZATION, organization);</span>
+<span class="fc" id="L470">        model.put(EVENT, purchaseContext.event().orElse(null));</span>
+<span class="fc" id="L471">        model.put(&quot;purchaseContext&quot;, purchaseContext);</span>
+<span class="fc" id="L472">        model.put(&quot;purchaseContextTitle&quot;, purchaseContext.getTitle().get(reservation.getUserLanguage()));</span>
+<span class="fc" id="L473">        model.put(&quot;ticketReservation&quot;, reservation);</span>
+<span class="fc" id="L474">        model.put(&quot;hasVat&quot;, vat.isPresent());</span>
+<span class="fc" id="L475">        model.put(&quot;vatNr&quot;, vat.orElse(&quot;&quot;));</span>
+<span class="fc" id="L476">        model.put(&quot;tickets&quot;, tickets);</span>
+<span class="fc" id="L477">        model.put(&quot;orderSummary&quot;, orderSummary);</span>
+<span class="fc" id="L478">        model.put(&quot;publicId&quot;, reservationShortID);</span>
+<span class="fc" id="L479">        model.put(BASE_URL, baseUrl);</span>
+<span class="fc" id="L480">        model.put(RESERVATION_URL, reservationUrl);</span>
+<span class="fc" id="L481">        model.put(&quot;locale&quot;, reservation.getUserLanguage());</span>
 
-<span class="nc" id="L483">        model.put(&quot;hasRefund&quot;, StringUtils.isNotEmpty(orderSummary.getRefundedAmount()));</span>
+<span class="fc" id="L483">        model.put(&quot;hasRefund&quot;, StringUtils.isNotEmpty(orderSummary.getRefundedAmount()));</span>
 
-<span class="nc" id="L485">        var zoneId = purchaseContext.getZoneId();</span>
-<span class="nc" id="L486">        var clock = ClockProvider.clock().withZone(zoneId);</span>
-<span class="nc" id="L487">        ZonedDateTime creationTimestamp = ObjectUtils.firstNonNull(reservation.getRegistrationTimestamp(), reservation.getConfirmationTimestamp(), reservation.getCreationTimestamp(), ZonedDateTime.now(clock));</span>
-<span class="nc" id="L488">        model.put(&quot;confirmationDate&quot;, creationTimestamp.withZoneSameInstant(zoneId));</span>
-<span class="nc" id="L489">        model.put(&quot;now&quot;, ZonedDateTime.now(clock));</span>
+<span class="fc" id="L485">        var zoneId = purchaseContext.getZoneId();</span>
+<span class="fc" id="L486">        var clock = ClockProvider.clock().withZone(zoneId);</span>
+<span class="fc" id="L487">        ZonedDateTime creationTimestamp = ObjectUtils.firstNonNull(reservation.getRegistrationTimestamp(), reservation.getConfirmationTimestamp(), reservation.getCreationTimestamp(), ZonedDateTime.now(clock));</span>
+<span class="fc" id="L488">        model.put(&quot;confirmationDate&quot;, creationTimestamp.withZoneSameInstant(zoneId));</span>
+<span class="fc" id="L489">        model.put(&quot;now&quot;, ZonedDateTime.now(clock));</span>
 
-<span class="nc bnc" id="L491" title="All 2 branches missed.">        if (reservation.getValidity() != null) {</span>
-<span class="nc" id="L492">            model.put(&quot;expirationDate&quot;, ZonedDateTime.ofInstant(reservation.getValidity().toInstant(), zoneId));</span>
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">        if (reservation.getValidity() != null) {</span>
+<span class="fc" id="L492">            model.put(&quot;expirationDate&quot;, ZonedDateTime.ofInstant(reservation.getValidity().toInstant(), zoneId));</span>
         }
 
-<span class="nc" id="L495">        model.put(&quot;reservationShortID&quot;, reservationShortID);</span>
+<span class="fc" id="L495">        model.put(&quot;reservationShortID&quot;, reservationShortID);</span>
 
-<span class="nc" id="L497">        model.put(&quot;hasInvoiceAddress&quot;, invoiceAddress.isPresent());</span>
-<span class="nc" id="L498">        invoiceAddress.ifPresent(addr -&gt; {</span>
-<span class="nc" id="L499">            model.put(&quot;invoiceAddress&quot;, StringUtils.replace(addr, &quot;\n&quot;, &quot;, &quot;));</span>
-<span class="nc" id="L500">            model.put(&quot;invoiceAddressAsList&quot;, Arrays.asList(StringUtils.split(addr, '\n')));</span>
-<span class="nc" id="L501">        });</span>
+<span class="fc" id="L497">        model.put(&quot;hasInvoiceAddress&quot;, invoiceAddress.isPresent());</span>
+<span class="fc" id="L498">        invoiceAddress.ifPresent(addr -&gt; {</span>
+<span class="fc" id="L499">            model.put(&quot;invoiceAddress&quot;, StringUtils.replace(addr, &quot;\n&quot;, &quot;, &quot;));</span>
+<span class="fc" id="L500">            model.put(&quot;invoiceAddressAsList&quot;, Arrays.asList(StringUtils.split(addr, '\n')));</span>
+<span class="fc" id="L501">        });</span>
 
-<span class="nc" id="L503">        model.put(&quot;hasBankAccountNr&quot;, bankAccountNr.isPresent());</span>
-<span class="nc" id="L504">        bankAccountNr.ifPresent(nr -&gt; model.put(&quot;bankAccountNr&quot;, nr));</span>
+<span class="fc" id="L503">        model.put(&quot;hasBankAccountNr&quot;, bankAccountNr.isPresent());</span>
+<span class="pc" id="L504">        bankAccountNr.ifPresent(nr -&gt; model.put(&quot;bankAccountNr&quot;, nr));</span>
 
-<span class="nc bnc" id="L506" title="All 2 branches missed.">        model.put(&quot;isOfflinePayment&quot;, reservation.getStatus() == TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT);</span>
-<span class="nc" id="L507">        model.put(&quot;hasCustomerReference&quot;, StringUtils.isNotBlank(reservation.getCustomerReference()));</span>
-<span class="nc" id="L508">        model.put(&quot;paymentReason&quot;, reservationShortID);</span>
-<span class="nc" id="L509">        model.put(&quot;hasBankAccountOnwer&quot;, bankAccountOwner.isPresent());</span>
-<span class="nc" id="L510">        bankAccountOwner.ifPresent(owner -&gt; {</span>
+<span class="fc bfc" id="L506" title="All 2 branches covered.">        model.put(&quot;isOfflinePayment&quot;, reservation.getStatus() == TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT);</span>
+<span class="fc" id="L507">        model.put(&quot;hasCustomerReference&quot;, StringUtils.isNotBlank(reservation.getCustomerReference()));</span>
+<span class="fc" id="L508">        model.put(&quot;paymentReason&quot;, reservationShortID);</span>
+<span class="fc" id="L509">        model.put(&quot;hasBankAccountOnwer&quot;, bankAccountOwner.isPresent());</span>
+<span class="fc" id="L510">        bankAccountOwner.ifPresent(owner -&gt; {</span>
 <span class="nc" id="L511">            model.put(&quot;bankAccountOnwer&quot;, StringUtils.replace(owner, &quot;\n&quot;, &quot;, &quot;));</span>
 <span class="nc" id="L512">            model.put(&quot;bankAccountOnwerAsList&quot;, Arrays.asList(StringUtils.split(owner, '\n')));</span>
 <span class="nc" id="L513">        });</span>
 
-<span class="nc" id="L515">        return model;</span>
+<span class="fc" id="L515">        return model;</span>
     }
 
     // used by OFFLINE_RESERVATION_EXPIRING_EMAIL_FOR_ORGANIZER
@@ -593,14 +593,14 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
     // used by TICKET_HAS_CHANGED_OWNER
     public static Map&lt;String, Object&gt; buildModelForTicketHasChangedOwner(Organization organization, Event e, Ticket oldTicket, Ticket newTicket, String ticketUrl) {
-<span class="nc" id="L596">        Map&lt;String, Object&gt; emailModel = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L597">        emailModel.put(TICKET_KEY, oldTicket);</span>
-<span class="nc" id="L598">        emailModel.put(ORGANIZATION, organization);</span>
-<span class="nc" id="L599">        emailModel.put(EVENT_NAME, e.getDisplayName());</span>
-<span class="nc" id="L600">        emailModel.put(&quot;previousEmail&quot;, oldTicket.getEmail());</span>
-<span class="nc" id="L601">        emailModel.put(&quot;newEmail&quot;, newTicket.getEmail());</span>
-<span class="nc" id="L602">        emailModel.put(&quot;ticketUrl&quot;, ticketUrl);</span>
-<span class="nc" id="L603">        return emailModel;</span>
+<span class="fc" id="L596">        Map&lt;String, Object&gt; emailModel = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L597">        emailModel.put(TICKET_KEY, oldTicket);</span>
+<span class="fc" id="L598">        emailModel.put(ORGANIZATION, organization);</span>
+<span class="fc" id="L599">        emailModel.put(EVENT_NAME, e.getDisplayName());</span>
+<span class="fc" id="L600">        emailModel.put(&quot;previousEmail&quot;, oldTicket.getEmail());</span>
+<span class="fc" id="L601">        emailModel.put(&quot;newEmail&quot;, newTicket.getEmail());</span>
+<span class="fc" id="L602">        emailModel.put(&quot;ticketUrl&quot;, ticketUrl);</span>
+<span class="fc" id="L603">        return emailModel;</span>
     }
 
     // used by TICKET_HAS_BEEN_CANCELLED
@@ -724,11 +724,11 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
     // used by WAITING_QUEUE_JOINED
     public static Map&lt;String, Object&gt; buildModelForWaitingQueueJoined(Organization organization, Event event, CustomerName name) {
-<span class="nc" id="L727">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L728">        model.put(EVENT_NAME, event.getDisplayName());</span>
-<span class="nc" id="L729">        model.put(FULL_NAME, name.getFullName());</span>
-<span class="nc" id="L730">        model.put(ORGANIZATION, organization);</span>
-<span class="nc" id="L731">        return model;</span>
+<span class="fc" id="L727">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L728">        model.put(EVENT_NAME, event.getDisplayName());</span>
+<span class="fc" id="L729">        model.put(FULL_NAME, name.getFullName());</span>
+<span class="fc" id="L730">        model.put(ORGANIZATION, organization);</span>
+<span class="fc" id="L731">        return model;</span>
     }
 
     // used by WAITING_QUEUE_RESERVATION_EMAIL
