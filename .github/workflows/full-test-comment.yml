@@ -56,12 +56,12 @@ jobs:
               with:
                   script: |
                       const check = await github.rest.checks.create({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        name: `Full Test (PostgreSQL ${matrix.postgresql})`,
-                        head_sha: '${{ needs.metadata.outputs.head_sha }}',
-                        status: 'in_progress',
-                        details_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      name: `Full Test (PostgreSQL ${{ matrix.postgresql }})`,
+                      head_sha: '${{ needs.metadata.outputs.head_sha }}',
+                      status: 'in_progress',
+                      details_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
                       });
                       core.setOutput('check_run_id', check.data.id);
 
