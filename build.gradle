@@ -43,6 +43,7 @@ plugins {
     id 'org.sonarqube' version '7.3.0.8198'
     // id 'net.ltgt.errorprone' version '3.1.0'
     id 'com.github.node-gradle.node' version '7.1.0'
+    id 'checkstyle'
 }
 
 apply plugin: 'java'
@@ -90,6 +91,23 @@ ext {
         case 'travis':
             project.springProfilesActive = 'travis'
             break
+    }
+}
+
+// configure the checkstyle plugin
+checkstyle {
+    toolVersion = '10.14.2'
+    configFile = file("${rootProject.projectDir}/config/checkstyle/checkstyle.xml")
+    // SOFT MODE since commit f60234d6, this configuration will gradually become stricter
+    ignoreFailures = true
+    showViolations = true
+}
+
+// disable the checkstyle plugin's xml report
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required  = false
+        html.required = true
     }
 }
 
