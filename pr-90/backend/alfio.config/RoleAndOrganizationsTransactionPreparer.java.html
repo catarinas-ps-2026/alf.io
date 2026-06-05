@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoleAndOrganizationsTransactionPreparer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config</a> &gt; <span class="el_source">RoleAndOrganizationsTransactionPreparer.java</span></div><h1>RoleAndOrganizationsTransactionPreparer.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config;
+
+import alfio.config.authentication.support.OpenIdPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import static alfio.config.authentication.support.AuthenticationConstants.ADMIN;
+import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
+
+class RoleAndOrganizationsTransactionPreparer {
+
+<span class="nc" id="L44">    private static final Logger log = LoggerFactory.getLogger(RoleAndOrganizationsTransactionPreparer.class);</span>
+    private RoleAndOrganizationsTransactionPreparer() {}
+
+<span class="nc" id="L47">    private static final OrRequestMatcher IS_PUBLIC_URLS = new OrRequestMatcher(</span>
+        new AntPathRequestMatcher(&quot;/resources/**&quot;),
+        new AntPathRequestMatcher(&quot;/webjars/**&quot;),
+        new AntPathRequestMatcher(&quot;/event/**&quot;),
+        new AntPathRequestMatcher(&quot;/&quot;),
+        new AntPathRequestMatcher(&quot;/file/**&quot;),
+        new AntPathRequestMatcher(&quot;/api/events/**&quot;),
+        new AntPathRequestMatcher(&quot;/api/webhook/**&quot;),
+        new AntPathRequestMatcher(&quot;/api/payment/**&quot;),
+        new AntPathRequestMatcher(&quot;/api/pass/**&quot;),
+        new AntPathRequestMatcher(&quot;/api/v2/info&quot;),
+        new AntPathRequestMatcher(&quot;/api/v2/public/**&quot;),
+        new AntPathRequestMatcher(&quot;/session-expired&quot;),
+        new AntPathRequestMatcher(&quot;/authentication&quot;));
+
+    private static boolean isCurrentlyInAPublicUrlRequest() {
+<span class="nc" id="L63">        HttpServletRequest request = Objects.requireNonNull((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();</span>
+<span class="nc" id="L64">        return IS_PUBLIC_URLS.matches(request);</span>
+    }
+
+    private static boolean isInAHttpRequest() {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        return RequestContextHolder.getRequestAttributes() != null;</span>
+    }
+
+    private static boolean isLoggedUser() {
+<span class="nc" id="L72">        SecurityContext context = SecurityContextHolder.getContext();</span>
+<span class="nc bnc" id="L73" title="All 4 branches missed.">        if (context != null &amp;&amp; context.getAuthentication() != null) {</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            return !&quot;anonymousUser&quot;.equals(context.getAuthentication().getName());</span>
+        }
+<span class="nc" id="L76">        return false;</span>
+    }
+
+    private static boolean isPublic() {
+<span class="nc" id="L80">        SecurityContext context = SecurityContextHolder.getContext();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (context != null</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            &amp;&amp; context.getAuthentication() instanceof OAuth2AuthenticationToken oauth</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            &amp;&amp; oauth.getPrincipal() instanceof OpenIdPrincipal principal) {</span>
+<span class="nc" id="L84">            return principal.user().isPublicUser();</span>
+        }
+<span class="nc" id="L86">        return false;</span>
+    }
+
+    private static boolean isAdmin() {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if(isLoggedUser()) {</span>
+<span class="nc" id="L91">            return SecurityContextHolder.getContext().getAuthentication()</span>
+<span class="nc" id="L92">                .getAuthorities().stream()</span>
+<span class="nc" id="L93">                .map(GrantedAuthority::getAuthority)</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">                .anyMatch(authority -&gt; authority.equals(&quot;ROLE_&quot; + SYSTEM_API_CLIENT) || authority.equals(&quot;ROLE_&quot; + ADMIN));</span>
+        }
+<span class="nc" id="L96">        return false;</span>
+    }
+
+    private static final String QUERY_ORG_FOR_USER = &quot;&quot;&quot;
+        (select organization.id from organization inner join j_user_organization on org_id = organization.id where j_user_organization.user_id = (select ba_user.id from ba_user where ba_user.username = ?)) \
+         union \
+        (select organization.id from organization where 'ROLE_ADMIN' in (select role from ba_user inner join authority on ba_user.username = authority.username where ba_user.username = ?))\
+        &quot;&quot;&quot;;
+
+    public static void prepareTransactionalConnection(Connection connection) throws SQLException {
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (!isInAHttpRequest()) {</span>
+<span class="nc" id="L107">            return;</span>
+        }
+<span class="nc bnc" id="L109" title="All 8 branches missed.">        boolean mustCheck = !isCurrentlyInAPublicUrlRequest() &amp;&amp; isLoggedUser() &amp;&amp; !isPublic() &amp;&amp; !isAdmin();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (!mustCheck) {</span>
+<span class="nc" id="L111">            return;</span>
+        }
+
+<span class="nc" id="L114">        try (var s = connection.createStatement()) {</span>
+<span class="nc" id="L115">            s.execute(&quot;reset alfio.checkRowAccess&quot;);</span>
+        }
+<span class="nc" id="L117">        try (var s = connection.createStatement()) {</span>
+<span class="nc" id="L118">            s.execute(&quot;reset alfio.currentUserOrgs&quot;);</span>
+        }
+
+<span class="nc" id="L121">        Set&lt;Integer&gt; orgIds = new TreeSet&lt;&gt;();</span>
+<span class="nc" id="L122">        try (var s = connection.prepareStatement(QUERY_ORG_FOR_USER)) {</span>
+<span class="nc" id="L123">            String username = SecurityContextHolder.getContext().getAuthentication().getName();</span>
+<span class="nc" id="L124">            s.setString(1, username);</span>
+<span class="nc" id="L125">            s.setString(2, username);</span>
+<span class="nc" id="L126">            try (var rs = s.executeQuery()) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                while (rs.next()) {</span>
+<span class="nc" id="L128">                    orgIds.add(rs.getInt(1));</span>
+                }
+            }
+        }
+
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (orgIds.isEmpty()) {</span>
+<span class="nc" id="L134">            log.warn(&quot;orgIds is empty, was not able to apply currentUserOrgs&quot;);</span>
+        } else {
+<span class="nc" id="L136">            try (var s = connection.createStatement()) {</span>
+<span class="nc" id="L137">                s.execute(&quot;set local alfio.checkRowAccess = true&quot;);</span>
+            }
+<span class="nc" id="L139">            try (var s = connection.createStatement()) {</span>
+<span class="nc" id="L140">                String formattedOrgIds = orgIds.stream().map(orgId -&gt; Integer.toString(orgId)).collect(Collectors.joining(&quot;,&quot;));</span>
+                //can't use placeholder in a prepared statement when using 'set ...', but cannot be sql injected as the source is a set of integers
+<span class="nc" id="L142">                s.execute(&quot;set local alfio.currentUserOrgs = '&quot; + formattedOrgIds + &quot;'&quot;);</span>
+            }
+        }
+<span class="nc" id="L145">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrganizationModification.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.modification</a> &gt; <span class="el_source">OrganizationModification.java</span></div><h1>OrganizationModification.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.modification;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+
+@Getter
+public class OrganizationModification {
+
+    private final Integer id;
+    private final String name;
+    private final String email;
+    private final String description;
+    private final String externalId;
+    private final String slug;
+
+    @JsonCreator
+    public OrganizationModification(@JsonProperty(&quot;id&quot;) Integer id,
+                                    @JsonProperty(&quot;name&quot;) String name,
+                                    @JsonProperty(&quot;email&quot;) String email,
+                                    @JsonProperty(&quot;description&quot;) String description,
+                                    @JsonProperty(&quot;externalId&quot;) String externalId,
+<span class="nc" id="L41">                                    @JsonProperty(&quot;slug&quot;) String slug) {</span>
+<span class="nc" id="L42">        this.id = id;</span>
+<span class="nc" id="L43">        this.name = name;</span>
+<span class="nc" id="L44">        this.email = email;</span>
+<span class="nc" id="L45">        this.description = description;</span>
+<span class="nc" id="L46">        this.externalId = externalId;</span>
+<span class="nc" id="L47">        this.slug = slug;</span>
+<span class="nc" id="L48">    }</span>
+
+    @JsonIgnore
+    public boolean isValid(boolean create) {
+<span class="nc bnc" id="L52" title="All 6 branches missed.">        return (create || (id != null &amp;&amp; id &gt; 0))</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">            &amp;&amp; StringUtils.isNotEmpty(name)</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            &amp;&amp; StringUtils.isNotEmpty(email)</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">            &amp;&amp; StringUtils.isNotEmpty(description);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

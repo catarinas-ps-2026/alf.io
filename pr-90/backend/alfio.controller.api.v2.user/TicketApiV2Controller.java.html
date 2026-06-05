@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketApiV2Controller.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.v2.user</a> &gt; <span class="el_source">TicketApiV2Controller.java</span></div><h1>TicketApiV2Controller.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.v2.user;
+
+import alfio.controller.api.support.BookingInfoTicketLoader;
+import alfio.controller.api.support.TicketHelper;
+import alfio.controller.api.v2.model.DatesWithTimeZoneOffset;
+import alfio.controller.api.v2.model.OnlineCheckInInfo;
+import alfio.controller.api.v2.model.ReservationInfo;
+import alfio.controller.api.v2.model.TicketInfo;
+import alfio.controller.form.UpdateTicketOwnerForm;
+import alfio.controller.support.Formatters;
+import alfio.controller.support.TemplateProcessor;
+import alfio.manager.*;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.support.AdditionalServiceHelper;
+import alfio.manager.support.response.ValidatedResponse;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.user.Organization;
+import alfio.repository.TicketCategoryRepository;
+import alfio.repository.TicketRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.util.ImageUtil;
+import alfio.util.LocaleUtil;
+import alfio.util.TemplateManager;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+
+import static alfio.controller.Constants.TICKET_PDF_URI;
+import static alfio.controller.Constants.TICKET_QR_CODE_URI;
+import static alfio.model.PurchaseContextFieldConfiguration.EVENT_RELATED_CONTEXTS;
+import static alfio.util.EventUtil.firstMatchingCallLink;
+import static alfio.util.ExportUtils.markAsNoIndex;
+
+@RestController
+@AllArgsConstructor
+public class TicketApiV2Controller {
+
+    private final TicketHelper ticketHelper;
+    private final TicketReservationManager ticketReservationManager;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final MessageSourceManager messageSourceManager;
+    private final ExtensionManager extensionManager;
+    private final FileUploadManager fileUploadManager;
+    private final OrganizationRepository organizationRepository;
+    private final TemplateManager templateManager;
+    private final NotificationManager notificationManager;
+    private final BookingInfoTicketLoader bookingInfoTicketLoader;
+    private final TicketRepository ticketRepository;
+    private final SubscriptionManager subscriptionManager;
+    private final ConfigurationManager configurationManager;
+    private final AdditionalServiceHelper additionalServiceHelper;
+
+
+    @GetMapping(value = {
+        TICKET_QR_CODE_URI,
+        &quot;/event/{eventName}/ticket/{ticketIdentifier}/code.png&quot;
+    })
+    public void showQrCode(@PathVariable String eventName,
+                           @PathVariable UUID ticketIdentifier,
+                           HttpServletResponse response) throws IOException {
+<span class="nc" id="L98">        var oData = ticketReservationManager.fetchCompleteAndAssigned(eventName, ticketIdentifier);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (oData.isEmpty()) {</span>
+<span class="nc" id="L100">            response.sendError(HttpServletResponse.SC_FORBIDDEN);</span>
+<span class="nc" id="L101">            return;</span>
+        }
+<span class="nc" id="L103">        var event = oData.get().getLeft();</span>
+<span class="nc" id="L104">        var ticket = oData.get().getRight();</span>
+
+<span class="nc" id="L106">        String qrCodeText = ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive());</span>
+
+<span class="nc" id="L108">        response.setContentType(&quot;image/png&quot;);</span>
+<span class="nc" id="L109">        markAsNoIndex(response);</span>
+
+<span class="nc" id="L111">        try (var os = response.getOutputStream()) {</span>
+<span class="nc" id="L112">            os.write(ImageUtil.createQRCode(qrCodeText));</span>
+<span class="nc" id="L113">            response.flushBuffer();</span>
+        }
+<span class="nc" id="L115">    }</span>
+
+    @GetMapping(TICKET_PDF_URI)
+    public void generateTicketPdf(@PathVariable String eventName,
+                                  @PathVariable UUID ticketIdentifier,
+                                  HttpServletResponse response) {
+
+<span class="nc" id="L122">        ticketReservationManager.fetchCompleteAndAssigned(eventName, ticketIdentifier).ifPresentOrElse(data -&gt; {</span>
+
+<span class="nc" id="L124">            Ticket ticket = data.getRight();</span>
+<span class="nc" id="L125">            Event event = data.getLeft();</span>
+<span class="nc" id="L126">            TicketReservation ticketReservation = data.getMiddle();</span>
+
+<span class="nc" id="L128">            response.setContentType(MediaType.APPLICATION_PDF_VALUE);</span>
+<span class="nc" id="L129">            response.addHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=ticket-&quot; + ticketIdentifier + &quot;.pdf&quot;);</span>
+<span class="nc" id="L130">            markAsNoIndex(response);</span>
+<span class="nc" id="L131">            try (OutputStream os = response.getOutputStream()) {</span>
+<span class="nc" id="L132">                TicketCategory ticketCategory = ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), event.getId());</span>
+<span class="nc" id="L133">                Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="nc" id="L134">                String reservationID = configurationManager.getShortReservationID(event, ticketReservation);</span>
+<span class="nc" id="L135">                var ticketWithMetadata = TicketWithMetadataAttributes.build(ticket, ticketRepository.getTicketMetadata(ticket.getId()));</span>
+<span class="nc" id="L136">                var locale = LocaleUtil.getTicketLanguage(ticket, LocaleUtil.forLanguageTag(ticketReservation.getUserLanguage(), event));</span>
+<span class="nc" id="L137">                TemplateProcessor.renderPDFTicket(</span>
+                    locale, event, ticketReservation,
+                    ticketWithMetadata, ticketCategory, organization,
+                    templateManager, fileUploadManager,
+<span class="nc" id="L141">                    reservationID, os, ticketHelper.buildRetrieveFieldValuesFunction(true), extensionManager,</span>
+<span class="nc" id="L142">                    TemplateProcessor.getSubscriptionDetailsModelForTicket(ticket, subscriptionManager::findDescriptorBySubscriptionId, locale),</span>
+<span class="nc" id="L143">                    additionalServiceHelper.findForTicket(ticket, event)</span>
+                );
+<span class="nc" id="L145">            } catch (IOException ioe) {</span>
+<span class="nc" id="L146">                throw new IllegalStateException(ioe);</span>
+<span class="nc" id="L147">            }</span>
+<span class="nc" id="L148">        }, () -&gt; {</span>
+            try {
+<span class="nc" id="L150">                response.sendError(HttpServletResponse.SC_FORBIDDEN);</span>
+<span class="nc" id="L151">            } catch (IOException ioe) {</span>
+<span class="nc" id="L152">                throw new IllegalStateException(ioe);</span>
+<span class="nc" id="L153">            }</span>
+<span class="nc" id="L154">        });</span>
+<span class="nc" id="L155">    }</span>
+
+    @PostMapping(&quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}/send-ticket-by-email&quot;)
+    public ResponseEntity&lt;Boolean&gt; sendTicketByEmail(@PathVariable String eventName,
+                                                     @PathVariable UUID ticketIdentifier) {
+
+<span class="nc" id="L161">        return ticketReservationManager.fetchCompleteAndAssigned(eventName, ticketIdentifier).map(data -&gt; {</span>
+<span class="nc" id="L162">            Event event = data.getLeft();</span>
+<span class="nc" id="L163">            TicketReservation reservation = data.getMiddle();</span>
+<span class="nc" id="L164">            Ticket ticket = data.getRight();</span>
+
+<span class="nc" id="L166">            Locale locale = LocaleUtil.getTicketLanguage(ticket, LocaleUtil.forLanguageTag(reservation.getUserLanguage(), event));</span>
+<span class="nc" id="L167">            notificationManager.sendTicketByEmail(</span>
+                ticket,
+                event,
+                locale,
+<span class="nc" id="L171">                ticketHelper.getConfirmationTextBuilder(locale, event, reservation, ticket),</span>
+                reservation,
+<span class="nc" id="L173">                ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), event.getId()),</span>
+<span class="nc" id="L174">                () -&gt; ticketReservationManager.retrieveAttendeeAdditionalInfoForTicket(ticket)</span>
+            );
+<span class="nc" id="L176">            return ResponseEntity.ok(true);</span>
+
+<span class="nc" id="L178">        }).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+    @DeleteMapping(&quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}&quot;)
+    public ResponseEntity&lt;Boolean&gt; releaseTicket(@PathVariable String eventName,
+                                                 @PathVariable UUID ticketIdentifier) {
+<span class="nc" id="L184">        var oData = ticketReservationManager.fetchCompleteAndAssigned(eventName, ticketIdentifier);</span>
+        try {
+<span class="nc" id="L186">            oData.ifPresent(triple -&gt; ticketReservationManager.releaseTicket(triple.getLeft(), triple.getMiddle(), triple.getRight()));</span>
+<span class="nc" id="L187">            return ResponseEntity.ok(true);</span>
+<span class="nc" id="L188">        } catch (IllegalStateException ise) {</span>
+<span class="nc" id="L189">            return ResponseEntity.badRequest().body(false);</span>
+        }
+    }
+
+    @GetMapping(&quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}/full&quot;)
+    public ResponseEntity&lt;ReservationInfo.TicketsByTicketCategory&gt; getTicket(@PathVariable String eventName,
+                                                                             @PathVariable UUID ticketIdentifier) {
+
+<span class="nc" id="L197">        var optionalTicket = ticketReservationManager.fetchCompleteAndAssigned(eventName, ticketIdentifier)</span>
+<span class="nc" id="L198">            .map(complete -&gt; {</span>
+<span class="nc" id="L199">                var ticket = complete.getRight();</span>
+<span class="nc" id="L200">                var event = complete.getLeft();</span>
+
+<span class="nc" id="L202">                var category = ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), event.getId());</span>
+<span class="nc" id="L203">                return new ReservationInfo.TicketsByTicketCategory(category.getName(), category.getTicketAccessType(), List.of(bookingInfoTicketLoader.toBookingInfoTicket(ticket, event, EVENT_RELATED_CONTEXTS)));</span>
+            });
+<span class="nc" id="L205">        return ResponseEntity.of(optionalTicket);</span>
+    }
+
+    @GetMapping(&quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}&quot;)
+    public ResponseEntity&lt;TicketInfo&gt; getTicketInfo(@PathVariable String eventName,
+                                                    @PathVariable UUID ticketIdentifier) {
+
+        //TODO: cleanup, we load useless data here!
+
+<span class="nc" id="L214">        var oData = ticketReservationManager.fetchCompleteAndAssigned(eventName, ticketIdentifier);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        if(oData.isEmpty()) {</span>
+<span class="nc" id="L216">            return ResponseEntity.notFound().build();</span>
+        }
+<span class="nc" id="L218">        var data = oData.get();</span>
+
+
+<span class="nc" id="L221">        TicketReservation ticketReservation = data.getMiddle();</span>
+<span class="nc" id="L222">        Ticket ticket = data.getRight();</span>
+<span class="nc" id="L223">        Event event = data.getLeft();</span>
+
+<span class="nc" id="L225">        TicketCategory ticketCategory = ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), event.getId());</span>
+
+<span class="nc" id="L227">        boolean deskPaymentRequired = Optional.ofNullable(ticketReservation.getPaymentMethod()).orElse(PaymentProxy.STRIPE).isDeskPaymentRequired();</span>
+
+
+        //
+<span class="nc" id="L231">        var validityStart = Optional.ofNullable(ticketCategory.getTicketValidityStart(event.getZoneId())).orElse(event.getBegin());</span>
+<span class="nc" id="L232">        var validityEnd = Optional.ofNullable(ticketCategory.getTicketValidityEnd(event.getZoneId())).orElse(event.getEnd());</span>
+<span class="nc" id="L233">        var sameDay = validityStart.truncatedTo(ChronoUnit.DAYS).equals(validityEnd.truncatedTo(ChronoUnit.DAYS));</span>
+
+
+<span class="nc" id="L236">        var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="nc" id="L237">        var formattedDates = Formatters.getFormattedDates(event, messageSource, event.getContentLanguages());</span>
+        //
+
+
+<span class="nc" id="L241">        return ResponseEntity.ok(new TicketInfo(</span>
+<span class="nc" id="L242">            ticket.getFullName(),</span>
+<span class="nc" id="L243">            ticket.getEmail(),</span>
+<span class="nc" id="L244">            ticket.getPublicUuid().toString(),</span>
+<span class="nc" id="L245">            ticketCategory.getName(),</span>
+<span class="nc" id="L246">            ticketReservation.getFullName(),</span>
+<span class="nc" id="L247">            configurationManager.getShortReservationID(event, ticketReservation),</span>
+            deskPaymentRequired,
+<span class="nc" id="L249">            event.getTimeZone(),</span>
+<span class="nc" id="L250">            DatesWithTimeZoneOffset.fromEvent(event),</span>
+            sameDay,
+            formattedDates.beginDate,
+            formattedDates.beginTime,
+            formattedDates.endDate,
+            formattedDates.endTime,
+<span class="nc" id="L256">            additionalServiceHelper.findForTicket(ticket, event)</span>
+        ));
+    }
+
+    @PutMapping(&quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}&quot;)
+    public ResponseEntity&lt;ValidatedResponse&lt;Boolean&gt;&gt; updateTicketInfo(@PathVariable String eventName,
+                                                                       @PathVariable UUID ticketIdentifier,
+                                                                       @RequestBody UpdateTicketOwnerForm updateTicketOwner,
+                                                                       BindingResult bindingResult,
+                                                                       Authentication authentication) {
+
+<span class="nc" id="L267">        var a = ticketReservationManager.fetchComplete(eventName, ticketIdentifier);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        if (a.isEmpty()) {</span>
+<span class="nc" id="L269">            return ResponseEntity.notFound().build();</span>
+        }
+
+<span class="nc" id="L272">        Optional&lt;UserDetails&gt; userDetails = Optional.ofNullable(authentication)</span>
+<span class="nc" id="L273">            .map(Authentication::getPrincipal)</span>
+<span class="nc" id="L274">            .filter(UserDetails.class::isInstance)</span>
+<span class="nc" id="L275">            .map(UserDetails.class::cast);</span>
+
+<span class="nc" id="L277">        Locale locale = LocaleUtil.forLanguageTag(a.get().getMiddle().getUserLanguage(), a.get().getLeft());</span>
+
+<span class="nc" id="L279">        var assignmentResult = ticketHelper.assignTicket(eventName,</span>
+            ticketIdentifier,
+            updateTicketOwner,
+<span class="nc" id="L282">            Optional.of(bindingResult),</span>
+            locale,
+            userDetails, false);
+
+<span class="nc" id="L286">        return assignmentResult.map(r -&gt;</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">            ResponseEntity.status(r.getLeft().isSuccess() ? HttpStatus.OK : HttpStatus.UNPROCESSABLE_ENTITY)</span>
+<span class="nc" id="L288">                .body(new ValidatedResponse&lt;&gt;(r.getLeft(), r.getLeft().isSuccess()))</span>
+<span class="nc" id="L289">        ).orElseThrow(IllegalStateException::new);</span>
+    }
+
+    @GetMapping(&quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}/code/{checkInCode}/check-in-info&quot;)
+    public ResponseEntity&lt;OnlineCheckInInfo&gt; getCheckInInfo(@PathVariable String eventName,
+                                                            @PathVariable UUID ticketIdentifier,
+                                                            @PathVariable String checkInCode,
+                                                            @RequestParam(value = &quot;tz&quot;, required = false) String userTz) {
+<span class="nc" id="L297">        return ResponseEntity.of(ticketReservationManager.fetchCompleteAndAssignedForOnlineCheckIn(eventName, ticketIdentifier)</span>
+<span class="nc" id="L298">            .flatMap(info -&gt; {</span>
+<span class="nc" id="L299">                var ticket = info.getTicket();</span>
+<span class="nc" id="L300">                var event = info.getEventWithCheckInInfo();</span>
+<span class="nc" id="L301">                var messageSource = messageSourceManager.getMessageSourceFor(event.getOrganizationId(), event.getId());</span>
+<span class="nc" id="L302">                String ticketCode = ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive());</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                if(MessageDigest.isEqual(DigestUtils.sha256Hex(ticketCode).getBytes(StandardCharsets.UTF_8), checkInCode.getBytes(StandardCharsets.UTF_8))) {</span>
+<span class="nc" id="L304">                    var categoryConfiguration = info.getCategoryMetadata().getOnlineConfiguration();</span>
+<span class="nc" id="L305">                    var eventConfiguration = event.getMetadata().getOnlineConfiguration();</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                    var zoneId = StringUtils.isNotBlank(userTz) ? ZoneId.of(userTz) : event.getZoneId();</span>
+<span class="nc" id="L307">                    return firstMatchingCallLink(event.getZoneId(), categoryConfiguration, eventConfiguration)</span>
+<span class="nc" id="L308">                        .map(joinLink -&gt; OnlineCheckInInfo.fromJoinLink(joinLink, event, zoneId, messageSource))</span>
+<span class="nc" id="L309">                        .or(() -&gt; Optional.of(OnlineCheckInInfo.fromEvent(event, zoneId, messageSource)));</span>
+                } else {
+<span class="nc" id="L311">                    return Optional.empty();</span>
+                }
+            }));
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
