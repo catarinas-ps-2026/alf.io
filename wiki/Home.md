@@ -9,11 +9,14 @@
   />
 </div>
 
-## Planes de Pruebas
+## Índice
 
-- [[Plan de Pruebas Unitarias]]
-- [[Plan de Pruebas de Integración]]
+[[Plan de Pruebas Unitarias]]
 
-## Arquitectura
+[[Informe de Ejecución de Pruebas Unitarias]]
 
-- [[Arquitectura C4]]
+[[Diseño de Casos de Prueba Funcionales]]
+
+[[Informe de Casos de Prueba Funcionales]]
+
+[[Plan de Pruebas de Integración]]
