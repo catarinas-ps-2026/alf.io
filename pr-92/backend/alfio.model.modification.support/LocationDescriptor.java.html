@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocationDescriptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.modification.support</a> &gt; <span class="el_source">LocationDescriptor.java</span></div><h1>LocationDescriptor.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.modification.support;
+
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.Event.EventFormat;
+import alfio.model.system.ConfigurationKeys;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.StringSubstitutor;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+
+public record LocationDescriptor(String timeZone, String latitude, String longitude, String mapUrl) {
+
+
+    @JsonCreator
+    public LocationDescriptor(@JsonProperty(&quot;timeZone&quot;) String timeZone,
+                              @JsonProperty(&quot;latitude&quot;) String latitude,
+                              @JsonProperty(&quot;longitude&quot;) String longitude,
+<span class="fc" id="L39">                              @JsonProperty(&quot;mapUrl&quot;) String mapUrl) {</span>
+<span class="fc" id="L40">        this.timeZone = timeZone;</span>
+<span class="fc" id="L41">        this.latitude = latitude;</span>
+<span class="fc" id="L42">        this.longitude = longitude;</span>
+<span class="fc" id="L43">        this.mapUrl = mapUrl;</span>
+<span class="fc" id="L44">    }</span>
+
+    public boolean getHasMapUrl() {
+<span class="nc" id="L47">        return StringUtils.isNotBlank(mapUrl);</span>
+    }
+
+    public static LocationDescriptor fromGeoData(EventFormat format, Pair&lt;String, String&gt; coordinates, TimeZone timeZone, Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; geoConf) {
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (format == EventFormat.ONLINE) {</span>
+<span class="fc" id="L52">            return new LocationDescriptor(timeZone.getID(), null, null, null);</span>
+        }
+<span class="fc" id="L54">        String lat = coordinates.getLeft();</span>
+<span class="fc" id="L55">        String lng = coordinates.getRight();</span>
+<span class="fc" id="L56">        return new LocationDescriptor(timeZone.getID(), coordinates.getLeft(), coordinates.getRight(), getMapUrl(lat, lng, geoConf));</span>
+    }
+
+    public static String getMapUrl(String lat, String lng, Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; geoConf) {
+<span class="fc" id="L60">        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L61">        params.put(&quot;latitude&quot;, lat);</span>
+<span class="fc" id="L62">        params.put(&quot;longitude&quot;, lng);</span>
+
+<span class="fc" id="L64">        ConfigurationKeys.GeoInfoProvider provider = getProvider(geoConf);</span>
+<span class="fc" id="L65">        String mapUrl = mapUrl(provider);</span>
+
+<span class="fc" id="L67">        fillParams(provider, geoConf, params);</span>
+
+<span class="fc" id="L69">        return new StringSubstitutor(params).replace(mapUrl);</span>
+    }
+
+    // for backward compatibility reason, the logic is not straightforward
+    public static ConfigurationKeys.GeoInfoProvider getProvider(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; geoConf) {
+<span class="fc bfc" id="L74" title="All 4 branches covered.">        if ((!geoConf.containsKey(ConfigurationKeys.MAPS_PROVIDER) || geoConf.get(ConfigurationKeys.MAPS_PROVIDER).isEmpty()) &amp;&amp;</span>
+<span class="fc bfc" id="L75" title="All 4 branches covered.">            (geoConf.containsKey(ConfigurationKeys.MAPS_CLIENT_API_KEY) &amp;&amp; geoConf.get(ConfigurationKeys.MAPS_CLIENT_API_KEY).isPresent())) {</span>
+<span class="fc" id="L76">            return ConfigurationKeys.GeoInfoProvider.GOOGLE;</span>
+<span class="fc bfc" id="L77" title="All 4 branches covered.">        } else if (geoConf.containsKey(ConfigurationKeys.MAPS_PROVIDER) &amp;&amp; geoConf.get(ConfigurationKeys.MAPS_PROVIDER).isPresent()) {</span>
+<span class="fc" id="L78">            return geoConf.get(ConfigurationKeys.MAPS_PROVIDER).getValue().map(ConfigurationKeys.GeoInfoProvider::valueOf).orElseThrow(IllegalStateException::new);</span>
+        } else {
+<span class="fc" id="L80">            return ConfigurationKeys.GeoInfoProvider.NONE;</span>
+        }
+    }
+
+    private static String mapUrl(ConfigurationKeys.GeoInfoProvider provider) {
+<span class="fc bfc" id="L85" title="All 3 branches covered.">        return switch (provider) {</span>
+            case GOOGLE -&gt;
+<span class="fc" id="L87">                &quot;https://maps.googleapis.com/maps/api/staticmap?center=${latitude},${longitude}&amp;key=${key}&amp;zoom=16&amp;size=400x400&amp;markers=color:blue%7Clabel:E%7C${latitude},${longitude}&quot;;</span>
+            case HERE -&gt;
+<span class="fc" id="L89">                &quot;https://image.maps.ls.hereapi.com/mia/1.6/mapview?c=${latitude},${longitude}&amp;z=16&amp;w=400&amp;h=400&amp;poi=${latitude},${longitude}&amp;apikey=${key}&quot;;</span>
+<span class="fc" id="L90">            default -&gt; &quot;&quot;;</span>
+        };
+    }
+
+    private static void fillParams(ConfigurationKeys.GeoInfoProvider provider, Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; geoConf, Map&lt;String, String&gt; params) {
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (ConfigurationKeys.GeoInfoProvider.GOOGLE == provider) {</span>
+<span class="fc" id="L96">            geoConf.get(ConfigurationKeys.MAPS_CLIENT_API_KEY).getValue().ifPresent(key -&gt; params.put(&quot;key&quot;, key));</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        } else if (ConfigurationKeys.GeoInfoProvider.HERE == provider) {</span>
+<span class="fc" id="L98">            geoConf.get(ConfigurationKeys.MAPS_HERE_API_KEY).getValue().ifPresent(key -&gt; params.put(&quot;key&quot;, key));</span>
+        }
+<span class="fc" id="L100">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

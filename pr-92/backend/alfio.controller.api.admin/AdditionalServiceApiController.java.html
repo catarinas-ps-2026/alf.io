@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdditionalServiceApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">AdditionalServiceApiController.java</span></div><h1>AdditionalServiceApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.api.admin;
+
+import alfio.controller.api.support.AdditionalItemSwapRequest;
+import alfio.manager.AccessService;
+import alfio.manager.AdditionalServiceManager;
+import alfio.manager.EventManager;
+import alfio.model.AdditionalService;
+import alfio.model.AdditionalServiceItem;
+import alfio.model.Event;
+import alfio.model.PriceContainer;
+import alfio.model.modification.EventModification;
+import alfio.model.result.ValidationResult;
+import alfio.repository.EventRepository;
+import alfio.util.ExportUtils;
+import alfio.util.MonetaryUtil;
+import alfio.util.Validator;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNullElse;
+
+@RestController
+@RequestMapping(&quot;/admin/api&quot;)
+public class AdditionalServiceApiController {
+
+<span class="fc" id="L60">    private static final Logger log = LoggerFactory.getLogger(AdditionalServiceApiController.class);</span>
+    private final EventManager eventManager;
+    private final EventRepository eventRepository;
+    private final AdditionalServiceManager additionalServiceManager;
+    private final AccessService accessService;
+
+<span class="fc" id="L66">    public AdditionalServiceApiController(EventManager eventManager, EventRepository eventRepository, AdditionalServiceManager additionalServiceManager, AccessService accessService) {</span>
+<span class="fc" id="L67">        this.eventManager = eventManager;</span>
+<span class="fc" id="L68">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L69">        this.additionalServiceManager = additionalServiceManager;</span>
+<span class="fc" id="L70">        this.accessService = accessService;</span>
+<span class="fc" id="L71">    }</span>
+
+
+    @ExceptionHandler({IllegalArgumentException.class})
+    public ResponseEntity&lt;String&gt; handleBadRequest(Exception e) {
+<span class="nc" id="L76">        log.warn(&quot;bad input detected&quot;, e);</span>
+<span class="nc" id="L77">        return new ResponseEntity&lt;&gt;(&quot;bad input parameters&quot;, HttpStatus.BAD_REQUEST);</span>
+    }
+
+    @ExceptionHandler({Exception.class})
+    public ResponseEntity&lt;String&gt; handleError(Exception e) {
+<span class="nc" id="L82">        log.error(&quot;error&quot;, e);</span>
+<span class="nc" id="L83">        return new ResponseEntity&lt;&gt;(&quot;internal server error&quot;, HttpStatus.INTERNAL_SERVER_ERROR);</span>
+    }
+
+    @GetMapping(&quot;/event/{eventId}/additional-services&quot;)
+    public List&lt;EventModification.AdditionalService&gt; loadAll(@PathVariable int eventId, Principal principal) {
+<span class="nc" id="L88">        accessService.checkEventOwnership(principal, eventId);</span>
+<span class="nc" id="L89">        return eventRepository.findOptionalById(eventId)</span>
+<span class="nc" id="L90">            .map(event -&gt; additionalServiceManager.loadAllForEvent(eventId)</span>
+<span class="nc" id="L91">                            .stream()</span>
+<span class="nc" id="L92">                            .map(as -&gt; EventModification.AdditionalService.from(as)//.withAdditionalFields() TODO to be implemented</span>
+<span class="nc" id="L93">                                            .withText(additionalServiceManager.findAllTextByAdditionalServiceId(as.id()))</span>
+<span class="nc" id="L94">                                            .withZoneId(event.getZoneId())</span>
+<span class="nc" id="L95">                                            .withPriceContainer(buildPriceContainer(event, as)).build())</span>
+<span class="nc" id="L96">                            .toList())</span>
+<span class="nc" id="L97">            .orElse(Collections.emptyList());</span>
+    }
+
+    @GetMapping(&quot;/event/{eventId}/additional-services/count&quot;)
+    public Map&lt;Integer, Map&lt;AdditionalServiceItem.AdditionalServiceItemStatus, Integer&gt;&gt; countUse(@PathVariable int eventId, Principal principal) {
+<span class="nc" id="L102">        accessService.checkEventOwnership(principal, eventId);</span>
+<span class="nc" id="L103">        return additionalServiceManager.countUsageForEvent(eventId);</span>
+    }
+
+    @PostMapping(
+        &quot;/event/{eventId}/additional-services/swap-position&quot;
+    )
+    public void swapPosition(@PathVariable int eventId,
+                             @RequestBody AdditionalItemSwapRequest request,
+                             Principal principal) {
+<span class="nc" id="L112">        accessService.checkEventOwnership(principal, eventId);</span>
+<span class="nc" id="L113">        additionalServiceManager.swapAdditionalServicesPosition(eventId, request.id1(), request.id2());</span>
+<span class="nc" id="L114">    }</span>
+
+    @PutMapping(&quot;/event/{eventId}/additional-services/{additionalServiceId}&quot;)
+    @Transactional
+    public ResponseEntity&lt;EventModification.AdditionalService&gt; update(@PathVariable int eventId, @PathVariable int additionalServiceId, @RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult, Principal principal) {
+        //
+<span class="nc" id="L120">        accessService.checkEventOwnership(principal, eventId);</span>
+<span class="nc" id="L121">        Optional&lt;AdditionalService&gt; optional = additionalServiceManager.getOptionalById(additionalServiceId, eventId);</span>
+<span class="nc" id="L122">        Assert.isTrue(optional.isPresent(), &quot;No additional service with id &quot; + additionalServiceId + &quot; present in eventId &quot; + eventId);</span>
+<span class="nc" id="L123">        var existing = optional.get();</span>
+<span class="nc bnc" id="L124" title="All 4 branches missed.">        Assert.isTrue(existing.availableQuantity() == -1 || additionalService.getAvailableQuantity() &gt; 0, &quot;Missing available quantity&quot;);</span>
+        //
+<span class="nc" id="L126">        ValidationResult validationResult = Validator.validateAdditionalService(additionalService, bindingResult);</span>
+<span class="nc" id="L127">        Validate.isTrue(validationResult.isSuccess(), &quot;validation failed&quot;);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        Validate.isTrue(additionalServiceId == additionalService.getId(), &quot;wrong input&quot;);</span>
+<span class="nc" id="L129">        return eventRepository.findOptionalById(eventId)</span>
+<span class="nc" id="L130">            .map(event -&gt; {</span>
+<span class="nc" id="L131">                int result = additionalServiceManager.update(additionalServiceId, event, additionalService);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                Validate.isTrue(result &lt;= 1, &quot;too many records updated&quot;);</span>
+<span class="nc" id="L133">                Stream.concat(additionalService.getTitle().stream(), additionalService.getDescription().stream()).</span>
+<span class="nc" id="L134">                    forEach(t -&gt; {</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                        if(t.getId() != null) {</span>
+<span class="nc" id="L136">                            additionalServiceManager.updateText(t.getId(), t.getLocale(), t.getType(), t.getValue(), additionalServiceId);</span>
+                        } else {
+<span class="nc" id="L138">                            additionalServiceManager.insertText(additionalService.getId(), t.getLocale(), t.getType(), t.getValue());</span>
+                        }
+<span class="nc" id="L140">                    });</span>
+<span class="nc" id="L141">                return ResponseEntity.ok(additionalService);</span>
+<span class="nc" id="L142">            }).orElseThrow(IllegalArgumentException::new);</span>
+    }
+
+    @PostMapping(value = &quot;/event/{eventId}/additional-services&quot;)
+    @Transactional
+    public ResponseEntity&lt;EventModification.AdditionalService&gt; insert(@PathVariable int eventId, @RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult, Principal principal) {
+<span class="fc" id="L148">        accessService.checkEventOwnership(principal, eventId);</span>
+<span class="fc" id="L149">        ValidationResult validationResult = Validator.validateAdditionalService(additionalService, bindingResult);</span>
+<span class="fc" id="L150">        Validate.isTrue(validationResult.isSuccess(), &quot;validation failed&quot;);</span>
+<span class="fc" id="L151">        return eventRepository.findOptionalById(eventId)</span>
+<span class="fc" id="L152">            .map(event -&gt; ResponseEntity.ok(additionalServiceManager.insertAdditionalService(event, additionalService)))</span>
+<span class="fc" id="L153">            .orElseThrow(IllegalArgumentException::new);</span>
+    }
+
+    @DeleteMapping(&quot;/event/{eventId}/additional-services/{additionalServiceId}&quot;)
+    @Transactional
+    public ResponseEntity&lt;String&gt; remove(@PathVariable int eventId, @PathVariable int additionalServiceId, Principal principal) {
+<span class="nc" id="L159">        accessService.checkAdditionalServiceOwnership(principal, eventId, additionalServiceId);</span>
+<span class="nc" id="L160">        log.debug(&quot;{} is deleting additional service #{}&quot;, principal.getName(), additionalServiceId);</span>
+<span class="nc" id="L161">        additionalServiceManager.deleteAdditionalService(additionalServiceId, eventId);</span>
+<span class="nc" id="L162">        return ResponseEntity.ok(&quot;OK&quot;);</span>
+    }
+
+    @GetMapping(&quot;/events/{eventName}/additional-services/{type}/export&quot;)
+    public void exportAdditionalServices(@PathVariable String eventName,
+                                         @PathVariable(&quot;type&quot;) AdditionalService.AdditionalServiceType additionalServiceType,
+                                         HttpServletResponse response,
+                                         Principal principal) throws IOException {
+<span class="nc" id="L170">        accessService.checkEventOwnership(principal, eventName);</span>
+<span class="nc" id="L171">        var event = eventManager.getOptionalByName(eventName, principal.getName()).orElseThrow();</span>
+<span class="nc" id="L172">        var formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm&quot;);</span>
+<span class="nc" id="L173">        var header = List.of(</span>
+            &quot;ID&quot;,
+            &quot;Name&quot;,
+            &quot;Creation&quot;,
+            &quot;Last Update&quot;,
+            &quot;Status&quot;,
+            &quot;Reservation ID&quot;,
+            &quot;Reservation First name&quot;,
+            &quot;Reservation Last name&quot;,
+            &quot;Reservation Email address&quot;,
+            &quot;Paid Amount&quot;,
+            &quot;Currency&quot;,
+            &quot;VAT&quot;,
+            &quot;Discount&quot;
+        );
+<span class="nc" id="L188">        var locale = event.getContentLanguages().get(0).getLanguage();</span>
+<span class="nc" id="L189">        var rows = additionalServiceManager.exportItemsForEvent(additionalServiceType, event.getId(), locale).stream()</span>
+<span class="nc" id="L190">            .map(item -&gt; new String[] {</span>
+<span class="nc" id="L191">                item.getUuid(),</span>
+<span class="nc" id="L192">                item.getAdditionalServiceTitle(),</span>
+<span class="nc" id="L193">                item.getUtcCreation().withZoneSameInstant(event.getZoneId()).format(formatter),</span>
+<span class="nc" id="L194">                requireNonNullElse(item.getUtcLastModified(), item.getUtcCreation()).withZoneSameInstant(event.getZoneId()).format(formatter),</span>
+<span class="nc" id="L195">                item.getAdditionalServiceItemStatus().name(),</span>
+<span class="nc" id="L196">                item.getTicketsReservationUuid(),</span>
+<span class="nc" id="L197">                item.getFirstName(),</span>
+<span class="nc" id="L198">                item.getLastName(),</span>
+<span class="nc" id="L199">                item.getEmailAddress(),</span>
+<span class="nc" id="L200">                MonetaryUtil.formatCents(item.getFinalPriceCts(), item.getCurrencyCode()),</span>
+<span class="nc" id="L201">                item.getCurrencyCode(),</span>
+<span class="nc" id="L202">                MonetaryUtil.formatCents(item.getVatCts(), item.getCurrencyCode()),</span>
+<span class="nc" id="L203">                MonetaryUtil.formatCents(item.getDiscountCts(), item.getCurrencyCode())</span>
+            });
+<span class="nc" id="L205">        ExportUtils.exportExcel(event.getShortName() + &quot;-&quot; + additionalServiceType.name() + &quot;.xlsx&quot;,</span>
+<span class="nc" id="L206">            additionalServiceType.name(),</span>
+<span class="nc" id="L207">            header.toArray(String[]::new),</span>
+            rows,
+            response);
+<span class="nc" id="L210">    }</span>
+
+    @PostMapping(&quot;/additional-services/validate&quot;)
+    public ValidationResult checkAdditionalService(@RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult) {
+<span class="nc" id="L214">        return Validator.validateAdditionalService(additionalService, bindingResult);</span>
+    }
+
+    private static PriceContainer buildPriceContainer(final Event event, final AdditionalService as) {
+<span class="nc" id="L218">        return new PriceContainer() {</span>
+            @Override
+            public int getSrcPriceCts() {
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                return as.fixPrice() ? as.srcPriceCts() : 0;</span>
+            }
+
+            @Override
+            public String getCurrencyCode() {
+<span class="nc" id="L226">                return event.getCurrency();</span>
+            }
+
+            @Override
+            public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">                return getVatStatus() == VatStatus.NONE ? Optional.empty() : Optional.of(event.getVat());</span>
+            }
+
+            @Override
+            public VatStatus getVatStatus() {
+<span class="nc" id="L236">                return AdditionalService.getVatStatus(as.vatType(), event.getVatStatus());</span>
+            }
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

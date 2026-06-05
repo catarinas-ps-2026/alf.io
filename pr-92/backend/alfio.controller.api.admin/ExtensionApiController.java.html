@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExtensionApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.api.admin</a> &gt; <span class="el_source">ExtensionApiController.java</span></div><h1>ExtensionApiController.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+
+package alfio.controller.api.admin;
+
+import alfio.controller.api.support.PageAndContent;
+import alfio.extension.Extension;
+import alfio.extension.ExtensionService;
+import alfio.manager.AccessService;
+import alfio.manager.EventManager;
+import alfio.manager.user.UserManager;
+import alfio.model.EventAndOrganizationId;
+import alfio.model.ExtensionLog;
+import alfio.model.ExtensionSupport;
+import alfio.model.ExtensionSupport.ExtensionMetadataValue;
+import alfio.model.ExtensionSupport.ExtensionParameterMetadataAndValue;
+import alfio.model.user.Organization;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping(&quot;/admin/api/extensions&quot;)
+public class ExtensionApiController {
+
+<span class="fc" id="L58">    private static final Logger log = LoggerFactory.getLogger(ExtensionApiController.class);</span>
+    private static final String SAMPLE_JS;
+
+
+    static {
+<span class="fc" id="L63">        try (InputStream is = new ClassPathResource(&quot;/alfio/extension/sample.js&quot;).getInputStream()){</span>
+<span class="fc" id="L64">            SAMPLE_JS = StreamUtils.copyToString(is, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L65">        } catch (IOException e) {</span>
+<span class="nc" id="L66">            throw new IllegalStateException(&quot;cannot read sample file&quot;, e);</span>
+<span class="fc" id="L67">        }</span>
+<span class="fc" id="L68">    }</span>
+
+    private final ExtensionService extensionService;
+    private final UserManager userManager;
+    private final EventManager eventManager;
+    private final AccessService accessService;
+
+
+    @GetMapping(&quot;&quot;)
+    public List&lt;ExtensionSupport&gt; listAll(Principal principal) {
+<span class="nc" id="L78">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L79">        return extensionService.listAll();</span>
+    }
+
+    @GetMapping(&quot;/sample&quot;)
+    public ExtensionSupport getSample() {
+<span class="nc" id="L84">        return new ExtensionSupport(null, &quot;-&quot;, &quot;&quot;, null, true, true, SAMPLE_JS, null);</span>
+    }
+
+    @PostMapping(value = &quot;&quot;)
+    public ResponseEntity&lt;SerializablePair&lt;Boolean, String&gt;&gt; create(@RequestBody Extension script, Principal principal) {
+<span class="nc" id="L89">        return createOrUpdate(null, null, script, principal);</span>
+    }
+
+    @PostMapping(value = &quot;{path}/{name}&quot;)
+    public ResponseEntity&lt;SerializablePair&lt;Boolean, String&gt;&gt; update(@PathVariable String path, @PathVariable String name, @RequestBody Extension script, Principal principal) {
+<span class="nc" id="L94">        return createOrUpdate(path, name, script, principal);</span>
+    }
+
+    private ResponseEntity&lt;SerializablePair&lt;Boolean, String&gt;&gt; createOrUpdate(String previousPath, String previousName, Extension script, Principal principal) {
+        try {
+<span class="nc" id="L99">            accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L100">            String scriptNamePattern = &quot;^[A-Za-z0-9]+$&quot;;</span>
+<span class="nc" id="L101">            Validate.matchesPattern(script.getName(), scriptNamePattern, &quot;Name can only contain letters and numbers&quot;);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (previousName != null) {</span>
+<span class="nc" id="L103">                Validate.matchesPattern(previousName, scriptNamePattern, &quot;Name can only contain letters and numbers&quot;);</span>
+            }
+<span class="nc" id="L105">            extensionService.createOrUpdate(previousPath, previousName, script);</span>
+<span class="nc" id="L106">            return ResponseEntity.ok(SerializablePair.of(true, null));</span>
+<span class="nc" id="L107">        } catch (Throwable t) {</span>
+<span class="nc" id="L108">            log.error(&quot;unexpected exception&quot;, t);</span>
+<span class="nc" id="L109">            return ResponseEntity.badRequest().body(SerializablePair.of(false, t.getMessage()));</span>
+        }
+    }
+
+    @GetMapping(&quot;{path}/{name}&quot;)
+    public ResponseEntity&lt;ExtensionSupport&gt; loadSingle(@PathVariable String path, @PathVariable String name, Principal principal) {
+<span class="nc" id="L115">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L116">        return extensionService.getSingle(URLDecoder.decode(path, StandardCharsets.UTF_8), name).map(ResponseEntity::ok).orElseGet(() -&gt; ResponseEntity.notFound().build());</span>
+    }
+
+
+    @DeleteMapping(value = &quot;{path}/{name}&quot;)
+    public void delete(@PathVariable String path, @PathVariable String name, Principal principal) {
+<span class="nc" id="L122">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L123">        extensionService.delete(path, name);</span>
+<span class="nc" id="L124">    }</span>
+
+    @PostMapping(value = &quot;/{path}/{name}/toggle/{enable}&quot;)
+    public void toggle(@PathVariable String path, @PathVariable String name, @PathVariable boolean enable, Principal principal) {
+<span class="nc" id="L128">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L129">        extensionService.toggle(path, name, enable);</span>
+<span class="nc" id="L130">    }</span>
+
+
+    //
+    @GetMapping(&quot;/setting/system&quot;)
+    public Map&lt;Integer, List&lt;ExtensionParameterMetadataAndValue&gt;&gt; getParametersFor(Principal principal) {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if(userManager.isAdmin(userManager.findUserByUsername(principal.getName()))) {</span>
+<span class="nc" id="L137">            return extensionService.getConfigurationParametersFor(&quot;-&quot;, &quot;-%&quot;, &quot;SYSTEM&quot;)</span>
+<span class="nc" id="L138">                .stream().collect(Collectors.groupingBy(ExtensionParameterMetadataAndValue::getExtensionId));</span>
+        }
+<span class="nc" id="L140">        return Map.of();</span>
+    }
+
+    @PostMapping(&quot;/setting/system/bulk-update&quot;)
+    public void bulkUpdateSystem(@RequestBody List&lt;ExtensionMetadataValue&gt; toUpdate, Principal principal) {
+<span class="nc" id="L145">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L146">        ensureIdsArePresent(toUpdate, extensionService.getConfigurationParametersFor(&quot;-&quot;, &quot;-%&quot;, &quot;SYSTEM&quot;));</span>
+<span class="nc" id="L147">        extensionService.bulkUpdateSystemSettings(toUpdate);</span>
+<span class="nc" id="L148">    }</span>
+
+    @DeleteMapping(&quot;/setting/system/{id}&quot;)
+    public void deleteSystemSettingValue(@PathVariable int id, Principal principal) {
+<span class="nc" id="L152">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L153">        extensionService.deleteSettingValue(id, &quot;-&quot;);</span>
+<span class="nc" id="L154">    }</span>
+
+    @GetMapping(&quot;/setting/organization/{orgId}&quot;)
+    public Map&lt;Integer, List&lt;ExtensionParameterMetadataAndValue&gt;&gt; getParametersFor(@PathVariable int orgId, Principal principal) {
+<span class="nc" id="L158">        accessService.checkOrganizationOwnership(principal, orgId);</span>
+<span class="nc" id="L159">        Organization org = userManager.findOrganizationById(orgId, principal.getName());</span>
+<span class="nc" id="L160">        return extensionService.getConfigurationParametersFor(&quot;-&quot; + org.getId(), &quot;-&quot; + org.getId()+&quot;-%&quot;, &quot;ORGANIZATION&quot;)</span>
+<span class="nc" id="L161">            .stream().collect(Collectors.groupingBy(ExtensionParameterMetadataAndValue::getExtensionId));</span>
+    }
+
+    @PostMapping(&quot;/setting/organization/{orgId}/bulk-update&quot;)
+    public void bulkUpdateOrganization(@PathVariable int orgId, @RequestBody List&lt;ExtensionMetadataValue&gt; toUpdate, Principal principal) {
+<span class="nc" id="L166">        accessService.checkOrganizationOwnership(principal, orgId);</span>
+<span class="nc" id="L167">        Organization org = userManager.findOrganizationById(orgId, principal.getName());</span>
+<span class="nc" id="L168">        ensureIdsArePresent(toUpdate, extensionService.getConfigurationParametersFor(&quot;-&quot; + org.getId(), &quot;-&quot; + org.getId()+&quot;-%&quot;, &quot;ORGANIZATION&quot;));</span>
+<span class="nc" id="L169">        extensionService.bulkUpdateOrganizationSettings(org, toUpdate);</span>
+<span class="nc" id="L170">    }</span>
+
+    @DeleteMapping(&quot;/setting/organization/{orgId}/{id}&quot;)
+    public void deleteOrganizationSettingValue(@PathVariable int orgId, @PathVariable int id, Principal principal) {
+<span class="nc" id="L174">        accessService.checkOrganizationOwnership(principal, orgId);</span>
+<span class="nc" id="L175">        extensionService.deleteSettingValue(id, &quot;-&quot; + orgId);</span>
+<span class="nc" id="L176">    }</span>
+
+    @GetMapping(&quot;/setting/organization/{orgId}/event/{shortName}&quot;)
+    public Map&lt;Integer, List&lt;ExtensionParameterMetadataAndValue&gt;&gt; getParametersFor(@PathVariable int orgId,
+                                                                     @PathVariable(&quot;shortName&quot;) String eventShortName,
+                                                                     Principal principal) {
+
+<span class="nc" id="L183">        accessService.checkEventOwnership(principal, eventShortName, orgId);</span>
+<span class="nc" id="L184">        var event = eventManager.getOptionalEventAndOrganizationIdByName(eventShortName, principal.getName()).orElseThrow(IllegalStateException::new);</span>
+<span class="nc" id="L185">        String pattern = generatePatternFrom(event);</span>
+<span class="nc" id="L186">        return extensionService.getConfigurationParametersFor(pattern, pattern,&quot;EVENT&quot;)</span>
+<span class="nc" id="L187">            .stream().collect(Collectors.groupingBy(ExtensionParameterMetadataAndValue::getExtensionId));</span>
+    }
+
+    @PostMapping(&quot;/setting/organization/{orgId}/event/{shortName}/bulk-update&quot;)
+    public void bulkUpdateEvent(@PathVariable int orgId, @PathVariable(&quot;shortName&quot;) String eventShortName,
+                                @RequestBody List&lt;ExtensionMetadataValue&gt; toUpdate, Principal principal) {
+<span class="nc" id="L193">        accessService.checkEventOwnership(principal, eventShortName, orgId);</span>
+<span class="nc" id="L194">        Organization org = userManager.findOrganizationById(orgId, principal.getName());</span>
+<span class="nc" id="L195">        var event = eventManager.getOptionalEventAndOrganizationIdByName(eventShortName, principal.getName()).orElseThrow(IllegalStateException::new);</span>
+<span class="nc" id="L196">        String pattern = generatePatternFrom(event);</span>
+<span class="nc" id="L197">        ensureIdsArePresent(toUpdate, extensionService.getConfigurationParametersFor(pattern, pattern, &quot;EVENT&quot;));</span>
+<span class="nc" id="L198">        extensionService.bulkUpdateEventSettings(org, event, toUpdate);</span>
+<span class="nc" id="L199">    }</span>
+
+    @DeleteMapping(&quot;/setting/organization/{orgId}/event/{shortName}/{id}&quot;)
+    public void deleteEventSettingValue(@PathVariable int orgId, @PathVariable(&quot;shortName&quot;) String eventShortName, @PathVariable int id, Principal principal) {
+<span class="nc" id="L203">        accessService.checkEventOwnership(principal, eventShortName, orgId);</span>
+<span class="nc" id="L204">        var event = eventManager.getOptionalEventAndOrganizationIdByName(eventShortName, principal.getName()).orElseThrow(IllegalStateException::new);</span>
+<span class="nc" id="L205">        extensionService.deleteSettingValue(id, generatePatternFrom(event));</span>
+<span class="nc" id="L206">    }</span>
+
+    private static String generatePatternFrom(EventAndOrganizationId event) {
+<span class="nc" id="L209">        return String.format(&quot;-%d-%d&quot;, event.getOrganizationId(), event.getId());</span>
+    }
+
+    //check that the ids are coherent
+    private static void ensureIdsArePresent(List&lt;ExtensionMetadataValue&gt; toUpdate, List&lt;ExtensionParameterMetadataAndValue&gt; system) {
+<span class="nc" id="L214">        Set&lt;Integer&gt; validIds = system.stream().map(ExtensionParameterMetadataAndValue::getId).collect(Collectors.toSet());</span>
+<span class="nc" id="L215">        Set&lt;Integer&gt; toUpdateIds = toUpdate.stream().map(ExtensionMetadataValue::getId).collect(Collectors.toSet());</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if(!validIds.containsAll(toUpdateIds)) {</span>
+<span class="nc" id="L217">            throw new IllegalStateException();</span>
+        }
+<span class="nc" id="L219">    }</span>
+
+    //
+
+    @GetMapping(&quot;/log&quot;)
+    public PageAndContent&lt;List&lt;ExtensionLog&gt;&gt; getLog(@RequestParam(required = false, name = &quot;path&quot;) String path,
+                                                     @RequestParam(required = false, name = &quot;name&quot;) String name,
+                                                     @RequestParam(required = false, name = &quot;type&quot;) ExtensionLog.Type type,
+                                                     @RequestParam(required = false, name = &quot;page&quot;, defaultValue = &quot;0&quot;) Integer page, Principal principal) {
+<span class="nc" id="L228">        accessService.ensureAdmin(principal);</span>
+<span class="nc" id="L229">        final int pageSize = 50;</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        Pair&lt;List&lt;ExtensionLog&gt;, Integer&gt; res = extensionService.getLog(StringUtils.trimToNull(path), StringUtils.trimToNull(name), type, pageSize, (page == null ? 0 : page) * pageSize);</span>
+<span class="nc" id="L231">        return new PageAndContent&lt;&gt;(res.getLeft(), res.getRight());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

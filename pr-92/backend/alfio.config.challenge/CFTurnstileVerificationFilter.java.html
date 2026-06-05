@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CFTurnstileVerificationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.config.challenge</a> &gt; <span class="el_source">CFTurnstileVerificationFilter.java</span></div><h1>CFTurnstileVerificationFilter.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.config.challenge;
+
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.system.ConfigurationKeys;
+import alfio.util.Json;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
+
+import static alfio.util.HttpUtils.APPLICATION_JSON;
+import static alfio.util.HttpUtils.CONTENT_TYPE;
+
+public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
+<span class="fc" id="L43">    private static final Logger log = LoggerFactory.getLogger(CFTurnstileVerificationFilter.class);</span>
+<span class="fc" id="L44">    private static final URI SITEVERIFY = URI.create(&quot;https://challenges.cloudflare.com/turnstile/v0/siteverify&quot;);</span>
+    private final ConfigurationManager configurationManager;
+    private final RequestMatcher requestMatcher;
+    private final RestClient restClient;
+
+
+    public CFTurnstileVerificationFilter(ConfigurationManager configurationManager,
+<span class="fc" id="L51">                                         RequestMatcher requestMatcher) {</span>
+<span class="fc" id="L52">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L53">        this.requestMatcher = requestMatcher;</span>
+<span class="fc" id="L54">        this.restClient = RestClient.builder()</span>
+<span class="fc" id="L55">            .baseUrl(&quot;https://challenges.cloudflare.com&quot;)</span>
+<span class="fc" id="L56">            .build();</span>
+
+<span class="fc" id="L58">    }</span>
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (requestMatcher.matches(request)) {</span>
+<span class="nc" id="L66">            log.trace(&quot;Request matching. Checking if turnstile is enabled.&quot;);</span>
+<span class="nc" id="L67">            var configuration = configurationManager.getTurnstileConfiguration();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (configuration.get(ConfigurationKeys.CF_TURNSTILE_ENABLED).getValueAsBooleanOrDefault()) {</span>
+<span class="nc" id="L69">                log.trace(&quot;Turnstile is enabled. Proceeding with validation.&quot;);</span>
+<span class="nc" id="L70">                var challenge = request.getHeader(&quot;Alfio-Verification&quot;);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                if (!verifyChallenge(challenge, configuration, request)) {</span>
+<span class="nc" id="L72">                    log.trace(&quot;verification failed. Returning 403&quot;);</span>
+<span class="nc" id="L73">                    response.setHeader(&quot;Alfio-Verification-Missing&quot;, &quot;turnstile&quot;);</span>
+<span class="nc" id="L74">                    response.sendError(HttpStatus.FORBIDDEN.value());</span>
+<span class="nc" id="L75">                    return;</span>
+                }
+            }
+        }
+<span class="nc" id="L79">        filterChain.doFilter(request, response);</span>
+<span class="nc" id="L80">    }</span>
+
+    private boolean verifyChallenge(String challenge,
+                                    Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; configuration,
+                                    HttpServletRequest request) {
+
+<span class="nc" id="L86">        boolean challengeEmpty = StringUtils.isBlank(challenge);</span>
+<span class="nc bnc" id="L87" title="All 4 branches missed.">        if (challengeEmpty &amp;&amp; preClearanceEnabledAndPresent(configuration, request)) {</span>
+            // if pre-clearance is enabled, and we have received the relevant cookie, the request can be considered valid
+            // even if the challenge code is missing.
+<span class="nc" id="L90">            log.trace(&quot;Validation is SUCCESSFUL because cf-clearance is enabled and the relevant cookie is present in the request.&quot;);</span>
+<span class="nc" id="L91">            return true;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        } else if (challengeEmpty) {</span>
+            // if pre-clearance is NOT enabled, we require challenge to be present
+<span class="nc" id="L94">            log.trace(&quot;Validation is NOT SUCCESSFUL because token is missing.&quot;);</span>
+<span class="nc" id="L95">            return false;</span>
+        }
+
+<span class="nc" id="L98">        var secret = configuration.get(ConfigurationKeys.CF_TURNSTILE_SECRET_KEY).getRequiredValue();</span>
+<span class="nc" id="L99">        Map&lt;String, String&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L100">        payload.put(&quot;secret&quot;, secret);</span>
+<span class="nc" id="L101">        payload.put(&quot;response&quot;, challenge);</span>
+        // additional security: if we are behind CloudFlare proxy, we include the remote IP in the payload
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (request.getHeader(&quot;CF-Connecting-IP&quot;) != null) {</span>
+<span class="nc" id="L104">            payload.put(&quot;remoteip&quot;, request.getHeader(&quot;CF-Connecting-IP&quot;));</span>
+        }
+<span class="nc" id="L106">        var response = restClient.post()</span>
+<span class="nc" id="L107">            .uri(SITEVERIFY)</span>
+<span class="nc" id="L108">            .header(CONTENT_TYPE, APPLICATION_JSON)</span>
+<span class="nc" id="L109">            .body(Json.toJson(payload))</span>
+<span class="nc" id="L110">            .retrieve()</span>
+<span class="nc" id="L111">            .toEntity(TurnstileResponse.class);</span>
+<span class="nc" id="L112">        log.trace(&quot;Received {} response from siteverify&quot;, response.getStatusCode());</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (!response.getStatusCode().is2xxSuccessful()) {</span>
+<span class="nc" id="L114">            log.trace(&quot;Validation is NOT SUCCESSFUL because response from siteverify is not successful.&quot;);</span>
+<span class="nc" id="L115">            return false;</span>
+        }
+<span class="nc" id="L117">        var body = Objects.requireNonNull(response.getBody());</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (body.success) {</span>
+<span class="nc" id="L119">            log.trace(&quot;Validation is SUCCESSFUL.&quot;);</span>
+<span class="nc" id="L120">            return true;</span>
+        }
+<span class="nc" id="L122">        log.debug(&quot;Validation is NOT SUCCESSFUL because siteverify reported token as not valid.&quot;);</span>
+<span class="nc" id="L123">        return false;</span>
+    }
+
+    private boolean preClearanceEnabledAndPresent(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; configuration,
+                                                  HttpServletRequest request) {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (!configuration.get(ConfigurationKeys.CF_TURNSTILE_PRE_CLEARANCE).getValueAsBooleanOrDefault()) {</span>
+<span class="nc" id="L129">            return false;</span>
+        }
+<span class="nc bnc" id="L131" title="All 4 branches missed.">        return Arrays.stream(request.getCookies()).anyMatch(c -&gt; c.getName().equals(&quot;cf_clearance&quot;) &amp;&amp; StringUtils.isNotBlank(c.getValue()));</span>
+    }
+
+<span class="nc" id="L134">    record TurnstileResponse(@JsonProperty(&quot;success&quot;) boolean success,</span>
+                             @JsonProperty(&quot;action&quot;) String action,
+                             @JsonProperty(&quot;cdata&quot;) String cdata,
+                             @JsonProperty(&quot;error-codes&quot;) List&lt;String&gt; errorCodes) {}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
