@@ -381,7 +381,6 @@ tasks.register('copyFrontendDev', Copy) {
 jacocoTestReport {
     group = 'Reporting'
     description = 'Generate Jacoco coverage reports after running tests.'
-    executionData(tasks.withType(Test))
     additionalSourceDirs.from(project.files(sourceSets.main.allSource.srcDirs))
     sourceDirectories.from(project.files(sourceSets.main.allSource.srcDirs))
     classDirectories.from(project.files(sourceSets.main.output))

@@ -16,6 +16,7 @@
  */
 package alfio.manager;
 
+import alfio.controller.form.UpdateTicketOwnerForm;
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager;
 import alfio.manager.support.reservation.OrderSummaryGenerator;
@@ -25,6 +26,8 @@ import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
 import alfio.model.*;
 import alfio.model.modification.TicketReservationWithOptionalCodeModification;
+import alfio.model.system.ConfigurationKeyValuePathLevel;
+import alfio.model.system.ConfigurationPathLevel;
 import alfio.repository.*;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
@@ -340,5 +343,48 @@ class TicketReservationManagerUnitTest {
         Optional<String> result = manager.createDynamicPromoCodeIfNeeded(event, List.of(ticketReservationMock), TICKET_RESERVATION_ID);
         Assertions.assertFalse(result.isEmpty());
         verify(auditingRepository).insert(eq(TICKET_RESERVATION_ID), any(), anyInt(), eq(Audit.EventType.DYNAMIC_DISCOUNT_CODE_CREATED), any(), eq(Audit.EntityType.RESERVATION), eq(TICKET_RESERVATION_ID));
+    }
+
+    @Test
+    void testUpdateTicketOwner() {
+        UpdateTicketOwnerForm form = new UpdateTicketOwnerForm();
+        form.setEmail("new@test.com");
+        form.setFullName("New Owner");
+        
+        when(ticket.getUuid()).thenReturn("uuid");
+        when(ticket.getId()).thenReturn(123);
+        when(ticket.getLockedAssignment()).thenReturn(false);
+        when(ticketRepository.findByUUID("uuid")).thenReturn(ticket);
+        when(event.mustUseFirstAndLastName()).thenReturn(false);
+        
+        var config = new ConfigurationKeyValuePathLevel(alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY.name(), "false", alfio.model.system.ConfigurationPathLevel.SYSTEM);
+        when(configurationManager.getFor(any(alfio.model.system.ConfigurationKeys.class), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY, config));
+
+        manager.updateTicketOwner(ticket, Locale.ENGLISH, event, form, null, null, Optional.empty());
+
+        verify(ticketRepository).updateTicketOwner(eq("uuid"), eq("new@test.com"), eq("New Owner"), any(), any());
+        verify(purchaseContextFieldRepository).updateOrInsert(any(), eq(event), eq(123), isNull());
+    }
+
+    @Test
+    void testUpdateTicketOwnerLocked() {
+        UpdateTicketOwnerForm form = new UpdateTicketOwnerForm();
+        form.setEmail("new@test.com");
+        form.setFullName("New Owner");
+        
+        when(ticket.getUuid()).thenReturn("uuid");
+        when(ticket.getId()).thenReturn(123);
+        when(ticket.getLockedAssignment()).thenReturn(true);
+        when(ticket.getEmail()).thenReturn("old@test.com");
+        when(ticket.getFullName()).thenReturn("Old Owner");
+        when(ticketRepository.findByUUID("uuid")).thenReturn(ticket);
+        when(event.mustUseFirstAndLastName()).thenReturn(false);
+        
+        var config = new ConfigurationKeyValuePathLevel(alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY.name(), "false", alfio.model.system.ConfigurationPathLevel.SYSTEM);
+        when(configurationManager.getFor(any(alfio.model.system.ConfigurationKeys.class), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(alfio.model.system.ConfigurationKeys.SEND_TICKETS_AUTOMATICALLY, config));
+
+        manager.updateTicketOwner(ticket, Locale.ENGLISH, event, form, null, null, Optional.empty());
+
+        verify(ticketRepository, never()).updateTicketOwner(anyString(), anyString(), anyString(), any(), any());
     }
 }
