@@ -31,12 +31,12 @@ public class SqlUtils {
     }
 
     public static Optional&lt;ServerErrorMessage&gt; findServerError(UncategorizedSQLException exception) {
-<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        for (var throwable : exception.getSQLException()) {</span>
-<span class="pc bpc" id="L35" title="2 of 4 branches missed.">            if(throwable instanceof PSQLException lException &amp;&amp; lException.getServerErrorMessage() != null) {</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (var throwable : exception.getSQLException()) {</span>
+<span class="pc bpc" id="L35" title="1 of 4 branches missed.">            if(throwable instanceof PSQLException lException &amp;&amp; lException.getServerErrorMessage() != null) {</span>
 <span class="fc" id="L36">                return Optional.ofNullable(lException.getServerErrorMessage());</span>
             }
-<span class="nc" id="L38">        }</span>
-<span class="nc" id="L39">        return Optional.empty();</span>
+<span class="fc" id="L38">        }</span>
+<span class="fc" id="L39">        return Optional.empty();</span>
     }
 
     public static ZonedDateTime timestampToZoneDateTime(Timestamp timestamp) {

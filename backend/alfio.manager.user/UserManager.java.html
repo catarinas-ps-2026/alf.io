@@ -225,18 +225,18 @@ public class UserManager {
 
     public void updateOrganization(OrganizationModification om, Principal principal) {
         //
-<span class="nc" id="L228">        int orgId = requireNonNull(om.getId());</span>
-<span class="nc" id="L229">        checkAccessToOrganizationId(principal, orgId);</span>
+<span class="fc" id="L228">        int orgId = requireNonNull(om.getId());</span>
+<span class="fc" id="L229">        checkAccessToOrganizationId(principal, orgId);</span>
         //
-<span class="nc bnc" id="L231" title="All 4 branches missed.">        boolean isAdmin = RequestUtils.isAdmin(principal) || RequestUtils.isSystemApiKey(principal);</span>
-<span class="nc" id="L232">        var currentOrg = organizationRepository.getById(orgId);</span>
-<span class="nc" id="L233">        organizationRepository.update(om.getId(),</span>
-<span class="nc" id="L234">            om.getName(),</span>
-<span class="nc" id="L235">            om.getDescription(),</span>
-<span class="nc" id="L236">            om.getEmail(),</span>
-<span class="nc bnc" id="L237" title="All 2 branches missed.">            isAdmin ? om.getExternalId() : currentOrg.getExternalId(),</span>
-<span class="nc bnc" id="L238" title="All 2 branches missed.">            isAdmin ? om.getSlug() : currentOrg.getSlug());</span>
-<span class="nc" id="L239">    }</span>
+<span class="pc bpc" id="L231" title="3 of 4 branches missed.">        boolean isAdmin = RequestUtils.isAdmin(principal) || RequestUtils.isSystemApiKey(principal);</span>
+<span class="fc" id="L232">        var currentOrg = organizationRepository.getById(orgId);</span>
+<span class="fc" id="L233">        organizationRepository.update(om.getId(),</span>
+<span class="fc" id="L234">            om.getName(),</span>
+<span class="fc" id="L235">            om.getDescription(),</span>
+<span class="fc" id="L236">            om.getEmail(),</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">            isAdmin ? om.getExternalId() : currentOrg.getExternalId(),</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">            isAdmin ? om.getSlug() : currentOrg.getSlug());</span>
+<span class="fc" id="L239">    }</span>
 
     @Transactional(readOnly = true)
     public ValidationResult validateOrganizationSlug(OrganizationModification om, Principal principal) {
@@ -442,15 +442,15 @@ public class UserManager {
 
 
     private void checkIsAdmin(Principal principal) {
-<span class="pc bpc" id="L445" title="1 of 2 branches missed.">        if (principal == null) {</span>
+<span class="fc bfc" id="L445" title="All 2 branches covered.">        if (principal == null) {</span>
 <span class="fc" id="L446">            return;</span>
         }
-<span class="nc bnc" id="L448" title="All 2 branches missed.">        if (isSystemApiUser(principal)) {</span>
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">        if (isSystemApiUser(principal)) {</span>
 <span class="nc" id="L449">            log.trace(&quot;Allowing call for System API Key&quot;);</span>
 <span class="nc" id="L450">            return;</span>
         }
-<span class="nc bnc" id="L452" title="All 2 branches missed.">        if (isAdmin(findUserByUsername(principal.getName()))) {</span>
-<span class="nc" id="L453">            return;</span>
+<span class="pc bpc" id="L452" title="1 of 2 branches missed.">        if (isAdmin(findUserByUsername(principal.getName()))) {</span>
+<span class="fc" id="L453">            return;</span>
         }
 <span class="nc" id="L455">        log.warn(&quot;User {} is not an admin&quot;, principal.getName());</span>
 <span class="nc" id="L456">        throw new IllegalArgumentException(&quot;User &quot; + principal.getName() + &quot; is not an admin&quot;);</span>

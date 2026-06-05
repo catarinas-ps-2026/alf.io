@@ -65,7 +65,7 @@ public final class MonetaryUtil {
     }
 
     public static BigDecimal centsToUnit(long cents, String currencyCode, boolean formatZero) {
-<span class="pc bpc" id="L68" title="1 of 6 branches missed.">        if((cents == 0 &amp;&amp; !formatZero) || StringUtils.isEmpty(currencyCode)) {</span>
+<span class="fc bfc" id="L68" title="All 6 branches covered.">        if((cents == 0 &amp;&amp; !formatZero) || StringUtils.isEmpty(currencyCode)) {</span>
 <span class="fc" id="L69">            return BigDecimal.ZERO;</span>
         }
 <span class="fc" id="L71">        var currencyUnit = CurrencyUnit.of(currencyCode.toUpperCase(Locale.ENGLISH));</span>

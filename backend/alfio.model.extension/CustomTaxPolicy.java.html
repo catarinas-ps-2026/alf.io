@@ -30,9 +30,9 @@ public class CustomTaxPolicy {
     private final Set&lt;TicketTaxPolicy&gt; ticketPolicies;
 
     @JsonCreator
-<span class="nc" id="L33">    public CustomTaxPolicy(@JsonProperty(&quot;ticketPolicies&quot;) List&lt;TicketTaxPolicy&gt; ticketPolicies) {</span>
-<span class="nc" id="L34">        this.ticketPolicies = new HashSet&lt;&gt;(ticketPolicies);</span>
-<span class="nc" id="L35">    }</span>
+<span class="fc" id="L33">    public CustomTaxPolicy(@JsonProperty(&quot;ticketPolicies&quot;) List&lt;TicketTaxPolicy&gt; ticketPolicies) {</span>
+<span class="fc" id="L34">        this.ticketPolicies = new HashSet&lt;&gt;(ticketPolicies);</span>
+<span class="fc" id="L35">    }</span>
 
     public Set&lt;TicketTaxPolicy&gt; getTicketPolicies() {
 <span class="fc" id="L38">        return ticketPolicies;</span>
@@ -44,10 +44,10 @@ public class CustomTaxPolicy {
 
         @JsonCreator
         public TicketTaxPolicy(@JsonProperty(&quot;uuid&quot;) String uuid,
-<span class="nc" id="L47">                               @JsonProperty(&quot;taxPolicy&quot;) PriceContainer.VatStatus taxPolicy) {</span>
-<span class="nc" id="L48">            this.uuid = Objects.requireNonNull(uuid);</span>
-<span class="nc" id="L49">            this.taxPolicy = taxPolicy;</span>
-<span class="nc" id="L50">        }</span>
+<span class="fc" id="L47">                               @JsonProperty(&quot;taxPolicy&quot;) PriceContainer.VatStatus taxPolicy) {</span>
+<span class="fc" id="L48">            this.uuid = Objects.requireNonNull(uuid);</span>
+<span class="fc" id="L49">            this.taxPolicy = taxPolicy;</span>
+<span class="fc" id="L50">        }</span>
 
         public PriceContainer.VatStatus getTaxPolicy() {
 <span class="fc" id="L53">            return taxPolicy;</span>

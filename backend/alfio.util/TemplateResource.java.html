@@ -517,12 +517,12 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
     // used by OFFLINE_RESERVATION_EXPIRING_EMAIL_FOR_ORGANIZER
     public static Map&lt;String, Object&gt; prepareModelForOfflineReservationExpiringEmailForOrganizer(Event event, List&lt;TicketReservationInfo&gt; reservations, String baseUrl) {
-<span class="nc" id="L520">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L521">        model.put(EVENT_NAME, event.getDisplayName());</span>
-<span class="nc" id="L522">        model.put(&quot;ticketReservations&quot;, reservations.stream().map(r -&gt; new TicketReservationWithZonedExpiringDate(r, event)).collect(Collectors.toList()));</span>
-<span class="nc" id="L523">        model.put(BASE_URL, baseUrl);</span>
-<span class="nc" id="L524">        model.put(&quot;eventShortName&quot;, event.getShortName());</span>
-<span class="nc" id="L525">        return model;</span>
+<span class="fc" id="L520">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L521">        model.put(EVENT_NAME, event.getDisplayName());</span>
+<span class="fc" id="L522">        model.put(&quot;ticketReservations&quot;, reservations.stream().map(r -&gt; new TicketReservationWithZonedExpiringDate(r, event)).collect(Collectors.toList()));</span>
+<span class="fc" id="L523">        model.put(BASE_URL, baseUrl);</span>
+<span class="fc" id="L524">        model.put(&quot;eventShortName&quot;, event.getShortName());</span>
+<span class="fc" id="L525">        return model;</span>
     }
 
     private static Map&lt;String, Object&gt; prepareSampleModelForOfflineReservationExpiringEmailForOrganizer(Event event) {

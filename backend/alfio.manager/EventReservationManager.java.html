@@ -121,7 +121,7 @@ public class EventReservationManager {
 <span class="fc" id="L121">            ).toArray(SqlParameterSource[]::new);</span>
 
 <span class="fc" id="L123">        int updatedTickets = Arrays.stream(jdbcTemplate.batchUpdate(ticketRepository.batchReleaseTickets(), batchUpdate)).sum();</span>
-<span class="pc bpc" id="L124" title="2 of 4 branches missed.">        Validate.isTrue(afterRelease || updatedTickets  + updatedAS &gt; 0, &quot;no items have been updated&quot;);</span>
+<span class="pc bpc" id="L124" title="1 of 4 branches missed.">        Validate.isTrue(afterRelease || updatedTickets  + updatedAS &gt; 0, &quot;no items have been updated&quot;);</span>
 <span class="fc" id="L125">    }</span>
 
     private void notifyExtensions(Event event, List&lt;String&gt; reservationIds, CleanupReservations cleanupReservations) {

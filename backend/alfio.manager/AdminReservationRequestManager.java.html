@@ -88,33 +88,33 @@ public class AdminReservationRequestManager {
 <span class="fc" id="L88">        return eventManager.getOptionalEventAndOrganizationIdByName(eventName, username)</span>
 <span class="fc" id="L89">            .flatMap(e -&gt; adminReservationRequestRepository.findStatsByRequestIdAndEventId(requestId, e.getId()))</span>
 <span class="fc" id="L90">            .map(Result::success)</span>
-<span class="pc" id="L91">            .orElseGet(() -&gt; Result.error(ErrorCode.EventError.ACCESS_DENIED));</span>
+<span class="fc" id="L91">            .orElseGet(() -&gt; Result.error(ErrorCode.EventError.ACCESS_DENIED));</span>
     }
 
     public Result&lt;String&gt; scheduleReservations(String eventName, String language, List&lt;TicketReservationCreationRequest&gt; reservations, String username) {
-<span class="nc" id="L95">        var expiration = ZonedDateTime.now(clockProvider.getClock()).plusDays(1L);</span>
-<span class="nc" id="L96">        var ticketsInfo = reservations.stream()</span>
-<span class="nc" id="L97">            .flatMap(r -&gt; r.getTickets().stream())</span>
-<span class="nc" id="L98">            .map(ticket -&gt; {</span>
-<span class="nc" id="L99">                var category = new AdminReservationModification.Category(ticket.getTicketCategoryId(), &quot;&quot;, null, null);</span>
-<span class="nc" id="L100">                var attendees = ticket.getAttendees().stream()</span>
-<span class="nc" id="L101">                    .map(attendee -&gt; new AdminReservationModification.Attendee(null, attendee.getFirstName(), attendee.getLastName(), attendee.getEmail(), &quot;&quot;, false, attendee.getExternalReference(), null, attendee.getAdditional(), attendee.getMetadata()))</span>
-<span class="nc" id="L102">                    .toList();</span>
-<span class="nc" id="L103">                return new AdminReservationModification.TicketsInfo(category, attendees, false, false);</span>
-<span class="nc" id="L104">            }).toList();</span>
-<span class="nc" id="L105">        AdminReservationModification modification = new AdminReservationModification(</span>
-<span class="nc" id="L106">            DateTimeModification.fromZonedDateTime(expiration),</span>
+<span class="fc" id="L95">        var expiration = ZonedDateTime.now(clockProvider.getClock()).plusDays(1L);</span>
+<span class="fc" id="L96">        var ticketsInfo = reservations.stream()</span>
+<span class="fc" id="L97">            .flatMap(r -&gt; r.getTickets().stream())</span>
+<span class="fc" id="L98">            .map(ticket -&gt; {</span>
+<span class="fc" id="L99">                var category = new AdminReservationModification.Category(ticket.getTicketCategoryId(), &quot;&quot;, null, null);</span>
+<span class="fc" id="L100">                var attendees = ticket.getAttendees().stream()</span>
+<span class="fc" id="L101">                    .map(attendee -&gt; new AdminReservationModification.Attendee(null, attendee.getFirstName(), attendee.getLastName(), attendee.getEmail(), &quot;&quot;, false, attendee.getExternalReference(), null, attendee.getAdditional(), attendee.getMetadata()))</span>
+<span class="fc" id="L102">                    .toList();</span>
+<span class="fc" id="L103">                return new AdminReservationModification.TicketsInfo(category, attendees, false, false);</span>
+<span class="fc" id="L104">            }).toList();</span>
+<span class="fc" id="L105">        AdminReservationModification modification = new AdminReservationModification(</span>
+<span class="fc" id="L106">            DateTimeModification.fromZonedDateTime(expiration),</span>
             new CustomerData(&quot;&quot;, &quot;&quot;, &quot;&quot;, null, null, null, null, null, null),
             ticketsInfo,
             language,
-<span class="nc" id="L110">            false,</span>
-<span class="nc" id="L111">            false,</span>
+<span class="fc" id="L110">            false,</span>
+<span class="fc" id="L111">            false,</span>
             null,
             AdminReservationModification.Notification.EMPTY,
             null,
             null
             );
-<span class="nc" id="L117">        return scheduleReservations(eventName, modification, false, username);</span>
+<span class="fc" id="L117">        return scheduleReservations(eventName, modification, false, username);</span>
     }
 
     public Result&lt;String&gt; scheduleReservations(String eventName,
@@ -125,7 +125,7 @@ public class AdminReservationRequestManager {
         //safety check: if there are more than 150 people in a single reservation, the reservation page could take a while before showing up,
         //therefore we will limit the maximum amount of people in a single reservation to 100. This will be addressed in rel. 2.0
 
-<span class="pc bpc" id="L128" title="2 of 4 branches missed.">        if(singleReservation &amp;&amp; body.getTicketsInfo().stream().mapToLong(ti -&gt; ti.getAttendees().size()).sum() &gt; 100) {</span>
+<span class="pc bpc" id="L128" title="1 of 4 branches missed.">        if(singleReservation &amp;&amp; body.getTicketsInfo().stream().mapToLong(ti -&gt; ti.getAttendees().size()).sum() &gt; 100) {</span>
 <span class="nc" id="L129">            return Result.error(ErrorCode.custom(&quot;MAX_NUMBER_EXCEEDED&quot;, &quot;Maximum allowed attendees per reservation is 100&quot;));</span>
         }
 

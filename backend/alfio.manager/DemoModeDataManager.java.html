@@ -54,7 +54,7 @@ public class DemoModeDataManager {
     }
 
     public void deleteAccounts(List&lt;Integer&gt; userIds) {
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if(!userIds.isEmpty()) {</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if(!userIds.isEmpty()) {</span>
 <span class="fc" id="L58">            log.info(&quot;found {} expired users&quot;, userIds.size());</span>
 <span class="fc" id="L59">            var organizationIds = userOrganizationRepository.findOrganizationsForUsers(userIds);</span>
 <span class="fc" id="L60">            var disabledEventIds = eventRepository.disableEventsForUsers(userIds);</span>
