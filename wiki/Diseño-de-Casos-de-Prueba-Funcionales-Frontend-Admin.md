@@ -119,13 +119,495 @@ El alcance incluye:
 
 ## 3. Funciones Puras (service/helpers.ts)
 
-*(Pendiente de documentación)*
+### 3.1 Conversión de valores a cadena de texto (asString)
+
+**Función:** `asString(value: any): string | null`
+**Ubicación:** `src/service/helpers.ts:109-114`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-01 |
+| **Funcionalidad** | Conversión de valores a cadena de texto |
+| **Descripción** | Verificar que la función convierte diferentes tipos de datos a string, manteniendo null/undefined sin cambios |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `value` | Null | `value === null` | `null` |
+| PE2 | `value` | Undefined | `value === undefined` | `undefined` |
+| PE3 | `value` | Number | `typeof value === 'number'` | `String(value)` |
+| PE4 | `value` | String | `typeof value === 'string'` | `value` |
+| PE5 | `value` | Boolean | `typeof value === 'boolean'` | `String(value)` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `value` | `null` | PE1 | Extremo inferior | `null` |
+| VL2 | `value` | `undefined` | PE2 | Extremo inferior | `undefined` |
+| VL3 | `value` | `0` | PE3 | Falsy pero `!= null` | `'0'` |
+| VL4 | `value` | `''` | PE4 | Falsy pero `!= null` | `''` |
+| VL5 | `value` | `false` | PE5 | Falsy pero `!= null` | `'false'` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-STR-01 | Null se mantiene como null | `value = null` | `null` | 1. Importar `asString`<br>2. Ejecutar `asString(null)`<br>3. Verificar retorno `null` | PE1, VL1 |
+| CP-STR-02 | Undefined se mantiene como undefined | `value = undefined` | `undefined` | 1. Ejecutar `asString(undefined)`<br>2. Verificar retorno `undefined` | PE2, VL2 |
+| CP-STR-03 | Number positivo se convierte a string | `value = 42` | `'42'` | 1. Ejecutar `asString(42)`<br>2. Verificar retorno `'42'` | PE3 |
+| CP-STR-04 | Number cero se convierte a string | `value = 0` | `'0'` | 1. Ejecutar `asString(0)`<br>2. Verificar retorno `'0'` | PE3, VL3 |
+| CP-STR-05 | Number negativo se convierte a string | `value = -1` | `'-1'` | 1. Ejecutar `asString(-1)`<br>2. Verificar retorno `'-1'` | PE3 |
+| CP-STR-06 | String vacío se retorna sin cambios | `value = ''` | `''` | 1. Ejecutar `asString('')`<br>2. Verificar retorno `''` | PE4, VL4 |
+| CP-STR-07 | String no vacío se retorna sin cambios | `value = 'hello'` | `'hello'` | 1. Ejecutar `asString('hello')`<br>2. Verificar retorno `'hello'` | PE4 |
+| CP-STR-08 | Boolean true se convierte a string | `value = true` | `'true'` | 1. Ejecutar `asString(true)`<br>2. Verificar retorno `'true'` | PE5 |
+| CP-STR-09 | Boolean false se convierte a string | `value = false` | `'false'` | 1. Ejecutar `asString(false)`<br>2. Verificar retorno `'false'` | PE5, VL5 |
+
+---
+
+### 3.2 Conversión de cadenas a números (asNumber)
+
+**Función:** `asNumber(value?: string): number | null`
+**Ubicación:** `src/service/helpers.ts:116-121`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-02 |
+| **Funcionalidad** | Conversión de cadenas a números enteros |
+| **Descripción** | Verificar que la función convierte strings numéricos a enteros usando `parseInt` con radix 10, retornando null para inputs nulos y `NaN` para strings no numéricos |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `value` | Null/Undefined | `value == null` | `null` |
+| PE2 | `value` | Entero positivo válido | `parseInt(value, 10) > 0 && !isNaN` | Número parseado |
+| PE3 | `value` | Entero cero | `parseInt(value, 10) === 0` | `0` |
+| PE4 | `value` | Entero negativo válido | `parseInt(value, 10) < 0 && !isNaN` | Número parseado |
+| PE5 | `value` | Decimal | `value` contiene `.` | Entero truncado |
+| PE6 | `value` | No numérico | `parseInt` retorna `NaN` | `NaN` |
+| PE7 | `value` | String vacío | `parseInt('', 10)` | `NaN` |
+| PE8 | `value` | Notación científica | `'1e3'` | `1` (trunca en `e`) |
+| PE9 | `value` | Hexadecimal | `'0x1A'` | `0` (trunca en `x`) |
+| PE10 | `value` | Con espacios | `'  42  '` | `42` (ignora espacios) |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `value` | `undefined` | PE1 | Extremo inferior | `null` |
+| VL2 | `value` | `null` | PE1 | Extremo inferior | `null` |
+| VL3 | `value` | `'0'` | PE3 | Falsy pero `!= null` | `0` |
+| VL4 | `value` | `''` | PE7 | String vacío | `NaN` |
+| VL5 | `value` | `'-1'` | PE4 | Primer negativo | `-1` |
+| VL6 | `value` | `'999999999'` | PE2 | Número grande | `999999999` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-NUM-01 | Retorna null para undefined | `value = undefined` | `null` | 1. Importar `asNumber`<br>2. Ejecutar `asNumber(undefined)`<br>3. Verificar retorno `null` | PE1, VL1 |
+| CP-NUM-02 | Retorna null para null | `value = null` | `null` | 1. Ejecutar `asNumber(null)`<br>2. Verificar retorno `null` | PE1, VL2 |
+| CP-NUM-03 | Parsea entero positivo | `value = '42'` | `42` | 1. Ejecutar `asNumber('42')`<br>2. Verificar retorno `42` | PE2 |
+| CP-NUM-04 | Parsea entero cero | `value = '0'` | `0` | 1. Ejecutar `asNumber('0')`<br>2. Verificar retorno `0` | PE3, VL3 |
+| CP-NUM-05 | Parsea entero negativo | `value = '-5'` | `-5` | 1. Ejecutar `asNumber('-5')`<br>2. Verificar retorno `-5` | PE4 |
+| CP-NUM-06 | Trunca decimal | `value = '3.14'` | `3` | 1. Ejecutar `asNumber('3.14')`<br>2. Verificar retorno `3` | PE5 |
+| CP-NUM-07 | Retorna NaN para no numérico | `value = 'abc'` | `NaN` | 1. Ejecutar `asNumber('abc')`<br>2. Verificar retorno `NaN` | PE6 |
+| CP-NUM-08 | Retorna NaN para vacío | `value = ''` | `NaN` | 1. Ejecutar `asNumber('')`<br>2. Verificar retorno `NaN` | PE7, VL4 |
+| CP-NUM-09 | Trunca notación científica | `value = '1e3'` | `1` | 1. Ejecutar `asNumber('1e3')`<br>2. Verificar retorno `1` | PE8 |
+| CP-NUM-10 | Trunca hexadecimal | `value = '0x1A'` | `0` | 1. Ejecutar `asNumber('0x1A')`<br>2. Verificar retorno `0` | PE9 |
+| CP-NUM-11 | Ignora espacios | `value = '  42  '` | `42` | 1. Ejecutar `asNumber('  42  ')`<br>2. Verificar retorno `42` | PE10 |
+| CP-NUM-12 | Parsea número grande | `value = '999999999'` | `999999999` | 1. Ejecutar `asNumber('999999999')`<br>2. Verificar retorno `999999999` | PE2, VL6 |
+
+---
+
+### 3.3 Conversión de fechas ISO a DateTimeModification (toDateTimeModification)
+
+**Función:** `toDateTimeModification(isoString: string): DateTimeModification`
+**Ubicación:** `src/service/helpers.ts:75-82`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-03 |
+| **Funcionalidad** | Conversión de fechas ISO a formato DateTimeModification |
+| **Descripción** | Verificar que la función extrae date y time de strings ISO usando substring |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `isoString` | ISO datetime completo | `length >= 16` | `{date, time}` |
+| PE2 | `isoString` | ISO date solo | `length == 10` | `{date, time: ''}` |
+| PE3 | `isoString` | String vacío | `length == 0` | `{date: '', time: ''}` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `isoString` | `''` | PE3 | Longitud mínima | `{date: '', time: ''}` |
+| VL2 | `isoString` | `'2025-01-15'` | PE2 | 10 chars | `{date: '2025-01-15', time: ''}` |
+| VL3 | `isoString` | `'2025-01-15T10:00'` | PE1 | 16 chars (mínimo para time) | `{date: '2025-01-15', time: '10:00'}` |
+| VL4 | `isoString` | `'2025-01-15T10:00:00'` | PE1 | 19 chars | `{date: '2025-01-15', time: '10:00'}` |
+| VL5 | `isoString` | `'2025-01-15T10:00:00+02:00'` | PE1 | 25 chars con timezone | `{date: '2025-01-15', time: '10:00'}` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-DTM-01 | Parsea ISO datetime completo | `'2025-01-15T10:00:00'` | `{date: '2025-01-15', time: '10:00'}` | 1. Importar `toDateTimeModification`<br>2. Ejecutar con ISO string<br>3. Verificar date y time | PE1, VL4 |
+| CP-DTM-02 | Parsea ISO con timezone | `'2025-12-31T23:59:00+02:00'` | `{date: '2025-12-31', time: '23:59'}` | 1. Ejecutar con timezone<br>2. Verificar extracción correcta | PE1, VL5 |
+| CP-DTM-03 | Parsea fecha mínima | `'2000-01-01T00:00:00'` | `{date: '2000-01-01', time: '00:00'}` | 1. Ejecutar con fecha mínima<br>2. Verificar retorno | PE1 |
+| CP-DTM-04 | Solo fecha retorna time vacío | `'2025-01-15'` | `{date: '2025-01-15', time: ''}` | 1. Ejecutar con solo fecha<br>2. Verificar time vacío | PE2, VL2 |
+| CP-DTM-05 | String vacío retorna vacío | `''` | `{date: '', time: ''}` | 1. Ejecutar con string vacío<br>2. Verificar ambos vacíos | PE3, VL1 |
+| CP-DTM-06 | Exactamente 16 chars funciona | `'2025-01-15T10:00'` | `{date: '2025-01-15', time: '10:00'}` | 1. Ejecutar con 16 chars<br>2. Verificar retorno | PE1, VL3 |
+
+---
+
+### 3.4 Extracción de fecha-hora de strings ISO (extractDateTime)
+
+**Función:** `extractDateTime(isoString?: string): string`
+**Ubicación:** `src/service/helpers.ts:84-89`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-04 |
+| **Funcionalidad** | Extracción de fecha-hora de strings |
+| **Descripción** | Verificar que la función retorna los primeros 16 caracteres o string vacío si es null/undefined |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Media |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `isoString` | Undefined | `isoString == null` | `''` |
+| PE2 | `isoString` | Null | `isoString == null` | `''` |
+| PE3 | `isoString` | String vacío | `isoString != null` | `''` |
+| PE4 | `isoString` | ISO string válido | `length >= 16` | Primeros 16 chars |
+| PE5 | `isoString` | ISO string corto | `length < 16` | String completo |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `isoString` | `undefined` | PE1 | Extremo inferior | `''` |
+| VL2 | `isoString` | `null` | PE2 | Extremo inferior | `''` |
+| VL3 | `isoString` | `''` | PE3 | String vacío | `''` |
+| VL4 | `isoString` | `'2025-01-15T10:00'` | PE4 | Exactly 16 chars | `'2025-01-15T10:00'` |
+| VL5 | `isoString` | `'2025-01-15T10:00:00'` | PE4 | 19 chars | `'2025-01-15T10:00'` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-EXT-01 | Retorna vacío para undefined | `undefined` | `''` | 1. Importar `extractDateTime`<br>2. Ejecutar `extractDateTime(undefined)`<br>3. Verificar retorno `''` | PE1, VL1 |
+| CP-EXT-02 | Retorna vacío para null | `null` | `''` | 1. Ejecutar `extractDateTime(null)`<br>2. Verificar retorno `''` | PE2, VL2 |
+| CP-EXT-03 | Retorna vacío para string vacío | `''` | `''` | 1. Ejecutar `extractDateTime('')`<br>2. Verificar retorno `''` | PE3, VL3 |
+| CP-EXT-04 | Extrae 16 chars de ISO válido | `'2025-01-15T10:00:00'` | `'2025-01-15T10:00'` | 1. Ejecutar con ISO string<br>2. Verificar primeros 16 chars | PE4, VL5 |
+| CP-EXT-05 | Retorna string completo si es corto | `'2025-01-15T'` | `'2025-01-15T'` | 1. Ejecutar con 11 chars<br>2. Verificar retorno completo | PE5 |
+
+---
+
+### 3.5 Escape de caracteres HTML (escapeHtml)
+
+**Función:** `escapeHtml(message: string): string`
+**Ubicación:** `src/service/helpers.ts:103-107`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-05 |
+| **Funcionalidad** | Escape de caracteres HTML |
+| **Descripción** | Verificar que la función escapa correctamente caracteres especiales de HTML usando textContent/innerHTML |
+| **Precondiciones** | Entorno jsdom |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `message` | Sin caracteres especiales | Solo alfanuméricos | Sin cambios |
+| PE2 | `message` | Ampersand | Contiene `&` | `'&amp;'` |
+| PE3 | `message` | Less-than | Contiene `<` | `'&lt;'` |
+| PE4 | `message` | Greater-than | Contiene `>` | `'&gt;'` |
+| PE5 | `message` | Double quote | Contiene `"` | `'&quot;'` |
+| PE6 | `message` | Script injection | Contiene `<script>` | Escapado completamente |
+| PE7 | `message` | String vacío | `length == 0` | `''` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `message` | `''` | PE7 | String vacío | `''` |
+| VL2 | `message` | `'&'` | PE2 | Solo ampersand | `'&amp;'` |
+| VL3 | `message` | `'<'` | PE3 | Solo less-than | `'&lt;'` |
+| VL4 | `message` | `'>'` | PE4 | Solo greater-than | `'&gt;'` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-ESC-01 | String sin especiales sin cambios | `'hello'` | `'hello'` | 1. Importar `escapeHtml`<br>2. Ejecutar `escapeHtml('hello')`<br>3. Verificar retorno `'hello'` | PE1 |
+| CP-ESC-02 | Escapa ampersand | `'&'` | `'&amp;'` | 1. Ejecutar `escapeHtml('&')`<br>2. Verificar retorno `'&amp;'` | PE2, VL2 |
+| CP-ESC-03 | Escapa less-than | `'<'` | `'&lt;'` | 1. Ejecutar `escapeHtml('<')`<br>2. Verificar retorno `'&lt;'` | PE3, VL3 |
+| CP-ESC-04 | Escapa greater-than | `'>'` | `'&gt;'` | 1. Ejecutar `escapeHtml('>')`<br>2. Verificar retorno `'&gt;'` | PE4, VL4 |
+| CP-ESC-05 | Escapa double quote | `'"'` | `'&quot;'` | 1. Ejecutar `escapeHtml('"')`<br>2. Verificar retorno `'&quot;'` | PE5 |
+| CP-ESC-06 | Escapa script injection | `'<script>alert(1)</script>'` | `'&lt;script&gt;alert(1)&lt;/script&gt;'` | 1. Ejecutar con script tag<br>2. Verificar completamente escapado | PE6 |
+| CP-ESC-07 | String vacío retorna vacío | `''` | `''` | 1. Ejecutar `escapeHtml('')`<br>2. Verificar retorno `''` | PE7, VL1 |
+| CP-ESC-08 | Múltiples caracteres especiales | `'Tom & Jerry "say" <hi>'` | `'Tom &amp; Jerry &quot;say&quot; &lt;hi&gt;'` | 1. Ejecutar con múltiples especiales<br>2. Verificar todos escapados | PE2-PE5 |
+
+---
+
+### 3.6 Obtención de idiomas soportados (supportedLanguages)
+
+**Función:** `supportedLanguages(): ContentLanguage[]`
+**Ubicación:** `src/service/helpers.ts:68-73`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-06 |
+| **Funcionalidad** | Obtención de idiomas soportados |
+| **Descripción** | Verificar que la función lee `window.SUPPORTED_LANGUAGES` y retorna array parseado, o array vacío si es null |
+| **Precondiciones** | Entorno jsdom con `window` |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `window.SUPPORTED_LANGUAGES` | Null | `=== null` | `[]` |
+| PE2 | `window.SUPPORTED_LANGUAGES` | Undefined | `== null` (no existe) | `[]` |
+| PE3 | `window.SUPPORTED_LANGUAGES` | JSON válido array vacío | `JSON.parse('[]')` | `[]` |
+| PE4 | `window.SUPPORTED_LANGUAGES` | JSON válido con datos | `JSON.parse('[...]')` | `ContentLanguage[]` |
+| PE5 | `window.SUPPORTED_LANGUAGES` | JSON inválido | `JSON.parse` falla | `SyntaxError` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `window.SUPPORTED_LANGUAGES` | `null` | PE1 | Extremo inferior | `[]` |
+| VL2 | `window.SUPPORTED_LANGUAGES` | no existe | PE2 | Propiedad no definida | `[]` |
+| VL3 | `window.SUPPORTED_LANGUAGES` | `'[]'` | PE3 | Array válido vacío | `[]` |
+| VL4 | `window.SUPPORTED_LANGUAGES` | `'not-json'` | PE5 | String no JSON | `SyntaxError` |
+
+###### Transición de Estados
+
+| ID | Estado Actual | Condición | Acción | Estado Siguiente | Salida |
+|----|---------------|-----------|--------|------------------|--------|
+| TE1 | S0: Inicio | `window.SUPPORTED_LANGUAGES` no existe | Acceder a propiedad | S1: Undefined | `[]` |
+| TE2 | S1: Undefined | `== null` | Retornar array vacío | S1 | `[]` |
+| TE3 | S2: Null | `=== null` | Retornar array vacío | S2 | `[]` |
+| TE4 | S3: JSON válido | `!= null` y parse exitoso | Retornar array parseado | S4: Datos cargados | `ContentLanguage[]` |
+| TE5 | S3: JSON válido | `!= null` y parse falla | Lanzar `SyntaxError` | S3 (error) | Excepción |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-LANG-01 | Retorna array vacío cuando no está definido | `window.SUPPORTED_LANGUAGES` no existe | `[]` | 1. Eliminar `window.SUPPORTED_LANGUAGES`<br>2. Ejecutar `supportedLanguages()`<br>3. Verificar retorno `[]` | PE2, TE1, VL2 |
+| CP-LANG-02 | Retorna array vacío cuando es null | `window.SUPPORTED_LANGUAGES = null` | `[]` | 1. Asignar `null`<br>2. Ejecutar `supportedLanguages()`<br>3. Verificar retorno `[]` | PE1, TE2, VL1 |
+| CP-LANG-03 | Retorna array vacío para JSON '[]' | `window.SUPPORTED_LANGUAGES = '[]'` | `[]` | 1. Asignar `'[]'`<br>2. Ejecutar `supportedLanguages()`<br>3. Verificar retorno `[]` | PE3, TE4, VL3 |
+| CP-LANG-04 | Retorna array con datos | `window.SUPPORTED_LANGUAGES = '[{"locale":"en"}]'` | `[{locale:"en",...}]` | 1. Asignar JSON con 1 elemento<br>2. Ejecutar `supportedLanguages()`<br>3. Verificar retorno con datos | PE4, TE4 |
+| CP-LANG-05 | Lanza SyntaxError con JSON inválido | `window.SUPPORTED_LANGUAGES = 'not-json'` | `SyntaxError` | 1. Asignar string no JSON<br>2. Ejecutar `supportedLanguages()`<br>3. Verificar que lanza `SyntaxError` | PE5, TE5, VL4 |
+
+---
+
+### 3.7 Notificación de cambios en formularios (notifyChange)
+
+**Función:** `notifyChange(event: InputEvent, field: { handleChange: (m: any) => void }, valueTransformer?: (v: string) => any): void`
+**Ubicación:** `src/service/helpers.ts:91-101`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-07 |
+| **Funcionalidad** | Notificación de cambios en formularios |
+| **Descripción** | Verificar que la función extrae el valor del input y llama a handleChange con el valor transformado |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Media |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `event.currentTarget` | Null | `target == null` | Sin llamada a `handleChange` |
+| PE2 | `event.currentTarget` | Elemento válido | `target != null` | Llama a `handleChange(valor)` |
+| PE3 | `valueTransformer` | Default | No proporcionado | Identity function `(s) => s` |
+| PE4 | `valueTransformer` | Custom | Proporcionado | Aplica transformación |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `event.currentTarget` | `null` | PE1 | Extremo inferior | Sin llamada |
+| VL2 | `event.currentTarget` | Elemento mock | PE2 | Caso normal | Llamada con valor |
+| VL3 | `target.value` | `''` | PE2 | String vacío | `handleChange('')` |
+| VL4 | `target.value` | `'123'` | PE2 | String numérico | `handleChange('123')` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-NCF-01 | No llama handleChange si target es null | `currentTarget = null` | Sin llamada | 1. Importar `notifyChange`<br>2. Crear event con `currentTarget: null`<br>3. Ejecutar `notifyChange(event, field)`<br>4. Verificar que `handleChange` no fue llamado | PE1, VL1 |
+| CP-NCF-02 | Llama handleChange con valor del input | `currentTarget.value = 'hello'` | `handleChange('hello')` | 1. Crear event con target mock<br>2. Ejecutar `notifyChange(event, field)`<br>3. Verificar llamada con `'hello'` | PE2, VL2 |
+| CP-NCF-03 | Llama handleChange con transformer custom | `value = '123'`, transformer = `Number` | `handleChange(123)` | 1. Ejecutar con transformer numérico<br>2. Verificar que aplica transformación | PE4 |
+| CP-NCF-04 | Llama handleChange con valor vacío | `currentTarget.value = ''` | `handleChange('')` | 1. Ejecutar con value vacío<br>2. Verificar llamada con `''` | PE2, VL3 |
 
 ---
 
 ## 4. Funciones HTTP (service/helpers.ts)
 
-*(Pendiente de documentación)*
+### 4.1 Realización de peticiones HTTP (performRequest)
+
+**Funciones:** `postJson(url, payload)`, `putJson(url, payload)`, `callDelete(url)`
+**Función interna:** `performRequest(url, method, payload)`
+**Ubicación:** `src/service/helpers.ts:6-52`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-08 |
+| **Funcionalidad** | Realización de peticiones HTTP con CSRF |
+| **Descripción** | Verificar que las funciones construyen requests correctos con headers CSRF, Content-Type apropiado y body serializado |
+| **Precondiciones** | Meta tags CSRF en DOM |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Tabla de Decisión
+
+| ID | C1: `payload instanceof URLSearchParams` | C2: `payload != null` | Acción: `body` | Acción: `Content-Type` |
+|----|------------------------------------------|----------------------|----------------|------------------------|
+| TD1 | Verdadero | - | `payload` | `application/x-www-form-urlencoded` |
+| TD2 | Falso | Verdadero | `JSON.stringify(payload)` | `application/json` |
+| TD3 | Falso | Falso | `null` | `application/json` |
+
+**Condiciones compartidas (siempre aplican):**
+- `credentials: 'include'`
+- `Accept: application/json`
+- `X-Requested-With: XMLHttpRequest`
+- Headers CSRF leídos de `<meta>` tags
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `payload` | URLSearchParams | `instanceof URLSearchParams` | Content-Type: `application/x-www-form-urlencoded` |
+| PE2 | `payload` | Objeto JSON | `!= null && !(instanceof URLSearchParams)` | Content-Type: `application/json` |
+| PE3 | `payload` | Null | `=== null` | Content-Type: `application/json`, body: `null` |
+| PE4 | `payload` | Undefined | `=== undefined` | Content-Type: `application/json`, body: `null` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `payload` | `new URLSearchParams()` | PE1 | URLSearchParams vacío | Body: URLSearchParams |
+| VL2 | `payload` | `{}` | PE2 | Objeto vacío | Body: `'{}'` |
+| VL3 | `payload` | `null` | PE3 | Null explícito | Body: `null` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-HTTP-01 | postJson envía URLSearchParams | `url='/api'`, `payload=URLSearchParams({key:'val'})` | Content-Type: `application/x-www-form-urlencoded` | 1. Mockear fetch y CSRF<br>2. Ejecutar `postJson` con URLSearchParams<br>3. Verificar Content-Type | PE1, TD1, VL1 |
+| CP-HTTP-02 | postJson envía objeto JSON | `url='/api'`, `payload={foo:'bar'}` | Content-Type: `application/json`, body: `'{"foo":"bar"}'` | 1. Ejecutar `postJson` con objeto<br>2. Verificar Content-Type y body serializado | PE2, TD2 |
+| CP-HTTP-03 | callDelete envía null body | `url='/api'` | Method: `DELETE`, body: `null` | 1. Ejecutar `callDelete`<br>2. Verificar method y body | PE3, TD3 |
+| CP-HTTP-04 | postJson con undefined envía null | `url='/api'`, `payload=undefined` | Body: `null` | 1. Ejecutar `postJson` con undefined<br>2. Verificar body es `null` | PE4, TD3 |
+| CP-HTTP-05 | Incluye headers CSRF | Cualquier payload | Headers incluyen CSRF key/value | 1. Ejecutar cualquier función HTTP<br>2. Verificar headers CSRF | TD1/TD2/TD3 |
+| CP-HTTP-06 | putJson envía method PUT | `url='/api'`, `payload={x:1}` | Method: `PUT` | 1. Ejecutar `putJson`<br>2. Verificar method es `PUT` | PE2, TD2 |
+| CP-HTTP-07 | putJson con URLSearchParams | `url='/api'`, `payload=URLSearchParams()` | Content-Type: `application/x-www-form-urlencoded` | 1. Ejecutar `putJson` con URLSearchParams<br>2. Verificar Content-Type | PE1, TD1 |
+
+---
+
+### 4.2 Obtención de datos JSON (fetchJson)
+
+**Función:** `fetchJson<T>(url: string): Promise<T>`
+**Ubicación:** `src/service/helpers.ts:54-59`
+
+---
+
+#### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-HEL-09 |
+| **Funcionalidad** | Obtención de datos JSON |
+| **Descripción** | Verificar que la función realiza GET con credentials y retorna JSON parseado |
+| **Precondiciones** | Mock de fetch |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | Response | 200 OK con JSON | `ok: true` | JSON parseado |
+| PE2 | Response | Error de red | Excepción | Promise rechazada |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | Response | `{ok: true, json: {}}` | PE1 | Respuesta vacía | `{}` |
+| VL2 | Response | `{ok: true, json: {data: 1}}` | PE1 | Respuesta con datos | `{data: 1}` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-FJ-01 | Retorna JSON parseado | `url='/api'`, response: `{data: 1}` | `{data: 1}` | 1. Mockear fetch con response<br>2. Ejecutar `fetchJson('/api')`<br>3. Verificar retorno es `{data: 1}` | PE1, VL2 |
+| CP-FJ-02 | Usa GET method y credentials | `url='/api'` | Method: `GET`, credentials: `include` | 1. Mockear fetch<br>2. Ejecutar `fetchJson`<br>3. Verificar options del fetch | PE1 |
 
 ---
 
@@ -433,15 +915,15 @@ El alcance incluye:
 |---------|------------------|:--:|:---:|:--:|:--:|:-----:|--------|
 | 2.1 | Factories (test-utils) | ✅ | - | - | - | 14 | Documentado |
 | 2.2 | Mocks (test-utils) | ✅ | ✅ | - | - | 7 | Documentado |
-| 3.1 | `asString()` | | | | | | Pendiente |
-| 3.2 | `asNumber()` | | | | | | Pendiente |
-| 3.3 | `toDateTimeModification()` | | | | | | Pendiente |
-| 3.4 | `extractDateTime()` | | | | | | Pendiente |
-| 3.5 | `escapeHtml()` | | | | | | Pendiente |
-| 3.6 | `supportedLanguages()` | | | | | | Pendiente |
-| 3.7 | `notifyChange()` | | | | | | Pendiente |
-| 4.1 | `performRequest()` | | | | | | Pendiente |
-| 4.2 | `fetchJson()` | | | | | | Pendiente |
+| 3.1 | `asString()` | ✅ | ✅ | - | - | 9 | Documentado |
+| 3.2 | `asNumber()` | ✅ | ✅ | - | - | 12 | Documentado |
+| 3.3 | `toDateTimeModification()` | ✅ | ✅ | - | - | 6 | Documentado |
+| 3.4 | `extractDateTime()` | ✅ | ✅ | - | - | 5 | Documentado |
+| 3.5 | `escapeHtml()` | ✅ | ✅ | - | - | 8 | Documentado |
+| 3.6 | `supportedLanguages()` | ✅ | ✅ | - | ✅ | 5 | Documentado |
+| 3.7 | `notifyChange()` | ✅ | ✅ | - | - | 4 | Documentado |
+| 4.1 | `performRequest()` | ✅ | ✅ | ✅ | - | 7 | Documentado |
+| 4.2 | `fetchJson()` | ✅ | ✅ | - | - | 2 | Documentado |
 | 5.1 | `AdditionalFieldService` | | | | | | Pendiente |
 | 5.2 | `AdditionalItemService` | | | | | | Pendiente |
 | 5.3 | `CustomPaymentMethodsService` | | | | | | Pendiente |
