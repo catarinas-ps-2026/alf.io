@@ -613,7 +613,567 @@ El alcance incluye:
 
 ## 5. Servicios
 
-*(Pendiente de documentación)*
+### 5.1 Servicio de campos adicionales (AdditionalFieldService)
+
+**Archivo:** `src/service/additional-field.ts`
+**Dependencias:** `fetchJson`, `postJson`, `callDelete` de `helpers.ts`
+
+---
+
+#### 5.1.1 Carga de campos por contexto de compra (loadAllByPurchaseContext)
+
+**Función:** `loadAllByPurchaseContext(purchaseContext: PurchaseContext): Promise<ReadonlyArray<AdditionalField>>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-01 |
+| **Funcionalidad** | Carga de campos adicionales |
+| **Descripción** | Verificar que construye la URL correcta usando type y publicIdentifier del contexto |
+| **Precondiciones** | Mock de `fetchJson` |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `purchaseContext.type` | `'event'` | `type === 'event'` | URL: `/admin/api/event/...` |
+| PE2 | `purchaseContext.type` | `'subscription'` | `type === 'subscription'` | URL: `/admin/api/subscription/...` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `publicIdentifier` | `'test-event'` | PE1 | Identificador normal | URL correcta |
+| VL2 | `publicIdentifier` | `''` | PE1 | String vacío | URL con string vacío |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AFL-01 | Construye URL para type='event' | `type='event'`, `publicIdentifier='evt-1'` | `fetchJson('/admin/api/event/evt-1/additional-field')` | 1. Mockear `fetchJson`<br>2. Ejecutar `loadAllByPurchaseContext`<br>3. Verificar URL | PE1, VL1 |
+| CP-AFL-02 | Construye URL para type='subscription' | `type='subscription'`, `publicIdentifier='sub-1'` | `fetchJson('/admin/api/subscription/sub-1/additional-field')` | 1. Mockear `fetchJson`<br>2. Ejecutar con subscription<br>3. Verificar URL | PE2 |
+
+---
+
+#### 5.1.2 Eliminación de campo (deleteField)
+
+**Función:** `deleteField(purchaseContext: PurchaseContext, id: number): Promise<Response>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-02 |
+| **Funcionalidad** | Eliminación de campo adicional |
+| **Descripción** | Verificar que construye URL DELETE con el id correcto |
+| **Precondiciones** | Mock de `callDelete` |
+| **Prioridad** | Alta |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AFD-01 | Construye URL DELETE con id | `type='event'`, `publicIdentifier='evt-1'`, `id=5` | `callDelete('/admin/api/event/evt-1/additional-field/5')` | 1. Mockear `callDelete`<br>2. Ejecutar `deleteField`<br>3. Verificar URL | PE1 |
+
+---
+
+#### 5.1.3 Intercambio de posición (swapFieldPosition)
+
+**Función:** `swapFieldPosition(purchaseContext: PurchaseContext, id1: number, id2: number): Promise<Response>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-03 |
+| **Funcionalidad** | Intercambio de posición de campos |
+| **Descripción** | Verificar que construye URL con ambos IDs en el path y body null |
+| **Precondiciones** | Mock de `postJson` |
+| **Prioridad** | Media |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AFS-01 | Construye URL con ids en path | `id1=1`, `id2=2` | URL: `.../swap-position/1/2`, body: `null` | 1. Mockear `postJson`<br>2. Ejecutar `swapFieldPosition`<br>3. Verificar URL y body | PE1 |
+| CP-AFS-02 | Funciona con ids iguales | `id1=1`, `id2=1` | URL: `.../swap-position/1/1` | 1. Ejecutar con ids iguales<br>2. Verificar URL | PE1 |
+
+---
+
+#### 5.1.4 Mover campo a posición (moveField)
+
+**Función:** `moveField(purchaseContext: PurchaseContext, id: number, position: number): Promise<Response>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-04 |
+| **Funcionalidad** | Mover campo a posición específica |
+| **Descripción** | Verificar que envía URLSearchParams con newPosition en body |
+| **Precondiciones** | Mock de `postJson` |
+| **Prioridad** | Media |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AFM-01 | Envía newPosition en body URLSearchParams | `id=1`, `position=5` | URL: `.../set-position/1`, body: `newPosition=5` | 1. Mockear `postJson`<br>2. Ejecutar `moveField`<br>3. Verificar body es URLSearchParams | PE1 |
+| CP-AFM-02 | Position cero funciona | `id=1`, `position=0` | body: `newPosition=0` | 1. Ejecutar con position=0<br>2. Verificar body | PE1 |
+
+---
+
+#### 5.1.5 Creación de campo (createNewField)
+
+**Función:** `createNewField(purchaseContext: PurchaseContext, field: AdditionalFieldCreateRequest): Promise<ValidatedResponse<AdditionalField>>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-05 |
+| **Funcionalidad** | Creación de campo adicional |
+| **Descripción** | Verificar que envía POST y retorna response.json() (ValidatedResponse) |
+| **Precondiciones** | Mock de `postJson` |
+| **Prioridad** | Alta |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AFC-01 | Envía POST y retorna ValidatedResponse | `field` válido | response.json() | 1. Mockear `postJson` con response<br>2. Ejecutar `createNewField`<br>3. Verificar que retorna `response.json()` | PE1 |
+
+---
+
+#### 5.1.6 Guardar campo (saveField)
+
+**Función:** `saveField(purchaseContext: PurchaseContext, field: AdditionalField): Promise<Response>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-06 |
+| **Funcionalidad** | Guardado de campo adicional |
+| **Descripción** | Verificar que usa field.id en la URL |
+| **Precondiciones** | Mock de `postJson` |
+| **Prioridad** | Alta |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AFSV-01 | Usa field.id en URL | `field.id=5` | URL: `.../additional-field/5` | 1. Mockear `postJson`<br>2. Ejecutar `saveField`<br>3. Verificar URL contiene `/5` | PE1 |
+
+---
+
+### 5.2 Servicio de items adicionales (AdditionalItemService)
+
+**Archivo:** `src/service/additional-item.ts`
+**Dependencias:** `fetchJson`, `postJson`, `putJson`, `callDelete` de `helpers.ts`
+
+---
+
+#### 5.2.1 Carga de items (loadAll)
+
+**Función:** `loadAll({ eventId }: { eventId: number }): Promise<Array<AdditionalItem>>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-07 |
+| **Funcionalidad** | Carga de items adicionales |
+| **Descripción** | Verificar que construye URL con eventId |
+| **Precondiciones** | Mock de `fetchJson` |
+| **Prioridad** | Alta |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AIL-01 | Construye URL con eventId | `eventId=10` | `fetchJson('/admin/api/event/10/additional-services')` | 1. Mockear `fetchJson`<br>2. Ejecutar `loadAll`<br>3. Verificar URL | PE1 |
+
+---
+
+#### 5.2.2 Conteo de uso (useCount)
+
+**Función:** `useCount(eventId: number): Promise<UsageCount>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AIU-01 | Construye URL de conteo | `eventId=10` | `fetchJson('/admin/api/event/10/additional-services/count')` | 1. Mockear `fetchJson`<br>2. Ejecutar `useCount`<br>3. Verificar URL | PE1 |
+
+---
+
+#### 5.2.3 Validación de item (validateAdditionalItem)
+
+**Función:** `validateAdditionalItem(additionalItem: Partial<AdditionalItem>): Promise<ValidatedResponse<AdditionalItem>>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-08 |
+| **Funcionalidad** | Validación de item adicional |
+| **Descripción** | Verificar que envía POST a endpoint genérico y retorna response.json() |
+| **Precondiciones** | Mock de `postJson` |
+| **Prioridad** | Alta |
+
+##### Tabla de Decisión
+
+| ID | C1: `additionalItem.id != null` | Acción | HTTP Method | URL |
+|----|--------------------------------|--------|-------------|-----|
+| TD1 | Verdadero | PUT (actualizar) | `PUT` | `/admin/api/event/${eventId}/additional-services/${id}` |
+| TD2 | Falso | POST (crear) | `POST` | `/admin/api/event/${eventId}/additional-services` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AIV-01 | Envía POST a endpoint de validación | `additionalItem={price: 1000}` | `postJson('/admin/api/additional-services/validate', additionalItem)` | 1. Mockear `postJson`<br>2. Ejecutar `validateAdditionalItem`<br>3. Verificar URL y body | PE1 |
+
+---
+
+#### 5.2.4 Actualización de item (updateAdditionalItem)
+
+**Función:** `updateAdditionalItem(additionalItem: Partial<AdditionalItem>, eventId: number): Promise<Response>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-09 |
+| **Funcionalidad** | Actualización de item adicional |
+| **Descripción** | Verificar que usa PUT cuando id existe, POST cuando no |
+| **Precondiciones** | Mock de `putJson` y `postJson` |
+| **Prioridad** | Alta |
+
+##### Tabla de Decisión
+
+| ID | C1: `additionalItem.id != null` | Acción | HTTP Method | URL |
+|----|--------------------------------|--------|-------------|-----|
+| TD1 | Verdadero | Actualizar | `PUT` | `.../additional-services/${id}` |
+| TD2 | Falso | Crear | `POST` | `.../additional-services` |
+
+##### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `additionalItem.id` | ID presente | `id != null` (incluye 0) | `PUT` |
+| PE2 | `additionalItem.id` | ID undefined/null | `id === undefined/null` | `POST` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AIU-01 | PUT cuando id está presente | `{id: 1, price: 1000}`, `eventId=10` | `putJson('/admin/api/event/10/additional-services/1', ...)` | 1. Mockear `putJson`<br>2. Ejecutar `updateAdditionalItem`<br>3. Verificar PUT | PE1, TD1 |
+| CP-AIU-02 | POST cuando id es undefined | `{price: 1000}`, `eventId=10` | `postJson('/admin/api/event/10/additional-services', ...)` | 1. Mockear `postJson`<br>2. Ejecutar `updateAdditionalItem`<br>3. Verificar POST | PE2, TD2 |
+| CP-AIU-03 | PUT cuando id es 0 | `{id: 0, price: 1000}`, `eventId=10` | `putJson` con `/0` en URL | 1. Ejecutar con id=0<br>2. Verificar PUT (0 != null es true) | PE1, TD1 |
+
+---
+
+#### 5.2.5 Eliminación de item (deleteAdditionalItem)
+
+**Función:** `deleteAdditionalItem(additionalItemId: number, eventId: number): Promise<Response>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AID-01 | Construye URL DELETE con ids | `additionalItemId=5`, `eventId=10` | `callDelete('/admin/api/event/10/additional-services/5')` | 1. Mockear `callDelete`<br>2. Ejecutar `deleteAdditionalItem`<br>3. Verificar URL | PE1 |
+
+---
+
+#### 5.2.6 Intercambio de items (swapItems)
+
+**Función:** `swapItems(eventId: number, firstId: number, secondId: number): Promise<Response>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-10 |
+| **Funcionalidad** | Intercambio de posición de items |
+| **Descripción** | Verificar que envía IDs como body JSON (no en URL como AdditionalFieldService) |
+| **Precondiciones** | Mock de `postJson` |
+| **Prioridad** | Media |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-AIS-01 | Envía ids como body JSON | `eventId=10`, `firstId=1`, `secondId=2` | body: `{id1: 1, id2: 2}` | 1. Mockear `postJson`<br>2. Ejecutar `swapItems`<br>3. Verificar body es `{id1, id2}` | PE1 |
+
+---
+
+### 5.3 Servicio de métodos de pago personalizados (CustomPaymentMethodsService)
+
+**Archivo:** `src/service/custom-payment-methods.ts`
+**Dependencias:** `fetchJson`, `postJson`, `putJson`, `callDelete` de `helpers.ts`
+**Nota:** Esta clase usa instancias (no métodos estáticos)
+
+---
+
+#### 5.3.1 Obtener métodos de pago de organización (getPaymentMethodsForOrganization)
+
+**Función:** `getPaymentMethodsForOrganization(organizationId: number): Promise<CustomOfflinePayment[]>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-01 | Construye URL con organizationId | `organizationId=1` | `fetchJson('/admin/api/configuration/organizations/1/payment-method')` | 1. Mockear `fetchJson`<br>2. Ejecutar método<br>3. Verificar URL | PE1 |
+
+---
+
+#### 5.3.2 Crear método de pago (createPaymentMethod)
+
+**Función:** `createPaymentMethod(organizationId: number, paymentMethod: CustomOfflinePayment): Promise<Response>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-02 | Envía POST con paymentMethod | `organizationId=1`, `paymentMethod={...}` | `postJson` con URL y body | 1. Mockear `postJson`<br>2. Ejecutar método<br>3. Verificar POST | PE1 |
+
+---
+
+#### 5.3.3 Actualizar método de pago (updatePaymentMethod)
+
+**Función:** `updatePaymentMethod(organizationId: number, existingMethodId: string, paymentMethod: CustomOfflinePayment): Promise<Response>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-03 | Envía PUT con methodId en URL | `organizationId=1`, `existingMethodId='pm-1'` | `putJson` con URL: `.../payment-method/pm-1` | 1. Mockear `putJson`<br>2. Ejecutar método<br>3. Verificar PUT | PE1 |
+
+---
+
+#### 5.3.4 Eliminar método de pago (deletePaymentMethod)
+
+**Función:** `deletePaymentMethod(organizationId: number, existingMethodId: string): Promise<Response>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-04 | Envía DELETE con methodId | `organizationId=1`, `existingMethodId='pm-1'` | `callDelete` con URL correcta | 1. Mockear `callDelete`<br>2. Ejecutar método<br>3. Verificar DELETE | PE1 |
+
+---
+
+#### 5.3.5 Establecer métodos para evento (setPaymentMethodsForEvent)
+
+**Función:** `setPaymentMethodsForEvent(eventId: number, paymentMethodIds: string[]): Promise<Response>`
+
+##### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `paymentMethodIds` | Array no vacío | `length > 0` | POST con array serializado |
+| PE2 | `paymentMethodIds` | Array vacío | `length === 0` | POST con `'[]'` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-05 | Envía POST con array de ids | `eventId=10`, `ids=['pm-1', 'pm-2']` | body: `'["pm-1","pm-2"]'` | 1. Mockear `postJson`<br>2. Ejecutar método<br>3. Verificar body | PE1 |
+| CP-CPM-06 | Envía POST con array vacío | `eventId=10`, `ids=[]` | body: `'[]'` | 1. Ejecutar con array vacío<br>2. Verificar body | PE2 |
+
+---
+
+#### 5.3.6 Obtener métodos permitidos para evento (getAllowedPaymentMethodsForEvent)
+
+**Función:** `getAllowedPaymentMethodsForEvent(eventId: number): Promise<CustomOfflinePayment[]>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-07 | Construye URL con eventId | `eventId=10` | `fetchJson('/admin/api/configuration/event/10/payment-method')` | 1. Mockear `fetchJson`<br>2. Ejecutar método<br>3. Verificar URL | PE1 |
+
+---
+
+#### 5.3.7 Obtener métodos denegados para categoría (getDeniedPaymentMethodsForCategory)
+
+**Función:** `getDeniedPaymentMethodsForCategory(eventId: number, categoryId: number): Promise<string[]>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-08 | Construye URL con ids de evento y categoría | `eventId=10`, `categoryId=1` | `fetchJson('/admin/api/events/10/categories/1/denied-custom-payment-methods')` | 1. Mockear `fetchJson`<br>2. Ejecutar método<br>3. Verificar URL | PE1 |
+
+---
+
+#### 5.3.8 Establecer métodos denegados para categoría (setDeniedPaymentMethodsForCategory)
+
+**Función:** `setDeniedPaymentMethodsForCategory(eventId: number, categoryId: number, paymentMethodIds: string[]): Promise<Response>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CPM-09 | Envía POST con ids denegados | `eventId=10`, `categoryId=1`, `ids=['pm-1']` | body: `'["pm-1"]'` | 1. Mockear `postJson`<br>2. Ejecutar método<br>3. Verificar body | PE1 |
+
+---
+
+### 5.4 Servicio de eventos (EventService)
+
+**Archivo:** `src/service/event.ts`
+**Dependencias:** `fetchJson` de `helpers.ts`
+
+---
+
+#### Carga de evento (load)
+
+**Función:** `load(publicIdentifier: string): Promise<EventWithOrganization>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-11 |
+| **Funcionalidad** | Carga de evento por identificador |
+| **Descripción** | Verificar que construye URL con publicIdentifier |
+| **Precondiciones** | Mock de `fetchJson` |
+| **Prioridad** | Alta |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-EVT-01 | Construye URL con publicIdentifier | `publicIdentifier='evt-1'` | `fetchJson('/admin/api/events/evt-1')` | 1. Mockear `fetchJson`<br>2. Ejecutar `load`<br>3. Verificar URL | PE1 |
+
+---
+
+### 5.5 Servicio de contexto de compra (PurchaseContextService)
+
+**Archivo:** `src/service/purchase-context.ts`
+**Dependencias:** `EventService`, `SubscriptionDescriptorService`
+
+---
+
+#### Carga de contexto (load)
+
+**Función:** `load(publicIdentifier: string, type: PurchaseContextType, organizationId: number): Promise<{eventWithOrganization?, subscriptionDescriptor?}>`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-SRV-12 |
+| **Funcionalidad** | Carga de contexto de compra |
+| **Descripción** | Verificar delegación a EventService o SubscriptionDescriptorService según type |
+| **Precondiciones** | Mock de servicios dependientes |
+| **Prioridad** | Alta |
+
+##### Tabla de Decisión
+
+| ID | C1: `type === 'subscription'` | Servicio llamado | Shape de retorno |
+|----|-------------------------------|------------------|------------------|
+| TD1 | Verdadero | `SubscriptionDescriptorService.load()` | `{subscriptionDescriptor: ...}` |
+| TD2 | Falso (`'event'`) | `EventService.load()` | `{eventWithOrganization: ...}` |
+
+##### Transición de Estados
+
+| ID | Estado Actual | Condición | Acción | Estado Siguiente | Salida |
+|----|---------------|-----------|--------|------------------|--------|
+| TE1 | S0: Inicio | `type === 'event'` | Llamar `EventService.load()` | S1: Evento cargado | `{eventWithOrganization: ...}` |
+| TE2 | S0: Inicio | `type === 'subscription'` | Llamar `SubscriptionDescriptorService.load()` | S2: Suscripción cargada | `{subscriptionDescriptor: ...}` |
+| TE3 | S1/S2 | - | Retornar resultado | S3: Final | Shape correspondiente |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CTX-01 | Delega a EventService para type='event' | `type='event'`, `publicIdentifier='evt-1'` | `{eventWithOrganization: ...}` | 1. Mockear `EventService.load`<br>2. Ejecutar `load`<br>3. Verificar retorno | TD2, TE1 |
+| CP-CTX-02 | Delega a SubscriptionDescriptorService para type='subscription' | `type='subscription'`, `publicIdentifier='sub-1'`, `orgId=1` | `{subscriptionDescriptor: ...}` | 1. Mockear `SubscriptionDescriptorService.load`<br>2. Ejecutar `load`<br>3. Verificar retorno | TD1, TE2 |
+| CP-CTX-03 | Ignora organizationId para type='event' | `type='event'`, `orgId=999` | `EventService.load` recibe solo `publicIdentifier` | 1. Mockear servicios<br>2. Ejecutar con orgId=999<br>3. Verificar que orgId no se usa | TD2 |
+
+---
+
+### 5.6 Servicio de descriptor de suscripción (SubscriptionDescriptorService)
+
+**Archivo:** `src/service/subscription-descriptor.ts`
+**Dependencias:** `fetchJson` de `helpers.ts`
+
+---
+
+#### Carga de descriptor (load)
+
+**Función:** `load(publicIdentifier: string, organizationId: number): Promise<SubscriptionDescriptor>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-SUB-01 | Construye URL con organizationId y publicIdentifier | `publicIdentifier='sub-1'`, `organizationId=1` | `fetchJson('/admin/api/organization/1/subscription/sub-1')` | 1. Mockear `fetchJson`<br>2. Ejecutar `load`<br>3. Verificar URL | PE1 |
+
+---
+
+### 5.7 Servicio de localización (LocalizationService)
+
+**Archivo:** `src/service/localization.ts`
+**Dependencias:** `fetchJson` de `helpers.ts`
+**Nota:** Esta clase usa instancias (no métodos estáticos)
+
+---
+
+#### Obtener idiomas soportados (getEventsSupportedLanguages)
+
+**Función:** `getEventsSupportedLanguages(): Promise<LocalizationServiceLocale[]>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-LOC-01 | Llama a endpoint de idiomas | Sin parámetros | `fetchJson('/admin/api/events-supported-languages')` | 1. Mockear `fetchJson`<br>2. Ejecutar método<br>3. Verificar URL | PE1 |
+
+---
+
+### 5.8 Servicio de configuración (ConfigurationService)
+
+**Archivo:** `src/service/configuration.ts`
+**Dependencias:** `postJson` de `helpers.ts`
+
+---
+
+#### Actualizar configuración (update)
+
+**Función:** `update(kv: { key: string; value: string }): Promise<Response>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-CFG-01 | Envía POST con key/value | `{key: 'theme', value: 'dark'}` | `postJson('/admin/api/configuration/update', kv)` | 1. Mockear `postJson`<br>2. Ejecutar `update`<br>3. Verificar body | PE1 |
+
+---
+
+### 5.9 Servicio de utilidades (UtilService)
+
+**Archivo:** `src/service/util.ts`
+**Dependencias:** `fetchJson` de `helpers.ts`
+
+---
+
+#### Renderizado de markdown (renderMarkdown)
+
+**Función:** `renderMarkdown(text: string): Promise<string>`
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-UTL-01 | Construye URL con text encoded | `text='hello **world**'` | `fetchJson('/admin/api/utils/render-commonmark?text=hello%20**world**')` | 1. Mockear `fetchJson`<br>2. Ejecutar `renderMarkdown`<br>3. Verificar URL con encode | PE1 |
 
 ---
 
@@ -911,27 +1471,27 @@ El alcance incluye:
 
 ## 7. Matriz de Trazabilidad
 
-| Sección | Función/Servicio | PE | AVL | TD | TE | Tests | Estado |
-|---------|------------------|:--:|:---:|:--:|:--:|:-----:|--------|
-| 2.1 | Factories (test-utils) | ✅ | - | - | - | 14 | Documentado |
-| 2.2 | Mocks (test-utils) | ✅ | ✅ | - | - | 7 | Documentado |
-| 3.1 | `asString()` | ✅ | ✅ | - | - | 9 | Documentado |
-| 3.2 | `asNumber()` | ✅ | ✅ | - | - | 12 | Documentado |
-| 3.3 | `toDateTimeModification()` | ✅ | ✅ | - | - | 6 | Documentado |
-| 3.4 | `extractDateTime()` | ✅ | ✅ | - | - | 5 | Documentado |
-| 3.5 | `escapeHtml()` | ✅ | ✅ | - | - | 8 | Documentado |
-| 3.6 | `supportedLanguages()` | ✅ | ✅ | - | ✅ | 5 | Documentado |
-| 3.7 | `notifyChange()` | ✅ | ✅ | - | - | 4 | Documentado |
-| 4.1 | `performRequest()` | ✅ | ✅ | ✅ | - | 7 | Documentado |
-| 4.2 | `fetchJson()` | ✅ | ✅ | - | - | 2 | Documentado |
-| 5.1 | `AdditionalFieldService` | | | | | | Pendiente |
-| 5.2 | `AdditionalItemService` | | | | | | Pendiente |
-| 5.3 | `CustomPaymentMethodsService` | | | | | | Pendiente |
-| 5.4 | `EventService` | | | | | | Pendiente |
-| 5.5 | `PurchaseContextService` | | | | | | Pendiente |
-| 5.6 | `SubscriptionDescriptorService` | | | | | | Pendiente |
-| 5.7 | `LocalizationService` | | | | | | Pendiente |
-| 5.8 | `ConfigurationService` | | | | | | Pendiente |
-| 5.9 | `UtilService` | | | | | | Pendiente |
-| 6.1 | `additional-field.ts` helpers | ✅ | ✅ | - | - | 37 | Documentado |
-| 6.2 | `additional-item.ts` helpers | ✅ | ✅ | - | - | 12 | Documentado |
+| Sección | Función/Servicio | PE | AVL | TD | TE | Tests |
+|---------|------------------|:--:|:---:|:--:|:--:|:-----:|
+| 2.1 | Factories (test-utils) | ✅ | - | - | - | 14 |
+| 2.2 | Mocks (test-utils) | ✅ | ✅ | - | - | 7 |
+| 3.1 | `asString()` | ✅ | ✅ | - | - | 9 |
+| 3.2 | `asNumber()` | ✅ | ✅ | - | - | 12 |
+| 3.3 | `toDateTimeModification()` | ✅ | ✅ | - | - | 6 |
+| 3.4 | `extractDateTime()` | ✅ | ✅ | - | - | 5 |
+| 3.5 | `escapeHtml()` | ✅ | ✅ | - | - | 8 |
+| 3.6 | `supportedLanguages()` | ✅ | ✅ | - | ✅ | 5 |
+| 3.7 | `notifyChange()` | ✅ | ✅ | - | - | 4 |
+| 4.1 | `performRequest()` | ✅ | ✅ | ✅ | - | 7 |
+| 4.2 | `fetchJson()` | ✅ | ✅ | - | - | 2 |
+| 5.1 | `AdditionalFieldService` | ✅ | ✅ | - | - | 10 |
+| 5.2 | `AdditionalItemService` | ✅ | ✅ | ✅ | - | 8 |
+| 5.3 | `CustomPaymentMethodsService` | ✅ | - | - | - | 9 |
+| 5.4 | `EventService` | ✅ | - | - | - | 1 |
+| 5.5 | `PurchaseContextService` | ✅ | - | ✅ | ✅ | 3 |
+| 5.6 | `SubscriptionDescriptorService` | ✅ | - | - | - | 1 |
+| 5.7 | `LocalizationService` | ✅ | - | - | - | 1 |
+| 5.8 | `ConfigurationService` | ✅ | - | - | - | 1 |
+| 5.9 | `UtilService` | ✅ | - | - | - | 1 |
+| 6.1 | `additional-field.ts` helpers | ✅ | ✅ | - | - | 37 |
+| 6.2 | `additional-item.ts` helpers | ✅ | ✅ | - | - | 12 |
