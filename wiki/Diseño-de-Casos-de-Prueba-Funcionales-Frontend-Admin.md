@@ -1469,6 +1469,55 @@ El alcance incluye:
 
 ---
 
+### 6.3 Eventos DOM (dom-events.ts)
+
+**Archivo:** `src/model/dom-events.ts`
+
+---
+
+#### Despacho de feedback (dispatchFeedback)
+
+**Función:** `dispatchFeedback(payload: AlfioFeedbackEvent, src: LitElement): void`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-MOD-07 |
+| **Funcionalidad** | Despacho de evento de feedback |
+| **Descripción** | Verificar que la función despacha un CustomEvent 'alfio-feedback' con el detail, bubbles y composed correctos |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `payload.type` | `'success'` | Tipo válido | Evento despachado con type='success' |
+| PE2 | `payload.type` | `'warning'` | Tipo válido | Evento despachado con type='warning' |
+| PE3 | `payload.type` | `'danger'` | Tipo válido | Evento despachado con type='danger' |
+| PE4 | `payload.type` | `'neutral'` | Tipo válido | Evento despachado con type='neutral' |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `payload` | `{type: 'success', message: ''}` | PE1 | Message vacío | Evento despachado |
+| VL2 | `payload` | `{type: 'success', message: 'test'}` | PE1 | Message normal | Evento despachado |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-DF-01 | Despacha evento alfio-feedback con detail correcto | `payload={type:'success', message:'test'}` | Evento con detail=payload | 1. Crear EventTarget mock<br>2. Agregar listener<br>3. Ejecutar `dispatchFeedback`<br>4. Verificar detail | PE1, VL2 |
+| CP-DF-02 | Evento tiene bubbles=true | Cualquier payload | `bubbles: true` | 1. Ejecutar `dispatchFeedback`<br>2. Verificar `event.bubbles === true` | PE1 |
+| CP-DF-03 | Evento tiene composed=true | Cualquier payload | `composed: true` | 1. Ejecutar `dispatchFeedback`<br>2. Verificar `event.composed === true` | PE1 |
+| CP-DF-04 | Funciona con todos los tipos de feedback | `type: 'neutral','success','warning','danger'` | Evento despachado para cada tipo | 1. Ejecutar con cada tipo<br>2. Verificar que funciona | PE1-PE4 |
+
+---
+
 ## 7. Matriz de Trazabilidad
 
 | Sección | Función/Servicio | PE | AVL | TD | TE | Tests |
@@ -1495,3 +1544,4 @@ El alcance incluye:
 | 5.9 | `UtilService` | ✅ | - | - | - | 1 |
 | 6.1 | `additional-field.ts` helpers | ✅ | ✅ | - | - | 37 |
 | 6.2 | `additional-item.ts` helpers | ✅ | ✅ | - | - | 12 |
+| 6.3 | `dom-events.ts` helpers | ✅ | ✅ | - | - | 4 |
