@@ -137,7 +137,293 @@ El alcance incluye:
 
 ## 6. Modelos
 
-*(Pendiente de documentación - Fase 2)*
+### 6.1 Funciones auxiliares de AdditionalField
+
+**Archivo:** `src/model/additional-field.ts`
+
+---
+
+#### Verificación de soporte de placeholder (supportsPlaceholder)
+
+**Función:** `supportsPlaceholder(fieldType: AdditionalFieldType): boolean`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-MOD-01 |
+| **Funcionalidad** | Verificación de compatibilidad de placeholder |
+| **Descripción** | Verificar que la función retorna `true` solo para tipos de campo que soportan placeholder |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `fieldType` | Tipos con placeholder | `'input:text'`, `'input:tel'`, `'vat:eu'`, `'textarea'`, `'input:dateOfBirth'` | `true` |
+| PE2 | `fieldType` | Tipos sin placeholder | `'country'`, `'select'`, `'checkbox'`, `'radio'` | `false` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `fieldType` | `'input:text'` | PE1 | Primer tipo con placeholder | `true` |
+| VL2 | `fieldType` | `'input:dateOfBirth'` | PE1 | Último tipo con placeholder | `true` |
+| VL3 | `fieldType` | `'country'` | PE2 | Primer tipo sin placeholder | `false` |
+| VL4 | `fieldType` | `'radio'` | PE2 | Último tipo sin placeholder | `false` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-PH-01 | Retorna true para input:text | `'input:text'` | `true` | 1. Importar `supportsPlaceholder`<br>2. Ejecutar `supportsPlaceholder('input:text')`<br>3. Verificar retorno `true` | PE1, VL1 |
+| CP-PH-02 | Retorna true para input:tel | `'input:tel'` | `true` | 1. Ejecutar `supportsPlaceholder('input:tel')`<br>2. Verificar retorno `true` | PE1 |
+| CP-PH-03 | Retorna true para vat:eu | `'vat:eu'` | `true` | 1. Ejecutar `supportsPlaceholder('vat:eu')`<br>2. Verificar retorno `true` | PE1 |
+| CP-PH-04 | Retorna true para textarea | `'textarea'` | `true` | 1. Ejecutar `supportsPlaceholder('textarea')`<br>2. Verificar retorno `true` | PE1 |
+| CP-PH-05 | Retorna true para input:dateOfBirth | `'input:dateOfBirth'` | `true` | 1. Ejecutar `supportsPlaceholder('input:dateOfBirth')`<br>2. Verificar retorno `true` | PE1, VL2 |
+| CP-PH-06 | Retorna false para country | `'country'` | `false` | 1. Ejecutar `supportsPlaceholder('country')`<br>2. Verificar retorno `false` | PE2, VL3 |
+| CP-PH-07 | Retorna false para select | `'select'` | `false` | 1. Ejecutar `supportsPlaceholder('select')`<br>2. Verificar retorno `false` | PE2 |
+| CP-PH-08 | Retorna false para checkbox | `'checkbox'` | `false` | 1. Ejecutar `supportsPlaceholder('checkbox')`<br>2. Verificar retorno `false` | PE2 |
+| CP-PH-09 | Retorna false para radio | `'radio'` | `false` | 1. Ejecutar `supportsPlaceholder('radio')`<br>2. Verificar retorno `false` | PE2, VL4 |
+
+---
+
+#### Verificación de soporte de valores restringidos (supportsRestrictedValues)
+
+**Función:** `supportsRestrictedValues(fieldType: AdditionalFieldType): boolean`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-MOD-02 |
+| **Funcionalidad** | Verificación de compatibilidad de valores restringidos |
+| **Descripción** | Verificar que la función retorna `true` solo para tipos de campo que soportan valores restringidos (checkbox, radio, select) |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `fieldType` | Tipos con valores restringidos | `'checkbox'`, `'radio'`, `'select'` | `true` |
+| PE2 | `fieldType` | Tipos sin valores restringidos | `'input:text'`, `'input:tel'`, `'vat:eu'`, `'textarea'`, `'country'`, `'input:dateOfBirth'` | `false` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `fieldType` | `'checkbox'` | PE1 | Primer tipo con valores restringidos | `true` |
+| VL2 | `fieldType` | `'select'` | PE1 | Último tipo con valores restringidos | `true` |
+| VL3 | `fieldType` | `'input:text'` | PE2 | Primer tipo sin valores restringidos | `false` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-RV-01 | Retorna true para checkbox | `'checkbox'` | `true` | 1. Importar `supportsRestrictedValues`<br>2. Ejecutar `supportsRestrictedValues('checkbox')`<br>3. Verificar retorno `true` | PE1, VL1 |
+| CP-RV-02 | Retorna true para radio | `'radio'` | `true` | 1. Ejecutar `supportsRestrictedValues('radio')`<br>2. Verificar retorno `true` | PE1 |
+| CP-RV-03 | Retorna true para select | `'select'` | `true` | 1. Ejecutar `supportsRestrictedValues('select')`<br>2. Verificar retorno `true` | PE1, VL2 |
+| CP-RV-04 | Retorna false para input:text | `'input:text'` | `false` | 1. Ejecutar `supportsRestrictedValues('input:text')`<br>2. Verificar retorno `false` | PE2, VL3 |
+| CP-RV-05 | Retorna false para input:tel | `'input:tel'` | `false` | 1. Ejecutar `supportsRestrictedValues('input:tel')`<br>2. Verificar retorno `false` | PE2 |
+| CP-RV-06 | Retorna false para vat:eu | `'vat:eu'` | `false` | 1. Ejecutar `supportsRestrictedValues('vat:eu')`<br>2. Verificar retorno `false` | PE2 |
+| CP-RV-07 | Retorna false para textarea | `'textarea'` | `false` | 1. Ejecutar `supportsRestrictedValues('textarea')`<br>2. Verificar retorno `false` | PE2 |
+| CP-RV-08 | Retorna false para country | `'country'` | `false` | 1. Ejecutar `supportsRestrictedValues('country')`<br>2. Verificar retorno `false` | PE2 |
+| CP-RV-09 | Retorna false para input:dateOfBirth | `'input:dateOfBirth'` | `false` | 1. Ejecutar `supportsRestrictedValues('input:dateOfBirth')`<br>2. Verificar retorno `false` | PE2 |
+
+---
+
+#### Renderizado de tipo de campo (renderAdditionalFieldType)
+
+**Función:** `renderAdditionalFieldType(type: AdditionalFieldType): string`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-MOD-03 |
+| **Funcionalidad** | Renderizado de descripción de tipo |
+| **Descripción** | Verificar que la función retorna la descripción legible para cada tipo de campo, y 'unknown' para tipos inválidos |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Media |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `type` | Tipo válido | Tipo en `additionalFieldTypesWithDescription` | Descripción correspondiente |
+| PE2 | `type` | Tipo inválido | Tipo no existente | `'unknown'` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `type` | `'input:text'` | PE1 | Primer tipo del diccionario | `'Single-line text input'` |
+| VL2 | `type` | `'input:dateOfBirth'` | PE1 | Último tipo del diccionario | `'Date of birth input'` |
+| VL3 | `type` | `'invalid:type'` | PE2 | Tipo inexistente | `'unknown'` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-RT-01 | Retorna descripción para input:text | `'input:text'` | `'Single-line text input'` | 1. Importar `renderAdditionalFieldType`<br>2. Ejecutar con `'input:text'`<br>3. Verificar retorno | PE1, VL1 |
+| CP-RT-02 | Retorna descripción para input:tel | `'input:tel'` | `'Phone number input'` | 1. Ejecutar con `'input:tel'`<br>2. Verificar retorno | PE1 |
+| CP-RT-03 | Retorna descripción para vat:eu | `'vat:eu'` | `'European VAT number input'` | 1. Ejecutar con `'vat:eu'`<br>2. Verificar retorno | PE1 |
+| CP-RT-04 | Retorna descripción para textarea | `'textarea'` | `'Multi-line text input'` | 1. Ejecutar con `'textarea'`<br>2. Verificar retorno | PE1 |
+| CP-RT-05 | Retorna descripción para country | `'country'` | `'Country selection drop-down'` | 1. Ejecutar con `'country'`<br>2. Verificar retorno | PE1 |
+| CP-RT-06 | Retorna descripción para select | `'select'` | `'Single-choice drop-down'` | 1. Ejecutar con `'select'`<br>2. Verificar retorno | PE1 |
+| CP-RT-07 | Retorna descripción para radio | `'radio'` | `'Single-choice radio buttons'` | 1. Ejecutar con `'radio'`<br>2. Verificar retorno | PE1 |
+| CP-RT-08 | Retorna descripción para checkbox | `'checkbox'` | `'Multiple-choice checkboxes'` | 1. Ejecutar con `'checkbox'`<br>2. Verificar retorno | PE1 |
+| CP-RT-09 | Retorna descripción para input:dateOfBirth | `'input:dateOfBirth'` | `'Date of birth input'` | 1. Ejecutar con `'input:dateOfBirth'`<br>2. Verificar retorno | PE1, VL2 |
+| CP-RT-10 | Retorna 'unknown' para tipo inválido | `'invalid:type'` | `'unknown'` | 1. Ejecutar con tipo inexistente<br>2. Verificar retorno `'unknown'` | PE2, VL3 |
+
+---
+
+#### Verificación de soporte de min/max length (supportsMinMaxLength)
+
+**Función:** `supportsMinMaxLength(fieldType: AdditionalFieldType): boolean`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-MOD-04 |
+| **Funcionalidad** | Verificación de compatibilidad de min/max length |
+| **Descripción** | Verificar que la función retorna `true` para tipos de campo que soportan restricciones de longitud |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Media |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `fieldType` | Tipos con min/max length | `'input:text'`, `'input:tel'`, `'textarea'`, `'input:dateOfBirth'` | `true` |
+| PE2 | `fieldType` | Tipos sin min/max length | `'vat:eu'`, `'country'`, `'select'`, `'checkbox'`, `'radio'` | `false` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `fieldType` | `'input:text'` | PE1 | Primer tipo con min/max | `true` |
+| VL2 | `fieldType` | `'input:dateOfBirth'` | PE1 | Último tipo con min/max | `true` |
+| VL3 | `fieldType` | `'vat:eu'` | PE2 | Primer tipo sin min/max | `false` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-MM-01 | Retorna true para input:text | `'input:text'` | `true` | 1. Importar `supportsMinMaxLength`<br>2. Ejecutar con `'input:text'`<br>3. Verificar retorno `true` | PE1, VL1 |
+| CP-MM-02 | Retorna true para input:tel | `'input:tel'` | `true` | 1. Ejecutar con `'input:tel'`<br>2. Verificar retorno `true` | PE1 |
+| CP-MM-03 | Retorna true para textarea | `'textarea'` | `true` | 1. Ejecutar con `'textarea'`<br>2. Verificar retorno `true` | PE1 |
+| CP-MM-04 | Retorna true para input:dateOfBirth | `'input:dateOfBirth'` | `true` | 1. Ejecutar con `'input:dateOfBirth'`<br>2. Verificar retorno `true` | PE1, VL2 |
+| CP-MM-05 | Retorna false para vat:eu | `'vat:eu'` | `false` | 1. Ejecutar con `'vat:eu'`<br>2. Verificar retorno `false` | PE2, VL3 |
+| CP-MM-06 | Retorna false para country | `'country'` | `false` | 1. Ejecutar con `'country'`<br>2. Verificar retorno `false` | PE2 |
+| CP-MM-07 | Retorna false para select | `'select'` | `false` | 1. Ejecutar con `'select'`<br>2. Verificar retorno `false` | PE2 |
+| CP-MM-08 | Retorna false para checkbox | `'checkbox'` | `false` | 1. Ejecutar con `'checkbox'`<br>2. Verificar retorno `false` | PE2 |
+| CP-MM-09 | Retorna false para radio | `'radio'` | `false` | 1. Ejecutar con `'radio'`<br>2. Verificar retorno `false` | PE2 |
+
+---
+
+### 6.2 Funciones auxiliares de AdditionalItem
+
+**Archivo:** `src/model/additional-item.ts`
+
+---
+
+#### Verificación de obligatoriedad (isMandatory)
+
+**Función:** `isMandatory(supplementPolicy: SupplementPolicy): boolean`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-MOD-05 |
+| **Funcionalidad** | Verificación de política obligatoria |
+| **Descripción** | Verificar que la función retorna `true` para políticas de suplemento obligatorias |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `supplementPolicy` | Políticas obligatorias | `'MANDATORY_ONE_FOR_TICKET'`, `'MANDATORY_PERCENTAGE_FOR_TICKET'`, `'MANDATORY_PERCENTAGE_RESERVATION'` | `true` |
+| PE2 | `supplementPolicy` | Políticas opcionales | `'OPTIONAL_UNLIMITED_AMOUNT'`, `'OPTIONAL_MAX_AMOUNT_PER_TICKET'`, `'OPTIONAL_MAX_AMOUNT_PER_RESERVATION'` | `false` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `supplementPolicy` | `'MANDATORY_ONE_FOR_TICKET'` | PE1 | Primera política obligatoria | `true` |
+| VL2 | `supplementPolicy` | `'MANDATORY_PERCENTAGE_RESERVATION'` | PE1 | Última política obligatoria | `true` |
+| VL3 | `supplementPolicy` | `'OPTIONAL_UNLIMITED_AMOUNT'` | PE2 | Primera política opcional | `false` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-MAN-01 | Retorna true para MANDATORY_ONE_FOR_TICKET | `'MANDATORY_ONE_FOR_TICKET'` | `true` | 1. Importar `isMandatory`<br>2. Ejecutar con valor<br>3. Verificar retorno `true` | PE1, VL1 |
+| CP-MAN-02 | Retorna true para MANDATORY_PERCENTAGE_FOR_TICKET | `'MANDATORY_PERCENTAGE_FOR_TICKET'` | `true` | 1. Ejecutar con valor<br>2. Verificar retorno `true` | PE1 |
+| CP-MAN-03 | Retorna true para MANDATORY_PERCENTAGE_RESERVATION | `'MANDATORY_PERCENTAGE_RESERVATION'` | `true` | 1. Ejecutar con valor<br>2. Verificar retorno `true` | PE1, VL2 |
+| CP-MAN-04 | Retorna false para OPTIONAL_UNLIMITED_AMOUNT | `'OPTIONAL_UNLIMITED_AMOUNT'` | `false` | 1. Ejecutar con valor<br>2. Verificar retorno `false` | PE2, VL3 |
+| CP-MAN-05 | Retorna false para OPTIONAL_MAX_AMOUNT_PER_TICKET | `'OPTIONAL_MAX_AMOUNT_PER_TICKET'` | `false` | 1. Ejecutar con valor<br>2. Verificar retorno `false` | PE2 |
+| CP-MAN-06 | Retorna false para OPTIONAL_MAX_AMOUNT_PER_RESERVATION | `'OPTIONAL_MAX_AMOUNT_PER_RESERVATION'` | `false` | 1. Ejecutar con valor<br>2. Verificar retorno `false` | PE2 |
+
+---
+
+#### Verificación de porcentaje obligatorio (isMandatoryPercentage)
+
+**Función:** `isMandatoryPercentage(supplementPolicy: SupplementPolicy): boolean`
+
+##### Caso de Prueba Funcional
+
+| Campo | Descripción |
+|-------|-------------|
+| **ID** | CPF-MOD-06 |
+| **Funcionalidad** | Verificación de política de porcentaje obligatorio |
+| **Descripción** | Verificar que la función retorna `true` solo para políticas de porcentaje obligatorio |
+| **Precondiciones** | Ninguna |
+| **Prioridad** | Alta |
+
+##### Técnicas de Prueba Aplicadas
+
+###### Particiones de Equivalencia
+
+| ID | Campo | Partición | Condición | Salida Esperada |
+|----|-------|-----------|-----------|-----------------|
+| PE1 | `supplementPolicy` | Políticas de porcentaje obligatorio | `'MANDATORY_PERCENTAGE_FOR_TICKET'`, `'MANDATORY_PERCENTAGE_RESERVATION'` | `true` |
+| PE2 | `supplementPolicy` | Otras políticas | `'MANDATORY_ONE_FOR_TICKET'`, `'OPTIONAL_UNLIMITED_AMOUNT'`, `'OPTIONAL_MAX_AMOUNT_PER_TICKET'`, `'OPTIONAL_MAX_AMOUNT_PER_RESERVATION'` | `false` |
+
+###### Análisis de Valores Límite
+
+| ID | Campo | Valor Límite | Partición Asociada | Justificación | Salida Esperada |
+|----|-------|--------------|-------------------|---------------|-----------------|
+| VL1 | `supplementPolicy` | `'MANDATORY_PERCENTAGE_FOR_TICKET'` | PE1 | Primera política de porcentaje | `true` |
+| VL2 | `supplementPolicy` | `'MANDATORY_PERCENTAGE_RESERVATION'` | PE1 | Segunda política de porcentaje | `true` |
+| VL3 | `supplementPolicy` | `'MANDATORY_ONE_FOR_TICKET'` | PE2 | Política obligatoria pero no porcentaje | `false` |
+
+##### Catálogo de Pruebas
+
+| ID | Descripción | Datos de Entrada | Resultado Esperado | Pasos de Ejecución | Técnica |
+|----|-------------|------------------|-------------------|---------------------|---------|
+| CP-MP-01 | Retorna true para MANDATORY_PERCENTAGE_FOR_TICKET | `'MANDATORY_PERCENTAGE_FOR_TICKET'` | `true` | 1. Importar `isMandatoryPercentage`<br>2. Ejecutar con valor<br>3. Verificar retorno `true` | PE1, VL1 |
+| CP-MP-02 | Retorna true para MANDATORY_PERCENTAGE_RESERVATION | `'MANDATORY_PERCENTAGE_RESERVATION'` | `true` | 1. Ejecutar con valor<br>2. Verificar retorno `true` | PE1, VL2 |
+| CP-MP-03 | Retorna false para MANDATORY_ONE_FOR_TICKET | `'MANDATORY_ONE_FOR_TICKET'` | `false` | 1. Ejecutar con valor<br>2. Verificar retorno `false` | PE2, VL3 |
+| CP-MP-04 | Retorna false para OPTIONAL_UNLIMITED_AMOUNT | `'OPTIONAL_UNLIMITED_AMOUNT'` | `false` | 1. Ejecutar con valor<br>2. Verificar retorno `false` | PE2 |
+| CP-MP-05 | Retorna false para OPTIONAL_MAX_AMOUNT_PER_TICKET | `'OPTIONAL_MAX_AMOUNT_PER_TICKET'` | `false` | 1. Ejecutar con valor<br>2. Verificar retorno `false` | PE2 |
+| CP-MP-06 | Retorna false para OPTIONAL_MAX_AMOUNT_PER_RESERVATION | `'OPTIONAL_MAX_AMOUNT_PER_RESERVATION'` | `false` | 1. Ejecutar con valor<br>2. Verificar retorno `false` | PE2 |
 
 ---
 
@@ -165,5 +451,5 @@ El alcance incluye:
 | 5.7 | `LocalizationService` | | | | | | Pendiente |
 | 5.8 | `ConfigurationService` | | | | | | Pendiente |
 | 5.9 | `UtilService` | | | | | | Pendiente |
-| 6.1 | `additional-field.ts` helpers | | | | | | Pendiente |
-| 6.2 | `additional-item.ts` helpers | | | | | | Pendiente |
+| 6.1 | `additional-field.ts` helpers | ✅ | ✅ | - | - | 37 | Documentado |
+| 6.2 | `additional-item.ts` helpers | ✅ | ✅ | - | - | 12 | Documentado |
