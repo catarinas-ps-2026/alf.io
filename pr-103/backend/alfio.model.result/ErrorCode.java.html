@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ErrorCode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.result</a> &gt; <span class="el_source">ErrorCode.java</span></div><h1>ErrorCode.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.result;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+
+import java.util.function.Supplier;
+
+@JsonSerialize(using=ErrorCodeSerializer.class)
+public interface ErrorCode {
+
+    String DUPLICATE = &quot;duplicate&quot;;
+
+    default String getLocation() {
+<span class="fc" id="L30">        return &quot;&quot;;</span>
+    }
+
+    String getCode();
+    String getDescription();
+    Object[] getArguments();
+
+
+    @Getter
+    enum CategoryError implements ErrorCode {
+        NOT_FOUND(&quot;not_found&quot;, &quot;Category not found&quot;),
+        NOT_ENOUGH_SEATS(&quot;not_enough_tickets&quot;, &quot;Not enough seats&quot;),
+        ALL_TICKETS_ASSIGNED(&quot;all_tickets_assigned&quot;, &quot;All the tickets have already been assigned to a category. Try increasing the total seats number.&quot;),
+        EXPIRATION_AFTER_EVENT_END(&quot;expiration_after_event_end&quot;, &quot;expiration must be before the end of the event&quot;),
+        NOT_ENOUGH_FREE_TOKEN_FOR_SHRINK(&quot;not_enough_free_token_for_shrink&quot;, &quot;Cannot downsize this category: not enough free token can be removed&quot;);
+
+        private final String code;
+        private final String description;
+
+        CategoryError(String code, String description) {
+            this.code = code;
+            this.description = description;
+        }
+
+
+        @Override
+        public String toString() {
+            return description;
+        }
+
+        @Override
+        public Object[] getArguments() {
+            return null;
+        }
+    }
+
+
+    @Getter
+    enum EventError implements ErrorCode {
+        NOT_FOUND(&quot;not_found&quot;, &quot;No event has been found&quot;),
+        ACCESS_DENIED(&quot;access_denied&quot;, &quot;Access is denied&quot;);
+
+        private final String code;
+        private final String description;
+
+        EventError(String code, String description) {
+            this.code = code;
+            this.description = description;
+        }
+
+
+        @Override
+        public String toString() {
+            return description;
+        }
+
+        @Override
+        public Object[] getArguments() {
+            return null;
+        }
+    }
+
+
+    @Getter
+    enum ReservationError implements ErrorCode {
+        NOT_FOUND(&quot;not_found&quot;, &quot;No reservation has been found&quot;),
+        UPDATE_FAILED(&quot;update_failed&quot;, &quot;Update failed&quot;),
+        ACCESS_DENIED(&quot;access_denied&quot;, &quot;Access is denied&quot;);
+
+        private final String code;
+        private final String description;
+
+        ReservationError(String code, String description) {
+            this.code = code;
+            this.description = description;
+        }
+
+
+        @Override
+        public String toString() {
+            return description;
+        }
+
+        @Override
+        public Object[] getArguments() {
+            return null;
+        }
+    }
+
+    static ErrorCode custom(String code, String description) {
+<span class="fc" id="L120">        return new ErrorCode() {</span>
+            @Override
+            public String getCode() {
+                return code;
+            }
+
+            @Override
+            public String getDescription() {
+                return description;
+            }
+
+            @Override
+            public String toString() {
+                return description;
+            }
+
+            @Override
+            public Object[] getArguments() {
+                return null;
+            }
+        };
+    }
+
+    static ErrorCode lazy(Supplier&lt;ErrorCode&gt; supplier) {
+<span class="fc" id="L144">        return new ErrorCode() {</span>
+
+            private transient ErrorCode delegate = null;
+
+            @Override
+            public String getCode() {
+                return get().getCode();
+            }
+
+            @Override
+            public String getDescription() {
+                return get().getDescription();
+            }
+
+            @Override
+            public Object[] getArguments() {
+                return null;
+            }
+
+            private synchronized ErrorCode get() {
+                if(delegate != null) {
+                    return delegate;
+                }
+                delegate = supplier.get();
+                return delegate;
+            }
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
