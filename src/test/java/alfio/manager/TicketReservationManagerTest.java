@@ -25,6 +25,11 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+
+import alfio.manager.support.TemplateGenerator;
+import alfio.model.Audit.EntityType;
+import alfio.model.transaction.capabilities.WebhookHandler;
 
 import alfio.controller.form.UpdateTicketOwnerForm;
 import alfio.manager.PaymentManager.PaymentMethodDTO;
@@ -69,6 +74,7 @@ import alfio.test.util.TestUtil;
 import alfio.util.*;
 import ch.digitalfondue.npjt.AffectedRowCountAndKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.math.BigDecimal;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -80,14 +86,28 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.postgresql.util.ServerErrorMessage;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import alfio.manager.system.ConfigurationLevel;
+import alfio.manager.support.PaymentWebhookResult;
+import alfio.model.Audit;
+import alfio.model.result.ErrorCode;
+import alfio.model.subscription.MaxEntriesOverageDetails;
+import alfio.model.subscription.SubscriptionUsageExceeded;
+import alfio.model.subscription.SubscriptionUsageExceededForEvent;
+import alfio.model.transaction.PaymentContext;
+import alfio.model.transaction.PaymentProvider;
 
 class TicketReservationManagerTest {
 
@@ -143,6 +163,8 @@ class TicketReservationManagerTest {
     private PurchaseContextManager purchaseContextManager;
     private CustomOfflineConfigurationManager customOfflineConfigurationManager;
     private TicketSearchRepository ticketSearchRepository;
+    private ExtensionManager extensionManager;
+    private OrderSummaryGenerator osm;
 
     private final Set<ConfigurationKeys> BANKING_KEY = Set.of(
         INVOICE_ADDRESS,
@@ -250,7 +272,7 @@ class TicketReservationManagerTest {
         );
         GroupManager groupManager = mock(GroupManager.class);
         userRepository = mock(UserRepository.class);
-        ExtensionManager extensionManager = mock(ExtensionManager.class);
+        extensionManager = mock(ExtensionManager.class);
         billingDocumentRepository = mock(BillingDocumentRepository.class);
         when(
             ticketCategoryRepository.getByIdAndActive(anyInt(), eq(EVENT_ID))
@@ -293,7 +315,7 @@ class TicketReservationManagerTest {
         applicationEventPublisher = mock(ApplicationEventPublisher.class);
         reservationHelper = mock(ReservationEmailContentHelper.class);
         reservationCostCalculator = mock(ReservationCostCalculator.class);
-        var osm = mock(OrderSummaryGenerator.class);
+        osm = mock(OrderSummaryGenerator.class);
         var additionalServiceManager = new AdditionalServiceManager(
             additionalServiceRepository,
             additionalServiceTextRepository,
@@ -4437,15 +4459,197 @@ class TicketReservationManagerTest {
     }
 
     @Nested
-    class IssueCreditNoteForRefundTest {
+    class TicketReservationManagerExtraCoverageTest {
 
         @Test
-        void issueCreditNoteForRefund_RequiresActiveTransaction() {
+        void testIssueCreditNoteForRefund() {
+            try (MockedStatic<TransactionSynchronizationManager> mockedStatic = mockStatic(TransactionSynchronizationManager.class)) {
+                mockedStatic.when(TransactionSynchronizationManager::isActualTransactionActive).thenReturn(true);
+
+                TicketReservation reservation = mock(TicketReservation.class);
+                when(reservation.getCurrencyCode()).thenReturn("CHF");
+                when(reservation.getVatStatus()).thenReturn(PriceContainer.VatStatus.NOT_INCLUDED);
+                when(reservation.getVatPercentageOrZero()).thenReturn(BigDecimal.ZERO);
+                when(reservation.getUserLanguage()).thenReturn("en");
+                when(reservation.getId()).thenReturn(RESERVATION_ID);
+
+                PurchaseContext purchaseContext = mock(PurchaseContext.class);
+                when(purchaseContext.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+
+                when(messageSourceManager.getMessageSourceFor(any())).thenReturn(messageSource);
+                when(messageSource.getMessage(anyString(), any(), any(), any())).thenReturn("Refund");
+
+                BillingDocument billingDocument = mock(BillingDocument.class);
+                when(billingDocument.getId()).thenReturn(1L);
+                when(billingDocumentManager.createBillingDocument(any(), any(), any(), any(), any())).thenReturn(billingDocument);
+                when(organizationRepository.getById(ORGANIZATION_ID)).thenReturn(organization);
+
+                trm.issueCreditNoteForRefund(purchaseContext, reservation, BigDecimal.valueOf(50), "testuser");
+
+                verify(billingDocumentManager).createBillingDocument(eq(purchaseContext), eq(reservation), eq("testuser"), eq(BillingDocument.Type.CREDIT_NOTE), any());
+                verify(extensionManager).handleCreditNoteGenerated(eq(reservation), eq(purchaseContext), any(), eq(1L), any());
+            }
+        }
+
+        @Test
+        void testSendTransactionFailedEmail() {
+            PurchaseContext purchaseContext = mock(PurchaseContext.class);
+            when(purchaseContext.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+            when(purchaseContext.getDisplayName()).thenReturn("Event Name");
+            ConfigurationLevel cl = mock(ConfigurationLevel.class);
+            when(purchaseContext.getConfigurationLevel()).thenReturn(cl);
+            when(purchaseContext.event()).thenReturn(Optional.of(event));
+
             TicketReservation reservation = mock(TicketReservation.class);
-            java.math.BigDecimal refundAmount = java.math.BigDecimal.valueOf(50);
-            assertThrows(IllegalArgumentException.class, () ->
-                trm.issueCreditNoteForRefund(event, reservation, refundAmount, "testuser")
-            );
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+            when(reservation.getEmail()).thenReturn("test@test.com");
+            when(reservation.getUserLanguage()).thenReturn("en");
+            when(reservation.getValidity()).thenReturn(new Date(0)); // past date
+            when(reservation.getFirstName()).thenReturn("First");
+            when(reservation.getLastName()).thenReturn("Last");
+            when(reservation.getFullName()).thenReturn("First Last");
+
+            PaymentWebhookResult paymentWebhookResult = mock(PaymentWebhookResult.class);
+            when(paymentWebhookResult.getReason()).thenReturn("Failure reason");
+
+            when(organizationRepository.getById(ORGANIZATION_ID)).thenReturn(organization);
+            when(messageSourceManager.getMessageSourceFor(any())).thenReturn(messageSource);
+            when(messageSource.getMessage(anyString(), any(), any())).thenReturn("Subject");
+
+            MaybeConfiguration notifyAll = mock(MaybeConfiguration.class);
+            when(configurationManager.getFor(eq(ConfigurationKeys.NOTIFY_ALL_FAILED_PAYMENT_ATTEMPTS), any())).thenReturn(notifyAll);
+            when(notifyAll.getValueAsBooleanOrDefault()).thenReturn(true);
+            
+            MaybeConfiguration slackTime = mock(MaybeConfiguration.class);
+            when(configurationManager.getFor(eq(ConfigurationKeys.RESERVATION_MIN_TIMEOUT_AFTER_FAILED_PAYMENT), any())).thenReturn(slackTime);
+            when(slackTime.getValueAsIntOrDefault(anyInt())).thenReturn(10);
+            when(configurationManager.getShortReservationID(any(), any())).thenReturn("short-id");
+
+            Transaction transaction = mock(Transaction.class);
+            PaymentProvider provider = mock(PaymentProvider.class);
+            PaymentMethod pm = mock(PaymentMethod.class);
+            when(pm.name()).thenReturn("TEST_PM");
+            when(provider.getPaymentMethodForTransaction(any())).thenReturn(pm);
+
+            PaymentContext paymentContext = mock(PaymentContext.class);
+            when(paymentContext.getConfigurationLevel()).thenReturn(cl);
+
+            when(paymentWebhookResult.getType()).thenReturn(PaymentWebhookResult.Type.FAILED);
+            
+            when(osm.orderSummaryForReservation(any(), any())).thenReturn(mock(OrderSummary.class));
+            when(ticketReservationRepository.remove(anyList())).thenReturn(1);
+            when(configurationManager.getFor(eq(ConfigurationKeys.GLOBAL_PRIVACY_POLICY), any())).thenReturn(new MaybeConfiguration(ConfigurationKeys.GLOBAL_PRIVACY_POLICY));
+
+            ReflectionTestUtils.invokeMethod(trm, "handlePaymentWebhookResult", purchaseContext, provider, paymentWebhookResult, reservation, transaction, paymentContext, "test", false);
+
+            verify(notificationManager, atLeastOnce()).sendSimpleEmail(any(PurchaseContext.class), anyString(), anyString(), anyString(), any(TemplateGenerator.class), anyList());
+        }
+
+        @Test
+        void testFindStuckPaymentsToBeNotified_Lambda() {
+            Date expirationDate = new Date();
+            ReservationIdAndEventId stuckId = mock(ReservationIdAndEventId.class);
+            when(stuckId.getId()).thenReturn(RESERVATION_ID);
+            when(stuckId.getEventId()).thenReturn(EVENT_ID);
+
+            when(ticketReservationRepository.findStuckReservationsForUpdate(any())).thenReturn(List.of(stuckId));
+            when(eventRepository.findByIds(any())).thenReturn(List.of(event));
+            when(event.event()).thenReturn(Optional.of(event));
+            when(ticketReservationRepository.findReservationById(RESERVATION_ID)).thenReturn(ticketReservation);
+            when(ticketReservation.getFirstName()).thenReturn("First");
+            when(ticketReservation.getLastName()).thenReturn("Last");
+            when(ticketReservation.getFullName()).thenReturn("First Last");
+
+            when(transactionRepository.loadOptionalByReservationIdAndStatusForUpdate(RESERVATION_ID, Transaction.Status.PENDING)).thenReturn(Optional.empty());
+
+            trm.markExpiredInPaymentReservationAsStuck(expirationDate);
+
+            Transaction transaction = mock(Transaction.class);
+            when(transactionRepository.loadOptionalByReservationIdAndStatusForUpdate(RESERVATION_ID, Transaction.Status.PENDING)).thenReturn(Optional.of(transaction));
+            when(transactionRepository.loadOptionalByReservationId(RESERVATION_ID)).thenReturn(Optional.empty());
+
+            trm.markExpiredInPaymentReservationAsStuck(expirationDate);
+
+            when(transactionRepository.loadOptionalByReservationId(RESERVATION_ID)).thenReturn(Optional.of(transaction));
+            when(transaction.getMetadata()).thenReturn(Map.of(Transaction.SELECTED_PAYMENT_METHOD_KEY, "TEST"));
+            
+            when(reservationCostCalculator.totalReservationCostWithVAT(any(TicketReservation.class))).thenReturn(Pair.of(totalPrice, Optional.empty()));
+            when(osm.orderSummaryForReservation(any(), any())).thenReturn(mock(OrderSummary.class));
+            when(configurationManager.getFor(eq(ConfigurationKeys.GLOBAL_PRIVACY_POLICY), any())).thenReturn(new MaybeConfiguration(ConfigurationKeys.GLOBAL_PRIVACY_POLICY));
+            TicketReservationStatusAndValidation trsv = mock(TicketReservationStatusAndValidation.class);
+            when(trsv.getStatus()).thenReturn(TicketReservationStatus.COMPLETE);
+            when(ticketReservationRepository.findOptionalStatusAndValidationById(RESERVATION_ID)).thenReturn(Optional.of(trsv));
+
+            WebhookHandler handler = mock(WebhookHandler.class, withSettings().extraInterfaces(PaymentProvider.class));
+            when(paymentManager.lookupProviderByTransactionAndCapabilities(any(), any())).thenReturn(Optional.of((PaymentProvider)handler));
+            PaymentWebhookResult pwr = mock(PaymentWebhookResult.class);
+            
+            PaymentToken pt = mock(PaymentToken.class);
+            when(pt.getPaymentProvider()).thenReturn(PaymentProxy.STRIPE);
+            when(pwr.getPaymentToken()).thenReturn(pt);
+            
+            when(handler.forceTransactionCheck(any(), any(), any())).thenReturn(pwr);
+            when(pwr.getType()).thenReturn(PaymentWebhookResult.Type.NOT_RELEVANT);
+
+            trm.markExpiredInPaymentReservationAsStuck(expirationDate);
+
+            when(pwr.getType()).thenReturn(PaymentWebhookResult.Type.SUCCESSFUL);
+
+            trm.markExpiredInPaymentReservationAsStuck(expirationDate);
+
+            verify(ticketReservationRepository, atLeastOnce()).updateReservationsStatus(any(), eq(TicketReservationStatus.STUCK.name()));
+        }
+
+        @Test
+        void testApplySubscriptionCode_Lambda() {
+            UUID subId = UUID.randomUUID();
+            Subscription subscription = mock(Subscription.class);
+            when(subscriptionRepository.findSubscriptionByIdForUpdate(subId)).thenReturn(subscription);
+            when(subscription.isValid()).thenReturn(true);
+            when(subscription.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+            when(subscription.getSubscriptionDescriptorId()).thenReturn(UUID.randomUUID());
+            when(subscription.getMaxEntries()).thenReturn(-1);
+
+            SubscriptionDescriptor sd = mock(SubscriptionDescriptor.class);
+            when(sd.getUsageType()).thenReturn(null);
+
+            EventSubscriptionLink link = mock(EventSubscriptionLink.class);
+            when(subscriptionRepository.findLink(anyInt(), any(), anyInt())).thenReturn(Optional.of(link));
+            when(ticketRepository.countSubscriptionUsage(any(), any())).thenReturn(0);
+
+            UncategorizedSQLException sqlEx = new UncategorizedSQLException("task", "sql", new java.sql.SQLException("error"));
+            doThrow(sqlEx).when(ticketReservationRepository).applySubscription(any(), any());
+
+            try (MockedStatic<SqlUtils> mockedSqlUtils = mockStatic(SqlUtils.class)) {
+                ServerErrorMessage sem = mock(ServerErrorMessage.class);
+                mockedSqlUtils.when(() -> SqlUtils.findServerError(sqlEx)).thenReturn(Optional.of(sem));
+
+                when(sem.getMessage()).thenReturn(null);
+                assertThrows(UncategorizedSQLException.class, () -> trm.applySubscriptionCode(EVENT_ID, ticketReservation, sd, subId));
+
+                when(sem.getMessage()).thenReturn(SubscriptionUsageExceeded.ERROR);
+                when(sem.getDetail()).thenReturn("{\"allowed\": 1, \"requested\": 2}");
+                when(json.fromJsonString(anyString(), eq(MaxEntriesOverageDetails.class))).thenReturn(new MaxEntriesOverageDetails(1, 2));
+                assertThrows(SubscriptionUsageExceeded.class, () -> trm.applySubscriptionCode(EVENT_ID, ticketReservation, sd, subId));
+
+                when(sem.getMessage()).thenReturn("OTHER_ERROR");
+                assertThrows(SubscriptionUsageExceededForEvent.class, () -> trm.applySubscriptionCode(EVENT_ID, ticketReservation, sd, subId));
+            }
+        }
+
+        @Test
+        void testDiscardMatchingPayment_Lambda() {
+            when(eventRepository.findOptionalByShortName(EVENT_NAME)).thenReturn(Optional.of(event));
+            when(ticketReservationRepository.findOptionalReservationById(RESERVATION_ID)).thenReturn(Optional.of(ticketReservation));
+            Transaction transaction = mock(Transaction.class);
+            when(transactionRepository.loadOptionalByIdAndStatus(123, Transaction.Status.OFFLINE_PENDING_REVIEW)).thenReturn(Optional.of(transaction));
+            when(transactionRepository.discardMatchingPayment(123)).thenReturn(1);
+
+            Result<Boolean> result = trm.discardMatchingPayment(EVENT_NAME, RESERVATION_ID, 123);
+
+            Assertions.assertTrue(result.isSuccess());
+            verify(auditingRepository).insert(eq(RESERVATION_ID), isNull(), eq(EVENT_ID), eq(Audit.EventType.MATCHING_PAYMENT_DISCARDED), any(), eq(EntityType.RESERVATION), eq(RESERVATION_ID));
+            verify(transactionRepository).discardMatchingPayment(123);
         }
     }
 }
