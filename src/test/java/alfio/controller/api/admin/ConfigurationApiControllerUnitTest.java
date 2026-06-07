@@ -315,7 +315,7 @@ class ConfigurationApiControllerUnitTest {
             ConfigurationKeys.DESCRIPTION_MAXLENGTH, maxLengthConfig,
             ConfigurationKeys.BASE_URL, baseUrlConfig
         );
-        when(configurationManager.getFor(EnumSet.of(ConfigurationKeys.DESCRIPTION_MAXLENGTH, ConfigurationKeys.BASE_URL), ConfigurationLevel.system()))
+        when(configurationManager.getFor(eq(EnumSet.of(ConfigurationKeys.DESCRIPTION_MAXLENGTH, ConfigurationKeys.BASE_URL)), any(ConfigurationLevel.class)))
             .thenReturn(settings);
 
         ConfigurationApiController.InstanceSettings result = controller.loadInstanceSettings();
@@ -341,7 +341,7 @@ class ConfigurationApiControllerUnitTest {
             ConfigurationKeys.STRIPE_CONNECTED_ID, stripeConfig,
             ConfigurationKeys.MOLLIE_CONNECT_REFRESH_TOKEN, mollieConfig
         );
-        when(configurationManager.getFor(List.of(ConfigurationKeys.STRIPE_CONNECTED_ID, ConfigurationKeys.MOLLIE_CONNECT_REFRESH_TOKEN), ConfigurationLevel.organization(orgId)))
+        when(configurationManager.getFor(eq(List.of(ConfigurationKeys.STRIPE_CONNECTED_ID, ConfigurationKeys.MOLLIE_CONNECT_REFRESH_TOKEN)), any(ConfigurationLevel.class)))
             .thenReturn(options);
 
         Map<String, Boolean> result = controller.loadPlatformModeStatus(orgId, principal);
@@ -446,7 +446,7 @@ class ConfigurationApiControllerUnitTest {
     void loadTranslations_returnsTranslations() {
         ConfigurationManager.MaybeConfiguration config = mock(ConfigurationManager.MaybeConfiguration.class);
         when(config.getValue()).thenReturn(Optional.of("{\"en\": {\"key\": \"value\"}}"));
-        when(configurationManager.getFor(ConfigurationKeys.TRANSLATION_OVERRIDE, ConfigurationLevel.system())).thenReturn(config);
+        when(configurationManager.getFor(eq(ConfigurationKeys.TRANSLATION_OVERRIDE), any(ConfigurationLevel.class))).thenReturn(config);
 
         Map<String, Map<String, String>> result = controller.loadTranslations();
 
