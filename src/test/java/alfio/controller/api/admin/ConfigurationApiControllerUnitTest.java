@@ -26,7 +26,6 @@ import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
 import alfio.model.Event;
-import alfio.model.EventAndOrganizationId;
 import alfio.model.modification.ConfigurationModification;
 import alfio.model.system.Configuration;
 import alfio.model.system.ConfigurationKeys;
@@ -39,8 +38,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.security.Principal;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -115,9 +112,7 @@ class ConfigurationApiControllerUnitTest {
 
     @Test
     void updateConfiguration_single_updatesSystemConfig() {
-        ConfigurationModification modification = new ConfigurationModification();
-        modification.setKey("BASE_URL");
-        modification.setValue("https://example.com");
+        ConfigurationModification modification = new ConfigurationModification(1, "BASE_URL", "https://example.com");
 
         boolean result = controller.updateConfiguration(modification, principal);
 
@@ -128,12 +123,10 @@ class ConfigurationApiControllerUnitTest {
 
     @Test
     void updateConfiguration_bulk_updatesSystemConfigs() {
-        ConfigurationModification mod1 = new ConfigurationModification();
-        mod1.setKey("BASE_URL");
-        mod1.setValue("https://example.com");
+        ConfigurationModification mod1 = new ConfigurationModification(1, "BASE_URL", "https://example.com");
 
         Map<ConfigurationKeys.SettingCategory, List<ConfigurationModification>> input = Map.of(
-            ConfigurationKeys.SettingCategory.SYSTEM, List.of(mod1)
+            ConfigurationKeys.SettingCategory.GENERAL, List.of(mod1)
         );
 
         boolean result = controller.updateConfiguration(input, principal);
@@ -159,12 +152,10 @@ class ConfigurationApiControllerUnitTest {
     @Test
     void updateOrganizationConfiguration_checksOwnershipAndSaves() {
         int orgId = 42;
-        ConfigurationModification mod = new ConfigurationModification();
-        mod.setKey("VAT_NR");
-        mod.setValue("CHE-123");
+        ConfigurationModification mod = new ConfigurationModification(1, "VAT_NR", "CHE-123");
 
         Map<ConfigurationKeys.SettingCategory, List<ConfigurationModification>> input = Map.of(
-            ConfigurationKeys.SettingCategory.ORGANIZATION, List.of(mod)
+            ConfigurationKeys.SettingCategory.GENERAL, List.of(mod)
         );
 
         boolean result = controller.updateOrganizationConfiguration(orgId, input, principal);
