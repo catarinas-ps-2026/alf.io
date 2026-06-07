@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Audit.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model</a> &gt; <span class="el_source">Audit.java</span></div><h1>Audit.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model;
+
+import alfio.util.Json;
+import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.Getter;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+@Getter
+public class Audit {
+
+    public enum EntityType {
+        EVENT, TICKET, RESERVATION, SUBSCRIPTION
+    }
+
+    public enum EventType {
+        RESERVATION_CREATE,
+        RESERVATION_COMPLETE,
+        RESERVATION_OFFLINE_PAYMENT_CONFIRMED,
+        CANCEL_RESERVATION_EXPIRED,
+        CANCEL_RESERVATION,
+        RESET_PAYMENT,
+        INIT_PAYMENT,
+        UPDATE_EVENT,
+        CANCEL_TICKET,
+        PAYMENT_CONFIRMED,
+        PAYMENT_ALREADY_CONFIRMED,
+        REFUND,
+        REFUND_ATTEMPT_FAILED,
+        CHECK_IN,
+        MANUAL_CHECK_IN,
+        REVERT_CHECK_IN,
+        BADGE_SCAN,
+        UPDATE_TICKET,
+        TICKET_HOLDER_CHANGED,
+        TAG_TICKET,
+        UNTAG_TICKET,
+        UPDATE_TICKET_CATEGORY,
+        UPDATE_INVOICE,
+        FORCED_UPDATE_INVOICE,
+        TERMS_CONDITION_ACCEPTED,
+        PRIVACY_POLICY_ACCEPTED,
+        EXTERNAL_INVOICE_NUMBER,
+        EXTERNAL_CREDIT_NOTE_NUMBER,
+        VAT_VALIDATION_SUCCESSFUL,
+        VAT_FORMAL_VALIDATION_SUCCESSFUL,
+        VAT_VALIDATION_SKIPPED,
+        VAT_CUSTOM_CONFIGURATION_APPLIED,
+        GROUP_MEMBER_ACQUIRED,
+        CREDIT_NOTE_ISSUED,
+        BILLING_DATA_UPDATED,
+        BILLING_DOCUMENT_GENERATED,
+        BILLING_DOCUMENT_INVALIDATED,
+        BILLING_DOCUMENT_RESTORED,
+        FORCE_VAT_APPLICATION,
+        PAYMENT_FAILED,
+        MATCHING_PAYMENT_FOUND,
+        MATCHING_PAYMENT_DISCARDED,
+        AUTOMATIC_PAYMENT_CONFIRMATION,
+        AUTOMATIC_PAYMENT_CONFIRMATION_FAILED,
+        DYNAMIC_DISCOUNT_CODE_CREATED,
+        SUBSCRIPTION_ACQUIRED,
+        UPDATE_TICKET_METADATA, WARNING_IGNORED
+    }
+
+    private final String reservationId;
+    private final EventType eventType;
+    private final Date eventTime;
+    private final EntityType entityType;
+    private final String entityId;
+    private final List&lt;Map&lt;String, Object&gt;&gt; modifications;
+    private final String username;
+    private final String firstName;
+    private final String lastName;
+    private final String email;
+
+
+    public Audit(@Column(&quot;reservation_id&quot;) String reservationId, @Column(&quot;event_type&quot;) EventType eventType,
+                 @Column(&quot;event_time&quot;) Date eventTime, @Column(&quot;entity_type&quot;) EntityType entityType,
+                 @Column(&quot;entity_id&quot;) String entityId, @Column(&quot;modifications&quot;) String modifications,
+                 @Column(&quot;username&quot;) String username, @Column(&quot;first_name&quot;) String firstName,
+<span class="nc" id="L101">                 @Column(&quot;last_name&quot;) String lastName, @Column(&quot;email_address&quot;) String email) {</span>
+<span class="nc" id="L102">        this.reservationId = reservationId;</span>
+<span class="nc" id="L103">        this.eventType = eventType;</span>
+<span class="nc" id="L104">        this.eventTime = eventTime;</span>
+<span class="nc" id="L105">        this.entityType = entityType;</span>
+<span class="nc" id="L106">        this.entityId = entityId;</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        this.modifications = modifications == null ? null : Json.fromJson(modifications, new TypeReference&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt;() {});</span>
+<span class="nc" id="L108">        this.username = username;</span>
+<span class="nc" id="L109">        this.firstName = firstName;</span>
+<span class="nc" id="L110">        this.lastName = lastName;</span>
+<span class="nc" id="L111">        this.email = email;</span>
+<span class="nc" id="L112">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

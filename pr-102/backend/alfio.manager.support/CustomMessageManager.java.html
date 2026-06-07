@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomMessageManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.support</a> &gt; <span class="el_source">CustomMessageManager.java</span></div><h1>CustomMessageManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.support;
+
+import alfio.manager.EventManager;
+import alfio.manager.ExtensionManager;
+import alfio.manager.NotificationManager;
+import alfio.manager.TicketReservationManager;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.system.Mailer;
+import alfio.model.*;
+import alfio.model.modification.MessageModification;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.user.Organization;
+import alfio.repository.EventRepository;
+import alfio.repository.TicketCategoryRepository;
+import alfio.repository.TicketRepository;
+import alfio.util.*;
+import alfio.util.checkin.TicketCheckInUtil;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Triple;
+import org.springframework.stereotype.Component;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+
+import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+import static alfio.manager.system.Mailer.AttachmentIdentifier.CALENDAR_ICS;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+@Component
+@AllArgsConstructor
+public class CustomMessageManager {
+
+    private final TemplateManager templateManager;
+    private final EventManager eventManager;
+    private final TicketRepository ticketRepository;
+    private final TicketReservationManager ticketReservationManager;
+    private final NotificationManager notificationManager;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final Executor sendMessagesExecutor = Executors.newSingleThreadExecutor();
+    private final ConfigurationManager configurationManager;
+    private final MessageSourceManager messageSourceManager;
+    private final ExtensionManager extensionManager;
+    private final EventRepository eventRepository;
+
+    public Map&lt;String, Object&gt; generatePreview(String eventName, Optional&lt;Integer&gt; categoryId, List&lt;MessageModification&gt; input, String username) {
+<span class="nc" id="L66">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L67">        Event event = eventManager.getSingleEvent(eventName, username);</span>
+<span class="nc" id="L68">        result.put(&quot;affectedUsers&quot;, categoryId.map(id -&gt; ticketRepository.countAssignedTickets(event.getId(), id)).orElseGet(() -&gt; ticketRepository.countAllAssigned(event.getId())));</span>
+<span class="nc" id="L69">        result.put(&quot;preview&quot;, preview(event, input, username));</span>
+<span class="nc" id="L70">        return result;</span>
+    }
+
+    public void sendMessages(String eventName, Optional&lt;Integer&gt; categoryId, List&lt;MessageModification&gt; input, String username) {
+
+<span class="nc" id="L75">        Event event = eventManager.getSingleEvent(eventName, username);</span>
+<span class="nc" id="L76">        preview(event, input, username); // dry run for checking the syntax</span>
+<span class="nc" id="L77">        Organization organization = eventManager.loadOrganizer(event, username);</span>
+<span class="nc" id="L78">        Map&lt;String, List&lt;MessageModification&gt;&gt; byLanguage = input.stream().collect(Collectors.groupingBy(m -&gt; m.getLocale().getLanguage()));</span>
+<span class="nc" id="L79">        var categoriesById = ticketCategoryRepository.findByEventIdAsMap(event.getId());</span>
+<span class="nc" id="L80">        var configuration = configurationManager.getFor(EnumSet.of(ConfigurationKeys.BASE_URL,</span>
+<span class="nc" id="L81">            ConfigurationKeys.ENABLE_WALLET, ConfigurationKeys.ENABLE_PASS, ConfigurationKeys.ENABLE_HTML_EMAILS), event.getConfigurationLevel());</span>
+<span class="nc" id="L82">        var baseUrl = configuration.get(ConfigurationKeys.BASE_URL).getRequiredValue();</span>
+<span class="nc" id="L83">        boolean googleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_WALLET).getValueAsBooleanOrDefault();</span>
+<span class="nc" id="L84">        boolean appleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_PASS).getValueAsBooleanOrDefault();</span>
+
+<span class="nc" id="L86">        sendMessagesExecutor.execute(() -&gt; {</span>
+<span class="nc" id="L87">            var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="nc" id="L88">            categoryId.map(id -&gt; ticketRepository.findConfirmedByCategoryId(event.getId(), id))</span>
+<span class="nc" id="L89">                .orElseGet(() -&gt; ticketRepository.findAllConfirmed(event.getId()))</span>
+<span class="nc" id="L90">                .stream()</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">                .filter(t -&gt; isNotBlank(t.getFullName()) &amp;&amp; Validator.isEmailValid(t.getEmail()))</span>
+<span class="nc" id="L92">                .parallel()</span>
+<span class="nc" id="L93">                .map(t -&gt; {</span>
+<span class="nc" id="L94">                    Model model = new ExtendedModelMap();</span>
+<span class="nc" id="L95">                    model.addAttribute(&quot;eventName&quot;, event.getDisplayName());</span>
+<span class="nc" id="L96">                    model.addAttribute(&quot;fullName&quot;, t.getFullName());</span>
+<span class="nc" id="L97">                    model.addAttribute(&quot;organizationName&quot;, organization.getName());</span>
+<span class="nc" id="L98">                    model.addAttribute(&quot;organizationEmail&quot;, organization.getEmail());</span>
+<span class="nc" id="L99">                    model.addAttribute(&quot;reservationURL&quot;, ticketReservationManager.reservationUrl(t.getTicketsReservationId(), event));</span>
+<span class="nc" id="L100">                    model.addAttribute(&quot;reservationID&quot;, ticketReservationManager.getShortReservationID(event, t.getTicketsReservationId()));</span>
+<span class="nc" id="L101">                    model.addAttribute(&quot;ticketURL&quot;, ReservationUtil.ticketUpdateUrl(event, t, configurationManager));</span>
+<span class="nc" id="L102">                    model.addAttribute(&quot;ticketID&quot;, t.getPublicUuid().toString());</span>
+<span class="nc" id="L103">                    model.addAttribute(&quot;ticket&quot;, t);</span>
+<span class="nc" id="L104">                    return Triple.of(t, t.getEmail(), model);</span>
+                })
+<span class="nc" id="L106">                .forEach(triple -&gt; {</span>
+<span class="nc" id="L107">                    Ticket ticket = triple.getLeft();</span>
+<span class="nc" id="L108">                    MessageModification m = Optional.ofNullable(byLanguage.get(ticket.getUserLanguage())).orElseGet(() -&gt; byLanguage.get(byLanguage.keySet().stream().findFirst().orElseThrow(IllegalStateException::new))).get(0);</span>
+<span class="nc" id="L109">                    Model model = triple.getRight();</span>
+<span class="nc" id="L110">                    String subject = renderResource(m.getSubject(), event, model, m.getLocale(), templateManager);</span>
+<span class="nc" id="L111">                    StringBuilder text = new StringBuilder(renderResource(m.getText(), event, model, m.getLocale(), templateManager));</span>
+<span class="nc" id="L112">                    List&lt;Mailer.Attachment&gt; attachments = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L113">                    var templateModel = new HashMap&lt;&gt;(model.asMap());</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                    if(m.isAttachTicket()) {</span>
+<span class="nc" id="L115">                        var optionalReservation = ticketReservationManager.findById(ticket.getTicketsReservationId());</span>
+<span class="nc" id="L116">                        var optionalTicketCategory = ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId());</span>
+<span class="nc bnc" id="L117" title="All 4 branches missed.">                        boolean onlineTicket = optionalTicketCategory.isPresent() &amp;&amp; EventUtil.isAccessOnline(optionalTicketCategory.get(), event);</span>
+
+<span class="nc bnc" id="L119" title="All 4 branches missed.">                        if(optionalReservation.isPresent() &amp;&amp; onlineTicket) {</span>
+<span class="nc" id="L120">                            var onlineCheckInModel = new HashMap&lt;&gt;(TicketCheckInUtil.getOnlineCheckInInfo(</span>
+                                extensionManager,
+                                eventRepository,
+                                ticketCategoryRepository,
+                                configurationManager,
+                                event,
+<span class="nc" id="L126">                                Locale.forLanguageTag(ticket.getUserLanguage()),</span>
+                                ticket,
+<span class="nc" id="L128">                                categoriesById.get(ticket.getCategoryId()),</span>
+<span class="nc" id="L129">                                ticketReservationManager.retrieveAttendeeAdditionalInfoForTicket(ticket)</span>
+                            ));
+                            // add ticket model in order to be able to generate the calendar invitation
+<span class="nc" id="L132">                            onlineCheckInModel.putAll(getModelForTicket(ticket, optionalReservation.get(), optionalTicketCategory.get(), organization));</span>
+                            // generate only calendar invitation, as Ticket PDF would not make sense in this case.
+<span class="nc" id="L134">                            attachments.add(generateCalendarAttachmentForOnlineEvent(onlineCheckInModel));</span>
+                            // add check-in URL and prerequisites, if any
+<span class="nc" id="L136">                            text.append(notificationManager.buildOnlineCheckInText(onlineCheckInModel, Locale.forLanguageTag(ticket.getUserLanguage()), messageSource));</span>
+<span class="nc" id="L137">                            templateModel.putAll(onlineCheckInModel);</span>
+<span class="nc bnc" id="L138" title="All 4 branches missed.">                        } else if(optionalReservation.isPresent() &amp;&amp; optionalTicketCategory.isPresent()) {</span>
+<span class="nc" id="L139">                            boolean htmlEmailsEnabled = configuration.get(ConfigurationKeys.ENABLE_HTML_EMAILS).getValueAsBooleanOrDefault();</span>
+<span class="nc" id="L140">                            attachments.add(generateTicketAttachment(ticket, optionalReservation.get(), optionalTicketCategory.get(), organization, htmlEmailsEnabled));</span>
+                        }
+<span class="nc bnc" id="L142" title="All 4 branches missed.">                        templateModel.put(&quot;googleWalletEnabled&quot;, googleWalletEnabled &amp;&amp; !onlineTicket);</span>
+<span class="nc bnc" id="L143" title="All 4 branches missed.">                        templateModel.put(&quot;appleWalletEnabled&quot;, appleWalletEnabled &amp;&amp; !onlineTicket);</span>
+<span class="nc bnc" id="L144" title="All 6 branches missed.">                        templateModel.put(&quot;walletEnabled&quot;, (googleWalletEnabled || appleWalletEnabled) &amp;&amp; !onlineTicket);</span>
+<span class="nc" id="L145">                    } else {</span>
+                        // ticket attachment was not requested. Do not display wallet
+<span class="nc" id="L147">                        templateModel.put(&quot;googleWalletEnabled&quot;, false);</span>
+<span class="nc" id="L148">                        templateModel.put(&quot;appleWalletEnabled&quot;, false);</span>
+<span class="nc" id="L149">                        templateModel.put(&quot;walletEnabled&quot;, false);</span>
+                    }
+<span class="nc" id="L151">                    templateModel.put(&quot;message&quot;, text);</span>
+<span class="nc" id="L152">                    templateModel.put(&quot;event&quot;, event);</span>
+<span class="nc" id="L153">                    templateModel.put(&quot;baseUrl&quot;, baseUrl);</span>
+<span class="nc" id="L154">                    notificationManager.sendSimpleEmail(event, ticket.getTicketsReservationId(), triple.getMiddle(), subject,</span>
+<span class="nc" id="L155">                        () -&gt; templateManager.renderTemplate(event, TemplateResource.CUSTOM_MESSAGE, templateModel, Locale.forLanguageTag(ticket.getUserLanguage())), attachments);</span>
+<span class="nc" id="L156">                });</span>
+<span class="nc" id="L157">        });</span>
+
+<span class="nc" id="L159">    }</span>
+
+    private List&lt;MessageModification&gt; preview(Event event, List&lt;MessageModification&gt; input, String username) {
+<span class="nc" id="L162">        Model model = new ExtendedModelMap();</span>
+<span class="nc" id="L163">        Organization organization = eventManager.loadOrganizer(event, username);</span>
+<span class="nc" id="L164">        model.addAttribute(&quot;eventName&quot;, event.getDisplayName());</span>
+<span class="nc" id="L165">        model.addAttribute(&quot;fullName&quot;, &quot;John Doe&quot;);</span>
+<span class="nc" id="L166">        model.addAttribute(&quot;organizationName&quot;, organization.getName());</span>
+<span class="nc" id="L167">        model.addAttribute(&quot;organizationEmail&quot;, organization.getEmail());</span>
+<span class="nc" id="L168">        model.addAttribute(&quot;reservationURL&quot;, &quot;https://this-is-the-reservation-url&quot;);</span>
+<span class="nc" id="L169">        model.addAttribute(&quot;ticketURL&quot;, &quot;https://this-is-the-ticket-url&quot;);</span>
+<span class="nc" id="L170">        model.addAttribute(&quot;reservationID&quot;, &quot;RESID&quot;);</span>
+<span class="nc" id="L171">        model.addAttribute(&quot;ticketID&quot;, &quot;TICKETID&quot;);</span>
+<span class="nc" id="L172">        return input.stream()</span>
+<span class="nc" id="L173">                .map(m -&gt; MessageModification.preview(m, renderResource(m.getSubject(), event, model, m.getLocale(), templateManager),</span>
+<span class="nc" id="L174">                    renderResource(m.getText(), event, model, m.getLocale(), templateManager), m.isAttachTicket()))</span>
+<span class="nc" id="L175">                .collect(Collectors.toList());</span>
+    }
+
+    public static Mailer.Attachment generateTicketAttachment(Ticket ticket,
+                                                             TicketReservation reservation,
+                                                             TicketCategory ticketCategory,
+                                                             Organization organization,
+                                                             boolean htmlEmailEnabled) {
+<span class="fc" id="L183">        Map&lt;String, String&gt; model = getModelForTicket(ticket, reservation, ticketCategory, organization);</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (htmlEmailEnabled) {</span>
+<span class="fc" id="L185">            model.put(Mailer.SKIP_PASSBOOK, &quot;true&quot;);</span>
+        }
+<span class="fc" id="L187">        return new Mailer.Attachment(&quot;ticket-&quot; + ticket.getPublicUuid() + &quot;.pdf&quot;, null, &quot;application/pdf&quot;, model, Mailer.AttachmentIdentifier.TICKET_PDF);</span>
+    }
+
+    private static Map&lt;String, String&gt; getModelForTicket(Ticket ticket, TicketReservation reservation, TicketCategory ticketCategory, Organization organization) {
+<span class="fc" id="L191">        Map&lt;String, String&gt; model = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L192">        model.put(&quot;ticket&quot;, Json.toJson(ticket));</span>
+<span class="fc" id="L193">        model.put(&quot;ticketCategory&quot;, Json.toJson(ticketCategory));</span>
+<span class="fc" id="L194">        model.put(&quot;reservationId&quot;, reservation.getId());</span>
+<span class="fc" id="L195">        model.put(&quot;organizationId&quot;, Integer.toString(organization.getId()));</span>
+<span class="fc" id="L196">        return model;</span>
+    }
+
+    public static Mailer.Attachment generateCalendarAttachmentForOnlineEvent(Event event,
+                                                                             Ticket ticket,
+                                                                             Locale attachmentLanguage,
+                                                                             TicketReservation reservation,
+                                                                             TicketCategory ticketCategory,
+                                                                             Organization organization,
+                                                                             ExtensionManager extensionManager,
+                                                                             EventRepository eventRepository,
+                                                                             TicketCategoryRepository ticketCategoryRepository,
+                                                                             ConfigurationManager configurationManager,
+                                                                             Map&lt;String, List&lt;String&gt;&gt; ticketAdditionalInfo) {
+<span class="nc" id="L210">        var model = getModelForTicket(ticket, reservation, ticketCategory, organization);</span>
+<span class="nc" id="L211">        model.putAll(TicketCheckInUtil.getOnlineCheckInInfo(</span>
+            extensionManager,
+            eventRepository,
+            ticketCategoryRepository,
+            configurationManager,
+            event,
+            attachmentLanguage,
+            ticket,
+            ticketCategory,
+            ticketAdditionalInfo
+        ));
+<span class="nc" id="L222">        return generateCalendarAttachmentForOnlineEvent(model);</span>
+    }
+
+    public static Mailer.Attachment generateCalendarAttachmentForOnlineEvent(Map&lt;String, String&gt; model) {
+<span class="fc" id="L226">        return new Mailer.Attachment(CALENDAR_ICS.fileName(&quot;&quot;), null, CALENDAR_ICS.contentType(&quot;&quot;), model, CALENDAR_ICS);</span>
+    }
+
+    private static String renderResource(String template, PurchaseContext purchaseContext, Model model, Locale locale, TemplateManager templateManager) {
+<span class="nc" id="L230">        return templateManager.renderString(purchaseContext, template, model.asMap(), locale, TemplateManager.TemplateOutput.TEXT);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
