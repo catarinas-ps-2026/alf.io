@@ -79,7 +79,7 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void createNew_withSubscriptionType_returnsError() {
-        AdminReservationModification modification = new AdminReservationModification();
+        AdminReservationModification modification = mock(AdminReservationModification.class);
         Result<String> result = controller.createNew(PurchaseContextType.subscription, "sub-1", modification, principal);
         assertFalse(result.isSuccess());
         assertEquals("not_found", result.getFirstErrorOrNull().getCode());
@@ -87,7 +87,7 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void createNew_withEventType_delegatesToManager() {
-        AdminReservationModification modification = new AdminReservationModification();
+        AdminReservationModification modification = mock(AdminReservationModification.class);
         TicketReservation mockReservation = mock(TicketReservation.class);
         when(mockReservation.getId()).thenReturn("RES-123");
         when(adminReservationManager.createReservation(modification, "event-1", "admin"))
@@ -108,7 +108,7 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void findAll_purchaseContextNotFound_returnsEmptyPage() {
-        when(purchaseContextManager.findBy(PurchaseContextType.event, "event-1")).thenReturn(Optional.empty());
+        doReturn(Optional.empty()).when(purchaseContextManager).findBy(PurchaseContextType.event, "event-1");
 
         PageAndContent<List<TicketReservation>> result = controller.findAll(PurchaseContextType.event, "event-1", 0, "search", List.of(), principal);
 
@@ -121,7 +121,7 @@ class AdminReservationApiControllerUnitTest {
     void findAll_purchaseContextFound_returnsReservations() {
         PurchaseContext context = mock(PurchaseContext.class);
         when(context.getOrganizationId()).thenReturn(42);
-        when(purchaseContextManager.findBy(PurchaseContextType.event, "event-1")).thenReturn(Optional.of(context));
+        doReturn(Optional.of(context)).when(purchaseContextManager).findBy(PurchaseContextType.event, "event-1");
 
         List<TicketReservation> list = List.of(mock(TicketReservation.class));
         when(purchaseContextSearchManager.findAllReservationsFor(context, 0, "search", List.of()))
@@ -157,7 +157,7 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void updateReservation_delegatesToManager() {
-        AdminReservationModification arm = new AdminReservationModification();
+        AdminReservationModification arm = mock(AdminReservationModification.class);
         when(adminReservationManager.updateReservation(PurchaseContextType.event, "event-1", "RES-123", arm, "admin"))
             .thenReturn(Result.success(true));
 
@@ -170,7 +170,7 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void notifyReservation_delegatesToManager() {
-        AdminReservationModification arm = new AdminReservationModification();
+        AdminReservationModification arm = mock(AdminReservationModification.class);
         when(adminReservationManager.notify(PurchaseContextType.event, "event-1", "RES-123", arm, "admin"))
             .thenReturn(Result.success(true));
 
@@ -268,6 +268,7 @@ class AdminReservationApiControllerUnitTest {
     void getBillingDocument_success_returnsOk() {
         byte[] pdfBytes = "pdf-content".getBytes();
         BillingDocument doc = mock(BillingDocument.class);
+        when(doc.getType()).thenReturn(BillingDocument.Type.RECEIPT);
         Pair<BillingDocument, byte[]> pdfPair = Pair.of(doc, pdfBytes);
         when(adminReservationManager.getSingleBillingDocumentAsPdf(PurchaseContextType.event, "event-1", "RES-123", 456L, "admin"))
             .thenReturn(Result.success(pdfPair));
@@ -278,6 +279,7 @@ class AdminReservationApiControllerUnitTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         verify(accessService).checkReservationOwnership(principal, PurchaseContextType.event, "event-1", "RES-123");
     }
+
 
     @Test
     void getBillingDocument_notFound_returnsNotFound() {
