@@ -311,7 +311,10 @@ public class CheckInManager {
                     return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(INVALID_TICKET_CATEGORY_CHECK_IN_DATE, "Not allowed to check in at this time."));
                 }
                 var ticketsReservationId = ticket.getTicketsReservationId();
-                int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(ticketsReservationId, Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()), event.now(clockProvider));
+                var now = event.now(clockProvider);
+                var startOfDay = Date.from(now.toLocalDate().atStartOfDay(now.getZone()).toInstant());
+                var endOfDay = Date.from(now.toLocalDate().plusDays(1).atStartOfDay(now.getZone()).toInstant());
+                int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(ticketsReservationId, Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()), startOfDay, endOfDay);
                 if(previousScan > 0) {
                     return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(BADGE_SCAN_ALREADY_DONE, "Badge scan already done"));
                 }
