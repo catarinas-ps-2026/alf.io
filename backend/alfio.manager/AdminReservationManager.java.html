@@ -373,32 +373,32 @@ public class AdminReservationManager {
 <span class="fc" id="L373">        Date d = new Date();</span>
 <span class="fc" id="L374">        arm.getTicketsInfo().stream()</span>
 <span class="fc" id="L375">            .filter(TicketsInfo::isUpdateAttendees)</span>
-<span class="pc" id="L376">            .flatMap(ti -&gt; ti.getAttendees().stream())</span>
+<span class="fc" id="L376">            .flatMap(ti -&gt; ti.getAttendees().stream())</span>
 <span class="fc" id="L377">            .forEach(a -&gt; {</span>
-<span class="nc" id="L378">                String email = trimToNull(a.getEmailAddress());</span>
-<span class="nc" id="L379">                String firstName = trimToNull(a.getFirstName());</span>
-<span class="nc" id="L380">                String lastName = trimToNull(a.getLastName());</span>
-<span class="nc" id="L381">                String fullName = trimToNull(a.getFullName());</span>
-<span class="nc" id="L382">                ticketRepository.updateTicketOwnerById(a.getTicketId(), email, fullName, firstName, lastName);</span>
-<span class="nc" id="L383">                Integer userId = userRepository.findByUsername(username).map(User::getId).orElse(null);</span>
-<span class="nc" id="L384">                Map&lt;String, Object&gt; modifications = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L385">                modifications.put(&quot;firstName&quot;, firstName);</span>
-<span class="nc" id="L386">                modifications.put(&quot;lastName&quot;, lastName);</span>
-<span class="nc" id="L387">                modifications.put(&quot;fullName&quot;, fullName);</span>
-<span class="nc" id="L388">                auditingRepository.insert(reservationId, userId, purchaseContext, UPDATE_TICKET, d, TICKET, Integer.toString(a.getTicketId()), singletonList(modifications));</span>
-<span class="nc" id="L389">            });</span>
+<span class="fc" id="L378">                String email = trimToNull(a.getEmailAddress());</span>
+<span class="fc" id="L379">                String firstName = trimToNull(a.getFirstName());</span>
+<span class="fc" id="L380">                String lastName = trimToNull(a.getLastName());</span>
+<span class="fc" id="L381">                String fullName = trimToNull(a.getFullName());</span>
+<span class="fc" id="L382">                ticketRepository.updateTicketOwnerById(a.getTicketId(), email, fullName, firstName, lastName);</span>
+<span class="fc" id="L383">                Integer userId = userRepository.findByUsername(username).map(User::getId).orElse(null);</span>
+<span class="fc" id="L384">                Map&lt;String, Object&gt; modifications = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L385">                modifications.put(&quot;firstName&quot;, firstName);</span>
+<span class="fc" id="L386">                modifications.put(&quot;lastName&quot;, lastName);</span>
+<span class="fc" id="L387">                modifications.put(&quot;fullName&quot;, fullName);</span>
+<span class="fc" id="L388">                auditingRepository.insert(reservationId, userId, purchaseContext, UPDATE_TICKET, d, TICKET, Integer.toString(a.getTicketId()), singletonList(modifications));</span>
+<span class="fc" id="L389">            });</span>
 
-<span class="pc bpc" id="L391" title="3 of 4 branches missed.">        if(purchaseContext.getType() == PurchaseContextType.subscription &amp;&amp; arm.getSubscriptionDetails() != null) {</span>
-<span class="nc" id="L392">            var subscriptionDetailsModification = arm.getSubscriptionDetails();</span>
+<span class="pc bpc" id="L391" title="1 of 4 branches missed.">        if(purchaseContext.getType() == PurchaseContextType.subscription &amp;&amp; arm.getSubscriptionDetails() != null) {</span>
+<span class="fc" id="L392">            var subscriptionDetailsModification = arm.getSubscriptionDetails();</span>
             // update subscription details
-<span class="nc" id="L394">            var subscription = subscriptionRepository.findFirstSubscriptionByReservationIdForUpdate(reservationId).orElseThrow();</span>
-<span class="nc" id="L395">            subscriptionRepository.updateSubscription(subscription.getId(),</span>
-<span class="nc" id="L396">                firstNonBlank(subscriptionDetailsModification.getFirstName(), subscription.getFirstName()),</span>
-<span class="nc" id="L397">                firstNonBlank(subscriptionDetailsModification.getLastName(), subscription.getLastName()),</span>
-<span class="nc" id="L398">                firstNonBlank(subscriptionDetailsModification.getEmail(), subscription.getEmail()),</span>
-<span class="nc" id="L399">                requireNonNullElse(subscriptionDetailsModification.getMaxAllowed(), subscription.getMaxEntries()),</span>
-<span class="nc bnc" id="L400" title="All 2 branches missed.">                subscriptionDetailsModification.getValidityFrom() != null ? subscriptionDetailsModification.getValidityFrom().toZonedDateTime(subscription.getZoneId()) : null,</span>
-<span class="nc bnc" id="L401" title="All 2 branches missed.">                subscriptionDetailsModification.getValidityTo() != null ? subscriptionDetailsModification.getValidityTo().toZonedDateTime(subscription.getZoneId()) : null</span>
+<span class="fc" id="L394">            var subscription = subscriptionRepository.findFirstSubscriptionByReservationIdForUpdate(reservationId).orElseThrow();</span>
+<span class="fc" id="L395">            subscriptionRepository.updateSubscription(subscription.getId(),</span>
+<span class="fc" id="L396">                firstNonBlank(subscriptionDetailsModification.getFirstName(), subscription.getFirstName()),</span>
+<span class="fc" id="L397">                firstNonBlank(subscriptionDetailsModification.getLastName(), subscription.getLastName()),</span>
+<span class="fc" id="L398">                firstNonBlank(subscriptionDetailsModification.getEmail(), subscription.getEmail()),</span>
+<span class="fc" id="L399">                requireNonNullElse(subscriptionDetailsModification.getMaxAllowed(), subscription.getMaxEntries()),</span>
+<span class="pc bpc" id="L400" title="1 of 2 branches missed.">                subscriptionDetailsModification.getValidityFrom() != null ? subscriptionDetailsModification.getValidityFrom().toZonedDateTime(subscription.getZoneId()) : null,</span>
+<span class="pc bpc" id="L401" title="1 of 2 branches missed.">                subscriptionDetailsModification.getValidityTo() != null ? subscriptionDetailsModification.getValidityTo().toZonedDateTime(subscription.getZoneId()) : null</span>
             );
         }
 
@@ -463,14 +463,14 @@ public class AdminReservationManager {
 <span class="fc" id="L463">                    subscriptionId.toString(),</span>
 <span class="fc" id="L464">                    subscriptionDetails.getEmail(),</span>
                     bindingResult);
-<span class="pc bpc" id="L466" title="1 of 2 branches missed.">                if (!result) {</span>
-<span class="nc" id="L467">                    var message = bindingResult.getGlobalErrors().stream()</span>
-<span class="nc" id="L468">                        .findFirst()</span>
-<span class="nc" id="L469">                        .map(DefaultMessageSourceResolvable::getCode)</span>
-<span class="nc" id="L470">                        .orElse(&quot;Unknown error&quot;);</span>
-<span class="nc" id="L471">                    log.warn(&quot;Unable to apply subscription {}: {}&quot;, subscriptionId,</span>
-<span class="nc" id="L472">                        bindingResult.getAllErrors().stream().map(ObjectError::getCode).collect(joining(&quot;, &quot;)));</span>
-<span class="nc" id="L473">                    return Result.error(ErrorCode.custom(message, &quot;Cannot assign subscription %s to Reservation %s&quot;.formatted(subscriptionId, reservationId)));</span>
+<span class="fc bfc" id="L466" title="All 2 branches covered.">                if (!result) {</span>
+<span class="fc" id="L467">                    var message = bindingResult.getGlobalErrors().stream()</span>
+<span class="fc" id="L468">                        .findFirst()</span>
+<span class="fc" id="L469">                        .map(DefaultMessageSourceResolvable::getCode)</span>
+<span class="fc" id="L470">                        .orElse(&quot;Unknown error&quot;);</span>
+<span class="fc" id="L471">                    log.warn(&quot;Unable to apply subscription {}: {}&quot;, subscriptionId,</span>
+<span class="fc" id="L472">                        bindingResult.getAllErrors().stream().map(ObjectError::getCode).collect(joining(&quot;, &quot;)));</span>
+<span class="fc" id="L473">                    return Result.error(ErrorCode.custom(message, &quot;Cannot assign subscription %s to Reservation %s&quot;.formatted(subscriptionId, reservationId)));</span>
                 }
 
 <span class="fc" id="L476">                reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
@@ -818,7 +818,7 @@ public class AdminReservationManager {
 
 <span class="fc" id="L819">            handleTicketsRefund(toRefund, e, reservation, ticketsById, username);</span>
 
-<span class="pc bpc" id="L821" title="1 of 2 branches missed.">            boolean removeReservation = tickets.size() - ticketIds.size() &lt;= 0;</span>
+<span class="fc bfc" id="L821" title="All 2 branches covered.">            boolean removeReservation = tickets.size() - ticketIds.size() &lt;= 0;</span>
 <span class="fc bfc" id="L822" title="All 2 branches covered.">            boolean issueCreditNote = (creditNoteRequested &amp;&amp;</span>
                 // if payment method supports refund we require that the user has selected at least one ticket
 <span class="pc bpc" id="L824" title="2 of 4 branches missed.">                (!toRefund.isEmpty() || !reservation.getPaymentMethod().isSupportRefund())</span>
@@ -826,21 +826,21 @@ public class AdminReservationManager {
 <span class="fc" id="L826">            removeTicketsFromReservation(reservation, e, ticketIds, notify, username, removeReservation, issueCreditNote);</span>
             //
 
-<span class="pc bpc" id="L829" title="1 of 2 branches missed.">            if(removeReservation) {</span>
+<span class="fc bfc" id="L829" title="All 2 branches covered.">            if(removeReservation) {</span>
 <span class="fc" id="L830">                markAsCancelled(reservation, username, e);</span>
 <span class="fc" id="L831">                additionalServiceItemRepository.updateItemsStatusWithReservationUUID(e.getId(), reservation.getId(), AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);</span>
             } else {
                 // recalculate totals
-<span class="nc" id="L834">                var totalPrice = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();</span>
-<span class="nc" id="L835">                var currencyCode = totalPrice.getCurrencyCode();</span>
-<span class="nc" id="L836">                var updatedTickets = ticketRepository.findTicketsInReservation(reservationId);</span>
-<span class="nc bnc" id="L837" title="All 2 branches missed.">                var discount = reservation.getPromoCodeDiscountId() != null ? promoCodeDiscountRepository.findById(reservation.getPromoCodeDiscountId()) : null;</span>
-<span class="nc" id="L838">                List&lt;AdditionalServiceItem&gt; additionalServiceItems = additionalServiceItemRepository.findByReservationUuid(e.getId(), reservationId);</span>
-<span class="nc" id="L839">                var calculator = new ReservationPriceCalculator(reservation, discount, updatedTickets, additionalServiceItems, additionalServiceRepository.loadAllForEvent(e.getId()), e, List.of(), Optional.empty());</span>
-<span class="nc" id="L840">                ticketReservationRepository.updateBillingData(calculator.getVatStatus(),</span>
-<span class="nc" id="L841">                    calculator.getSrcPriceCts(), unitToCents(calculator.getFinalPrice(), currencyCode), unitToCents(calculator.getVAT(), currencyCode),</span>
-<span class="nc" id="L842">                    unitToCents(calculator.getAppliedDiscount(), currencyCode), calculator.getCurrencyCode(), reservation.getVatNr(), reservation.getVatCountryCode(),</span>
-<span class="nc" id="L843">                    reservation.isInvoiceRequested(), reservationId);</span>
+<span class="fc" id="L834">                var totalPrice = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();</span>
+<span class="fc" id="L835">                var currencyCode = totalPrice.getCurrencyCode();</span>
+<span class="fc" id="L836">                var updatedTickets = ticketRepository.findTicketsInReservation(reservationId);</span>
+<span class="pc bpc" id="L837" title="1 of 2 branches missed.">                var discount = reservation.getPromoCodeDiscountId() != null ? promoCodeDiscountRepository.findById(reservation.getPromoCodeDiscountId()) : null;</span>
+<span class="fc" id="L838">                List&lt;AdditionalServiceItem&gt; additionalServiceItems = additionalServiceItemRepository.findByReservationUuid(e.getId(), reservationId);</span>
+<span class="fc" id="L839">                var calculator = new ReservationPriceCalculator(reservation, discount, updatedTickets, additionalServiceItems, additionalServiceRepository.loadAllForEvent(e.getId()), e, List.of(), Optional.empty());</span>
+<span class="fc" id="L840">                ticketReservationRepository.updateBillingData(calculator.getVatStatus(),</span>
+<span class="fc" id="L841">                    calculator.getSrcPriceCts(), unitToCents(calculator.getFinalPrice(), currencyCode), unitToCents(calculator.getVAT(), currencyCode),</span>
+<span class="fc" id="L842">                    unitToCents(calculator.getAppliedDiscount(), currencyCode), calculator.getCurrencyCode(), reservation.getVatNr(), reservation.getVatCountryCode(),</span>
+<span class="fc" id="L843">                    reservation.isInvoiceRequested(), reservationId);</span>
             }
 <span class="fc" id="L845">            return issueCreditNote;</span>
         });
@@ -1070,10 +1070,10 @@ public class AdminReservationManager {
 <span class="pc bpc" id="L1070" title="1 of 4 branches missed.">        if(notify &amp;&amp; !ticketIds.isEmpty()) {</span>
 <span class="fc" id="L1071">            Organization o = eventManager.loadOrganizer(purchaseContext, username);</span>
 <span class="fc" id="L1072">            ticketRepository.findByIds(ticketIds).forEach(t -&gt; {</span>
-<span class="nc bnc" id="L1073" title="All 2 branches missed.">                if(StringUtils.isNotBlank(t.getEmail())) {</span>
-<span class="nc" id="L1074">                    sendTicketHasBeenRemoved(purchaseContext, o, t);</span>
+<span class="pc bpc" id="L1073" title="1 of 2 branches missed.">                if(StringUtils.isNotBlank(t.getEmail())) {</span>
+<span class="fc" id="L1074">                    sendTicketHasBeenRemoved(purchaseContext, o, t);</span>
                 }
-<span class="nc" id="L1076">            });</span>
+<span class="fc" id="L1076">            });</span>
         }
 
 <span class="pc bpc" id="L1079" title="1 of 4 branches missed.">        if(!issueCreditNote || !reservation.getHasInvoiceNumber()) {</span>
@@ -1093,21 +1093,21 @@ public class AdminReservationManager {
 <span class="fc" id="L1093">        List&lt;String&gt; ticketUUIDs = ticketRepository.findUUIDs(ticketIds);</span>
 <span class="fc" id="L1094">        int[] results = ticketRepository.batchReleaseTickets(reservationId, ticketIds, purchaseContext);</span>
 <span class="pc bpc" id="L1095" title="1 of 2 branches missed.">        Validate.isTrue(Arrays.stream(results).sum() == ticketIds.size(), &quot;Failed to update tickets&quot;);</span>
-<span class="pc bpc" id="L1096" title="1 of 2 branches missed.">        if(!removeReservation) {</span>
-<span class="nc" id="L1097">            extensionManager.handleTicketCancelledForEvent(purchaseContext, ticketUUIDs);</span>
+<span class="fc bfc" id="L1096" title="All 2 branches covered.">        if(!removeReservation) {</span>
+<span class="fc" id="L1097">            extensionManager.handleTicketCancelledForEvent(purchaseContext, ticketUUIDs);</span>
         } else {
 <span class="fc" id="L1099">            extensionManager.handleReservationsCancelled(purchaseContext, reservationIds);</span>
         }
 <span class="fc" id="L1101">    }</span>
 
     private void sendTicketHasBeenRemoved(Event event, Organization organization, Ticket ticket) {
-<span class="nc" id="L1104">        Map&lt;String, Object&gt; model = TemplateResource.buildModelForTicketHasBeenCancelled(organization, event, ticket);</span>
-<span class="nc" id="L1105">        Locale locale = LocaleUtil.forLanguageTag(Optional.ofNullable(ticket.getUserLanguage()).orElse(&quot;en&quot;));</span>
-<span class="nc" id="L1106">        notificationManager.sendSimpleEmail(event, ticket.getTicketsReservationId(), ticket.getEmail(),</span>
-<span class="nc" id="L1107">            messageSourceManager.getMessageSourceFor(event).getMessage(&quot;email-ticket-released.subject&quot;,</span>
-<span class="nc" id="L1108">            new Object[]{event.getDisplayName()}, locale),</span>
+<span class="fc" id="L1104">        Map&lt;String, Object&gt; model = TemplateResource.buildModelForTicketHasBeenCancelled(organization, event, ticket);</span>
+<span class="fc" id="L1105">        Locale locale = LocaleUtil.forLanguageTag(Optional.ofNullable(ticket.getUserLanguage()).orElse(&quot;en&quot;));</span>
+<span class="fc" id="L1106">        notificationManager.sendSimpleEmail(event, ticket.getTicketsReservationId(), ticket.getEmail(),</span>
+<span class="fc" id="L1107">            messageSourceManager.getMessageSourceFor(event).getMessage(&quot;email-ticket-released.subject&quot;,</span>
+<span class="fc" id="L1108">            new Object[]{event.getDisplayName()}, locale),</span>
 <span class="nc" id="L1109">            () -&gt; templateManager.renderTemplate(event, TemplateResource.TICKET_HAS_BEEN_CANCELLED, model, locale));</span>
-<span class="nc" id="L1110">    }</span>
+<span class="fc" id="L1110">    }</span>
 
     private void markAsCancelled(TicketReservation ticketReservation, String username, PurchaseContext purchaseContext) {
 <span class="fc" id="L1113">        markAsCancelled(ticketReservation.getId(), username, purchaseContext);</span>

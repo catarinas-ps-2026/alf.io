@@ -311,275 +311,278 @@ public class CheckInManager {
 <span class="fc" id="L311">                    return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(INVALID_TICKET_CATEGORY_CHECK_IN_DATE, &quot;Not allowed to check in at this time.&quot;));</span>
                 }
 <span class="fc" id="L313">                var ticketsReservationId = ticket.getTicketsReservationId();</span>
-<span class="fc" id="L314">                int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(ticketsReservationId, Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()), event.now(clockProvider));</span>
-<span class="fc bfc" id="L315" title="All 2 branches covered.">                if(previousScan &gt; 0) {</span>
-<span class="fc" id="L316">                    return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(BADGE_SCAN_ALREADY_DONE, &quot;Badge scan already done&quot;));</span>
+<span class="fc" id="L314">                var now = event.now(clockProvider);</span>
+<span class="fc" id="L315">                var startOfDay = Date.from(now.toLocalDate().atStartOfDay(now.getZone()).toInstant());</span>
+<span class="fc" id="L316">                var endOfDay = Date.from(now.toLocalDate().plusDays(1).atStartOfDay(now.getZone()).toInstant());</span>
+<span class="fc" id="L317">                int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(ticketsReservationId, Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()), startOfDay, endOfDay);</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">                if(previousScan &gt; 0) {</span>
+<span class="fc" id="L319">                    return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(BADGE_SCAN_ALREADY_DONE, &quot;Badge scan already done&quot;));</span>
                 }
-<span class="fc" id="L318">                return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(OK_READY_FOR_BADGE_SCAN, &quot;Badge scan already done&quot;));</span>
+<span class="fc" id="L321">                return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(OK_READY_FOR_BADGE_SCAN, &quot;Badge scan already done&quot;));</span>
             }
-<span class="fc" id="L320">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(EMPTY_TICKET_CODE, &quot;Missing ticket code&quot;));</span>
+<span class="fc" id="L323">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(EMPTY_TICKET_CODE, &quot;Missing ticket code&quot;));</span>
         }
 
-<span class="fc" id="L323">        String code = ticketCode.get();</span>
+<span class="fc" id="L326">        String code = ticketCode.get();</span>
 
-<span class="fc" id="L325">        ZonedDateTime now = event.now(clockProvider);</span>
-<span class="pc bpc" id="L326" title="1 of 2 branches missed.">        if(!tc.hasValidCheckIn(now, event.getZoneId())) {</span>
-<span class="nc" id="L327">            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy - hh:mm&quot;);</span>
-<span class="nc bnc" id="L328" title="All 2 branches missed.">            String from = tc.getValidCheckInFrom() == null ? &quot;..&quot; : formatter.format(tc.getValidCheckInFrom(event.getZoneId()));</span>
-<span class="nc bnc" id="L329" title="All 2 branches missed.">            String to = tc.getValidCheckInTo() == null ? &quot;..&quot; : formatter.format(tc.getValidCheckInTo(event.getZoneId()));</span>
-<span class="nc" id="L330">            String formattedNow = formatter.format(now);</span>
-<span class="nc" id="L331">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(INVALID_TICKET_CATEGORY_CHECK_IN_DATE,</span>
-<span class="nc" id="L332">                String.format(&quot;Invalid check-in date: valid range for category %s is from %s to %s, current time is: %s&quot;,</span>
-<span class="nc" id="L333">                    tc.getName(), from, to, formattedNow)));</span>
+<span class="fc" id="L328">        ZonedDateTime now = event.now(clockProvider);</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">        if(!tc.hasValidCheckIn(now, event.getZoneId())) {</span>
+<span class="nc" id="L330">            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy - hh:mm&quot;);</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">            String from = tc.getValidCheckInFrom() == null ? &quot;..&quot; : formatter.format(tc.getValidCheckInFrom(event.getZoneId()));</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">            String to = tc.getValidCheckInTo() == null ? &quot;..&quot; : formatter.format(tc.getValidCheckInTo(event.getZoneId()));</span>
+<span class="nc" id="L333">            String formattedNow = formatter.format(now);</span>
+<span class="nc" id="L334">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(INVALID_TICKET_CATEGORY_CHECK_IN_DATE,</span>
+<span class="nc" id="L335">                String.format(&quot;Invalid check-in date: valid range for category %s is from %s to %s, current time is: %s&quot;,</span>
+<span class="nc" id="L336">                    tc.getName(), from, to, formattedNow)));</span>
         }
 
-<span class="fc bfc" id="L336" title="All 2 branches covered.">        if (!code.equals(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()))) {</span>
-<span class="fc" id="L337">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(INVALID_TICKET_CODE, &quot;Ticket qr code does not match&quot;));</span>
+<span class="fc bfc" id="L339" title="All 2 branches covered.">        if (!code.equals(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()))) {</span>
+<span class="fc" id="L340">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(INVALID_TICKET_CODE, &quot;Ticket qr code does not match&quot;));</span>
         }
 
-<span class="fc" id="L340">        final TicketStatus ticketStatus = ticket.getStatus();</span>
+<span class="fc" id="L343">        final TicketStatus ticketStatus = ticket.getStatus();</span>
 
-<span class="pc bpc" id="L342" title="1 of 2 branches missed.">        if (ticketStatus == TicketStatus.TO_BE_PAID) {</span>
-<span class="nc" id="L343">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new OnSitePaymentResult(MUST_PAY, &quot;Must pay for ticket&quot;, MonetaryUtil.centsToUnit(ticket.getFinalPriceCts(), ticket.getCurrencyCode()), ticket.getCurrencyCode()));</span>
+<span class="pc bpc" id="L345" title="1 of 2 branches missed.">        if (ticketStatus == TicketStatus.TO_BE_PAID) {</span>
+<span class="nc" id="L346">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new OnSitePaymentResult(MUST_PAY, &quot;Must pay for ticket&quot;, MonetaryUtil.centsToUnit(ticket.getFinalPriceCts(), ticket.getCurrencyCode()), ticket.getCurrencyCode()));</span>
         }
 
-<span class="fc bfc" id="L346" title="All 2 branches covered.">        if (ticketStatus == TicketStatus.CHECKED_IN) {</span>
-<span class="fc" id="L347">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(ALREADY_CHECK_IN, &quot;Error: already checked in&quot;));</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">        if (ticketStatus == TicketStatus.CHECKED_IN) {</span>
+<span class="fc" id="L350">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(ALREADY_CHECK_IN, &quot;Error: already checked in&quot;));</span>
         }
 
-<span class="pc bpc" id="L350" title="1 of 2 branches missed.">        if (ticket.getStatus() != TicketStatus.ACQUIRED) {</span>
-<span class="nc" id="L351">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(INVALID_TICKET_STATE, &quot;Invalid ticket state, expected ACQUIRED state, received &quot; + ticket.getStatus()));</span>
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">        if (ticket.getStatus() != TicketStatus.ACQUIRED) {</span>
+<span class="nc" id="L354">            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(INVALID_TICKET_STATE, &quot;Invalid ticket state, expected ACQUIRED state, received &quot; + ticket.getStatus()));</span>
         }
 
-<span class="fc" id="L354">        return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(OK_READY_TO_BE_CHECKED_IN, &quot;Ready to be checked in&quot;));</span>
+<span class="fc" id="L357">        return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(OK_READY_TO_BE_CHECKED_IN, &quot;Ready to be checked in&quot;));</span>
     }
 
     private static boolean isBadgeValidNow(TicketCategory tc, EventCheckInInfo event) {
-<span class="fc" id="L358">        var zoneId = event.getZoneId();</span>
-<span class="fc" id="L359">        var now = ZonedDateTime.now(ClockProvider.clock().withZone(zoneId));</span>
-<span class="fc bfc" id="L360" title="All 2 branches covered.">        return now.isAfter(toZoneIdIfNotNull(tc.getValidCheckInFrom(), zoneId).orElse(event.getBegin()))</span>
-<span class="pc bpc" id="L361" title="1 of 2 branches missed.">            &amp;&amp; now.isAfter(toZoneIdIfNotNull(tc.getTicketValidityStart(), zoneId).orElse(event.getBegin()))</span>
-<span class="pc bpc" id="L362" title="1 of 2 branches missed.">            &amp;&amp; now.isBefore(toZoneIdIfNotNull(tc.getTicketValidityEnd(), zoneId).orElse(event.getEnd()));</span>
+<span class="fc" id="L361">        var zoneId = event.getZoneId();</span>
+<span class="fc" id="L362">        var now = ZonedDateTime.now(ClockProvider.clock().withZone(zoneId));</span>
+<span class="fc bfc" id="L363" title="All 2 branches covered.">        return now.isAfter(toZoneIdIfNotNull(tc.getValidCheckInFrom(), zoneId).orElse(event.getBegin()))</span>
+<span class="pc bpc" id="L364" title="1 of 2 branches missed.">            &amp;&amp; now.isAfter(toZoneIdIfNotNull(tc.getTicketValidityStart(), zoneId).orElse(event.getBegin()))</span>
+<span class="pc bpc" id="L365" title="1 of 2 branches missed.">            &amp;&amp; now.isBefore(toZoneIdIfNotNull(tc.getTicketValidityEnd(), zoneId).orElse(event.getEnd()));</span>
     }
 
     private static Optional&lt;ZonedDateTime&gt; toZoneIdIfNotNull(ZonedDateTime in, ZoneId zoneId) {
-<span class="pc" id="L366">        return Optional.ofNullable(in).map(d -&gt; d.withZoneSameInstant(zoneId));</span>
+<span class="pc" id="L369">        return Optional.ofNullable(in).map(d -&gt; d.withZoneSameInstant(zoneId));</span>
     }
 
     static Pair&lt;Cipher, SecretKeySpec&gt;  getCypher(String key) {
         try {
-<span class="fc" id="L371">            SecretKeyFactory factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA1&quot;);</span>
-<span class="fc" id="L372">            int iterations = 1000;</span>
-<span class="fc" id="L373">            int keyLength = 256;</span>
-<span class="fc" id="L374">            PBEKeySpec spec = new PBEKeySpec(key.toCharArray(), key.getBytes(StandardCharsets.UTF_8), iterations, keyLength);</span>
-<span class="fc" id="L375">            SecretKey secretKey = factory.generateSecret(spec);</span>
-<span class="fc" id="L376">            SecretKeySpec secret = new SecretKeySpec(secretKey.getEncoded(), &quot;AES&quot;);</span>
-<span class="fc" id="L377">            Cipher cipher = Cipher.getInstance(&quot;AES/CBC/PKCS5Padding&quot;);</span>
-<span class="fc" id="L378">            return Pair.of(cipher, secret);</span>
-<span class="nc" id="L379">        } catch (GeneralSecurityException e) {</span>
-<span class="nc" id="L380">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L374">            SecretKeyFactory factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA1&quot;);</span>
+<span class="fc" id="L375">            int iterations = 1000;</span>
+<span class="fc" id="L376">            int keyLength = 256;</span>
+<span class="fc" id="L377">            PBEKeySpec spec = new PBEKeySpec(key.toCharArray(), key.getBytes(StandardCharsets.UTF_8), iterations, keyLength);</span>
+<span class="fc" id="L378">            SecretKey secretKey = factory.generateSecret(spec);</span>
+<span class="fc" id="L379">            SecretKeySpec secret = new SecretKeySpec(secretKey.getEncoded(), &quot;AES&quot;);</span>
+<span class="fc" id="L380">            Cipher cipher = Cipher.getInstance(&quot;AES/CBC/PKCS5Padding&quot;);</span>
+<span class="fc" id="L381">            return Pair.of(cipher, secret);</span>
+<span class="nc" id="L382">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L383">            throw new IllegalStateException(e);</span>
         }
     }
 
     public static String encrypt(String key, String payload)  {
         try {
-<span class="fc" id="L386">            Pair&lt;Cipher, SecretKeySpec&gt; cipherAndSecret = getCypher(key);</span>
-<span class="fc" id="L387">            Cipher cipher = cipherAndSecret.getKey();</span>
-<span class="fc" id="L388">            cipher.init(Cipher.ENCRYPT_MODE, cipherAndSecret.getRight());</span>
-<span class="fc" id="L389">            byte[] data = cipher.doFinal(payload.getBytes(StandardCharsets.UTF_8));</span>
-<span class="fc" id="L390">            byte[] iv = cipher.getIV();</span>
-<span class="fc" id="L391">            return Base64.encodeBase64URLSafeString(iv) + &quot;|&quot; + Base64.encodeBase64URLSafeString(data);</span>
-<span class="nc" id="L392">        } catch (GeneralSecurityException e) {</span>
-<span class="nc" id="L393">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L389">            Pair&lt;Cipher, SecretKeySpec&gt; cipherAndSecret = getCypher(key);</span>
+<span class="fc" id="L390">            Cipher cipher = cipherAndSecret.getKey();</span>
+<span class="fc" id="L391">            cipher.init(Cipher.ENCRYPT_MODE, cipherAndSecret.getRight());</span>
+<span class="fc" id="L392">            byte[] data = cipher.doFinal(payload.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L393">            byte[] iv = cipher.getIV();</span>
+<span class="fc" id="L394">            return Base64.encodeBase64URLSafeString(iv) + &quot;|&quot; + Base64.encodeBase64URLSafeString(data);</span>
+<span class="nc" id="L395">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L396">            throw new IllegalStateException(e);</span>
         }
     }
 
     public List&lt;Integer&gt; getAttendeesIdentifiers(EventAndOrganizationId ev, Date changedSince, String username) {
-<span class="fc" id="L398">        return Optional.ofNullable(ev)</span>
-<span class="fc" id="L399">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
-<span class="fc" id="L400">            .filter(isOfflineCheckInEnabled())</span>
-<span class="fc" id="L401">            .map(event -&gt; ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))</span>
-<span class="fc" id="L402">            .orElseGet(Collections::emptyList);</span>
+<span class="fc" id="L401">        return Optional.ofNullable(ev)</span>
+<span class="fc" id="L402">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L403">            .filter(isOfflineCheckInEnabled())</span>
+<span class="fc" id="L404">            .map(event -&gt; ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))</span>
+<span class="fc" id="L405">            .orElseGet(Collections::emptyList);</span>
     }
 
     public List&lt;Integer&gt; getAttendeesIdentifiers(int eventId, Date changedSince, String username) {
-<span class="nc" id="L406">        return eventRepository.findOptionalById(eventId)</span>
-<span class="nc" id="L407">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
-<span class="nc" id="L408">            .map(event -&gt; ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))</span>
-<span class="nc" id="L409">            .orElse(Collections.emptyList());</span>
+<span class="nc" id="L409">        return eventRepository.findOptionalById(eventId)</span>
+<span class="nc" id="L410">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="nc" id="L411">            .map(event -&gt; ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))</span>
+<span class="nc" id="L412">            .orElse(Collections.emptyList());</span>
     }
 
     public List&lt;FullTicketInfo&gt; getAttendeesInformation(int eventId, List&lt;Integer&gt; ids, String username) {
-<span class="nc" id="L413">        return eventRepository.findOptionalById(eventId)</span>
-<span class="nc" id="L414">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
-<span class="nc" id="L415">            .map(event -&gt; ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids))</span>
-<span class="nc" id="L416">            .orElse(Collections.emptyList());</span>
+<span class="nc" id="L416">        return eventRepository.findOptionalById(eventId)</span>
+<span class="nc" id="L417">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="nc" id="L418">            .map(event -&gt; ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids))</span>
+<span class="nc" id="L419">            .orElse(Collections.emptyList());</span>
     }
 
     public Predicate&lt;EventAndOrganizationId&gt; isOfflineCheckInEnabled() {
-<span class="fc" id="L420">        return configurationManager.areBooleanSettingsEnabledForEvent(ALFIO_PI_INTEGRATION_ENABLED, OFFLINE_CHECKIN_ENABLED);</span>
+<span class="fc" id="L423">        return configurationManager.areBooleanSettingsEnabledForEvent(ALFIO_PI_INTEGRATION_ENABLED, OFFLINE_CHECKIN_ENABLED);</span>
     }
 
     public Predicate&lt;EventAndOrganizationId&gt; isOfflineCheckInAndLabelPrintingEnabled() {
-<span class="nc" id="L424">        return isOfflineCheckInEnabled().and(configurationManager.areBooleanSettingsEnabledForEvent(LABEL_PRINTING_ENABLED));</span>
+<span class="nc" id="L427">        return isOfflineCheckInEnabled().and(configurationManager.areBooleanSettingsEnabledForEvent(LABEL_PRINTING_ENABLED));</span>
     }
 
     public Map&lt;String,String&gt; getEncryptedAttendeesInformation(Event ev, Set&lt;String&gt; additionalFields, List&lt;Integer&gt; ids) {
 
-<span class="fc" id="L429">        return Optional.ofNullable(ev).filter(isOfflineCheckInEnabled()).map(event -&gt; {</span>
-<span class="fc" id="L430">            boolean caseInsensitiveQRCode = ev.supportsQRCodeCaseInsensitive();</span>
-<span class="fc" id="L431">            Map&lt;Integer, TicketCategory&gt; categories = ticketCategoryRepository.findByEventIdAsMap(event.getId());</span>
-<span class="fc" id="L432">            String eventKey = event.getPrivateKey();</span>
+<span class="fc" id="L432">        return Optional.ofNullable(ev).filter(isOfflineCheckInEnabled()).map(event -&gt; {</span>
+<span class="fc" id="L433">            boolean caseInsensitiveQRCode = ev.supportsQRCodeCaseInsensitive();</span>
+<span class="fc" id="L434">            Map&lt;Integer, TicketCategory&gt; categories = ticketCategoryRepository.findByEventIdAsMap(event.getId());</span>
+<span class="fc" id="L435">            String eventKey = event.getPrivateKey();</span>
 
-<span class="fc" id="L434">            Function&lt;FullTicketInfo, String&gt; hashedHMAC = ticket -&gt; DigestUtils.sha256Hex(ticket.hmacTicketInfo(eventKey, caseInsensitiveQRCode));</span>
-<span class="fc" id="L435">            var outputColorConfiguration = getOutputColorConfiguration(event, configurationManager);</span>
+<span class="fc" id="L437">            Function&lt;FullTicketInfo, String&gt; hashedHMAC = ticket -&gt; DigestUtils.sha256Hex(ticket.hmacTicketInfo(eventKey, caseInsensitiveQRCode));</span>
+<span class="fc" id="L438">            var outputColorConfiguration = getOutputColorConfiguration(event, configurationManager);</span>
 
             // fetch polls for event, in order to determine if we have to print PIN or not
-<span class="fc" id="L438">            var polls = pollRepository.findAllForEvent(event.getId());</span>
-<span class="fc bfc" id="L439" title="All 2 branches covered.">            boolean hasPolls = !polls.isEmpty();</span>
-<span class="fc bfc" id="L440" title="All 2 branches covered.">            var allowedTags = hasPolls ? polls.stream().flatMap(p -&gt; p.allowedTags().stream()).toList() : List.&lt;String&gt;of();</span>
+<span class="fc" id="L441">            var polls = pollRepository.findAllForEvent(event.getId());</span>
+<span class="fc bfc" id="L442" title="All 2 branches covered.">            boolean hasPolls = !polls.isEmpty();</span>
+<span class="fc bfc" id="L443" title="All 2 branches covered.">            var allowedTags = hasPolls ? polls.stream().flatMap(p -&gt; p.allowedTags().stream()).toList() : List.&lt;String&gt;of();</span>
 
-<span class="fc" id="L442">            Function&lt;FullTicketInfo, String&gt; encryptedBody = ticket -&gt; {</span>
-<span class="fc" id="L443">                Map&lt;String, String&gt; info = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L444">                info.put(&quot;firstName&quot;, ticket.getFirstName());</span>
-<span class="fc" id="L445">                info.put(&quot;lastName&quot;, ticket.getLastName());</span>
-<span class="fc" id="L446">                info.put(&quot;fullName&quot;, ticket.getFullName());</span>
-<span class="fc" id="L447">                info.put(&quot;email&quot;, ticket.getEmail());</span>
-<span class="fc" id="L448">                info.put(&quot;status&quot;, ticket.getStatus().toString());</span>
-<span class="fc" id="L449">                info.put(&quot;uuid&quot;, ticket.getUuid());</span>
-<span class="fc bfc" id="L450" title="All 6 branches covered.">                if(hasPolls &amp;&amp; (allowedTags.isEmpty() || CollectionUtils.containsAny(allowedTags, ticket.getTags()))) {</span>
-<span class="fc" id="L451">                    info.put(&quot;pin&quot;, PinGenerator.uuidToPin(ticket.getUuid()));</span>
+<span class="fc" id="L445">            Function&lt;FullTicketInfo, String&gt; encryptedBody = ticket -&gt; {</span>
+<span class="fc" id="L446">                Map&lt;String, String&gt; info = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L447">                info.put(&quot;firstName&quot;, ticket.getFirstName());</span>
+<span class="fc" id="L448">                info.put(&quot;lastName&quot;, ticket.getLastName());</span>
+<span class="fc" id="L449">                info.put(&quot;fullName&quot;, ticket.getFullName());</span>
+<span class="fc" id="L450">                info.put(&quot;email&quot;, ticket.getEmail());</span>
+<span class="fc" id="L451">                info.put(&quot;status&quot;, ticket.getStatus().toString());</span>
+<span class="fc" id="L452">                info.put(&quot;uuid&quot;, ticket.getUuid());</span>
+<span class="fc bfc" id="L453" title="All 6 branches covered.">                if(hasPolls &amp;&amp; (allowedTags.isEmpty() || CollectionUtils.containsAny(allowedTags, ticket.getTags()))) {</span>
+<span class="fc" id="L454">                    info.put(&quot;pin&quot;, PinGenerator.uuidToPin(ticket.getUuid()));</span>
                 }
-<span class="fc" id="L453">                info.put(&quot;category&quot;, ticket.getTicketCategory().getName());</span>
-<span class="pc bpc" id="L454" title="1 of 2 branches missed.">                if(outputColorConfiguration != null) {</span>
-<span class="nc" id="L455">                    info.put(&quot;boxColor&quot;, detectBoxColor(outputColorConfiguration, ticket.getCategoryId()));</span>
+<span class="fc" id="L456">                info.put(&quot;category&quot;, ticket.getTicketCategory().getName());</span>
+<span class="pc bpc" id="L457" title="1 of 2 branches missed.">                if(outputColorConfiguration != null) {</span>
+<span class="nc" id="L458">                    info.put(&quot;boxColor&quot;, detectBoxColor(outputColorConfiguration, ticket.getCategoryId()));</span>
                 }
 
-<span class="pc bpc" id="L458" title="1 of 2 branches missed.">                if (!additionalFields.isEmpty()) {</span>
-<span class="fc" id="L459">                    Map&lt;String, String&gt; fields = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L460">                    fields.put(&quot;company&quot;, trimToEmpty(ticket.getBillingDetails().getCompanyName()));</span>
-<span class="fc" id="L461">                    fields.put(&quot;category&quot;, ticket.getTicketCategory().getName());</span>
-<span class="fc" id="L462">                    fields.putAll(purchaseContextFieldRepository.findValueForTicketId(ticket.getId(), additionalFields).stream()</span>
-<span class="fc" id="L463">                        .map(vd -&gt; {</span>
+<span class="pc bpc" id="L461" title="1 of 2 branches missed.">                if (!additionalFields.isEmpty()) {</span>
+<span class="fc" id="L462">                    Map&lt;String, String&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L463">                    fields.put(&quot;company&quot;, trimToEmpty(ticket.getBillingDetails().getCompanyName()));</span>
+<span class="fc" id="L464">                    fields.put(&quot;category&quot;, ticket.getTicketCategory().getName());</span>
+<span class="fc" id="L465">                    fields.putAll(purchaseContextFieldRepository.findValueForTicketId(ticket.getId(), additionalFields).stream()</span>
+<span class="fc" id="L466">                        .map(vd -&gt; {</span>
                             try {
-<span class="nc bnc" id="L465" title="All 2 branches missed.">                                if(StringUtils.isNotBlank(vd.getDescription())) {</span>
-<span class="nc" id="L466">                                    Map&lt;String, Object&gt; description = Json.GSON.fromJson(vd.getDescription(), new TypeToken&lt;Map&lt;String, Object&gt;&gt;(){}.getType());</span>
-<span class="nc" id="L467">                                    Object rv = description.get(&quot;restrictedValues&quot;);</span>
-<span class="nc bnc" id="L468" title="All 2 branches missed.">                                    if(rv instanceof Map) {</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">                                if(StringUtils.isNotBlank(vd.getDescription())) {</span>
+<span class="nc" id="L469">                                    Map&lt;String, Object&gt; description = Json.GSON.fromJson(vd.getDescription(), new TypeToken&lt;Map&lt;String, Object&gt;&gt;(){}.getType());</span>
+<span class="nc" id="L470">                                    Object rv = description.get(&quot;restrictedValues&quot;);</span>
+<span class="nc bnc" id="L471" title="All 2 branches missed.">                                    if(rv instanceof Map) {</span>
                                         @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L470">                                        Map&lt;String, String&gt; restrictedValues = (Map&lt;String, String&gt;) rv;</span>
-<span class="nc" id="L471">                                        return Pair.of(vd.getName(), restrictedValues.getOrDefault(vd.getValue(), vd.getValue()));</span>
+<span class="nc" id="L473">                                        Map&lt;String, String&gt; restrictedValues = (Map&lt;String, String&gt;) rv;</span>
+<span class="nc" id="L474">                                        return Pair.of(vd.getName(), restrictedValues.getOrDefault(vd.getValue(), vd.getValue()));</span>
                                     }
                                 }
-<span class="nc" id="L474">                            } catch (Exception e) {</span>
-<span class="nc" id="L475">                                log.error(&quot;cannot deserialize restricted values&quot;, e);</span>
-<span class="nc" id="L476">                            }</span>
-<span class="nc" id="L477">                            return Pair.of(vd.getName(), vd.getValue());</span>
+<span class="nc" id="L477">                            } catch (Exception e) {</span>
+<span class="nc" id="L478">                                log.error(&quot;cannot deserialize restricted values&quot;, e);</span>
+<span class="nc" id="L479">                            }</span>
+<span class="nc" id="L480">                            return Pair.of(vd.getName(), vd.getValue());</span>
                         })
-<span class="fc" id="L479">                        .collect(toMap(Pair::getLeft, Pair::getRight)));</span>
-<span class="fc" id="L480">                    info.put(&quot;additionalInfoJson&quot;, Json.toJson(fields));</span>
+<span class="fc" id="L482">                        .collect(toMap(Pair::getLeft, Pair::getRight)));</span>
+<span class="fc" id="L483">                    info.put(&quot;additionalInfoJson&quot;, Json.toJson(fields));</span>
                 }
 
                 //
-<span class="fc" id="L484">                TicketCategory tc = categories.get(ticket.getCategoryId());</span>
-<span class="pc bpc" id="L485" title="1 of 2 branches missed.">                if (tc.getValidCheckInFrom() != null) {</span>
-<span class="nc" id="L486">                    info.put(&quot;validCheckInFrom&quot;, Long.toString(tc.getValidCheckInFrom(event.getZoneId()).toEpochSecond()));</span>
+<span class="fc" id="L487">                TicketCategory tc = categories.get(ticket.getCategoryId());</span>
+<span class="pc bpc" id="L488" title="1 of 2 branches missed.">                if (tc.getValidCheckInFrom() != null) {</span>
+<span class="nc" id="L489">                    info.put(&quot;validCheckInFrom&quot;, Long.toString(tc.getValidCheckInFrom(event.getZoneId()).toEpochSecond()));</span>
                 }
-<span class="pc bpc" id="L488" title="1 of 2 branches missed.">                if (tc.getValidCheckInTo() != null) {</span>
-<span class="nc" id="L489">                    info.put(&quot;validCheckInTo&quot;, Long.toString(tc.getValidCheckInTo(event.getZoneId()).toEpochSecond()));</span>
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">                if (tc.getValidCheckInTo() != null) {</span>
+<span class="nc" id="L492">                    info.put(&quot;validCheckInTo&quot;, Long.toString(tc.getValidCheckInTo(event.getZoneId()).toEpochSecond()));</span>
                 }
-<span class="pc bpc" id="L491" title="1 of 2 branches missed.">                if (tc.getTicketValidityStart() != null) {</span>
-<span class="nc" id="L492">                    info.put(&quot;ticketValidityStart&quot;, Long.toString(tc.getTicketValidityStart(event.getZoneId()).toEpochSecond()));</span>
+<span class="pc bpc" id="L494" title="1 of 2 branches missed.">                if (tc.getTicketValidityStart() != null) {</span>
+<span class="nc" id="L495">                    info.put(&quot;ticketValidityStart&quot;, Long.toString(tc.getTicketValidityStart(event.getZoneId()).toEpochSecond()));</span>
                 }
-<span class="pc bpc" id="L494" title="1 of 2 branches missed.">                if (tc.getTicketValidityEnd() != null) {</span>
-<span class="nc" id="L495">                    info.put(&quot;ticketValidityEnd&quot;, Long.toString(tc.getTicketValidityEnd(event.getZoneId()).toEpochSecond()));</span>
+<span class="pc bpc" id="L497" title="1 of 2 branches missed.">                if (tc.getTicketValidityEnd() != null) {</span>
+<span class="nc" id="L498">                    info.put(&quot;ticketValidityEnd&quot;, Long.toString(tc.getTicketValidityEnd(event.getZoneId()).toEpochSecond()));</span>
                 }
-<span class="fc" id="L497">                info.put(&quot;categoryCheckInStrategy&quot;, tc.getTicketCheckInStrategy().name());</span>
+<span class="fc" id="L500">                info.put(&quot;categoryCheckInStrategy&quot;, tc.getTicketCheckInStrategy().name());</span>
                 //
 
-<span class="fc" id="L500">                var additionalServicesInfo = getAdditionalServicesForTicket(ticket, event);</span>
-<span class="pc bpc" id="L501" title="1 of 2 branches missed.">                if(!additionalServicesInfo.isEmpty()) {</span>
-<span class="nc" id="L502">                    info.put(&quot;additionalServicesInfoJson&quot;, Json.toJson(additionalServicesInfo));</span>
+<span class="fc" id="L503">                var additionalServicesInfo = getAdditionalServicesForTicket(ticket, event);</span>
+<span class="pc bpc" id="L504" title="1 of 2 branches missed.">                if(!additionalServicesInfo.isEmpty()) {</span>
+<span class="nc" id="L505">                    info.put(&quot;additionalServicesInfoJson&quot;, Json.toJson(additionalServicesInfo));</span>
                 }
-<span class="fc" id="L504">                String key = ticket.ticketCode(eventKey, caseInsensitiveQRCode);</span>
-<span class="fc" id="L505">                return encrypt(key, Json.toJson(info));</span>
+<span class="fc" id="L507">                String key = ticket.ticketCode(eventKey, caseInsensitiveQRCode);</span>
+<span class="fc" id="L508">                return encrypt(key, Json.toJson(info));</span>
             };
-<span class="fc" id="L507">            return ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids)</span>
-<span class="fc" id="L508">                .stream()</span>
-<span class="fc" id="L509">                .collect(toMap(hashedHMAC, encryptedBody));</span>
+<span class="fc" id="L510">            return ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids)</span>
+<span class="fc" id="L511">                .stream()</span>
+<span class="fc" id="L512">                .collect(toMap(hashedHMAC, encryptedBody));</span>
 
-<span class="fc" id="L511">        }).orElseGet(Collections::emptyMap);</span>
+<span class="fc" id="L514">        }).orElseGet(Collections::emptyMap);</span>
     }
 
     static CheckInOutputColorConfiguration getOutputColorConfiguration(EventAndOrganizationId event, ConfigurationManager configurationManager) {
-<span class="fc" id="L515">        return configurationManager.getFor(CHECK_IN_COLOR_CONFIGURATION, event.getConfigurationLevel()).getValue()</span>
-<span class="fc" id="L516">            .flatMap(str -&gt; optionally(() -&gt; Json.fromJson(str, CheckInOutputColorConfiguration.class)))</span>
-<span class="fc" id="L517">            .orElse(null);</span>
+<span class="fc" id="L518">        return configurationManager.getFor(CHECK_IN_COLOR_CONFIGURATION, event.getConfigurationLevel()).getValue()</span>
+<span class="fc" id="L519">            .flatMap(str -&gt; optionally(() -&gt; Json.fromJson(str, CheckInOutputColorConfiguration.class)))</span>
+<span class="fc" id="L520">            .orElse(null);</span>
     }
 
     private String loadBoxColor(TicketInfoContainer ticket) {
-<span class="fc" id="L521">        var eventAndOrganizationId = eventRepository.findEventAndOrganizationIdById(ticket.getEventId());</span>
-<span class="fc" id="L522">        return detectBoxColor(getOutputColorConfiguration(eventAndOrganizationId, configurationManager), ticket.getCategoryId());</span>
+<span class="fc" id="L524">        var eventAndOrganizationId = eventRepository.findEventAndOrganizationIdById(ticket.getEventId());</span>
+<span class="fc" id="L525">        return detectBoxColor(getOutputColorConfiguration(eventAndOrganizationId, configurationManager), ticket.getCategoryId());</span>
     }
 
     private static String detectBoxColor(CheckInOutputColorConfiguration outputColorConfiguration, Integer categoryId) {
-<span class="pc bpc" id="L526" title="1 of 2 branches missed.">        if(outputColorConfiguration == null) {</span>
-<span class="fc" id="L527">            return null;</span>
+<span class="pc bpc" id="L529" title="1 of 2 branches missed.">        if(outputColorConfiguration == null) {</span>
+<span class="fc" id="L530">            return null;</span>
         }
-<span class="nc" id="L529">        return outputColorConfiguration.getConfigurations().stream()</span>
-<span class="nc" id="L530">            .filter(cc -&gt; cc.getCategories().contains(categoryId))</span>
-<span class="nc" id="L531">            .map(CheckInOutputColorConfiguration.ColorConfiguration::getColorName)</span>
-<span class="nc" id="L532">            .findFirst()</span>
-<span class="nc" id="L533">            .orElse(outputColorConfiguration.getDefaultColorName());</span>
+<span class="nc" id="L532">        return outputColorConfiguration.getConfigurations().stream()</span>
+<span class="nc" id="L533">            .filter(cc -&gt; cc.getCategories().contains(categoryId))</span>
+<span class="nc" id="L534">            .map(CheckInOutputColorConfiguration.ColorConfiguration::getColorName)</span>
+<span class="nc" id="L535">            .findFirst()</span>
+<span class="nc" id="L536">            .orElse(outputColorConfiguration.getDefaultColorName());</span>
     }
 
     List&lt;AdditionalServiceInfo&gt; getAdditionalServicesForTicket(TicketInfoContainer ticket, Event event) {
 
-<span class="fc" id="L538">        String ticketsReservationId = ticket.getTicketsReservationId();</span>
-<span class="fc bfc" id="L539" title="All 2 branches covered.">        if (!event.supportsLinkedAdditionalServices()) {</span>
+<span class="fc" id="L541">        String ticketsReservationId = ticket.getTicketsReservationId();</span>
+<span class="fc bfc" id="L542" title="All 2 branches covered.">        if (!event.supportsLinkedAdditionalServices()) {</span>
             // return a result only for the first ticket if event does not support linked additional service
-<span class="fc" id="L541">            int firstId = ticketRepository.findFirstTicketIdInReservation(ticketsReservationId).orElseThrow();</span>
-<span class="fc bfc" id="L542" title="All 2 branches covered.">            if(ticket.getId() != firstId) {</span>
-<span class="fc" id="L543">                return List.of();</span>
+<span class="fc" id="L544">            int firstId = ticketRepository.findFirstTicketIdInReservation(ticketsReservationId).orElseThrow();</span>
+<span class="fc bfc" id="L545" title="All 2 branches covered.">            if(ticket.getId() != firstId) {</span>
+<span class="fc" id="L546">                return List.of();</span>
             }
         }
 
         List&lt;BookedAdditionalService&gt; additionalServices;
-<span class="fc bfc" id="L548" title="All 2 branches covered.">        if (event.supportsLinkedAdditionalServices()) {</span>
-<span class="fc" id="L549">            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForTicket(ticketsReservationId, ticket.getId(), ticket.getUserLanguage(), ticket.getEventId());</span>
+<span class="fc bfc" id="L551" title="All 2 branches covered.">        if (event.supportsLinkedAdditionalServices()) {</span>
+<span class="fc" id="L552">            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForTicket(ticketsReservationId, ticket.getId(), ticket.getUserLanguage(), ticket.getEventId());</span>
         } else {
-<span class="fc" id="L551">            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForReservation(ticketsReservationId, ticket.getUserLanguage(), ticket.getEventId());</span>
+<span class="fc" id="L554">            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForReservation(ticketsReservationId, ticket.getUserLanguage(), ticket.getEventId());</span>
         }
-<span class="fc" id="L553">        boolean additionalServicesEmpty = additionalServices.isEmpty();</span>
-<span class="fc bfc" id="L554" title="All 2 branches covered.">        if(!additionalServicesEmpty) {</span>
-<span class="fc" id="L555">            List&lt;Integer&gt; additionalServiceIds = additionalServices.stream().map(BookedAdditionalService::getAdditionalServiceId).collect(Collectors.toList());</span>
-<span class="fc" id="L556">            Map&lt;Integer, List&lt;AdditionalServiceFieldValue&gt;&gt; fields = purchaseContextFieldRepository.loadTicketFieldsForAdditionalService(ticket.getId(), additionalServiceIds)</span>
-<span class="fc" id="L557">                .stream().collect(Collectors.groupingBy(AdditionalServiceFieldValue::getAdditionalServiceId));</span>
+<span class="fc" id="L556">        boolean additionalServicesEmpty = additionalServices.isEmpty();</span>
+<span class="fc bfc" id="L557" title="All 2 branches covered.">        if(!additionalServicesEmpty) {</span>
+<span class="fc" id="L558">            List&lt;Integer&gt; additionalServiceIds = additionalServices.stream().map(BookedAdditionalService::getAdditionalServiceId).collect(Collectors.toList());</span>
+<span class="fc" id="L559">            Map&lt;Integer, List&lt;AdditionalServiceFieldValue&gt;&gt; fields = purchaseContextFieldRepository.loadTicketFieldsForAdditionalService(ticket.getId(), additionalServiceIds)</span>
+<span class="fc" id="L560">                .stream().collect(Collectors.groupingBy(AdditionalServiceFieldValue::getAdditionalServiceId));</span>
 
-<span class="fc" id="L559">            return additionalServices.stream()</span>
-<span class="fc" id="L560">                .map(as -&gt; new AdditionalServiceInfo(as.getAdditionalServiceName(), as.getCount(), fields.get(as.getAdditionalServiceId())))</span>
-<span class="fc" id="L561">                .collect(Collectors.toList());</span>
+<span class="fc" id="L562">            return additionalServices.stream()</span>
+<span class="fc" id="L563">                .map(as -&gt; new AdditionalServiceInfo(as.getAdditionalServiceName(), as.getCount(), fields.get(as.getAdditionalServiceId())))</span>
+<span class="fc" id="L564">                .collect(Collectors.toList());</span>
         }
-<span class="fc" id="L563">        return List.of();</span>
+<span class="fc" id="L566">        return List.of();</span>
     }
 
     public CheckInStatistics getStatistics(String eventName, List&lt;Integer&gt; categories, String username) {
-<span class="fc" id="L567">        return eventRepository.findOptionalByShortName(eventName)</span>
-<span class="fc" id="L568">            .filter(this::areStatsEnabled)</span>
-<span class="fc" id="L569">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
-<span class="fc" id="L570">            .map(event -&gt; eventRepository.retrieveCheckInStatisticsForEvent(event.getId(), categories))</span>
-<span class="fc" id="L571">            .orElse(null);</span>
+<span class="fc" id="L570">        return eventRepository.findOptionalByShortName(eventName)</span>
+<span class="fc" id="L571">            .filter(this::areStatsEnabled)</span>
+<span class="fc" id="L572">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L573">            .map(event -&gt; eventRepository.retrieveCheckInStatisticsForEvent(event.getId(), categories))</span>
+<span class="fc" id="L574">            .orElse(null);</span>
     }
 
     public List&lt;CheckInLogEntry&gt; retrieveLogEntries(String eventName, String username) {
-<span class="fc" id="L575">        return eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)</span>
-<span class="fc" id="L576">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
-<span class="fc" id="L577">            .map(event -&gt; scanAuditRepository.loadEntries(event.getId()))</span>
-<span class="fc" id="L578">            .orElse(List.of());</span>
+<span class="fc" id="L578">        return eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)</span>
+<span class="fc" id="L579">            .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L580">            .map(event -&gt; scanAuditRepository.loadEntries(event.getId()))</span>
+<span class="fc" id="L581">            .orElse(List.of());</span>
     }
 
     private boolean areStatsEnabled(EventAndOrganizationId event) {
-<span class="fc" id="L582">        return configurationManager.getFor(CHECK_IN_STATS, event.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L585">        return configurationManager.getFor(CHECK_IN_STATS, event.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
     }
 
 }
