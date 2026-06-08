@@ -804,4 +804,249 @@ class AdminReservationManagerTest {
             any()
         );
     }
+
+    @Test
+    void testUpdateReservation_NoContactData_SubscriptionDetails_UpdateAttendees() {
+        String resId = "resId";
+        String username = "user";
+        SubscriptionDescriptor descriptor = mock(SubscriptionDescriptor.class);
+        when(descriptor.getType()).thenReturn(PurchaseContextType.subscription);
+        when(descriptor.getZoneId()).thenReturn(ZoneId.systemDefault());
+
+        TicketReservation reservation = mock(TicketReservation.class);
+        when(reservation.getStatus()).thenReturn(TicketReservationStatus.PENDING);
+
+        Attendee attendee = new Attendee(123, "First", "Last", "test@test.com", "en", false, null, null, Map.of(), Map.of());
+        TicketsInfo ti = new TicketsInfo(null, List.of(attendee), false, true);
+        SubscriptionDetails subMod = new SubscriptionDetails("SubFirst", "SubLast", "sub@test.com", 10, null, null);
+
+        AdminReservationModification arm = new AdminReservationModification(
+            DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusDays(1)),
+            null, // customerData
+            List.of(ti),
+            "en",
+            false, // isUpdateContactData
+            false,
+            null,
+            Notification.EMPTY,
+            subMod,
+            null
+        );
+
+        doReturn(Optional.of(descriptor)).when(purchaseContextManager).findBy(any(), anyString());
+        when(ticketReservationRepository.findOptionalReservationById(resId)).thenReturn(Optional.of(reservation));
+
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(1);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+
+        Subscription subscription = mock(Subscription.class);
+        when(subscription.getId()).thenReturn(UUID.randomUUID());
+        when(subscription.getZoneId()).thenReturn(ZoneId.systemDefault());
+        when(subscriptionRepository.findFirstSubscriptionByReservationIdForUpdate(resId)).thenReturn(Optional.of(subscription));
+
+        Result<Boolean> result = adminReservationManager.updateReservation(PurchaseContextType.subscription, "sub", resId, arm, username);
+
+        assertTrue(result.isSuccess());
+        verify(ticketRepository).updateTicketOwnerById(eq(123), anyString(), anyString(), anyString(), anyString());
+        verify(auditingRepository).insert(eq(resId), eq(1), eq(descriptor), any(), any(), any(), eq("123"), anyList());
+        verify(subscriptionRepository).updateSubscription(any(), eq("SubFirst"), eq("SubLast"), eq("sub@test.com"), eq(10), any(), any());
+    }
+
+    @Test
+    void testRemoveTickets_PartialRemoval() {
+        String resId = "resId";
+        String username = "user";
+        Event event = mock(Event.class);
+        when(event.getId()).thenReturn(1);
+        when(event.event()).thenReturn(Optional.of(event));
+
+        TicketReservation reservation = mock(TicketReservation.class);
+        when(reservation.getId()).thenReturn(resId);
+        when(reservation.getCurrencyCode()).thenReturn("CHF");
+        when(reservation.getVatStatus()).thenReturn(PriceContainer.VatStatus.INCLUDED);
+
+        Ticket t1 = mock(Ticket.class);
+        when(t1.getId()).thenReturn(101);
+        when(t1.getStatus()).thenReturn(Ticket.TicketStatus.FREE);
+        Ticket t2 = mock(Ticket.class);
+        when(t2.getId()).thenReturn(102);
+        when(t2.getStatus()).thenReturn(Ticket.TicketStatus.FREE);
+
+        List<Ticket> tickets = List.of(t1, t2);
+
+        doReturn(Optional.of(event)).when(purchaseContextManager).findBy(any(), anyString());
+        when(event.getVatStatus()).thenReturn(PriceContainer.VatStatus.INCLUDED);
+        when(event.getCurrency()).thenReturn("CHF");
+        when(ticketReservationRepository.findOptionalReservationById(resId)).thenReturn(Optional.of(reservation));
+        when(ticketRepository.findTicketsInReservation(resId)).thenReturn(tickets);
+        when(purchaseContextManager.findByReservationId(resId)).thenReturn(Optional.of(event));
+
+        TotalPrice tp = mock(TotalPrice.class);
+        when(tp.getCurrencyCode()).thenReturn("CHF");
+        when(ticketReservationManager.totalReservationCostWithVAT(resId)).thenReturn(Pair.of(tp, Optional.empty()));
+        when(ticketRepository.findTicketsInReservation(resId)).thenReturn(tickets); // called again after removal
+
+        when(ticketRepository.batchReleaseTickets(anyString(), anyList(), any())).thenReturn(new int[]{1});
+
+        Result<Boolean> result = adminReservationManager.removeTickets("event", resId, List.of(101), Collections.emptyList(), false, false, username);
+
+        assertNotNull(result);
+        verify(ticketReservationRepository).updateBillingData(any(), anyInt(), anyInt(), anyInt(), anyInt(), any(), any(), any(), anyBoolean(), eq(resId));
+        verify(extensionManager).handleTicketCancelledForEvent(eq(event), anyList());
+        verify(auditingRepository).insert(eq(resId), any(), anyInt(), any(), any(), any(), eq("101"));
+    }
+
+    @Test
+    void testConfirmReservation_WithSubscription_ValidationFailed() {
+        String resId = "resId";
+        String eventName = "event";
+        String username = "user";
+        UUID subId = UUID.randomUUID();
+
+        Event event = mock(Event.class);
+        when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
+        when(event.getType()).thenReturn(PurchaseContextType.event);
+        when(event.ofType(PurchaseContextType.event)).thenReturn(true);
+
+        TicketReservation reservation = mock(TicketReservation.class);
+        when(reservation.getStatus()).thenReturn(TicketReservationStatus.PENDING);
+
+        doReturn(Optional.of(event)).when(purchaseContextManager).findBy(PurchaseContextType.event, eventName);
+        when(ticketReservationRepository.findOptionalReservationById(resId)).thenReturn(Optional.of(reservation));
+        when(ticketReservationManager.findById(resId)).thenReturn(Optional.of(reservation));
+
+        Subscription sub = mock(Subscription.class);
+        when(sub.getEmail()).thenReturn("test@test.com");
+        when(subscriptionRepository.findSubscriptionById(subId)).thenReturn(sub);
+        
+        when(ticketReservationManager.validateAndApplySubscriptionCode(any(), any(), any(), any(), any(), any())).thenReturn(false);
+
+        Result<Triple<TicketReservation, List<Ticket>, PurchaseContext>> result = adminReservationManager.confirmReservation(
+            PurchaseContextType.event, eventName, resId, username, new Notification(true, true), TransactionDetails.admin(), subId);
+
+        assertFalse(result.isSuccess());
+    }
+
+    @Test
+    void testUpdateReservation_NoContactData() {
+        String resId = "resId";
+        Event event = mock(Event.class);
+        when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
+
+        TicketReservation reservation = mock(TicketReservation.class);
+        when(reservation.getStatus()).thenReturn(TicketReservationStatus.PENDING);
+
+        AdminReservationModification arm = new AdminReservationModification(
+            DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusDays(1)),
+            null, // isUpdateContactData will be false
+            Collections.emptyList(),
+            "en",
+            false,
+            false,
+            null,
+            Notification.EMPTY,
+            null,
+            null
+        );
+
+        doReturn(Optional.of(event)).when(purchaseContextManager).findBy(any(), anyString());
+        when(ticketReservationRepository.findOptionalReservationById(resId)).thenReturn(Optional.of(reservation));
+
+        Result<Boolean> result = adminReservationManager.updateReservation(PurchaseContextType.event, "event", resId, arm, "user");
+
+        assertTrue(result.isSuccess());
+        verify(ticketReservationRepository, never()).updateTicketReservation(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), any(), any(), anyString());
+    }
+
+    @Test
+    void testUpdateReservation_VatNotApplied() {
+        String resId = "resId";
+        Event event = mock(Event.class);
+        when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
+        when(event.getVatStatus()).thenReturn(PriceContainer.VatStatus.INCLUDED);
+
+        TicketReservation reservation = mock(TicketReservation.class);
+        when(reservation.getStatus()).thenReturn(TicketReservationStatus.PENDING);
+        when(reservation.getVatStatus()).thenReturn(PriceContainer.VatStatus.INCLUDED);
+        when(reservation.getSrcPriceCts()).thenReturn(1000);
+        when(reservation.getCurrencyCode()).thenReturn("CHF");
+        when(reservation.withVatStatus(any())).thenReturn(reservation);
+
+        AdminReservationModification arm = new AdminReservationModification(
+            DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusDays(1)),
+            null,
+            Collections.emptyList(),
+            "en",
+            false,
+            true, // updateAdvancedBillingOptions
+            new AdvancedBillingOptions("N"), // vatApplied = false
+            Notification.EMPTY,
+            null,
+            null
+        );
+
+        doReturn(Optional.of(event)).when(purchaseContextManager).findBy(any(), anyString());
+        when(ticketReservationRepository.findOptionalReservationById(resId)).thenReturn(Optional.of(reservation));
+
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(1);
+        when(userRepository.getByUsername(anyString())).thenReturn(user);
+
+        TotalPrice tp = mock(TotalPrice.class);
+        when(tp.getPriceWithVAT()).thenReturn(1000);
+        when(tp.getVAT()).thenReturn(0);
+        when(tp.getDiscount()).thenReturn(0);
+        when(ticketReservationManager.totalReservationCostWithVAT(any(TicketReservation.class))).thenReturn(Pair.of(tp, Optional.empty()));
+
+        Result<Boolean> result = adminReservationManager.updateReservation(PurchaseContextType.event, "event", resId, arm, "user");
+
+        assertTrue(result.isSuccess());
+        verify(ticketReservationRepository).resetVat(eq(resId), anyBoolean(), eq(PriceContainer.VatStatus.INCLUDED_EXEMPT), anyInt(), anyInt(), anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void testRemoveTickets_WithNotification() {
+        String resId = "resId";
+        String username = "user";
+        Event event = mock(Event.class);
+        when(event.getId()).thenReturn(1);
+        when(event.getDisplayName()).thenReturn("Event Display Name");
+        when(event.event()).thenReturn(Optional.of(event));
+
+        TicketReservation reservation = mock(TicketReservation.class);
+        when(reservation.getId()).thenReturn(resId);
+        when(reservation.getCurrencyCode()).thenReturn("CHF");
+        when(reservation.getVatStatus()).thenReturn(PriceContainer.VatStatus.INCLUDED);
+
+        Ticket ticket = mock(Ticket.class);
+        when(ticket.getId()).thenReturn(101);
+        when(ticket.getStatus()).thenReturn(Ticket.TicketStatus.FREE);
+        when(ticket.getEmail()).thenReturn("attendee@test.com");
+        when(ticket.getTicketsReservationId()).thenReturn(resId);
+        when(ticket.getUserLanguage()).thenReturn("en");
+
+        List<Ticket> tickets = List.of(ticket);
+
+        doReturn(Optional.of(event)).when(purchaseContextManager).findBy(any(), anyString());
+        when(ticketReservationRepository.findOptionalReservationById(resId)).thenReturn(Optional.of(reservation));
+        when(ticketRepository.findTicketsInReservation(resId)).thenReturn(tickets);
+        when(purchaseContextManager.findByReservationId(resId)).thenReturn(Optional.of(event));
+        when(ticketRepository.findByIds(anyList())).thenReturn(tickets);
+
+        alfio.model.user.Organization organization = mock(alfio.model.user.Organization.class);
+        when(eventManager.loadOrganizer(any(), anyString())).thenReturn(organization);
+
+        org.springframework.context.MessageSource messageSource = mock(org.springframework.context.MessageSource.class);
+        when(messageSourceManager.getMessageSourceFor(any(Event.class))).thenReturn(messageSource);
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("Email Subject");
+
+        when(ticketRepository.batchReleaseTickets(anyString(), anyList(), any())).thenReturn(new int[]{1});
+        when(ticketReservationManager.totalReservationCostWithVAT(resId)).thenReturn(Pair.of(mock(TotalPrice.class), Optional.empty()));
+
+        Result<Boolean> result = adminReservationManager.removeTickets("event", resId, List.of(101), Collections.emptyList(), true, false, username);
+
+        assertTrue(result.isSuccess());
+        verify(notificationManager).sendSimpleEmail(eq(event), eq(resId), eq("attendee@test.com"), anyString(), any());
+    }
 }
