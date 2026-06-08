@@ -25,6 +25,7 @@ import alfio.manager.support.DuplicateReferenceException;
 import alfio.manager.support.IncompatibleStateException;
 import alfio.manager.support.reservation.ReservationEmailContentHelper;
 import alfio.model.*;
+import alfio.model.PriceContainer.VatStatus;
 import alfio.model.PurchaseContext.PurchaseContextType;
 import alfio.model.TicketReservation.TicketReservationStatus;
 import alfio.model.modification.AdminReservationModification;
@@ -187,6 +188,56 @@ class AdminReservationManagerTest {
         when(clockProvider.getClock()).thenReturn(
             TestUtil.clockProvider().getClock()
         );
+    }
+
+    @Test
+    void testUpdateReservation_WithContactAndVatData() {
+        String reservationId = "resId";
+        String publicIdentifier = "event";
+        PurchaseContextType type = PurchaseContextType.event;
+        String username = "admin";
+        
+        PurchaseContext pc = mock(PurchaseContext.class);
+        when(pc.getZoneId()).thenReturn(ZoneId.systemDefault());
+        doReturn(Optional.of(pc)).when(purchaseContextManager).findBy(type, publicIdentifier);
+        
+        TicketReservation r = mock(TicketReservation.class);
+        when(r.getStatus()).thenReturn(TicketReservationStatus.PENDING);
+        when(r.getVatStatus()).thenReturn(VatStatus.NONE);
+        when(r.getCurrencyCode()).thenReturn("CHF");
+        when(ticketReservationRepository.findOptionalReservationById(reservationId)).thenReturn(Optional.of(r));
+        
+        AdminReservationModification arm = mock(AdminReservationModification.class);
+        when(arm.getExpiration()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now()));
+        when(arm.isUpdateContactData()).thenReturn(true);
+        
+        CustomerData cd = mock(CustomerData.class);
+        when(cd.getEmailAddress()).thenReturn("test@test.com");
+        when(cd.getVatNr()).thenReturn("VAT123");
+        when(arm.getCustomerData()).thenReturn(cd);
+        
+        Result<Boolean> result = adminReservationManager.updateReservation(type, publicIdentifier, reservationId, arm, username);
+        
+        assertTrue(result.isSuccess());
+        verify(ticketReservationRepository).updateTicketReservation(eq(reservationId), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+        verify(ticketReservationRepository).updateBillingData(any(), anyInt(), anyInt(), anyInt(), anyInt(), any(), eq("VAT123"), any(), anyBoolean(), eq(reservationId));
+    }
+
+    @Test
+    void testUpdateReservation_ExceptionPath() {
+        String reservationId = "resId";
+        String publicIdentifier = "event";
+        PurchaseContextType type = PurchaseContextType.event;
+        String username = "admin";
+        
+        when(purchaseContextManager.findBy(type, publicIdentifier)).thenThrow(new RuntimeException("test exception"));
+        
+        AdminReservationModification arm = mock(AdminReservationModification.class);
+        
+        Result<Boolean> result = adminReservationManager.updateReservation(type, publicIdentifier, reservationId, arm, username);
+        
+        assertFalse(result.isSuccess());
+        assertEquals("test exception", result.getErrors().get(0).getDescription());
     }
 
     @Test

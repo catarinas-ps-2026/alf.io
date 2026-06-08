@@ -40,8 +40,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import alfio.manager.support.extension.ExtensionCapability;
+import alfio.model.metadata.AlfioMetadata;
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,6 +82,74 @@ class EventManagerUnitTest {
     private ClockProvider clockProvider;
     private SubscriptionRepository subscriptionRepository;
     private AdditionalServiceManager additionalServiceManager;
+
+    @Test
+    void testUpdatePromoCode() {
+        int promoCodeId = 123;
+        ZonedDateTime now = ZonedDateTime.now();
+        List<Integer> categories = Arrays.asList(1, 2);
+        eventManager.updatePromoCode(promoCodeId, now, now.plusDays(1), 100, categories, "desc", "email", null);
+        verify(promoCodeRepository).updateEventPromoCode(eq(promoCodeId), eq(now), any(), eq(100), anyString(), eq("desc"), eq("email"), isNull());
+    }
+
+    @Test
+    void testUpdatePromoCode_ValidationFails() {
+        int promoCodeId = 123;
+        String longDesc = StringUtils.repeat("a", 1025);
+        assertThrows(IllegalArgumentException.class, () -> 
+            eventManager.updatePromoCode(promoCodeId, ZonedDateTime.now(), ZonedDateTime.now(), 100, null, longDesc, "email", null));
+    }
+
+    @Test
+    void testExecuteCapability_GenerateMeetingLink() {
+        String eventName = "event";
+        String username = "admin";
+        Map<String, String> params = Collections.singletonMap("key", "value");
+        Event event = mock(Event.class);
+        when(event.getOrganizationId()).thenReturn(1);
+        when(event.getId()).thenReturn(10);
+        when(eventRepository.findOptionalByShortName(eventName)).thenReturn(Optional.of(event));
+        when(organizationRepository.findOrganizationForUser(username, 1)).thenReturn(Optional.of(mock(Organization.class)));
+        
+        when(extensionManager.handleGenerateMeetingLinkCapability(any(), any(), any(), any())).thenReturn(Optional.of(AlfioMetadata.empty()));
+        
+        Optional<String> result = eventManager.executeCapability(eventName, username, ExtensionCapability.GENERATE_MEETING_LINK, params);
+        assertTrue(result.isPresent());
+        assertEquals("metadata updated", result.get());
+        verify(eventRepository).updateMetadata(any(), eq(10));
+    }
+
+    @Test
+    void testExecuteCapability_LinkExternalApplication() {
+        String eventName = "event";
+        String username = "admin";
+        Event event = mock(Event.class);
+        when(event.getOrganizationId()).thenReturn(1);
+        when(eventRepository.findOptionalByShortName(eventName)).thenReturn(Optional.of(event));
+        when(organizationRepository.findOrganizationForUser(username, 1)).thenReturn(Optional.of(mock(Organization.class)));
+        
+        when(extensionManager.handleGenerateLinkCapability(any(), any(), any())).thenReturn(Optional.of("link"));
+        
+        Optional<String> result = eventManager.executeCapability(eventName, username, ExtensionCapability.LINK_EXTERNAL_APPLICATION, Collections.emptyMap());
+        assertTrue(result.isPresent());
+        assertEquals("link", result.get());
+    }
+
+    @Test
+    void testExecuteCapability_Other() {
+        String eventName = "event";
+        String username = "admin";
+        Event event = mock(Event.class);
+        when(event.getOrganizationId()).thenReturn(1);
+        when(eventRepository.findOptionalByShortName(eventName)).thenReturn(Optional.of(event));
+        when(organizationRepository.findOrganizationForUser(username, 1)).thenReturn(Optional.of(mock(Organization.class)));
+        
+        when(extensionManager.executeCapability(any(), any(), any(), eq(String.class))).thenReturn(Optional.of("other"));
+        
+        Optional<String> result = eventManager.executeCapability(eventName, username, ExtensionCapability.CREATE_VIRTUAL_ROOM, Collections.emptyMap());
+        assertTrue(result.isPresent());
+        assertEquals("other", result.get());
+    }
 
     @BeforeEach
     void setUp() {
