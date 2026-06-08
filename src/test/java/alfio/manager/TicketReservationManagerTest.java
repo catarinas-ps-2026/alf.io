@@ -81,6 +81,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,9 +100,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.validation.BindingResult;
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.support.PaymentWebhookResult;
 import alfio.model.Audit;
+import alfio.model.PurchaseContext.PurchaseContextType;
 import alfio.model.result.ErrorCode;
 import alfio.model.subscription.MaxEntriesOverageDetails;
 import alfio.model.subscription.SubscriptionUsageExceeded;
@@ -4650,6 +4653,291 @@ class TicketReservationManagerTest {
             Assertions.assertTrue(result.isSuccess());
             verify(auditingRepository).insert(eq(RESERVATION_ID), isNull(), eq(EVENT_ID), eq(Audit.EventType.MATCHING_PAYMENT_DISCARDED), any(), eq(EntityType.RESERVATION), eq(RESERVATION_ID));
             verify(transactionRepository).discardMatchingPayment(123);
+        }
+    }
+
+    @Nested
+    class AdditionalCoverageTests {
+
+        @Test
+        void testHandlePaymentWebhookResult_TransactionInitiated() {
+            PaymentWebhookResult pwr = mock(PaymentWebhookResult.class);
+            when(pwr.getType()).thenReturn(PaymentWebhookResult.Type.TRANSACTION_INITIATED);
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getStatus()).thenReturn(TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+
+            ReflectionTestUtils.invokeMethod(trm, "handlePaymentWebhookResult",
+                mock(PurchaseContext.class), mock(PaymentProvider.class), pwr, reservation,
+                mock(Transaction.class), mock(PaymentContext.class), "test", true);
+
+            verify(ticketReservationRepository).updateReservationStatus(RESERVATION_ID, WAITING_EXTERNAL_CONFIRMATION.name());
+        }
+
+        @Test
+        void testHandlePaymentWebhookResult_FailedWithSlackTimeUpdate() {
+            PaymentWebhookResult pwr = mock(PaymentWebhookResult.class);
+            when(pwr.getType()).thenReturn(PaymentWebhookResult.Type.FAILED);
+            when(pwr.getReason()).thenReturn("failed");
+
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+            Date now = new Date();
+            // expiration is in 5 minutes, slack time is 10 minutes.
+            // now - 10m < expiration < now
+            // DateUtils.addMinutes(expiration, -10).before(now) is true
+            Date expiration = DateUtils.addMinutes(now, 5);
+            when(reservation.getValidity()).thenReturn(expiration);
+
+            PaymentContext pc = mock(PaymentContext.class);
+            ConfigurationLevel cl = mock(ConfigurationLevel.class);
+            when(pc.getConfigurationLevel()).thenReturn(cl);
+
+            MaybeConfiguration slackTimeConfig = mock(MaybeConfiguration.class);
+            when(configurationManager.getFor(eq(RESERVATION_MIN_TIMEOUT_AFTER_FAILED_PAYMENT), eq(cl))).thenReturn(slackTimeConfig);
+            when(slackTimeConfig.getValueAsIntOrDefault(10)).thenReturn(10);
+
+            PaymentProvider provider = mock(PaymentProvider.class);
+            PaymentMethod pm = mock(PaymentMethod.class);
+            when(provider.getPaymentMethodForTransaction(any())).thenReturn(pm);
+
+            PurchaseContext purchaseContext = mock(PurchaseContext.class);
+            when(purchaseContext.event()).thenReturn(Optional.empty());
+            when(ticketReservationRepository.updateReservationStatus(anyString(), anyString())).thenReturn(1);
+
+            ReflectionTestUtils.invokeMethod(trm, "handlePaymentWebhookResult",
+                purchaseContext, provider, pwr, reservation,
+                mock(Transaction.class), pc, "test", false);
+
+            verify(ticketReservationRepository).updateValidity(eq(RESERVATION_ID), any(Date.class));
+            verify(ticketReservationRepository, atLeastOnce()).updateReservationStatus(eq(RESERVATION_ID), anyString());
+        }
+
+        @Test
+        void testHandlePaymentWebhookResult_Cancelled() {
+            PaymentWebhookResult pwr = mock(PaymentWebhookResult.class);
+            when(pwr.getType()).thenReturn(PaymentWebhookResult.Type.CANCELLED);
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+            when(ticketReservationRepository.updateReservationStatus(anyString(), anyString())).thenReturn(1);
+
+            ReflectionTestUtils.invokeMethod(trm, "handlePaymentWebhookResult",
+                mock(PurchaseContext.class), mock(PaymentProvider.class), pwr, reservation,
+                mock(Transaction.class), mock(PaymentContext.class), "test", false);
+
+            verify(ticketReservationRepository).updateReservationStatus(RESERVATION_ID, PENDING.name());
+        }
+
+        @Test
+        void testApplySubscriptionCode_AlreadyApplied() throws SubscriptionUsageExceeded, SubscriptionUsageExceededForEvent {
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+            when(ticketReservationRepository.hasSubscriptionApplied(RESERVATION_ID)).thenReturn(true);
+
+            boolean result = trm.applySubscriptionCode(EVENT_ID, reservation, mock(SubscriptionDescriptor.class), UUID.randomUUID());
+            Assertions.assertFalse(result);
+        }
+
+        @Test
+        void testApplySubscriptionCode_InvalidSubscription() throws SubscriptionUsageExceeded, SubscriptionUsageExceededForEvent {
+            UUID subId = UUID.randomUUID();
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+            when(ticketReservationRepository.hasSubscriptionApplied(RESERVATION_ID)).thenReturn(false);
+
+            Subscription sub = mock(Subscription.class);
+            when(subscriptionRepository.findSubscriptionByIdForUpdate(subId)).thenReturn(sub);
+            when(sub.isValid()).thenReturn(false);
+
+            boolean result = trm.applySubscriptionCode(EVENT_ID, reservation, mock(SubscriptionDescriptor.class), subId);
+            Assertions.assertFalse(result);
+        }
+
+        @Test
+        void testApplySubscriptionCode_LinkEmpty() throws SubscriptionUsageExceeded, SubscriptionUsageExceededForEvent {
+            UUID subId = UUID.randomUUID();
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+
+            Subscription sub = mock(Subscription.class);
+            when(subscriptionRepository.findSubscriptionByIdForUpdate(subId)).thenReturn(sub);
+            when(sub.isValid()).thenReturn(true);
+            when(sub.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+            when(sub.getSubscriptionDescriptorId()).thenReturn(UUID.randomUUID());
+
+            when(subscriptionRepository.findLink(eq(ORGANIZATION_ID), any(), eq(EVENT_ID))).thenReturn(Optional.empty());
+
+            boolean result = trm.applySubscriptionCode(EVENT_ID, reservation, mock(SubscriptionDescriptor.class), subId);
+            Assertions.assertFalse(result);
+        }
+
+        @Test
+        void testApplySubscriptionCode_NoCompatibleCategories() throws SubscriptionUsageExceeded, SubscriptionUsageExceededForEvent {
+            UUID subId = UUID.randomUUID();
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+
+            Subscription sub = mock(Subscription.class);
+            when(subscriptionRepository.findSubscriptionByIdForUpdate(subId)).thenReturn(sub);
+            when(sub.isValid()).thenReturn(true);
+            when(sub.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+            UUID descId = UUID.randomUUID();
+            when(sub.getSubscriptionDescriptorId()).thenReturn(descId);
+
+            EventSubscriptionLink link = mock(EventSubscriptionLink.class);
+            when(link.getCompatibleCategories()).thenReturn(List.of(1, 2));
+            when(subscriptionRepository.findLink(ORGANIZATION_ID, descId, EVENT_ID)).thenReturn(Optional.of(link));
+
+            TicketCategory tc = mock(TicketCategory.class);
+            when(tc.getId()).thenReturn(3);
+            when(ticketCategoryRepository.findCategoriesInReservation(RESERVATION_ID)).thenReturn(List.of(tc));
+
+            boolean result = trm.applySubscriptionCode(EVENT_ID, reservation, mock(SubscriptionDescriptor.class), subId);
+            Assertions.assertFalse(result);
+        }
+
+        @Test
+        void testApplySubscriptionCode_LimitReached() {
+            UUID subId = UUID.randomUUID();
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+
+            Subscription sub = mock(Subscription.class);
+            when(subscriptionRepository.findSubscriptionByIdForUpdate(subId)).thenReturn(sub);
+            when(sub.isValid()).thenReturn(true);
+            when(sub.getMaxEntries()).thenReturn(5);
+
+            SubscriptionDescriptor sd = mock(SubscriptionDescriptor.class);
+            when(sd.getUsageType()).thenReturn(null);
+
+            EventSubscriptionLink link = mock(EventSubscriptionLink.class);
+            when(link.getCompatibleCategories()).thenReturn(Collections.emptyList());
+            when(subscriptionRepository.findLink(anyInt(), any(), eq(EVENT_ID))).thenReturn(Optional.of(link));
+
+            when(ticketRepository.countSubscriptionUsage(subId, null)).thenReturn(5);
+
+            assertThrows(SubscriptionUsageExceeded.class, () -> trm.applySubscriptionCode(EVENT_ID, reservation, sd, subId));
+        }
+
+        @Test
+        void testValidateAndApplySubscriptionCode_InvalidPin() {
+            BindingResult br = mock(BindingResult.class);
+            when(br.hasErrors()).thenReturn(true);
+            Event mockEvent = mock(Event.class);
+            when(mockEvent.getType()).thenReturn(PurchaseContextType.event);
+            when(mockEvent.ofType(PurchaseContextType.event)).thenCallRealMethod();
+
+            boolean result = trm.validateAndApplySubscriptionCode(mockEvent,
+                mock(TicketReservation.class), Optional.empty(), "short", "test@test.com", br);
+            Assertions.assertFalse(result);
+            verify(br).reject("error.restrictedValue");
+        }
+
+        @Test
+        void testValidateAndApplySubscriptionCode_MultipleSubscriptionsFound() {
+            BindingResult br = mock(BindingResult.class);
+            when(br.hasErrors()).thenReturn(true);
+            String pin = "ACDEFGHJ";
+            Event mockEvent = mock(Event.class);
+            when(mockEvent.getType()).thenReturn(PurchaseContextType.event);
+            when(mockEvent.ofType(PurchaseContextType.event)).thenCallRealMethod();
+
+            when(subscriptionRepository.countSubscriptionByPartialUuid(anyString())).thenReturn(2);
+            when(subscriptionRepository.countSubscriptionByPartialUuidAndEmail(anyString(), anyString())).thenReturn(2);
+
+            boolean result = trm.validateAndApplySubscriptionCode(mockEvent,
+                mock(TicketReservation.class), Optional.empty(), pin, "test@test.com", br);
+            Assertions.assertFalse(result);
+            verify(br).reject("subscription.code.insert.full");
+        }
+
+        @Test
+        void testValidateAndApplySubscriptionCode_NotFound() {
+            BindingResult br = mock(BindingResult.class);
+            when(br.hasErrors()).thenReturn(true);
+            Event mockEvent = mock(Event.class);
+            when(mockEvent.getType()).thenReturn(PurchaseContextType.event);
+            when(mockEvent.ofType(PurchaseContextType.event)).thenCallRealMethod();
+
+            when(subscriptionRepository.countSubscriptionById(any())).thenReturn(0);
+
+            UUID subId = UUID.randomUUID();
+            boolean result = trm.validateAndApplySubscriptionCode(mockEvent,
+                mock(TicketReservation.class), Optional.of(subId), subId.toString(), "test@test.com", br);
+            Assertions.assertFalse(result);
+            verify(br).reject("subscription.uuid.not.found");
+        }
+
+        @Test
+        void testValidateAndApplySubscriptionCode_BindingResultErrors() {
+            BindingResult br = mock(BindingResult.class);
+            when(br.hasErrors()).thenReturn(true);
+            Event mockEvent = mock(Event.class);
+            when(mockEvent.getType()).thenReturn(PurchaseContextType.event);
+            when(mockEvent.ofType(PurchaseContextType.event)).thenCallRealMethod();
+
+            when(subscriptionRepository.countSubscriptionById(any())).thenReturn(1);
+
+            UUID subId = UUID.randomUUID();
+            boolean result = trm.validateAndApplySubscriptionCode(mockEvent,
+                mock(TicketReservation.class), Optional.of(subId), subId.toString(), "test@test.com", br);
+            Assertions.assertFalse(result);
+        }
+
+        @Test
+        void testValidateAndApplySubscriptionCode_SubscriptionInvalid() {
+            BindingResult br = mock(BindingResult.class);
+            UUID subId = UUID.randomUUID();
+            Event mockEvent = mock(Event.class);
+            when(mockEvent.getType()).thenReturn(PurchaseContextType.event);
+            when(mockEvent.ofType(PurchaseContextType.event)).thenCallRealMethod();
+
+            when(subscriptionRepository.countSubscriptionById(subId)).thenReturn(1);
+            Subscription sub = mock(Subscription.class);
+            when(subscriptionRepository.findSubscriptionById(subId)).thenReturn(sub);
+
+            doAnswer(invocation -> {
+                Optional<BindingResult> obr = invocation.getArgument(0);
+                obr.ifPresent(b -> when(b.hasErrors()).thenReturn(true));
+                return null;
+            }).when(sub).isValid(any());
+
+            boolean result = trm.validateAndApplySubscriptionCode(mockEvent,
+                mock(TicketReservation.class), Optional.of(subId), subId.toString(), "test@test.com", br);
+            Assertions.assertFalse(result);
+        }
+
+        @Test
+        void testValidateAndApplySubscriptionCode_UsageExceeded() throws SubscriptionUsageExceeded, SubscriptionUsageExceededForEvent {
+            BindingResult br = mock(BindingResult.class);
+            UUID subId = UUID.randomUUID();
+            Event mockEvent = mock(Event.class);
+            when(mockEvent.getType()).thenReturn(PurchaseContextType.event);
+            when(mockEvent.ofType(PurchaseContextType.event)).thenCallRealMethod();
+            when(mockEvent.getId()).thenReturn(EVENT_ID);
+
+            when(subscriptionRepository.countSubscriptionById(subId)).thenReturn(1);
+            Subscription sub = mock(Subscription.class);
+            when(subscriptionRepository.findSubscriptionById(subId)).thenReturn(sub);
+
+            SubscriptionDescriptor sd = mock(SubscriptionDescriptor.class);
+            when(subscriptionRepository.findDescriptorBySubscriptionId(subId)).thenReturn(sd);
+
+            TicketReservation reservation = mock(TicketReservation.class);
+            when(reservation.getId()).thenReturn(RESERVATION_ID);
+
+            when(subscriptionRepository.findSubscriptionByIdForUpdate(subId)).thenReturn(sub);
+            when(sub.isValid()).thenReturn(true);
+            when(sub.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+            when(sub.getSubscriptionDescriptorId()).thenReturn(UUID.randomUUID());
+            when(subscriptionRepository.findLink(anyInt(), any(), eq(EVENT_ID))).thenReturn(Optional.of(mock(EventSubscriptionLink.class)));
+
+            when(sub.getMaxEntries()).thenReturn(1);
+            when(ticketRepository.countSubscriptionUsage(subId, null)).thenReturn(1);
+
+            boolean result = trm.validateAndApplySubscriptionCode(mockEvent, reservation, Optional.of(subId), subId.toString(), "test@test.com", br);
+            Assertions.assertFalse(result);
+            verify(br).reject("subscription.max-usage-reached");
         }
     }
 }
