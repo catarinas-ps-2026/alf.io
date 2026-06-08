@@ -42,6 +42,7 @@
               nodejs
               postgresql
               nixd
+              plantuml
             ];
 
           buildInputs = [ pkgs.bashInteractive ];

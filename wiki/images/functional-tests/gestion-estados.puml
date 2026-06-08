@@ -1,0 +1,28 @@
+@startuml
+skinparam state {
+  BackgroundColor White
+  BorderColor Black
+}
+
+state PENDING
+state CONFIRM_ACCEPT : Ventana de Confirmación\n(Aceptar Pago)
+state CONFIRM_CANCEL : Ventana de Confirmación\n(Cancelar Pago)
+state COMPLETE
+state CANCELLED
+
+[*] --> PENDING
+
+PENDING --> CONFIRM_ACCEPT : Aceptar Pago
+PENDING --> CONFIRM_CANCEL : Cancelar Pago
+COMPLETE --> CONFIRM_CANCEL : Cancelar Pago
+
+CONFIRM_ACCEPT --> COMPLETE : Confirmar [SI]
+CONFIRM_ACCEPT --> PENDING : Cancelar / Clic fuera del modal
+
+CONFIRM_CANCEL --> CANCELLED : Confirmar [SI]
+CONFIRM_CANCEL --> PENDING : Cancelar / Clic fuera del modal
+CONFIRM_CANCEL --> COMPLETE : Cancelar / Clic fuera del modal
+
+COMPLETE --> [*]
+CANCELLED --> [*]
+@enduml

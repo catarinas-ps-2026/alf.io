@@ -80,16 +80,150 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 ## 7. Diseño de Casos de Prueba
 
-En esta sección se documentarán los casos de prueba específicos organizados por funcionalidad, empleando la estructura definida anteriormente:
+### Edición de Tickets Adquiridos (Nombre, Apellido y Correo)
+| ID | CPF-0001 |
+| :--- | :--- |
+| **Funcionalidad** | Edición de información del asistente post-compra |
+| **Descripción** | Permite a un administrador modificar los datos críticos (nombre, apellido y correo) de un ticket que ya ha sido emitido, validando la integridad de los datos. |
+| **Requisito Asociado** | RF-001 (Gestión de Tickets) |
+| **Precondiciones** | El ticket debe estar en estado 'Purchased'. El usuario debe tener permisos de edición sobre la reserva. |
+| **Datos de Entrada** | Nombre, Apellido, Correo Electrónico. |
+| **Pasos de Ejecución** | 1. Acceder al detalle de la reserva. 2. Hacer clic en la opción de edición del ticket. 3. Modificar los campos de Nombre/Apellido o Correo. 4. Presionar el botón "Guardar". |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Análisis de Valores Límite. |
+| **Prioridad** | Alta |
 
-... (proceso de diseño de cada conjunto de pruebas)
+**Análisis de Técnicas**
 
-## 8. Matriz de Trazabilidad
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Nombre/Apellido | Texto alfabético (1-255 caracteres) | Vacío, > 255 caracteres, incluye números. |
+| Correo | Formato estándar (user@domain.com) | Vacío, formato incorrecto (sin @), longitud excesiva. |
+
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Nombre/Apellido | 1 carácter | 0 caracteres (vacío) | 255 caracteres | 256 caracteres |
+| Correo | Longitud mínima válida | 0 caracteres | Máximo soportado (64 chars local) | Excede límite (65 chars local) |
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-01-001 | Nombre: "" (vacío) | Rechazar: Error de campo obligatorio | f- |
+| CPF-01-002 | Nombre: "A" (1 carácter) | Aceptar: Cambio guardado exitosamente | f+ |
+| CPF-01-003 | Nombre: (Cadena de 254 caracteres) | Aceptar: Cambio guardado exitosamente | f+ |
+| CPF-01-004 | Nombre: (Cadena de 255 caracteres) | Aceptar: Cambio guardado exitosamente | f+ |
+| CPF-01-005 | Nombre: (Cadena de 256 caracteres) | Rechazar: Error de longitud excedida | f- |
+| CPF-01-006 | Nombre: "Juan123" (con números) | Rechazar: Error de formato (solo letras) | f- |
+| CPF-01-007 | Correo: "" (vacío) | Rechazar: Error de campo obligatorio | f- |
+| CPF-01-008 | Correo: "aaaaa" (sin formato @) | Rechazar: Error de formato de correo | f- |
+| CPF-01-009 | Correo: (63 caracteres)@(63 caracteres).com | Aceptar: Cambio guardado exitosamente | f+ |
+| CPF-01-010 | Correo: (64 caracteres)@(64 caracteres).com | Aceptar: Cambio guardado exitosamente | f+ |
+| CPF-01-011 | Correo: (65 caracteres)@(65 caracteres).com | Rechazar: Error de longitud excedida | f- |
+
+### Búsqueda de Reservas (Panel de Administración)
+| ID | CPF-0002 |
+| :--- | :--- |
+| **Funcionalidad** | Búsqueda y filtrado de reservas |
+| **Descripción** | Valida que el sistema de búsqueda administrativa recupere correctamente las reservas basándose en el ID único o el apellido del asistente. |
+| **Requisito Asociado** | RF-002 (Búsqueda de Reservas) |
+| **Precondiciones** | Deben existir reservas previas en el sistema. |
+| **Datos de Entrada** | ID de reserva, Apellido. |
+| **Pasos de Ejecución** | 1. Ingresar al listado de reservas. 2. Introducir el criterio en la barra de búsqueda. 3. Ejecutar la búsqueda. |
+| **Técnicas de Pruebas** | Partición de Equivalencia. |
+| **Prioridad** | Media |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Cod. | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| PE-B01 | ID de reserva existente en el sistema | ID inexistente o mal formado |
+| PE-B02 | Apellido exacto de un comprador | Apellido que no figura en ninguna reserva |
+
+**Catálogo de Pruebas**
+| #CP | Criterio de Búsqueda | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-02-001 | ID: "ID-EXISTENTE" | El sistema muestra la reserva específica | f+ |
+| CPF-02-002 | Apellido: "Pérez" | El sistema lista todas las reservas bajo ese apellido | f+ |
+| CPF-02-003 | Valor: "ValorInexistente" | El sistema muestra mensaje "Sin resultados" | f- |
+
+### Gestión de Estados de Reserva y Pagos
+| ID | CPF-0003 |
+| :--- | :--- |
+| **Funcionalidad** | Transiciones de estado por pagos manuales |
+| **Descripción** | Verifica que las reservas transicionen correctamente entre estados tras acciones manuales (aceptar/cancelar pago) y que la UI responda a las reglas de negocio. |
+| **Requisito Asociado** | RF-003 (Gestión de Estados) |
+| **Precondiciones** | Reserva en estado pendiente de pago. |
+| **Datos de Entrada** | Interacción con botones de acción y modales. |
+| **Pasos de Ejecución** | 1. Seleccionar una reserva pendiente. 2. Ejecutar acción de pago/cancelación. 3. Validar cambio de estado en la tabla. |
+| **Técnicas de Pruebas** | Transición de Estados, Tablas de Decisión. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Transición de Estados**
+
+![Diagrama de Transición de Estados](images/functional-tests/gestion-estados.png)
+
+**Tabla de Decisión: Visibilidad del botón "Marcar como Completa"**
+| Condición | C1 | C2 | C3 | C4 |
+| :--- | :--- | :--- | :--- | :--- |
+| ¿Se completó el llenado? | SI | SI | SI | NO |
+| Tipo de Pago | Presencial | Offline | Proveedor | - |
+| ¿Pago Aprobado? | NO | SI | NO | NO |
+| **Mostrar Botón** | **NO** | **SI** | **NO** | **NO** |
+
+**Catálogo de Pruebas**
+| #CP | Acción / Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-03-001 | Clic en "Aceptar Pago" -> Confirmar | La reserva cambia a estado COMPLETE | f+ |
+| CPF-03-002 | Clic en "Cancelar Pago" -> Confirmar | La reserva cambia a estado CANCELLED | f+ |
+| CPF-03-003 | Iniciar transición -> Clic fuera del modal | El modal se cierra y la reserva sigue PENDING | f- |
+| CPF-03-004 | Llenado=SI, Pago=Offline, Aprobado=SI | Se visualiza el botón para marcar como completa | f+ |
+| CPF-03-005 | Llenado=SI, Pago=Presencial, Aprobado=NO | El botón de marcar como completa se oculta | f- |
+| CPF-03-006 | Llenado=NO | El botón de marcar como completa se oculta | f- |
+
+### Disponibilidad de Descarga de Tickets
+| ID | CPF-0004 |
+| :--- | :--- |
+| **Funcionalidad** | Lógica de emisión y descarga de entradas |
+| **Descripción** | Valida las condiciones bajo las cuales un usuario puede descargar su ticket en PDF, basándose en la temporalidad, modalidad y estado financiero. |
+| **Requisito Asociado** | RF-004 (Emisión de Entradas) |
+| **Precondiciones** | Reserva realizada por el usuario. |
+| **Técnicas de Pruebas** | Tablas de Decisión. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Tabla de Decisión: Mostrar botón de descarga de ticket**
+| Condición | C1 | C2 | C3 | C4 | C5 | C6 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| ¿El evento ya pasó? | SI | NO | NO | NO | NO | NO |
+| Modalidad del evento | - | Presencial | Presencial | Híbrido | Híbrido | Virtual |
+| ¿Pago Aprobado? | - | SI | NO | SI | NO | - |
+| **Mostrar Botón** | **NO** | **SI** | **NO** | **SI** | **NO** | **NO** |
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-04-001 | Fecha del evento en el pasado | El botón de descarga no se muestra | f- |
+| CPF-04-002 | Futuro, Presencial, Pago aprobado | El botón de descarga es visible y funcional | f+ |
+| CPF-04-003 | Futuro, Presencial, Pago pendiente | El botón de descarga permanece oculto | f- |
+| CPF-04-004 | Futuro, Híbrido, Pago aprobado | El botón de descarga es visible y funcional | f+ |
+| CPF-04-005 | Futuro, Híbrido, Pago pendiente | El botón de descarga permanece oculto | f- |
+| CPF-04-006 | Futuro, Modalidad Virtual | El botón de descarga no se muestra (acceso digital) | f- |
+
+## Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
 
 | Requisito Funcional | Casos de Prueba Asociados |
 | :--- | :--- |
+| **RF-001:** Gestión de información del asistente (Edición de Ticket) | CPF-0001 (001-011) |
+| **RF-002:** Búsqueda administrativa de reservas | CPF-0002 (001-003) |
+| **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
+| **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 
 ## 9. Métodos y Herramientas
 
