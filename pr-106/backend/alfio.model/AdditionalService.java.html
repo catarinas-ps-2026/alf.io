@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdditionalService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model</a> &gt; <span class="el_source">AdditionalService.java</span></div><h1>AdditionalService.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model;
+
+import alfio.util.ClockProvider;
+import alfio.util.MonetaryUtil;
+import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
+import org.springframework.security.crypto.codec.Hex;
+
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+<span class="fc" id="L37">public record AdditionalService(@Column(&quot;id&quot;) int id,</span>
+                                @Column(&quot;event_id_fk&quot;) int eventId,
+                                @Column(&quot;fix_price&quot;) boolean fixPrice,
+                                @Column(&quot;ordinal&quot;) int ordinal,
+                                @Column(&quot;available_qty&quot;) int availableQuantity,
+                                @Column(&quot;max_qty_per_order&quot;) int maxQtyPerOrder,
+                                @Column(&quot;inception_ts&quot;) ZonedDateTime utcInception,
+                                @Column(&quot;expiration_ts&quot;) ZonedDateTime utcExpiration,
+                                @Column(&quot;vat&quot;) BigDecimal vat,
+                                @Column(&quot;vat_type&quot;) VatType vatType,
+                                @Column(&quot;src_price_cts&quot;) Integer srcPriceCts,
+                                @Column(&quot;service_type&quot;) AdditionalServiceType type,
+                                @Column(&quot;supplement_policy&quot;) SupplementPolicy supplementPolicy,
+                                @Column(&quot;currency_code&quot;) String currencyCode,
+                                @Column(&quot;available_count&quot;) Integer availableItems,
+                                @Column(&quot;price_min_cts&quot;) Integer minPriceCts,
+                                @Column(&quot;price_max_cts&quot;) Integer maxPriceCts) {
+
+
+    public enum VatType {
+        INHERITED,
+        NONE,
+        CUSTOM_INCLUDED,
+        CUSTOM_EXCLUDED
+    }
+
+    public enum AdditionalServiceType {
+        DONATION, SUPPLEMENT
+    }
+
+    public enum SupplementPolicy {
+        MANDATORY_ONE_FOR_TICKET(true),
+        /**
+         * Will be calculated from the total reservation price, excluding any other mandatory fee
+         */
+        MANDATORY_PERCENTAGE_RESERVATION(true),
+        /**
+         * Will be calculated from the total price of the tickets, excluding any additional items
+         */
+        MANDATORY_PERCENTAGE_FOR_TICKET(true),
+        OPTIONAL_UNLIMITED_AMOUNT,
+        OPTIONAL_MAX_AMOUNT_PER_TICKET {
+            @Override
+            public boolean isValid(int quantity, AdditionalService as, int ticketsCount) {
+                return quantity &lt;= ticketsCount * as.maxQtyPerOrder();
+            }
+        },
+        OPTIONAL_MAX_AMOUNT_PER_RESERVATION {
+            @Override
+            public boolean isValid(int quantity, AdditionalService as, int selectionCount) {
+                return quantity &lt;= as.maxQtyPerOrder();
+            }
+        };
+
+        private final boolean mandatory;
+
+        SupplementPolicy() {
+            this(false);
+        }
+
+        SupplementPolicy(boolean mandatory) {
+            this.mandatory = mandatory;
+        }
+
+
+        public boolean isValid(int quantity, AdditionalService as, int selectionCount) {
+            return true;
+        }
+
+        public boolean isMandatory() {
+            return mandatory;
+        }
+
+        public static Set&lt;SupplementPolicy&gt; userSelected() {
+            return Arrays.stream(values()).filter(Predicate.not(SupplementPolicy::isMandatory)).collect(Collectors.toSet());
+        }
+
+        public static boolean isMandatoryPercentage(SupplementPolicy policy) {
+            return policy == SupplementPolicy.MANDATORY_PERCENTAGE_RESERVATION
+                || policy == SupplementPolicy.MANDATORY_PERCENTAGE_FOR_TICKET;
+        }
+    }
+
+    public ZonedDateTime getInception(ZoneId zoneId) {
+<span class="pc" id="L121">        return Optional.ofNullable(utcInception).map(i -&gt; i.withZoneSameInstant(zoneId)).orElseGet(() -&gt; ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).minus(1L, ChronoUnit.HOURS));</span>
+    }
+
+    public ZonedDateTime getExpiration(ZoneId zoneId) {
+<span class="pc" id="L125">        return Optional.ofNullable(utcExpiration).map(i -&gt; i.withZoneSameInstant(zoneId)).orElseGet(() -&gt; ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).plus(1L, ChronoUnit.HOURS));</span>
+    }
+
+    public boolean getSaleable() {
+<span class="fc" id="L129">        ZonedDateTime now = ZonedDateTime.now(ClockProvider.clock());</span>
+<span class="pc bpc" id="L130" title="2 of 4 branches missed.">        return utcInception().isBefore(now) &amp;&amp; utcExpiration().isAfter(now);</span>
+    }
+
+    public BigDecimal getMinPrice() {
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (minPriceCts != null) {</span>
+<span class="nc" id="L135">            return MonetaryUtil.centsToUnit(minPriceCts, currencyCode);</span>
+        }
+<span class="fc" id="L137">        return null;</span>
+    }
+
+    public BigDecimal getMaxPrice() {
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (maxPriceCts != null) {</span>
+<span class="nc" id="L142">            return MonetaryUtil.centsToUnit(maxPriceCts, currencyCode);</span>
+        }
+<span class="fc" id="L144">        return null;</span>
+    }
+
+    public String getChecksum() {
+        try {
+<span class="nc" id="L149">            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="nc" id="L150">            digest.update(Boolean.toString(fixPrice).getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L151">            digest.update(Integer.toString(ordinal).getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L152">            digest.update(Integer.toString(availableQuantity).getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L153">            digest.update(Integer.toString(maxQtyPerOrder).getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L154">            digest.update(utcInception.toString().getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L155">            digest.update(utcExpiration.toString().getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L156">            digest.update(Optional.ofNullable(vat).map(BigDecimal::toString).orElse(&quot;&quot;).getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L157">            digest.update(vatType.name().getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L158">            digest.update(type.name().getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (supplementPolicy != null) {</span>
+<span class="nc" id="L160">                digest.update(supplementPolicy.name().getBytes(StandardCharsets.UTF_8));</span>
+            }
+<span class="nc" id="L162">            return new String(Hex.encode(digest.digest()));</span>
+<span class="nc" id="L163">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L164">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+    public static PriceContainer.VatStatus getVatStatus(VatType vatType, PriceContainer.VatStatus eventVatStatus) {
+<span class="pc bpc" id="L169" title="3 of 4 branches missed.">        return switch (vatType) {</span>
+<span class="fc" id="L170">            case INHERITED -&gt; eventVatStatus;</span>
+<span class="nc" id="L171">            case NONE -&gt; PriceContainer.VatStatus.NONE;</span>
+<span class="nc" id="L172">            case CUSTOM_INCLUDED -&gt; PriceContainer.VatStatus.INCLUDED;</span>
+<span class="nc" id="L173">            default -&gt; PriceContainer.VatStatus.NOT_INCLUDED;</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
