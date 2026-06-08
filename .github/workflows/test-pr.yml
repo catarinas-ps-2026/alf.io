@@ -3,6 +3,15 @@ name: Test PR
 on:
     pull_request:
         types: [opened, synchronize, reopened]
+        paths:
+            - "src/**"
+            - "frontend/**"
+            - "gradle/**"
+            - "*.gradle"
+            - "gradle.properties"
+            - "gradlew"
+            - "docker-compose.yml"
+            - ".github/workflows/**"
 
 permissions:
     pull-requests: write
