@@ -52,8 +52,247 @@ Este proceso es controlado mediante Github actions, que:
 
 ## 6. Resultados de Pruebas Funcionales
 
-... (aquí se incluirían los resultados específicos de cada caso de prueba ejecutado,
-    incluyendo estado (aprobado/fallido), defectos encontrados y evidencia asociada)
+### Edición de Tickets Adquiridos (Nombre, Apellido y Correo)
+
+**CPF-01-001**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-001 | Verificar que el campo nombre no admita cadenas vacías. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Rechazar: Error de campo obligatorio |  | El sistema no permite guardar y marca el campo. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-field-len-0](images/functional-tests/run/ticket-edit-field-len-0.png) Se muestra que el sistema valida el campo obligatorio. |  |  |  |  |
+
+**CPF-01-002**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-002 | Verificar que el campo nombre admita 1 carácter. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Aceptar: Cambio guardado exitosamente |  | Cambio guardado exitosamente |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-field-len-1](images/functional-tests/run/ticket-edit-field-len-1.png) Se muestra la edición exitosa con un solo carácter. |  |  |  |  |
+
+**CPF-01-003**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-003 | Verificar que el campo nombre admita 254 caracteres. | Manual | Fallido | 500 Unexpected Exception |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Aceptar: Cambio guardado exitosamente |  | Error 500 del servidor al intentar procesar la solicitud. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-field-len-254](images/functional-tests/run/ticket-edit-field-len-254.png) Se observa una excepción inesperada al usar cadenas largas. |  |  |  |  |
+
+**CPF-01-004**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-004 | Verificar que el campo nombre admita 255 caracteres. | Manual | Fallido | 500 Unexpected Exception |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Aceptar: Cambio guardado exitosamente |  | Error 500 del servidor al intentar procesar la solicitud. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-field-len-255](images/functional-tests/run/ticket-edit-field-len-255.png) El sistema falla con error 500 en el límite superior de la base de datos. |  |  |  |  |
+
+**CPF-01-005**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-005 | Verificar que el campo nombre rechace 256 caracteres. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Rechazar: Error de longitud excedida |  | El sistema bloquea la entrada o rechaza por validación de frontend. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-field-len-256](images/functional-tests/run/ticket-edit-field-len-256.png) El sistema rechaza correctamente la longitud excedida. |  |  |  |  |
+
+**CPF-01-006**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-006 | Verificar que el campo nombre no admita números. | Manual | Fallido | El sistema acepta caracteres numéricos. |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Rechazar: Error de formato (solo letras) |  | El sistema acepta y guarda el nombre con números. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-field-numbers](images/functional-tests/run/ticket-edit-field-numbers.png) Se observa que el sistema no valida el tipo de dato alfanumérico. |  |  |  |  |
+
+**CPF-01-007**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-007 | Verificar que el campo correo no admita cadenas vacías. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Rechazar: Error de campo obligatorio |  | El sistema impide el guardado sin correo. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-email-len-0](images/functional-tests/run/ticket-edit-email-len-0.png) Validación de correo obligatorio exitosa. |  |  |  |  |
+
+**CPF-01-008**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-008 | Verificar que el campo correo rechace formatos inválidos (sin @). | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Rechazar: Error de formato de correo |  | Rechazo por formato inválido. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-email-invalid](images/functional-tests/run/ticket-edit-email-invalid.png) El sistema detecta correctamente el formato de correo inválido. |  |  |  |  |
+
+**CPF-01-009**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-009 | Verificar correo con longitud de 63 caracteres. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Aceptar: Cambio guardado exitosamente |  | Cambio guardado exitosamente. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-email-len-63](images/functional-tests/run/ticket-edit-email-len-63.png) Prueba positiva de longitud de correo exitosa. |  |  |  |  |
+
+**CPF-01-010**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-010 | Verificar correo con longitud de 64 caracteres. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Aceptar: Cambio guardado exitosamente |  | Cambio guardado exitosamente. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-email-len-64](images/functional-tests/run/ticket-edit-email-len-64.png) Prueba positiva en el límite de 64 caracteres exitosa. |  |  |  |  |
+
+**CPF-01-011**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-01-011 | Verificar que el campo correo rechace 65 caracteres. | Manual | Fallido | El sistema acepta correos de más de 64 caracteres. |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Rechazar: Error de longitud excedida |  | El sistema permite guardar el correo de 65 caracteres. |  |  |
+| Evidencia |  |  |  |  |
+| ![ticket-edit-email-len-65](images/functional-tests/run/ticket-edit-email-len-65.png) Se muestra que el sistema no aplica la restricción de longitud en el correo. |  |  |  |  |
+
+### Búsqueda de Reservas (Panel de Administración)
+
+**CPF-02-001**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-02-001 | Búsqueda por ID de reserva existente. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El sistema muestra la reserva específica |  | Se muestra la reserva correspondiente al ID. |  |  |
+| Evidencia |  |  |  |  |
+| ![reserve-search-id](images/functional-tests/run/reserve-search-id.png) Búsqueda exitosa por identificador único. |  |  |  |  |
+
+**CPF-02-002**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-02-002 | Búsqueda por apellido de asistente. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El sistema lista todas las reservas bajo ese apellido |  | Resultados filtrados correctamente por apellido. |  |  |
+| Evidencia |  |  |  |  |
+| ![reserve-search-lastname](images/functional-tests/run/reserve-search-lastname.png) Búsqueda por criterio de texto exitosa. |  |  |  |  |
+
+**CPF-02-003**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-02-003 | Búsqueda de valor inexistente. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El sistema muestra mensaje "Sin resultados" |  | Mensaje de "No results found" mostrado correctamente. |  |  |
+| Evidencia |  |  |  |  |
+| ![reserve-search-none](images/functional-tests/run/reserve-search-none.png) Comportamiento esperado ante búsqueda sin coincidencias. |  |  |  |  |
+
+### Gestión de Estados de Reserva y Pagos
+
+**CPF-03-001**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-03-001 | Transición de PENDING a COMPLETE tras aceptar pago. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| La reserva cambia a estado COMPLETE |  | Cambio de estado reflejado correctamente en la tabla. |  |  |
+| Evidencia |  |  |  |  |
+| ![approve-1](images/functional-tests/run/reservation-approve-payment-1.png) ![approve-2](images/functional-tests/run/reservation-approve-payment-2.png) ![approve-3](images/functional-tests/run/reservation-approve-payment-3.png) Flujo completo de aprobación de pago. |  |  |  |  |
+
+**CPF-03-002**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-03-002 | Transición de PENDING a CANCELLED tras cancelar pago. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| La reserva cambia a estado CANCELLED |  | Cambio de estado reflejado correctamente en la tabla. |  |  |
+| Evidencia |  |  |  |  |
+| ![cancel-1](images/functional-tests/run/reservation-cancel-1.png) ![cancel-2](images/functional-tests/run/reservation-cancel-2.png) ![cancel-3](images/functional-tests/run/reservation-cancel-3.png) Flujo completo de cancelación de reserva. |  |  |  |  |
+
+**CPF-03-003**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-03-003 | Clic fuera del modal para regresar al inicio. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El modal se cierra y el estado se mantiene |  | El modal se cierra y el estado se mantiene. |  |  |
+| Evidencia |  |  |  |  |
+| ![modal-open](images/functional-tests/run/reservation-approve-payment-2.png) ![state-result](images/functional-tests/run/reservation-approve-payment-1.png) Al cerrar el modal, se regresa al estado inicial de la lista. |  |  |  |  |
+
+**CPF-03-004**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-03-004 | Botón "Marcar como completa" visible (Llenado=SI, Pago=Offline, Aprobado=SI). | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| Se visualiza el botón para marcar como completa |  | Botón visible en la interfaz de administración. |  |  |
+| Evidencia |  |  |  |  |
+| ![mark-complete-show](images/functional-tests/run/reservation-mark-as-complete-should-show.png) El botón aparece según las reglas de la tabla de decisión. |  |  |  |  |
+
+**CPF-03-005**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-03-005 | Botón oculto (Llenado=SI, Pago=Presencial, Aprobado=NO). | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de marcar como completa se oculta |  | Botón no presente en la UI. |  |  |
+| Evidencia |  |  |  |  |
+| ![mark-complete-hide](images/functional-tests/run/reservation-mark-as-complete-shouldnt-show.png) El botón se oculta correctamente para pagos presenciales no aprobados. |  |  |  |  |
+
+**CPF-03-006**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-03-006 | Botón oculto cuando no se completó el llenado. | Manual | Fallido | El botón se muestra aunque el llenado sea incompleto. |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de marcar como completa se oculta |  | El botón es visible. Al hacer clic, se realiza la petición, falla sin error visible y recarga la página. |  |  |
+| Evidencia |  |  |  |  |
+| ![mark-complete-bug](images/functional-tests/run/reservation-mark-as-complete-should-show.png) Se observa la presencia del botón a pesar de no cumplir con las condiciones de llenado. |  |  |  |  |
+
+### Disponibilidad de Descarga de Tickets
+
+**CPF-04-001**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-04-001 | No mostrar botón de descarga si el evento ya pasó. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de descarga no se muestra |  | Botón oculto para eventos pasados. |  |  |
+| Evidencia |  |  |  |  |
+| ![download-not-past](images/functional-tests/run/ticket-download-not-available.png) El sistema restringe la descarga post-evento. |  |  |  |  |
+
+**CPF-04-002**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-04-002 | Descarga disponible para evento presencial con pago aprobado. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de descarga es visible y funcional |  | Botón visible y permite la descarga. |  |  |
+| Evidencia |  |  |  |  |
+| ![download-available](images/functional-tests/run/ticket-download-available.png) Escenario de éxito para descarga de ticket presencial. |  |  |  |  |
+
+**CPF-04-003**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-04-003 | No mostrar botón si el pago está pendiente (Presencial). | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de descarga permanece oculto |  | Botón oculto por falta de pago. |  |  |
+| Evidencia |  |  |  |  |
+| ![download-not-unpaid](images/functional-tests/run/ticket-download-not-available.png) Restricción de descarga por estado de pago. |  |  |  |  |
+
+**CPF-04-004**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-04-004 | Descarga disponible para evento híbrido con pago aprobado. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de descarga es visible y funcional |  | Botón visible y permite la descarga. |  |  |
+| Evidencia |  |  |  |  |
+| ![download-available-hybrid](images/functional-tests/run/ticket-download-available.png) Acceso a ticket en modalidad híbrida exitoso. |  |  |  |  |
+
+**CPF-04-005**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-04-005 | No mostrar botón si el pago está pendiente (Híbrido). | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de descarga permanece oculto |  | Botón oculto por falta de pago. |  |  |
+| Evidencia |  |  |  |  |
+| ![download-not-hybrid-unpaid](images/functional-tests/run/ticket-download-not-available.png) Bloqueo de descarga en modalidad híbrida sin pago. |  |  |  |  |
+
+**CPF-04-006**
+| ID | Descripción | Tipo | Estado | Defectos |
+| :--- | :--- | :--- | :--- | :--- |
+| CPF-04-006 | No mostrar botón de descarga para modalidad Virtual. | Manual | Exitoso | No se encontraron defectos |
+| Resultado esperado |  | Resultado obtenido |  |  |
+| El botón de descarga no se muestra (acceso digital) |  | Botón oculto según lógica de negocio para eventos virtuales. |  |  |
+| Evidencia |  |  |  |  |
+| ![download-not-virtual](images/functional-tests/run/ticket-download-not-available.png) Verificación de lógica de negocio para accesos virtuales. |  |  |  |  |
 
 ## 7. Limitaciones
 

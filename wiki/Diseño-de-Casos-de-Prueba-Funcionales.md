@@ -117,9 +117,9 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-01-006 | Nombre: "Juan123" (con números) | Rechazar: Error de formato (solo letras) | f- |
 | CPF-01-007 | Correo: "" (vacío) | Rechazar: Error de campo obligatorio | f- |
 | CPF-01-008 | Correo: "aaaaa" (sin formato @) | Rechazar: Error de formato de correo | f- |
-| CPF-01-009 | Correo: (63 caracteres)@(63 caracteres).com | Aceptar: Cambio guardado exitosamente | f+ |
-| CPF-01-010 | Correo: (64 caracteres)@(64 caracteres).com | Aceptar: Cambio guardado exitosamente | f+ |
-| CPF-01-011 | Correo: (65 caracteres)@(65 caracteres).com | Rechazar: Error de longitud excedida | f- |
+| CPF-01-009 | Correo con longitud de 63 caracteres | Aceptar: Cambio guardado exitosamente | f+ |
+| CPF-01-010 | Correo con longitud de 64 caracteres | Aceptar: Cambio guardado exitosamente | f+ |
+| CPF-01-011 | Correo con longitud de 65 caracteres | Rechazar: Error de longitud excedida | f- |
 
 ### Búsqueda de Reservas (Panel de Administración)
 | ID | CPF-0002 |
@@ -164,7 +164,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 **Transición de Estados**
 
-![Diagrama de Transición de Estados](images/functional-tests/gestion-estados.png)
+![Diagrama de Transición de Estados](images/functional-tests/design/gestion-estados.png)
 
 **Tabla de Decisión: Visibilidad del botón "Marcar como Completa"**
 | Condición | C1 | C2 | C3 | C4 |
@@ -179,10 +179,10 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | :--- | :--- | :--- | :--- |
 | CPF-03-001 | Clic en "Aceptar Pago" -> Confirmar | La reserva cambia a estado COMPLETE | f+ |
 | CPF-03-002 | Clic en "Cancelar Pago" -> Confirmar | La reserva cambia a estado CANCELLED | f+ |
-| CPF-03-003 | Iniciar transición -> Clic fuera del modal | El modal se cierra y la reserva sigue PENDING | f- |
+| CPF-03-003 | Iniciar transición -> Clic fuera del modal | El modal se cierra y el estado se mantiene | f+ |
 | CPF-03-004 | Llenado=SI, Pago=Offline, Aprobado=SI | Se visualiza el botón para marcar como completa | f+ |
-| CPF-03-005 | Llenado=SI, Pago=Presencial, Aprobado=NO | El botón de marcar como completa se oculta | f- |
-| CPF-03-006 | Llenado=NO | El botón de marcar como completa se oculta | f- |
+| CPF-03-005 | Llenado=SI, Pago=Presencial, Aprobado=NO | El botón de marcar como completa se oculta | f+ |
+| CPF-03-006 | Llenado=NO | El botón de marcar como completa se oculta | f+ |
 
 ### Disponibilidad de Descarga de Tickets
 | ID | CPF-0004 |
