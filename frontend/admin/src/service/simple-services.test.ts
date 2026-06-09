@@ -8,12 +8,16 @@ import { PurchaseContextService } from './purchase-context.ts';
 vi.mock('./helpers.ts', () => ({
     fetchJson: vi.fn(),
     postJson: vi.fn(),
+    putJson: vi.fn(),
+    callDelete: vi.fn(),
 }));
 
-import { fetchJson, postJson } from './helpers.ts';
+import { fetchJson, postJson, putJson, callDelete } from './helpers.ts';
 
 const mockFetchJson = vi.mocked(fetchJson);
 const mockPostJson = vi.mocked(postJson);
+const mockPutJson = vi.mocked(putJson);
+const mockCallDelete = vi.mocked(callDelete);
 
 describe('EventService', () => {
     // Técnicas: Mocking con verificación
@@ -194,6 +198,57 @@ describe('CustomPaymentMethodsService', () => {
 
         expect(mockFetchJson).toHaveBeenCalledWith(
             '/admin/api/events/10/categories/1/denied-custom-payment-methods',
+        );
+    });
+
+    it('envía PUT para actualizar método de pago', async () => {
+        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        mockPutJson.mockResolvedValue({} as Response);
+
+        const service = new CustomPaymentMethodsService();
+        const method = { id: 'pm-1', name: 'Updated' } as any;
+        await service.updatePaymentMethod(1, 'pm-1', method);
+
+        expect(mockPutJson).toHaveBeenCalledWith(
+            '/admin/api/configuration/organizations/1/payment-method/pm-1',
+            method,
+        );
+    });
+
+    it('envía DELETE para eliminar método de pago', async () => {
+        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        mockCallDelete.mockResolvedValue({} as Response);
+
+        const service = new CustomPaymentMethodsService();
+        await service.deletePaymentMethod(1, 'pm-1');
+
+        expect(mockCallDelete).toHaveBeenCalledWith(
+            '/admin/api/configuration/organizations/1/payment-method/pm-1',
+        );
+    });
+
+    it('construye URL de métodos permitidos para evento', async () => {
+        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        mockFetchJson.mockResolvedValue([]);
+
+        const service = new CustomPaymentMethodsService();
+        await service.getAllowedPaymentMethodsForEvent(10);
+
+        expect(mockFetchJson).toHaveBeenCalledWith(
+            '/admin/api/configuration/event/10/payment-method',
+        );
+    });
+
+    it('envía POST para establecer métodos denegados en categoría', async () => {
+        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        mockPostJson.mockResolvedValue({} as Response);
+
+        const service = new CustomPaymentMethodsService();
+        await service.setDeniedPaymentMethodsForCategory(10, 1, ['pm-1']);
+
+        expect(mockPostJson).toHaveBeenCalledWith(
+            '/admin/api/events/10/categories/1/denied-custom-payment-methods',
+            ['pm-1'],
         );
     });
 });

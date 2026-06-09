@@ -15,6 +15,8 @@ import {
     getFetchMock,
     mockCsrfMeta,
     mockFetchJson,
+    mockFetchJsonOnce,
+    mockFetchResponse,
     resetFetchMock,
 } from './mocks.ts';
 
@@ -132,5 +134,24 @@ describe('test-utils/mocks', () => {
         const mock = getFetchMock();
         expect(mock).toBeDefined();
         expect(typeof mock).toBe('function');
+    });
+
+    it('mockFetchJsonOnce returns data on first call', async () => {
+        const data = { first: true };
+        mockFetchJsonOnce(data);
+
+        const result = await fetch('/api/test');
+        const json = await (result as Response).json();
+        expect(json).toEqual(data);
+    });
+
+    it('mockFetchResponse creates response with custom options', async () => {
+        mockFetchResponse({ ok: false, status: 404, json: { error: 'not found' } });
+
+        const result = await fetch('/api/test');
+        expect(result.ok).toBe(false);
+        expect(result.status).toBe(404);
+        const json = await (result as Response).json();
+        expect(json).toEqual({ error: 'not found' });
     });
 });
