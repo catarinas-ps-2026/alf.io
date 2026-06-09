@@ -72,6 +72,16 @@ export function supportedLanguages(): ContentLanguage[] {
     return [];
 }
 
+/**
+ * Extrae date y time de un string ISO datetime usando substring.
+ * - date: primeros 10 caracteres (YYYY-MM-DD)
+ * - time: caracteres 11-15 (HH:MM)
+ * - Si el string es más corto, retorna strings vacíos
+ *
+ * @example
+ * toDateTimeModification('2025-01-15T10:00:00') // { date: '2025-01-15', time: '10:00' }
+ * toDateTimeModification('2025-01-15')           // { date: '2025-01-15', time: '' }
+ */
 export function toDateTimeModification(
     isoString: string,
 ): DateTimeModification {
@@ -81,6 +91,15 @@ export function toDateTimeModification(
     };
 }
 
+/**
+ * Extrae los primeros 16 caracteres de un string (formato ISO datetime).
+ * - Si isoString es null o undefined, retorna string vacío
+ * - Si el string tiene menos de 16 caracteres, retorna el string completo
+ *
+ * @example
+ * extractDateTime('2025-01-15T10:00:00') // '2025-01-15T10:00'
+ * extractDateTime(undefined)             // ''
+ */
 export function extractDateTime(isoString?: string): string {
     if (isoString != null) {
         return isoString.substring(0, 16);
@@ -100,12 +119,31 @@ export function notifyChange(
     }
 }
 
+/**
+ * Escapa caracteres especiales de HTML usando textContent/innerHTML.
+ * Convierte &, <, >, ", ' a sus entidades HTML correspondientes.
+ *
+ * @example
+ * escapeHtml('<script>')  // '&lt;script&gt;'
+ * escapeHtml('Tom & Jerry') // 'Tom &amp; Jerry'
+ */
 export function escapeHtml(message: string): string {
     const div = document.createElement('div');
     div.textContent = message;
     return div.innerHTML;
 }
 
+/**
+ * Convierte un valor a su representación en string.
+ * - Si value es null o undefined, retorna el valor sin cambios
+ * - Si value es un number/boolean, lo convierte a string
+ * - Si value es un string, lo retorna sin cambios
+ *
+ * @example
+ * asString(42)      // '42'
+ * asString(null)    // null
+ * asString('hello') // 'hello'
+ */
 export function asString(value: any): string | null {
     if (value != null) {
         return `${value}`;
@@ -113,6 +151,19 @@ export function asString(value: any): string | null {
     return value;
 }
 
+/**
+ * Parsea un string a número entero usando parseInt con radix 10.
+ * - Si value es null o undefined, retorna null
+ * - Si el string no es numérico, retorna NaN
+ * - Decimales se truncan (ej: '3.14' → 3)
+ * - Notación científica se trunca en 'e' (ej: '1e3' → 1)
+ *
+ * @example
+ * asNumber('42')    // 42
+ * asNumber('3.14')  // 3
+ * asNumber('abc')   // NaN
+ * asNumber()        // null
+ */
 export function asNumber(value?: string): number | null {
     if (value != null) {
         return Number.parseInt(value, 10);

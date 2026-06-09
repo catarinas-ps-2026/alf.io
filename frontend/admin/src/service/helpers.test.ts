@@ -1,3 +1,14 @@
+/**
+ * Tests para funciones de helpers.ts
+ *
+ * Funciones puras: particiones de equivalencia sobre tipos de input
+ * - null/undefined (falsy, sin conversión)
+ * - number (conversión a string)
+ * - string (sin cambios)
+ * - boolean (conversión a string)
+ *
+ * Funciones HTTP: mocking con verificación de llamadas
+ */
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 import {
     asString,
@@ -14,130 +25,133 @@ import {
 } from './helpers.ts';
 
 describe('asString', () => {
-    it('CP-STR-01: retorna null para null', () => {
+    // Convierte valores a string, retorna null/undefined sin cambios
+    it('retorna null para null', () => {
         expect(asString(null)).toBe(null);
     });
 
-    it('CP-STR-02: retorna undefined para undefined', () => {
+    it('retorna undefined para undefined', () => {
         expect(asString(undefined)).toBe(undefined);
     });
 
-    it('CP-STR-03: convierte number positivo a string', () => {
+    it('convierte number positivo a string', () => {
         expect(asString(42)).toBe('42');
     });
 
-    it('CP-STR-04: convierte number cero a string', () => {
+    it('convierte number cero a string', () => {
         expect(asString(0)).toBe('0');
     });
 
-    it('CP-STR-05: convierte number negativo a string', () => {
+    it('convierte number negativo a string', () => {
         expect(asString(-1)).toBe('-1');
     });
 
-    it('CP-STR-06: retorna string vacío sin cambios', () => {
+    it('retorna string vacío sin cambios', () => {
         expect(asString('')).toBe('');
     });
 
-    it('CP-STR-07: retorna string no vacío sin cambios', () => {
+    it('retorna string no vacío sin cambios', () => {
         expect(asString('hello')).toBe('hello');
     });
 
-    it('CP-STR-08: convierte boolean true a string', () => {
+    it('convierte boolean true a string', () => {
         expect(asString(true)).toBe('true');
     });
 
-    it('CP-STR-09: convierte boolean false a string', () => {
+    it('convierte boolean false a string', () => {
         expect(asString(false)).toBe('false');
     });
 });
 
 describe('asNumber', () => {
-    it('CP-NUM-01: retorna null para undefined', () => {
+    // Parsea strings a number con parseInt radix 10, retorna null para null/undefined
+    it('retorna null para undefined', () => {
         expect(asNumber(undefined)).toBe(null);
     });
 
-    it('CP-NUM-02: retorna null para null', () => {
+    it('retorna null para null', () => {
         expect(asNumber(null as unknown as string)).toBe(null);
     });
 
-    it('CP-NUM-03: parsea entero positivo', () => {
+    it('parsea entero positivo', () => {
         expect(asNumber('42')).toBe(42);
     });
 
-    it('CP-NUM-04: parsea entero cero', () => {
+    it('parsea entero cero', () => {
         expect(asNumber('0')).toBe(0);
     });
 
-    it('CP-NUM-05: parsea entero negativo', () => {
+    it('parsea entero negativo', () => {
         expect(asNumber('-5')).toBe(-5);
     });
 
-    it('CP-NUM-06: trunca decimal', () => {
+    it('trunca decimal', () => {
         expect(asNumber('3.14')).toBe(3);
     });
 
-    it('CP-NUM-07: retorna NaN para no numérico', () => {
+    it('retorna NaN para no numérico', () => {
         expect(asNumber('abc')).toBeNaN();
     });
 
-    it('CP-NUM-08: retorna NaN para vacío', () => {
+    it('retorna NaN para vacío', () => {
         expect(asNumber('')).toBeNaN();
     });
 
-    it('CP-NUM-09: trunca notación científica', () => {
+    it('trunca notación científica', () => {
         expect(asNumber('1e3')).toBe(1);
     });
 
-    it('CP-NUM-10: trunca hexadecimal', () => {
+    it('trunca hexadecimal', () => {
         expect(asNumber('0x1A')).toBe(0);
     });
 
-    it('CP-NUM-11: ignora espacios', () => {
+    it('ignora espacios', () => {
         expect(asNumber('  42  ')).toBe(42);
     });
 
-    it('CP-NUM-12: parsea número grande', () => {
+    it('parsea número grande', () => {
         expect(asNumber('999999999')).toBe(999999999);
     });
 });
 
 describe('toDateTimeModification', () => {
-    it('CP-DTM-01: parsea ISO datetime completo', () => {
+    // Extrae date/time de ISO string via substring
+    it('parsea ISO datetime completo', () => {
         expect(toDateTimeModification('2025-01-15T10:00:00')).toEqual({
             date: '2025-01-15',
             time: '10:00',
         });
     });
 
-    it('CP-DTM-02: parsea ISO con timezone', () => {
+    it('parsea ISO con timezone', () => {
         expect(toDateTimeModification('2025-12-31T23:59:00+02:00')).toEqual({
             date: '2025-12-31',
             time: '23:59',
         });
     });
 
-    it('CP-DTM-03: parsea fecha mínima', () => {
+    it('parsea fecha mínima', () => {
         expect(toDateTimeModification('2000-01-01T00:00:00')).toEqual({
             date: '2000-01-01',
             time: '00:00',
         });
     });
 
-    it('CP-DTM-04: solo fecha retorna time vacío', () => {
+    it('solo fecha retorna time vacío', () => {
         expect(toDateTimeModification('2025-01-15')).toEqual({
             date: '2025-01-15',
             time: '',
         });
     });
 
-    it('CP-DTM-05: string vacío retorna vacío', () => {
+    it('string vacío retorna vacío', () => {
         expect(toDateTimeModification('')).toEqual({
             date: '',
             time: '',
         });
     });
 
-    it('CP-DTM-06: exactamente 16 chars funciona', () => {
+    it('exactamente 16 chars funciona', () => {
         expect(toDateTimeModification('2025-01-15T10:00')).toEqual({
             date: '2025-01-15',
             time: '10:00',
@@ -146,60 +160,62 @@ describe('toDateTimeModification', () => {
 });
 
 describe('extractDateTime', () => {
-    it('CP-EXT-01: retorna vacío para undefined', () => {
+    // Retorna primeros 16 chars de ISO string, o vacío si es null/undefined
+    it('retorna vacío para undefined', () => {
         expect(extractDateTime(undefined)).toBe('');
     });
 
-    it('CP-EXT-02: retorna vacío para null', () => {
+    it('retorna vacío para null', () => {
         expect(extractDateTime(null as unknown as string)).toBe('');
     });
 
-    it('CP-EXT-03: retorna vacío para string vacío', () => {
+    it('retorna vacío para string vacío', () => {
         expect(extractDateTime('')).toBe('');
     });
 
-    it('CP-EXT-04: extrae 16 chars de ISO válido', () => {
+    it('extrae 16 chars de ISO válido', () => {
         expect(extractDateTime('2025-01-15T10:00:00')).toBe('2025-01-15T10:00');
     });
 
-    it('CP-EXT-05: retorna string completo si es corto', () => {
+    it('retorna string completo si es corto', () => {
         expect(extractDateTime('2025-01-15T')).toBe('2025-01-15T');
     });
 });
 
 describe('escapeHtml', () => {
-    it('CP-ESC-01: string sin especiales sin cambios', () => {
+    // Escapa caracteres HTML via textContent/innerHTML
+    it('string sin especiales sin cambios', () => {
         expect(escapeHtml('hello')).toBe('hello');
     });
 
-    it('CP-ESC-02: escapa ampersand', () => {
+    it('escapa ampersand', () => {
         expect(escapeHtml('&')).toBe('&amp;');
     });
 
-    it('CP-ESC-03: escapa less-than', () => {
+    it('escapa less-than', () => {
         expect(escapeHtml('<')).toBe('&lt;');
     });
 
-    it('CP-ESC-04: escapa greater-than', () => {
+    it('escapa greater-than', () => {
         expect(escapeHtml('>')).toBe('&gt;');
     });
 
-    it('CP-ESC-05: escapa double quote', () => {
+    it('escapa double quote', () => {
         const result = escapeHtml('"');
         expect(result).toMatch(/&quot;|"/);
     });
 
-    it('CP-ESC-06: escapa script injection', () => {
+    it('escapa script injection', () => {
         expect(escapeHtml('<script>alert(1)</script>')).toBe(
             '&lt;script&gt;alert(1)&lt;/script&gt;',
         );
     });
 
-    it('CP-ESC-07: string vacío retorna vacío', () => {
+    it('string vacío retorna vacío', () => {
         expect(escapeHtml('')).toBe('');
     });
 
-    it('CP-ESC-08: múltiples caracteres especiales', () => {
+    it('múltiples caracteres especiales', () => {
         const result = escapeHtml('Tom & Jerry "say" <hi>');
         expect(result).toContain('&amp;');
         expect(result).toContain('&lt;');
