@@ -1,6 +1,9 @@
 import { callDelete, fetchJson, postJson, putJson } from './helpers';
 
 export class CustomPaymentMethodsService {
+    /**
+     * Obtiene los métodos de pago configurados para una organización.
+     */
     async getPaymentMethodsForOrganization(organizationId: number) {
         const result = await fetchJson<CustomOfflinePayment[]>(
             `/admin/api/configuration/organizations/${organizationId}/payment-method`,
@@ -8,6 +11,9 @@ export class CustomPaymentMethodsService {
         return result;
     }
 
+    /**
+     * Crea un nuevo método de pago para una organización.
+     */
     async createPaymentMethod(
         organizationId: number,
         paymentMethod: CustomOfflinePayment,
@@ -19,6 +25,9 @@ export class CustomPaymentMethodsService {
         return result;
     }
 
+    /**
+     * Actualiza un método de pago existente por su ID.
+     */
     async updatePaymentMethod(
         organizationId: number,
         existingMethodId: string,
@@ -31,6 +40,9 @@ export class CustomPaymentMethodsService {
         return result;
     }
 
+    /**
+     * Elimina un método de pago por su ID.
+     */
     async deletePaymentMethod(
         organizationId: number,
         existingMethodId: string,
@@ -41,6 +53,10 @@ export class CustomPaymentMethodsService {
         return result;
     }
 
+    /**
+     * Establece los métodos de pago permitidos para un evento.
+     * Reemplaza la lista completa de métodos.
+     */
     async setPaymentMethodsForEvent(
         eventId: number,
         paymentMethodIds: string[],
@@ -52,6 +68,9 @@ export class CustomPaymentMethodsService {
         return result;
     }
 
+    /**
+     * Obtiene los métodos de pago permitidos para un evento.
+     */
     async getAllowedPaymentMethodsForEvent(eventId: number) {
         const result = await fetchJson<CustomOfflinePayment[]>(
             `/admin/api/configuration/event/${eventId}/payment-method`,
@@ -59,6 +78,9 @@ export class CustomPaymentMethodsService {
         return result;
     }
 
+    /**
+     * Obtiene los métodos de pago denegados para una categoría específica.
+     */
     async getDeniedPaymentMethodsForCategory(
         eventId: number,
         categoryId: number,
@@ -69,6 +91,9 @@ export class CustomPaymentMethodsService {
         return result;
     }
 
+    /**
+     * Establece los métodos de pago denegados para una categoría específica.
+     */
     async setDeniedPaymentMethodsForCategory(
         eventId: number,
         categoryId: number,
