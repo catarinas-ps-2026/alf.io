@@ -1,14 +1,3 @@
-/**
- * Tests para funciones de helpers.ts
- *
- * Funciones puras: particiones de equivalencia sobre tipos de input
- * - null/undefined (falsy, sin conversión)
- * - number (conversión a string)
- * - string (sin cambios)
- * - boolean (conversión a string)
- *
- * Funciones HTTP: mocking con verificación de llamadas
- */
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 import {
     asString,
