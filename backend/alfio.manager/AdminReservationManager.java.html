@@ -247,10 +247,10 @@ public class AdminReservationManager {
 <span class="fc" id="L247">                    status.setRollbackOnly();</span>
                 }
 <span class="fc" id="L249">                return result;</span>
-<span class="nc" id="L250">            } catch (Exception e) {</span>
-<span class="nc" id="L251">                log.error(&quot;Error during update of reservation eventName: {} reservationId: {}, username: {}, reservation: {}&quot;, publicIdentifier, reservationId, username, AdminReservationModification.summary(adminReservationModification));</span>
-<span class="nc" id="L252">                status.setRollbackOnly();</span>
-<span class="nc" id="L253">                return Result.error(singletonList(ErrorCode.custom(&quot;&quot;, e.getMessage())));</span>
+<span class="fc" id="L250">            } catch (Exception e) {</span>
+<span class="fc" id="L251">                log.error(&quot;Error during update of reservation eventName: {} reservationId: {}, username: {}, reservation: {}&quot;, publicIdentifier, reservationId, username, AdminReservationModification.summary(adminReservationModification));</span>
+<span class="fc" id="L252">                status.setRollbackOnly();</span>
+<span class="fc" id="L253">                return Result.error(singletonList(ErrorCode.custom(&quot;&quot;, e.getMessage())));</span>
             }
         });
     }
@@ -333,20 +333,20 @@ public class AdminReservationManager {
     private Result&lt;Boolean&gt; performUpdate(String reservationId, PurchaseContext purchaseContext, TicketReservation r, AdminReservationModification arm, String username) {
 <span class="pc" id="L334">        billingDocumentManager.ensureBillingDocumentIsPresent(purchaseContext, r, username, () -&gt; ticketReservationManager.orderSummaryForReservationId(reservationId, purchaseContext));</span>
 <span class="fc" id="L335">        ticketReservationRepository.updateValidity(reservationId, Date.from(arm.getExpiration().toZonedDateTime(purchaseContext.getZoneId()).toInstant()));</span>
-<span class="pc bpc" id="L336" title="1 of 2 branches missed.">        if(arm.isUpdateContactData()) {</span>
-<span class="nc" id="L337">            AdminReservationModification.CustomerData customerData = arm.getCustomerData();</span>
-<span class="nc" id="L338">            ticketReservationRepository.updateTicketReservation(reservationId, r.getStatus().name(), customerData.getEmailAddress(),</span>
-<span class="nc" id="L339">                customerData.getFullName(), customerData.getFirstName(), customerData.getLastName(), customerData.getUserLanguage(),</span>
-<span class="nc" id="L340">                customerData.getBillingAddress(), r.getConfirmationTimestamp(),</span>
-<span class="nc" id="L341">                Optional.ofNullable(r.getPaymentMethod()).map(PaymentProxy::name).orElse(null), customerData.getCustomerReference());</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">        if(arm.isUpdateContactData()) {</span>
+<span class="fc" id="L337">            AdminReservationModification.CustomerData customerData = arm.getCustomerData();</span>
+<span class="fc" id="L338">            ticketReservationRepository.updateTicketReservation(reservationId, r.getStatus().name(), customerData.getEmailAddress(),</span>
+<span class="fc" id="L339">                customerData.getFullName(), customerData.getFirstName(), customerData.getLastName(), customerData.getUserLanguage(),</span>
+<span class="fc" id="L340">                customerData.getBillingAddress(), r.getConfirmationTimestamp(),</span>
+<span class="fc" id="L341">                Optional.ofNullable(r.getPaymentMethod()).map(PaymentProxy::name).orElse(null), customerData.getCustomerReference());</span>
 
-<span class="nc bnc" id="L343" title="All 4 branches missed.">            if(StringUtils.isNotBlank(customerData.getVatNr()) || StringUtils.isNotBlank(customerData.getVatCountryCode())) {</span>
-<span class="nc" id="L344">                ticketReservationRepository.updateBillingData(r.getVatStatus(), r.getSrcPriceCts(), r.getFinalPriceCts(), r.getVatCts(),</span>
-<span class="nc" id="L345">                    r.getDiscountCts(), r.getCurrencyCode(), customerData.getVatNr(), customerData.getVatCountryCode(),</span>
-<span class="nc" id="L346">                    r.isInvoiceRequested(), reservationId);</span>
+<span class="pc bpc" id="L343" title="3 of 4 branches missed.">            if(StringUtils.isNotBlank(customerData.getVatNr()) || StringUtils.isNotBlank(customerData.getVatCountryCode())) {</span>
+<span class="fc" id="L344">                ticketReservationRepository.updateBillingData(r.getVatStatus(), r.getSrcPriceCts(), r.getFinalPriceCts(), r.getVatCts(),</span>
+<span class="fc" id="L345">                    r.getDiscountCts(), r.getCurrencyCode(), customerData.getVatNr(), customerData.getVatCountryCode(),</span>
+<span class="fc" id="L346">                    r.isInvoiceRequested(), reservationId);</span>
             }
 
-<span class="nc" id="L349">            ticketReservationRepository.updateInvoicingAdditionalInformation(reservationId, Json.toJson(arm.getCustomerData().getInvoicingAdditionalInfo()));</span>
+<span class="fc" id="L349">            ticketReservationRepository.updateInvoicingAdditionalInformation(reservationId, Json.toJson(arm.getCustomerData().getInvoicingAdditionalInfo()));</span>
 
         }
 
