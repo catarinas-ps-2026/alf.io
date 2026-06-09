@@ -12,6 +12,10 @@ import type {
 } from '../model/purchase-context.ts';
 import type { ValidatedResponse } from '../model/validation.ts';
 
+/**
+ * Crea un ContentLanguage con valores por defecto (en, English).
+ * Soporta overrides parciales para personalización.
+ */
 export function createContentLanguage(
     overrides: Partial<ContentLanguage> = {},
 ): ContentLanguage {
@@ -24,6 +28,10 @@ export function createContentLanguage(
     };
 }
 
+/**
+ * Crea un PurchaseContext con valores por defecto (type: 'event', publicIdentifier: 'test-event-123').
+ * Incluye un ContentLanguage por defecto.
+ */
 export function createPurchaseContext(
     overrides: Partial<PurchaseContext> = {},
 ): PurchaseContext {
@@ -37,6 +45,9 @@ export function createPurchaseContext(
     };
 }
 
+/**
+ * Crea un DateTimeModification con valores por defecto (2025-01-15, 10:00).
+ */
 export function createDateTimeModification(
     overrides: Partial<DateTimeModification> = {},
 ): DateTimeModification {
@@ -47,6 +58,9 @@ export function createDateTimeModification(
     };
 }
 
+/**
+ * Crea un AdditionalField con valores por defecto (input:text, required, ATTENDEE context).
+ */
 export function createAdditionalField(
     overrides: Partial<AdditionalField> = {},
 ): AdditionalField {
@@ -72,6 +86,9 @@ export function createAdditionalField(
     };
 }
 
+/**
+ * Crea un AdditionalItem con valores por defecto (SUPPLEMENT, price: 1000, EUR).
+ */
 export function createAdditionalItem(
     overrides: Partial<AdditionalItem> = {},
 ): AdditionalItem {

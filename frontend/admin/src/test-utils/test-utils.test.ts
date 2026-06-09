@@ -19,6 +19,9 @@ import {
 } from './mocks.ts';
 
 describe('test-utils/factories', () => {
+    // Técnicas: Contract testing + Valores límite
+    // - Verificar que cada factory retorna un objeto con la estructura correcta
+    // - Verificar que overrides funcionan correctamente
     it('createPurchaseContext returns valid default object', () => {
         const ctx = createPurchaseContext();
         expect(ctx.type).toBe('event');
@@ -96,6 +99,9 @@ describe('test-utils/factories', () => {
 });
 
 describe('test-utils/mocks', () => {
+    // Técnicas: Mocking con verificación
+    // - Verificar que los helpers de mocking crean mocks correctos
+    // - Verificar que limpieza funciona correctamente
     afterEach(() => {
         resetFetchMock();
     });
