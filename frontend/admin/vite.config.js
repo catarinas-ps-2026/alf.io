@@ -30,6 +30,11 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],
+            include: [
+                'src/service/**/*.ts',
+                'src/model/**/*.ts',
+                'src/test-utils/**/*.ts',
+            ],
         },
     },
 });
