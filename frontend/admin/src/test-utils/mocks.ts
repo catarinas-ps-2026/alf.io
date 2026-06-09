@@ -1,5 +1,9 @@
 import { vi } from 'vitest';
 
+/**
+ * Mockea global.fetch para retornar siempre el JSON especificado.
+ * Útil para tests que hacen múltiples llamadas fetch.
+ */
 export function mockFetchJson(data: unknown): void {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,

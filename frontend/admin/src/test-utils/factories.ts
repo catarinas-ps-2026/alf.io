@@ -115,6 +115,10 @@ export function createAdditionalItem(
     };
 }
 
+/**
+ * Crea un AlfioEvent con valores por defecto (Test Event, EUR, ACTIVE).
+ * Incluye PurchaseContext y campos de evento completos.
+ */
 export function createAlfioEvent(
     overrides: Partial<AlfioEvent> = {},
 ): AlfioEvent {
@@ -158,6 +162,9 @@ export function createAlfioEvent(
     };
 }
 
+/**
+ * Crea una Organization con valores por defecto (Test Org, org@test.com).
+ */
 export function createOrganization(
     overrides: Partial<Organization> = {},
 ): Organization {
@@ -171,6 +178,9 @@ export function createOrganization(
     };
 }
 
+/**
+ * Crea un EventWithOrganization combinando AlfioEvent y Organization.
+ */
 export function createEventWithOrganization(
     overrides: Partial<EventWithOrganization> = {},
 ): EventWithOrganization {
@@ -181,6 +191,9 @@ export function createEventWithOrganization(
     };
 }
 
+/**
+ * Crea un ValidatedResponse con valores por defecto (success: true, errorCount: 0).
+ */
 export function createValidatedResponse<T>(
     value: T,
     overrides: Partial<ValidatedResponse<T>> = {},
