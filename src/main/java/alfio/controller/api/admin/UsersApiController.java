@@ -25,7 +25,12 @@ import alfio.model.modification.OrganizationModification;
 import alfio.model.modification.UserModification;
 import alfio.model.result.ValidationResult;
 import alfio.model.system.ConfigurationKeys;
-import alfio.model.user.*;
+import alfio.model.user.Organization;
+import alfio.model.user.Role;
+import alfio.model.user.RoleTarget;
+import alfio.model.user.User;
+import alfio.model.user.UserWithOrganizations;
+import alfio.model.user.UserWithPassword;
 import alfio.util.ImageUtil;
 import alfio.util.Json;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -41,12 +46,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -314,7 +336,9 @@ public class UsersApiController {
             return role.getDescription();
         }
 
-        public List<String> getTarget() { return role.getTarget().stream().map(RoleTarget::name).toList(); }
+        public List<String> getTarget() { 
+            return role.getTarget().stream().map(RoleTarget::name).toList(); 
+        }
     }
 
     private static final class PasswordModification {
