@@ -23,22 +23,16 @@ describe('AdditionalFieldService', () => {
 
     describe('loadAllByPurchaseContext', () => {
         // Técnicas: Particiones de equivalencia (type: event vs subscription)
-        it('construye URL para type=event', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+        it.each([
+            ['event', 'evt-1', '/admin/api/event/evt-1/additional-field'],
+            ['subscription', 'sub-1', '/admin/api/subscription/sub-1/additional-field'],
+        ])('construye URL para type=%s', async (_type, identifier, expectedUrl) => {
+            const ctx = createPurchaseContext({ type: _type as 'event' | 'subscription', publicIdentifier: identifier });
             mockFetchJson.mockResolvedValue([]);
 
             await AdditionalFieldService.loadAllByPurchaseContext(ctx);
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/event/evt-1/additional-field');
-        });
-
-        it('construye URL para type=subscription', async () => {
-            const ctx = createPurchaseContext({ type: 'subscription', publicIdentifier: 'sub-1' });
-            mockFetchJson.mockResolvedValue([]);
-
-            await AdditionalFieldService.loadAllByPurchaseContext(ctx);
-
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/subscription/sub-1/additional-field');
+            expect(mockFetchJson).toHaveBeenCalledWith(expectedUrl);
         });
     });
 
@@ -56,55 +50,36 @@ describe('AdditionalFieldService', () => {
 
     describe('swapFieldPosition', () => {
         // Técnicas: Mocking con verificación + Valores límite
-        it('construye URL con ids en path', async () => {
+        it.each([
+            ['ids diferentes', 1, 2, '/admin/api/event/evt-1/additional-field/swap-position/1/2'],
+            ['ids iguales', 1, 1, '/admin/api/event/evt-1/additional-field/swap-position/1/1'],
+        ])('construye URL con %s', async (_label, id1, id2, expectedUrl) => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockPostJson.mockResolvedValue({} as Response);
 
-            await AdditionalFieldService.swapFieldPosition(ctx, 1, 2);
+            await AdditionalFieldService.swapFieldPosition(ctx, id1, id2);
 
-            expect(mockPostJson).toHaveBeenCalledWith(
-                '/admin/api/event/evt-1/additional-field/swap-position/1/2',
-                null,
-            );
-        });
-
-        it('funciona con ids iguales', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
-            mockPostJson.mockResolvedValue({} as Response);
-
-            await AdditionalFieldService.swapFieldPosition(ctx, 1, 1);
-
-            expect(mockPostJson).toHaveBeenCalledWith(
-                '/admin/api/event/evt-1/additional-field/swap-position/1/1',
-                null,
-            );
+            expect(mockPostJson).toHaveBeenCalledWith(expectedUrl, null);
         });
     });
 
     describe('moveField', () => {
         // Técnicas: Mocking con verificación + Valores límite
-        it('envía newPosition en body URLSearchParams', async () => {
+        it.each([
+            ['position válida', 5],
+            ['position cero', 0],
+        ])('envía %s (%d) en body URLSearchParams', async (_label, position) => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockPostJson.mockResolvedValue({} as Response);
 
-            await AdditionalFieldService.moveField(ctx, 1, 5);
+            await AdditionalFieldService.moveField(ctx, 1, position);
 
             expect(mockPostJson).toHaveBeenCalledWith(
                 '/admin/api/event/evt-1/additional-field/set-position/1',
                 expect.any(URLSearchParams),
             );
             const body = mockPostJson.mock.calls[0][1] as URLSearchParams;
-            expect(body.get('newPosition')).toBe('5');
-        });
-
-        it('position cero funciona', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
-            mockPostJson.mockResolvedValue({} as Response);
-
-            await AdditionalFieldService.moveField(ctx, 1, 0);
-
-            const body = mockPostJson.mock.calls[0][1] as URLSearchParams;
-            expect(body.get('newPosition')).toBe('0');
+            expect(body.get('newPosition')).toBe(String(position));
         });
     });
 

@@ -66,17 +66,22 @@ describe('AdditionalItemService', () => {
         // Técnicas: Particiones de equivalencia + Mocking
         // - PE1: id presente (incluye 0) → PUT
         // - PE2: id undefined/null → POST
-        it('PUT cuando id está presente', async () => {
+        it.each([
+            ['PUT cuando id está presente', { id: 1, price: 1000 }, '/admin/api/event/10/additional-services/1', 'putJson'],
+            ['PUT cuando id es 0', { id: 0, price: 1000 }, '/admin/api/event/10/additional-services/0', 'putJson'],
+        ])('%s', async (_label, item, expectedUrl, expectedMethod) => {
             mockPutJson.mockResolvedValue({} as Response);
-            const item = { id: 1, price: 1000 };
+            mockPostJson.mockResolvedValue({} as Response);
 
             await AdditionalItemService.updateAdditionalItem(item, 10);
 
-            expect(mockPutJson).toHaveBeenCalledWith(
-                '/admin/api/event/10/additional-services/1',
-                item,
-            );
-            expect(mockPostJson).not.toHaveBeenCalled();
+            if (expectedMethod === 'putJson') {
+                expect(mockPutJson).toHaveBeenCalledWith(expectedUrl, item);
+                expect(mockPostJson).not.toHaveBeenCalled();
+            } else {
+                expect(mockPostJson).toHaveBeenCalledWith(expectedUrl, item);
+                expect(mockPutJson).not.toHaveBeenCalled();
+            }
         });
 
         it('POST cuando id es undefined', async () => {
@@ -90,18 +95,6 @@ describe('AdditionalItemService', () => {
                 item,
             );
             expect(mockPutJson).not.toHaveBeenCalled();
-        });
-
-        it('PUT cuando id es 0', async () => {
-            mockPutJson.mockResolvedValue({} as Response);
-            const item = { id: 0, price: 1000 };
-
-            await AdditionalItemService.updateAdditionalItem(item, 10);
-
-            expect(mockPutJson).toHaveBeenCalledWith(
-                '/admin/api/event/10/additional-services/0',
-                item,
-            );
         });
     });
 
