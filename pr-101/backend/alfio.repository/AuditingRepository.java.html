@@ -81,8 +81,8 @@ public interface AuditingRepository {
                                        @Bind(&quot;ticketId&quot;) int ticketId,
                                        @Bind(&quot;eventType&quot;) Audit.EventType eventType);
 
-    @Query(&quot;select count(*) from auditing_user where reservation_id = :reservationId and event_type in (:eventTypes) and date_trunc('day', :referenceDate::timestamp) = date_trunc('day', event_time)&quot;)
-    Integer countAuditsOfTypesInTheSameDay(@Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;eventTypes&quot;) Collection&lt;String&gt; eventTypes, @Bind(&quot;referenceDate&quot;) ZonedDateTime date);
+    @Query(&quot;select count(*) from auditing_user where reservation_id = :reservationId and event_type in (:eventTypes) and event_time &gt;= :startOfDay and event_time &lt; :endOfDay&quot;)
+    Integer countAuditsOfTypesInTheSameDay(@Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;eventTypes&quot;) Collection&lt;String&gt; eventTypes, @Bind(&quot;startOfDay&quot;) Date startOfDay, @Bind(&quot;endOfDay&quot;) Date endOfDay);
 
     @Query(&quot;&quot;&quot;
         insert into auditing(reservation_id, user_id, event_id, event_type, event_time, entity_type, entity_id, modifications) \

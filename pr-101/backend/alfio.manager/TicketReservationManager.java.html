@@ -853,31 +853,31 @@ public class TicketReservationManager {
 <span class="fc" id="L853">    }</span>
 
     void issueCreditNoteForRefund(PurchaseContext purchaseContext, TicketReservation reservation, BigDecimal refundAmount, String username) {
-<span class="nc" id="L856">        Validate.isTrue(TransactionSynchronizationManager.isActualTransactionActive(), &quot;issueCreditNoteForRefund() needs to be called within an active transaction&quot;);</span>
-<span class="nc" id="L857">        var currencyCode = reservation.getCurrencyCode();</span>
-<span class="nc" id="L858">        var priceContainer = new RefundPriceContainer(unitToCents(refundAmount, currencyCode), currencyCode, reservation.getVatStatus(), reservation.getVatPercentageOrZero());</span>
-<span class="nc" id="L859">        var summaryRowTitle = messageSourceManager.getMessageSourceFor(purchaseContext).getMessage(&quot;invoice.refund.line-item&quot;, null, Locale.forLanguageTag(reservation.getUserLanguage()));</span>
-<span class="nc" id="L860">        var formattedPriceBeforeVat = formatUnit(priceContainer.getNetPrice(), currencyCode);</span>
-<span class="nc" id="L861">        var formattedAmount = formatUnit(refundAmount, currencyCode);</span>
-<span class="nc" id="L862">        var cost = new TotalPrice(priceContainer.getSrcPriceCts(), unitToCents(priceContainer.getVAT(), currencyCode), 0, 0, currencyCode);</span>
-<span class="nc" id="L863">        var orderSummary = new OrderSummary(</span>
+<span class="fc" id="L856">        Validate.isTrue(TransactionSynchronizationManager.isActualTransactionActive(), &quot;issueCreditNoteForRefund() needs to be called within an active transaction&quot;);</span>
+<span class="fc" id="L857">        var currencyCode = reservation.getCurrencyCode();</span>
+<span class="fc" id="L858">        var priceContainer = new RefundPriceContainer(unitToCents(refundAmount, currencyCode), currencyCode, reservation.getVatStatus(), reservation.getVatPercentageOrZero());</span>
+<span class="fc" id="L859">        var summaryRowTitle = messageSourceManager.getMessageSourceFor(purchaseContext).getMessage(&quot;invoice.refund.line-item&quot;, null, Locale.forLanguageTag(reservation.getUserLanguage()));</span>
+<span class="fc" id="L860">        var formattedPriceBeforeVat = formatUnit(priceContainer.getNetPrice(), currencyCode);</span>
+<span class="fc" id="L861">        var formattedAmount = formatUnit(refundAmount, currencyCode);</span>
+<span class="fc" id="L862">        var cost = new TotalPrice(priceContainer.getSrcPriceCts(), unitToCents(priceContainer.getVAT(), currencyCode), 0, 0, currencyCode);</span>
+<span class="fc" id="L863">        var orderSummary = new OrderSummary(</span>
             cost,
-<span class="nc" id="L865">            List.of(new SummaryRow(summaryRowTitle, formattedAmount, formattedPriceBeforeVat, 1, formattedAmount, formattedPriceBeforeVat, unitToCents(refundAmount, currencyCode), SummaryType.TICKET, null, priceContainer.getVatStatus())),</span>
+<span class="fc" id="L865">            List.of(new SummaryRow(summaryRowTitle, formattedAmount, formattedPriceBeforeVat, 1, formattedAmount, formattedPriceBeforeVat, unitToCents(refundAmount, currencyCode), SummaryType.TICKET, null, priceContainer.getVatStatus())),</span>
             false,
             formattedAmount,
-<span class="nc" id="L868">            formatUnit(priceContainer.getVAT(), currencyCode),</span>
+<span class="fc" id="L868">            formatUnit(priceContainer.getVAT(), currencyCode),</span>
             false,
             false,
             false,
-<span class="nc" id="L872">            priceContainer.getVatPercentageOrZero().toPlainString(),</span>
-<span class="nc" id="L873">            priceContainer.getVatStatus(),</span>
+<span class="fc" id="L872">            priceContainer.getVatPercentageOrZero().toPlainString(),</span>
+<span class="fc" id="L873">            priceContainer.getVatStatus(),</span>
             formattedAmount
         );
-<span class="nc" id="L876">        log.trace(&quot;model for partial credit note created&quot;);</span>
-<span class="nc" id="L877">        var billingDocument = billingDocumentManager.createBillingDocument(purchaseContext, reservation, username, BillingDocument.Type.CREDIT_NOTE, orderSummary);</span>
-<span class="nc" id="L878">        var organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
-<span class="nc" id="L879">        extensionManager.handleCreditNoteGenerated(reservation, purchaseContext, cost, billingDocument.getId(), Map.of(ORGANIZATION, organization));</span>
-<span class="nc" id="L880">    }</span>
+<span class="fc" id="L876">        log.trace(&quot;model for partial credit note created&quot;);</span>
+<span class="fc" id="L877">        var billingDocument = billingDocumentManager.createBillingDocument(purchaseContext, reservation, username, BillingDocument.Type.CREDIT_NOTE, orderSummary);</span>
+<span class="fc" id="L878">        var organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
+<span class="fc" id="L879">        extensionManager.handleCreditNoteGenerated(reservation, purchaseContext, cost, billingDocument.getId(), Map.of(ORGANIZATION, organization));</span>
+<span class="fc" id="L880">    }</span>
 
     @Transactional(readOnly = true)
     public Map&lt;String, Object&gt; prepareModelForReservationEmail(PurchaseContext purchaseContext,
@@ -953,7 +953,7 @@ public class TicketReservationManager {
     private void reTransitionToPending(String reservationId, boolean deleteTransactions) {
 <span class="fc" id="L954">        int updatedReservation = ticketReservationRepository.updateReservationStatus(reservationId, TicketReservationStatus.PENDING.toString());</span>
 <span class="pc bpc" id="L955" title="1 of 2 branches missed.">        Validate.isTrue(updatedReservation == 1, &quot;expected exactly one updated reservation, got &quot;+updatedReservation);</span>
-<span class="pc bpc" id="L956" title="1 of 2 branches missed.">        if(deleteTransactions) {</span>
+<span class="fc bfc" id="L956" title="All 2 branches covered.">        if(deleteTransactions) {</span>
             // delete all pending transactions, if any
 <span class="fc" id="L958">            transactionRepository.deleteForReservationsWithStatus(List.of(reservationId), Transaction.Status.PENDING);</span>
         }
@@ -1088,55 +1088,55 @@ public class TicketReservationManager {
      */
     public void markExpiredInPaymentReservationAsStuck(Date expirationDate) {
 <span class="fc" id="L1090">        List&lt;Pair&lt;TicketReservation, Event&gt;&gt; stuckReservations = findStuckPaymentsToBeNotified(expirationDate);</span>
-<span class="pc bpc" id="L1091" title="1 of 2 branches missed.">        if(!stuckReservations.isEmpty()) {</span>
-<span class="nc" id="L1092">            List&lt;String&gt; ids = stuckReservations.stream().map(p -&gt; p.getLeft().getId()).collect(toList());</span>
-<span class="nc" id="L1093">            ticketReservationRepository.updateReservationsStatus(ids, TicketReservationStatus.STUCK.name());</span>
+<span class="fc bfc" id="L1091" title="All 2 branches covered.">        if(!stuckReservations.isEmpty()) {</span>
+<span class="fc" id="L1092">            List&lt;String&gt; ids = stuckReservations.stream().map(p -&gt; p.getLeft().getId()).collect(toList());</span>
+<span class="fc" id="L1093">            ticketReservationRepository.updateReservationsStatus(ids, TicketReservationStatus.STUCK.name());</span>
 
 
-<span class="nc" id="L1096">            Map&lt;Event, List&lt;Pair&lt;TicketReservation, Event&gt;&gt;&gt; reservationsGroupedByEvent = stuckReservations</span>
-<span class="nc" id="L1097">                .stream()</span>
-<span class="nc" id="L1098">                .collect(Collectors.groupingBy(Pair::getRight));</span>
+<span class="fc" id="L1096">            Map&lt;Event, List&lt;Pair&lt;TicketReservation, Event&gt;&gt;&gt; reservationsGroupedByEvent = stuckReservations</span>
+<span class="fc" id="L1097">                .stream()</span>
+<span class="fc" id="L1098">                .collect(Collectors.groupingBy(Pair::getRight));</span>
 
-<span class="nc" id="L1100">            reservationsGroupedByEvent.forEach((event, reservations) -&gt; {</span>
-<span class="nc" id="L1101">                Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="nc" id="L1102">                notificationManager.sendSimpleEmail(event, null, organization.getEmail(),</span>
+<span class="fc" id="L1100">            reservationsGroupedByEvent.forEach((event, reservations) -&gt; {</span>
+<span class="fc" id="L1101">                Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L1102">                notificationManager.sendSimpleEmail(event, null, organization.getEmail(),</span>
 <span class="nc" id="L1103">                    STUCK_TICKETS_SUBJECT,  () -&gt; RenderedTemplate.plaintext(STUCK_TICKETS_MSG.formatted(event.getDisplayName()), Map.of()));</span>
 
-<span class="nc" id="L1105">                extensionManager.handleStuckReservations(event, reservations.stream().map(p -&gt; p.getLeft().getId()).collect(toList()));</span>
-<span class="nc" id="L1106">            });</span>
+<span class="fc" id="L1105">                extensionManager.handleStuckReservations(event, reservations.stream().map(p -&gt; p.getLeft().getId()).collect(toList()));</span>
+<span class="fc" id="L1106">            });</span>
         }
 <span class="fc" id="L1108">    }</span>
 
     private List&lt;Pair&lt;TicketReservation, Event&gt;&gt; findStuckPaymentsToBeNotified(Date expirationDate) {
 <span class="fc" id="L1111">        List&lt;ReservationIdAndEventId&gt; stuckReservations = ticketReservationRepository.findStuckReservationsForUpdate(expirationDate);</span>
         Map&lt;Integer, Event&gt; events;
-<span class="pc bpc" id="L1113" title="1 of 2 branches missed.">        if(!stuckReservations.isEmpty()){</span>
-<span class="nc" id="L1114">            events = eventRepository.findByIds(stuckReservations.stream().map(ReservationIdAndEventId::getEventId).collect(toSet()))</span>
-<span class="nc" id="L1115">                .stream()</span>
-<span class="nc" id="L1116">                .collect(toMap(Event::getId, Function.identity()));</span>
+<span class="fc bfc" id="L1113" title="All 2 branches covered.">        if(!stuckReservations.isEmpty()){</span>
+<span class="fc" id="L1114">            events = eventRepository.findByIds(stuckReservations.stream().map(ReservationIdAndEventId::getEventId).collect(toSet()))</span>
+<span class="fc" id="L1115">                .stream()</span>
+<span class="fc" id="L1116">                .collect(toMap(Event::getId, Function.identity()));</span>
         } else {
 <span class="fc" id="L1118">            events = Map.of();</span>
         }
 
 <span class="fc" id="L1121">        return stuckReservations.stream()</span>
-<span class="pc" id="L1122">            .map(id -&gt; Pair.of(ticketReservationRepository.findReservationById(id.getId()), events.get(id.getEventId())))</span>
+<span class="fc" id="L1122">            .map(id -&gt; Pair.of(ticketReservationRepository.findReservationById(id.getId()), events.get(id.getEventId())))</span>
 <span class="fc" id="L1123">            .filter(reservationAndEvent -&gt; {</span>
-<span class="nc" id="L1124">                var event = reservationAndEvent.getRight();</span>
-<span class="nc" id="L1125">                var reservation = reservationAndEvent.getLeft();</span>
-<span class="nc" id="L1126">                var optionalTransaction = transactionRepository.loadOptionalByReservationIdAndStatusForUpdate(reservation.getId(), Transaction.Status.PENDING);</span>
-<span class="nc bnc" id="L1127" title="All 2 branches missed.">                if(optionalTransaction.isEmpty()) {</span>
-<span class="nc" id="L1128">                    return true;</span>
+<span class="fc" id="L1124">                var event = reservationAndEvent.getRight();</span>
+<span class="fc" id="L1125">                var reservation = reservationAndEvent.getLeft();</span>
+<span class="fc" id="L1126">                var optionalTransaction = transactionRepository.loadOptionalByReservationIdAndStatusForUpdate(reservation.getId(), Transaction.Status.PENDING);</span>
+<span class="fc bfc" id="L1127" title="All 2 branches covered.">                if(optionalTransaction.isEmpty()) {</span>
+<span class="fc" id="L1128">                    return true;</span>
                 }
-<span class="nc" id="L1130">                var transaction = optionalTransaction.get();</span>
-<span class="nc" id="L1131">                PaymentContext paymentContext = new PaymentContext(event, reservation.getId());</span>
-<span class="nc" id="L1132">                var paymentResultOptional = checkTransactionStatus(event, reservation);</span>
-<span class="nc bnc" id="L1133" title="All 2 branches missed.">                if(paymentResultOptional.isEmpty()) {</span>
-<span class="nc" id="L1134">                    return true;</span>
+<span class="fc" id="L1130">                var transaction = optionalTransaction.get();</span>
+<span class="fc" id="L1131">                PaymentContext paymentContext = new PaymentContext(event, reservation.getId());</span>
+<span class="fc" id="L1132">                var paymentResultOptional = checkTransactionStatus(event, reservation);</span>
+<span class="fc bfc" id="L1133" title="All 2 branches covered.">                if(paymentResultOptional.isEmpty()) {</span>
+<span class="fc" id="L1134">                    return true;</span>
                 }
-<span class="nc" id="L1136">                var providerAndWebhookResult = paymentResultOptional.get();</span>
-<span class="nc" id="L1137">                var paymentWebhookResult = providerAndWebhookResult.getRight();</span>
-<span class="nc" id="L1138">                handlePaymentWebhookResult(event, providerAndWebhookResult.getLeft(), paymentWebhookResult, reservation, transaction, paymentContext, &quot;stuck-check&quot;, false);</span>
-<span class="nc bnc" id="L1139" title="All 2 branches missed.">                return paymentWebhookResult.getType() == PaymentWebhookResult.Type.NOT_RELEVANT;</span>
+<span class="fc" id="L1136">                var providerAndWebhookResult = paymentResultOptional.get();</span>
+<span class="fc" id="L1137">                var paymentWebhookResult = providerAndWebhookResult.getRight();</span>
+<span class="fc" id="L1138">                handlePaymentWebhookResult(event, providerAndWebhookResult.getLeft(), paymentWebhookResult, reservation, transaction, paymentContext, &quot;stuck-check&quot;, false);</span>
+<span class="fc bfc" id="L1139" title="All 2 branches covered.">                return paymentWebhookResult.getType() == PaymentWebhookResult.Type.NOT_RELEVANT;</span>
             })
 <span class="fc" id="L1141">            .collect(toList());</span>
     }
@@ -1834,17 +1834,17 @@ public class TicketReservationManager {
                                                             String operationType,
                                                             boolean moveToWatingExternalConfirmationAllowed) {
 
-<span class="pc bpc" id="L1837" title="4 of 6 branches missed.">        switch(paymentWebhookResult.getType()) {</span>
+<span class="pc bpc" id="L1837" title="1 of 6 branches missed.">        switch(paymentWebhookResult.getType()) {</span>
             case NOT_RELEVANT: {
-<span class="nc" id="L1839">                log.trace(&quot;Discarding event {} for reservation {}&quot;, operationType, reservation.getId());</span>
-<span class="nc" id="L1840">                break;</span>
+<span class="fc" id="L1839">                log.trace(&quot;Discarding event {} for reservation {}&quot;, operationType, reservation.getId());</span>
+<span class="fc" id="L1840">                break;</span>
             }
             case TRANSACTION_INITIATED: {
-<span class="pc bpc" id="L1843" title="3 of 4 branches missed.">                if(reservation.getStatus() == EXTERNAL_PROCESSING_PAYMENT &amp;&amp; moveToWatingExternalConfirmationAllowed) {</span>
-<span class="nc" id="L1844">                    String status = WAITING_EXTERNAL_CONFIRMATION.name();</span>
-<span class="nc" id="L1845">                    log.trace(&quot;Event {} received. Setting status {} for reservation {}&quot;, operationType, status, reservation.getId());</span>
-<span class="nc" id="L1846">                    ticketReservationRepository.updateReservationStatus(reservation.getId(), status);</span>
-<span class="nc" id="L1847">                } else {</span>
+<span class="pc bpc" id="L1843" title="1 of 4 branches missed.">                if(reservation.getStatus() == EXTERNAL_PROCESSING_PAYMENT &amp;&amp; moveToWatingExternalConfirmationAllowed) {</span>
+<span class="fc" id="L1844">                    String status = WAITING_EXTERNAL_CONFIRMATION.name();</span>
+<span class="fc" id="L1845">                    log.trace(&quot;Event {} received. Setting status {} for reservation {}&quot;, operationType, status, reservation.getId());</span>
+<span class="fc" id="L1846">                    ticketReservationRepository.updateReservationStatus(reservation.getId(), status);</span>
+<span class="fc" id="L1847">                } else {</span>
 <span class="fc" id="L1848">                    log.trace(&quot;Ignoring Event {}, as it cannot be applied for reservation {} ({})&quot;, operationType, reservation.getId(), reservation.getStatus());</span>
                 }
 <span class="fc" id="L1850">                break;</span>
@@ -1871,27 +1871,27 @@ public class TicketReservationManager {
                 //      - if the reservation has expired, we cancel it and keep its data for reference, and we notify also the organizer.
                 //      - if the reservation is still valid, we can ensure that the user has at least 10 min left to retry
 
-<span class="nc" id="L1874">                log.debug(&quot;Event {} for reservation {} has failed with reason: {}&quot;, operationType, reservation.getId(), paymentWebhookResult.getReason());</span>
+<span class="fc" id="L1874">                log.debug(&quot;Event {} for reservation {} has failed with reason: {}&quot;, operationType, reservation.getId(), paymentWebhookResult.getReason());</span>
 
-<span class="nc" id="L1876">                Date expiration = reservation.getValidity();</span>
-<span class="nc" id="L1877">                Date now = new Date();</span>
-<span class="nc" id="L1878">                int slackTime = configurationManager.getFor(RESERVATION_MIN_TIMEOUT_AFTER_FAILED_PAYMENT, paymentContext.getConfigurationLevel()).getValueAsIntOrDefault(10);</span>
-<span class="nc" id="L1879">                PaymentMethod paymentMethodForTransaction = paymentProvider.getPaymentMethodForTransaction(transaction);</span>
-<span class="nc bnc" id="L1880" title="All 2 branches missed.">                if(expiration.before(now)) {</span>
-<span class="nc" id="L1881">                    sendTransactionFailedEmail(purchaseContext, reservation, paymentMethodForTransaction, paymentWebhookResult, true);</span>
-<span class="nc" id="L1882">                    cancelReservation(reservation, false, null);</span>
-<span class="nc" id="L1883">                    break;</span>
-<span class="nc bnc" id="L1884" title="All 2 branches missed.">                } else if(DateUtils.addMinutes(expiration, -slackTime).before(now)) {</span>
-<span class="nc" id="L1885">                    ticketReservationRepository.updateValidity(reservation.getId(), DateUtils.addMinutes(now, slackTime));</span>
+<span class="fc" id="L1876">                Date expiration = reservation.getValidity();</span>
+<span class="fc" id="L1877">                Date now = new Date();</span>
+<span class="fc" id="L1878">                int slackTime = configurationManager.getFor(RESERVATION_MIN_TIMEOUT_AFTER_FAILED_PAYMENT, paymentContext.getConfigurationLevel()).getValueAsIntOrDefault(10);</span>
+<span class="fc" id="L1879">                PaymentMethod paymentMethodForTransaction = paymentProvider.getPaymentMethodForTransaction(transaction);</span>
+<span class="fc bfc" id="L1880" title="All 2 branches covered.">                if(expiration.before(now)) {</span>
+<span class="fc" id="L1881">                    sendTransactionFailedEmail(purchaseContext, reservation, paymentMethodForTransaction, paymentWebhookResult, true);</span>
+<span class="fc" id="L1882">                    cancelReservation(reservation, false, null);</span>
+<span class="fc" id="L1883">                    break;</span>
+<span class="pc bpc" id="L1884" title="1 of 2 branches missed.">                } else if(DateUtils.addMinutes(expiration, -slackTime).before(now)) {</span>
+<span class="fc" id="L1885">                    ticketReservationRepository.updateValidity(reservation.getId(), DateUtils.addMinutes(now, slackTime));</span>
                 }
-<span class="nc" id="L1887">                reTransitionToPending(reservation.getId(), false);</span>
-<span class="nc" id="L1888">                purchaseContext.event().ifPresent(event -&gt; sendTransactionFailedEmail(event, reservation, paymentMethodForTransaction, paymentWebhookResult, false));</span>
-<span class="nc" id="L1889">                break;</span>
+<span class="fc" id="L1887">                reTransitionToPending(reservation.getId(), false);</span>
+<span class="pc" id="L1888">                purchaseContext.event().ifPresent(event -&gt; sendTransactionFailedEmail(event, reservation, paymentMethodForTransaction, paymentWebhookResult, false));</span>
+<span class="fc" id="L1889">                break;</span>
             }
             case CANCELLED: {
-<span class="nc" id="L1892">                reTransitionToPending(reservation.getId(), false);</span>
-<span class="nc" id="L1893">                log.debug(&quot;Event {} for reservation {} has been cancelled&quot;, operationType, reservation.getId());</span>
-<span class="nc" id="L1894">                break;</span>
+<span class="fc" id="L1892">                reTransitionToPending(reservation.getId(), false);</span>
+<span class="fc" id="L1893">                log.debug(&quot;Event {} for reservation {} has been cancelled&quot;, operationType, reservation.getId());</span>
+<span class="fc" id="L1894">                break;</span>
             }
             default:
                 // do nothing for ERROR/REJECTED
@@ -1943,32 +1943,32 @@ public class TicketReservationManager {
     }
 
     private void sendTransactionFailedEmail(PurchaseContext purchaseContext, TicketReservation reservation, PaymentMethod paymentMethod, PaymentWebhookResult paymentWebhookResult, boolean cancelReservation) {
-<span class="nc" id="L1946">        var shortReservationID = configurationManager.getShortReservationID(purchaseContext, reservation);</span>
-<span class="nc" id="L1947">        var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
-<span class="nc" id="L1948">        Map&lt;String, Object&gt; model = Map.of(</span>
-<span class="nc" id="L1949">            ORGANIZATION, organizationRepository.getById(purchaseContext.getOrganizationId()),</span>
-<span class="nc" id="L1950">        &quot;reservationCancelled&quot;, cancelReservation,</span>
+<span class="fc" id="L1946">        var shortReservationID = configurationManager.getShortReservationID(purchaseContext, reservation);</span>
+<span class="fc" id="L1947">        var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
+<span class="fc" id="L1948">        Map&lt;String, Object&gt; model = Map.of(</span>
+<span class="fc" id="L1949">            ORGANIZATION, organizationRepository.getById(purchaseContext.getOrganizationId()),</span>
+<span class="fc" id="L1950">        &quot;reservationCancelled&quot;, cancelReservation,</span>
         &quot;reservation&quot;, reservation,
             RESERVATION_ID, shortReservationID,
-<span class="nc" id="L1953">        &quot;eventName&quot;, purchaseContext.getDisplayName(),</span>
-<span class="nc" id="L1954">        &quot;provider&quot;, requireNonNullElse(paymentMethod, StaticPaymentMethods.NONE).name(),</span>
-<span class="nc" id="L1955">        &quot;reason&quot;, paymentWebhookResult.getReason(),</span>
-<span class="nc" id="L1956">        &quot;reservationUrl&quot;, reservationUrl(reservation, purchaseContext));</span>
+<span class="fc" id="L1953">        &quot;eventName&quot;, purchaseContext.getDisplayName(),</span>
+<span class="fc" id="L1954">        &quot;provider&quot;, requireNonNullElse(paymentMethod, StaticPaymentMethods.NONE).name(),</span>
+<span class="fc" id="L1955">        &quot;reason&quot;, paymentWebhookResult.getReason(),</span>
+<span class="fc" id="L1956">        &quot;reservationUrl&quot;, reservationUrl(reservation, purchaseContext));</span>
 
-<span class="nc" id="L1958">        Locale locale = LocaleUtil.forLanguageTag(reservation.getUserLanguage());</span>
-<span class="nc bnc" id="L1959" title="All 4 branches missed.">        if(cancelReservation || configurationManager.getFor(NOTIFY_ALL_FAILED_PAYMENT_ATTEMPTS, purchaseContext.getConfigurationLevel()).getValueAsBooleanOrDefault()) {</span>
-<span class="nc" id="L1960">            notificationManager.sendSimpleEmail(purchaseContext, reservation.getId(), reservation.getEmail(), messageSource.getMessage(&quot;email-transaction-failed.subject&quot;,</span>
-<span class="nc" id="L1961">                new Object[]{shortReservationID, purchaseContext.getDisplayName()}, locale),</span>
+<span class="fc" id="L1958">        Locale locale = LocaleUtil.forLanguageTag(reservation.getUserLanguage());</span>
+<span class="pc bpc" id="L1959" title="3 of 4 branches missed.">        if(cancelReservation || configurationManager.getFor(NOTIFY_ALL_FAILED_PAYMENT_ATTEMPTS, purchaseContext.getConfigurationLevel()).getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L1960">            notificationManager.sendSimpleEmail(purchaseContext, reservation.getId(), reservation.getEmail(), messageSource.getMessage(&quot;email-transaction-failed.subject&quot;,</span>
+<span class="fc" id="L1961">                new Object[]{shortReservationID, purchaseContext.getDisplayName()}, locale),</span>
 <span class="nc" id="L1962">            	() -&gt; templateManager.renderTemplate(purchaseContext, TemplateResource.CHARGE_ATTEMPT_FAILED_EMAIL_FOR_ORGANIZER, model, locale),</span>
-<span class="nc" id="L1963">                List.of());</span>
+<span class="fc" id="L1963">                List.of());</span>
         }
 
-<span class="nc" id="L1966">        notificationManager.sendSimpleEmail(purchaseContext, reservation.getId(), reservation.getEmail(), messageSource.getMessage(&quot;email-transaction-failed.subject&quot;,</span>
-<span class="nc" id="L1967">            new Object[]{shortReservationID, purchaseContext.getDisplayName()}, locale),</span>
+<span class="fc" id="L1966">        notificationManager.sendSimpleEmail(purchaseContext, reservation.getId(), reservation.getEmail(), messageSource.getMessage(&quot;email-transaction-failed.subject&quot;,</span>
+<span class="fc" id="L1967">            new Object[]{shortReservationID, purchaseContext.getDisplayName()}, locale),</span>
 <span class="nc" id="L1968">        	() -&gt; templateManager.renderTemplate(purchaseContext, TemplateResource.CHARGE_ATTEMPT_FAILED_EMAIL, model, locale),</span>
-<span class="nc" id="L1969">            List.of());</span>
+<span class="fc" id="L1969">            List.of());</span>
 
-<span class="nc" id="L1971">    }</span>
+<span class="fc" id="L1971">    }</span>
 
     public Optional&lt;TransactionInitializationToken&gt; initTransaction(PurchaseContext purchaseContext, String reservationId, PaymentMethod paymentMethod, Map&lt;String, List&lt;String&gt;&gt; params) {
 <span class="fc" id="L1974">        ticketReservationRepository.lockReservationForUpdate(reservationId);</span>
@@ -2068,15 +2068,15 @@ public class TicketReservationManager {
     public Result&lt;Boolean&gt; discardMatchingPayment(String eventName,
                                                   String reservationId,
                                                   int transactionId) {
-<span class="nc" id="L2071">        return eventRepository.findOptionalByShortName(eventName)</span>
-<span class="nc" id="L2072">            .flatMap(e -&gt; ticketReservationRepository.findOptionalReservationById(reservationId).map(r -&gt; Pair.of(e, r)))</span>
-<span class="nc" id="L2073">            .flatMap(pair -&gt; transactionRepository.loadOptionalByIdAndStatus(transactionId, Transaction.Status.OFFLINE_PENDING_REVIEW)</span>
-<span class="nc" id="L2074">                .map(transaction -&gt; {</span>
-<span class="nc" id="L2075">                    auditingRepository.insert(reservationId, null, pair.getLeft().getId(), Audit.EventType.MATCHING_PAYMENT_DISCARDED, new Date(), RESERVATION, reservationId);</span>
-<span class="nc bnc" id="L2076" title="All 2 branches missed.">                    Validate.isTrue(transactionRepository.discardMatchingPayment(transactionId) == 1, &quot;Transaction is in an incompatible state.&quot;);</span>
-<span class="nc" id="L2077">                    return Result.success(true);</span>
+<span class="fc" id="L2071">        return eventRepository.findOptionalByShortName(eventName)</span>
+<span class="fc" id="L2072">            .flatMap(e -&gt; ticketReservationRepository.findOptionalReservationById(reservationId).map(r -&gt; Pair.of(e, r)))</span>
+<span class="fc" id="L2073">            .flatMap(pair -&gt; transactionRepository.loadOptionalByIdAndStatus(transactionId, Transaction.Status.OFFLINE_PENDING_REVIEW)</span>
+<span class="fc" id="L2074">                .map(transaction -&gt; {</span>
+<span class="fc" id="L2075">                    auditingRepository.insert(reservationId, null, pair.getLeft().getId(), Audit.EventType.MATCHING_PAYMENT_DISCARDED, new Date(), RESERVATION, reservationId);</span>
+<span class="pc bpc" id="L2076" title="1 of 2 branches missed.">                    Validate.isTrue(transactionRepository.discardMatchingPayment(transactionId) == 1, &quot;Transaction is in an incompatible state.&quot;);</span>
+<span class="fc" id="L2077">                    return Result.success(true);</span>
                 })
-<span class="nc" id="L2079">            ).orElse(Result.error(ErrorCode.EventError.NOT_FOUND));</span>
+<span class="fc" id="L2079">            ).orElse(Result.error(ErrorCode.EventError.NOT_FOUND));</span>
     }
 
     public void flagAsValidated(String reservationId, PurchaseContext purchaseContext, List&lt;WarningMessage&gt; warnings) {
@@ -2187,9 +2187,9 @@ public class TicketReservationManager {
 <span class="fc" id="L2187">        Assert.isTrue(purchaseContext.ofType(PurchaseContextType.event), &quot;PurchaseContext must be of type \&quot;event\&quot;&quot;);</span>
 <span class="fc" id="L2188">        boolean isUUID = subscriptionUUID.isPresent();</span>
 <span class="fc" id="L2189">        log.trace(&quot;is code UUID {}&quot;, isUUID);</span>
-<span class="pc bpc" id="L2190" title="1 of 4 branches missed.">        if (!isUUID &amp;&amp; !PinGenerator.isPinValid(pin, Subscription.PIN_LENGTH)) {</span>
-<span class="nc" id="L2191">            bindingResult.reject(&quot;error.restrictedValue&quot;);</span>
-<span class="nc" id="L2192">            return false;</span>
+<span class="fc bfc" id="L2190" title="All 4 branches covered.">        if (!isUUID &amp;&amp; !PinGenerator.isPinValid(pin, Subscription.PIN_LENGTH)) {</span>
+<span class="fc" id="L2191">            bindingResult.reject(&quot;error.restrictedValue&quot;);</span>
+<span class="fc" id="L2192">            return false;</span>
         }
 
         //ensure pin length, as we will do a like concat(pin,'%'), it could be dangerous to have an empty string...
@@ -2202,35 +2202,35 @@ public class TicketReservationManager {
 <span class="fc" id="L2202">            count = subscriptionRepository.countSubscriptionById(subscriptionUUID.get());</span>
         } else {
 <span class="fc" id="L2204">            count = subscriptionRepository.countSubscriptionByPartialUuid(partialUuid);</span>
-<span class="pc bpc" id="L2205" title="1 of 2 branches missed.">            if (count &gt; 1) {</span>
-<span class="nc" id="L2206">                count = subscriptionRepository.countSubscriptionByPartialUuidAndEmail(partialUuid, email);</span>
-<span class="nc" id="L2207">                requireEmail = true;</span>
+<span class="fc bfc" id="L2205" title="All 2 branches covered.">            if (count &gt; 1) {</span>
+<span class="fc" id="L2206">                count = subscriptionRepository.countSubscriptionByPartialUuidAndEmail(partialUuid, email);</span>
+<span class="fc" id="L2207">                requireEmail = true;</span>
             }
         }
 <span class="fc" id="L2210">        log.trace(&quot;code count is {}&quot;, count);</span>
-<span class="pc bpc" id="L2211" title="1 of 2 branches missed.">        if (count == 0) {</span>
-<span class="nc bnc" id="L2212" title="All 2 branches missed.">            bindingResult.reject(isUUID ? &quot;subscription.uuid.not.found&quot; : &quot;subscription.pin.not.found&quot;);</span>
+<span class="fc bfc" id="L2211" title="All 2 branches covered.">        if (count == 0) {</span>
+<span class="pc bpc" id="L2212" title="1 of 2 branches missed.">            bindingResult.reject(isUUID ? &quot;subscription.uuid.not.found&quot; : &quot;subscription.pin.not.found&quot;);</span>
         }
-<span class="pc bpc" id="L2214" title="1 of 2 branches missed.">        if (count &gt; 1) {</span>
-<span class="nc" id="L2215">            bindingResult.reject(&quot;subscription.code.insert.full&quot;);</span>
+<span class="fc bfc" id="L2214" title="All 2 branches covered.">        if (count &gt; 1) {</span>
+<span class="fc" id="L2215">            bindingResult.reject(&quot;subscription.code.insert.full&quot;);</span>
         }
 
-<span class="pc bpc" id="L2218" title="1 of 2 branches missed.">        if (bindingResult.hasErrors()) {</span>
-<span class="nc" id="L2219">            return false;</span>
+<span class="fc bfc" id="L2218" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
+<span class="fc" id="L2219">            return false;</span>
         }
 
 <span class="pc bpc" id="L2222" title="1 of 4 branches missed.">        var subscriptionId = isUUID ? UUID.fromString(pin) : requireEmail ? subscriptionRepository.getSubscriptionIdByPartialUuidAndEmail(partialUuid, email) : subscriptionRepository.getSubscriptionIdByPartialUuid(partialUuid);</span>
 <span class="fc" id="L2223">        var subscriptionDescriptor = subscriptionRepository.findDescriptorBySubscriptionId(subscriptionId);</span>
 <span class="fc" id="L2224">        var subscription = subscriptionRepository.findSubscriptionById(subscriptionId);</span>
 <span class="fc" id="L2225">        subscription.isValid(Optional.of(bindingResult));</span>
-<span class="pc bpc" id="L2226" title="1 of 2 branches missed.">        if (bindingResult.hasErrors()) {</span>
-<span class="nc" id="L2227">            return false;</span>
+<span class="fc bfc" id="L2226" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
+<span class="fc" id="L2227">            return false;</span>
         }
         try {
 <span class="fc" id="L2230">            return applySubscriptionCode(((Event)purchaseContext).getId(), reservation, subscriptionDescriptor, subscriptionId);</span>
-<span class="nc" id="L2231">        } catch (SubscriptionUsageExceeded | SubscriptionUsageExceededForEvent ex) {</span>
-<span class="nc bnc" id="L2232" title="All 2 branches missed.">            bindingResult.reject(ex instanceof SubscriptionUsageExceeded ? &quot;subscription.max-usage-reached&quot; : &quot;subscription.max-usage-reached-per-event&quot;);</span>
-<span class="nc" id="L2233">            return false;</span>
+<span class="fc" id="L2231">        } catch (SubscriptionUsageExceeded | SubscriptionUsageExceededForEvent ex) {</span>
+<span class="pc bpc" id="L2232" title="1 of 2 branches missed.">            bindingResult.reject(ex instanceof SubscriptionUsageExceeded ? &quot;subscription.max-usage-reached&quot; : &quot;subscription.max-usage-reached-per-event&quot;);</span>
+<span class="fc" id="L2233">            return false;</span>
         }
     }
 
@@ -2241,29 +2241,29 @@ public class TicketReservationManager {
 
 <span class="fc" id="L2242">        log.trace(&quot;entering applySubscription {}&quot;, subscriptionId);</span>
 
-<span class="pc bpc" id="L2244" title="1 of 2 branches missed.">        if (ticketReservationRepository.hasSubscriptionApplied(reservation.getId())) {</span>
-<span class="nc" id="L2245">            return false;</span>
+<span class="fc bfc" id="L2244" title="All 2 branches covered.">        if (ticketReservationRepository.hasSubscriptionApplied(reservation.getId())) {</span>
+<span class="fc" id="L2245">            return false;</span>
         }
         // reload and lock subscription
 <span class="fc" id="L2248">        Subscription subscription = subscriptionRepository.findSubscriptionByIdForUpdate(subscriptionId);</span>
 
-<span class="pc bpc" id="L2250" title="1 of 2 branches missed.">        if (!subscription.isValid()) {</span>
-<span class="nc" id="L2251">            return false;</span>
+<span class="fc bfc" id="L2250" title="All 2 branches covered.">        if (!subscription.isValid()) {</span>
+<span class="fc" id="L2251">            return false;</span>
         }
 
 <span class="fc" id="L2254">        var linkOptional = subscriptionRepository.findLink(subscription.getOrganizationId(), subscription.getSubscriptionDescriptorId(), eventId);</span>
 
-<span class="pc bpc" id="L2256" title="1 of 2 branches missed.">        if (linkOptional.isEmpty()) {</span>
-<span class="nc" id="L2257">            log.warn(&quot;Attempt to use subscription {} - descriptor {} for event {}&quot;, subscription.getId(), subscriptionDescriptor.getId(), eventId);</span>
-<span class="nc" id="L2258">            return false;</span>
+<span class="fc bfc" id="L2256" title="All 2 branches covered.">        if (linkOptional.isEmpty()) {</span>
+<span class="fc" id="L2257">            log.warn(&quot;Attempt to use subscription {} - descriptor {} for event {}&quot;, subscription.getId(), subscriptionDescriptor.getId(), eventId);</span>
+<span class="fc" id="L2258">            return false;</span>
         }
 
 <span class="fc" id="L2261">        var link = linkOptional.get();</span>
 <span class="fc bfc" id="L2262" title="All 2 branches covered.">        if (CollectionUtils.isNotEmpty(link.getCompatibleCategories())) {</span>
 <span class="fc" id="L2263">            var bookedCategories = ticketCategoryRepository.findCategoriesInReservation(reservation.getId()).stream().map(TicketCategory::getId).collect(toSet());</span>
-<span class="pc bpc" id="L2264" title="1 of 2 branches missed.">            if (CollectionUtils.intersection(link.getCompatibleCategories(), bookedCategories).isEmpty()) {</span>
-<span class="nc" id="L2265">                log.warn(&quot;Attempt to use subscription {} - descriptor {} unsuccessful for event {}. No compatible categories found (booked: {}).&quot;, subscription.getId(), subscriptionDescriptor.getId(), eventId, bookedCategories);</span>
-<span class="nc" id="L2266">                return false;</span>
+<span class="fc bfc" id="L2264" title="All 2 branches covered.">            if (CollectionUtils.intersection(link.getCompatibleCategories(), bookedCategories).isEmpty()) {</span>
+<span class="fc" id="L2265">                log.warn(&quot;Attempt to use subscription {} - descriptor {} unsuccessful for event {}. No compatible categories found (booked: {}).&quot;, subscription.getId(), subscriptionDescriptor.getId(), eventId, bookedCategories);</span>
+<span class="fc" id="L2266">                return false;</span>
             }
         }
 
@@ -2283,8 +2283,8 @@ public class TicketReservationManager {
 <span class="fc" id="L2283">                limit = Integer.MAX_VALUE;</span>
             }
 <span class="fc" id="L2285">            int countExisting = ticketRepository.countSubscriptionUsage(subscriptionId, eventIdToFilter);</span>
-<span class="pc bpc" id="L2286" title="1 of 2 branches missed.">            if(countExisting &gt;= limit) {</span>
-<span class="nc bnc" id="L2287" title="All 2 branches missed.">                throw oncePerEvent ? new SubscriptionUsageExceededForEvent(limit, countExisting + 1) : new SubscriptionUsageExceeded(limit, countExisting + 1);</span>
+<span class="fc bfc" id="L2286" title="All 2 branches covered.">            if(countExisting &gt;= limit) {</span>
+<span class="pc bpc" id="L2287" title="1 of 2 branches missed.">                throw oncePerEvent ? new SubscriptionUsageExceededForEvent(limit, countExisting + 1) : new SubscriptionUsageExceeded(limit, countExisting + 1);</span>
             }
             // subscription can be applied. First we apply it at reservation level
 <span class="fc" id="L2290">            ticketReservationRepository.applySubscription(reservation.getId(), subscription.getId());</span>
@@ -2300,15 +2300,15 @@ public class TicketReservationManager {
 <span class="fc" id="L2300">            log.trace(&quot;got exception while trying to apply SubscriptionID {} to ReservationID {}&quot;, subscriptionId, reservation.getId());</span>
 <span class="fc" id="L2301">            throw SqlUtils.findServerError(sqlException)</span>
 <span class="fc" id="L2302">                .map(serverError -&gt; {</span>
-<span class="nc bnc" id="L2303" title="All 4 branches missed.">                    if(serverError.getMessage() == null || serverError.getDetail() == null) {</span>
-<span class="nc" id="L2304">                        log.warn(&quot;Cannot retrieve ErrorDetails for SubscriptionID {} and ReservationID {}&quot;, subscriptionId, reservation.getId());</span>
-<span class="nc" id="L2305">                        return sqlException;</span>
+<span class="pc bpc" id="L2303" title="1 of 4 branches missed.">                    if(serverError.getMessage() == null || serverError.getDetail() == null) {</span>
+<span class="fc" id="L2304">                        log.warn(&quot;Cannot retrieve ErrorDetails for SubscriptionID {} and ReservationID {}&quot;, subscriptionId, reservation.getId());</span>
+<span class="fc" id="L2305">                        return sqlException;</span>
                     }
-<span class="nc" id="L2307">                    var errorDetails = json.fromJsonString(serverError.getDetail(), MaxEntriesOverageDetails.class);</span>
-<span class="nc bnc" id="L2308" title="All 2 branches missed.">                    if(Objects.equals(serverError.getMessage(), SubscriptionUsageExceeded.ERROR)) {</span>
-<span class="nc" id="L2309">                        return new SubscriptionUsageExceeded(errorDetails.getAllowed(),errorDetails.getRequested());</span>
+<span class="fc" id="L2307">                    var errorDetails = json.fromJsonString(serverError.getDetail(), MaxEntriesOverageDetails.class);</span>
+<span class="fc bfc" id="L2308" title="All 2 branches covered.">                    if(Objects.equals(serverError.getMessage(), SubscriptionUsageExceeded.ERROR)) {</span>
+<span class="fc" id="L2309">                        return new SubscriptionUsageExceeded(errorDetails.getAllowed(),errorDetails.getRequested());</span>
                     }
-<span class="nc" id="L2311">                    return new SubscriptionUsageExceededForEvent(errorDetails.getAllowed(),errorDetails.getRequested());</span>
+<span class="fc" id="L2311">                    return new SubscriptionUsageExceededForEvent(errorDetails.getAllowed(),errorDetails.getRequested());</span>
                 })
 <span class="fc" id="L2313">                .orElse(sqlException);</span>
 <span class="fc" id="L2314">        }</span>

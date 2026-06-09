@@ -930,12 +930,12 @@ public class EventManager {
 <span class="nc" id="L930">    }</span>
 
     public void updatePromoCode(int promoCodeId, ZonedDateTime start, ZonedDateTime end, Integer maxUsage, List&lt;Integer&gt; categories, String description, String emailReference, Integer hiddenCategoryId) {
-<span class="nc bnc" id="L933" title="All 2 branches missed.">        Validate.isTrue(StringUtils.length(description) &lt; 1025, &quot;Description can be maximum 1024 chars&quot;);</span>
-<span class="nc bnc" id="L934" title="All 2 branches missed.">        Validate.isTrue(StringUtils.length(emailReference) &lt; 257, &quot;Description can be maximum 256 chars&quot;);</span>
-<span class="nc bnc" id="L935" title="All 2 branches missed.">        String categoriesJson = CollectionUtils.isEmpty(categories) ? null : Json.toJson(categories);</span>
+<span class="fc bfc" id="L933" title="All 2 branches covered.">        Validate.isTrue(StringUtils.length(description) &lt; 1025, &quot;Description can be maximum 1024 chars&quot;);</span>
+<span class="pc bpc" id="L934" title="1 of 2 branches missed.">        Validate.isTrue(StringUtils.length(emailReference) &lt; 257, &quot;Description can be maximum 256 chars&quot;);</span>
+<span class="pc bpc" id="L935" title="1 of 2 branches missed.">        String categoriesJson = CollectionUtils.isEmpty(categories) ? null : Json.toJson(categories);</span>
 
-<span class="nc" id="L937">        promoCodeRepository.updateEventPromoCode(promoCodeId, start, end, maxUsage, categoriesJson, description, emailReference, hiddenCategoryId);</span>
-<span class="nc" id="L938">    }</span>
+<span class="fc" id="L937">        promoCodeRepository.updateEventPromoCode(promoCodeId, start, end, maxUsage, categoriesJson, description, emailReference, hiddenCategoryId);</span>
+<span class="fc" id="L938">    }</span>
 
     public List&lt;PromoCodeDiscountWithFormattedTimeAndAmount&gt; findPromoCodesInEvent(int eventId) {
 <span class="nc" id="L941">        var event = eventRepository.findById(eventId);</span>
@@ -1074,7 +1074,7 @@ public class EventManager {
     }
 
     public AlfioMetadata getMetadataForEvent(EventAndOrganizationId event) {
-<span class="nc" id="L1077">        return eventRepository.getMetadataForEvent(event.getId());</span>
+<span class="fc" id="L1077">        return eventRepository.getMetadataForEvent(event.getId());</span>
     }
 
     public AlfioMetadata getMetadataForCategory(EventAndOrganizationId event, int categoryId) {
@@ -1085,19 +1085,19 @@ public class EventManager {
                                               String username,
                                               ExtensionCapability capability,
                                               Map&lt;String, String&gt; requestParams) {
-<span class="nc" id="L1088">        return getOptionalByName(eventName, username)</span>
-<span class="nc" id="L1089">            .flatMap(event -&gt; {</span>
-<span class="nc bnc" id="L1090" title="All 2 branches missed.">                if (capability == ExtensionCapability.GENERATE_MEETING_LINK) {</span>
-<span class="nc" id="L1091">                    var organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="nc" id="L1092">                    return extensionManager.handleGenerateMeetingLinkCapability(event, organization, getMetadataForEvent(event), requestParams)</span>
-<span class="nc" id="L1093">                        .map(metadata -&gt; {</span>
-<span class="nc" id="L1094">                            eventRepository.updateMetadata(requireNonNullElseGet(metadata, AlfioMetadata::empty), event.getId());</span>
-<span class="nc" id="L1095">                            return &quot;metadata updated&quot;;</span>
+<span class="fc" id="L1088">        return getOptionalByName(eventName, username)</span>
+<span class="fc" id="L1089">            .flatMap(event -&gt; {</span>
+<span class="fc bfc" id="L1090" title="All 2 branches covered.">                if (capability == ExtensionCapability.GENERATE_MEETING_LINK) {</span>
+<span class="fc" id="L1091">                    var organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L1092">                    return extensionManager.handleGenerateMeetingLinkCapability(event, organization, getMetadataForEvent(event), requestParams)</span>
+<span class="fc" id="L1093">                        .map(metadata -&gt; {</span>
+<span class="fc" id="L1094">                            eventRepository.updateMetadata(requireNonNullElseGet(metadata, AlfioMetadata::empty), event.getId());</span>
+<span class="fc" id="L1095">                            return &quot;metadata updated&quot;;</span>
                         });
-<span class="nc bnc" id="L1097" title="All 2 branches missed.">                } else if (capability == ExtensionCapability.LINK_EXTERNAL_APPLICATION) {</span>
-<span class="nc" id="L1098">                    return extensionManager.handleGenerateLinkCapability(event, getMetadataForEvent(event), requestParams);</span>
+<span class="fc bfc" id="L1097" title="All 2 branches covered.">                } else if (capability == ExtensionCapability.LINK_EXTERNAL_APPLICATION) {</span>
+<span class="fc" id="L1098">                    return extensionManager.handleGenerateLinkCapability(event, getMetadataForEvent(event), requestParams);</span>
                 } else {
-<span class="nc" id="L1100">                    return extensionManager.executeCapability(capability, requestParams, event, String.class);</span>
+<span class="fc" id="L1100">                    return extensionManager.executeCapability(capability, requestParams, event, String.class);</span>
                 }
 
             });
