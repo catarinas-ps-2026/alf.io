@@ -3,6 +3,9 @@ import type { SupplementPolicy } from './additional-item.ts';
 import { isMandatory, isMandatoryPercentage } from './additional-item.ts';
 
 describe('isMandatory', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: Políticas obligatorias → true
+    // - PE2: Políticas opcionales → false
     const mandatoryPolicies: SupplementPolicy[] = [
         'MANDATORY_ONE_FOR_TICKET',
         'MANDATORY_PERCENTAGE_FOR_TICKET',
@@ -25,6 +28,9 @@ describe('isMandatory', () => {
 });
 
 describe('isMandatoryPercentage', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: Políticas de porcentaje obligatorio → true
+    // - PE2: Otras políticas → false
     const percentagePolicies: SupplementPolicy[] = [
         'MANDATORY_PERCENTAGE_FOR_TICKET',
         'MANDATORY_PERCENTAGE_RESERVATION',

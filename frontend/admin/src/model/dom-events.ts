@@ -8,6 +8,11 @@ export interface AlfioFeedbackEvent {
     message: string;
 }
 
+/**
+ * Despacha un CustomEvent 'alfio-feedback' desde un LitElement.
+ * El evento tiene bubbles: true y composed: true para propagación
+ * a través del shadow DOM.
+ */
 export function dispatchFeedback(
     payload: AlfioFeedbackEvent,
     src: LitElement,

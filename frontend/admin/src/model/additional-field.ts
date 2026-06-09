@@ -131,11 +131,19 @@ export interface PurchaseContextFieldDescription {
     restrictedValues?: { [lang: string]: string };
 }
 
+/**
+ * Retorna la descripción legible de un tipo de campo adicional.
+ * Si el tipo no existe en el diccionario, retorna 'unknown'.
+ */
 export function renderAdditionalFieldType(type: AdditionalFieldType): string {
     const mapped = additionalFieldTypesWithDescription[type];
     return mapped ?? 'unknown';
 }
 
+/**
+ * Verifica si un tipo de campo soporta restricciones de longitud mínima/máxima.
+ * Retorna true para: input:text, input:tel, textarea, input:dateOfBirth
+ */
 export function supportsMinMaxLength(fieldType: AdditionalFieldType): boolean {
     return (
         fieldType === 'input:text' ||

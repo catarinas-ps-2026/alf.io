@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { dispatchFeedback, type AlfioFeedbackEvent } from './dom-events.ts';
 
 describe('dispatchFeedback', () => {
+    // Técnicas: Particiones de equivalencia + Mocking con verificación
+    // - PE1: Payload válido → evento despachado con detail correcto
+    // - PE2: Verificar bubbles=true y composed=true
+    // - PE3: Todos los tipos de feedback (neutral, success, warning, danger)
     function createMockLitElement(): EventTarget {
         return new EventTarget();
     }

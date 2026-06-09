@@ -8,6 +8,9 @@ import {
 } from './additional-field.ts';
 
 describe('supportsPlaceholder', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: Tipos con placeholder (input:text, input:tel, vat:eu, textarea, input:dateOfBirth) → true
+    // - PE2: Tipos sin placeholder (country, select, checkbox, radio) → false
     const typesWithPlaceholder: AdditionalFieldType[] = [
         'input:text',
         'input:tel',
@@ -33,6 +36,9 @@ describe('supportsPlaceholder', () => {
 });
 
 describe('supportsRestrictedValues', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: Tipos con valores restringidos (checkbox, radio, select) → true
+    // - PE2: Tipos sin valores restringidos → false
     const typesWithRestrictedValues: AdditionalFieldType[] = [
         'checkbox',
         'radio',
@@ -58,6 +64,10 @@ describe('supportsRestrictedValues', () => {
 });
 
 describe('renderAdditionalFieldType', () => {
+    // Técnicas: Particiones de equivalencia + Valores límite
+    // - PE1: Tipos válidos en diccionario → descripción correspondiente
+    // - PE2: Tipo inválido → 'unknown'
+    // - VL: Primer tipo del diccionario, último tipo, tipo inexistente
     const typeDescriptions: Array<[AdditionalFieldType, string]> = [
         ['input:text', 'Single-line text input'],
         ['input:tel', 'Phone number input'],
@@ -84,6 +94,9 @@ describe('renderAdditionalFieldType', () => {
 });
 
 describe('supportsMinMaxLength', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: Tipos con min/max (input:text, input:tel, textarea, input:dateOfBirth) → true
+    // - PE2: Tipos sin min/max → false
     const typesWithMinMaxLength: AdditionalFieldType[] = [
         'input:text',
         'input:tel',
