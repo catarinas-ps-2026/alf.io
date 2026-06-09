@@ -16,12 +16,14 @@ const mockPutJson = vi.mocked(putJson);
 const mockCallDelete = vi.mocked(callDelete);
 
 describe('AdditionalItemService', () => {
+    // Técnicas: Mocking con verificación (mockear helpers.ts)
     afterEach(() => {
         vi.clearAllMocks();
     });
 
     describe('loadAll', () => {
-        it('CP-AIL-01: construye URL con eventId', async () => {
+        // Técnicas: Mocking con verificación
+        it('construye URL con eventId', async () => {
             mockFetchJson.mockResolvedValue([]);
 
             await AdditionalItemService.loadAll({ eventId: 10 });
@@ -31,7 +33,8 @@ describe('AdditionalItemService', () => {
     });
 
     describe('useCount', () => {
-        it('CP-AIU-01: construye URL de conteo', async () => {
+        // Técnicas: Mocking con verificación
+        it('construye URL de conteo', async () => {
             mockFetchJson.mockResolvedValue({});
 
             await AdditionalItemService.useCount(10);
@@ -41,7 +44,8 @@ describe('AdditionalItemService', () => {
     });
 
     describe('validateAdditionalItem', () => {
-        it('CP-AIV-01: envía POST a endpoint de validación', async () => {
+        // Técnicas: Mocking con verificación
+        it('envía POST a endpoint de validación', async () => {
             const item = { price: 1000 };
             const mockResponse = { success: true, value: item };
             mockPostJson.mockResolvedValue({
@@ -59,7 +63,10 @@ describe('AdditionalItemService', () => {
     });
 
     describe('updateAdditionalItem', () => {
-        it('CP-AIU-01: PUT cuando id está presente', async () => {
+        // Técnicas: Particiones de equivalencia + Mocking
+        // - PE1: id presente (incluye 0) → PUT
+        // - PE2: id undefined/null → POST
+        it('PUT cuando id está presente', async () => {
             mockPutJson.mockResolvedValue({} as Response);
             const item = { id: 1, price: 1000 };
 
@@ -72,7 +79,7 @@ describe('AdditionalItemService', () => {
             expect(mockPostJson).not.toHaveBeenCalled();
         });
 
-        it('CP-AIU-02: POST cuando id es undefined', async () => {
+        it('POST cuando id es undefined', async () => {
             mockPostJson.mockResolvedValue({} as Response);
             const item = { price: 1000 };
 
@@ -85,7 +92,7 @@ describe('AdditionalItemService', () => {
             expect(mockPutJson).not.toHaveBeenCalled();
         });
 
-        it('CP-AIU-03: PUT cuando id es 0', async () => {
+        it('PUT cuando id es 0', async () => {
             mockPutJson.mockResolvedValue({} as Response);
             const item = { id: 0, price: 1000 };
 
@@ -99,7 +106,8 @@ describe('AdditionalItemService', () => {
     });
 
     describe('deleteAdditionalItem', () => {
-        it('CP-AID-01: construye URL DELETE con ids', async () => {
+        // Técnicas: Mocking con verificación
+        it('construye URL DELETE con ids', async () => {
             mockCallDelete.mockResolvedValue({} as Response);
 
             await AdditionalItemService.deleteAdditionalItem(5, 10);
@@ -109,7 +117,8 @@ describe('AdditionalItemService', () => {
     });
 
     describe('swapItems', () => {
-        it('CP-AIS-01: envía ids como body JSON', async () => {
+        // Técnicas: Mocking con verificación
+        it('envía ids como body JSON', async () => {
             mockPostJson.mockResolvedValue({} as Response);
 
             await AdditionalItemService.swapItems(10, 1, 2);

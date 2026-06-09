@@ -75,6 +75,9 @@ export class AdditionalFieldService {
         );
     }
 
+    /**
+     * Carga las plantillas de campos adicionales disponibles.
+     */
     static loadTemplates(
         purchaseContext: PurchaseContext,
     ): Promise<ReadonlyArray<AdditionalFieldTemplate>> {
@@ -83,6 +86,10 @@ export class AdditionalFieldService {
         );
     }
 
+    /**
+     * Crea un nuevo campo adicional.
+     * Retorna ValidatedResponse con errores de validación si los hay.
+     */
     static async createNewField(
         purchaseContext: PurchaseContext,
         field: AdditionalFieldCreateRequest,
@@ -94,6 +101,10 @@ export class AdditionalFieldService {
         return response.json();
     }
 
+    /**
+     * Guarda un campo adicional existente.
+     * Usa field.id en la URL para identificar el recurso.
+     */
     static async saveField(
         purchaseContext: PurchaseContext,
         field: AdditionalField,

@@ -5,6 +5,9 @@ import { callDelete, fetchJson, postJson, putJson } from './helpers.ts';
 export type UsageCount = { [id: number]: { [status: string]: number } };
 
 export class AdditionalItemService {
+    /**
+     * Carga todos los items adicionales para un evento.
+     */
     static async loadAll({
         eventId,
     }: {
@@ -15,12 +18,19 @@ export class AdditionalItemService {
         );
     }
 
+    /**
+     * Obtiene el conteo de uso de items adicionales por evento.
+     */
     static async useCount(eventId: number): Promise<UsageCount> {
         return await fetchJson(
             `/admin/api/event/${eventId}/additional-services/count`,
         );
     }
 
+    /**
+     * Valida un item adicional contra el servidor.
+     * Retorna ValidatedResponse con errores si los hay.
+     */
     static async validateAdditionalItem(
         additionalItem: Partial<AdditionalItem>,
     ): Promise<ValidatedResponse<AdditionalItem>> {
@@ -31,6 +41,10 @@ export class AdditionalItemService {
         return response.json();
     }
 
+    /**
+     * Actualiza o crea un item adicional.
+     * Si tiene id → PUT (actualizar), si no → POST (crear).
+     */
     static async updateAdditionalItem(
         additionalItem: Partial<AdditionalItem>,
         eventId: number,
@@ -47,6 +61,9 @@ export class AdditionalItemService {
         );
     }
 
+    /**
+     * Elimina un item adicional por ID.
+     */
     static async deleteAdditionalItem(
         additionalItemId: number,
         eventId: number,
@@ -56,6 +73,10 @@ export class AdditionalItemService {
         );
     }
 
+    /**
+     * Intercambia la posición de dos items adicionales.
+     * Los IDs se envían como body JSON (no en URL).
+     */
     static async swapItems(
         eventId: number,
         firstId: number,
