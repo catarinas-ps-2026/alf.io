@@ -55,6 +55,7 @@ import java.security.Principal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -312,8 +313,8 @@ public class CheckInManager {
                 }
                 var ticketsReservationId = ticket.getTicketsReservationId();
                 var now = event.now(clockProvider);
-                var startOfDay = Date.from(now.toLocalDate().atStartOfDay(now.getZone()).toInstant());
-                var endOfDay = Date.from(now.toLocalDate().plusDays(1).atStartOfDay(now.getZone()).toInstant());
+                var startOfDay = Date.from(now.toInstant().truncatedTo(ChronoUnit.DAYS));
+                var endOfDay = Date.from(now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
                 int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(ticketsReservationId, Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()), startOfDay, endOfDay);
                 if(previousScan > 0) {
                     return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(BADGE_SCAN_ALREADY_DONE, "Badge scan already done"));
