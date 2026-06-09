@@ -11,6 +11,10 @@ export function mockFetchJson(data: unknown): void {
     }));
 }
 
+/**
+ * Mockea global.fetch para retornar el JSON especificado solo una vez.
+ * Útil para tests con múltiples llamadas fetch secuenciales.
+ */
 export function mockFetchJsonOnce(data: unknown): void {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({
         ok: true,
@@ -18,6 +22,10 @@ export function mockFetchJsonOnce(data: unknown): void {
     }));
 }
 
+/**
+ * Mockea global.fetch con una respuesta personalizada.
+ * Permite configurar ok, status, y json.
+ */
 export function mockFetchResponse(options: { ok?: boolean; json?: unknown; status?: number } = {}): void {
     const { ok = true, json = {}, status = 200 } = options;
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
@@ -27,6 +35,10 @@ export function mockFetchResponse(options: { ok?: boolean; json?: unknown; statu
     }));
 }
 
+/**
+ * Inyecta meta tags CSRF en el DOM para tests de servicios HTTP.
+ * Los servicios leen estos valores para los headers X-XSRF-TOKEN.
+ */
 export function mockCsrfMeta(xsrfHeader = 'X-XSRF-TOKEN', xsrfValue = 'test-token-123'): void {
     const metaHeader = document.createElement('meta');
     metaHeader.setAttribute('name', '_csrf_header');
@@ -40,10 +52,18 @@ export function mockCsrfMeta(xsrfHeader = 'X-XSRF-TOKEN', xsrfValue = 'test-toke
     document.head.appendChild(metaToken);
 }
 
+/**
+ * Elimina las meta tags CSRF del DOM.
+ * Usar en afterEach para limpiar después de cada test.
+ */
 export function clearCsrfMeta(): void {
     document.head.querySelectorAll('meta[name="_csrf_header"], meta[name="_csrf"]').forEach((el) => el.remove());
 }
 
+/**
+ * Retorna la referencia al mock de global.fetch.
+ * Útil para verificar llamadas con expect(mock).toHaveBeenCalled().
+ */
 export function getFetchMock(): ReturnType<typeof vi.fn> {
     return globalThis.fetch as ReturnType<typeof vi.fn>;
 }
