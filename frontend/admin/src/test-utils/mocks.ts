@@ -68,6 +68,10 @@ export function getFetchMock(): ReturnType<typeof vi.fn> {
     return globalThis.fetch as ReturnType<typeof vi.fn>;
 }
 
+/**
+ * Restaura todos los mocks y globals stubbed.
+ * Usar en afterEach para limpiar después de cada test.
+ */
 export function resetFetchMock(): void {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();

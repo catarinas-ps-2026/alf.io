@@ -15,12 +15,15 @@ const mockPostJson = vi.mocked(postJson);
 const mockCallDelete = vi.mocked(callDelete);
 
 describe('AdditionalFieldService', () => {
+    // Técnicas: Mocking con verificación (mockear helpers.ts)
+    // Cada método construye una URL y delega a helpers HTTP
     afterEach(() => {
         vi.clearAllMocks();
     });
 
     describe('loadAllByPurchaseContext', () => {
-        it('CP-AFL-01: construye URL para type=event', async () => {
+        // Técnicas: Particiones de equivalencia (type: event vs subscription)
+        it('construye URL para type=event', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockFetchJson.mockResolvedValue([]);
 
@@ -29,7 +32,7 @@ describe('AdditionalFieldService', () => {
             expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/event/evt-1/additional-field');
         });
 
-        it('CP-AFL-02: construye URL para type=subscription', async () => {
+        it('construye URL para type=subscription', async () => {
             const ctx = createPurchaseContext({ type: 'subscription', publicIdentifier: 'sub-1' });
             mockFetchJson.mockResolvedValue([]);
 
@@ -40,7 +43,8 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('deleteField', () => {
-        it('CP-AFD-01: construye URL DELETE con id', async () => {
+        // Técnicas: Mocking con verificación
+        it('construye URL DELETE con id', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockCallDelete.mockResolvedValue({} as Response);
 
@@ -51,7 +55,8 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('swapFieldPosition', () => {
-        it('CP-AFS-01: construye URL con ids en path', async () => {
+        // Técnicas: Mocking con verificación + Valores límite
+        it('construye URL con ids en path', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockPostJson.mockResolvedValue({} as Response);
 
@@ -63,7 +68,7 @@ describe('AdditionalFieldService', () => {
             );
         });
 
-        it('CP-AFS-02: funciona con ids iguales', async () => {
+        it('funciona con ids iguales', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockPostJson.mockResolvedValue({} as Response);
 
@@ -77,7 +82,8 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('moveField', () => {
-        it('CP-AFM-01: envía newPosition en body URLSearchParams', async () => {
+        // Técnicas: Mocking con verificación + Valores límite
+        it('envía newPosition en body URLSearchParams', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockPostJson.mockResolvedValue({} as Response);
 
@@ -91,7 +97,7 @@ describe('AdditionalFieldService', () => {
             expect(body.get('newPosition')).toBe('5');
         });
 
-        it('CP-AFM-02: position cero funciona', async () => {
+        it('position cero funciona', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockPostJson.mockResolvedValue({} as Response);
 
@@ -103,7 +109,8 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('createNewField', () => {
-        it('CP-AFC-01: envía POST y retorna ValidatedResponse', async () => {
+        // Técnicas: Mocking con verificación
+        it('envía POST y retorna ValidatedResponse', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             const mockResponse = { success: true, value: { id: 1 } };
             mockPostJson.mockResolvedValue({
@@ -131,7 +138,8 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('saveField', () => {
-        it('CP-AFSV-01: usa field.id en URL', async () => {
+        // Técnicas: Mocking con verificación
+        it('usa field.id en URL', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockPostJson.mockResolvedValue({} as Response);
 
@@ -155,6 +163,7 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('loadRestrictedValuesStats', () => {
+        // Técnicas: Mocking con verificación
         it('construye URL con id de stats', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockFetchJson.mockResolvedValue([]);
@@ -166,6 +175,7 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('loadTemplates', () => {
+        // Técnicas: Mocking con verificación
         it('construye URL de templates', async () => {
             const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
             mockFetchJson.mockResolvedValue([]);

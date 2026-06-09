@@ -9,6 +9,9 @@ import type { ValidatedResponse } from '../model/validation.ts';
 import { callDelete, fetchJson, postJson } from './helpers.ts';
 
 export class AdditionalFieldService {
+    /**
+     * Carga estadísticas de valores restringidos para un campo específico.
+     */
     static loadRestrictedValuesStats(
         purchaseContext: PurchaseContext,
         id: number,
@@ -18,6 +21,9 @@ export class AdditionalFieldService {
         );
     }
 
+    /**
+     * Carga todos los campos adicionales para un contexto de compra (evento o suscripción).
+     */
     static loadAllByPurchaseContext(
         purchaseContext: PurchaseContext,
     ): Promise<ReadonlyArray<AdditionalField>> {
@@ -26,6 +32,9 @@ export class AdditionalFieldService {
         );
     }
 
+    /**
+     * Elimina un campo adicional por ID.
+     */
     static deleteField(
         purchaseContext: PurchaseContext,
         id: number,
@@ -35,6 +44,9 @@ export class AdditionalFieldService {
         );
     }
 
+    /**
+     * Intercambia la posición de dos campos adicionales.
+     */
     static swapFieldPosition(
         purchaseContext: PurchaseContext,
         id1: number,
@@ -46,6 +58,10 @@ export class AdditionalFieldService {
         );
     }
 
+    /**
+     * Mueve un campo adicional a una posición específica.
+     * Envía la posición como URLSearchParams.
+     */
     static moveField(
         purchaseContext: PurchaseContext,
         id: number,
