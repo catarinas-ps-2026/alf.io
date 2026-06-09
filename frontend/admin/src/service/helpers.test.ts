@@ -160,45 +160,55 @@ describe('escapeHtml', () => {
 });
 
 describe('supportedLanguages', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: undefined/no existe → []
+    // - PE2: null → []
+    // - PE3: JSON válido array vacío → []
+    // - PE4: JSON válido con datos → array
+    // - PE5: JSON inválido → SyntaxError
     afterEach(() => {
         delete (window as any).SUPPORTED_LANGUAGES;
     });
 
-    it('CP-LANG-01: retorna array vacío cuando no está definido', () => {
+    it('retorna array vacío cuando no está definido', () => {
         expect(supportedLanguages()).toEqual([]);
     });
 
-    it('CP-LANG-02: retorna array vacío cuando es null', () => {
+    it('retorna array vacío cuando es null', () => {
         (window as any).SUPPORTED_LANGUAGES = null;
         expect(supportedLanguages()).toEqual([]);
     });
 
-    it('CP-LANG-03: retorna array vacío para JSON []', () => {
+    it('retorna array vacío para JSON []', () => {
         (window as any).SUPPORTED_LANGUAGES = '[]';
         expect(supportedLanguages()).toEqual([]);
     });
 
-    it('CP-LANG-04: retorna array con datos', () => {
+    it('retorna array con datos', () => {
         const data = [{ locale: 'en', value: 1, language: 'English', displayLanguage: 'English' }];
         (window as any).SUPPORTED_LANGUAGES = JSON.stringify(data);
         expect(supportedLanguages()).toEqual(data);
     });
 
-    it('CP-LANG-05: lanza SyntaxError con JSON inválido', () => {
+    it('lanza SyntaxError con JSON inválido', () => {
         (window as any).SUPPORTED_LANGUAGES = 'not-json';
         expect(() => supportedLanguages()).toThrow(SyntaxError);
     });
 });
 
 describe('notifyChange', () => {
-    it('CP-NCF-01: no llama handleChange si target es null', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: target null → sin llamada a handleChange
+    // - PE2: target válido → handleChange(value)
+    // - PE3: transformer custom → handleChange(transform(value))
+    it('no llama handleChange si target es null', () => {
         const field = { handleChange: vi.fn() };
         const event = { currentTarget: null } as unknown as InputEvent;
         notifyChange(event, field);
         expect(field.handleChange).not.toHaveBeenCalled();
     });
 
-    it('CP-NCF-02: llama handleChange con valor del input', () => {
+    it('llama handleChange con valor del input', () => {
         const field = { handleChange: vi.fn() };
         const event = {
             currentTarget: { value: 'hello' },
@@ -207,7 +217,7 @@ describe('notifyChange', () => {
         expect(field.handleChange).toHaveBeenCalledWith('hello');
     });
 
-    it('CP-NCF-03: llama handleChange con transformer custom', () => {
+    it('llama handleChange con transformer custom', () => {
         const field = { handleChange: vi.fn() };
         const event = {
             currentTarget: { value: '123' },
@@ -216,7 +226,7 @@ describe('notifyChange', () => {
         expect(field.handleChange).toHaveBeenCalledWith(123);
     });
 
-    it('CP-NCF-04: llama handleChange con valor vacío', () => {
+    it('llama handleChange con valor vacío', () => {
         const field = { handleChange: vi.fn() };
         const event = {
             currentTarget: { value: '' },

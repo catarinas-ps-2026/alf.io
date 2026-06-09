@@ -3,10 +3,27 @@ import { when } from 'lit/directives/when.js';
 import type { DateTimeModification } from '../model/event.ts';
 import type { ContentLanguage } from '../model/purchase-context.ts';
 
+/**
+ * Realiza una petición POST con headers CSRF y body serializado.
+ * - Si payload es URLSearchParams, usa Content-Type: application/x-www-form-urlencoded
+ * - Si payload es un objeto, lo serializa a JSON con Content-Type: application/json
+ * - Si payload es null/undefined, envía body null
+ *
+ * @example
+ * postJson('/api/data', { key: 'value' })  // POST JSON
+ * postJson('/api/form', new URLSearchParams({a: '1'}))  // POST form
+ */
 export function postJson(url: string, payload: any): Promise<Response> {
     return performRequest(url, 'POST', payload);
 }
 
+/**
+ * Realiza una petición PUT con headers CSRF y body serializado.
+ * Misma lógica de serialización que postJson.
+ *
+ * @example
+ * putJson('/api/items/1', { name: 'updated' })
+ */
 export function putJson(url: string, payload: any): Promise<Response> {
     return performRequest(url, 'PUT', payload);
 }
@@ -58,6 +75,13 @@ export function fetchJson<T>(url: string): Promise<T> {
     }).then((r) => r.json());
 }
 
+/**
+ * Helper de renderizado condicional para Lit.
+ * Retorna el template si predicate es true, o nothing si es false.
+ *
+ * @example
+ * renderIf(() => isOpen, () => html`<div>Open</div>`)
+ */
 export function renderIf(
     predicate: () => boolean,
     template: () => TemplateResult,
@@ -65,6 +89,15 @@ export function renderIf(
     return html`${when(predicate(), template, () => nothing)}`;
 }
 
+/**
+ * Obtiene la lista de idiomas soportados desde window.SUPPORTED_LANGUAGES.
+ * - Si no está definido o es null, retorna array vacío
+ * - Si es JSON válido, retorna el array parseado
+ * - Si es JSON inválido, lanza SyntaxError
+ *
+ * @example
+ * supportedLanguages() // [{ locale: 'en', value: 1, ... }]
+ */
 export function supportedLanguages(): ContentLanguage[] {
     if (window.SUPPORTED_LANGUAGES != null) {
         return JSON.parse(window.SUPPORTED_LANGUAGES);
@@ -107,6 +140,16 @@ export function extractDateTime(isoString?: string): string {
     return '';
 }
 
+/**
+ * Notifica cambios en un campo de formulario.
+ * Extrae el valor del input y llama a handleChange con el valor transformado.
+ * - Si event.currentTarget es null, no hace nada
+ * - Si no se provee valueTransformer, retorna el valor como string
+ *
+ * @example
+ * notifyChange(event, field)  // usa transformer default (identity)
+ * notifyChange(event, field, Number)  // convierte a number
+ */
 export function notifyChange(
     event: InputEvent,
     field: { handleChange: (m: any) => void },
