@@ -3,18 +3,62 @@ import { when } from 'lit/directives/when.js';
 import type { DateTimeModification } from '../model/event.ts';
 import type { ContentLanguage } from '../model/purchase-context.ts';
 
+/**
+ * Realiza una petición POST con headers CSRF y body serializado.
+ * - Si payload es URLSearchParams, usa Content-Type: application/x-www-form-urlencoded
+ * - Si payload es un objeto, lo serializa a JSON con Content-Type: application/json
+ * - Si payload es null/undefined, envía body null
+ *
+ * @param url - URL del endpoint
+ * @param payload - Datos a enviar (objeto, URLSearchParams, null o undefined)
+ * @returns Promise con la respuesta del servidor
+ *
+ * @example
+ * postJson('/api/data', { key: 'value' })  // POST JSON
+ * postJson('/api/form', new URLSearchParams({a: '1'}))  // POST form
+ */
 export function postJson(url: string, payload: any): Promise<Response> {
     return performRequest(url, 'POST', payload);
 }
 
+/**
+ * Realiza una petición PUT con headers CSRF y body serializado.
+ * Misma lógica de serialización que postJson.
+ *
+ * @param url - URL del endpoint
+ * @param payload - Datos a enviar (objeto, URLSearchParams, null o undefined)
+ * @returns Promise con la respuesta del servidor
+ *
+ * @example
+ * putJson('/api/items/1', { name: 'updated' })
+ */
 export function putJson(url: string, payload: any): Promise<Response> {
     return performRequest(url, 'PUT', payload);
 }
 
+/**
+ * Realiza una petición DELETE con headers CSRF y body null.
+ *
+ * @param url - URL del endpoint
+ * @returns Promise con la respuesta del servidor
+ *
+ * @example
+ * callDelete('/api/items/1')
+ */
 export function callDelete(url: string): Promise<Response> {
     return performRequest(url, 'DELETE', null);
 }
 
+/**
+ * Función interna que construye y ejecuta un fetch request.
+ * Lee headers CSRF de meta tags del DOM.
+ * Serializa body según el tipo de payload (URLSearchParams, JSON, null).
+ *
+ * @param url - URL del endpoint
+ * @param method - Método HTTP (PUT, POST, DELETE)
+ * @param payload - Datos a enviar
+ * @returns Promise con la respuesta del servidor
+ */
 function performRequest(
     url: string,
     method: 'PUT' | 'POST' | 'DELETE',
@@ -51,6 +95,16 @@ function performRequest(
     });
 }
 
+/**
+ * Realiza una petición GET y retorna el JSON parseado.
+ * Usa credentials: 'include' para cookies de sesión.
+ *
+ * @param url - URL del endpoint
+ * @returns Promise con el JSON parseado del tipo T
+ *
+ * @example
+ * const data = await fetchJson<MyType>('/api/data')
+ */
 export function fetchJson<T>(url: string): Promise<T> {
     return fetch(url, {
         method: 'GET',
@@ -58,6 +112,17 @@ export function fetchJson<T>(url: string): Promise<T> {
     }).then((r) => r.json());
 }
 
+/**
+ * Helper de renderizado condicional para Lit.
+ * Retorna el template si predicate es true, o nothing si es false.
+ *
+ * @param predicate - Función que retorna boolean
+ * @param template - Función que retorna TemplateResult
+ * @returns TemplateResult (template o nothing)
+ *
+ * @example
+ * renderIf(() => isOpen, () => html`<div>Open</div>`)
+ */
 export function renderIf(
     predicate: () => boolean,
     template: () => TemplateResult,
@@ -65,6 +130,17 @@ export function renderIf(
     return html`${when(predicate(), template, () => nothing)}`;
 }
 
+/**
+ * Obtiene la lista de idiomas soportados desde window.SUPPORTED_LANGUAGES.
+ * - Si no está definido o es null, retorna array vacío
+ * - Si es JSON válido, retorna el array parseado
+ * - Si es JSON inválido, lanza SyntaxError
+ *
+ * @returns Array de ContentLanguage con los idiomas disponibles
+ *
+ * @example
+ * supportedLanguages() // [{ locale: 'en', value: 1, ... }]
+ */
 export function supportedLanguages(): ContentLanguage[] {
     if (window.SUPPORTED_LANGUAGES != null) {
         return JSON.parse(window.SUPPORTED_LANGUAGES);
@@ -72,6 +148,19 @@ export function supportedLanguages(): ContentLanguage[] {
     return [];
 }
 
+/**
+ * Extrae date y time de un string ISO datetime usando substring.
+ * - date: primeros 10 caracteres (YYYY-MM-DD)
+ * - time: caracteres 11-15 (HH:MM)
+ * - Si el string es más corto, retorna strings vacíos
+ *
+ * @param isoString - String en formato ISO datetime
+ * @returns Objeto DateTimeModification con date y time
+ *
+ * @example
+ * toDateTimeModification('2025-01-15T10:00:00') // { date: '2025-01-15', time: '10:00' }
+ * toDateTimeModification('2025-01-15')           // { date: '2025-01-15', time: '' }
+ */
 export function toDateTimeModification(
     isoString: string,
 ): DateTimeModification {
@@ -81,6 +170,18 @@ export function toDateTimeModification(
     };
 }
 
+/**
+ * Extrae los primeros 16 caracteres de un string (formato ISO datetime).
+ * - Si isoString es null o undefined, retorna string vacío
+ * - Si el string tiene menos de 16 caracteres, retorna el string completo
+ *
+ * @param isoString - String ISO datetime (opcional)
+ * @returns String con los primeros 16 caracteres o vacío
+ *
+ * @example
+ * extractDateTime('2025-01-15T10:00:00') // '2025-01-15T10:00'
+ * extractDateTime(undefined)             // ''
+ */
 export function extractDateTime(isoString?: string): string {
     if (isoString != null) {
         return isoString.substring(0, 16);
@@ -88,6 +189,20 @@ export function extractDateTime(isoString?: string): string {
     return '';
 }
 
+/**
+ * Notifica cambios en un campo de formulario.
+ * Extrae el valor del input y llama a handleChange con el valor transformado.
+ * - Si event.currentTarget es null, no hace nada
+ * - Si no se provee valueTransformer, retorna el valor como string
+ *
+ * @param event - Evento de input
+ * @param field - Objeto con método handleChange
+ * @param valueTransformer - Función para transformar el valor (opcional, default: identity)
+ *
+ * @example
+ * notifyChange(event, field)  // usa transformer default (identity)
+ * notifyChange(event, field, Number)  // convierte a number
+ */
 export function notifyChange(
     event: InputEvent,
     field: { handleChange: (m: any) => void },
@@ -100,12 +215,37 @@ export function notifyChange(
     }
 }
 
+/**
+ * Escapa caracteres especiales de HTML usando textContent/innerHTML.
+ * Convierte &, <, >, ", ' a sus entidades HTML correspondientes.
+ *
+ * @param message - String a escapar
+ * @returns String con caracteres HTML escapados
+ *
+ * @example
+ * escapeHtml('<script>')  // '&lt;script&gt;'
+ * escapeHtml('Tom & Jerry') // 'Tom &amp; Jerry'
+ */
 export function escapeHtml(message: string): string {
     const div = document.createElement('div');
     div.textContent = message;
     return div.innerHTML;
 }
 
+/**
+ * Convierte un valor a su representación en string.
+ * - Si value es null o undefined, retorna el valor sin cambios
+ * - Si value es un number/boolean, lo convierte a string
+ * - Si value es un string, lo retorna sin cambios
+ *
+ * @param value - Valor a convertir
+ * @returns String resultante, o null/undefined si el input era null/undefined
+ *
+ * @example
+ * asString(42)      // '42'
+ * asString(null)    // null
+ * asString('hello') // 'hello'
+ */
 export function asString(value: any): string | null {
     if (value != null) {
         return `${value}`;
@@ -113,6 +253,22 @@ export function asString(value: any): string | null {
     return value;
 }
 
+/**
+ * Parsea un string a número entero usando parseInt con radix 10.
+ * - Si value es null o undefined, retorna null
+ * - Si el string no es numérico, retorna NaN
+ * - Decimales se truncan (ej: '3.14' → 3)
+ * - Notación científica se trunca en 'e' (ej: '1e3' → 1)
+ *
+ * @param value - String a parsear (opcional)
+ * @returns Número entero, NaN si no es numérico, o null si es undefined
+ *
+ * @example
+ * asNumber('42')    // 42
+ * asNumber('3.14')  // 3
+ * asNumber('abc')   // NaN
+ * asNumber()        // null
+ */
 export function asNumber(value?: string): number | null {
     if (value != null) {
         return Number.parseInt(value, 10);

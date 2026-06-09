@@ -27,6 +27,11 @@ export const supplementPolicyDescriptions: { [key: string]: string } = {
         'User-selected item, limited quantity per reservation',
 };
 
+/**
+ * Verifica si una política de suplemento es obligatoria.
+ * Retorna true para: MANDATORY_ONE_FOR_TICKET, MANDATORY_PERCENTAGE_FOR_TICKET,
+ * MANDATORY_PERCENTAGE_RESERVATION
+ */
 export function isMandatory(supplementPolicy: SupplementPolicy): boolean {
     return (
         supplementPolicy === 'MANDATORY_ONE_FOR_TICKET' ||
@@ -35,6 +40,10 @@ export function isMandatory(supplementPolicy: SupplementPolicy): boolean {
     );
 }
 
+/**
+ * Verifica si una política de suplemento es de porcentaje obligatorio.
+ * Retorna true para: MANDATORY_PERCENTAGE_FOR_TICKET, MANDATORY_PERCENTAGE_RESERVATION
+ */
 export function isMandatoryPercentage(
     supplementPolicy: SupplementPolicy,
 ): boolean {
