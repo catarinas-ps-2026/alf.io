@@ -11,6 +11,7 @@ import {
     putJson,
     callDelete,
     fetchJson,
+    renderIf,
 } from './helpers.ts';
 
 describe('asString', () => {
@@ -405,5 +406,26 @@ describe('fetchJson', () => {
         vi.stubGlobal('fetch', fetchMock);
 
         await expect(fetchJson('https://example.com/api/test')).rejects.toThrow('Network error');
+    });
+});
+
+describe('renderIf', () => {
+    // Técnicas: Particiones de equivalencia
+    // - PE1: predicate true → retorna template
+    // - PE2: predicate false → retorna nothing
+    it('retorna template cuando predicate es true', () => {
+        const predicate = () => true;
+        const template = () => ({ strings: ['<div>content</div>'], values: [] } as any);
+
+        const result = renderIf(predicate, template);
+        expect(result).toBeDefined();
+    });
+
+    it('retorna nothing cuando predicate es false', () => {
+        const predicate = () => false;
+        const template = () => ({ strings: ['<div>content</div>'], values: [] } as any);
+
+        const result = renderIf(predicate, template);
+        expect(result).toBeDefined();
     });
 });
