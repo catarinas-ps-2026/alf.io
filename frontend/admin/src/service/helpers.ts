@@ -28,10 +28,21 @@ export function putJson(url: string, payload: any): Promise<Response> {
     return performRequest(url, 'PUT', payload);
 }
 
+/**
+ * Realiza una petición DELETE con headers CSRF y body null.
+ *
+ * @example
+ * callDelete('/api/items/1')
+ */
 export function callDelete(url: string): Promise<Response> {
     return performRequest(url, 'DELETE', null);
 }
 
+/**
+ * Función interna que construye y ejecuta un fetch request.
+ * Lee headers CSRF de meta tags del DOM.
+ * Serializa body según el tipo de payload (URLSearchParams, JSON, null).
+ */
 function performRequest(
     url: string,
     method: 'PUT' | 'POST' | 'DELETE',
@@ -68,6 +79,13 @@ function performRequest(
     });
 }
 
+/**
+ * Realiza una petición GET y retorna el JSON parseado.
+ * Usa credentials: 'include' para cookies de sesión.
+ *
+ * @example
+ * const data = await fetchJson<MyType>('/api/data')
+ */
 export function fetchJson<T>(url: string): Promise<T> {
     return fetch(url, {
         method: 'GET',

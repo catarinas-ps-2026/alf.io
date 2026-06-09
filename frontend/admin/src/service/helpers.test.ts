@@ -237,6 +237,11 @@ describe('notifyChange', () => {
 });
 
 describe('performRequest (via postJson/putJson/callDelete)', () => {
+    // Técnicas: Particiones de equivalencia (tipo de payload) + Mocking con verificación
+    // - PE1: URLSearchParams → Content-Type: application/x-www-form-urlencoded
+    // - PE2: Object → Content-Type: application/json
+    // - PE3: null/undefined → body null
+    // - Mocking: verificar method, headers, body en cada llamada a fetch
     let fetchMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -258,7 +263,7 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         vi.restoreAllMocks();
     });
 
-    it('CP-HTTP-01: postJson envía URLSearchParams con content-type correcto', async () => {
+    it('postJson envía URLSearchParams con content-type correcto', async () => {
         const payload = new URLSearchParams({ key: 'val' });
 
         await postJson('https://example.com/api/test', payload);
@@ -269,7 +274,7 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(headers['Content-Type']).toBe('application/x-www-form-urlencoded');
     });
 
-    it('CP-HTTP-02: postJson envía objeto JSON con content-type correcto', async () => {
+    it('postJson envía objeto JSON con content-type correcto', async () => {
         const payload = { foo: 'bar' };
 
         await postJson('https://example.com/api/test', payload);
@@ -282,7 +287,7 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(callArgs[1].headers['Content-Type']).toBe('application/json');
     });
 
-    it('CP-HTTP-03: callDelete envía DELETE con null body', async () => {
+    it('callDelete envía DELETE con null body', async () => {
         await callDelete('https://example.com/api/test');
 
         expect(fetchMock).toHaveBeenCalled();
@@ -291,7 +296,7 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(callArgs[1].body).toBeNull();
     });
 
-    it('CP-HTTP-04: postJson con undefined envía null body', async () => {
+    it('postJson con undefined envía null body', async () => {
         await postJson('https://example.com/api/test', undefined);
 
         expect(fetchMock).toHaveBeenCalled();
@@ -299,7 +304,7 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(callArgs[1].body).toBeNull();
     });
 
-    it('CP-HTTP-05: incluye headers CSRF', async () => {
+    it('incluye headers CSRF', async () => {
         await postJson('https://example.com/api/test', {});
 
         expect(fetchMock).toHaveBeenCalled();
@@ -308,7 +313,7 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(headers['X-XSRF-TOKEN']).toBe('test-token-123');
     });
 
-    it('CP-HTTP-06: putJson envía method PUT', async () => {
+    it('putJson envía method PUT', async () => {
         await putJson('https://example.com/api/test', { x: 1 });
 
         expect(fetchMock).toHaveBeenCalled();
@@ -316,7 +321,7 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(callArgs[1].method).toBe('PUT');
     });
 
-    it('CP-HTTP-07: putJson con URLSearchParams', async () => {
+    it('putJson con URLSearchParams', async () => {
         await putJson('https://example.com/api/test', new URLSearchParams());
 
         expect(fetchMock).toHaveBeenCalled();
@@ -324,16 +329,51 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(callArgs[1].method).toBe('PUT');
         expect(callArgs[1].headers['Content-Type']).toBe('application/x-www-form-urlencoded');
     });
+
+    it('postJson envía objeto vacío como "{}"', async () => {
+        await postJson('https://example.com/api/test', {});
+
+        expect(fetchMock).toHaveBeenCalled();
+        const callArgs = fetchMock.mock.calls[0];
+        expect(callArgs[1].body).toBe('{}');
+    });
+
+    it('postJson serializa objeto anidado correctamente', async () => {
+        const payload = { nested: { key: 'value' }, arr: [1, 2, 3] };
+
+        await postJson('https://example.com/api/test', payload);
+
+        const callArgs = fetchMock.mock.calls[0];
+        expect(callArgs[1].body).toBe(JSON.stringify(payload));
+    });
+
+    it('incluye credentials: include en todas las llamadas', async () => {
+        await postJson('https://example.com/api/test', {});
+
+        const callArgs = fetchMock.mock.calls[0];
+        expect(callArgs[1].credentials).toBe('include');
+    });
+
+    it('incluye header Accept: application/json', async () => {
+        await postJson('https://example.com/api/test', {});
+
+        const callArgs = fetchMock.mock.calls[0];
+        expect(callArgs[1].headers['Accept']).toBe('application/json');
+    });
 });
 
 describe('fetchJson', () => {
+    // Técnicas: Particiones de equivalencia + Mocking con verificación
+    // - PE1: Response válida → JSON parseado
+    // - PE2: Response con error → rechaza promise
+    // - Mocking: verificar method GET, credentials
     let fetchMock: ReturnType<typeof vi.fn>;
 
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
-    it('CP-FJ-01: retorna JSON parseado', async () => {
+    it('retorna JSON parseado', async () => {
         const data = { data: 1 };
         fetchMock = vi.fn().mockResolvedValue({
             ok: true,
@@ -345,7 +385,7 @@ describe('fetchJson', () => {
         expect(result).toEqual(data);
     });
 
-    it('CP-FJ-02: usa GET method y credentials', async () => {
+    it('usa GET method y credentials', async () => {
         fetchMock = vi.fn().mockResolvedValue({
             ok: true,
             json: async () => ({}),
@@ -358,5 +398,12 @@ describe('fetchJson', () => {
             method: 'GET',
             credentials: 'include',
         });
+    });
+
+    it('lanza error cuando fetch falla', async () => {
+        fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
+        vi.stubGlobal('fetch', fetchMock);
+
+        await expect(fetchJson('https://example.com/api/test')).rejects.toThrow('Network error');
     });
 });

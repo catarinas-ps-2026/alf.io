@@ -93,6 +93,10 @@ export const additionalFieldTypesWithDescription = {
     'input:dateOfBirth': 'Date of birth input',
 };
 
+/**
+ * Verifica si un tipo de campo soporta placeholder.
+ * Retorna true para: input:text, input:tel, vat:eu, textarea, input:dateOfBirth
+ */
 export function supportsPlaceholder(fieldType: AdditionalFieldType) {
     return (
         fieldType === 'input:text' ||
@@ -103,6 +107,10 @@ export function supportsPlaceholder(fieldType: AdditionalFieldType) {
     );
 }
 
+/**
+ * Verifica si un tipo de campo soporta valores restringidos.
+ * Retorna true para: checkbox, radio, select
+ */
 export function supportsRestrictedValues(fieldType: AdditionalFieldType) {
     return (
         fieldType === 'checkbox' ||
