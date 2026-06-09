@@ -25,7 +25,12 @@ import {
 } from './helpers.ts';
 
 describe('asString', () => {
-    // Convierte valores a string, retorna null/undefined sin cambios
+    // Técnicas: Particiones de equivalencia (tipos de input)
+    // - PE1: null → sin conversión
+    // - PE2: undefined → sin conversión
+    // - PE3: number → conversión a string
+    // - PE4: string → sin cambios
+    // - PE5: boolean → conversión a string
     it('retorna null para null', () => {
         expect(asString(null)).toBe(null);
     });
@@ -34,37 +39,26 @@ describe('asString', () => {
         expect(asString(undefined)).toBe(undefined);
     });
 
-    it('convierte number positivo a string', () => {
-        expect(asString(42)).toBe('42');
-    });
-
-    it('convierte number cero a string', () => {
-        expect(asString(0)).toBe('0');
-    });
-
-    it('convierte number negativo a string', () => {
-        expect(asString(-1)).toBe('-1');
-    });
-
-    it('retorna string vacío sin cambios', () => {
-        expect(asString('')).toBe('');
-    });
-
-    it('retorna string no vacío sin cambios', () => {
-        expect(asString('hello')).toBe('hello');
-    });
-
-    it('convierte boolean true a string', () => {
-        expect(asString(true)).toBe('true');
-    });
-
-    it('convierte boolean false a string', () => {
-        expect(asString(false)).toBe('false');
+    it.each([
+        ['number positivo', 42, '42'],
+        ['number cero', 0, '0'],
+        ['number negativo', -1, '-1'],
+        ['string vacío', '', ''],
+        ['string no vacío', 'hello', 'hello'],
+        ['boolean true', true, 'true'],
+        ['boolean false', false, 'false'],
+    ])('convierte %s (%j) a "%s"', (_label, input, expected) => {
+        expect(asString(input)).toBe(expected);
     });
 });
 
 describe('asNumber', () => {
-    // Parsea strings a number con parseInt radix 10, retorna null para null/undefined
+    // Técnicas: Particiones de equivalencia + Valores límite
+    // - PE1: null/undefined → null
+    // - PE2: Enteros válidos → número parseado
+    // - PE3: Decimales → truncados a entero
+    // - PE4: No numéricos → NaN
+    // - VL: 0, '', espacios en blanco
     it('retorna null para undefined', () => {
         expect(asNumber(undefined)).toBe(null);
     });
@@ -73,146 +67,99 @@ describe('asNumber', () => {
         expect(asNumber(null as unknown as string)).toBe(null);
     });
 
-    it('parsea entero positivo', () => {
-        expect(asNumber('42')).toBe(42);
+    it.each([
+        ['entero positivo', '42', 42],
+        ['entero cero', '0', 0],
+        ['entero negativo', '-5', -5],
+        ['número grande', '999999999', 999999999],
+    ])('parsea %s: "%s" → %d', (_label, input, expected) => {
+        expect(asNumber(input)).toBe(expected);
     });
 
-    it('parsea entero cero', () => {
-        expect(asNumber('0')).toBe(0);
+    it.each([
+        ['decimal', '3.14', 3],
+        ['notación científica', '1e3', 1],
+        ['hexadecimal', '0x1A', 0],
+        ['con espacios', '  42  ', 42],
+    ])('trunca %s: "%s" → %d', (_label, input, expected) => {
+        expect(asNumber(input)).toBe(expected);
     });
 
-    it('parsea entero negativo', () => {
-        expect(asNumber('-5')).toBe(-5);
-    });
-
-    it('trunca decimal', () => {
-        expect(asNumber('3.14')).toBe(3);
-    });
-
-    it('retorna NaN para no numérico', () => {
-        expect(asNumber('abc')).toBeNaN();
-    });
-
-    it('retorna NaN para vacío', () => {
-        expect(asNumber('')).toBeNaN();
-    });
-
-    it('trunca notación científica', () => {
-        expect(asNumber('1e3')).toBe(1);
-    });
-
-    it('trunca hexadecimal', () => {
-        expect(asNumber('0x1A')).toBe(0);
-    });
-
-    it('ignora espacios', () => {
-        expect(asNumber('  42  ')).toBe(42);
-    });
-
-    it('parsea número grande', () => {
-        expect(asNumber('999999999')).toBe(999999999);
+    it.each([
+        ['no numérico', 'abc'],
+        ['string vacío', ''],
+    ])('retorna NaN para %s ("%s")', (_label, input) => {
+        expect(asNumber(input)).toBeNaN();
     });
 });
 
 describe('toDateTimeModification', () => {
-    // Extrae date/time de ISO string via substring
-    it('parsea ISO datetime completo', () => {
-        expect(toDateTimeModification('2025-01-15T10:00:00')).toEqual({
-            date: '2025-01-15',
-            time: '10:00',
-        });
-    });
-
-    it('parsea ISO con timezone', () => {
-        expect(toDateTimeModification('2025-12-31T23:59:00+02:00')).toEqual({
-            date: '2025-12-31',
-            time: '23:59',
-        });
-    });
-
-    it('parsea fecha mínima', () => {
-        expect(toDateTimeModification('2000-01-01T00:00:00')).toEqual({
-            date: '2000-01-01',
-            time: '00:00',
-        });
-    });
-
-    it('solo fecha retorna time vacío', () => {
-        expect(toDateTimeModification('2025-01-15')).toEqual({
-            date: '2025-01-15',
-            time: '',
-        });
-    });
-
-    it('string vacío retorna vacío', () => {
-        expect(toDateTimeModification('')).toEqual({
-            date: '',
-            time: '',
-        });
-    });
-
-    it('exactamente 16 chars funciona', () => {
-        expect(toDateTimeModification('2025-01-15T10:00')).toEqual({
-            date: '2025-01-15',
-            time: '10:00',
-        });
+    // Técnicas: Particiones de equivalencia + Valores límite
+    // - PE1: ISO datetime completo (≥16 chars)
+    // - PE2: ISO date solo (10 chars)
+    // - PE3: String vacío (0 chars)
+    // - VL: Longitudes exactas 0, 10, 16
+    it.each([
+        ['ISO datetime completo', '2025-01-15T10:00:00', { date: '2025-01-15', time: '10:00' }],
+        ['ISO con timezone', '2025-12-31T23:59:00+02:00', { date: '2025-12-31', time: '23:59' }],
+        ['fecha mínima', '2000-01-01T00:00:00', { date: '2000-01-01', time: '00:00' }],
+        ['solo fecha (10 chars)', '2025-01-15', { date: '2025-01-15', time: '' }],
+        ['string vacío', '', { date: '', time: '' }],
+        ['exactamente 16 chars', '2025-01-15T10:00', { date: '2025-01-15', time: '10:00' }],
+    ])('parsea %s: "%s"', (_label, input, expected) => {
+        expect(toDateTimeModification(input)).toEqual(expected);
     });
 });
 
 describe('extractDateTime', () => {
-    // Retorna primeros 16 chars de ISO string, o vacío si es null/undefined
-    it('retorna vacío para undefined', () => {
-        expect(extractDateTime(undefined)).toBe('');
+    // Técnicas: Particiones de equivalencia + Valores límite
+    // - PE1: null/undefined → ''
+    // - PE2: String válido ≥16 chars → primeros 16
+    // - PE3: String corto <16 chars → string completo
+    // - VL: 0, 11, 16 chars
+    it.each([
+        ['undefined', undefined, ''],
+        ['null', null, ''],
+        ['string vacío', '', ''],
+    ])('retorna vacío para %s', (_label, input, expected) => {
+        expect(extractDateTime(input as unknown as string)).toBe(expected);
     });
 
-    it('retorna vacío para null', () => {
-        expect(extractDateTime(null as unknown as string)).toBe('');
-    });
-
-    it('retorna vacío para string vacío', () => {
-        expect(extractDateTime('')).toBe('');
-    });
-
-    it('extrae 16 chars de ISO válido', () => {
-        expect(extractDateTime('2025-01-15T10:00:00')).toBe('2025-01-15T10:00');
-    });
-
-    it('retorna string completo si es corto', () => {
-        expect(extractDateTime('2025-01-15T')).toBe('2025-01-15T');
+    it.each([
+        ['ISO válido (19 chars)', '2025-01-15T10:00:00', '2025-01-15T10:00'],
+        ['string corto (11 chars)', '2025-01-15T', '2025-01-15T'],
+    ])('extrae de %s: "%s" → "%s"', (_label, input, expected) => {
+        expect(extractDateTime(input)).toBe(expected);
     });
 });
 
 describe('escapeHtml', () => {
-    // Escapa caracteres HTML via textContent/innerHTML
+    // Técnicas: Particiones de equivalencia
+    // - PE1: Sin caracteres especiales → sin cambios
+    // - PE2: & → &amp;
+    // - PE3: < → &lt;
+    // - PE4: > → &gt;
+    // - PE5: String vacío → vacío
     it('string sin especiales sin cambios', () => {
         expect(escapeHtml('hello')).toBe('hello');
     });
 
-    it('escapa ampersand', () => {
-        expect(escapeHtml('&')).toBe('&amp;');
+    it('string vacío retorna vacío', () => {
+        expect(escapeHtml('')).toBe('');
     });
 
-    it('escapa less-than', () => {
-        expect(escapeHtml('<')).toBe('&lt;');
-    });
-
-    it('escapa greater-than', () => {
-        expect(escapeHtml('>')).toBe('&gt;');
-    });
-
-    it('escapa double quote', () => {
-        const result = escapeHtml('"');
-        expect(result).toMatch(/&quot;|"/);
+    it.each([
+        ['ampersand', '&', '&amp;'],
+        ['less-than', '<', '&lt;'],
+        ['greater-than', '>', '&gt;'],
+    ])('escapa %s: "%s" → "%s"', (_label, input, expected) => {
+        expect(escapeHtml(input)).toBe(expected);
     });
 
     it('escapa script injection', () => {
         expect(escapeHtml('<script>alert(1)</script>')).toBe(
             '&lt;script&gt;alert(1)&lt;/script&gt;',
         );
-    });
-
-    it('string vacío retorna vacío', () => {
-        expect(escapeHtml('')).toBe('');
     });
 
     it('múltiples caracteres especiales', () => {
