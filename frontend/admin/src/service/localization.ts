@@ -8,6 +8,10 @@ export type LocalizationServiceLocale = {
 };
 
 export class LocalizationService {
+    /**
+     * Obtiene la lista de idiomas soportados para eventos.
+     * Retorna un array de LocalizationServiceLocale con cada idioma disponible.
+     */
     async getEventsSupportedLanguages() {
         const result = await fetchJson<LocalizationServiceLocale[]>(
             `/admin/api/events-supported-languages`,
