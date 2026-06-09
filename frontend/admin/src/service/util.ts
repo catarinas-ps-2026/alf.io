@@ -7,7 +7,7 @@ export class UtilService {
      *
      * @param text - Texto en formato CommonMark
      * @returns HTML renderizado
-     * @example UtilService.renderMarkdown('**negrita** → '<strong>negrita</strong>')
+     * @example UtilService.renderMarkdown('**negrita**') // → '<strong>negrita</strong>'
      */
     static renderMarkdown(text: string): Promise<string> {
         return fetchJson(
