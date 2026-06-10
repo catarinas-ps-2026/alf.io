@@ -52,7 +52,7 @@ Booking → Overview → [ProcessingPayment / OfflinePayment / CustomOfflinePaym
 |------------|---------|-------|
 | **summary-table** | summary-table.component.ts | Componente de presentación puro, getters simples |
 
-## Cobertura de Tests (9 componentes principales + 7 secundarios)
+## Cobertura de Tests (9 componentes principales + 3 secundarios)
 
 | Componente | Tests | Estado |
 |------------|-------|--------|
@@ -206,21 +206,3 @@ handleServerSideValidationError(error, this.form);
 | `fixture.debugElement.nativeElement` | `fixture.nativeElement` |
 | `fixture.whenStable()` | `await fixture.whenStable()` |
 | TranslateModule.forRoot() | Required en imports |
-
-## Errores Comunes y Soluciones
-
-### Error: "Cannot read properties of null"
-- El componente espera `parameters` pero test pasa `null`
-- Solución: Verificar que mock tiene estructura correcta
-
-### Error: "Expected false to be true" en matchProxyAndMethod
-- El test no asigna el valor correcto a `method` o `proxy`
-- Solución: Asignar valores antes de llamar al getter
-
-### Error en Tests de Formulario
-- El form no está correctamente mockeado
-- Solución: `{ get: vi.fn(() => ({ setValue: vi.fn(), value: '' })) }`
-
-### Error en ngOnChanges
-- Changes no tiene la estructura correcta
-- Solución: `ngOnChanges({ method: { currentValue: 'VALUE' } } as any)`
