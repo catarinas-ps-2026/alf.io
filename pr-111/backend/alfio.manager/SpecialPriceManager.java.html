@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SpecialPriceManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">SpecialPriceManager.java</span></div><h1>SpecialPriceManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.manager.i18n.I18nManager;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.modification.SendCodeModification;
+import alfio.model.user.Organization;
+import alfio.repository.SpecialPriceRepository;
+import alfio.util.ClockProvider;
+import alfio.util.LocaleUtil;
+import alfio.util.TemplateManager;
+import alfio.util.TemplateResource;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import static alfio.model.system.ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL;
+import static java.util.stream.Collectors.toList;
+
+@Component
+@AllArgsConstructor
+@Transactional
+public class SpecialPriceManager {
+
+<span class="fc" id="L48">    private static final Predicate&lt;SendCodeModification&gt; IS_CODE_PRESENT = v -&gt; Optional.ofNullable(v.code()).isPresent();</span>
+    private final EventManager eventManager;
+    private final NotificationManager notificationManager;
+    private final SpecialPriceRepository specialPriceRepository;
+    private final TemplateManager templateManager;
+    private final MessageSourceManager messageSourceManager;
+    private final I18nManager i18nManager;
+    private final ConfigurationManager configurationManager;
+    private final ClockProvider clockProvider;
+
+    private List&lt;String&gt; checkCodeAssignment(Set&lt;SendCodeModification&gt; input, int categoryId, EventAndOrganizationId event, String username) {
+<span class="fc" id="L59">        final TicketCategory category = checkOwnership(categoryId, event, username);</span>
+<span class="fc" id="L60">        List&lt;String&gt; availableCodes = specialPriceRepository.findActiveByCategoryIdForUpdate(category.getId(), input.size())</span>
+<span class="fc" id="L61">            .stream()</span>
+<span class="fc" id="L62">            .map(SpecialPrice::getCode).collect(toList());</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        Validate.isTrue(input.size() &lt;= availableCodes.size(), &quot;Requested codes: &quot;+input.size()+ &quot;, available: &quot;+availableCodes.size()+&quot;.&quot;);</span>
+<span class="fc" id="L64">        List&lt;String&gt; requestedCodes = input.stream().filter(IS_CODE_PRESENT).map(SendCodeModification::code).toList();</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        Validate.isTrue(requestedCodes.stream().distinct().count() == requestedCodes.size(), &quot;Cannot assign the same code twice. Please fix the input file.&quot;);</span>
+<span class="fc" id="L66">        Validate.isTrue(new HashSet&lt;&gt;(availableCodes).containsAll(requestedCodes), &quot;some requested codes don't exist.&quot;);</span>
+<span class="fc" id="L67">        return availableCodes;</span>
+    }
+
+    private TicketCategory checkOwnership(int categoryId, EventAndOrganizationId event, String username) {
+<span class="fc" id="L71">        eventManager.checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="fc" id="L72">        final List&lt;TicketCategory&gt; categories = eventManager.loadTicketCategories(event);</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        final TicketCategory category = categories.stream().filter(tc -&gt; tc.getId() == categoryId).findFirst().orElseThrow(IllegalArgumentException::new);</span>
+<span class="fc" id="L74">        Validate.isTrue(category.isAccessRestricted(), &quot;Access to the selected category is not restricted.&quot;);</span>
+<span class="fc" id="L75">        return category;</span>
+    }
+
+    public List&lt;SendCodeModification&gt; linkAssigneeToCode(List&lt;SendCodeModification&gt; input, String eventName, int categoryId, String username) {
+<span class="fc" id="L79">        final EventAndOrganizationId event = eventManager.getEventAndOrganizationId(eventName, username);</span>
+<span class="fc" id="L80">        Set&lt;SendCodeModification&gt; set = new LinkedHashSet&lt;&gt;(input);</span>
+<span class="fc" id="L81">        List&lt;String&gt; availableCodes = checkCodeAssignment(set, categoryId, event, username);</span>
+<span class="fc" id="L82">        final Iterator&lt;String&gt; codes = availableCodes.iterator();</span>
+<span class="fc" id="L83">        return Stream.concat(set.stream().filter(IS_CODE_PRESENT), input.stream().filter(IS_CODE_PRESENT.negate())</span>
+<span class="fc" id="L84">            .map(p -&gt; new SendCodeModification(codes.next(), p.assignee(), p.email(), p.language())))</span>
+<span class="fc" id="L85">            .collect(toList());</span>
+    }
+
+    public List&lt;SpecialPrice&gt; loadSentCodes(String eventName, int categoryId, String username) {
+<span class="nc" id="L89">        final EventAndOrganizationId event = eventManager.getEventAndOrganizationId(eventName, username);</span>
+<span class="nc" id="L90">        checkOwnership(categoryId, event, username);</span>
+<span class="nc" id="L91">        Predicate&lt;SpecialPrice&gt; p = SpecialPrice::notSent;</span>
+<span class="nc" id="L92">        return specialPriceRepository.findAllByCategoryId(categoryId).stream().filter(p.negate()).collect(toList());</span>
+    }
+
+    public boolean clearRecipientData(String eventName, int categoryId, int codeId, String username) {
+<span class="nc" id="L96">        final EventAndOrganizationId event = eventManager.getEventAndOrganizationId(eventName, username);</span>
+<span class="nc" id="L97">        checkOwnership(categoryId, event, username);</span>
+<span class="nc" id="L98">        int result = specialPriceRepository.clearRecipientData(codeId, categoryId);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        Validate.isTrue(result &lt;= 1, &quot;too many records affected&quot;);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        return result == 1;</span>
+    }
+
+    public boolean sendCodeToAssignee(List&lt;SendCodeModification&gt; input, String eventName, int categoryId, String username) {
+<span class="fc" id="L104">        final Event event = eventManager.getSingleEvent(eventName, username);</span>
+<span class="fc" id="L105">        final Organization organization = eventManager.loadOrganizer(event, username);</span>
+<span class="fc" id="L106">        Set&lt;SendCodeModification&gt; set = new LinkedHashSet&lt;&gt;(input);</span>
+<span class="fc" id="L107">        checkCodeAssignment(set, categoryId, event, username);</span>
+<span class="fc" id="L108">        Validate.isTrue(set.stream().allMatch(IS_CODE_PRESENT), &quot;There are missing codes. Please check input file.&quot;);</span>
+<span class="fc" id="L109">        List&lt;ContentLanguage&gt; eventLanguages = i18nManager.getEventLanguages(event.getLocales());</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        Validate.isTrue(!eventLanguages.isEmpty(), &quot;No locales have been defined for the event. Please check the configuration&quot;);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        ContentLanguage defaultLocale = eventLanguages.contains(ContentLanguage.ENGLISH) ? ContentLanguage.ENGLISH : eventLanguages.get(0);</span>
+<span class="fc" id="L112">        set.forEach(m -&gt; {</span>
+<span class="fc" id="L113">            var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="fc" id="L114">            Locale locale = LocaleUtil.forLanguageTag(Objects.toString(StringUtils.trimToNull(m.language()), defaultLocale.getLanguage()));</span>
+<span class="fc" id="L115">            var usePartnerCode = configurationManager.getFor(USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL, event.getConfigurationLevel()).getValueAsBooleanOrDefault();</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">            var promoCodeDescription = messageSource.getMessage(&quot;show-event.promo-code-type.&quot;+(usePartnerCode ? &quot;partner&quot; : &quot;promotional&quot;), null, null, locale);</span>
+<span class="fc" id="L117">            Map&lt;String, Object&gt; model = TemplateResource.prepareModelForSendReservedCode(organization, event, m, eventManager.getEventUrl(event), promoCodeDescription);</span>
+<span class="fc" id="L118">            notificationManager.sendSimpleEmail(event,</span>
+                null,
+<span class="fc" id="L120">                m.email(),</span>
+<span class="fc" id="L121">                messageSource.getMessage(&quot;email-code.subject&quot;, new Object[] {event.getDisplayName(), promoCodeDescription}, locale),</span>
+<span class="fc" id="L122">                () -&gt; templateManager.renderTemplate(event, TemplateResource.SEND_RESERVED_CODE, model, locale));</span>
+<span class="fc" id="L123">            int marked = specialPriceRepository.markAsSent(event.now(clockProvider), m.assignee().trim(), m.email().trim(), m.code().trim());</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">            Validate.isTrue(marked == 1, &quot;Expected exactly one row updated, got &quot;+marked);</span>
+<span class="fc" id="L125">        });</span>
+<span class="fc" id="L126">        return true;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

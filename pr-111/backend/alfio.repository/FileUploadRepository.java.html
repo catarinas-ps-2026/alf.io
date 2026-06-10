@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileUploadRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">FileUploadRepository.java</span></div><h1>FileUploadRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.FileBlobMetadata;
+import alfio.model.modification.UploadBase64FileModification;
+import alfio.util.Json;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryRepository;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.support.AbstractLobCreatingPreparedStatementCallback;
+import org.springframework.jdbc.support.lob.DefaultLobHandler;
+import org.springframework.jdbc.support.lob.LobCreator;
+import org.springframework.jdbc.support.lob.LobHandler;
+
+import java.io.*;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+
+@QueryRepository
+public interface FileUploadRepository {
+
+    @Query(&quot;select exists (select 1 from file_blob where id = :id)&quot;)
+    boolean isPresent(@Bind(&quot;id&quot;) String id);
+
+    @Query(&quot;select id, name, content_size, content_type, attributes from file_blob where id = :id&quot;)
+    Optional&lt;FileBlobMetadata&gt; findById(@Bind(&quot;id&quot;) String id);
+
+    @Query(&quot;&quot;&quot;
+        delete from file_blob where creation_time &lt;= :date and id not in (\
+        select file_blob_id from event where file_blob_id is not null\
+         union \
+        select file_blob_id_fk as file_blob_id from subscription_descriptor where file_blob_id_fk is not null\
+        )\
+        &quot;&quot;&quot;)
+    int cleanupUnreferencedBlobFiles(@Bind(&quot;date&quot;) Date date);
+
+    default void upload(UploadBase64FileModification file, String digest, Map&lt;String, String&gt; attributes) {
+<span class="fc" id="L59">        LobHandler lobHandler = new DefaultLobHandler();</span>
+
+<span class="fc" id="L61">        NamedParameterJdbcTemplate jdbc = getNamedParameterJdbcTemplate();</span>
+
+<span class="fc" id="L63">        jdbc.getJdbcOperations().execute(&quot;insert into file_blob (id, name, content_size, content, content_type, attributes) values(?, ?, ?, ?, ?, ?)&quot;,</span>
+            new AbstractLobCreatingPreparedStatementCallback(lobHandler) {
+                @Override
+                protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
+                    ps.setString(1, digest);
+                    ps.setString(2, file.getName());
+                    ps.setLong(3, file.getFile().length);
+                    lobCreator.setBlobAsBytes(ps, 4, file.getFile());
+                    ps.setString(5, file.getType());
+                    ps.setString(6, Json.GSON.toJson(attributes));
+                }
+            });
+<span class="fc" id="L75">    }</span>
+
+    NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
+
+    /**
+     * Return a temporary file with the content of a given id
+     * @param id
+     * @return
+     */
+    default File file(String id) {
+        try {
+<span class="fc" id="L86">            File cachedFile = File.createTempFile(&quot;fileupload-cache&quot;, &quot;.tmp&quot;);</span>
+<span class="fc" id="L87">            SqlParameterSource param = new MapSqlParameterSource(&quot;id&quot;, id);</span>
+<span class="fc" id="L88">            getNamedParameterJdbcTemplate().query(&quot;select content from file_blob where id = :id&quot;, param, rs -&gt; {</span>
+<span class="nc" id="L89">                try (InputStream is = rs.getBinaryStream(&quot;content&quot;); OutputStream os = new FileOutputStream(cachedFile)) {</span>
+<span class="nc" id="L90">                    is.transferTo(os);</span>
+<span class="nc" id="L91">                } catch (IOException e) {</span>
+<span class="nc" id="L92">                    throw new IllegalStateException(&quot;Error while copying data&quot;, e);</span>
+<span class="nc" id="L93">                }</span>
+<span class="nc" id="L94">            });</span>
+<span class="fc" id="L95">            return cachedFile;</span>
+<span class="nc" id="L96">        } catch (IOException e) {</span>
+<span class="nc" id="L97">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

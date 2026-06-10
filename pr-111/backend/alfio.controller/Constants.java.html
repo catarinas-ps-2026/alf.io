@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Constants.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller</a> &gt; <span class="el_source">Constants.java</span></div><h1>Constants.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller;
+
+import alfio.config.Initializer;
+import alfio.config.WebSecurityConfig;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.ui.Model;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+public interface Constants {
+    String TICKET_QR_CODE_URI = &quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}/code.png&quot;;
+    String WALLET_API_BASE_URI = &quot;/api/wallet/event/{eventName}/v1&quot;;
+    String PASS_API_BASE_URI = &quot;/api/pass/event/{eventName}/v1&quot;;
+    String WALLET_API_GET_URI = &quot;/version/passes/{uuid}&quot;;
+    String TICKET_PDF_URI = &quot;/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}/download-ticket&quot;;
+    String TEXT_HTML_CHARSET_UTF_8 = &quot;text/html;charset=UTF-8&quot;;
+    String UTF_8 = &quot;UTF-8&quot;;
+    String NONCE = &quot;nonce&quot;;
+    String REDIRECT = &quot;redirect:&quot;;
+    String EVENT_SHORT_NAME = &quot;eventShortName&quot;;
+    String NOT_FOUND = &quot;not-found&quot;;
+    String CONTENT = &quot;content&quot;;
+    String PROPERTY = &quot;property&quot;;
+
+    static void addCommonModelAttributes(Model model, HttpServletRequest request, String version, Environment environment) {
+<span class="nc" id="L45">        var contextPath = StringUtils.appendIfMissing(request.getContextPath(), &quot;/&quot;) + version;</span>
+<span class="nc" id="L46">        model.addAttribute(&quot;contextPath&quot;, contextPath);</span>
+<span class="nc" id="L47">        model.addAttribute(&quot;demoModeEnabled&quot;, demoModeEnabled(environment));</span>
+<span class="nc" id="L48">        model.addAttribute(&quot;devModeEnabled&quot;, devModeEnabled(environment));</span>
+<span class="nc" id="L49">        model.addAttribute(&quot;prodModeEnabled&quot;, prodModeEnabled(environment));</span>
+<span class="nc" id="L50">        model.addAttribute(WebSecurityConfig.CSRF_PARAM_NAME, request.getAttribute(CsrfToken.class.getName()));</span>
+<span class="nc" id="L51">    }</span>
+
+    static boolean prodModeEnabled(Environment environment) {
+<span class="nc" id="L54">        return profileActive(environment, Initializer.PROFILE_LIVE);</span>
+    }
+
+    static boolean devModeEnabled(Environment environment) {
+<span class="nc" id="L58">        return profileActive(environment, Initializer.PROFILE_DEV);</span>
+    }
+
+    static boolean demoModeEnabled(Environment environment) {
+<span class="nc" id="L62">        return profileActive(environment, Initializer.PROFILE_DEMO);</span>
+    }
+
+    private static boolean profileActive(Environment environment, String profile) {
+<span class="nc" id="L66">        return environment.acceptsProfiles(Profiles.of(profile));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
