@@ -4,8 +4,9 @@ import { UntypedFormBuilder, ReactiveFormsModule, Validators } from '@angular/fo
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { OverviewComponent } from './overview.component';
+import { ReservationExpiredComponent } from '../expired-notification/reservation-expired.component';
 import { ReservationService } from '../../shared/reservation.service';
 import { PurchaseContextService } from '../../shared/purchase-context.service';
 import { AnalyticsService } from '../../shared/analytics.service';
@@ -148,6 +149,7 @@ const mockRouter = {
     const mockFeedbackService = {
         showError: vi.fn(),
         showSuccess: vi.fn(),
+        showInfo: vi.fn(),
     };
 
     const mockFormBuilder = new UntypedFormBuilder();
@@ -530,6 +532,418 @@ const mockRouter = {
             await new Promise(resolve => setTimeout(resolve, 100));
             component.reservationInfo.billingDetails.country = 'US';
             expect(component.taxIdMessageKey).toBe('invoice-fields.tax-id');
+        });
+    });
+
+    describe('italyEInvoicingReference', () => {
+        it('should return reference when italianEInvoicing is present', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
+                referenceType: 'PEC',
+                fiscalCode: 'RSSMRA85T10A562K',
+                addresseeCode: '',
+                pec: 'test@example.it',
+                reference: 'test-reference',
+                splitPayment: false,
+            };
+
+            expect(component.italyEInvoicingReference).toBe('test-reference');
+        });
+
+        it('should return empty string when not enabled', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = false;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
+                referenceType: 'PEC',
+                fiscalCode: 'RSSMRA85T10A562K',
+                addresseeCode: '',
+                pec: 'test@example.it',
+                reference: 'test-reference',
+                splitPayment: false,
+            };
+
+            expect(component.italyEInvoicingReference).toBe('');
+        });
+
+        it('should return empty string when italianEInvoicing is null', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = null;
+
+            expect(component.italyEInvoicingReference).toBe('');
+        });
+    });
+
+    describe('italyEInvoicingSelectedAddresseeKey', () => {
+        it('should return addressee-code when referenceType is ADDRESSEE_CODE', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
+                referenceType: 'ADDRESSEE_CODE',
+                fiscalCode: '',
+                addresseeCode: 'CODE123',
+                pec: '',
+                reference: '',
+                splitPayment: false,
+            };
+
+            expect(component.italyEInvoicingSelectedAddresseeKey).toBe('invoice-fields.addressee-code');
+        });
+
+        it('should return pec when referenceType is not ADDRESSEE_CODE', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
+                referenceType: 'PEC',
+                fiscalCode: '',
+                addresseeCode: '',
+                pec: 'pec@example.it',
+                reference: '',
+                splitPayment: false,
+            };
+
+            expect(component.italyEInvoicingSelectedAddresseeKey).toBe('invoice-fields.pec');
+        });
+
+        it('should return empty string when not enabled', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = false;
+
+            expect(component.italyEInvoicingSelectedAddresseeKey).toBe('');
+        });
+    });
+
+    describe('italyEInvoicingFiscalCode', () => {
+        it('should return fiscalCode when italianEInvoicing is present', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
+                referenceType: 'PEC',
+                fiscalCode: 'RSSMRA85T10A562K',
+                addresseeCode: '',
+                pec: 'test@example.it',
+                reference: '',
+                splitPayment: false,
+            };
+
+            expect(component.italyEInvoicingFiscalCode).toBe('RSSMRA85T10A562K');
+        });
+
+        it('should return empty string when italianEInvoicing is null', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = null;
+
+            expect(component.italyEInvoicingFiscalCode).toBe('');
+        });
+
+        it('should return empty string when not enabled', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = false;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
+                referenceType: 'PEC',
+                fiscalCode: 'RSSMRA85T10A562K',
+                addresseeCode: '',
+                pec: 'test@example.it',
+                reference: '',
+                splitPayment: false,
+            };
+
+            expect(component.italyEInvoicingFiscalCode).toBe('');
+        });
+    });
+
+    describe('forceCheck', () => {
+        it('should call forcePaymentStatusCheck service', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.forceCheck();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(mockReservationService.forcePaymentStatusCheck).toHaveBeenCalledWith('res-123');
+        });
+    });
+
+    describe('removeSubscription', () => {
+        it('should open modal and call removeSubscription service on confirm', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+
+            mockModalService.open.mockReturnValue({
+                result: Promise.resolve(true),
+            });
+
+            component.removeSubscription({ type: 'SUBSCRIPTION' } as any);
+
+            await new Promise(resolve => setTimeout(resolve, 200));
+            expect(mockModalService.open).toHaveBeenCalled();
+            expect(mockReservationService.removeSubscription).toHaveBeenCalledWith('res-123');
+            expect(mockFeedbackService.showInfo).toHaveBeenCalled();
+        });
+    });
+
+    describe('getPaymentMethodMatchingProxy', () => {
+        it('should return matching payment method id', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.activePaymentMethods = {
+                CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as any,
+                PAYPAL: { paymentMethodId: 'PAYPAL', paymentProxy: 'PAYPAL' } as any,
+            };
+
+            const result = component['getPaymentMethodMatchingProxy']('STRIPE');
+            expect(result).toBe('CREDIT_CARD');
+        });
+
+        it('should return null when no matching proxy', async () => {
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.activePaymentMethods = {
+                CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as any,
+            };
+
+            const result = component['getPaymentMethodMatchingProxy']('UNKNOWN');
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('confirm', () => {
+        it('should return early if form is invalid', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.overviewForm = mockFormBuilder.group({
+                termAndConditionsAccepted: false,
+            });
+            component.selectedPaymentProvider = null;
+            component.submitting = false;
+
+            component.confirm();
+
+            expect(component.submitting).toBe(false);
+        });
+
+        it('should return early if no payment provider selected', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.overviewForm = mockFormBuilder.group({
+                termAndConditionsAccepted: true,
+                selectedPaymentMethod: null,
+            });
+            component.selectedPaymentProvider = null;
+            component.submitting = false;
+
+            component.confirm();
+
+            expect(component.submitting).toBe(false);
+        });
+
+        it('should handle successful payment with redirect', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+            component.purchaseContextType = 'event';
+            component.publicIdentifier = 'test-event';
+            component.overviewForm = mockFormBuilder.group({
+                termAndConditionsAccepted: true,
+                privacyPolicyAccepted: true,
+                selectedPaymentMethod: 'CREDIT_CARD',
+                paymentProxy: 'STRIPE',
+                gatewayToken: null,
+                captcha: null,
+            });
+            component.reservationInfo = mockReservationInfo;
+            component.purchaseContext = mockPurchaseContext;
+
+            const mockPaymentProvider = {
+                statusNotifications: vi.fn(() => of(null)),
+                pay: vi.fn(() => of({ success: true, gatewayToken: 'token-123' })),
+            } as any;
+
+            component.selectedPaymentProvider = mockPaymentProvider;
+
+            mockReservationService.confirmOverview.mockReturnValue(of({
+                success: true,
+                value: { redirect: true, redirectUrl: 'https://payment.example.com' },
+            }));
+
+            component.confirm();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(mockPaymentProvider.pay).toHaveBeenCalled();
+            expect(mockReservationService.confirmOverview).toHaveBeenCalled();
+        });
+
+        it('should handle successful payment without redirect', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+            component.purchaseContextType = 'event';
+            component.publicIdentifier = 'test-event';
+            component.overviewForm = mockFormBuilder.group({
+                termAndConditionsAccepted: true,
+                privacyPolicyAccepted: true,
+                selectedPaymentMethod: 'CREDIT_CARD',
+                paymentProxy: 'STRIPE',
+                gatewayToken: null,
+                captcha: null,
+            });
+            component.reservationInfo = mockReservationInfo;
+            component.purchaseContext = mockPurchaseContext;
+            component.route.snapshot.queryParams = {};
+            component.route.snapshot.params = {};
+
+            const mockPaymentProvider = {
+                statusNotifications: vi.fn(() => of(null)),
+                pay: vi.fn(() => of({ success: true, gatewayToken: 'token-123' })),
+            } as any;
+
+            component.selectedPaymentProvider = mockPaymentProvider;
+
+            mockReservationService.confirmOverview.mockReturnValue(of({
+                success: true,
+                value: { redirect: false, redirectUrl: null },
+            }));
+
+            component.confirm();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(mockRouter.navigate).toHaveBeenCalledWith(
+                ['event', 'test-event', 'reservation', 'res-123', 'success'],
+                expect.any(Object),
+            );
+        });
+
+        it('should handle confirmOverview failure with validation errors', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+            component.overviewForm = mockFormBuilder.group({
+                termAndConditionsAccepted: true,
+                privacyPolicyAccepted: true,
+                selectedPaymentMethod: 'CREDIT_CARD',
+                paymentProxy: 'STRIPE',
+                gatewayToken: null,
+                captcha: null,
+            });
+            component.reservationInfo = mockReservationInfo;
+            component.purchaseContext = mockPurchaseContext;
+
+            const mockPaymentProvider = {
+                statusNotifications: vi.fn(() => of(null)),
+                pay: vi.fn(() => of({ success: true, gatewayToken: 'token-123' })),
+            } as any;
+
+            component.selectedPaymentProvider = mockPaymentProvider;
+
+            mockReservationService.confirmOverview.mockReturnValue(of({
+                success: false,
+                validationErrors: [{ fieldName: 'email', code: 'error.invalid', arguments: {} }],
+            }));
+
+            component.confirm();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(component.submitting).toBe(false);
+            expect(component.globalErrors).toBeDefined();
+        });
+
+        it('should handle payment error from pay()', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+            component.overviewForm = mockFormBuilder.group({
+                termAndConditionsAccepted: true,
+                privacyPolicyAccepted: true,
+                selectedPaymentMethod: 'CREDIT_CARD',
+                paymentProxy: 'STRIPE',
+                gatewayToken: null,
+                captcha: null,
+            });
+            component.reservationInfo = mockReservationInfo;
+            component.purchaseContext = mockPurchaseContext;
+
+            const mockPaymentProvider = {
+                statusNotifications: vi.fn(() => of(null)),
+                pay: vi.fn(() => throwError(() => ({ message: 'Payment failed' }))),
+            } as any;
+
+            component.selectedPaymentProvider = mockPaymentProvider;
+
+            component.confirm();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(component.submitting).toBe(false);
+            expect(component.globalErrors).toBeDefined();
+        });
+    });
+
+    describe('handleExpired', () => {
+        it('should open modal and navigate when expired is true', async () => {
+            component.purchaseContextType = 'event';
+            component.publicIdentifier = 'test-event';
+
+            mockModalService.open.mockClear();
+            mockModalService.open.mockReturnValue({
+                result: Promise.resolve(),
+            });
+
+            component.handleExpired(true);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            expect(mockModalService.open).toHaveBeenCalledWith(
+                ReservationExpiredComponent,
+                expect.objectContaining({ centered: true, backdrop: 'static' }),
+            );
+        });
+
+        it('should not open modal if already expired', async () => {
+            component.expired = true;
+            mockModalService.open.mockClear();
+
+            component.handleExpired(true);
+
+            expect(mockModalService.open).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('forceCheck error handling', () => {
+        it('should handle forceCheck error', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+            component.reservationInfo = mockReservationInfo;
+            component.purchaseContext = mockPurchaseContext;
+
+            mockReservationService.forcePaymentStatusCheck.mockReturnValue(throwError(() => ({ message: 'Check failed' })));
+
+            component.forceCheck();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(component.forceCheckInProgress).toBe(true);
         });
     });
 });
