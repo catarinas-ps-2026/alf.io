@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">HttpUtils.java</span></div><h1>HttpUtils.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+
+public final class HttpUtils {
+    private HttpUtils() {
+        // no-op
+    }
+
+    public static final String CONTENT_TYPE = &quot;Content-Type&quot;;
+    public static final String APPLICATION_JSON = &quot;application/json&quot;;
+    public static final String APPLICATION_JSON_UTF8 = &quot;application/json;charset=UTF-8&quot;;
+    public static final String APPLICATION_FORM_URLENCODED = &quot;application/x-www-form-urlencoded&quot;;
+    public static final String MULTIPART_FORM_DATA = &quot;multipart/form-data&quot;;
+    public static final String AUTHORIZATION = &quot;Authorization&quot;;
+
+    public static boolean callSuccessful(HttpResponse&lt;?&gt; response) {
+<span class="fc" id="L44">        return statusCodeIsSuccessful(response.statusCode());</span>
+    }
+
+    public static boolean statusCodeIsSuccessful(int statusCode) {
+<span class="fc bfc" id="L48" title="All 4 branches covered.">        return statusCode &gt;= 200 &amp;&amp; statusCode &lt; 300;</span>
+    }
+
+    public static HttpResponse&lt;String&gt; postForm(HttpClient httpClient, String url, Map&lt;String, String&gt; params) throws IOException, InterruptedException {
+<span class="nc" id="L52">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L53">            .uri(URI.create(url))</span>
+<span class="nc" id="L54">            .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L55">            .POST(HttpUtils.ofFormUrlEncodedBody(params))</span>
+<span class="nc" id="L56">            .build();</span>
+<span class="nc" id="L57">        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
+    }
+
+    public static String basicAuth(String username, String password) {
+<span class="fc" id="L61">        return &quot;Basic &quot; + Base64.getEncoder().encodeToString((username + &quot;:&quot; + password).getBytes(StandardCharsets.UTF_8));</span>
+    }
+
+    public static &lt;K, V&gt; HttpRequest.BodyPublisher ofFormUrlEncodedBody(Map&lt;K, V&gt; data) {
+<span class="fc" id="L65">        Objects.requireNonNull(data);</span>
+<span class="fc" id="L66">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L67">        data.forEach((k,v) -&gt; {</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L69">                sb.append(&quot;&amp;&quot;);</span>
+            }
+<span class="fc" id="L71">            sb.append(URLEncoder.encode(k.toString(), StandardCharsets.UTF_8)).append(&quot;=&quot;).append(URLEncoder.encode(v.toString(), StandardCharsets.UTF_8));</span>
+<span class="fc" id="L72">        });</span>
+<span class="fc" id="L73">        return HttpRequest.BodyPublishers.ofString(sb.toString());</span>
+    }
+
+    // https://stackoverflow.com/a/54675316
+    public static class MultiPartBodyPublisher {
+        private final List&lt;PartsSpecification&gt; partsSpecificationList = new ArrayList&lt;&gt;();
+        private final String boundary = UUID.randomUUID().toString();
+
+        public HttpRequest.BodyPublisher build() {
+            if (partsSpecificationList.size() == 0) {
+                throw new IllegalStateException(&quot;Must have at least one part to build multipart message.&quot;);
+            }
+            addFinalBoundaryPart();
+            return HttpRequest.BodyPublishers.ofByteArrays(PartsIterator::new);
+        }
+
+        public String getBoundary() {
+            return boundary;
+        }
+
+        public MultiPartBodyPublisher addPart(String name, String value) {
+            PartsSpecification newPart = new PartsSpecification();
+            newPart.type = PartsSpecification.TYPE.STRING;
+            newPart.name = name;
+            newPart.value = value;
+            partsSpecificationList.add(newPart);
+            return this;
+        }
+
+        public MultiPartBodyPublisher addPart(String name, Supplier&lt;InputStream&gt; value, String filename, String contentType) {
+            PartsSpecification newPart = new PartsSpecification();
+            newPart.type = PartsSpecification.TYPE.STREAM;
+            newPart.name = name;
+            newPart.stream = value;
+            newPart.filename = filename;
+            newPart.contentType = contentType;
+            partsSpecificationList.add(newPart);
+            return this;
+        }
+
+        private void addFinalBoundaryPart() {
+            PartsSpecification newPart = new PartsSpecification();
+            newPart.type = PartsSpecification.TYPE.FINAL_BOUNDARY;
+            newPart.value = &quot;--&quot; + boundary + &quot;--&quot;;
+            partsSpecificationList.add(newPart);
+        }
+
+        static class PartsSpecification {
+
+            public enum TYPE {
+                STRING, STREAM, FINAL_BOUNDARY
+            }
+
+            PartsSpecification.TYPE type;
+            String name;
+            String value;
+            Supplier&lt;InputStream&gt; stream;
+            String filename;
+            String contentType;
+        }
+
+        class PartsIterator implements Iterator&lt;byte[]&gt; {
+
+            private Iterator&lt;PartsSpecification&gt; iter;
+            private InputStream currentFileInput;
+
+            private boolean done;
+            private byte[] next;
+
+            PartsIterator() {
+                iter = partsSpecificationList.iterator();
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (done) {
+                    return false;
+                }
+                if (next != null) {
+                    return true;
+                }
+                try {
+                    next = computeNext();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+                if (next == null) {
+                    done = true;
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public byte[] next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                byte[] res = next;
+                next = null;
+                return res;
+            }
+
+            private byte[] computeNext() throws IOException {
+                if (currentFileInput == null) {
+                    if (!iter.hasNext()) return null;
+                    PartsSpecification nextPart = iter.next();
+                    if (PartsSpecification.TYPE.STRING.equals(nextPart.type)) {
+                        String part =
+                            &quot;--&quot; + boundary + &quot;\r\n&quot; +
+                                &quot;Content-Disposition: form-data; name=&quot; + nextPart.name + &quot;\r\n&quot; +
+                                &quot;Content-Type: text/plain; charset=UTF-8\r\n\r\n&quot; +
+                                nextPart.value + &quot;\r\n&quot;;
+                        return part.getBytes(StandardCharsets.UTF_8);
+                    }
+                    if (PartsSpecification.TYPE.FINAL_BOUNDARY.equals(nextPart.type)) {
+                        return nextPart.value.getBytes(StandardCharsets.UTF_8);
+                    }
+                    String filename = nextPart.filename;
+                    String contentType = nextPart.contentType;
+
+                    if (contentType == null) {
+                        contentType = &quot;application/octet-stream&quot;;
+                    }
+                    currentFileInput = nextPart.stream.get();
+
+                    String partHeader =
+                        &quot;--&quot; + boundary + &quot;\r\n&quot; +
+                            &quot;Content-Disposition: form-data; name=&quot; + nextPart.name + &quot;; filename=&quot; + filename + &quot;\r\n&quot; +
+                            &quot;Content-Type: &quot; + contentType + &quot;\r\n\r\n&quot;;
+                    return partHeader.getBytes(StandardCharsets.UTF_8);
+                } else {
+                    byte[] buf = new byte[8192];
+                    int r = currentFileInput.read(buf);
+                    if (r &gt; 0) {
+                        byte[] actualBytes = new byte[r];
+                        System.arraycopy(buf, 0, actualBytes, 0, r);
+                        return actualBytes;
+                    } else {
+                        currentFileInput.close();
+                        currentFileInput = null;
+                        return &quot;\r\n&quot;.getBytes(StandardCharsets.UTF_8);
+                    }
+                }
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
