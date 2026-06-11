@@ -58,6 +58,10 @@ Módulo que maneja los proxies de pago en el flujo de reservas. Cada componente 
 - matchProxyAndMethod retorna true para ON_SITE + ON_SITE
 - handleRecaptchaResponse establece valor del formulario
 
+### payment-provider (12 tests)
+- getPaymentProvider retorna el provider correcto para cada proxy
+- getPaymentProvider retorna null para proxy desconocido
+
 
 |Componente | Tests | Estado |
 |-----------|-------|--------|
@@ -65,7 +69,8 @@ Módulo que maneja los proxies de pago en el flujo de reservas. Cada componente 
 |onsite-payment-proxy.component | 8 | Completo |
 |offline-payment-proxy.component | 12 | Completo |
 |stripe-payment-proxy.component | 10 | Completo |
-|total | 44 | Completo |
+|payment-provider.component | 12 | Completo |
+|total | 56 | Completo |
 
 ## Estructura de Archivos
 
@@ -73,6 +78,7 @@ Módulo que maneja los proxies de pago en el flujo de reservas. Cada componente 
 src/app/payment/
 ├── README.md                          # Este archivo
 ├── test-data.ts                       # Datos mock compartidos
+│── payment-provider.component.test.ts
 ├── stripe-payment-proxy/
 │   └── stripe-payment-proxy.component.test.ts
 ├── offline-payment-proxy/
