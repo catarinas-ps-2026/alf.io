@@ -52,23 +52,29 @@ Booking → Overview → [ProcessingPayment / OfflinePayment / CustomOfflinePaym
 |------------|---------|-------|
 | **summary-table** | summary-table.component.ts | Componente de presentación puro, getters simples |
 
-## Cobertura de Tests (9 componentes principales + 3 secundarios)
+## Cobertura de Tests (17 componentes)
 
 | Componente | Tests | Estado |
 |------------|-------|--------|
-|booking.component | 17 | Completo |
+|booking.component | 33 | Completo | 
+|cancel-reservation.component | 5 | Complejto|
 |custom-offline-payment.component | 11 | Completo |
 |deferred-offline-payment.component | 3 | Completo |
+|download-ticket.component | 13 | Completo |
 |error.component | 5 | Completo |
+|expired-reservation.component | 5 | Completo |
 |invoice-form.component | 28 | Completo |
+|modal-remove-subscription.component | 5 | Completo |
 |offline-payment.component | 9 | Completo |
-|overview.component | 31 | Completo |
+|overview.component | 53 | Completo |
 |payment-method-selector.component | 14 | Completo |
-|processing-payment.component | 6 | Completo |
-|success.component | 32 | Completo |
+|processing-payment.component | 14 | Completo |
+|release-ticket.component | 8 | Completo |
 |success-subscription.component | 18 | Completo |
+|success.component | 32 | Completo |
 |ticket-form.component | 9 | Completo |
-|total | 183 | Completo |
+
+|total | 262 | Completo |
 
 ## Estructura de Archivos
 
