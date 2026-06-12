@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SaleableAdditionalService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.decorator</a> &gt; <span class="el_source">SaleableAdditionalService.java</span></div><h1>SaleableAdditionalService.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.decorator;
+
+import alfio.model.AdditionalService;
+import alfio.model.Event;
+import alfio.model.PriceContainer;
+import alfio.model.PromoCodeDiscount;
+import alfio.util.ClockProvider;
+import lombok.experimental.Delegate;
+
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.util.Optional;
+
+import static alfio.util.MonetaryUtil.formatPercentage;
+
+public class SaleableAdditionalService implements PriceContainer {
+    private final Event event;
+    @Delegate(excludes = {Exclusions.class, PriceContainer.class})
+    private final AdditionalService additionalService;
+    private final PromoCodeDiscount promoCodeDiscount;
+    private final Clock clock;
+
+    public SaleableAdditionalService(Event event,
+                                     AdditionalService additionalService,
+<span class="fc" id="L42">                                     PromoCodeDiscount promoCodeDiscount) {</span>
+<span class="fc" id="L43">        this.event = event;</span>
+<span class="fc" id="L44">        this.additionalService = additionalService;</span>
+<span class="fc" id="L45">        this.promoCodeDiscount = promoCodeDiscount;</span>
+<span class="fc" id="L46">        this.clock = ClockProvider.clock().withZone(event.getZoneId());</span>
+<span class="fc" id="L47">    }</span>
+
+    public boolean isExpired() {
+<span class="fc" id="L50">        return utcExpiration().isBefore(ZonedDateTime.now(clock));</span>
+    }
+
+    public boolean getExpired() {
+<span class="nc" id="L54">        return isExpired();</span>
+    }
+
+    public boolean getSaleInFuture() {
+<span class="fc" id="L58">        return utcInception().isAfter(ZonedDateTime.now(clock));</span>
+    }
+
+    public boolean getFree() {
+<span class="pc bpc" id="L62" title="2 of 4 branches missed.">        return fixPrice() &amp;&amp; getFinalPrice().compareTo(BigDecimal.ZERO) == 0;</span>
+    }
+
+    public ZonedDateTime getZonedInception() {
+<span class="fc" id="L66">        return getInception(event.getZoneId());</span>
+    }
+
+    public ZonedDateTime getZonedExpiration() {
+<span class="fc" id="L70">        return getExpiration(event.getZoneId());</span>
+    }
+
+    @Override
+    public int getSrcPriceCts() {
+<span class="fc" id="L75">        return Optional.ofNullable(additionalService.srcPriceCts()).orElse(0);</span>
+    }
+
+    @Override
+    public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
+<span class="fc" id="L80">        return Optional.ofNullable(promoCodeDiscount)</span>
+<span class="pc bpc" id="L81" title="1 of 4 branches missed.">            .filter(x -&gt; x.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT &amp;&amp; type() != AdditionalService.AdditionalServiceType.DONATION);</span>
+    }
+
+    @Override
+    public String getCurrencyCode() {
+<span class="fc" id="L86">        return event.getCurrency();</span>
+    }
+
+    @Override
+    public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if(getVatStatus() != VatStatus.NONE) {</span>
+<span class="fc" id="L92">            return Optional.ofNullable(event.getVat()); //FIXME implement VAT override</span>
+        }
+<span class="nc" id="L94">        return Optional.of(BigDecimal.ZERO);</span>
+    }
+
+    @Override
+    public VatStatus getVatStatus() {
+<span class="fc" id="L99">        return AdditionalService.getVatStatus(vatType(), event.getVatStatus());</span>
+    }
+
+    public String getFormattedFinalPrice() {
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(supplementPolicy())) {</span>
+<span class="nc" id="L104">            return formatPercentage(srcPriceCts());</span>
+        }
+<span class="fc" id="L106">        return SaleableTicketCategory.getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()).toPlainString();</span>
+    }
+
+    public boolean getSupportsDiscount() {
+<span class="pc bpc" id="L110" title="2 of 6 branches missed.">        return type() != AdditionalService.AdditionalServiceType.DONATION &amp;&amp; fixPrice()</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">            &amp;&amp; promoCodeDiscount != null &amp;&amp; promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT;</span>
+    }
+
+    public String getDiscountedPrice() {
+<span class="fc" id="L115">        return getFinalPrice().toPlainString();</span>
+    }
+
+    public boolean getVatIncluded() {
+<span class="pc bpc" id="L119" title="2 of 3 branches missed.">        return switch (vatType()) {</span>
+<span class="fc" id="L120">            case INHERITED -&gt; event.isVatIncluded();</span>
+<span class="nc" id="L121">            case CUSTOM_INCLUDED -&gt; true;</span>
+<span class="nc" id="L122">            default -&gt; false;</span>
+        };
+    }
+
+    public BigDecimal getVatPercentage() {
+<span class="fc" id="L127">        AdditionalService.VatType vatType = vatType();</span>
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">        if(vatType == AdditionalService.VatType.INHERITED) {</span>
+<span class="fc" id="L129">            return event.getVat();</span>
+        }
+<span class="nc" id="L131">        return Optional.ofNullable(additionalService.vat()).orElse(BigDecimal.ZERO);</span>
+    }
+
+    public boolean getVatApplies() {
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        return vatType() != AdditionalService.VatType.NONE;</span>
+    }
+
+
+    public String getCurrency() {
+<span class="nc" id="L140">        return event.getCurrency();</span>
+    }
+
+    public boolean isSaleable() {
+<span class="nc bnc" id="L144" title="All 4 branches missed.">        return !isExpired() &amp;&amp; additionalService.availableItems() &gt; 0;</span>
+    }
+
+    private interface Exclusions {
+        BigDecimal getVat();
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
