@@ -243,6 +243,9 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-05-001 | Auto-check-in deshabilitado en evento                        | El botón no aparece                                                      | f-  |
 | CPF-05-002 | Con pago pendiente                                           | El botón se muestra inactivo o bloqueado                                 | f-  |
 | CPF-05-003 | Fuera de la ventana de tiempo (muy temprano/tarde)           | Se muestra un mensaje informando el horario habilitado                   | f-  |
+| CPF-05-004 | Ticket ya ingresado                                          | El botón se oculta o cambia a estado "Ingresado"                         | f-  |
+| CPF-05-005 | Condiciones válidas (Habilitado, pagado, a tiempo, sin usar) | Botón visible y funcional; al hacer clic cambia el estado a "Checked-In" | f+  |
+
 
 ## Matriz de Trazabilidad
 
