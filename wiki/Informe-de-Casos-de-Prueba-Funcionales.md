@@ -1473,6 +1473,84 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+**CPF-07-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-002</td>
+      <td>Verificar que se restrinja la impresión de badges si la reserva tiene estado pendiente de pago.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra una advertencia y no expone el PDF de la acreditación para imprimir.</td>
+      <td colspan="3">Opción de descarga bloqueada con mensaje de restricción de pago.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/badge-download-pending-payment.png" alt="badge-download-pending-payment"><br>
+        La interfaz de control de acceso deshabilita la generación de credenciales por pago no liquidado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-003</td>
+      <td>Verificar la descarga anticipada de la credencial en un evento que no requiere check-in físico previo para emitirla.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El botón de descarga está activo y el archivo PDF se genera correctamente con la información del asistente.</td>
+      <td colspan="3">Descarga de PDF habilitada de forma anticipada sin marcar ingreso.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/badge-download-before-checkin.png" alt="badge-download-before-checkin"><br>
+        Descarga exitosa de la credencial en PDF previa a la realización del ingreso físico.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
