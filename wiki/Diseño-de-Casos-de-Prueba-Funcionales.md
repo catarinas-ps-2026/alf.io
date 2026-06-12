@@ -337,6 +337,43 @@ stateDiagram-v2
 | :--- | :--- | :--- | :--- |
 | CPF-07-001 | Método: ON_SITE, Términos: Aceptados | Redirige a "success", ticket visible con opciones Ver, Descargar, Email, Actualizar. Muestra confirmación, ticket con nombre del asistente, opción de reenviar email | f+ |
 
+#### Confirmación Manual de Pagos (Administrador)
+| ID | CPF-0008 |
+| :--- | :--- |
+| **Funcionalidad** | Confirmación manual de pagos pendientes por parte del administrador |
+| **Descripción** | Valida que el administrador pueda confirmar pagos OFFLINE pendientes mediante un modal que solicita fecha/hora de recepción y notas opcionales, así como cancelar la operación manteniendo el estado pendiente. |
+| **Requisito Asociado** | RF-008 (Confirmación Manual de Pagos) |
+| **Precondiciones** | Existe al menos una reserva con pago OFFLINE en estado PENDING. Usuario autenticado como administrador. |
+| **Datos de Entrada** | Fecha/hora de recepción (pre-rellenada), Notas (opcional). |
+| **Pasos de Ejecución** | 1. Ingresar a "Pending Payments" del evento. 2. Localizar la reserva pendiente. 3. Hacer clic en "confirm". 4. Completar o cancelar el modal de confirmación. |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Transición de Estados. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Cod. | Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- | :--- |
+| FN8-PE-001 | Fecha/hora de recepción | Fecha válida (pre-rellenada por el sistema) | - |
+| FN8-PE-002 | Notas | Con contenido (texto libre) | - |
+| FN8-PE-003 | Notas | Vacío (campo opcional) | - |
+
+**Transición de Estados**
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: Reserva con pago OFFLINE
+    PENDING --> ModalAbierto: Clic en "confirm"
+    ModalAbierto --> COMPLETED: Confirmar con fecha/notas
+    ModalAbierto --> PENDING: Cancelar modal
+```
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-08-001 | Confirmar pago con fecha pre-rellenada | Pago cambia a COMPLETED, reserva desaparece de Pending Payments, contador disminuye | f+ |
+| CPF-08-002 | Clic en "Cancel" del modal | Modal se cierra, pago permanece PENDING, reserva permanece en lista | f+ |
+
 ## Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
@@ -350,6 +387,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-005:** Selección de método de pago | CPF-0005 (001-006) |
 | **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-002) |
 | **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-001) |
+| **RF-008:** Confirmación manual de pagos | CPF-0008 (001-002) |
 
 ## 9. Métodos y Herramientas
 
