@@ -42,6 +42,7 @@
               nodejs
               postgresql
               nixd
+              mermaid-cli
               plantuml
             ];
 

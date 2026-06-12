@@ -30,7 +30,7 @@ describe('dispatchFeedback', () => {
 
     it('dispatches event with bubbles=true', () => {
         const src = createMockLitElement();
-        const payload: AlfioFeedbackEvent = { type: 'info', message: 'test' };
+        const payload: AlfioFeedbackEvent = { type: 'neutral', message: 'test' };
 
         let receivedEvent: CustomEvent<AlfioFeedbackEvent> | null = null;
         src.addEventListener('alfio-feedback', ((e: CustomEvent<AlfioFeedbackEvent>) => {
