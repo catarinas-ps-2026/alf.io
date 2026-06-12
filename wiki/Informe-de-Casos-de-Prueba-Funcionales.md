@@ -1729,7 +1729,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-#### Confirmación Manual de Pagos (Administrador)
+#### Gestión de Pagos Pendientes (Administrador)
 
 **CPF-08-001**
 <table>
@@ -1810,6 +1810,86 @@ Este proceso es controlado mediante Github actions, que:
         Modal de confirmación abierto para la reserva 34B8431D.<br><br>
         <img src="images/functional-tests/run/manual-confirm-cancel-still-pending.png" alt="manual-confirm-cancel-still-pending"><br>
         Después de cancelar, la reserva 34B8431D permanece en la lista de pagos pendientes.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-08-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-003</td>
+      <td>Verificar que al hacer clic en "delete" de una reserva pendiente, la reserva desaparezca de Pending Payments y el cupo se libere.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Reserva desaparece de Pending Payments, contador disminuye, cupo se libera.</td>
+      <td colspan="3">La reserva fue eliminada de la lista de pagos pendientes, el contador disminuyó y el cupo del evento se liberó.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list"><br>
+        Lista de pagos pendientes antes de la eliminación.<br><br>
+        <img src="images/functional-tests/run/manual-confirm-after-confirm.png" alt="manual-confirm-after-confirm"><br>
+        Lista de pagos pendientes después de la eliminación, la reserva fue removida.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-08-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-004</td>
+      <td>Verificar que la reserva eliminada aparezca en estado "Cancelled" en la lista de reservas del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Reserva aparece en estado "Cancelled" en la lista de reservas del evento.</td>
+      <td colspan="3">La reserva eliminada aparece en la lista de reservas del evento con estado "Cancelled", confirmando que el cupo fue liberado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-cancel-still-pending.png" alt="manual-confirm-cancel-still-pending"><br>
+        En la lista de reservas del evento, la reserva eliminada aparece en estado "Cancelled".
       </td>
     </tr>
   </tbody>
