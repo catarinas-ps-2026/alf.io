@@ -41,7 +41,6 @@ La estrategia de integración adoptada es **Big Bang incremental**: primero se i
 - **Estrategia Big Bang incremental:** Estrategia de integración donde los módulos se van conectando en grupos lógicos (de infraestructura a negocio) antes de integrar el sistema completo.
 - **Smoke Test:** Conjunto mínimo de pruebas de integración que verifica que el sistema arranca y sus flujos principales funcionan, sin entrar en todos los casos de borde.
 - **API Contract:** Acuerdo implícito sobre la forma (endpoints, schemas JSON, códigos HTTP) de la API REST. Las pruebas de integración validan su cumplimiento.
-- **End-to-End parcial (E2E parcial):** Flujo que atraviesa varias capas reales (Controller → Manager → Repository → DB) sin involucrar la interfaz de usuario.
 
 ---
 
@@ -56,7 +55,7 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - **Técnica:** `@SpringBootTest` con Testcontainers (PostgreSQL).
 - **Foco:** Migraciones de esquema, configuración de datasource, inicialización de beans críticos.
 
-#### Subproceso 2 – Integración de Capas de Negocio (Backend E2E parcial)
+#### Subproceso 2 – Integración de Capas de Negocio
 - **Objetivo:** Validar que los flujos de negocio completos (Controller → Manager → Repository → DB) funcionan correctamente de extremo a extremo en el backend.
 - **Técnica:** Tests `@SpringBootTest` con `MockMvc` o `TestRestTemplate` contra un PostgreSQL real en contenedor.
 - **Foco:**
@@ -93,7 +92,7 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - Flujos completos Controller → Manager → Repository → DB para los módulos críticos.
 - Contrato de la API REST: códigos HTTP, schemas JSON, manejo de errores.
 - Integración del sistema de autenticación (SSO/OIDC) con el contexto de Spring Security.
-- Envío de correos transaccionales (con servidor simulado).
+- Envío de correos transaccionales.
 - Comunicación entre el frontend Angular y los endpoints del backend.
 
 #### Elementos Excluidos
@@ -101,7 +100,7 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - **Pruebas E2E con navegador (Selenium/Playwright):** Quedan fuera del alcance de este plan.
 - **Transacciones reales con pasarelas de pago (Stripe, PayPal):** Solo se usan ambientes sandbox o mocks de alto nivel.
 - **Pruebas de seguridad avanzadas (Penetration Testing):** No se auditan vulnerabilidades de red ni inyección SQL.
-- **Pruebas de aceptación del usuario (UAT):** Son responsabilidad del docente y quedan para la validación final académica.
+- **Pruebas de aceptación del usuario (UAT):** Quedan para la validación final académica.
 
 ### Suposiciones y Restricciones
 
@@ -109,10 +108,10 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - Existe un entorno con Docker disponible para levantar contenedores de Testcontainers.
 - Las pruebas unitarias ya están aprobadas y con cobertura ≥ 85% antes de iniciar la integración.
 - El esquema de base de datos se crea exclusivamente vía Flyway (sin scripts manuales).
-- El servidor SMTP de pruebas puede reemplazarse por un servicio simulado (MailHog o modo log).
+- Se tiene un servidor SMTP disponible para su uso en el entorno de pruebas.
 
 **Restricciones**
-- Cada suite de integración debe completarse en menos de 15 minutos en el pipeline de CI.
+- Las suites de integración deben completarse en menos de 15 minutos en el pipeline de CI.
 - Las pruebas de integración deben ser reproducibles: no deben depender de datos preexistentes en la base de datos.
 - Cada test debe limpiar su estado al finalizar (uso de `@Transactional` con rollback o truncado de tablas).
 
@@ -137,10 +136,8 @@ Se mantiene el mismo esquema de comunicación definido en el [[Plan-de-Pruebas-U
 | Punto de Comunicación | Propósito | Frecuencia | Responsable |
 | :--- | :--- | :--- | :--- |
 | Sprint Planning | Planificar pruebas de integración del sprint | Inicio de sprint | Tech Lead |
-| Daily Standup | Sincronización de avances y bloqueos | Diario | Desarrollador |
 | Sprint Review | Demostrar pruebas y resultados al docente | Fin de sprint | Tech Lead |
 | Reporte de defectos | Reportar fallos de integración encontrados | Al encontrarse | Desarrollador |
-| Reunión con docente | Validar avances y recibir feedback | 2 veces por semana | Tech Lead |
 
 ### Participantes del Equipo
 
@@ -215,7 +212,7 @@ public abstract class BaseIntegrationTest {
 
 ### Estrategia de Integración
 
-Se adopta la estrategia **Big Bang incremental por módulos**, dividida en tres fases:
+Se adopta la estrategia incremental por módulos, dividida en tres fases:
 
 | Fase | Descripción | Módulos Involucrados |
 | :--- | :--- | :--- |
@@ -228,7 +225,6 @@ Las fases son **secuenciales**: la Fase 2 solo comienza cuando la Fase 1 pasa al
 ### Entregables de Prueba
 
 - **Reporte de Ejecución de Pruebas de Integración:** Resultados generados por JUnit / GitHub Actions con detalle por test y suite.
-- **Reporte de Cobertura de Integración:** Evidencia de la cobertura alcanzada en los flujos integrados (JaCoCo).
 - **Matriz de Trazabilidad de Integración:** Documento que vincula cada prueba de integración con el flujo de negocio o requisito funcional que valida.
 - **Registro de Defectos de Integración:** Lista de bugs encontrados durante la integración, con severidad, estado y responsable de corrección.
 
@@ -243,7 +239,7 @@ Las fases son **secuenciales**: la Fase 2 solo comienza cuando la Fase 1 pasa al
 
 El proceso de pruebas de integración se dará por concluido cuando:
 
-1. **Todas las fases aprobadas:** Las tres fases de la estrategia Big Bang incremental pasan al 100% en el pipeline de CI.
+1. **Todas las fases aprobadas:** Las tres fases de la estrategia incremental pasan al 100% en el pipeline de CI.
 2. **Sin defectos críticos abiertos:** No existen bugs de integración con severidad ≥ 12 (según la fórmula Probabilidad × Impacto) sin resolver.
 3. **Entregables completos:** El reporte de ejecución, el reporte de cobertura y la matriz de trazabilidad están publicados en la Wiki.
 4. **Aprobación del Tech Lead:** Cada suite debe estar revisada y aprobada mediante Pull Request por Christian Mestas.
@@ -253,11 +249,9 @@ El proceso de pruebas de integración se dará por concluido cuando:
 
 | Métrica | Descripción | Objetivo |
 | :--- | :--- | :--- |
-| Cobertura de flujos de negocio | % de flujos de negocio críticos cubiertos por al menos una prueba de integración | ≥ 90% |
 | Tasa de éxito de pruebas | % de pruebas que pasan en el pipeline de CI | 100% en rama `main` |
 | Tiempo de ejecución de suite | Tiempo total de ejecución de todas las pruebas de integración en CI | ≤ 15 min |
-| Defectos de integración encontrados | Número de bugs identificados por fase | Monitoreo continuo |
-| Flaky tests | Número de pruebas con resultados inconsistentes | 0 tolerados en `main` |
+| Flaky tests | Número de pruebas con resultados inconsistentes (fallan entre ejecuciones) | 0 en `main` |
 
 ### Requisitos del Entorno de Pruebas
 
