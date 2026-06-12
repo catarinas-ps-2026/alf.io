@@ -1403,6 +1403,90 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+#### Procesamiento de Pago ON_SITE (Efectivo)
+
+**CPF-07-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-001</td>
+      <td>Verificar que al seleccionar ON_SITE y aceptar términos, se redirija a la página de éxito con ticket disponible.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Redirige a "success", ticket visible con opciones Ver, Descargar, Email, Actualizar.</td>
+      <td colspan="3">Se redirige correctamente a la página de éxito con el ticket generado y las opciones de Ver, Descargar, Email y Actualizar disponibles.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-confirmation.png" alt="onsite-success-confirmation"><br>
+        Se muestra la página de éxito con el mensaje de confirmación y el ticket.<br><br>
+        <img src="images/functional-tests/run/onsite-success-ticket-options.png" alt="onsite-success-ticket-options"><br>
+        Se muestran las opciones del ticket: Ver, Descargar, Email, Actualizar.<br><br>
+        <img src="images/functional-tests/run/onsite-admin-reservation-list.png" alt="onsite-admin-reservation-list"><br>
+        En el panel de administración, la reserva aparece como ON_SITE con estado Completed.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-002</td>
+      <td>Verificar que la página de éxito muestre la confirmación, el ticket con el nombre del asistente y la opción de reenviar email.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Muestra: confirmación, ticket con nombre del asistente, opción de reenviar email.</td>
+      <td colspan="3">La página muestra correctamente el mensaje de confirmación, el ticket con el nombre "Laura Mendez", y la opción de reenviar email de confirmación.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-full.png" alt="onsite-success-full"><br>
+        Vista completa de la página de éxito con confirmación, ticket del asistente "Laura Mendez", opciones de gestión y botón de reenviar email.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
