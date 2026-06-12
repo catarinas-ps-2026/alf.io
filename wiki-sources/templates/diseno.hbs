@@ -70,7 +70,15 @@
 {{#each conditions}}
 | {{{name}}} | {{#each values}}{{{this}}}{{#unless @last}} | {{/unless}}{{/each}} |
 {{/each}}
+{{#if outputs}}
+{{#each outputs}}
+{{#if @last}}| **{{{name}}}** | {{#each values}}**{{{this}}}**{{#unless @last}} | {{/unless}}{{/each}} |
+{{else}}| {{{name}}} | {{#each values}}{{{this}}}{{#unless @last}} | {{/unless}}{{/each}} |
+{{/if}}
+{{/each}}
+{{else}}
 | **{{action_name}}** | {{#each actions}}**{{{this}}}**{{#unless @last}} | {{/unless}}{{/each}} |
+{{/if}}
 {{/if}}
 {{/each}}
 {{/if}}
@@ -79,7 +87,11 @@
 **Transición de Estados**
 
 {{#each cases.[0].analysis.state_transitions}}
+{{#if raw}}
+{{{raw}}}
+{{else}}
 ![{{alt}}]({{image}})
+{{/if}}
 {{/each}}
 {{/if}}
 
