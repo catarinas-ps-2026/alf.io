@@ -214,6 +214,17 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-04-005 | Futuro, Híbrido, Pago pendiente | El botón de descarga permanece oculto | f- |
 | CPF-04-006 | Futuro, Modalidad Virtual | El botón de descarga no se muestra (acceso digital) | f- |
 
+### Check-in Online (Auto-check-in)
+| ID                      | CPF-0005                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Funcionalidad**       | Proceso de auto-check-in por parte del usuario asistente                                                                 |
+| **Descripción**         | Valida si un usuario asistente puede realizar el check-in digital de su ticket de manera autónoma desde la interfaz web. |
+| **Requisito Asociado**  | RF-005 (Auto-Check-in)                                                                                                   |
+| **Precondiciones**      | El usuario posee un enlace válido a la página de su ticket personal.                                                     |
+| **Técnicas de Pruebas** | Tablas de Decisión.                                                                                                      |
+| **Prioridad**           | Alta                                                                                                                     |
+
+
 ## Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
