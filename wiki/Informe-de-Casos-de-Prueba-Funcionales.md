@@ -1551,6 +1551,45 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+**CPF-07-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-005</td>
+      <td>Verificar generación y descarga del badge una vez cumplidas todas las condiciones lógicas.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Se genera el PDF conteniendo: Nombre, Categoría, Organización y Código de Barras/QR en dimensiones correctas.</td>
+      <td colspan="3">Documento PDF descargado correctamente con maquetación oficial e información verídica.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/badge-download-success.png" alt="badge-download-success"><br>
+        Vista de la credencial del asistente en el visor de PDF lista para imprimirse físicamente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
