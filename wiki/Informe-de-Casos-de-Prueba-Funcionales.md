@@ -1161,45 +1161,6 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-05-005**
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Descripción</th>
-      <th>Tipo</th>
-      <th>Estado</th>
-      <th>Defectos</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>CPF-05-005</td>
-      <td>Verificar que sin seleccionar método de pago, el sistema muestre mensaje de advertencia.</td>
-      <td>Manual</td>
-      <td>Exitoso</td>
-      <td>No se encontraron defectos</td>
-    </tr>
-    <tr>
-      <th colspan="2">Resultado esperado</th>
-      <th colspan="3">Resultado obtenido</th>
-    </tr>
-    <tr>
-      <td colspan="2">Mensaje: "Por favor selecciona un método de pago para continuar"</td>
-      <td colspan="3">Se muestra el mensaje de advertencia y el botón permanece deshabilitado.</td>
-    </tr>
-    <tr>
-      <th colspan="5">Evidencia</th>
-    </tr>
-    <tr>
-      <td colspan="5">
-        <img src="images/functional-tests/run/payment-method-none-selected.png" alt="payment-method-none-selected"><br>
-        Se muestra el mensaje de advertencia cuando no se selecciona método de pago.
-      </td>
-    </tr>
-  </tbody>
-</table>
-
 **CPF-05-003**
 <table>
   <thead>
@@ -1273,6 +1234,45 @@ Este proceso es controlado mediante Github actions, que:
       <td colspan="5">
         <img src="images/functional-tests/run/payment-method-onsite-no-terms.png" alt="payment-method-onsite-no-terms"><br>
         Se muestra que sin aceptar términos, el botón permanece deshabilitado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-005</td>
+      <td>Verificar que sin seleccionar método de pago, el sistema muestre mensaje de advertencia.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Mensaje: "Por favor selecciona un método de pago para continuar"</td>
+      <td colspan="3">Se muestra el mensaje de advertencia y el botón permanece deshabilitado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-none-selected.png" alt="payment-method-none-selected"><br>
+        Se muestra el mensaje de advertencia cuando no se selecciona método de pago.
       </td>
     </tr>
   </tbody>
