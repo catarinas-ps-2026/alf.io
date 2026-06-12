@@ -316,17 +316,12 @@ stateDiagram-v2
 | **Precondiciones** | Reserva creada con tickets seleccionados y datos del comprador completados. Método de pago ON_SITE disponible en la configuración del evento. |
 | **Datos de Entrada** | Método de pago seleccionado (Pago en efectivo), aceptación de términos y condiciones. |
 | **Pasos de Ejecución** | 1. Seleccionar "Pago en efectivo al llegar". 2. Aceptar términos y condiciones. 3. Hacer clic en "Confirmar". 4. Verificar página de éxito con ticket. |
-| **Técnicas de Pruebas** | Tabla de Decisión, Transición de Estados. |
+| **Técnicas de Pruebas** | Transición de Estados. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
 
 > **Nota:** La validación de aceptación de términos y condiciones (botón deshabilitado cuando no se aceptan) ya se encuentra cubierta por CPF-0005 (Selección de Método de Pago, caso CPF-05-004), por lo que no se duplica en esta sección.
-
-**Tabla de Decisión**
-| Cod. | Método | Términos aceptados | Acción Sistema |
-| :--- | :--- | :--- | :--- |
-| FN7-TD-001 | ON_SITE | Sí | Redirige a página "success", ticket disponible inmediatamente con opciones Ver, Descargar, Email, Actualizar |
 
 **Transición de Estados**
 
@@ -340,8 +335,7 @@ stateDiagram-v2
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
-| CPF-07-001 | Método: ON_SITE, Términos: Aceptados | Redirige a "success", ticket visible con opciones Ver, Descargar, Email, Actualizar | f+ |
-| CPF-07-002 | Verificar página success | Muestra: confirmación, ticket con nombre del asistente, opción de reenviar email | f+ |
+| CPF-07-001 | Método: ON_SITE, Términos: Aceptados | Redirige a "success", ticket visible con opciones Ver, Descargar, Email, Actualizar. Muestra confirmación, ticket con nombre del asistente, opción de reenviar email | f+ |
 
 ## Matriz de Trazabilidad
 
@@ -355,7 +349,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 | **RF-005:** Selección de método de pago | CPF-0005 (001-006) |
 | **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-002) |
-| **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-002) |
+| **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-001) |
 
 ## 9. Métodos y Herramientas
 
