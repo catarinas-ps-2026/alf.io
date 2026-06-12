@@ -58,14 +58,14 @@ Booking → Overview → [ProcessingPayment / OfflinePayment / CustomOfflinePaym
 |------------|-------|--------|
 |booking.component | 33 | Completo | 
 |cancel-reservation.component | 5 | Complejto|
-|custom-offline-payment.component | 11 | Completo |
+|custom-offline-payment.component | 15 | Completo |
 |deferred-offline-payment.component | 3 | Completo |
 |download-ticket.component | 13 | Completo |
 |error.component | 5 | Completo |
 |expired-reservation.component | 5 | Completo |
 |invoice-form.component | 28 | Completo |
 |modal-remove-subscription.component | 5 | Completo |
-|offline-payment.component | 9 | Completo |
+|offline-payment.component | 10 | Completo |
 |overview.component | 53 | Completo |
 |payment-method-selector.component | 14 | Completo |
 |processing-payment.component | 14 | Completo |
@@ -74,7 +74,7 @@ Booking → Overview → [ProcessingPayment / OfflinePayment / CustomOfflinePaym
 |success.component | 32 | Completo |
 |ticket-form.component | 9 | Completo |
 
-|total | 262 | Completo |
+|total | 267 | Completo |
 
 ## Estructura de Archivos
 
