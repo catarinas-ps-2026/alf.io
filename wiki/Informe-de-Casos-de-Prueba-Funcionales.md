@@ -1079,6 +1079,244 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+### Proceso de Pago
+
+#### Selección de Método de Pago
+
+**CPF-05-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-001</td>
+      <td>Verificar que al seleccionar método OFFLINE y aceptar términos, el botón "Pagar PEN X.XX" se habilite.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Texto: "Tiene X día(s) para completar su pago", Botón: "Pagar PEN X.XX" habilitado</td>
+      <td colspan="3">Se muestra el texto informativo y el botón "Confirmar" se habilita correctamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-offline-terms-accepted.png" alt="payment-method-offline-terms-accepted"><br>
+        Se muestra que al seleccionar Transferencia bancaria y aceptar términos, el botón se habilita.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-002</td>
+      <td>Verificar que al seleccionar método OFFLINE sin aceptar términos, el botón permanezca deshabilitado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón: "Pagar PEN X.XX" deshabilitado</td>
+      <td colspan="3">El botón permanece deshabilitado hasta que se acepten los términos.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-offline-no-terms.png" alt="payment-method-offline-no-terms"><br>
+        Se muestra que sin aceptar términos, el botón permanece deshabilitado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-005</td>
+      <td>Verificar que sin seleccionar método de pago, el sistema muestre mensaje de advertencia.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Mensaje: "Por favor selecciona un método de pago para continuar"</td>
+      <td colspan="3">Se muestra el mensaje de advertencia y el botón permanece deshabilitado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-none-selected.png" alt="payment-method-none-selected"><br>
+        Se muestra el mensaje de advertencia cuando no se selecciona método de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-003</td>
+      <td>Verificar que al seleccionar método ON_SITE y aceptar términos, el botón "Confirmar" se habilite.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Texto: "Recibirá su entrada...", Botón: "Confirmar" habilitado</td>
+      <td colspan="3">Se muestra el texto informativo y el botón "Confirmar" se habilita correctamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-onsite-selected.png" alt="payment-method-onsite-selected"><br>
+        Se muestra que al seleccionar Pago en efectivo y aceptar términos, el botón se habilita.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-004</td>
+      <td>Verificar que al seleccionar método ON_SITE sin aceptar términos, el botón permanezca deshabilitado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón: "Confirmar" deshabilitado</td>
+      <td colspan="3">El botón permanece deshabilitado hasta que se acepten los términos.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-onsite-no-terms.png" alt="payment-method-onsite-no-terms"><br>
+        Se muestra que sin aceptar términos, el botón permanece deshabilitado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-006</td>
+      <td>Verificar que al cambiar de OFFLINE a ON_SITE, la interfaz cambie según el método seleccionado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La interfaz cambia según método seleccionado</td>
+      <td colspan="3">El texto informativo y el botón cambian correctamente al seleccionar ON_SITE.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-onsite-selected.png" alt="payment-method-onsite-selected"><br>
+        Se muestra que la interfaz cambia correctamente al seleccionar Pago en efectivo.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
