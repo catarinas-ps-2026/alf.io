@@ -214,6 +214,61 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-04-005 | Futuro, Híbrido, Pago pendiente | El botón de descarga permanece oculto | f- |
 | CPF-04-006 | Futuro, Modalidad Virtual | El botón de descarga no se muestra (acceso digital) | f- |
 
+### Proceso de Pago
+
+#### Selección de Método de Pago
+| ID | CPF-0005 |
+| :--- | :--- |
+| **Funcionalidad** | Selección de método de pago durante checkout |
+| **Descripción** | Valida que el sistema muestre correctamente las opciones de pago disponibles (Transferencia bancaria / Pago en efectivo) y que la interfaz cambie según el método seleccionado. |
+| **Requisito Asociado** | RF-005 (Selección de Método de Pago) |
+| **Precondiciones** | Reserva creada con tickets seleccionados y datos del comprador completados. Página de resumen de pedido visible. |
+| **Datos de Entrada** | Selección de método de pago (radio button), aceptación de términos y condiciones. |
+| **Pasos de Ejecución** | 1. Llegar a la página de resumen de pedido. 2. Observar opciones de pago disponibles. 3. Seleccionar un método de pago. 4. Verificar cambio en la interfaz (texto informativo y botón). |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Tabla de Decisión. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Cod. | Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- | :--- |
+| FN5-PE-001 | Método de pago | "Transferencia bancaria" (OFFLINE) | - |
+| FN5-PE-002 | Método de pago | "Pago en efectivo al llegar" (ON_SITE) | - |
+| FN5-PE-003 | Método de pago | Ninguno seleccionado | - |
+
+**Tabla de Decisión**
+| Cod. | Método seleccionado | Términos aceptados | Texto informativo | Botón | Acción Sistema |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| FN5-TD-001 | OFFLINE | Sí | "Tiene X día(s) para completar su pago" | "Pagar PEN X.XX" (habilitado) | Permite continuar |
+| FN5-TD-002 | OFFLINE | No | "Tiene X día(s) para completar su pago" | "Pagar PEN X.XX" (deshabilitado) | No permite continuar |
+| FN5-TD-003 | ON_SITE | Sí | "Recibirá su entrada pero para acceder al evento deberá pagar en la entrada." | "Confirmar" (habilitado) | Permite continuar |
+| FN5-TD-004 | ON_SITE | No | "Recibirá su entrada pero para acceder al evento deberá pagar en la entrada." | "Confirmar" (deshabilitado) | No permite continuar |
+| FN5-TD-005 | Ninguno | - | "Por favor selecciona un método de pago para continuar" | - | No permite continuar |
+
+**Transición de Estados**
+
+```mermaid
+stateDiagram-v2
+    [*] --> SinSeleccion: Página de resumen
+    SinSeleccion --> OFFLINE: Seleccionar Transferencia bancaria
+    SinSeleccion --> ON_SITE: Seleccionar Pago en efectivo
+    OFFLINE --> ON_SITE: Cambiar selección
+    ON_SITE --> OFFLINE: Cambiar selección
+    OFFLINE --> Confirmacion_OFFLINE: Aceptar términos + Confirmar
+    ON_SITE --> Confirmacion_ON_SITE: Aceptar términos + Confirmar
+```
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-05-001 | Método: OFFLINE, Términos: Aceptados | Texto: "Tiene X día(s) para completar su pago", Botón: "Pagar PEN X.XX" habilitado | f+ |
+| CPF-05-002 | Método: OFFLINE, Términos: No aceptados | Botón: "Pagar PEN X.XX" deshabilitado | f- |
+| CPF-05-003 | Método: ON_SITE, Términos: Aceptados | Texto: "Recibirá su entrada...", Botón: "Confirmar" habilitado | f+ |
+| CPF-05-004 | Método: ON_SITE, Términos: No aceptados | Botón: "Confirmar" deshabilitado | f- |
+| CPF-05-005 | Método: Ninguno | Mensaje: "Por favor selecciona un método de pago para continuar" | f- |
+| CPF-05-006 | Cambiar de OFFLINE a ON_SITE | La interfaz cambia según método seleccionado | f+ |
+
 ## Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
@@ -224,6 +279,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-002:** Búsqueda administrativa de reservas | CPF-0002 (001-003) |
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
+| **RF-005:** Selección de método de pago | CPF-0005 (001-006) |
 
 ## 9. Métodos y Herramientas
 
