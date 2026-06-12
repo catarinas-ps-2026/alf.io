@@ -1205,6 +1205,127 @@ Selección de evento → Elegir cantidad tickets → Llenar formulario asistente
   </tbody>
 </table>
 
+---
+
+### Escasez de Entradas y Campos Personalizados
+
+**CPF-RES-07-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-07-001</td>
+      <td>Verificar mensaje de error cuando no hay suficientes entradas disponibles.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Texto en rojo indicando que no hay suficientes entradas, no permite continuar</td>
+      <td colspan="3">El sistema muestra mensaje de error y bloquea la selección.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/12.png" alt="not-enough-tickets"><br>
+        Mensaje de error cuando no hay suficientes entradas disponibles.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-07-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-07-002</td>
+      <td>Verificar mensaje cuando todas las entradas están agotadas (sold out).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema indica que no hay entradas disponibles</td>
+      <td colspan="3">El sistema muestra que todas las entradas están agotadas.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/13.png" alt="sold-out"><br>
+        Mensaje de entradas agotadas (sold out).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-07-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-07-003</td>
+      <td>Verificar campos personalizados en el formulario de asistente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El formulario incluye campos adicionales según configuración del evento</td>
+      <td colspan="3">Los campos personalizados aparecen condicionalmente según la configuración regional.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/39.png" alt="custom-fields"><br>
+        Campos personalizados visibles en el formulario (ej: configuración regional como Perú).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - Las pruebas se ejecutan de manera manual, no automatizada.
@@ -1222,7 +1343,7 @@ Selección de evento → Elegir cantidad tickets → Llenar formulario asistente
 
 ## 9. Conclusión
 
-El módulo de reservaciones del frontend público de alf.io ha sido validado mediante 29 casos de prueba funcionales que abarcan todo el flujo de reserva, desde la selección de tickets hasta la descarga de entradas y el envío de correos de confirmación.
+El módulo de reservaciones del frontend público de alf.io ha sido validado mediante 30 casos de prueba funcionales que abarcan todo el flujo de reserva, desde la selección de tickets hasta la descarga de entradas y el envío de correos de confirmación.
 
 Los resultados muestran que el sistema maneja correctamente:
 - La selección de cantidad de entradas mediante dropdowns con rangos definidos.
@@ -1233,3 +1354,5 @@ Los resultados muestran que el sistema maneja correctamente:
 - La generación de PDFs con códigos QR y el envío de correos de confirmación.
 
 El pipeline de CI del proyecto verifica cada cambio contra las pruebas unitarias, asegurando compatibilidad y calidad continua en el código del frontend.
+
+---
