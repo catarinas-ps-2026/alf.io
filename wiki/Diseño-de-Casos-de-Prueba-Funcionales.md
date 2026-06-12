@@ -301,6 +301,14 @@ stateDiagram-v2
 
 **Transición de Estados**
 
+| Cod. | Estado Origen | Estado Destino | Acción / Verificación |
+| :--- | :--- | :--- | :--- |
+| FN6-TS-001 | ReservaCreada | PENDING | Confirmar pago OFFLINE, cupo se bloquea |
+| FN6-TS-002 | PENDING | (propiedad) | Estado PENDING muestra: monto, ID, fecha expiración, instrucciones |
+| FN6-TS-003 | PENDING | (propiedad) | Estado PENDING tiene fecha de expiración visible |
+| FN6-TS-004 | PENDING | (propiedad) | Estado PENDING bloquea cupo del inventario |
+| FN6-TS-005 | PENDING | CANCELLED | Tiempo límite alcanzado o admin elimina, cupo se libera |
+
 ```mermaid
 stateDiagram-v2
     [*] --> ReservaCreada: Datos completados
@@ -317,8 +325,15 @@ stateDiagram-v2
 | CPF-06-001 | Método: OFFLINE, Términos: Aceptados | Redirige a "waiting-payment", muestra instrucciones de transferencia, fecha de expiración, ID de reserva | f+ |
 | CPF-06-002 | Verificar página waiting-payment | Muestra: monto a transferir, concepto de pago (ID), fecha límite de pago, instrucciones para envío de comprobante | f+ |
 | CPF-06-003 | Verificar expiración de reserva OFFLINE | La reserva muestra fecha de expiración visible y el sistema tiene mecanismo para cancelar reservas expiradas | f+ |
-| CPF-06-004 | Verificar liberación de cupo tras expiración | Al expirar la reserva, el cupo vuelve a estar disponible en el inventario del evento | f+ |
-| CPF-06-005 | Crear reserva OFFLINE y verificar inventario | El contador de tickets disponibles disminuye inmediatamente tras crear la reserva | f+ |
+| CPF-06-004 | Crear reserva OFFLINE y verificar inventario | El contador de tickets disponibles disminuye inmediatamente tras crear la reserva | f+ |
+| CPF-06-005 | Verificar liberación de cupo tras expiración | Al expirar la reserva, el cupo vuelve a estar disponible en el inventario del evento | f+ |
+
+> **Notas de trazabilidad:**
+> - CPF-06-001 deriva de FN6-TD-001 (Tabla de Decisión).
+> - CPF-06-002 deriva de FN6-TS-002 (propiedad del estado PENDING).
+> - CPF-06-003 deriva de FN6-TS-003 (propiedad del estado PENDING).
+> - CPF-06-004 deriva de FN6-TS-001 (transición ReservaCreada → PENDING, bloqueo de cupo).
+> - CPF-06-005 deriva de FN6-TS-005 (transición PENDING → CANCELLED, liberación de cupo).
 
 #### Procesamiento de Pago ON_SITE (Efectivo)
 | ID | CPF-0007 |
