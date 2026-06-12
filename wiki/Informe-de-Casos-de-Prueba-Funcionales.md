@@ -1704,7 +1704,7 @@ Este proceso es controlado mediante Github actions, que:
   <tbody>
     <tr>
       <td>CPF-07-005</td>
-      <td>Verificar que la reserva ON_SITE permanece activa hasta la fecha del evento, sin expirar como las OFFLINE.</td>
+      <td>Verificar que ticket ON_SITE está disponible inmediatamente, sin necesidad de aprobación administrativa.
       <td>Manual</td>
       <td>Exitoso</td>
       <td>No se encontraron defectos</td>
@@ -1714,8 +1714,8 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">La reserva ON_SITE permanece activa hasta la fecha del evento.</td>
-      <td colspan="3">En el panel de administración, las reservas ON_SITE aparecen en estado "Completed" sin fecha de expiración de pago, y el ticket está disponible inmediatamente para el comprador.</td>
+      <td colspan="2">El ticket está disponible desde el momento de la confirmación, sin necesidad de aprobación administrativa.</td>
+      <td colspan="3">El ticket está disponible inmediatamente tras la confirmación del pago ON_SITE, a diferencia de OFFLINE que requiere aprobación del administrador. En el panel de administración, la reserva aparece como "Completed" directamente.</td>
     </tr>
     <tr>
       <th colspan="5">Evidencia</th>
