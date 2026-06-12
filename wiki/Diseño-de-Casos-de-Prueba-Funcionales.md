@@ -249,7 +249,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 ---
 
-## 2. Validación de QR (Escaneo de Ticket en Puerta)
+## Validación de QR (Escaneo de Ticket en Puerta)
 
 | ID                      | CPF-0006                                                                                                       |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -282,7 +282,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 ---
 
-## 3. Generación de Acreditaciones (Badges)
+## Generación de Acreditaciones (Badges)
 
 | ID                      | CPF-0007                                                                                                                                |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -306,7 +306,15 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Permitir Descarga de PDF**                 | **NO** | **NO** | **SI** | **NO** | **SI** |
 
 
+**Catálogo de Pruebas**
 
+| #CP        | Escenario                                                     | Resultado Esperado                                                          | Obs |
+| ---------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | --- |
+| CPF-07-001 | Categoría sin derecho a badge (ej. Pase Virtual)              | El botón o enlace de descarga de badge no está visible                      | f-  |
+| CPF-07-002 | Ticket con derecho a badge pero pago pendiente                | Se muestra un aviso indicando que requiere pago completo para emitir        | f-  |
+| CPF-07-003 | Ticket pagado, evento sin restricción de check-in previo      | El botón es visible y permite descargar el PDF del badge antes del evento   | f+  |
+| CPF-07-004 | Ticket pagado, requiere check-in previo, pero no ha ingresado | El botón de badge permanece inactivo o ausente en el portal del usuario     | f-  |
+| CPF-07-005 | Ticket pagado, requiere check-in y ya ingresó al evento       | El botón se activa en el panel de puerta/usuario y descarga el PDF generado | f+  |
 
 
 ## Matriz de Trazabilidad

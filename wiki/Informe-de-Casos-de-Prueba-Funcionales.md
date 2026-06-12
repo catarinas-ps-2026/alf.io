@@ -1079,6 +1079,400 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+### Casos de Prueba: Check-in Online (Auto-check-in)
+**CPF-05-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-001</td>
+      <td>Verificar que no se muestre el botón de auto-check-in si la funcionalidad está deshabilitada a nivel de evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El portal del usuario no muestra ningún botón o enlace de check-in digital.</td>
+      <td colspan="3">El botón de auto-check-in no es visible en la interfaz del ticket.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/online-checkin-disabled.png" alt="online-checkin-disabled"><br>
+        El botón de auto-check-in está ausente en la interfaz del ticket del asistente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-002</td>
+      <td>Verificar que el botón de auto-check-in se muestre bloqueado/inactivo si la reserva está con pago pendiente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El botón de auto-check-in aparece deshabilitado y se muestra un banner indicando pago pendiente.</td>
+      <td colspan="3">Acción bloqueada y botón inactivo con advertencia de pago pendiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/online-checkin-pending-payment.png" alt="online-checkin-pending-payment"><br>
+        Botón de check-in bloqueado debido al estado de pago pendiente de la reserva.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-003</td>
+      <td>Verificar comportamiento de auto-check-in fuera de la ventana de tiempo del evento (antes del horario de apertura).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El botón permanece deshabilitado o muestra un aviso con la hora exacta de habilitación.</td>
+      <td colspan="3">Botón inactivo con mensaje emergente de horario no disponible.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/online-checkin-outside-window.png" alt="online-checkin-outside-window"><br>
+        El sistema bloquea la acción indicando que la ventana de check-in no ha iniciado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-004</td>
+      <td>Verificar el portal del usuario cuando el ticket ya ha sido registrado como "Ingresado/Checked-in".</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El botón de check-in no se muestra y el estado del ticket se actualiza visualmente a "Ingresado".</td>
+      <td colspan="3">Estado de ticket marcado como "Ingresado" y botón de auto-check-in oculto.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/online-checkin-already-checkedin.png" alt="online-checkin-already-checkedin"><br>
+        El ticket se visualiza con la insignia digital de "Ingresado" en el portal del asistente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-005</td>
+      <td>Verificar el flujo completo de auto-check-in exitoso en condiciones normales (pagado, dentro del horario y activo).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El botón permite la acción, cambia el estado del asistente en base de datos y muestra mensaje de éxito.</td>
+      <td colspan="3">Check-in completado exitosamente y estado actualizado a "Checked-In".</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/online-checkin-success.png" alt="online-checkin-success"><br>
+        Confirmación visual de auto-check-in exitoso y actualización de estado en tiempo real.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Casos de Prueba: Validación de QR (Escaneo)
+**CPF-06-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-001</td>
+      <td>Simular escaneo de un código QR inválido o que no existe en la base de datos del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Pantalla en color rojo indicando error de ticket no encontrado/inexistente.</td>
+      <td colspan="3">Interfaz en rojo mostrando mensaje "Ticket no encontrado".</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/qr-scan-invalid.png" alt="qr-scan-invalid"><br>
+        Lector muestra error en rojo al escanear un código de barras ajeno al sistema.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-002</td>
+      <td>Simular escaneo de un código QR correspondiente a un ticket cancelado previamente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Pantalla roja con el mensaje "Acceso denegado - Ticket Cancelado".</td>
+      <td colspan="3">Denegación visual por estado del ticket configurado como cancelado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/qr-scan-cancelled.png" alt="qr-scan-cancelled"><br>
+        Pantalla del lector bloquea el acceso informando que el ticket está marcado como cancelado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-003</td>
+      <td>Simular escaneo de un ticket que ya fue ingresado con anterioridad (control de doble acceso).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Pantalla en color amarillo de advertencia "Alerta: Ticket ya ingresado" indicando fecha y hora del primer ingreso.</td>
+      <td colspan="3">Lector muestra advertencia amarilla de doble check-in con historial de hora de entrada.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/qr-scan-duplicate.png" alt="qr-scan-duplicate"><br>
+        Pantalla del terminal del operario alertando sobre un segundo intento de entrada del mismo QR.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-004</td>
+      <td>Simular escaneo exitoso en puerta de un ticket válido sin ingresos previos.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Pantalla verde con mensaje "Acceso Permitido", registrando la entrada e incrementando los contadores.</td>
+      <td colspan="3">Acceso autorizado en color verde y registro exitoso del check-in.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/qr-scan-success.png" alt="qr-scan-success"><br>
+        El terminal del lector aprueba el acceso satisfactoriamente en color verde con los datos del asistente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### **Casos de Prueba: Generación de Acreditaciones (Badges)**
+
+**CPF-07-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-001</td>
+      <td>Verificar que no esté disponible la descarga del badge para categorías de ticket sin derecho a carnet físico.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El botón de descarga de acreditación no aparece para esta categoría de ticket.</td>
+      <td colspan="3">Botón ausente según las reglas aplicadas en la categoría de entrada.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/badge-download-disabled.png" alt="badge-download-disabled"><br>
+        Enlace de badge invisible para la categoría de entrada digital sin carnet físico.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
