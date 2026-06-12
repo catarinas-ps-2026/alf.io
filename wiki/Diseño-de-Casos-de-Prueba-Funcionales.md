@@ -283,16 +283,12 @@ stateDiagram-v2
 
 **Análisis de Técnicas**
 
-**Partición de Equivalencia**
-| Cod. | Campo | Clase Válida | Clases No Válidas |
-| :--- | :--- | :--- | :--- |
-| FN6-PE-001 | Términos y condiciones | Aceptados (checkbox marcado) | No aceptados |
+> **Nota:** La validación de aceptación de términos y condiciones (botón deshabilitado cuando no se aceptan) ya se encuentra cubierta por CPF-0005 (Selección de Método de Pago), por lo que no se duplica en esta sección.
 
 **Tabla de Decisión**
 | Cod. | Método | Términos aceptados | Acción Sistema |
 | :--- | :--- | :--- | :--- |
 | FN6-TD-001 | OFFLINE | Sí | Redirige a página "waiting-payment" con instrucciones de pago y fecha de expiración |
-| FN6-TD-002 | OFFLINE | No | Botón deshabilitado, no permite continuar |
 
 **Transición de Estados**
 
@@ -309,8 +305,7 @@ stateDiagram-v2
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
 | CPF-06-001 | Método: OFFLINE, Términos: Aceptados | Redirige a "waiting-payment", muestra instrucciones de transferencia, fecha de expiración, ID de reserva | f+ |
-| CPF-06-002 | Método: OFFLINE, Términos: No aceptados | Botón deshabilitado, no permite continuar | f- |
-| CPF-06-003 | Verificar página waiting-payment | Muestra: monto a transferir, cuenta bancaria, concepto de pago (ID), fecha límite | f+ |
+| CPF-06-002 | Verificar página waiting-payment | Muestra: monto a transferir, cuenta bancaria, concepto de pago (ID), fecha límite | f+ |
 
 ## Matriz de Trazabilidad
 
@@ -323,7 +318,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 | **RF-005:** Selección de método de pago | CPF-0005 (001-006) |
-| **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-003) |
+| **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-002) |
 
 ## 9. Métodos y Herramientas
 

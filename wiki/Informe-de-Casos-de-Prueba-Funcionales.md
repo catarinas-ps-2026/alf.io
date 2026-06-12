@@ -1376,45 +1376,6 @@ Este proceso es controlado mediante Github actions, que:
   <tbody>
     <tr>
       <td>CPF-06-002</td>
-      <td>Verificar que al seleccionar OFFLINE sin aceptar términos, el botón permanezca deshabilitado.</td>
-      <td>Manual</td>
-      <td>Exitoso</td>
-      <td>No se encontraron defectos</td>
-    </tr>
-    <tr>
-      <th colspan="2">Resultado esperado</th>
-      <th colspan="3">Resultado obtenido</th>
-    </tr>
-    <tr>
-      <td colspan="2">Botón deshabilitado, no permite continuar.</td>
-      <td colspan="3">El botón "Confirmar" permanece deshabilitado hasta que se acepten los términos y condiciones.</td>
-    </tr>
-    <tr>
-      <th colspan="5">Evidencia</th>
-    </tr>
-    <tr>
-      <td colspan="5">
-        <img src="images/functional-tests/run/offline-confirm-disabled-no-terms.png" alt="offline-confirm-disabled-no-terms"><br>
-        Se muestra el botón "Confirmar" deshabilitado con el checkbox de términos sin marcar.
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-**CPF-06-003**
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Descripción</th>
-      <th>Tipo</th>
-      <th>Estado</th>
-      <th>Defectos</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>CPF-06-003</td>
       <td>Verificar que la página de waiting-payment muestre toda la información necesaria para completar el pago.</td>
       <td>Manual</td>
       <td>Exitoso</td>
