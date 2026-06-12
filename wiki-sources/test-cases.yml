@@ -642,6 +642,302 @@ test_suites:
                 - image: images/functional-tests/run/ticket-download-not-available.png
                   alt: download-not-virtual
                   text: Verificación de lógica de negocio para accesos virtuales.
+  - title: Check-in Online (Auto-check-in)
+    level: '###'
+    catalog_header: Escenario
+    cases:
+      - id: CPF-0012
+        functionality: Proceso de auto-check-in por parte del usuario asistente
+        description: Valida si un usuario asistente puede realizar el check-in digital de su ticket de manera autónoma desde la interfaz web.
+        requirement: RF-005 (Auto-Check-in)
+        preconditions: El usuario posee un enlace válido a la página de su ticket personal.
+        inputs: ''
+        steps: []
+        techniques:
+          - Tablas de Decisión.
+        priority: Alta
+        analysis:
+          equivalency_partitions: []
+          boundary_values: []
+          decision_tables:
+            - title: Habilitar botón de auto-check-in
+              header: Condición
+              columns: [C1, C2, C3, C4, C5]
+              conditions:
+                - name: "¿Auto-check-in habilitado en el evento?"
+                  values: ['NO', SI, SI, SI, SI]
+                - name: "¿Estado del ticket es pagado/aprobado?"
+                  values: ['-', 'NO', SI, SI, SI]
+                - name: "¿Está dentro del rango de tiempo permitido?"
+                  values: ['-', '-', 'NO', SI, SI]
+                - name: "¿El ticket ya fue ingresado/usado?"
+                  values: ['-', '-', '-', SI, 'NO']
+              action_name: Habilitar Botón / Permitir Acción
+              actions: ['NO', 'NO', 'NO', 'NO', SI]
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-12-001
+            inputs: Auto-check-in deshabilitado en evento
+            expected: El botón no aparece
+            obs: f-
+            execution:
+              description: Verificar que no se muestre el botón de auto-check-in si la funcionalidad está deshabilitada a nivel de evento.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: El botón de auto-check-in no es visible en la interfaz del ticket.
+              evidence:
+                - image: images/functional-tests/run/online-checkin-disabled.png
+                  alt: online-checkin-disabled
+                  text: El botón de auto-check-in está ausente en la interfaz del ticket del asistente.
+          - cp_id: CPF-12-002
+            inputs: Con pago pendiente
+            expected: El botón se muestra inactivo o bloqueado
+            obs: f-
+            execution:
+              description: Verificar que el botón de auto-check-in se muestre bloqueado/inactivo si la reserva está con pago pendiente.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Acción bloqueada y botón inactivo con advertencia de pago pendiente.
+              evidence:
+                - image: images/functional-tests/run/online-checkin-pending-payment.png
+                  alt: online-checkin-pending-payment
+                  text: Botón de check-in bloqueado debido al estado de pago pendiente de la reserva.
+          - cp_id: CPF-12-003
+            inputs: Fuera de la ventana de tiempo (muy temprano/tarde)
+            expected: Se muestra un mensaje informando el horario habilitado
+            obs: f-
+            execution:
+              description: Verificar comportamiento de auto-check-in fuera de la ventana de tiempo del evento (antes del horario de apertura).
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón inactivo con mensaje emergente de horario no disponible.
+              evidence:
+                - image: images/functional-tests/run/online-checkin-outside-window.png
+                  alt: online-checkin-outside-window
+                  text: El sistema bloquea la acción indicando que la ventana de check-in no ha iniciado.
+          - cp_id: CPF-12-004
+            inputs: Ticket ya ingresado
+            expected: El botón se oculta o cambia a estado "Ingresado"
+            obs: f-
+            execution:
+              description: Verificar el portal del usuario cuando el ticket ya ha sido registrado como "Ingresado/Checked-in".
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Estado de ticket marcado como "Ingresado" y botón de auto-check-in oculto.
+              evidence:
+                - image: images/functional-tests/run/online-checkin-already-checkedin.png
+                  alt: online-checkin-already-checkedin
+                  text: El ticket se visualiza con la insignia digital de "Ingresado" en el portal del asistente.
+          - cp_id: CPF-12-005
+            inputs: Condiciones válidas (Habilitado, pagado, a tiempo, sin usar)
+            expected: Botón visible y funcional; al hacer clic cambia el estado a "Checked-In"
+            obs: f+
+            execution:
+              description: Verificar el flujo completo de auto-check-in exitoso en condiciones normales (pagado, dentro del horario y activo).
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Check-in completado exitosamente y estado actualizado a "Checked-In".
+              evidence:
+                - image: images/functional-tests/run/online-checkin-success.png
+                  alt: online-checkin-success
+                  text: Confirmación visual de auto-check-in exitoso y actualización de estado en tiempo real.
+  - title: Validación de QR (Escaneo de Ticket en Puerta)
+    level: '###'
+    catalog_header: Escenario
+    cases:
+      - id: CPF-0013
+        functionality: Validación y control de acceso mediante códigos QR
+        description: Define el comportamiento e indicativo visual del lector de entrada según el estado y validez del QR escaneado.
+        requirement: RF-006 (Control de Acceso)
+        preconditions: Dispositivo móvil de puerta logueado en la aplicación de check-in del evento.
+        inputs: ''
+        steps: []
+        techniques:
+          - Tablas de Decisión.
+        priority: Crítica
+        analysis:
+          equivalency_partitions: []
+          boundary_values: []
+          decision_tables:
+            - title: Resultado visual del escaneo
+              header: Condición
+              columns: [C1, C2, C3, C4]
+              conditions:
+                - name: "¿El ticket existe en el sistema?"
+                  values: [NO, SI, SI, SI]
+                - name: "¿El estado del ticket es \"Cancelado\"?"
+                  values: ['-', SI, 'NO', 'NO']
+                - name: "¿El ticket ya figura como ingresado?"
+                  values: ['-', '-', SI, 'NO']
+              action_name: Resultado de Escaneo
+              actions: ['Rojo (Inexistente)', 'Rojo (Cancelado)', 'Amarillo (Duplicado)', 'Verde (Éxito)']
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-13-001
+            inputs: Escaneo de código QR inválido/inexistente
+            expected: "Pantalla roja indicando: \"Ticket no encontrado\""
+            obs: f-
+            execution:
+              description: Simular escaneo de un código QR inválido o que no existe en la base de datos del evento.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: No redirige al flujo del evento.
+              evidence:
+                - image: images/functional-tests/run/qr-scan-invalid.png
+                  alt: qr-scan-invalid
+                  text: No se muestra la interfaz de check-in.
+          - cp_id: CPF-13-002
+            inputs: Escaneo de ticket cancelado previamente
+            expected: "Pantalla roja indicando: \"Acceso denegado - Ticket Cancelado\""
+            obs: f-
+            execution:
+              description: Simular escaneo de un código QR correspondiente a un ticket cancelado previamente.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Denegación visual por estado del ticket configurado como cancelado.
+              evidence:
+                - image: images/functional-tests/run/qr-scan-cancelled.png
+                  alt: qr-scan-cancelled
+                  text: Pantalla del lector bloquea el acceso informando que el ticket está marcado como cancelado.
+          - cp_id: CPF-13-003
+            inputs: Escaneo de ticket ya ingresado
+            expected: "Pantalla amarilla indicando: \"Alerta - Ticket duplicado\" (con fecha/hora del 1er ingreso)"
+            obs: f-
+            execution:
+              description: Simular escaneo de un ticket que ya fue ingresado con anterioridad (control de doble acceso).
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Lector muestra advertencia amarilla de doble check-in con historial de hora de entrada.
+              evidence:
+                - image: images/functional-tests/run/qr-scan-duplicate.png
+                  alt: qr-scan-duplicate
+                  text: Pantalla del terminal del operario alertando sobre un segundo intento de entrada del mismo QR.
+          - cp_id: CPF-13-004
+            inputs: Escaneo de ticket válido por primera vez
+            expected: "Pantalla verde indicando: \"Acceso Permitido\" y registra el ingreso"
+            obs: f+
+            execution:
+              description: Simular escaneo exitoso en puerta de un ticket válido sin ingresos previos.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Acceso autorizado en color verde y registro exitoso del check-in.
+              evidence:
+                - image: images/functional-tests/run/qr-scan-success.png
+                  alt: qr-scan-success
+                  text: El terminal del lector aprueba el acceso satisfactoriamente en color verde con los datos del asistente.
+  - title: Generación de Acreditaciones (Badges)
+    level: '###'
+    catalog_header: Escenario
+    cases:
+      - id: CPF-0014
+        functionality: Emisión e impresión de credenciales físicas
+        description: Determina si el sistema permite la descarga/impresión del badge o carnet del asistente en PDF según las reglas del evento y del ticket.
+        requirement: RF-007 (Generación de Acreditaciones)
+        preconditions: Diseño de badge cargado y asignado para el evento.
+        inputs: ''
+        steps: []
+        techniques:
+          - Tablas de Decisión.
+        priority: Media
+        analysis:
+          equivalency_partitions: []
+          boundary_values: []
+          decision_tables:
+            - title: Permitir descarga e impresión de Badge
+              header: Condición
+              columns: [C1, C2, C3, C4, C5]
+              conditions:
+                - name: "¿Categoría de ticket incluye badge?"
+                  values: [NO, SI, SI, SI, SI]
+                - name: "¿El ticket está confirmado y pagado?"
+                  values: ['-', 'NO', SI, SI, SI]
+                - name: "¿Evento requiere check-in previo para badge?"
+                  values: ['-', '-', 'NO', SI, SI]
+                - name: "¿Asistente ya realizó el check-in físico?"
+                  values: ['-', '-', '-', 'NO', SI]
+              action_name: Permitir Descarga de PDF
+              actions: ['NO', 'NO', SI, 'NO', SI]
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-14-001
+            inputs: "Categoría sin derecho a badge (ej. Pase Virtual)"
+            expected: El botón o enlace de descarga de badge no está visible
+            obs: f-
+            execution:
+              description: Verificar que no esté disponible la descarga del badge para categorías de ticket sin derecho a carnet físico.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón ausente según las reglas aplicadas en la categoría de entrada.
+              evidence:
+                - image: images/functional-tests/run/badge-download-disabled.png
+                  alt: badge-download-disabled
+                  text: Enlace de badge invisible para la categoría de entrada digital sin carnet físico.
+          - cp_id: CPF-14-002
+            inputs: Ticket con derecho a badge pero pago pendiente
+            expected: Se muestra un aviso indicando que requiere pago completo para emitir
+            obs: f-
+            execution:
+              description: Verificar que se restrinja la impresión de badges si la reserva tiene estado pendiente de pago.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Opción de descarga bloqueada con mensaje de restricción de pago.
+              evidence:
+                - image: images/functional-tests/run/badge-download-pending-payment.png
+                  alt: badge-download-pending-payment
+                  text: La interfaz de control de acceso deshabilita la generación de credenciales por pago no liquidado.
+          - cp_id: CPF-14-003
+            inputs: Ticket pagado, evento sin restricción de check-in previo
+            expected: El botón es visible y permite descargar el PDF del badge antes del evento
+            obs: f+
+            execution:
+              description: Verificar la descarga anticipada de la credencial en un evento que no requiere check-in físico previo para emitirla.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Descarga de PDF habilitada de forma anticipada sin marcar ingreso.
+              evidence:
+                - image: images/functional-tests/run/badge-download-before-checkin.png
+                  alt: badge-download-before-checkin
+                  text: Descarga exitosa de la credencial en PDF previa a la realización del ingreso físico.
+          - cp_id: CPF-14-004
+            inputs: Ticket pagado, requiere check-in previo, pero no ha ingresado
+            expected: El botón de badge permanece inactivo o ausente en el portal del usuario
+            obs: f-
+            execution:
+              description: Verificar que no se permita la descarga del badge si el evento requiere check-in previo y el asistente aún no ha ingresado.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón de badge inactivo o ausente en el portal del usuario.
+              evidence:
+                - image: images/functional-tests/run/badge-download-disabled.png
+                  alt: badge-download-before-checkin-required
+                  text: Botón de descarga de badge no disponible cuando el check-in previo es obligatorio y no se ha realizado.
+          - cp_id: CPF-14-005
+            inputs: Ticket pagado, requiere check-in y ya ingresó al evento
+            expected: El botón se activa en el panel de puerta/usuario y descarga el PDF generado
+            obs: f+
+            execution:
+              description: Verificar generación y descarga del badge una vez cumplidas todas las condiciones lógicas.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Documento PDF descargado correctamente con maquetación oficial e información verídica.
+              evidence:
+                - image: images/functional-tests/run/badge-download-success.png
+                  alt: badge-download-success
+                  text: Vista de la credencial del asistente en el visor de PDF lista para imprimirse físicamente.
   - title: Configuración de la Organización (CONF-01)
     level: '###'
     catalog_header: "Datos de Entrada / Escenario"
@@ -1849,3 +2145,12 @@ traceability_matrix:
   - requirement: RF-CONF-06
     description: Configuración de Localización y Moneda
     cases: CPF-0010 (001-006)
+  - requirement: RF-005
+    description: Auto-Check-in
+    cases: CPF-0012 (001-005)
+  - requirement: RF-006
+    description: Control de Acceso
+    cases: CPF-0013 (001-004)
+  - requirement: RF-007
+    description: Generación de Acreditaciones
+    cases: CPF-0014 (001-005)
