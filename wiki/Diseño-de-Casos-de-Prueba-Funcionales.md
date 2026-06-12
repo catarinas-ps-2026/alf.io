@@ -214,6 +214,199 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-04-005 | Futuro, Híbrido, Pago pendiente | El botón de descarga permanece oculto | f- |
 | CPF-04-006 | Futuro, Modalidad Virtual | El botón de descarga no se muestra (acceso digital) | f- |
 
+### Configuración de la Organización (CONF-01)
+| ID | CPF-0005 |
+| :--- | :--- |
+| **Funcionalidad** | Configuración de la Organización |
+| **Descripción** | Permite registrar y modificar la información de una organización, incluyendo el nombre, descripción, correo de contacto, y otros campos relacionados. |
+| **Requisito Asociado** | RF-CONF-01 (Configuración de la Organización) |
+| **Precondiciones** | El usuario debe estar autenticado con rol de Administrador Global. |
+| **Datos de Entrada** | Nombre de la organización, descripción, correo electrónico de contacto. |
+| **Pasos de Ejecución** | 1. Acceder al panel de administración. <br>2. Ir a la sección de Organizaciones. <br>3. Crear una nueva organización o seleccionar una existente para editar. <br>4. Completar/modificar los campos de información. <br>5. Guardar los cambios. |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Análisis de Valores Límite. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Nombre | Texto no vacío (1-255 caracteres) | Vacío, > 255 caracteres |
+| Correo | Formato estándar de correo | Vacío, formato incorrecto (sin @) |
+
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Nombre | 1 carácter | 0 caracteres (vacío) | 255 caracteres | 256 caracteres |
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-05-001 | Crear organización con datos válidos | Registro y redirección exitosa. | f+ |
+| CPF-05-002 | Intentar crear organización con nombre vacío | Rechazar guardado indicando campo requerido. | f- |
+| CPF-05-003 | Nombre con caracteres especiales permitidos | Registro y redirección exitosa. | f+ |
+| CPF-05-004 | Correo de contacto inválido | Rechazar indicando formato de correo incorrecto. | f- |
+| CPF-05-005 | Modificar datos de una organización existente de forma exitosa | Registro y redirección exitosa. | f+ |
+| CPF-05-006 | Cambiar el nombre de una organización por uno ya existente | Rechazar indicando que el nombre ya existe. | f- |
+
+### Configuración del Evento (CONF-02)
+| ID | CPF-0006 |
+| :--- | :--- |
+| **Funcionalidad** | Configuración del Evento |
+| **Descripción** | Permite crear y modificar las propiedades básicas de un evento, incluyendo fechas, descripción y códigos de acceso. |
+| **Requisito Asociado** | RF-CONF-02 (Configuración del Evento) |
+| **Precondiciones** | El usuario debe estar autenticado y tener permisos de edición sobre el evento. |
+| **Datos de Entrada** | Nombre del evento, fecha de inicio, fecha de fin, descripción, códigos de acceso. |
+| **Pasos de Ejecución** | 1. Acceder al panel de administración del evento. <br>2. Configurar las fechas e información básica. <br>3. Configurar disponibilidad y fin de venta para las categorías. <br>4. Guardar los cambios. |
+| **Técnicas de Pruebas** | Partición de Equivalencia. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo / Condición | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Fechas | Fecha de fin posterior a la de inicio | Fecha de inicio en el pasado, fecha de fin anterior a la de inicio |
+| Códigos Ocultos | Código único por categoría | Códigos duplicados en categorías del mismo evento |
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-06-001 | Crear evento con datos válidos | Guardar exitosamente. | f+ |
+| CPF-06-002 | Crear evento con fecha de inicio en el pasado | Rechazar indicando error en la fecha. | f- |
+| CPF-06-003 | Crear evento con fecha de fin anterior a la de inicio | Rechazar indicando incoherencia en las fechas. | f- |
+| CPF-06-004 | Modificar la descripción de un evento existente | Guardar los cambios de forma exitosa. | f+ |
+| CPF-06-005 | Configurar disponibilidad de categoría después de inicio del evento | Guardar la configuración correctamente. | f+ |
+| CPF-06-006 | Configurar fin de venta de categoría después del fin del evento | Guardar la configuración correctamente. | f+ |
+| CPF-06-007 | Configurar códigos ocultos duplicados en diferentes categorías | Guardar el mismo código en múltiples categorías. | f+ |
+
+### Configuración de Categorías de Tickets (CONF-03)
+| ID | CPF-0007 |
+| :--- | :--- |
+| **Funcionalidad** | Configuración de Categorías de Tickets |
+| **Descripción** | Permite configurar los tipos de tickets, sus precios, disponibilidad, si son internos u ocultos con código de acceso. |
+| **Requisito Asociado** | RF-CONF-03 (Configuración de Categorías de Tickets) |
+| **Precondiciones** | El evento debe estar creado y en estado de configuración. |
+| **Datos de Entrada** | Nombre de la categoría, precio, cantidad de tickets, código de acceso. |
+| **Pasos de Ejecución** | 1. Acceder a la sección de categorías de tickets en el evento. <br>2. Modificar el precio o crear una categoría nueva. <br>3. Configurar código de acceso si es una categoría oculta. <br>4. Guardar la configuración. |
+| **Técnicas de Pruebas** | Tablas de Decisión, Partición de Equivalencia. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Precio | Valor decimal >= 0 | Valor decimal < 0 |
+
+**Tabla de Decisión: Comportamiento por Categoría de Ticket**
+| ID Caso de Prueba | Escenario / Columna Origen | Dato de Entrada: ¿Es Ticket Interno? | Dato de Entrada: Precio | Resultado Esperado: ¿Visible en página? | Resultado Esperado: ¿Requiere Pago? |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| CP-01 | C1 (Expansión del -) | SÍ | $15.00 (Precio > 0) | NO | NO |
+| CP-02 | C2 (Expansión del -) | SÍ | $0.00 (Precio = 0) | NO | NO |
+| CP-03 | C3 | NO | $25.50 (Precio > 0) | SÍ | SÍ (Validar pasarela Stripe/Offline) |
+| CP-04 | C4 | NO | $0.00 (Precio = 0) | SÍ | NO (Debe dejar hacer checkout gratis) |
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-07-001 | Modificar el precio de una categoría existente | Guardar el cambio del precio exitosamente. | f+ |
+| CPF-07-002 | Ingresar un precio negativo en una categoría | Rechazar indicando que el precio no puede ser negativo. | f- |
+| CPF-07-003 | Configurar una categoría de tickets gratuitos (precio cero) | Guardar la categoría como gratuita y permitir checkout gratis. | f+ |
+| CPF-07-004 | Configurar categoría VIP con precio diferenciado | Guardar la categoría VIP y reflejar su precio diferenciado. | f+ |
+| CPF-07-005 | Crear categoría oculta con código de acceso | Crear la categoría oculta y requerir el código para su visualización. | f+ |
+| CPF-07-006 | Eliminar categoría oculta como administrador | Remover exitosamente la categoría de la lista. | f+ |
+| CPF-07-007 | Ticket interno, Precio > 0 (CP-01) | No visible en página y no requiere pago. | f- |
+| CPF-07-008 | Ticket interno, Precio = 0 (CP-02) | No visible en página y no requiere pago. | f- |
+| CPF-07-009 | Ticket no interno, Precio > 0 (CP-03) | Visible en página y requiere pago (Stripe/Offline). | f+ |
+| CPF-07-010 | Ticket no interno, Precio = 0 (CP-04) | Visible en página y permite checkout gratis (no requiere pago). | f+ |
+
+### Gestión de Capacidad (CONF-04)
+| ID | CPF-0008 |
+| :--- | :--- |
+| **Funcionalidad** | Gestión de Capacidad |
+| **Descripción** | Permite definir y controlar la capacidad máxima de asistentes del evento y de cada categoría de ticket individualmente. |
+| **Requisito Asociado** | RF-CONF-04 (Gestión de Capacidad) |
+| **Precondiciones** | El evento y las categorías deben estar configurados. |
+| **Datos de Entrada** | Capacidad del evento, capacidad de la categoría, límite de tickets por transacción. |
+| **Pasos de Ejecución** | 1. Configurar la capacidad máxima del evento y de las categorías. <br>2. Intentar registrar una compra superando los límites. <br>3. Verificar el comportamiento cuando se llega al límite. |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Análisis de Valores Límite. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo / Condición | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Capacidad | Total de categorías <= Capacidad del evento | Total de categorías > Capacidad del evento |
+| Cantidad por Compra | Menor o igual al límite por transacción | Mayor al límite por transacción, cantidad <= 0 |
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-08-001 | Configurar categorías cuya capacidad supere el límite del evento | Impedir guardar o emitir una advertencia de capacidad. | f- |
+| CPF-08-002 | Ingresar cantidad inválida o nula de tickets en una categoría | Rechazar indicando error en la capacidad. | f- |
+| CPF-08-003 | Comprar el último ticket disponible de una categoría | Procesar la compra y actualizar la disponibilidad a cero. | f+ |
+| CPF-08-004 | Comprar tickets respetando el límite máximo por transacción | Permitir la compra si está dentro del límite establecido. | f+ |
+| CPF-08-005 | Verificar estado de categoría cuando se agotan los tickets | Deshabilitar la venta y mostrar la etiqueta "Sold out" (Agotado). | f- |
+
+### Configuración de Impuestos (CONF-05)
+| ID | CPF-0009 |
+| :--- | :--- |
+| **Funcionalidad** | Configuración de Impuestos |
+| **Descripción** | Permite definir reglas de impuestos (VAT/IVA) y aplicarlas o eximirlas a categorías específicas. |
+| **Requisito Asociado** | RF-CONF-05 (Configuración de Impuestos) |
+| **Precondiciones** | La organización y el evento deben estar creados. |
+| **Datos de Entrada** | Nombre del impuesto, tasa impositiva (porcentaje), categoría a aplicar. |
+| **Pasos de Ejecución** | 1. Acceder al panel de administración del evento. <br>2. Configurar una nueva regla de impuestos. <br>3. Asociar o desvincular el impuesto a una categoría. |
+| **Técnicas de Pruebas** | Partición de Equivalencia. |
+| **Prioridad** | Media |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Tasa | Valor porcentual >= 0% | Valor porcentual < 0% |
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-09-001 | Configurar y aplicar un nuevo impuesto (VAT/IVA) | Guardar y aplicar el impuesto correctamente al precio de la categoría. | f+ |
+| CPF-09-002 | Actualizar la tasa del impuesto configurado a un valor de 0% | Se actualiza la tasa a 0% de forma exitosa en el panel. | f+ |
+| CPF-09-003 | Configurar y aplicar exención de impuestos (tax-free) a una categoría | Desvincular los impuestos del precio de la categoría. | f+ |
+
+### Configuración de Localización y Moneda (CONF-06)
+| ID | CPF-0010 |
+| :--- | :--- |
+| **Funcionalidad** | Configuración de Localización y Moneda |
+| **Descripción** | Permite definir el idioma del sistema, la traducción de los detalles del evento, la zona horaria y la moneda por defecto del evento. |
+| **Requisito Asociado** | RF-CONF-06 (Configuración de Localización y Moneda) |
+| **Precondiciones** | El evento debe estar creado. |
+| **Datos de Entrada** | Idioma principal, traducciones secundarias, zona horaria, moneda por defecto (EUR, PEN, etc.). |
+| **Pasos de Ejecución** | 1. Ir al panel de configuración de localización del evento/organización. <br>2. Configurar el idioma de visualización y traducciones del evento. <br>3. Modificar la zona horaria y moneda por defecto. |
+| **Técnicas de Pruebas** | Partición de Equivalencia. |
+| **Prioridad** | Media |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo / Condición | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Idioma | Al menos un idioma configurado en el sistema | Eliminar el último idioma restante |
+| Zona Horaria | Zona horaria coherente con la del evento | Desfase de zona horaria detectado |
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-10-001 | Seleccionar el idioma por defecto del sistema | Actualizar el idioma de visualización correctamente. | f+ |
+| CPF-10-002 | Traducir los detalles del evento a un idioma secundario | Guardar traducciones y aplicarlas correctamente a los campos. | f+ |
+| CPF-10-003 | Validar el límite mínimo de idiomas requeridos al intentar eliminar | Impedir la eliminación si solo queda un idioma configurado. | f- |
+| CPF-10-004 | Validar advertencia por desfase de zona horaria del evento | Mostrar alerta explicativa sobre la discrepancia de zona horaria. | f- |
+| CPF-10-005 | Cambiar la moneda por defecto del evento a Euros (EUR) | Actualizar la moneda a EUR y reflejarla en la tienda pública. | f+ |
+| CPF-10-006 | Cambiar la moneda por defecto del evento a Soles (PEN) | Actualizar la moneda a PEN y reflejarla en la tienda pública. | f+ |
+
+
 # Creación de Usuarios
 
 | ID | CPF-011 |
@@ -225,11 +418,6 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Datos de Entrada** | Organización, rol, nombre de usuario, nombre, apellido y correo electrónico. |
 | **Pasos de Ejecución** | 1. Acceder al módulo de usuarios. 2. Seleccionar "add new". 3. Completar los campos obligatorios. 4. Presionar "Save". |
 | **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión. |
-| **Prioridad** | Alta |
-
-**Análisis de Técnicas**
-
-**Partición de Equivalencia**
 
 | Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
@@ -313,6 +501,12 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 | **RF-005:** Creación de Usuarios | CPF-0011 (001-027) |
+| **RF-CONF-01:** Configuración de la Organización | CPF-0005 (001-006) |
+| **RF-CONF-02:** Configuración del Evento | CPF-0006 (001-007) |
+| **RF-CONF-03:** Configuración de Categorías de Tickets | CPF-0007 (001-010) |
+| **RF-CONF-04:** Gestión de Capacidad | CPF-0008 (001-005) |
+| **RF-CONF-05:** Configuración de Impuestos | CPF-0009 (001-003) |
+| **RF-CONF-06:** Configuración de Localización y Moneda | CPF-0010 (001-006) |
 
 ## 9. Métodos y Herramientas
 
