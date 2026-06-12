@@ -260,6 +260,18 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Técnicas de Pruebas** | Tablas de Decisión.                                                                                            |
 | **Prioridad**           | Crítica                                                                                                        |
 
+**Análisis de Técnicas**
+
+**Tabla de Decisión: Resultado visual del escaneo**
+
+| Condición                             | C1                     | C2                   | C3                       | C4                |
+| ------------------------------------- | ---------------------- | -------------------- | ------------------------ | ----------------- |
+| ¿El ticket existe en el sistema?      | NO                     | SI                   | SI                       | SI                |
+| ¿El estado del ticket es "Cancelado"? | -                      | SI                   | NO                       | NO                |
+| ¿El ticket ya figura como ingresado?  | -                      | -                    | SI                       | NO                |
+| **Resultado de Escaneo**              | **Rojo (Inexistente)** | **Rojo (Cancelado)** | **Amarillo (Duplicado)** | **Verde (Éxito)** |
+
+
 
 ## Matriz de Trazabilidad
 
