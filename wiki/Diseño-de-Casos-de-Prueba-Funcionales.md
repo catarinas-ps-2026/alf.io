@@ -312,7 +312,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-002:** Búsqueda administrativa de reservas | CPF-0002 (001-003) |
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
-| **RF-005:** Creación de Usuarios | CPF-0005 (001-030) |
+| **RF-005:** Creación de Usuarios | CPF-0005 (001-027) |
 
 ## 9. Métodos y Herramientas
 
