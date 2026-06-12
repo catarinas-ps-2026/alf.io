@@ -4,7 +4,7 @@
 
 - Docker installed and running
 
-```docker
+```bash
 docker run \
   --name alfio-db \
   -e POSTGRES_PASSWORD=postgres \
@@ -12,6 +12,11 @@ docker run \
   -d postgres
 ```
 - then verify the conection with
-```docker
+```bash
 docker logs alfio-db
+```
+Finally run the application
+
+```bash
+./gradlew -Pprofile=dev :bootRun
 ```
