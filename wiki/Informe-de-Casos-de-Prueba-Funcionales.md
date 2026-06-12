@@ -1450,6 +1450,92 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+#### Confirmación Manual de Pagos (Administrador)
+
+**CPF-08-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-001</td>
+      <td>Verificar que al confirmar un pago pendiente, la reserva cambie a COMPLETED y desaparezca de Pending Payments.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Pago cambia a COMPLETED, reserva desaparece de Pending Payments, contador disminuye.</td>
+      <td colspan="3">La reserva AB8B4C1B fue confirmada exitosamente, desapareció de la lista de pagos pendientes y el contador disminuyó de 2 a 1.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list"><br>
+        Lista de pagos pendientes antes de la confirmación (2 reservas).<br><br>
+        <img src="images/functional-tests/run/manual-confirm-modal-open.png" alt="manual-confirm-modal-open"><br>
+        Modal de confirmación abierto con fecha pre-rellenada y campo de notas.<br><br>
+        <img src="images/functional-tests/run/manual-confirm-after-confirm.png" alt="manual-confirm-after-confirm"><br>
+        Lista de pagos pendientes después de la confirmación (1 reserva), la reserva AB8B4C1B fue removida.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-08-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-002</td>
+      <td>Verificar que al cancelar el modal de confirmación, la reserva permanezca en estado PENDING.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Modal se cierra, pago permanece PENDING, reserva permanece en lista.</td>
+      <td colspan="3">El modal se cerró correctamente y la reserva 34B8431D permaneció en la lista de pagos pendientes sin cambios de estado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-modal-open.png" alt="manual-confirm-modal-open"><br>
+        Modal de confirmación abierto para la reserva 34B8431D.<br><br>
+        <img src="images/functional-tests/run/manual-confirm-cancel-still-pending.png" alt="manual-confirm-cancel-still-pending"><br>
+        Después de cancelar, la reserva 34B8431D permanece en la lista de pagos pendientes.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
