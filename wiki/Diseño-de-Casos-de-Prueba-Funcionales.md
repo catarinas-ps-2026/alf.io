@@ -421,6 +421,12 @@ stateDiagram-v2
 
 **Transición de Estados**
 
+| Cod. | Estado Origen | Estado Destino | Acción / Verificación |
+| :--- | :--- | :--- | :--- |
+| FN8-TS-001 | PENDING | COMPLETED | Admin confirma pago con fecha válida (notas opcionales) |
+| FN8-TS-002 | PENDING | PENDING | Admin cancela modal de confirmación, estado se mantiene |
+| FN8-TS-003 | PENDING | CANCELLED | Admin elimina reserva, cupo se libera |
+
 ```mermaid
 stateDiagram-v2
     [*] --> PENDING: Reserva con pago OFFLINE
@@ -434,10 +440,16 @@ stateDiagram-v2
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
-| CPF-08-001 | Confirmar pago con fecha pre-rellenada | Pago cambia a COMPLETED, reserva desaparece de Pending Payments, contador disminuye | f+ |
+| CPF-08-001 | Confirmar pago con fecha pre-rellenada (notas opcionales) | Pago cambia a COMPLETED, reserva desaparece de Pending Payments, contador disminuye | f+ |
 | CPF-08-002 | Clic en "Cancel" del modal de confirmación | Modal se cierra, pago permanece PENDING, reserva permanece en lista | f+ |
 | CPF-08-003 | Clic en "delete" de reserva pendiente | Reserva desaparece de Pending Payments, contador disminuye, cupo se libera | f+ |
 | CPF-08-004 | Verificar estado tras eliminación | Reserva aparece en estado "Cancelled" en la lista de reservas del evento | f+ |
+
+> **Notas de trazabilidad:**
+> - CPF-08-001 deriva de FN8-TS-001 (transición PENDING → COMPLETED) y FN8-PE-001 (fecha válida). Las notas (FN8-PE-002 con contenido, FN8-PE-003 vacío) son variaciones de entrada que no alteran el resultado.
+> - CPF-08-002 deriva de FN8-TS-002 (transición PENDING → PENDING al cancelar).
+> - CPF-08-003 deriva de FN8-TS-003 (transición PENDING → CANCELLED).
+> - CPF-08-004 deriva de FN8-TS-003 (verificación de la transición PENDING → CANCELLED).
 
 ## Matriz de Trazabilidad
 
