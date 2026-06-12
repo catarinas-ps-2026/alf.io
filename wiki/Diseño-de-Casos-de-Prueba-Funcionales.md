@@ -236,7 +236,13 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | ¿El ticket ya fue ingresado/usado?          | -      | -      | -      | SI     | NO     |
 | **Habilitar Botón / Permitir Acción**       | **NO** | **NO** | **NO** | **NO** | **SI** |
 
+**Catálogo de Pruebas**
 
+| #CP        | Escenario                                                    | Resultado Esperado                                                       | Obs |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------------------ | --- |
+| CPF-05-001 | Auto-check-in deshabilitado en evento                        | El botón no aparece                                                      | f-  |
+| CPF-05-002 | Con pago pendiente                                           | El botón se muestra inactivo o bloqueado                                 | f-  |
+| CPF-05-003 | Fuera de la ventana de tiempo (muy temprano/tarde)           | Se muestra un mensaje informando el horario habilitado                   | f-  |
 
 ## Matriz de Trazabilidad
 
