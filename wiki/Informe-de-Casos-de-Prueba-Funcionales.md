@@ -10,6 +10,7 @@
 - [7. Limitaciones](#7-limitaciones)
 - [8. Estrategia y métodos de prueba aplicados](#8-estrategia-y-métodos-de-prueba-aplicados)
 - [9. Conclusión](#9-conclusión)
+- [10. Resumen de Ejecución](#10-resumen-de-ejecución)
 
 ## 1. Introducción
 
@@ -6346,3 +6347,15 @@ Este proceso es controlado mediante Github actions, que:
 ## 9. Conclusión
 
 El enfoque de pruebas de alf.io combina múltiples niveles con un fuerte énfasis en la automatización para garantizar entornos de prueba reproducibles y fiables. La cobertura es extensa en la capa de negocio y los flujos críticos de pago y reserva, con 141 archivos de prueba que abarcan desde validaciones unitarias hasta escenarios concurrentes complejos. El pipeline de CI verifica cada cambio contra tres versiones de PostgreSQL, asegurando compatibilidad y calidad continua.
+
+## 10. Resumen de Ejecución
+
+| Métrica | Valor |
+|:---|:---|
+| Navegador utilizado | Firefox 151.* |
+| Entorno de aplicación | Imagen Docker ([ghcr.io/catarinas-ps-2026/alf.io](https://github.com/catarinas-ps-2026/alf.io/pkgs/container/alf.io)) compilada vía GitHub Actions (ubuntu-latest) y ejecutada en Kubernetes v1.34.5+k3s1 ([alfio.ynoacamino.me](https://alfio.ynoacamino.me)) |
+| Total de casos de prueba diseñados | 155 |
+| Total de casos de prueba ejecutados | 155 |
+| Cobertura funcional (ejecutados / diseñados) | 100.0% |
+| Casos con fallos | 15 |
+| Tasa de éxito (sobre ejecutados) | 90.3% |

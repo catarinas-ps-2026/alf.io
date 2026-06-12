@@ -8,6 +8,7 @@
 - [7. Limitaciones](#7-limitaciones)
 - [8. Estrategia y métodos de prueba aplicados](#8-estrategia-y-métodos-de-prueba-aplicados)
 - [9. Conclusión](#9-conclusión)
+- [10. Resumen de Ejecución](#10-resumen-de-ejecución)
 
 {{#each report_doc.sections}}
 ## {{title}}
@@ -142,3 +143,15 @@
 ## 9. Conclusión
 
 {{{metadata.informe.[9. Conclusión]}}}
+
+## 10. Resumen de Ejecución
+
+| Métrica | Valor |
+|:---|:---|
+| Navegador utilizado | Firefox 151.* |
+| Entorno de aplicación | Imagen Docker ([ghcr.io/catarinas-ps-2026/alf.io](https://github.com/catarinas-ps-2026/alf.io/pkgs/container/alf.io)) compilada vía GitHub Actions (ubuntu-latest) y ejecutada en Kubernetes v1.34.5+k3s1 ([alfio.ynoacamino.me](https://alfio.ynoacamino.me)) |
+| Total de casos de prueba diseñados | {{informe_stats.total_designed}} |
+| Total de casos de prueba ejecutados | {{informe_stats.total_tested}} |
+| Cobertura funcional (ejecutados / diseñados) | {{informe_stats.coverage_pct}}% |
+| Casos con fallos | {{informe_stats.failing}} |
+| Tasa de éxito (sobre ejecutados) | {{informe_stats.success_rate_pct}}% |
