@@ -247,6 +247,20 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-05-005 | Condiciones válidas (Habilitado, pagado, a tiempo, sin usar) | Botón visible y funcional; al hacer clic cambia el estado a "Checked-In" | f+  |
 
 
+---
+
+## 2. Validación de QR (Escaneo de Ticket en Puerta)
+
+| ID                      | CPF-0006                                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Funcionalidad**       | Validación y control de acceso mediante códigos QR                                                             |
+| **Descripción**         | Define el comportamiento e indicativo visual del lector de entrada según el estado y validez del QR escaneado. |
+| **Requisito Asociado**  | RF-006 (Control de Acceso)                                                                                     |
+| **Precondiciones**      | Dispositivo móvil de puerta logueado en la aplicación de check-in del evento.                                  |
+| **Técnicas de Pruebas** | Tablas de Decisión.                                                                                            |
+| **Prioridad**           | Crítica                                                                                                        |
+
+
 ## Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
