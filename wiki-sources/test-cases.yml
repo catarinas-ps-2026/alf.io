@@ -706,7 +706,7 @@ test_suites:
                   text: Botón de check-in bloqueado debido al estado de pago pendiente de la reserva.
           - cp_id: CPF-12-003
             inputs: Fuera de la ventana de tiempo (muy temprano/tarde)
-            expected: Se muestra un mensaje informando el horario habilitado
+            expected: El botón permanece deshabilitado o muestra un aviso con la hora exacta de habilitación.
             obs: f-
             execution:
               description: Verificar comportamiento de auto-check-in fuera de la ventana de tiempo del evento (antes del horario de apertura).
@@ -787,7 +787,7 @@ test_suites:
               type: Manual
               status: Exitoso
               defects: No se encontraron defectos
-              obtained: No redirige al flujo del evento.
+              obtained: "No redirige al flujo del evento."
               evidence:
                 - image: images/functional-tests/run/qr-scan-invalid.png
                   alt: qr-scan-invalid
