@@ -271,12 +271,12 @@ public final class EventUtil {
      * @return link description in the desired language, or the first one if not found. Or {@code null} if the map is empty
      */
     public static String getLocalizedMessage(Map&lt;String, String&gt; messagesByLang, String lang, LocalizedContent fallback) {
-<span class="nc bnc" id="L274" title="All 2 branches missed.">        if(messagesByLang.isEmpty()) {</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">        if(messagesByLang.isEmpty()) {</span>
 <span class="nc" id="L275">            return null;</span>
         }
 
-<span class="nc bnc" id="L278" title="All 2 branches missed.">        if(messagesByLang.containsKey(lang)) {</span>
-<span class="nc" id="L279">            return messagesByLang.get(lang);</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">        if(messagesByLang.containsKey(lang)) {</span>
+<span class="fc" id="L279">            return messagesByLang.get(lang);</span>
         }
 
 <span class="nc" id="L282">        var defaultLanguage = fallback.getFirstContentLanguage().getLanguage();</span>

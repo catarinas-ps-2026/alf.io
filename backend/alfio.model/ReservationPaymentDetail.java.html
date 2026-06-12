@@ -43,53 +43,53 @@ public class ReservationPaymentDetail {
                                     @Column(&quot;bt_currency&quot;) String currencyCode,
                                     @Column(&quot;bt_t_timestamp&quot;) ZonedDateTime transactionTimestamp,
                                     @Column(&quot;bt_notes&quot;) String transactionNotes,
-<span class="nc" id="L46">                                    @Column(&quot;tr_invoice_number&quot;) String invoiceNumber) {</span>
-<span class="nc" id="L47">        this.id = id;</span>
-<span class="nc" id="L48">        this.firstName = firstName;</span>
-<span class="nc" id="L49">        this.lastName = lastName;</span>
-<span class="nc" id="L50">        this.email = email;</span>
-<span class="nc" id="L51">        this.paymentMethod = paymentMethod;</span>
-<span class="nc" id="L52">        this.paidAmount = MonetaryUtil.formatCents(Objects.requireNonNullElse(paidAmount, 0), currencyCode);</span>
-<span class="nc" id="L53">        this.currencyCode = currencyCode;</span>
-<span class="nc" id="L54">        this.transactionTimestamp = transactionTimestamp.toString();</span>
-<span class="nc" id="L55">        this.transactionNotes = transactionNotes;</span>
-<span class="nc" id="L56">        this.invoiceNumber = invoiceNumber;</span>
-<span class="nc" id="L57">    }</span>
+<span class="fc" id="L46">                                    @Column(&quot;tr_invoice_number&quot;) String invoiceNumber) {</span>
+<span class="fc" id="L47">        this.id = id;</span>
+<span class="fc" id="L48">        this.firstName = firstName;</span>
+<span class="fc" id="L49">        this.lastName = lastName;</span>
+<span class="fc" id="L50">        this.email = email;</span>
+<span class="fc" id="L51">        this.paymentMethod = paymentMethod;</span>
+<span class="fc" id="L52">        this.paidAmount = MonetaryUtil.formatCents(Objects.requireNonNullElse(paidAmount, 0), currencyCode);</span>
+<span class="fc" id="L53">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L54">        this.transactionTimestamp = transactionTimestamp.toString();</span>
+<span class="fc" id="L55">        this.transactionNotes = transactionNotes;</span>
+<span class="fc" id="L56">        this.invoiceNumber = invoiceNumber;</span>
+<span class="fc" id="L57">    }</span>
 
     public String getId() {
-<span class="nc" id="L60">        return id;</span>
+<span class="fc" id="L60">        return id;</span>
     }
 
     public String getFirstName() {
-<span class="nc" id="L64">        return firstName;</span>
+<span class="fc" id="L64">        return firstName;</span>
     }
 
     public String getLastName() {
-<span class="nc" id="L68">        return lastName;</span>
+<span class="fc" id="L68">        return lastName;</span>
     }
 
     public String getEmail() {
-<span class="nc" id="L72">        return email;</span>
+<span class="fc" id="L72">        return email;</span>
     }
 
     public String getPaymentMethod() {
-<span class="nc" id="L76">        return paymentMethod;</span>
+<span class="fc" id="L76">        return paymentMethod;</span>
     }
 
     public String getPaidAmount() {
-<span class="nc" id="L80">        return paidAmount;</span>
+<span class="fc" id="L80">        return paidAmount;</span>
     }
 
     public String getCurrencyCode() {
-<span class="nc" id="L84">        return currencyCode;</span>
+<span class="fc" id="L84">        return currencyCode;</span>
     }
 
     public String getTransactionTimestamp() {
-<span class="nc" id="L88">        return transactionTimestamp;</span>
+<span class="fc" id="L88">        return transactionTimestamp;</span>
     }
 
     public String getTransactionNotes() {
-<span class="nc" id="L92">        return transactionNotes;</span>
+<span class="fc" id="L92">        return transactionNotes;</span>
     }
 
     public String getInvoiceNumber() {

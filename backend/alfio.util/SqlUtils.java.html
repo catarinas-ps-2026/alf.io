@@ -40,10 +40,10 @@ public class SqlUtils {
     }
 
     public static ZonedDateTime timestampToZoneDateTime(Timestamp timestamp) {
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (timestamp == null) {</span>
-<span class="nc" id="L44">            return null;</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (timestamp == null) {</span>
+<span class="fc" id="L44">            return null;</span>
         }
-<span class="nc" id="L46">        return ZonedDateTime.ofInstant(timestamp.toInstant(), ClockProvider.clock().getZone());</span>
+<span class="fc" id="L46">        return ZonedDateTime.ofInstant(timestamp.toInstant(), ClockProvider.clock().getZone());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

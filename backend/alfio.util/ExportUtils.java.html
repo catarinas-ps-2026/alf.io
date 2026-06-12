@@ -80,8 +80,8 @@ public class ExportUtils {
 <span class="fc" id="L80">        var trimmed = StringUtils.trimToEmpty(s);</span>
         // tab and carriage return are removed by the trimming
 <span class="fc" id="L82">        var res = trimmed;</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (StringUtils.startsWithAny(trimmed, &quot;=&quot;, &quot;+&quot;, &quot;-&quot;, &quot;@&quot;)) {</span>
-<span class="nc" id="L84">            res = &quot;\t&quot; + trimmed; // http://georgemauer.net/2017/10/07/csv-injection.html starting with a tab seems to be enough?</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (StringUtils.startsWithAny(trimmed, &quot;=&quot;, &quot;+&quot;, &quot;-&quot;, &quot;@&quot;)) {</span>
+<span class="fc" id="L84">            res = &quot;\t&quot; + trimmed; // http://georgemauer.net/2017/10/07/csv-injection.html starting with a tab seems to be enough?</span>
         }
 <span class="fc" id="L86">        return res;</span>
     }

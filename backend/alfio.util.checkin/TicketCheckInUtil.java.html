@@ -57,17 +57,17 @@ public class TicketCheckInUtil {
 <span class="fc" id="L57">        var result = new HashMap&lt;String, String&gt;();</span>
 <span class="fc" id="L58">        var customMetadataOptional = extensionManager.handleCustomOnlineJoinUrl(event, ticket, ticketAdditionalInfo);</span>
 <span class="fc" id="L59">        result.put(CUSTOM_CHECK_IN_URL, Boolean.toString(customMetadataOptional.isPresent()));</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if(customMetadataOptional.isPresent()) {</span>
-<span class="nc" id="L61">            var ticketMetadata = customMetadataOptional.get();</span>
-<span class="nc" id="L62">            var joinLink = ticketMetadata.getJoinLink();</span>
-<span class="nc" id="L63">            result.put(ONLINE_CHECK_IN_URL, joinLink.getLink());</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">            if(joinLink.hasLinkText()) {</span>
-<span class="nc" id="L65">                result.put(CUSTOM_CHECK_IN_URL_TEXT, joinLink.getLocalizedText(ticketLanguage.getLanguage(), event));</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if(customMetadataOptional.isPresent()) {</span>
+<span class="fc" id="L61">            var ticketMetadata = customMetadataOptional.get();</span>
+<span class="fc" id="L62">            var joinLink = ticketMetadata.getJoinLink();</span>
+<span class="fc" id="L63">            result.put(ONLINE_CHECK_IN_URL, joinLink.getLink());</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">            if(joinLink.hasLinkText()) {</span>
+<span class="fc" id="L65">                result.put(CUSTOM_CHECK_IN_URL_TEXT, joinLink.getLocalizedText(ticketLanguage.getLanguage(), event));</span>
             }
-<span class="nc" id="L67">            var linkDescription = ticketMetadata.getLocalizedDescription(ticketLanguage.getLanguage(), event);</span>
-<span class="nc" id="L68">            result.put(CUSTOM_CHECK_IN_URL_DESCRIPTION, linkDescription);</span>
-<span class="nc" id="L69">            result.put(&quot;prerequisites&quot;, &quot;&quot;);</span>
-<span class="nc" id="L70">        } else {</span>
+<span class="fc" id="L67">            var linkDescription = ticketMetadata.getLocalizedDescription(ticketLanguage.getLanguage(), event);</span>
+<span class="fc" id="L68">            result.put(CUSTOM_CHECK_IN_URL_DESCRIPTION, linkDescription);</span>
+<span class="fc" id="L69">            result.put(&quot;prerequisites&quot;, &quot;&quot;);</span>
+<span class="fc" id="L70">        } else {</span>
 <span class="fc" id="L71">            Supplier&lt;Optional&lt;String&gt;&gt; eventMetadata = () -&gt; Optional.ofNullable(eventRepository.getMetadataForEvent(event.getId()).getRequirementsDescriptions()).flatMap(m -&gt; Optional.ofNullable(m.get(ticketLanguage.getLanguage())));</span>
 <span class="fc" id="L72">            var categoryMetadata = Optional.ofNullable(ticketCategoryRepository.getMetadata(event.getId(), ticketCategory.getId()).getRequirementsDescriptions()).flatMap(m -&gt; Optional.ofNullable(m.get(ticketLanguage.getLanguage())));</span>
 <span class="fc" id="L73">            result.put(ONLINE_CHECK_IN_URL, ticketOnlineCheckInUrl(event, ticket, configurationManager.baseUrl(event)));</span>

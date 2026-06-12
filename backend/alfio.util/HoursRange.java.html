@@ -29,16 +29,16 @@ public class HoursRange {
 <span class="fc" id="L29">    }</span>
 
     public boolean includes(LocalTime localTime) {
-<span class="pc bpc" id="L32" title="1 of 4 branches missed.">        return Duration.between(localTime, start).isNegative() &amp;&amp; Duration.between(end, localTime).isNegative();</span>
+<span class="fc bfc" id="L32" title="All 4 branches covered.">        return Duration.between(localTime, start).isNegative() &amp;&amp; Duration.between(end, localTime).isNegative();</span>
     }
 
     public int getDistanceInHours(LocalTime localTime) {
-<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if(includes(localTime)) {</span>
-<span class="nc" id="L37">            return 0;</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if(includes(localTime)) {</span>
+<span class="fc" id="L37">            return 0;</span>
         }
 <span class="fc" id="L39">        Duration distanceFromStart = Duration.between(localTime, start);</span>
-<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if(distanceFromStart.isNegative()) {</span>
-<span class="nc" id="L41">            return 24 + (int) distanceFromStart.toHours();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if(distanceFromStart.isNegative()) {</span>
+<span class="fc" id="L41">            return 24 + (int) distanceFromStart.toHours();</span>
         }
 <span class="fc" id="L43">        return (int) distanceFromStart.toHours();</span>
     }
