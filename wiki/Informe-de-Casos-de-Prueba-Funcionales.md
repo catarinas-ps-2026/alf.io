@@ -2383,6 +2383,1059 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+**CPF-11-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-001</td>
+      <td>No permitir la creación de usuarios con un nombre de usuario ya registrado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el registro e informa que el username ya existe.</td>
+      <td colspan="3">Se mostró mensaje de username duplicado y no se creó el usuario.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-duplicate-username.png" alt="duplicate-username"><br>
+        Validación de unicidad del nombre de usuario.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-002</td>
+      <td>No permitir correos electrónicos sin el carácter '@'.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de formato de correo electrónico.</td>
+      <td colspan="3">Se rechazó el correo "anarodriguez.com" por formato inválido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-invalid-email-format.png" alt="invalid-email"><br>
+        Validación de formato de correo electrónico.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-003</td>
+      <td>No permitir correos electrónicos sin dominio válido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de formato de correo electrónico.</td>
+      <td colspan="3">Se rechazó el correo "ana@" por no contener un dominio válido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-invalid-email-domain.png" alt="invalid-email-domain"><br>
+        Validación de dominio en direcciones de correo.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-004</td>
+      <td>No permitir el registro de un correo electrónico ya existente.</td>
+      <td>Manual</td>
+      <td>Fallido</td>
+      <td>El sistema permite correos duplicados</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el registro e informa que el correo ya está en uso.</td>
+      <td colspan="3">Se mostró mensaje de correo duplicado y no se creó el usuario.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-duplicate-email.png" alt="duplicate-email"><br>
+        Verificación de unicidad del correo electrónico.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-005</td>
+      <td>No permitir usernames compuestos únicamente por espacios en blanco.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el valor e indica que el username es obligatorio o inválido.</td>
+      <td colspan="3">Se rechazó el registro al detectar un username compuesto únicamente por espacios.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-blank-username.png" alt="blank-username"><br>
+        Validación de espacios en blanco en el nombre de usuario.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-006</td>
+      <td>Permitir la creación de usuarios con un username de longitud mínima válida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El usuario se crea correctamente con un username de un carácter.</td>
+      <td colspan="3">Usuario creado exitosamente utilizando el username "aa".</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-min-username.png" alt="min-username"><br>
+        Validación del límite inferior permitido para username.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-007**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-007</td>
+      <td>Permitir la creación de usuarios con un username de longitud máxima válida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El usuario se crea correctamente con un username de 255 caracteres.</td>
+      <td colspan="3">Usuario creado exitosamente con un username en el límite superior permitido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-max-username-valid.png" alt="max-username-valid"><br>
+        Validación del límite superior permitido para username.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-008**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-008</td>
+      <td>No permitir usernames que excedan la longitud máxima definida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza usernames de 256 caracteres.</td>
+      <td colspan="3">Se mostró mensaje indicando que el username excede la longitud permitida.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-max-username-invalid.png" alt="max-username-invalid"><br>
+        Validación de longitud máxima para username.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-009**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-009</td>
+      <td>No permitir nombres compuestos únicamente por espacios en blanco.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el valor e indica que el nombre es obligatorio o inválido.</td>
+      <td colspan="3">Se rechazó el registro al detectar un nombre compuesto únicamente por espacios.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-blank-name.png" alt="blank-name"><br>
+        Validación de espacios en blanco en el nombre del usuario.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-010**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-010</td>
+      <td>Permitir la creación de usuarios con un nombre de longitud mínima válida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El usuario se crea correctamente con un nombre de un carácter.</td>
+      <td colspan="3">Usuario creado exitosamente utilizando el nombre "AA".</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-min-name.png" alt="min-name"><br>
+        Validación del límite inferior permitido para el nombre.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-011**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-011</td>
+      <td>No permitir nombres compuestos únicamente por caracteres numéricos.</td>
+      <td>Manual</td>
+      <td>Fallido</td>
+      <td>El sistema permite nombres numéricos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el valor e indica que el nombre no puede contener únicamente números.</td>
+      <td colspan="3">Se mostraron las credenciales del usuario creado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-numeric-name.png" alt="numeric-name"><br>
+        Validación de caracteres numéricos en el campo nombre.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-012**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-012</td>
+      <td>No permitir nombres compuestos únicamente por símbolos especiales.</td>
+      <td>Manual</td>
+      <td>Fallido</td>
+      <td>El sistema permite nombres con símbolos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el valor e indica que el nombre contiene caracteres inválidos.</td>
+      <td colspan="3">Se mostraron las credenciales del usuario creado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-symbol-name.png" alt="symbol-name"><br>
+        Validación de caracteres especiales en el campo nombre.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-013**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-013</td>
+      <td>Permitir nombres con la longitud máxima válida configurada.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El usuario se crea correctamente con un nombre de 255 caracteres.</td>
+      <td colspan="3">Usuario creado exitosamente utilizando un nombre en el límite superior permitido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-max-name-valid.png" alt="max-name-valid"><br>
+        Validación del límite superior permitido para el nombre.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-014**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-014</td>
+      <td>No permitir nombres que excedan la longitud máxima definida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza nombres de 256 caracteres.</td>
+      <td colspan="3">Se mostró mensaje indicando que el nombre excede la longitud permitida.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-max-name-invalid.png" alt="max-name-invalid"><br>
+        Validación de longitud máxima para el nombre.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-015**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-015</td>
+      <td>No permitir apellidos compuestos únicamente por espacios en blanco.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el valor e indica que el apellido es obligatorio o inválido.</td>
+      <td colspan="3">Se rechazó el registro al detectar un apellido compuesto únicamente por espacios.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-blank-lastname.png" alt="blank-lastname"><br>
+        Validación de espacios en blanco en el campo apellido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-016**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-016</td>
+      <td>Permitir la creación de usuarios con un apellido de longitud mínima válida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El usuario se crea correctamente con un apellido de un carácter.</td>
+      <td colspan="3">Usuario creado exitosamente utilizando el apellido "RR".</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-min-lastname.png" alt="min-lastname"><br>
+        Validación del límite inferior permitido para el apellido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-017**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-017</td>
+      <td>No permitir apellidos compuestos únicamente por caracteres numéricos.</td>
+      <td>Manual</td>
+      <td>Fallido</td>
+      <td>El sistema permite nombres numéricos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el valor e indica que el apellido no puede contener únicamente números.</td>
+      <td colspan="3">Se mostraron las credenciales del usuario creado.
+      </td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-numeric-lastname.png" alt="numeric-lastname"><br>
+        Validación de caracteres numéricos en el campo apellido.</td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-018**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-018</td>
+      <td>No permitir apellidos compuestos únicamente por símbolos especiales.</td>
+      <td>Manual</td>
+      <td>Fallido</td>
+      <td>El sistema permite apellidos con símbolos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza el valor e indica que el apellido contiene caracteres inválidos.</td>
+      <td colspan="3">Se mostraron las credenciales del usuario creado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-symbol-lastname.png" alt="symbol-lastname"><br>
+        Validación de caracteres especiales en el campo apellido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-019**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-019</td>
+      <td>Permitir apellidos con la longitud máxima válida configurada.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El usuario se crea correctamente con un apellido de 255 caracteres.</td>
+      <td colspan="3">Usuario creado exitosamente utilizando un apellido en el límite superior permitido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-max-lastname-valid.png" alt="max-lastname-valid"><br>
+        Validación del límite superior permitido para el apellido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-020**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-020</td>
+      <td>No permitir apellidos que excedan la longitud máxima definida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema rechaza apellidos de 256 caracteres.</td>
+      <td colspan="3">Se mostró mensaje indicando que el apellido excede la longitud permitida.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-max-lastname-invalid.png" alt="max-lastname-invalid"><br>
+        Validación de longitud máxima para el apellido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-021**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-021</td>
+      <td>No permitir la creación de usuarios cuando la organización no ha sido seleccionada.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="3">Se bloqueó la creación del usuario al no seleccionar una organización.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-without-organization.png" alt="without-organization"><br>
+        Validación de obligatoriedad del campo organización.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-022**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-022</td>
+      <td>No permitir la creación de usuarios cuando el rol no ha sido seleccionado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="3">Se bloqueó la creación del usuario al no seleccionar un rol.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-without-role.png" alt="without-role"><br>
+        Validación de obligatoriedad del campo rol.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-023**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-023</td>
+      <td>No permitir la creación de usuarios cuando el username está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo username.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-without-username.png" alt="without-username"><br>
+        Validación de obligatoriedad del campo username.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-024**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-024</td>
+      <td>No permitir la creación de usuarios cuando el nombre está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo nombre.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-without-name.png" alt="without-name"><br>
+        Validación de obligatoriedad del campo nombre.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-025**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-025</td>
+      <td>No permitir la creación de usuarios cuando el apellido está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo apellido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-without-lastname.png" alt="without-lastname"><br>
+        Validación de obligatoriedad del campo apellido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-026**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-026</td>
+      <td>No permitir la creación de usuarios cuando el correo electrónico está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo correo electrónico.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-without-email.png" alt="without-email"><br>
+        Validación de obligatoriedad del campo correo electrónico.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-11-027**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-11-027</td>
+      <td>Permitir la creación de usuarios cuando todos los campos obligatorios han sido completados correctamente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El usuario se crea correctamente y queda registrado en la organización seleccionada.</td>
+      <td colspan="3">Usuario creado exitosamente con los datos proporcionados.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/user-created-successfully.png" alt="user-created"><br>
+        Escenario exitoso de creación de usuario con todos los campos válidos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
