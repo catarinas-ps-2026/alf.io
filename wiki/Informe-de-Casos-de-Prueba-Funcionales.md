@@ -1079,7 +1079,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-001**
+**CPF-11-001**
 <table>
   <thead>
     <tr>
@@ -1092,7 +1092,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-001</td>
+      <td>CPF-11-001</td>
       <td>No permitir la creación de usuarios con un nombre de usuario ya registrado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1118,7 +1118,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-002**
+**CPF-11-002**
 <table>
   <thead>
     <tr>
@@ -1131,7 +1131,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-002</td>
+      <td>CPF-11-002</td>
       <td>No permitir correos electrónicos sin el carácter '@'.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1157,7 +1157,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-003**
+**CPF-11-003**
 <table>
   <thead>
     <tr>
@@ -1170,7 +1170,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-003</td>
+      <td>CPF-11-003</td>
       <td>No permitir correos electrónicos sin dominio válido.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1196,7 +1196,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-004**
+**CPF-11-004**
 <table>
   <thead>
     <tr>
@@ -1209,7 +1209,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-004</td>
+      <td>CPF-11-004</td>
       <td>No permitir el registro de un correo electrónico ya existente.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -1235,7 +1235,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-005**
+**CPF-11-005**
 <table>
   <thead>
     <tr>
@@ -1248,7 +1248,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-005</td>
+      <td>CPF-11-005</td>
       <td>No permitir usernames compuestos únicamente por espacios en blanco.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1274,7 +1274,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-006**
+**CPF-11-006**
 <table>
   <thead>
     <tr>
@@ -1287,7 +1287,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-006</td>
+      <td>CPF-11-006</td>
       <td>Permitir la creación de usuarios con un username de longitud mínima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1313,7 +1313,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-007**
+**CPF-11-007**
 <table>
   <thead>
     <tr>
@@ -1326,7 +1326,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-007</td>
+      <td>CPF-11-007</td>
       <td>Permitir la creación de usuarios con un username de longitud máxima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1352,7 +1352,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-008**
+**CPF-11-008**
 <table>
   <thead>
     <tr>
@@ -1365,7 +1365,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-008</td>
+      <td>CPF-11-008</td>
       <td>No permitir usernames que excedan la longitud máxima definida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1391,7 +1391,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-009**
+**CPF-11-009**
 <table>
   <thead>
     <tr>
@@ -1404,7 +1404,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-009</td>
+      <td>CPF-11-009</td>
       <td>No permitir nombres compuestos únicamente por espacios en blanco.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1430,7 +1430,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-010**
+**CPF-11-010**
 <table>
   <thead>
     <tr>
@@ -1443,7 +1443,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-010</td>
+      <td>CPF-11-010</td>
       <td>Permitir la creación de usuarios con un nombre de longitud mínima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1469,7 +1469,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-011**
+**CPF-11-011**
 <table>
   <thead>
     <tr>
@@ -1482,7 +1482,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-011</td>
+      <td>CPF-11-011</td>
       <td>No permitir nombres compuestos únicamente por caracteres numéricos.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -1508,7 +1508,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-012**
+**CPF-11-012**
 <table>
   <thead>
     <tr>
@@ -1521,7 +1521,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-012</td>
+      <td>CPF-11-012</td>
       <td>No permitir nombres compuestos únicamente por símbolos especiales.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -1547,7 +1547,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-013**
+**CPF-11-013**
 <table>
   <thead>
     <tr>
@@ -1560,7 +1560,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-013</td>
+      <td>CPF-11-013</td>
       <td>Permitir nombres con la longitud máxima válida configurada.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1586,7 +1586,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-014**
+**CPF-11-014**
 <table>
   <thead>
     <tr>
@@ -1599,7 +1599,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-014</td>
+      <td>CPF-11-014</td>
       <td>No permitir nombres que excedan la longitud máxima definida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1625,7 +1625,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-015**
+**CPF-11-015**
 <table>
   <thead>
     <tr>
@@ -1638,7 +1638,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-015</td>
+      <td>CPF-11-015</td>
       <td>No permitir apellidos compuestos únicamente por espacios en blanco.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1664,7 +1664,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-016**
+**CPF-11-016**
 <table>
   <thead>
     <tr>
@@ -1677,7 +1677,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-016</td>
+      <td>CPF-11-016</td>
       <td>Permitir la creación de usuarios con un apellido de longitud mínima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1703,7 +1703,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-017**
+**CPF-11-017**
 <table>
   <thead>
     <tr>
@@ -1716,7 +1716,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-017</td>
+      <td>CPF-11-017</td>
       <td>No permitir apellidos compuestos únicamente por caracteres numéricos.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -1742,7 +1742,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-018**
+**CPF-11-018**
 <table>
   <thead>
     <tr>
@@ -1755,7 +1755,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-018</td>
+      <td>CPF-11-018</td>
       <td>No permitir apellidos compuestos únicamente por símbolos especiales.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -1781,7 +1781,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-019**
+**CPF-11-019**
 <table>
   <thead>
     <tr>
@@ -1794,7 +1794,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-019</td>
+      <td>CPF-11-019</td>
       <td>Permitir apellidos con la longitud máxima válida configurada.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1820,7 +1820,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-020**
+**CPF-11-020**
 <table>
   <thead>
     <tr>
@@ -1833,7 +1833,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-020</td>
+      <td>CPF-11-020</td>
       <td>No permitir apellidos que excedan la longitud máxima definida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1859,7 +1859,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-021**
+**CPF-11-021**
 <table>
   <thead>
     <tr>
@@ -1872,7 +1872,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-021</td>
+      <td>CPF-11-021</td>
       <td>No permitir la creación de usuarios cuando la organización no ha sido seleccionada.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1898,7 +1898,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-022**
+**CPF-11-022**
 <table>
   <thead>
     <tr>
@@ -1911,7 +1911,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-022</td>
+      <td>CPF-11-022</td>
       <td>No permitir la creación de usuarios cuando el rol no ha sido seleccionado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1937,7 +1937,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-023**
+**CPF-11-023**
 <table>
   <thead>
     <tr>
@@ -1950,7 +1950,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-023</td>
+      <td>CPF-11-023</td>
       <td>No permitir la creación de usuarios cuando el username está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1976,7 +1976,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-024**
+**CPF-11-024**
 <table>
   <thead>
     <tr>
@@ -1989,7 +1989,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-024</td>
+      <td>CPF-11-024</td>
       <td>No permitir la creación de usuarios cuando el nombre está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2015,7 +2015,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-025**
+**CPF-11-025**
 <table>
   <thead>
     <tr>
@@ -2028,7 +2028,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-025</td>
+      <td>CPF-11-025</td>
       <td>No permitir la creación de usuarios cuando el apellido está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2054,7 +2054,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-026**
+**CPF-11-026**
 <table>
   <thead>
     <tr>
@@ -2067,7 +2067,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-026</td>
+      <td>CPF-11-026</td>
       <td>No permitir la creación de usuarios cuando el correo electrónico está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2093,7 +2093,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-06-027**
+**CPF-11-027**
 <table>
   <thead>
     <tr>
@@ -2106,7 +2106,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-06-027</td>
+      <td>CPF-11-027</td>
       <td>Permitir la creación de usuarios cuando todos los campos obligatorios han sido completados correctamente.</td>
       <td>Manual</td>
       <td>Exitoso</td>

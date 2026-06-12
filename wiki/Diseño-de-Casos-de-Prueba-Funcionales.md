@@ -216,11 +216,11 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 # Creación de Usuarios
 
-| ID | CPF-0005 |
+| ID | CPF-011 |
 | :--- | :--- |
 | **Funcionalidad** | Creación de usuarios |
 | **Descripción** | Permite a un administrador registrar nuevos usuarios asignándoles una organización y un rol dentro del sistema. |
-| **Requisito Asociado** | RF-006 (Creación de Usuarios) |
+| **Requisito Asociado** | RF-005 (Creación de Usuarios) |
 | **Precondiciones** | El usuario debe estar autenticado con permisos de administrador. |
 | **Datos de Entrada** | Organización, rol, nombre de usuario, nombre, apellido y correo electrónico. |
 | **Pasos de Ejecución** | 1. Acceder al módulo de usuarios. 2. Seleccionar "add new". 3. Completar los campos obligatorios. 4. Presionar "Save". |
@@ -274,33 +274,33 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
-| CPF-06-001 | Username: "usuario_existente" | Error: Username ya registrado | f- |
-| CPF-06-002 | E-mail: "anarodriguez.com" | Error: Formato de correo inválido | f- |
-| CPF-06-003 | E-mail: "ana@" | Error: Formato de correo inválido | f- |
-| CPF-06-004 | E-mail: "usuario.existente@techevents.com" | Error: Correo ya registrado | f- |
-| CPF-06-005 | Username: "   " (solo espacios en blanco) | Error: Username obligatorio o inválido | f- |
-| CPF-06-006 | Username: "aa" | Usuario creado exitosamente | f+ |
-| CPF-06-007 | Username: (255 caracteres) | Usuario creado exitosamente | f+ |
-| CPF-06-008 | Username: (256 caracteres) | Error: Username excede la longitud permitida | f- |
-| CPF-06-009 | Nombre: "   " (solo espacios en blanco) | Error: Nombre obligatorio o inválido | f- |
-| CPF-06-010 | Nombre: "AA" | Usuario creado exitosamente | f+ |
-| CPF-06-011 | Nombre: "33" | Error: Nombre no puede ser un número | f- |
-| CPF-06-012 | Nombre: "$$" | Error: Nombre no puede ser un símbolo | f- |
-| CPF-06-013 | Nombre: (255 caracteres) | Usuario creado exitosamente | f+ |
-| CPF-06-014 | Nombre: (256 caracteres) | Error: Nombre excede la longitud permitida | f- |
-| CPF-06-015 | Apellido: "   " (solo espacios en blanco) | Error: Apellido obligatorio o inválido | f- |
-| CPF-06-016 | Apellido: "RR" | Usuario creado exitosamente | f+ |
-| CPF-06-017 | Apellido: "33" | Error: Apellido no puede ser un número | f- |
-| CPF-06-018 | Apellido: "$$" | Error: Apellido no puede ser un símbolo | f- |
-| CPF-06-019 | Apellido: (255 caracteres) | Usuario creado exitosamente | f+ |
-| CPF-06-020 | Apellido: (256 caracteres) | Error: Apellido excede la longitud permitida | f- |
-| CPF-06-021 | Organización: "" (vacía), Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
-| CPF-06-022 | Organización: "AA", Rol: "" (vacío), Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
-| CPF-06-023 | Organización: "AA", Rol: "Organization owner", Username: "" (vacío), Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
-| CPF-06-024 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "" (vacío), Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
-| CPF-06-025 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "" (vacío), E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
-| CPF-06-026 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "" (vacío) | El sistema muestra error de validación y no permite guardar | f- |
-| CPF-06-027 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | Usuario creado exitosamente | f+ |
+| CPF-11-001 | Username: "usuario_existente" | Error: Username ya registrado | f- |
+| CPF-11-002 | E-mail: "anarodriguez.com" | Error: Formato de correo inválido | f- |
+| CPF-11-003 | E-mail: "ana@" | Error: Formato de correo inválido | f- |
+| CPF-11-004 | E-mail: "usuario.existente@techevents.com" | Error: Correo ya registrado | f- |
+| CPF-11-005 | Username: "   " (solo espacios en blanco) | Error: Username obligatorio o inválido | f- |
+| CPF-11-006 | Username: "aa" | Usuario creado exitosamente | f+ |
+| CPF-11-007 | Username: (255 caracteres) | Usuario creado exitosamente | f+ |
+| CPF-11-008 | Username: (256 caracteres) | Error: Username excede la longitud permitida | f- |
+| CPF-11-009 | Nombre: "   " (solo espacios en blanco) | Error: Nombre obligatorio o inválido | f- |
+| CPF-11-010 | Nombre: "AA" | Usuario creado exitosamente | f+ |
+| CPF-11-011 | Nombre: "33" | Error: Nombre no puede ser un número | f- |
+| CPF-11-012 | Nombre: "$$" | Error: Nombre no puede ser un símbolo | f- |
+| CPF-11-013 | Nombre: (255 caracteres) | Usuario creado exitosamente | f+ |
+| CPF-11-014 | Nombre: (256 caracteres) | Error: Nombre excede la longitud permitida | f- |
+| CPF-11-015 | Apellido: "   " (solo espacios en blanco) | Error: Apellido obligatorio o inválido | f- |
+| CPF-11-016 | Apellido: "RR" | Usuario creado exitosamente | f+ |
+| CPF-11-017 | Apellido: "33" | Error: Apellido no puede ser un número | f- |
+| CPF-11-018 | Apellido: "$$" | Error: Apellido no puede ser un símbolo | f- |
+| CPF-11-019 | Apellido: (255 caracteres) | Usuario creado exitosamente | f+ |
+| CPF-11-020 | Apellido: (256 caracteres) | Error: Apellido excede la longitud permitida | f- |
+| CPF-11-021 | Organización: "" (vacía), Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
+| CPF-11-022 | Organización: "AA", Rol: "" (vacío), Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
+| CPF-11-023 | Organización: "AA", Rol: "Organization owner", Username: "" (vacío), Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
+| CPF-11-024 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "" (vacío), Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
+| CPF-11-025 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "" (vacío), E-mail: "carlos.valdez@techevents.com" | El sistema muestra error de validación y no permite guardar | f- |
+| CPF-11-026 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "" (vacío) | El sistema muestra error de validación y no permite guardar | f- |
+| CPF-11-027 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | Usuario creado exitosamente | f+ |
 
 ## Matriz de Trazabilidad
 
@@ -312,7 +312,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-002:** Búsqueda administrativa de reservas | CPF-0002 (001-003) |
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
-| **RF-006:** Creación de Usuarios | CPF-0005 (001-027) |
+| **RF-005:** Creación de Usuarios | CPF-0011 (001-027) |
 
 ## 9. Métodos y Herramientas
 
