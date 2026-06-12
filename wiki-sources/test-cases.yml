@@ -2702,6 +2702,731 @@ test_suites:
                           - image: images/functional-tests/run/user-created-successfully.png
                             alt: user-created
                             text: Escenario exitoso de creación de usuario con todos los campos válidos.
+    - title: "Selección de Entradas (Tickets)"
+      level: "###"
+      catalog_header: "Datos de Entrada"
+      cases:
+          - id: CPF-RES-01
+            functionality: Selección y validación de cantidad de entradas
+            description: "Valida que el sistema controle la selección de entradas: cantidad mínima (no avanzar con 0), rangos de dropdown predefinidos (0-5 y 0-10), y disponibilidad de inventario (insuficiente y sold out)."
+            requirement: RF-RES-01 (Selección de Entradas)
+            preconditions: "Evento público visible con al menos una categoría de tickets configurada."
+            inputs: "Cantidad de entradas (dropdown o campo numérico), categoría de ticket."
+            steps:
+                - "Acceder a la página pública del evento."
+                - "Intentar continuar con 0 entradas."
+                - "Seleccionar cantidades en dropdown (rangos 0-5 y 0-10)."
+                - "Intentar seleccionar más entradas de las disponibles."
+            techniques:
+                - Partición de Equivalencia
+                - Análisis de Valores Límite
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Cantidad de tickets
+                      valid: "1-5 o 1-10 (según categoría)"
+                      invalid: "0 entradas"
+                    - field: Rango 0-5
+                      valid: "0, 1, 2, 3, 4, 5"
+                      invalid: "Negativos, >5"
+                    - field: Rango 0-10
+                      valid: "0, 1, 2, ..., 10"
+                      invalid: "Negativos, >10"
+                    - field: Disponibilidad
+                      valid: "Tickets > 0"
+                      invalid: "Tickets = 0 (sold out)"
+                    - field: Solicitud
+                      valid: "Cantidad <= disponibles"
+                      invalid: "Cantidad > disponibles"
+                boundary_values:
+                    - field: Cantidad
+                      min_valid: 1
+                      min_invalid: 0
+                      max_valid: 5 o 10
+                      max_invalid: 6 o 11
+                decision_tables: []
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-01-001
+                  inputs: "Cantidad: 0"
+                  expected: "Error: seleccione al menos una entrada, no avanza"
+                  obs: f-
+                  execution:
+                      description: Verificar que no se permita avanzar con 0 entradas seleccionadas.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema muestra el mensaje de error y no permite avanzar.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/11.png
+                            alt: select-0-entries
+                            text: Se muestra el mensaje de error al intentar continuar con 0 entradas.
+                - cp_id: CPF-RES-01-002
+                  inputs: "Dropdown rango 0-5, seleccionar 0"
+                  expected: "Dropdown muestra valores 0-5"
+                  obs: f+
+                  execution:
+                      description: Verificar selección de entradas con dropdown (rango 0-5).
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El dropdown muestra valores predefinidos 0-5, no acepta valores negativos o superiores.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/21.png
+                            alt: select-dropdown-0-5
+                            text: Dropdown con rango 0-5 para primera categoría de entradas.
+                - cp_id: CPF-RES-01-003
+                  inputs: "Dropdown rango 0-10, seleccionar 0"
+                  expected: "Dropdown muestra valores 0-10"
+                  obs: f+
+                  execution:
+                      description: Verificar selección de entradas con dropdown (rango 0-10).
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El dropdown muestra valores predefinidos 0-10, no acepta valores negativos o superiores.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/22.png
+                            alt: select-dropdown-0-10
+                            text: Dropdown con rango 0-10 para segunda categoría de entradas.
+                - cp_id: CPF-RES-01-004
+                  inputs: "Cantidad solicitada > disponibles"
+                  expected: "Error: no hay suficientes entradas, bloquea selección"
+                  obs: f-
+                  execution:
+                      description: Verificar mensaje de error cuando no hay suficientes entradas disponibles.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema muestra mensaje de error y bloquea la selección.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/12.png
+                            alt: not-enough-tickets
+                            text: Mensaje de error cuando no hay suficientes entradas disponibles.
+                - cp_id: CPF-RES-01-005
+                  inputs: "Disponibilidad = 0"
+                  expected: "Mensaje: entradas agotadas (sold out)"
+                  obs: f-
+                  execution:
+                      description: Verificar mensaje cuando todas las entradas están agotadas (sold out).
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema muestra que todas las entradas están agotadas.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/13.png
+                            alt: sold-out
+                            text: Mensaje de entradas agotadas (sold out).
+    - title: "Formulario de Asistente - Validación de Campos"
+      level: "###"
+      catalog_header: "Datos de Entrada"
+      cases:
+          - id: CPF-RES-02
+            functionality: Validación de formulario de datos del asistente
+            description: "Valida la correcta validación de campos obligatorios (nombre, apellido, email), formato de email, manejo de múltiples asistentes, límite de 255 caracteres, y campos personalizados."
+            requirement: RF-RES-02 (Formulario de Asistente)
+            preconditions: "Flujo de reserva en paso de formulario de asistente."
+            inputs: "Nombre, Apellido, Email, cantidad de asistentes."
+            steps:
+                - "Avanzar al paso de formulario de asistente."
+                - "Intentar continuar con campos vacíos."
+                - "Llenar datos válidos y continuar."
+                - "Probar formatos de email inválidos."
+                - "Seleccionar múltiples entradas y verificar campos adicionales."
+                - "Probar límite de 255 caracteres."
+            techniques:
+                - Partición de Equivalencia
+                - Análisis de Valores Límite
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Nombre
+                      valid: "Texto no vacío (1-255 chars)"
+                      invalid: "Vacío"
+                    - field: Apellido
+                      valid: "Texto no vacío (1-255 chars)"
+                      invalid: "Vacío"
+                    - field: Email
+                      valid: "Formato válido (user@domain.com)"
+                      invalid: "Vacío, sin @, sin dominio"
+                    - field: Campos de texto
+                      valid: "1-255 caracteres"
+                      invalid: "0 chars, >255 chars"
+                boundary_values:
+                    - field: Nombre/Apellido
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres (vacío)
+                      max_valid: 255 caracteres
+                      max_invalid: 256 caracteres
+                decision_tables: []
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-02-001
+                  inputs: "Nombre vacío"
+                  expected: 'Error: "Nombre obligatorio"'
+                  obs: f-
+                  execution:
+                      description: Verificar que los campos obligatorios muestren error al estar vacíos.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema muestra los mensajes de error y no permite continuar.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/31.png
+                            alt: fields-empty-error
+                            text: Se muestran errores al presionar continuar con campos vacíos.
+                - cp_id: CPF-RES-02-002
+                  inputs: 'Nombre: "Juan", Apellido: "Pérez", Email: "juan@test.com"'
+                  expected: "Formulario válido, permite continuar"
+                  obs: f+
+                  execution:
+                      description: Verificar llenado correcto de datos de asistente.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema permite continuar cuando los campos obligatorios están llenos.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/32.png
+                            alt: fields-filled
+                            text: Formulario completado con datos válidos.
+                - cp_id: CPF-RES-02-003
+                  inputs: 'Email: "test@test.com"'
+                  expected: "Aceptar formato válido"
+                  obs: f+
+                  execution:
+                      description: Verificar validación de formato de email.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema valida correctamente el formato del correo electrónico.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/33.png
+                            alt: email-validation
+                            text: Validación de email permite formatos válidos.
+                - cp_id: CPF-RES-02-004
+                  inputs: 'Comprador: "Juan Pérez", Asistente: "María López"'
+                  expected: "Nombres diferentes aceptados"
+                  obs: f+
+                  execution:
+                      description: Verificar que se puedan usar diferentes nombres para asistente y comprador.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema acepta que los datos del comprador sean distintos a los del asistente.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/34.png
+                            alt: different-names
+                            text: Se permite registrar diferentes nombres para comprador y asistente.
+                - cp_id: CPF-RES-02-005
+                  inputs: "2 entradas seleccionadas"
+                  expected: "Formularios para ambos asistentes visibles"
+                  obs: f+
+                  execution:
+                      description: Verificar campos obligatorios para múltiples entradas.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema solicita los datos de todos los asistentes cuando se compran múltiples entradas.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/35.png
+                            alt: multiple-attendees
+                            text: Campos obligatorios para cada asistente adicional.
+                - cp_id: CPF-RES-02-006
+                  inputs: 'Checkbox "ocultar asistentes" marcado'
+                  expected: "Campos de asistentes ocultos, permite continuar"
+                  obs: f+
+                  execution:
+                      description: Verificar opción de ocultar campos de asistentes adicionales.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Al marcar el checkbox, se ocultan los campos de asistentes y se permite continuar.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/37.png
+                            alt: hide-attendees-checkbox
+                            text: Checkbox para ocultar campos de asistentes adicionales.
+                - cp_id: CPF-RES-02-007
+                  inputs: "Campo con 256 caracteres"
+                  expected: "Error de validación"
+                  obs: f-
+                  execution:
+                      description: Verificar límite de 255 caracteres en campos de texto.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Se muestra error de validación al ingresar 256 caracteres.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/38.png
+                            alt: 255-chars-error
+                            text: Error de validación al usar 256 caracteres.
+                - cp_id: CPF-RES-02-008
+                  inputs: "Campo con 100 caracteres"
+                  expected: "Aceptar y guardar"
+                  obs: f+
+                  execution:
+                      description: Verificar que 100 caracteres sean aceptados.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Los 100 caracteres son aceptados y guardados correctamente.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/39.png
+                            alt: 100-chars-ok
+                            text: 100 caracteres aceptados y visibles en la confirmación.
+                - cp_id: CPF-RES-02-009
+                  inputs: "Campo con 255 caracteres"
+                  expected: "Aceptar y guardar"
+                  obs: f+
+                  execution:
+                      description: Verificar que 255 caracteres sean aceptados (límite válido).
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Los 255 caracteres son aceptados y guardados correctamente.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/39.png
+                            alt: 255-chars-ok
+                            text: 255 caracteres aceptados como longitud máxima válida.
+                - cp_id: CPF-RES-02-010
+                  inputs: "Evento con campos regionales"
+                  expected: "Campos personalizados visibles en formulario"
+                  obs: f+
+                  execution:
+                      description: Verificar campos personalizados en el formulario de asistente.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Los campos personalizados aparecen condicionalmente según la configuración regional.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/39.png
+                            alt: custom-fields
+                            text: "Campos personalizados visibles en el formulario (ej: configuración regional como Perú)."
+    - title: "Tiempo de Expiración de Reserva (Countdown)"
+      level: "###"
+      catalog_header: "Escenario"
+      cases:
+          - id: CPF-RES-03
+            functionality: Visualización del contador de expiración y transición de estados por tiempo
+            description: "Valida que el contador de expiración de reserva cambie de color según el tiempo restante: azul (>5min), amarillo (<=5min), rojo (<=1min), y muestre modal de expiración al llegar a 0."
+            requirement: RF-RES-03 (Tiempo de Expiración)
+            preconditions: "Reserva activa con countdown en curso."
+            inputs: "Tiempo restante del countdown."
+            steps:
+                - "Iniciar una reserva y observar el countdown."
+                - "Verificar color azul con tiempo > 5 minutos."
+                - "Esperar a que el tiempo llegue a <= 5 minutos y verificar cambio a amarillo."
+                - "Esperar a que el tiempo llegue a <= 1 minuto y verificar cambio a rojo."
+                - "Esperar a que el tiempo llegue a 0 y verificar modal de expiración."
+            techniques:
+                - Transición de Estados
+                - Análisis de Valores Límite
+            priority: Alta
+            analysis:
+                equivalency_partitions: []
+                boundary_values:
+                    - field: Tiempo
+                      min_valid: "0:01"
+                      min_invalid: "0:00 (expirado)"
+                      max_valid: "24:00"
+                      max_invalid: "-"
+                decision_tables: []
+                state_transitions:
+                    - alt: Diagrama de Transición de Estados - Countdown
+                      image: images/functional-tests/design/countdown-expiration.png
+            catalog:
+                - cp_id: CPF-RES-03-001
+                  inputs: "Tiempo: 24:00"
+                  expected: "Contador azul"
+                  obs: f+
+                  execution:
+                      description: Verificar color azul del contador con tiempo > 5 minutos.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El contador muestra color azul cuando el tiempo restante es mayor a 5 minutos.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/41.png
+                            alt: countdown-24min
+                            text: Contador azul con tiempo inicial de 24 minutos.
+                - cp_id: CPF-RES-03-002
+                  inputs: "Tiempo: 15:00"
+                  expected: "Contador azul"
+                  obs: f+
+                  execution:
+                      description: Verificar color azul del contador a los 15 minutos.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El contador continúa mostrando color azul.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/42.png
+                            alt: countdown-15min
+                            text: Contador azul a los 15 minutos restantes.
+                - cp_id: CPF-RES-03-003
+                  inputs: "Tiempo: 10:52"
+                  expected: "Contador azul"
+                  obs: f+
+                  execution:
+                      description: Verificar color azul del contador cerca de los 10 minutos.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El contador continúa mostrando color azul.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/43.png
+                            alt: countdown-10min
+                            text: Contador azul a los 10 minutos con 52 segundos restantes.
+                - cp_id: CPF-RES-03-004
+                  inputs: "Tiempo: <=5:00"
+                  expected: "Contador amarillo"
+                  obs: f+
+                  execution:
+                      description: Verificar cambio a color amarillo cuando el tiempo es <= 5 minutos.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El contador cambia al estilo de alerta amarilla.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/44.png
+                            alt: countdown-yellow
+                            text: Contador cambia a amarillo cuando quedan menos de 5 minutos.
+                - cp_id: CPF-RES-03-005
+                  inputs: "Tiempo: <=1:00"
+                  expected: "Contador rojo"
+                  obs: f+
+                  execution:
+                      description: Verificar cambio a color rojo cuando el tiempo es <= 1 minuto.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El contador cambia al estilo de alerta roja.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/45.png
+                            alt: countdown-red
+                            text: Contador cambia a rojo cuando queda menos de 1 minuto.
+                - cp_id: CPF-RES-03-006
+                  inputs: "Tiempo: 0:00"
+                  expected: 'Modal "La sesión ha expirado" con opción volver al inicio'
+                  obs: f-
+                  execution:
+                      description: Verificar modal de expiración cuando el tiempo llega a 0.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema muestra el modal de expiración de sesión.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/46.png
+                            alt: session-expired
+                            text: Modal de sesión expirada con opción de volver al inicio.
+    - title: "Aceptación de Términos y Condiciones"
+      level: "###"
+      catalog_header: "Escenario"
+      cases:
+          - id: CPF-RES-04
+            functionality: Control de habilitación del botón de pago según aceptación de términos
+            description: "Valida que el botón de pago solo se habilita al aceptar los 3 checkboxes (Condiciones di vendita, Privacy Policy, Informativa sulla privacy), y que eventos gratuitos también requieren aceptación."
+            requirement: RF-RES-04 (Términos y Condiciones)
+            preconditions: "Flujo de reserva en paso de términos y condiciones."
+            inputs: "Estado de los 3 checkboxes de aceptación."
+            steps:
+                - "Avanzar al paso de términos y condiciones."
+                - "Verificar que el botón está deshabilitado sin aceptar."
+                - "Marcar los 3 checkboxes y verificar que se habilita."
+            techniques:
+                - Tabla de Decisión
+                - Partición de Equivalencia
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Aceptación de términos
+                      valid: "3 checkboxes marcados"
+                      invalid: "0, 1 o 2 checkboxes marcados"
+                boundary_values: []
+                decision_tables:
+                    - title: "Habilitación del botón de pago"
+                      header: Condición
+                      columns: [C1, C2, C3, C4]
+                      conditions:
+                          - name: "¿Condizioni di vendita aceptada?"
+                            values: ["NO", SI, SI, SI]
+                          - name: "¿Privacy Policy aceptada?"
+                            values: ["-", "NO", SI, SI]
+                          - name: "¿Informativa sulla privacy aceptada?"
+                            values: ["-", "-", "NO", SI]
+                      action_name: "Habilitar botón"
+                      actions: ["NO", "NO", "NO", SI]
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-04-001
+                  inputs: "0 checkboxes marcados"
+                  expected: "Botón deshabilitado"
+                  obs: f-
+                  execution:
+                      description: Verificar que el botón de pago esté deshabilitado sin aceptar términos.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema no permite continuar sin aceptar los términos y condiciones.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/51.png
+                            alt: button-disabled
+                            text: Botón de pago deshabilitado sin aceptación de términos.
+                - cp_id: CPF-RES-04-002
+                  inputs: "1 checkbox marcado"
+                  expected: "Botón deshabilitado"
+                  obs: f-
+                  execution:
+                      description: Verificar que el botón permanezca deshabilitado con solo 1 checkbox marcado.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El botón permanece deshabilitado con solo un término aceptado.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/51.png
+                            alt: button-disabled-1-check
+                            text: Botón de pago sigue deshabilitado con 1 de 3 términos aceptados.
+                - cp_id: CPF-RES-04-003
+                  inputs: "2 checkboxes marcados"
+                  expected: "Botón deshabilitado"
+                  obs: f-
+                  execution:
+                      description: Verificar que el botón permanezca deshabilitado con 2 checkboxes marcados.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El botón permanece deshabilitado con dos términos aceptados.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/51.png
+                            alt: button-disabled-2-check
+                            text: Botón de pago sigue deshabilitado con 2 de 3 términos aceptados.
+                - cp_id: CPF-RES-04-004
+                  inputs: "3 checkboxes marcados"
+                  expected: "Botón habilitado"
+                  obs: f+
+                  execution:
+                      description: Verificar que al marcar checkbox se habilite el botón de pago.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Al hacer click en el checkbox, el botón se activa.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/52.png
+                            alt: button-enabled
+                            text: Botón de pago habilitado tras aceptar términos.
+                - cp_id: CPF-RES-04-005
+                  inputs: "0 checkboxes, evento gratuito"
+                  expected: "Error: aceptar términos requerido"
+                  obs: f-
+                  execution:
+                      description: Verificar error al no aceptar términos en evento gratuito.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema muestra mensaje de error aunque sea un evento gratuito.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/53.png
+                            alt: free-event-terms-error
+                            text: Error al intentar continuar sin aceptar términos en evento gratuito.
+    - title: "Reserva Completada - Confirmación y Descarga"
+      level: "###"
+      catalog_header: "Escenario"
+      cases:
+          - id: CPF-RES-05
+            functionality: Confirmación de reserva completada, descarga de PDF y envío de email
+            description: "Valida el flujo post-pago: barra de carga durante procesamiento, página de confirmación, descarga de PDF con códigos QR, y envío de email de confirmación."
+            requirement: RF-RES-05 (Confirmación y Descarga)
+            preconditions: "Pago procesado exitosamente."
+            steps:
+                - "Completar el pago de la reserva."
+                - "Verificar barra de carga durante procesamiento."
+                - "Verificar página de confirmación."
+                - "Descargar PDF y verificar contenido."
+                - "Verificar envío de email de confirmación."
+            techniques:
+                - Transición de Estados
+                - Partición de Equivalencia
+            priority: Alta
+            analysis:
+                equivalency_partitions: []
+                boundary_values: []
+                decision_tables: []
+                state_transitions:
+                    - alt: Diagrama de Transición de Estados - Procesamiento de Reserva
+                      raw: |-
+                          ```
+                          S0 (Procesando) --[pago OK]--> S1 (Confirmación)
+                          S0 (Procesando) --[error]--> S2 (Error)
+                          ```
+            catalog:
+                - cp_id: CPF-RES-05-001
+                  inputs: "Pago procesándose"
+                  expected: "Barra de carga visible"
+                  obs: f+
+                  execution:
+                      description: Verificar barra de carga durante procesamiento.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Se muestra una barra de carga durante el procesamiento (rápida para pocas entradas).
+                      evidence:
+                          - image: images/functional-tests/run/reservation/61.png
+                            alt: loading-bar
+                            text: Barra de carga visible durante el procesamiento.
+                - cp_id: CPF-RES-05-002
+                  inputs: "Pago completado"
+                  expected: 'Página "La riserva è stata completata" con datos'
+                  obs: f+
+                  execution:
+                      description: Verificar página de confirmación de reserva completada.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: La página muestra "La riserva è stata completata" con los datos del comprador.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/71.png
+                            alt: reservation-complete
+                            text: Confirmación de reserva completada exitosamente.
+                - cp_id: CPF-RES-05-003
+                  inputs: "Reserva completada"
+                  expected: "Botón de descarga PDF visible"
+                  obs: f+
+                  execution:
+                      description: Verificar descarga de PDF de entradas.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema genera y permite descargar el PDF con los códigos QR.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/73.png
+                            alt: download-pdf-button
+                            text: Botón para descargar PDF de entradas.
+                - cp_id: CPF-RES-05-004
+                  inputs: "PDF descargado"
+                  expected: "Contiene códigos QR y datos completos"
+                  obs: f+
+                  execution:
+                      description: Verificar contenido del PDF generado.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El PDF generado incluye la información completa de las entradas.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/74.png
+                            alt: pdf-content
+                            text: Contenido del PDF con códigos QR y datos de entrada.
+                - cp_id: CPF-RES-05-005
+                  inputs: "Reserva completada"
+                  expected: "Email enviado con confirmación"
+                  obs: f+
+                  execution:
+                      description: Verificar envío de email de confirmación.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El sistema muestra mensaje de "Email enviado" tras reenviar.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/75.png
+                            alt: email-sent
+                            text: Mensaje de confirmación de email enviado.
+                - cp_id: CPF-RES-05-006
+                  inputs: "Email recibido"
+                  expected: "Contiene entradas con códigos QR"
+                  obs: f+
+                  execution:
+                      description: Verificar visualización de entradas en el email.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: El email recibido muestra las entradas registradas.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/76.png
+                            alt: email-entries
+                            text: Entradas visibles en el email de confirmación.
+    - title: "Panel de Administración - Gestión de Reservas"
+      level: "###"
+      catalog_header: "Escenario"
+      cases:
+          - id: CPF-RES-06
+            functionality: Visualización e impresión de reservas en el panel de administración
+            description: "Valida que las reservas completadas aparezcan en el panel de administración del evento y que se puedan imprimir recibos/boletas."
+            requirement: RF-RES-06 (Gestión de Reservas en Admin)
+            preconditions: "Reserva completada, acceso admin al evento."
+            steps:
+                - "Acceder al panel de administración del evento."
+                - "Buscar la reserva en el listado."
+                - "Seleccionar opción de imprimir recibo."
+            techniques:
+                - Partición de Equivalencia
+            priority: Media
+            analysis:
+                equivalency_partitions: []
+                boundary_values: []
+                decision_tables: []
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-06-001
+                  inputs: "Acceder al manager del evento"
+                  expected: "Reserva visible en el listado"
+                  obs: f+
+                  execution:
+                      description: Verificar visualización de reserva en el panel de administración.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: La reserva completada se muestra correctamente en el manager.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/77.png
+                            alt: manager-reservation
+                            text: Reserva visible en el panel de administración.
+                - cp_id: CPF-RES-06-002
+                  inputs: "Seleccionar opción imprimir"
+                  expected: "Boleta disponible para impresión"
+                  obs: f+
+                  execution:
+                      description: Verificar opción de imprimir recibo desde el manager.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Se puede acceder a la impresión del recibo desde el panel.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/78.png
+                            alt: print-receipt
+                            text: Opción de imprimir boleta visible en el manager.
+    - title: "Campos Personalizados"
+      level: "###"
+      catalog_header: "Escenario"
+      cases:
+          - id: CPF-RES-07
+            functionality: Campos personalizados en formulario de asistente
+            description: "Valida que los campos adicionales configurados para un evento (ej: campos regionales como los de Perú) aparezcan condicionalmente en el formulario de asistente."
+            requirement: RF-RES-07 (Campos Personalizados)
+            preconditions: "Evento con campos personalizados configurados."
+            steps:
+                - "Acceder al formulario de asistente de un evento con campos personalizados."
+                - "Verificar que los campos adicionales sean visibles."
+            techniques:
+                - Partición de Equivalencia
+            priority: Media
+            analysis:
+                equivalency_partitions: []
+                boundary_values: []
+                decision_tables: []
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-07-001
+                  inputs: "Evento con campos regionales"
+                  expected: "Campos personalizados visibles en formulario"
+                  obs: f+
+                  execution:
+                      description: Verificar campos personalizados en el formulario de asistente.
+                      type: Manual
+                      status: Exitoso
+                      defects: No se encontraron defectos
+                      obtained: Los campos personalizados aparecen condicionalmente según la configuración regional.
+                      evidence:
+                          - image: images/functional-tests/run/reservation/39.png
+                            alt: custom-fields
+                            text: "Campos personalizados visibles en el formulario (ej: configuración regional como Perú)."
 traceability_matrix:
     - requirement: RF-001
       description: Gestión de información del asistente (Edición de Ticket)
@@ -2757,3 +3482,24 @@ traceability_matrix:
     - requirement: RF-007
       description: Generación de Acreditaciones
       cases: CPF-0018 (001-005)
+    - requirement: RF-RES-01
+      description: Selección de Entradas (Tickets)
+      cases: CPF-RES-01 (001-005)
+    - requirement: RF-RES-02
+      description: Formulario de Asistente - Validación de Campos
+      cases: CPF-RES-02 (001-010)
+    - requirement: RF-RES-03
+      description: Tiempo de Expiración de Reserva (Countdown)
+      cases: CPF-RES-03 (001-006)
+    - requirement: RF-RES-04
+      description: Aceptación de Términos y Condiciones
+      cases: CPF-RES-04 (001-005)
+    - requirement: RF-RES-05
+      description: Reserva Completada - Confirmación y Descarga
+      cases: CPF-RES-05 (001-006)
+    - requirement: RF-RES-06
+      description: Panel de Administración - Gestión de Reservas
+      cases: CPF-RES-06 (001-002)
+    - requirement: RF-RES-07
+      description: Campos Personalizados
+      cases: CPF-RES-07 (001)
