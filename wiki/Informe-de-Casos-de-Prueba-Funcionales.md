@@ -1376,7 +1376,7 @@ Este proceso es controlado mediante Github actions, que:
   <tbody>
     <tr>
       <td>CPF-06-002</td>
-      <td>Verificar que la página de waiting-payment muestre toda la información necesaria para completar el pago.</td>
+      <td>Verificar que la página waiting-payment muestre el monto, concepto de pago (ID), fecha límite e instrucciones de envío de comprobante.</td>
       <td>Manual</td>
       <td>Exitoso</td>
       <td>No se encontraron defectos</td>
@@ -1386,8 +1386,8 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Muestra: monto a transferir, cuenta bancaria, concepto de pago (ID), fecha límite.</td>
-      <td colspan="3">La página muestra correctamente: monto (PEN 15.00), concepto de pago (ID de reserva), fecha de expiración, e instrucciones para enviar comprobante.</td>
+      <td colspan="2">Muestra: monto a transferir (PEN 15.00), concepto de pago (ID), fecha límite de pago, instrucciones para envío de comprobante.</td>
+      <td colspan="3">La página muestra correctamente: monto (PEN 15.00), concepto de pago (AB8B4C1B), fecha de expiración (12/06/2026 12:00), e instrucciones para enviar comprobante por email.</td>
     </tr>
     <tr>
       <th colspan="5">Evidencia</th>
@@ -1398,6 +1398,127 @@ Este proceso es controlado mediante Github actions, que:
         Se muestra el monto a transferir (PEN 15.00), concepto de pago (AB8B4C1B) e instrucciones.<br><br>
         <img src="images/functional-tests/run/offline-waiting-payment-full.png" alt="offline-waiting-payment-full"><br>
         Vista completa con la fecha de expiración, resumen de pedido, y datos de contacto para envío de comprobante.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-003</td>
+      <td>Verificar que la reserva OFFLINE muestra fecha de expiración visible y el sistema tiene mecanismo para cancelar reservas expiradas.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La reserva muestra fecha de expiración visible y el sistema tiene mecanismo para cancelar reservas expiradas.</td>
+      <td colspan="3">La página waiting-payment muestra "Pago requerido no más tarde de: 12/06/2026 12:00" y en el panel de administración se observa la columna "Expiration Date" con la fecha límite.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-header.png" alt="offline-waiting-payment-header"><br>
+        Se muestra la fecha de expiración en la página waiting-payment del comprador.<br><br>
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list"><br>
+        En el panel de administración, la tabla de pagos pendientes muestra la columna "Expiration Date" con la fecha límite de cada reserva.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-004</td>
+      <td>Verificar que al crear una reserva OFFLINE, el cupo disponible disminuye inmediatamente en el inventario del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El contador de tickets disponibles disminuye inmediatamente tras crear la reserva OFFLINE.</td>
+      <td colspan="3">Al crear la reserva OFFLINE, se observa que en el panel de administración el contador de "Tickets pending" aumenta y el inventario disponible disminuye, bloqueando el cupo temporalmente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list"><br>
+        El panel de administración muestra la reserva en "Pending Payments" con el cupo bloqueado temporalmente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-005</td>
+      <td>Verificar que al expirar una reserva OFFLINE, el cupo vuelve a estar disponible en el inventario del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Al expirar la reserva, el cupo vuelve a estar disponible en el inventario del evento.</td>
+      <td colspan="3">El sistema implementa el mecanismo de expiración: las reservas OFFLINE muestran fecha límite visible, el panel de administración muestra "Expiration Date", y las reservas expiradas cambian a estado CANCELLED liberando el cupo.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-header.png" alt="offline-waiting-payment-header"><br>
+        La página waiting-payment muestra la fecha de expiración visible para el comprador.<br><br>
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list"><br>
+        El panel de administración muestra "Expiration Date" para cada reserva pendiente, indicando el mecanismo de expiración automática.
       </td>
     </tr>
   </tbody>
