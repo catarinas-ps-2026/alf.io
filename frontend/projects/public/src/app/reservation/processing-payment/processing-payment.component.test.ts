@@ -209,4 +209,149 @@ describe('ProcessingPaymentComponent', () => {
             expect(clearIntervalSpy).toHaveBeenCalled();
         });
     });
+
+    describe('forceCheck error handling', () => {
+        it('should handle error when forceCheck fails', async () => {
+            const errorResponse = { status: 500 };
+            mockReservationService.forcePaymentStatusCheck.mockReturnValue(throwError(() => errorResponse));
+
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationInfo = mockReservationInfo;
+            component.purchaseContext = mockPurchaseContext;
+            component.reservationId = 'res-123';
+
+            component.forceCheck();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(mockReservationService.forcePaymentStatusCheck).toHaveBeenCalled();
+        });
+    });
+
+    describe('component properties', () => {
+        it('should initialize with default values', () => {
+            component.ngOnInit();
+            expect(component.forceCheckVisible).toBe(false);
+            expect(component.providerWarningVisible).toBe(false);
+            expect(component.forceCheckInProgress).toBe(false);
+        });
+    });
+
+    describe('reservationStateChanged', () => {
+        it('should navigate to success page', async () => {
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContextType = 'event';
+            component.publicIdentifier = 'test-event';
+            component.reservationId = 'res-123';
+
+            component['reservationStateChanged']();
+
+            expect(mockRouter.navigate).toHaveBeenCalledWith(
+                ['event', 'test-event', 'reservation', 'res-123', 'success'],
+                expect.any(Object),
+            );
+        });
+
+        it('should use SearchParams.transformParams for query params', async () => {
+            mockActivatedRoute.snapshot.queryParams = { lang: 'en' };
+
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContextType = 'event';
+            component.publicIdentifier = 'test-event';
+            component.reservationId = 'res-123';
+
+            component['reservationStateChanged']();
+
+            expect(mockRouter.navigate).toHaveBeenCalled();
+        });
+    });
+
+    describe('forceCheck with redirect', () => {
+        it('should redirect when status has redirectUrl', async () => {
+            mockReservationService.forcePaymentStatusCheck.mockReturnValue(of({
+                success: false,
+                failure: false,
+                redirect: true,
+                redirectUrl: 'https://payment.return.url',
+            }));
+
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+
+            component.forceCheck();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(mockReservationService.forcePaymentStatusCheck).toHaveBeenCalledWith('res-123');
+        });
+    });
+
+    describe('forceCheck with success', () => {
+        it('should call reservationStateChanged when success', async () => {
+            mockReservationService.forcePaymentStatusCheck.mockReturnValue(of({
+                success: true,
+                failure: false,
+                redirect: false,
+            }));
+
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContextType = 'event';
+            component.publicIdentifier = 'test-event';
+            component.reservationId = 'res-123';
+
+            component.forceCheck();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(mockRouter.navigate).toHaveBeenCalled();
+        });
+    });
+
+    describe('forceCheck with failure', () => {
+        it('should call reservationStateChanged when failure', async () => {
+            mockReservationService.forcePaymentStatusCheck.mockReturnValue(of({
+                success: false,
+                failure: true,
+                redirect: false,
+            }));
+
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.purchaseContextType = 'event';
+            component.publicIdentifier = 'test-event';
+            component.reservationId = 'res-123';
+
+            component.forceCheck();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(mockRouter.navigate).toHaveBeenCalled();
+        });
+    });
+
+    describe('forceCheckInProgress state', () => {
+        it('should reset forceCheckInProgress after check completes', async () => {
+            mockReservationService.forcePaymentStatusCheck.mockReturnValue(of({
+                success: false,
+                failure: false,
+                redirect: false,
+            }));
+
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            component.reservationId = 'res-123';
+
+            component.forceCheck();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(component.forceCheckInProgress).toBe(false);
+        });
+    });
 });
+
+function throwError(error: any) {
+    return new (require('rxjs').Observable)((subscriber) => {
+        subscriber.error(error);
+    });
+}
