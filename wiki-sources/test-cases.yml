@@ -1234,7 +1234,7 @@ test_suites:
           - id: CPF-0016
             functionality: Proceso de auto-check-in por parte del usuario asistente
             description: Valida si un usuario asistente puede realizar el check-in digital de su ticket de manera autónoma desde la interfaz web.
-            requirement: RF-005 (Auto-Check-in)
+            requirement: RF-009 (Auto-Check-in)
             preconditions: El usuario posee un enlace válido a la página de su ticket personal.
             inputs: ""
             steps: []
@@ -1338,7 +1338,7 @@ test_suites:
           - id: CPF-0017
             functionality: Validación y control de acceso mediante códigos QR
             description: Define el comportamiento e indicativo visual del lector de entrada según el estado y validez del QR escaneado.
-            requirement: RF-006 (Control de Acceso)
+            requirement: RF-010 (Control de Acceso)
             preconditions: Dispositivo móvil de puerta logueado en la aplicación de check-in del evento.
             inputs: ""
             steps: []
@@ -1432,7 +1432,7 @@ test_suites:
           - id: CPF-0018
             functionality: Emisión e impresión de credenciales físicas
             description: Determina si el sistema permite la descarga/impresión del badge o carnet del asistente en PDF según las reglas del evento y del ticket.
-            requirement: RF-007 (Generación de Acreditaciones)
+            requirement: RF-011 (Generación de Acreditaciones)
             preconditions: Diseño de badge cargado y asignado para el evento.
             inputs: ""
             steps: []
@@ -1587,7 +1587,7 @@ test_suites:
                   expected: Rechazar indicando que el nombre ya existe.
                   obs: f-
       informe_catalog:
-          - cp_id: CONF-09-001
+          - cp_id: CPF-09-001
             execution:
                 description: Crear organización con datos válidos.
                 type: Manual
@@ -1601,7 +1601,7 @@ test_suites:
                     - image: images/functional-tests/run/config-org-create-success.png
                       alt: config-org-create-success
                       text: Formulario completado y creación exitosa de la organización.
-          - cp_id: CONF-09-002
+          - cp_id: CPF-09-002
             execution:
                 description: Intentar crear organización con nombre vacío.
                 type: Manual
@@ -1612,7 +1612,7 @@ test_suites:
                     - image: images/functional-tests/run/config-org-create-empty-name.png
                       alt: config-org-create-empty-name
                       text: Validación del frontend al intentar omitir el nombre.
-          - cp_id: CONF-09-003
+          - cp_id: CPF-09-003
             execution:
                 description: Intentar crear organización con email de formato inválido.
                 type: Manual
@@ -1623,7 +1623,7 @@ test_suites:
                     - image: images/functional-tests/run/config-org-create-invalid-email.png
                       alt: config-org-create-invalid-email
                       text: Validación del formato del correo electrónico.
-          - cp_id: CONF-09-004
+          - cp_id: CPF-09-004
             execution:
                 description: Crear organización con nombre de 255 caracteres.
                 type: Manual
@@ -1637,7 +1637,7 @@ test_suites:
                     - image: images/functional-tests/run/config-org-create-name-255-view.png
                       alt: config-org-create-name-255-view
                       text: Creación y guardado exitoso con longitud máxima de 255 caracteres.
-          - cp_id: CONF-09-005
+          - cp_id: CPF-09-005
             execution:
                 description: Editar los datos de una organización existente.
                 type: Manual
@@ -1651,7 +1651,7 @@ test_suites:
                     - image: images/functional-tests/run/config-org-edit-success.png
                       alt: config-org-edit-success
                       text: Edición de datos de la organización guardada exitosamente.
-          - cp_id: CONF-09-006
+          - cp_id: CPF-09-006
             execution:
                 description: Crear organización con nombre de 256 caracteres.
                 type: Manual
@@ -1718,7 +1718,7 @@ test_suites:
                   expected: Guardar el mismo código en múltiples categorías.
                   obs: f+
       informe_catalog:
-          - cp_id: CONF-10-001
+          - cp_id: CPF-10-001
             execution:
                 description: Configurar fechas del evento con el date picker.
                 type: Manual
@@ -1729,7 +1729,7 @@ test_suites:
                     - image: images/functional-tests/run/config-evt-date-setup.png
                       alt: config-evt-date-setup
                       text: Bug de scroll visualizado al abrir el selector de fechas.
-          - cp_id: CONF-10-002
+          - cp_id: CPF-10-002
             execution:
                 description: Configurar fecha de inicio del evento en el pasado.
                 type: Manual
@@ -1740,7 +1740,7 @@ test_suites:
                     - image: images/functional-tests/run/config-evt-past-start.png
                       alt: config-evt-past-start
                       text: Fecha de inicio en el pasado ingresada en el formulario de configuración.
-          - cp_id: CONF-10-003
+          - cp_id: CPF-10-003
             execution:
                 description: Validar error al guardar evento con fecha de inicio en el pasado.
                 type: Manual
@@ -1751,7 +1751,7 @@ test_suites:
                     - image: images/functional-tests/run/config-evt-past-error.png
                       alt: config-evt-past-error
                       text: Mensaje de error al intentar guardar un evento con fecha pasada.
-          - cp_id: CONF-10-004
+          - cp_id: CPF-10-004
             execution:
                 description: Validar configuración con fecha de inicio y fin idénticas.
                 type: Manual
@@ -1762,7 +1762,7 @@ test_suites:
                     - image: images/functional-tests/run/config-evt-same-start-end.png
                       alt: config-evt-same-start-end
                       text: Error mostrado cuando las fechas de inicio y fin coinciden exactamente.
-          - cp_id: CONF-10-005
+          - cp_id: CPF-10-005
             execution:
                 description: Configurar disponibilidad de categoría después de inicio del evento.
                 type: Manual
@@ -1773,7 +1773,7 @@ test_suites:
                     - image: images/functional-tests/run/config-evt-cat-avail-after-event.png
                       alt: config-evt-cat-avail-after-event
                       text: Configuración guardada de tickets disponibles post-inicio del evento.
-          - cp_id: CONF-10-006
+          - cp_id: CPF-10-006
             execution:
                 description: Configurar fin de venta de categoría después del fin del evento.
                 type: Manual
@@ -1784,7 +1784,7 @@ test_suites:
                     - image: images/functional-tests/run/config-evt-cat-end-after-event.png
                       alt: config-evt-cat-end-after-event
                       text: Botón de guardado inactivo de forma silenciosa sin feedback de error.
-          - cp_id: CONF-10-007
+          - cp_id: CPF-10-007
             execution:
                 description: Configurar códigos ocultos duplicados en diferentes categorías.
                 type: Manual
@@ -1869,7 +1869,7 @@ test_suites:
                   expected: Visible en página y permite checkout gratis (no requiere pago).
                   obs: f+
       informe_catalog:
-          - cp_id: CONF-11-001
+          - cp_id: CPF-11-001
             execution:
                 description: Modificar el precio de una categoría de ticket existente.
                 type: Manual
@@ -1883,7 +1883,7 @@ test_suites:
                     - image: images/functional-tests/run/config-ticket-edit-price-success.png
                       alt: config-ticket-edit-price-success
                       text: Edición de precio de categoría ingresada y guardada correctamente.
-          - cp_id: CONF-11-002
+          - cp_id: CPF-11-002
             execution:
                 description: Ingresar un precio negativo en una categoría de ticket.
                 type: Manual
@@ -1894,7 +1894,7 @@ test_suites:
                     - image: images/functional-tests/run/config-ticket-negative-price.png
                       alt: config-ticket-negative-price
                       text: Error del sistema al intentar guardar un precio negativo.
-          - cp_id: CONF-11-003
+          - cp_id: CPF-11-003
             execution:
                 description: Configurar una categoría de tickets gratuitos (precio cero).
                 type: Manual
@@ -1908,7 +1908,7 @@ test_suites:
                     - image: images/functional-tests/run/config-ticket-free-success.png
                       alt: config-ticket-free-success
                       text: Selección y confirmación exitosa de categoría de tickets gratuitos.
-          - cp_id: CONF-11-004
+          - cp_id: CPF-11-004
             execution:
                 description: Configurar categoría VIP con precio diferenciado.
                 type: Manual
@@ -1919,7 +1919,7 @@ test_suites:
                     - image: images/functional-tests/run/config-ticket-vip-success.png
                       alt: config-ticket-vip-success
                       text: Creación y visualización exitosa de la categoría VIP.
-          - cp_id: CONF-11-005
+          - cp_id: CPF-11-005
             execution:
                 description: Crear categoría oculta con código de acceso.
                 type: Manual
@@ -1930,7 +1930,7 @@ test_suites:
                     - image: images/functional-tests/run/config-ticket-hidden-access.png
                       alt: config-ticket-hidden-access
                       text: Configuración del código de acceso para categoría oculta.
-          - cp_id: CONF-11-006
+          - cp_id: CPF-11-006
             execution:
                 description: Eliminar categoría oculta como administrador.
                 type: Manual
@@ -1990,7 +1990,7 @@ test_suites:
                   expected: Deshabilitar la venta y mostrar la etiqueta "Sold out" (Agotado).
                   obs: f-
       informe_catalog:
-          - cp_id: CONF-12-001
+          - cp_id: CPF-12-001
             execution:
                 description: Configurar categorías cuya capacidad supere el límite del evento.
                 type: Manual
@@ -2001,7 +2001,7 @@ test_suites:
                     - image: images/functional-tests/run/config-capacity-event-limit-error.png
                       alt: config-capacity-event-limit-error
                       text: Validación del límite de capacidad del evento al configurar categorías.
-          - cp_id: CONF-12-002
+          - cp_id: CPF-12-002
             execution:
                 description: Ingresar cantidad inválida o nula de tickets en una categoría.
                 type: Manual
@@ -2012,7 +2012,7 @@ test_suites:
                     - image: images/functional-tests/run/config-capacity-invalid-tickets.png
                       alt: config-capacity-invalid-tickets
                       text: Error mostrado ante cantidad de tickets inválida.
-          - cp_id: CONF-12-003
+          - cp_id: CPF-12-003
             execution:
                 description: Comprar el último ticket disponible de una categoría.
                 type: Manual
@@ -2023,7 +2023,7 @@ test_suites:
                     - image: images/functional-tests/run/config-capacity-buy-last.png
                       alt: config-capacity-buy-last
                       text: Visualización de la compra exitosa del último ticket disponible.
-          - cp_id: CONF-12-004
+          - cp_id: CPF-12-004
             execution:
                 description: Comprar tickets respetando el límite máximo por transacción.
                 type: Manual
@@ -2034,7 +2034,7 @@ test_suites:
                     - image: images/functional-tests/run/config-capacity-max-2-buy-1.png
                       alt: config-capacity-max-2-buy-1
                       text: Compra exitosa de un ticket respetando la restricción de máximo dos.
-          - cp_id: CONF-12-005
+          - cp_id: CPF-12-005
             execution:
                 description: Verificar estado de categoría cuando se agotan los tickets.
                 type: Manual
@@ -2082,7 +2082,7 @@ test_suites:
                   expected: Desvincular los impuestos del precio de la categoría.
                   obs: f+
       informe_catalog:
-          - cp_id: CONF-13-001
+          - cp_id: CPF-13-001
             execution:
                 description: Configurar y aplicar un nuevo impuesto (VAT/IVA).
                 type: Manual
@@ -2093,7 +2093,7 @@ test_suites:
                     - image: images/functional-tests/run/config-tax-setup.png
                       alt: config-tax-setup
                       text: Formulario de configuración de impuestos guardado correctamente.
-          - cp_id: CONF-13-002
+          - cp_id: CPF-13-002
             execution:
                 description: Actualizar la tasa del impuesto configurado a un valor de 0%.
                 type: Manual
@@ -2104,7 +2104,7 @@ test_suites:
                     - image: images/functional-tests/run/config-tax-0-percent-update.png
                       alt: config-tax-0-percent-update
                       text: Guardado de tasa de impuesto al 0% en la configuración.
-          - cp_id: CONF-13-003
+          - cp_id: CPF-13-003
             execution:
                 description: Configurar y aplicar exención de impuestos (tax-free) a una categoría.
                 type: Manual
@@ -2167,7 +2167,7 @@ test_suites:
                   expected: Actualizar la moneda a PEN y reflejarla en la tienda pública.
                   obs: f+
       informe_catalog:
-          - cp_id: CONF-14-001
+          - cp_id: CPF-14-001
             execution:
                 description: Seleccionar el idioma por defecto del sistema.
                 type: Manual
@@ -2178,7 +2178,7 @@ test_suites:
                     - image: images/functional-tests/run/config-loc-language-selector.png
                       alt: config-loc-language-selector
                       text: Selector de idioma configurado en la administración de la organización.
-          - cp_id: CONF-14-002
+          - cp_id: CPF-14-002
             execution:
                 description: Traducir los detalles del evento a un idioma secundario.
                 type: Manual
@@ -2189,7 +2189,7 @@ test_suites:
                     - image: images/functional-tests/run/config-loc-translation-input.png
                       alt: config-loc-translation-input
                       text: Campos de traducción completados y guardados para el evento.
-          - cp_id: CONF-14-003
+          - cp_id: CPF-14-003
             execution:
                 description: Validar el límite mínimo de idiomas requeridos al intentar eliminar.
                 type: Manual
@@ -2200,7 +2200,7 @@ test_suites:
                     - image: images/functional-tests/run/config-loc-delete-language-boundary.png
                       alt: config-loc-delete-language-boundary
                       text: Validación del límite mínimo de idiomas permitidos en el sistema.
-          - cp_id: CONF-14-004
+          - cp_id: CPF-14-004
             execution:
                 description: Validar advertencia por desfase de zona horaria del evento.
                 type: Manual
@@ -2211,7 +2211,7 @@ test_suites:
                     - image: images/functional-tests/run/config-loc-timezone-warning.png
                       alt: config-loc-timezone-warning
                       text: Mensaje de advertencia por desfase de la zona horaria detectada.
-          - cp_id: CONF-14-005
+          - cp_id: CPF-14-005
             execution:
                 description: Cambiar la moneda por defecto del evento a Euros (EUR).
                 type: Manual
@@ -2222,7 +2222,7 @@ test_suites:
                     - image: images/functional-tests/run/config-loc-currency-eur.png
                       alt: config-loc-currency-eur
                       text: Moneda configurada a Euros (EUR) en la administración.
-          - cp_id: CONF-14-006
+          - cp_id: CPF-14-006
             execution:
                 description: Cambiar la moneda por defecto del evento a Soles (PEN).
                 type: Manual
@@ -2234,13 +2234,13 @@ test_suites:
                       alt: config-loc-currency-pen
                       text: Moneda configurada a Soles Peruanos (PEN) en la administración.
     - title: Creación de Usuarios
-      level: "#"
+      level: "###"
       catalog_header: Datos de Entrada
       cases:
-          - id: CPF-011
+          - id: CPF-0015
             functionality: Creación de usuarios
             description: Permite a un administrador registrar nuevos usuarios asignándoles una organización y un rol dentro del sistema.
-            requirement: RF-005 (Creación de Usuarios)
+            requirement: RF-012 (Creación de Usuarios)
             preconditions: El usuario debe estar autenticado con permisos de administrador.
             inputs: Organización, rol, nombre de usuario, nombre, apellido y correo electrónico.
             steps:
@@ -3437,7 +3437,7 @@ traceability_matrix:
     - requirement: RF-003
       description: Gestión de estados y flujos de pago
       cases: CPF-0003 (001-006)
-    - requirement: RF-0004
+    - requirement: RF-004
       description: Emisión y visualización de entradas (PDF)
       cases: CPF-0004 (001-006)
     - requirement: RF-005
@@ -3452,7 +3452,7 @@ traceability_matrix:
     - requirement: RF-008
       description: Gestión de Pagos Pendientes
       cases: CPF-0008 (001-004)
-    - requirement: RF-005
+    - requirement: RF-012
       description: Creación de Usuarios
       cases: CPF-0015 (001-027)
     - requirement: RF-CONF-01
@@ -3473,13 +3473,13 @@ traceability_matrix:
     - requirement: RF-CONF-06
       description: Configuración de Localización y Moneda
       cases: CPF-0014 (001-006)
-    - requirement: RF-005
+    - requirement: RF-009
       description: Auto-Check-in
       cases: CPF-0016 (001-005)
-    - requirement: RF-006
+    - requirement: RF-010
       description: Control de Acceso
       cases: CPF-0017 (001-004)
-    - requirement: RF-007
+    - requirement: RF-011
       description: Generación de Acreditaciones
       cases: CPF-0018 (001-005)
     - requirement: RF-RES-01

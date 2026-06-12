@@ -10,6 +10,7 @@
 - [7. Limitaciones](#7-limitaciones)
 - [8. Estrategia y métodos de prueba aplicados](#8-estrategia-y-métodos-de-prueba-aplicados)
 - [9. Conclusión](#9-conclusión)
+- [10. Resumen de Ejecución](#10-resumen-de-ejecución)
 
 ## 1. Introducción
 
@@ -2507,7 +2508,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Configuración de la Organización (CONF-09)
 
-**CONF-09-001**
+**CPF-09-001**
 <table>
   <thead>
     <tr>
@@ -2520,7 +2521,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-09-001</td>
+      <td>CPF-09-001</td>
       <td>Crear organización con datos válidos.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2546,7 +2547,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-09-002**
+**CPF-09-002**
 <table>
   <thead>
     <tr>
@@ -2559,7 +2560,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-09-002</td>
+      <td>CPF-09-002</td>
       <td>Intentar crear organización con nombre vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2586,7 +2587,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-09-003**
+**CPF-09-003**
 <table>
   <thead>
     <tr>
@@ -2599,7 +2600,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-09-003</td>
+      <td>CPF-09-003</td>
       <td>Intentar crear organización con email de formato inválido.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2626,7 +2627,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-09-004**
+**CPF-09-004**
 <table>
   <thead>
     <tr>
@@ -2639,7 +2640,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-09-004</td>
+      <td>CPF-09-004</td>
       <td>Crear organización con nombre de 255 caracteres.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2665,7 +2666,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-09-005**
+**CPF-09-005**
 <table>
   <thead>
     <tr>
@@ -2678,7 +2679,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-09-005</td>
+      <td>CPF-09-005</td>
       <td>Editar los datos de una organización existente.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2704,7 +2705,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-09-006**
+**CPF-09-006**
 <table>
   <thead>
     <tr>
@@ -2717,7 +2718,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-09-006</td>
+      <td>CPF-09-006</td>
       <td>Crear organización con nombre de 256 caracteres.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -2746,7 +2747,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Configuración del Evento (CONF-10)
 
-**CONF-10-001**
+**CPF-10-001**
 <table>
   <thead>
     <tr>
@@ -2759,7 +2760,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-10-001</td>
+      <td>CPF-10-001</td>
       <td>Configurar fechas del evento con el date picker.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -2786,7 +2787,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-10-002**
+**CPF-10-002**
 <table>
   <thead>
     <tr>
@@ -2799,7 +2800,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-10-002</td>
+      <td>CPF-10-002</td>
       <td>Configurar fecha de inicio del evento en el pasado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2826,7 +2827,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-10-003**
+**CPF-10-003**
 <table>
   <thead>
     <tr>
@@ -2839,7 +2840,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-10-003</td>
+      <td>CPF-10-003</td>
       <td>Validar error al guardar evento con fecha de inicio en el pasado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2866,7 +2867,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-10-004**
+**CPF-10-004**
 <table>
   <thead>
     <tr>
@@ -2879,7 +2880,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-10-004</td>
+      <td>CPF-10-004</td>
       <td>Validar configuración con fecha de inicio y fin idénticas.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2906,7 +2907,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-10-005**
+**CPF-10-005**
 <table>
   <thead>
     <tr>
@@ -2919,7 +2920,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-10-005</td>
+      <td>CPF-10-005</td>
       <td>Configurar disponibilidad de categoría después de inicio del evento.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2946,7 +2947,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-10-006**
+**CPF-10-006**
 <table>
   <thead>
     <tr>
@@ -2959,7 +2960,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-10-006</td>
+      <td>CPF-10-006</td>
       <td>Configurar fin de venta de categoría después del fin del evento.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -2986,7 +2987,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-10-007**
+**CPF-10-007**
 <table>
   <thead>
     <tr>
@@ -2999,7 +3000,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-10-007</td>
+      <td>CPF-10-007</td>
       <td>Configurar códigos ocultos duplicados en diferentes categorías.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -3028,7 +3029,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Configuración de Categorías de Tickets (CONF-11)
 
-**CONF-11-001**
+**CPF-11-001**
 <table>
   <thead>
     <tr>
@@ -3041,7 +3042,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-11-001</td>
+      <td>CPF-11-001</td>
       <td>Modificar el precio de una categoría de ticket existente.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3067,7 +3068,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-11-002**
+**CPF-11-002**
 <table>
   <thead>
     <tr>
@@ -3080,7 +3081,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-11-002</td>
+      <td>CPF-11-002</td>
       <td>Ingresar un precio negativo en una categoría de ticket.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3107,7 +3108,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-11-003**
+**CPF-11-003**
 <table>
   <thead>
     <tr>
@@ -3120,7 +3121,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-11-003</td>
+      <td>CPF-11-003</td>
       <td>Configurar una categoría de tickets gratuitos (precio cero).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3146,7 +3147,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-11-004**
+**CPF-11-004**
 <table>
   <thead>
     <tr>
@@ -3159,7 +3160,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-11-004</td>
+      <td>CPF-11-004</td>
       <td>Configurar categoría VIP con precio diferenciado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3186,7 +3187,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-11-005**
+**CPF-11-005**
 <table>
   <thead>
     <tr>
@@ -3199,7 +3200,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-11-005</td>
+      <td>CPF-11-005</td>
       <td>Crear categoría oculta con código de acceso.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3226,7 +3227,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-11-006**
+**CPF-11-006**
 <table>
   <thead>
     <tr>
@@ -3239,7 +3240,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-11-006</td>
+      <td>CPF-11-006</td>
       <td>Eliminar categoría oculta como administrador.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3268,7 +3269,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Gestión de Capacidad (CONF-12)
 
-**CONF-12-001**
+**CPF-12-001**
 <table>
   <thead>
     <tr>
@@ -3281,7 +3282,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-12-001</td>
+      <td>CPF-12-001</td>
       <td>Configurar categorías cuya capacidad supere el límite del evento.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3308,7 +3309,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-12-002**
+**CPF-12-002**
 <table>
   <thead>
     <tr>
@@ -3321,7 +3322,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-12-002</td>
+      <td>CPF-12-002</td>
       <td>Ingresar cantidad inválida o nula de tickets en una categoría.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3348,7 +3349,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-12-003**
+**CPF-12-003**
 <table>
   <thead>
     <tr>
@@ -3361,7 +3362,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-12-003</td>
+      <td>CPF-12-003</td>
       <td>Comprar el último ticket disponible de una categoría.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3388,7 +3389,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-12-004**
+**CPF-12-004**
 <table>
   <thead>
     <tr>
@@ -3401,7 +3402,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-12-004</td>
+      <td>CPF-12-004</td>
       <td>Comprar tickets respetando el límite máximo por transacción.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3428,7 +3429,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-12-005**
+**CPF-12-005**
 <table>
   <thead>
     <tr>
@@ -3441,7 +3442,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-12-005</td>
+      <td>CPF-12-005</td>
       <td>Verificar estado de categoría cuando se agotan los tickets.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3470,7 +3471,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Configuración de Impuestos (CONF-13)
 
-**CONF-13-001**
+**CPF-13-001**
 <table>
   <thead>
     <tr>
@@ -3483,7 +3484,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-13-001</td>
+      <td>CPF-13-001</td>
       <td>Configurar y aplicar un nuevo impuesto (VAT/IVA).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3510,7 +3511,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-13-002**
+**CPF-13-002**
 <table>
   <thead>
     <tr>
@@ -3523,7 +3524,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-13-002</td>
+      <td>CPF-13-002</td>
       <td>Actualizar la tasa del impuesto configurado a un valor de 0%.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3550,7 +3551,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-13-003**
+**CPF-13-003**
 <table>
   <thead>
     <tr>
@@ -3563,7 +3564,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-13-003</td>
+      <td>CPF-13-003</td>
       <td>Configurar y aplicar exención de impuestos (tax-free) a una categoría.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3592,7 +3593,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Configuración de Localización y Moneda (CONF-14)
 
-**CONF-14-001**
+**CPF-14-001**
 <table>
   <thead>
     <tr>
@@ -3605,7 +3606,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-14-001</td>
+      <td>CPF-14-001</td>
       <td>Seleccionar el idioma por defecto del sistema.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3632,7 +3633,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-14-002**
+**CPF-14-002**
 <table>
   <thead>
     <tr>
@@ -3645,7 +3646,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-14-002</td>
+      <td>CPF-14-002</td>
       <td>Traducir los detalles del evento a un idioma secundario.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3672,7 +3673,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-14-003**
+**CPF-14-003**
 <table>
   <thead>
     <tr>
@@ -3685,7 +3686,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-14-003</td>
+      <td>CPF-14-003</td>
       <td>Validar el límite mínimo de idiomas requeridos al intentar eliminar.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3712,7 +3713,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-14-004**
+**CPF-14-004**
 <table>
   <thead>
     <tr>
@@ -3725,7 +3726,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-14-004</td>
+      <td>CPF-14-004</td>
       <td>Validar advertencia por desfase de zona horaria del evento.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -3752,7 +3753,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-14-005**
+**CPF-14-005**
 <table>
   <thead>
     <tr>
@@ -3765,7 +3766,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-14-005</td>
+      <td>CPF-14-005</td>
       <td>Cambiar la moneda por defecto del evento a Euros (EUR).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3792,7 +3793,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-14-006**
+**CPF-14-006**
 <table>
   <thead>
     <tr>
@@ -3805,7 +3806,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-14-006</td>
+      <td>CPF-14-006</td>
       <td>Cambiar la moneda por defecto del evento a Soles (PEN).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -6346,3 +6347,15 @@ Este proceso es controlado mediante Github actions, que:
 ## 9. Conclusión
 
 El enfoque de pruebas de alf.io combina múltiples niveles con un fuerte énfasis en la automatización para garantizar entornos de prueba reproducibles y fiables. La cobertura es extensa en la capa de negocio y los flujos críticos de pago y reserva, con 141 archivos de prueba que abarcan desde validaciones unitarias hasta escenarios concurrentes complejos. El pipeline de CI verifica cada cambio contra tres versiones de PostgreSQL, asegurando compatibilidad y calidad continua.
+
+## 10. Resumen de Ejecución
+
+| Métrica | Valor |
+|:---|:---|
+| Navegador utilizado | Firefox 151.* |
+| Entorno de aplicación | Imagen Docker ([ghcr.io/catarinas-ps-2026/alf.io](https://github.com/catarinas-ps-2026/alf.io/pkgs/container/alf.io)) compilada vía GitHub Actions (ubuntu-latest) y ejecutada en Kubernetes v1.34.5+k3s1 ([alfio.ynoacamino.me](https://alfio.ynoacamino.me)) |
+| Total de casos de prueba diseñados | 155 |
+| Total de casos de prueba ejecutados | 155 |
+| Cobertura funcional (ejecutados / diseñados) | 100.0% |
+| Casos con fallos | 15 |
+| Tasa de éxito (sobre ejecutados) | 90.3% |

@@ -26,10 +26,46 @@ const INFORME_TEMPLATE_PATH = path.join(WIKI_SOURCES_DIR, 'templates/informe.hbs
 const DISENO_OUTPUT_PATH = path.join(WIKI_DIR, 'Diseño-de-Casos-de-Prueba-Funcionales.md');
 const INFORME_OUTPUT_PATH = path.join(WIKI_DIR, 'Informe-de-Casos-de-Prueba-Funcionales.md');
 
+function computeInformStats(data) {
+    let totalDesigned = 0;
+    let totalTested = 0;
+    let passing = 0;
+    let failing = 0;
+
+    for (const suite of data.test_suites) {
+        const catalogs = suite.informe_catalog || (suite.cases && suite.cases[0] && suite.cases[0].catalog) || [];
+        for (const tc of catalogs) {
+            totalDesigned++;
+            if (tc.execution) {
+                totalTested++;
+                if (tc.execution.status === 'Exitoso') {
+                    passing++;
+                } else if (tc.execution.status === 'Fallido') {
+                    failing++;
+                }
+            }
+        }
+    }
+
+    const coverage = totalDesigned > 0 ? ((totalTested / totalDesigned) * 100).toFixed(1) : '0.0';
+    const successRate = totalTested > 0 ? ((passing / totalTested) * 100).toFixed(1) : '0.0';
+
+    return {
+        total_designed: totalDesigned,
+        total_tested: totalTested,
+        coverage_pct: coverage,
+        failing: failing,
+        passing: passing,
+        success_rate_pct: successRate
+    };
+}
+
 function generate() {
     try {
         const fileContents = fs.readFileSync(DATA_PATH, 'utf8');
         const data = yaml.load(fileContents);
+
+        data.informe_stats = computeInformStats(data);
 
         const disenoTemplateSource = fs.readFileSync(DISENO_TEMPLATE_PATH, 'utf8');
         const informeTemplateSource = fs.readFileSync(INFORME_TEMPLATE_PATH, 'utf8');
