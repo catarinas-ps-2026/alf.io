@@ -1,0 +1,1851 @@
+design_doc:
+  title: Diseño de Casos de Prueba Funcionales del Sistema alf.io
+  sections:
+    - title: 1. Propósito
+      anchor: 1-propósito
+      content: |-
+        El propósito de este documento es definir y estructurar el diseño de casos de prueba funcionales para el sistema alf.io, con el fin de asegurar la calidad funcional del sistema mediante la aplicación de técnicas de prueba de caja negra.
+
+        Entre los objetivos específicos se incluyen: establecer casos de prueba basados en los requisitos funcionales, aplicar técnicas como partición por equivalencia, análisis de valores límite, pruebas de casos de uso y tablas de decisión y desarrollar una matriz de trazabilidad entre requisitos y pruebas.
+    - title: 2. Alcance de las Pruebas
+      anchor: 2-alcance-de-las-pruebas
+      content: ''
+      subsections:
+        - title: 2.1 Funcionalidades en Alcance
+          content: |-
+            - **Creación y configuración de eventos:** Validar la capacidad de los administradores y organizadores para crear eventos, configurar categorías de tickets, precios y cupos.
+            - **Proceso de reserva y compra de tickets:** Flujo completo desde la selección del ticket por parte del asistente hasta la confirmación de la reserva y generación de la entrada.
+            - **Autenticación y autorización:** Verificación de roles (administrador global, propietario del evento, personal del evento) y control de acceso a las rutas.
+            - **Integración de pagos (Modo Test):** Simulación de pagos exitosos y fallidos utilizando proveedores compatibles (ej. Stripe Test Mode o pagos offline).
+        - title: 2.2 Funcionalidades Fuera de Alcance
+          content: |-
+            - **Integraciones reales con pasarelas de pago:** Para evitar transacciones financieras reales y costos asociados, todas las pruebas se realizarán en modo de pruebas (sandbox).
+            - **Pruebas de estrés y rendimiento:** El enfoque de este plan es puramente funcional. El rendimiento bajo carga será abordado en una fase o plan de pruebas independiente.
+            - **Generación masiva de facturas PDF:** Solo se probarán las facturas generadas unitariamente durante el flujo normal de reserva.
+    - title: 3. Referencias
+      anchor: 3-referencias
+      content: |-
+        1. Estándares de Ingeniería de Software y Pruebas
+           - **ISO/IEC/IEEE 29119:** Estándar internacional para pruebas de software (conceptos, procesos, documentación y técnicas de diseño de pruebas).
+        2. Documentación del Proyecto
+           - **Documento de Plan de Pruebas Unitarias:** [[Plan de Pruebas Unitarias]]
+           - **Repositorio oficial de alf.io:** [GitHub - alfio-event/alf.io](https://github.com/alfio-event/alf.io)
+           - **Documentación de Arquitectura de alf.io:** [[Arquitectura]] del proyecto.
+    - title: 4. Criterios de Entrada y Salida
+      anchor: 4-criterios-de-entrada-y-salida
+      content: ''
+      subsections:
+        - title: 4.1 Criterios de Entrada
+          content: |-
+            - El código de la aplicación (alf.io) debe estar compilado y desplegado correctamente en el entorno de pruebas.
+            - Las pruebas unitarias base deben pasar exitosamente en el entorno de CI (GitHub Actions).
+            - La base de datos de pruebas (PostgreSQL) debe estar inicializada con los esquemas actualizados.
+        - title: 4.2 Criterios de Salida
+          content: |-
+            - Se han ejecutado todos los casos de prueba funcionales diseñados y documentados en la sección de la wiki correspondiente.
+            - Se han reportado todos los defectos encontrados durante la ejecución.
+    - title: 5. Entorno y Datos de Prueba
+      anchor: 5-entorno-y-datos-de-prueba
+      content: ''
+      subsections:
+        - title: 5.1 Entorno de Pruebas
+          content: |-
+            - **Servidor / Hosting:** Entorno remoto de pruebas configurado con Kubernetes, replicando la arquitectura de producción.
+            - **Base de datos:** PostgreSQL en versión 16, compatible con los requerimientos actuales del proyecto, corriendo en un pod aislado.
+            - **Navegadores soportados:** Pruebas funcionales frontend orientadas a las últimas versiones estables de Google Chrome (148.0.7778.215) y Mozilla Firefox (151.0.2).
+        - title: 5.2 Datos de Prueba
+          content: '- **Cuentas de usuario:** Cuenta de Administrador Global pre-configurada (datos de las variables de entorno de prueba).'
+    - title: 6. Técnicas de Prueba
+      anchor: 6-técnicas-de-prueba
+      content: ''
+      subsections:
+        - title: 6.1 Técnicas de Caja Negra
+          content: |-
+            Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requisitos funcionales del sistema:
+
+            - **Partición por equivalencia:** Los datos de entrada se agrupan en clases válidas e inválidas. Por ejemplo, los roles de usuario (administrador, organizador, operador de check-in) se prueban para verificar que cada uno tenga acceso exclusivo a las operaciones permitidas.
+            - **Análisis de valores límite:** Se prueban valores en los extremos de los rangos permitidos, como límites de caracteres en campos de texto, fechas próximas al evento, cupos mínimos y máximos de entradas, y montos de dinero en los límites de precisión de BigDecimal.
+            - **Pruebas de casos de uso:** Se recorren paso a paso los flujos principales del sistema: creación de un evento, configuración de categorías de entradas, proceso de compra, generación de entradas (incluyendo Apple Wallet), check-in y reporting.
+            - **Tablas de decisión:** Se aplican para validar reglas complejas de negocio, como el cálculo de precios con descuentos, impuestos (IVA), tarifas de servicio y promociones combinadas, donde múltiples condiciones booleanas determinan el resultado final.
+report_doc:
+  title: Informe de Casos de Prueba Funcionales del Sistema alf.io
+  sections:
+    - title: 1. Introducción
+      anchor: 1-introducción
+      content: El presente informe documenta la estrategia, ejecución y resultados de las pruebas funcionales realizadas sobre alf.io, un sistema de gestión y venta de entradas para eventos de código abierto. Su propósito es evaluar la calidad del software, identificar defectos potenciales y verificar el cumplimiento de los requisitos del sistema, desde unidades de código hasta flujos completos de usuario.
+    - title: 2. Propósito
+      anchor: 2-propósito
+      content: |-
+        Este documento sirve como referencia para:
+
+        - Describir el enfoque de pruebas adoptado y los niveles de cobertura alcanzados.
+        - Detallar la configuración del entorno de pruebas.
+        - Proporcionar evidencia sobre el comportamiento del sistema en escenarios controlados.
+        - Facilitar la reproducibilidad de las pruebas por parte del equipo de desarrollo y QA.
+    - title: 3. Alcance
+      anchor: 3-alcance
+      content: |-
+        Las pruebas abarcan los siguiente componentes y funcionalidades de alf.io:
+
+        - **Backend (Java 17, Spring Boot 3.5, Jetty):** Lógica de negocio, repositorios de datos, flujos de reserva, pagos, generación de entradas, gestión de eventos y suscripciones, procesamiento de extensiones JavaScript (Rhino), y migraciones de base de datos.
+        - **Frontend público (Angular 17):** Interfaz de compra de entradas, visualización de eventos, formularios de registro.
+        - **Frontend de administración (Lit + Shoelace + Vite):** Panel de administración para organizadores de eventos.
+
+        No se incluyen en el alcance las pruebas de infraestructura subyacente, las pruebas de rendimiento ni las integraciones con medios externos en producción.
+    - title: 4. Referencias
+      anchor: 4-referencias
+      content: |-
+        - **ISO/IEC/IEEE 29119:** estándar internacional para pruebas de software.
+        - **Documentación oficial:** [https://alf.io](https://alf.io)
+        - **Repositorio oficial:** [https://github.com/alfio-event/alf.io](https://github.com/alfio-event/alf.io)
+    - title: 5. Entorno de pruebas
+      anchor: 5-entorno-de-pruebas
+      content: ''
+      subsections:
+        - title: 5.1 Configuración del entorno
+          content: |-
+            Las pruebas se ejecutan completamente de manera remota, haciendo uso de una imagen en Github Container Registry que se utilizó para desplegar una misma aplicación para todo el equipo en un cluster de kubernetes en la nube. Esto garantiza que el entorno de pruebas sea idéntico para todos los desarrolladores y que las pruebas sean reproducibles.
+
+            Este proceso es controlado mediante Github actions, que:
+            - **En cada pull request:** Ejecuta el pipeline de pruebas unitarias, generando reportes de cobertura para el contribuidor.
+            - **En cada push a main:** Ejecuta el pipeline de pruebas unitarias, compila el proyecto y publica la imagen de pruebas en Github Container Registry.
+metadata:
+  informe:
+    7. Limitaciones: |-
+      - No se realizan pruebas de carga ni de rendimiento bajo estrés.
+      - Las pruebas no cubren la validación de la infraestructura en la nube ni del entorno de producción.
+    8. Estrategia y métodos de prueba aplicados: |-
+      ### 8.1 Técnicas de diseño de pruebas
+
+      - **Partición por equivalencia:** Los datos de entrada se agrupan en clases válidas e inválidas. Por ejemplo, los roles de usuario (administrador, organizador, operador de check-in) se prueban para verificar que cada uno tenga acceso exclusivo a las operaciones permitidas.
+      - **Análisis de valores límite:** Se prueban valores en los extremos de los rangos permitidos, como límites de caracteres en campos de texto, fechas próximas al evento, cupos mínimos y máximos de entradas, y montos de dinero en los límites de precisión de BigDecimal.
+      - **Pruebas de casos de uso:** Se recorren paso a paso los flujos principales del sistema: creación de un evento, configuración de categorías de entradas, proceso de compra, generación de entradas (incluyendo Apple Wallet), check-in y reporting.
+      - **Tablas de decisión:** Se aplican para validar reglas complejas de negocio, como el cálculo de precios con descuentos, impuestos (IVA), tarifas de servicio y promociones combinadas, donde múltiples condiciones booleanas determinan el resultado final.
+    9. Conclusión: El enfoque de pruebas de alf.io combina múltiples niveles con un fuerte énfasis en la automatización para garantizar entornos de prueba reproducibles y fiables. La cobertura es extensa en la capa de negocio y los flujos críticos de pago y reserva, con 141 archivos de prueba que abarcan desde validaciones unitarias hasta escenarios concurrentes complejos. El pipeline de CI verifica cada cambio contra tres versiones de PostgreSQL, asegurando compatibilidad y calidad continua.
+test_suites:
+  - title: Edición de Tickets Adquiridos (Nombre, Apellido y Correo)
+    level: '###'
+    catalog_header: Datos de Entrada
+    cases:
+      - id: CPF-0001
+        functionality: Edición de información del asistente post-compra
+        description: Permite a un administrador modificar los datos críticos (nombre, apellido y correo) de un ticket que ya ha sido emitido, validando la integridad de los datos.
+        requirement: RF-001 (Gestión de Tickets)
+        preconditions: "El ticket debe estar en estado 'Purchased'. El usuario debe tener permisos de edición sobre la reserva."
+        inputs: Nombre, Apellido, Correo Electrónico.
+        steps:
+          - Acceder al detalle de la reserva.
+          - Hacer clic en la opción de edición del ticket.
+          - Modificar los campos de Nombre/Apellido o Correo.
+          - Presionar el botón "Guardar".
+        techniques:
+          - Partición de Equivalencia
+          - Análisis de Valores Límite.
+        priority: Alta
+        analysis:
+          equivalency_partitions:
+            - field: Nombre/Apellido
+              valid: Texto alfabético (1-255 caracteres)
+              invalid: "Vacío, > 255 caracteres, incluye números."
+            - field: Correo
+              valid: Formato estándar (user@domain.com)
+              invalid: "Vacío, formato incorrecto (sin @), longitud excesiva."
+          boundary_values:
+            - field: Nombre/Apellido
+              min_valid: 1 carácter
+              min_invalid: 0 caracteres (vacío)
+              max_valid: 255 caracteres
+              max_invalid: 256 caracteres
+            - field: Correo
+              min_valid: Longitud mínima válida
+              min_invalid: 0 caracteres
+              max_valid: Máximo soportado (64 chars local)
+              max_invalid: Excede límite (65 chars local)
+          decision_tables: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-01-001
+            inputs: 'Nombre: "" (vacío)'
+            expected: "Rechazar: Error de campo obligatorio"
+            obs: f-
+            execution:
+              description: Verificar que el campo nombre no admita cadenas vacías.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: El sistema no permite guardar y marca el campo.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-field-len-0.png
+                  alt: ticket-edit-field-len-0
+                  text: Se muestra que el sistema valida el campo obligatorio.
+          - cp_id: CPF-01-002
+            inputs: 'Nombre: "A" (1 carácter)'
+            expected: "Aceptar: Cambio guardado exitosamente"
+            obs: f+
+            execution:
+              description: Verificar que el campo nombre admita 1 carácter.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Cambio guardado exitosamente
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-field-len-1.png
+                  alt: ticket-edit-field-len-1
+                  text: Se muestra la edición exitosa con un solo carácter.
+          - cp_id: CPF-01-003
+            inputs: "Nombre: (Cadena de 254 caracteres)"
+            expected: "Aceptar: Cambio guardado exitosamente"
+            obs: f+
+            execution:
+              description: Verificar que el campo nombre admita 254 caracteres.
+              type: Manual
+              status: Fallido
+              defects: "500 Unexpected Exception"
+              obtained: Error 500 del servidor al intentar procesar la solicitud.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-field-len-254.png
+                  alt: ticket-edit-field-len-254
+                  text: Se observa una excepción inesperada al usar cadenas largas.
+          - cp_id: CPF-01-004
+            inputs: "Nombre: (Cadena de 255 caracteres)"
+            expected: "Aceptar: Cambio guardado exitosamente"
+            obs: f+
+            execution:
+              description: Verificar que el campo nombre admita 255 caracteres.
+              type: Manual
+              status: Fallido
+              defects: "500 Unexpected Exception"
+              obtained: Error 500 del servidor al intentar procesar la solicitud.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-field-len-255.png
+                  alt: ticket-edit-field-len-255
+                  text: El sistema falla con error 500 en el límite superior de la base de datos.
+          - cp_id: CPF-01-005
+            inputs: "Nombre: (Cadena de 256 caracteres)"
+            expected: "Rechazar: Error de longitud excedida"
+            obs: f-
+            execution:
+              description: Verificar que el campo nombre rechace 256 caracteres.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: El sistema bloquea la entrada o rechaza por validación de frontend.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-field-len-256.png
+                  alt: ticket-edit-field-len-256
+                  text: El sistema rechaza correctamente la longitud excedida.
+          - cp_id: CPF-01-006
+            inputs: 'Nombre: "Juan123" (con números)'
+            expected: "Rechazar: Error de formato (solo letras)"
+            obs: f-
+            execution:
+              description: Verificar que el campo nombre no admita números.
+              type: Manual
+              status: Fallido
+              defects: El sistema acepta caracteres numéricos.
+              obtained: El sistema acepta y guarda el nombre con números.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-field-numbers.png
+                  alt: ticket-edit-field-numbers
+                  text: Se observa que el sistema no valida el tipo de dato alfanumérico.
+          - cp_id: CPF-01-007
+            inputs: 'Correo: "" (vacío)'
+            expected: "Rechazar: Error de campo obligatorio"
+            obs: f-
+            execution:
+              description: Verificar que el campo correo no admita cadenas vacías.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: El sistema impide el guardado sin correo.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-email-len-0.png
+                  alt: ticket-edit-email-len-0
+                  text: Validación de correo obligatorio exitosa.
+          - cp_id: CPF-01-008
+            inputs: 'Correo: "aaaaa" (sin formato @)'
+            expected: "Rechazar: Error de formato de correo"
+            obs: f-
+            execution:
+              description: Verificar que el campo correo rechace formatos inválidos (sin @).
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Rechazo por formato inválido.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-email-invalid.png
+                  alt: ticket-edit-email-invalid
+                  text: El sistema detecta correctamente el formato de correo inválido.
+          - cp_id: CPF-01-009
+            inputs: Correo con longitud de 63 caracteres
+            expected: "Aceptar: Cambio guardado exitosamente"
+            obs: f+
+            execution:
+              description: Verificar correo con longitud de 63 caracteres.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Cambio guardado exitosamente.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-email-len-63.png
+                  alt: ticket-edit-email-len-63
+                  text: Prueba positiva de longitud de correo exitosa.
+          - cp_id: CPF-01-010
+            inputs: Correo con longitud de 64 caracteres
+            expected: "Aceptar: Cambio guardado exitosamente"
+            obs: f+
+            execution:
+              description: Verificar correo con longitud de 64 caracteres.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Cambio guardado exitosamente.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-email-len-64.png
+                  alt: ticket-edit-email-len-64
+                  text: Prueba positiva en el límite de 64 caracteres exitosa.
+          - cp_id: CPF-01-011
+            inputs: Correo con longitud de 65 caracteres
+            expected: "Rechazar: Error de longitud excedida"
+            obs: f-
+            execution:
+              description: Verificar que el campo correo rechace 65 caracteres.
+              type: Manual
+              status: Fallido
+              defects: "El sistema acepta correos de más de 64 caracteres."
+              obtained: El sistema permite guardar el correo de 65 caracteres.
+              evidence:
+                - image: images/functional-tests/run/ticket-edit-email-len-65.png
+                  alt: ticket-edit-email-len-65
+                  text: Se muestra que el sistema no aplica la restricción de longitud en el correo.
+  - title: Búsqueda de Reservas (Panel de Administración)
+    level: '###'
+    catalog_header: Criterio de Búsqueda
+    cases:
+      - id: CPF-0002
+        functionality: Búsqueda y filtrado de reservas
+        description: Valida que el sistema de búsqueda administrativa recupere correctamente las reservas basándose en el ID único o el apellido del asistente.
+        requirement: RF-002 (Búsqueda de Reservas)
+        preconditions: Deben existir reservas previas en el sistema.
+        inputs: ID de reserva, Apellido.
+        steps:
+          - Ingresar al listado de reservas.
+          - Introducir el criterio en la barra de búsqueda.
+          - Ejecutar la búsqueda.
+        techniques:
+          - Partición de Equivalencia.
+        priority: Media
+        analysis:
+          equivalency_partitions:
+            - field: PE-B01
+              valid: ID de reserva existente en el sistema
+              invalid: ID inexistente o mal formado
+            - field: PE-B02
+              valid: Apellido exacto de un comprador
+              invalid: Apellido que no figura en ninguna reserva
+          boundary_values: []
+          decision_tables: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-02-001
+            inputs: 'ID: "ID-EXISTENTE"'
+            expected: El sistema muestra la reserva específica
+            obs: f+
+            execution:
+              description: Búsqueda por ID de reserva existente.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se muestra la reserva correspondiente al ID.
+              evidence:
+                - image: images/functional-tests/run/reserve-search-id.png
+                  alt: reserve-search-id
+                  text: Búsqueda exitosa por identificador único.
+          - cp_id: CPF-02-002
+            inputs: 'Apellido: "Pérez"'
+            expected: El sistema lista todas las reservas bajo ese apellido
+            obs: f+
+            execution:
+              description: Búsqueda por apellido de asistente.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Resultados filtrados correctamente por apellido.
+              evidence:
+                - image: images/functional-tests/run/reserve-search-lastname.png
+                  alt: reserve-search-lastname
+                  text: Búsqueda por criterio de texto exitosa.
+          - cp_id: CPF-02-003
+            inputs: 'Valor: "ValorInexistente"'
+            expected: El sistema muestra mensaje "Sin resultados"
+            obs: f-
+            execution:
+              description: Búsqueda de valor inexistente.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Mensaje de "No results found" mostrado correctamente.
+              evidence:
+                - image: images/functional-tests/run/reserve-search-none.png
+                  alt: reserve-search-none
+                  text: Comportamiento esperado ante búsqueda sin coincidencias.
+  - title: Gestión de Estados de Reserva y Pagos
+    level: '###'
+    catalog_header: "Acción / Escenario"
+    cases:
+      - id: CPF-0003
+        functionality: Transiciones de estado por pagos manuales
+        description: Verifica que las reservas transicionen correctamente entre estados tras acciones manuales (aceptar/cancelar pago) y que la UI responda a las reglas de negocio.
+        requirement: RF-003 (Gestión de Estados)
+        preconditions: Reserva en estado pendiente de pago.
+        inputs: Interacción con botones de acción y modales.
+        steps:
+          - Seleccionar una reserva pendiente.
+          - Ejecutar acción de pago/cancelación.
+          - Validar cambio de estado en la tabla.
+        techniques:
+          - Transición de Estados
+          - Tablas de Decisión.
+        priority: Alta
+        analysis:
+          equivalency_partitions: []
+          boundary_values: []
+          decision_tables:
+            - title: 'Visibilidad del botón "Marcar como Completa"'
+              header: Condición
+              columns: [C1, C2, C3, C4]
+              conditions:
+                - name: "¿Se completó el llenado?"
+                  values: [SI, SI, SI, 'NO']
+                - name: Tipo de Pago
+                  values: [Presencial, Offline, Proveedor, '-']
+                - name: "¿Pago Aprobado?"
+                  values: ['NO', SI, 'NO', 'NO']
+              action_name: Mostrar Botón
+              actions: ['NO', SI, 'NO', 'NO']
+          state_transitions:
+            - alt: Diagrama de Transición de Estados
+              image: images/functional-tests/design/gestion-estados.png
+        catalog:
+          - cp_id: CPF-03-001
+            inputs: 'Clic en "Aceptar Pago" -> Confirmar'
+            expected: La reserva cambia a estado COMPLETE
+            obs: f+
+            execution:
+              description: Transición de PENDING a COMPLETE tras aceptar pago.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Cambio de estado reflejado correctamente en la tabla.
+              evidence:
+                - image: images/functional-tests/run/reservation-approve-payment-1.png
+                  alt: approve-1
+                  text: ''
+                - image: images/functional-tests/run/reservation-approve-payment-2.png
+                  alt: approve-2
+                  text: ''
+                - image: images/functional-tests/run/reservation-approve-payment-3.png
+                  alt: approve-3
+                  text: Flujo completo de aprobación de pago.
+          - cp_id: CPF-03-002
+            inputs: 'Clic en "Cancelar Pago" -> Confirmar'
+            expected: La reserva cambia a estado CANCELLED
+            obs: f+
+            execution:
+              description: Transición de PENDING a CANCELLED tras cancelar pago.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Cambio de estado reflejado correctamente en la tabla.
+              evidence:
+                - image: images/functional-tests/run/reservation-cancel-1.png
+                  alt: cancel-1
+                  text: ''
+                - image: images/functional-tests/run/reservation-cancel-2.png
+                  alt: cancel-2
+                  text: ''
+                - image: images/functional-tests/run/reservation-cancel-3.png
+                  alt: cancel-3
+                  text: Flujo completo de cancelación de reserva.
+          - cp_id: CPF-03-003
+            inputs: Iniciar transición -> Clic fuera del modal
+            expected: El modal se cierra y el estado se mantiene
+            obs: f+
+            execution:
+              description: Clic fuera del modal para regresar al inicio.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: El modal se cierra y el estado se mantiene.
+              evidence:
+                - image: images/functional-tests/run/reservation-approve-payment-2.png
+                  alt: modal-open
+                  text: ''
+                - image: images/functional-tests/run/reservation-approve-payment-1.png
+                  alt: state-result
+                  text: Al cerrar el modal, se regresa al estado inicial de la lista.
+          - cp_id: CPF-03-004
+            inputs: Llenado=SI, Pago=Offline, Aprobado=SI
+            expected: Se visualiza el botón para marcar como completa
+            obs: f+
+            execution:
+              description: 'Botón "Marcar como completa" visible (Llenado=SI, Pago=Offline, Aprobado=SI).'
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón visible en la interfaz de administración.
+              evidence:
+                - image: images/functional-tests/run/reservation-mark-as-complete-should-show.png
+                  alt: mark-complete-show
+                  text: El botón aparece según las reglas de la tabla de decisión.
+          - cp_id: CPF-03-005
+            inputs: Llenado=SI, Pago=Presencial, Aprobado=NO
+            expected: El botón de marcar como completa se oculta
+            obs: f+
+            execution:
+              description: Botón oculto (Llenado=SI, Pago=Presencial, Aprobado=NO).
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón no presente en la UI.
+              evidence:
+                - image: images/functional-tests/run/reservation-mark-as-complete-shouldnt-show.png
+                  alt: mark-complete-hide
+                  text: El botón se oculta correctamente para pagos presenciales no aprobados.
+          - cp_id: CPF-03-006
+            inputs: Llenado=NO
+            expected: El botón de marcar como completa se oculta
+            obs: f+
+            execution:
+              description: Botón oculto cuando no se completó el llenado.
+              type: Manual
+              status: Fallido
+              defects: El botón se muestra aunque el llenado sea incompleto.
+              obtained: El botón es visible. Al hacer clic, se realiza la petición, falla sin error visible y recarga la página.
+              evidence:
+                - image: images/functional-tests/run/reservation-mark-as-complete-should-show.png
+                  alt: mark-complete-bug
+                  text: Se observa la presencia del botón a pesar de no cumplir con las condiciones de llenado.
+  - title: Disponibilidad de Descarga de Tickets
+    level: '###'
+    catalog_header: Escenario
+    cases:
+      - id: CPF-0004
+        functionality: Lógica de emisión y descarga de entradas
+        description: Valida las condiciones bajo las cuales un usuario puede descargar su ticket en PDF, basándose en la temporalidad, modalidad y estado financiero.
+        requirement: RF-004 (Emisión de Entradas)
+        preconditions: Reserva realizada por el usuario.
+        inputs: ''
+        steps: []
+        techniques:
+          - Tablas de Decisión.
+        priority: Alta
+        analysis:
+          equivalency_partitions: []
+          boundary_values: []
+          decision_tables:
+            - title: Mostrar botón de descarga de ticket
+              header: Condición
+              columns: [C1, C2, C3, C4, C5, C6]
+              conditions:
+                - name: "¿El evento ya pasó?"
+                  values: [SI, 'NO', 'NO', 'NO', 'NO', 'NO']
+                - name: Modalidad del evento
+                  values: ['-', Presencial, Presencial, Híbrido, Híbrido, Virtual]
+                - name: "¿Pago Aprobado?"
+                  values: ['-', SI, 'NO', SI, 'NO', '-']
+              action_name: Mostrar Botón
+              actions: ['NO', SI, 'NO', SI, 'NO', 'NO']
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-04-001
+            inputs: Fecha del evento en el pasado
+            expected: El botón de descarga no se muestra
+            obs: f-
+            execution:
+              description: No mostrar botón de descarga si el evento ya pasó.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón oculto para eventos pasados.
+              evidence:
+                - image: images/functional-tests/run/ticket-download-not-available.png
+                  alt: download-not-past
+                  text: El sistema restringe la descarga post-evento.
+          - cp_id: CPF-04-002
+            inputs: Futuro, Presencial, Pago aprobado
+            expected: El botón de descarga es visible y funcional
+            obs: f+
+            execution:
+              description: Descarga disponible para evento presencial con pago aprobado.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón visible y permite la descarga.
+              evidence:
+                - image: images/functional-tests/run/ticket-download-available.png
+                  alt: download-available
+                  text: Escenario de éxito para descarga de ticket presencial.
+          - cp_id: CPF-04-003
+            inputs: Futuro, Presencial, Pago pendiente
+            expected: El botón de descarga permanece oculto
+            obs: f-
+            execution:
+              description: No mostrar botón si el pago está pendiente (Presencial).
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón oculto por falta de pago.
+              evidence:
+                - image: images/functional-tests/run/ticket-download-not-available.png
+                  alt: download-not-unpaid
+                  text: Restricción de descarga por estado de pago.
+          - cp_id: CPF-04-004
+            inputs: Futuro, Híbrido, Pago aprobado
+            expected: El botón de descarga es visible y funcional
+            obs: f+
+            execution:
+              description: Descarga disponible para evento híbrido con pago aprobado.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón visible y permite la descarga.
+              evidence:
+                - image: images/functional-tests/run/ticket-download-available.png
+                  alt: download-available-hybrid
+                  text: Acceso a ticket en modalidad híbrida exitoso.
+          - cp_id: CPF-04-005
+            inputs: Futuro, Híbrido, Pago pendiente
+            expected: El botón de descarga permanece oculto
+            obs: f-
+            execution:
+              description: No mostrar botón si el pago está pendiente (Híbrido).
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón oculto por falta de pago.
+              evidence:
+                - image: images/functional-tests/run/ticket-download-not-available.png
+                  alt: download-not-hybrid-unpaid
+                  text: Bloqueo de descarga en modalidad híbrida sin pago.
+          - cp_id: CPF-04-006
+            inputs: Futuro, Modalidad Virtual
+            expected: El botón de descarga no se muestra (acceso digital)
+            obs: f-
+            execution:
+              description: No mostrar botón de descarga para modalidad Virtual.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Botón oculto según lógica de negocio para eventos virtuales.
+              evidence:
+                - image: images/functional-tests/run/ticket-download-not-available.png
+                  alt: download-not-virtual
+                  text: Verificación de lógica de negocio para accesos virtuales.
+  - title: Configuración de la Organización (CONF-01)
+    level: '###'
+    catalog_header: "Datos de Entrada / Escenario"
+    cases:
+      - id: CPF-0005
+        functionality: Configuración de la Organización
+        description: Permite registrar y modificar la información de una organización, incluyendo el nombre, descripción, correo de contacto, y otros campos relacionados.
+        requirement: RF-CONF-01 (Configuración de la Organización)
+        preconditions: El usuario debe estar autenticado con rol de Administrador Global.
+        inputs: Nombre de la organización, descripción, correo electrónico de contacto.
+        steps:
+          - 'Acceder al panel de administración. <br>Ir a la sección de Organizaciones. <br>Crear una nueva organización o seleccionar una existente para editar. <br>Completar/modificar los campos de información. <br>Guardar los cambios.'
+        techniques:
+          - Partición de Equivalencia
+          - Análisis de Valores Límite.
+        priority: Alta
+        analysis:
+          equivalency_partitions:
+            - field: Nombre
+              valid: Texto no vacío (1-255 caracteres)
+              invalid: "Vacío, > 255 caracteres"
+            - field: Correo
+              valid: Formato estándar de correo
+              invalid: "Vacío, formato incorrecto (sin @)"
+          boundary_values:
+            - field: Nombre
+              min_valid: 1 carácter
+              min_invalid: 0 caracteres (vacío)
+              max_valid: 255 caracteres
+              max_invalid: 256 caracteres
+          decision_tables: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-05-001
+            inputs: Crear organización con datos válidos
+            expected: Registro y redirección exitosa.
+            obs: f+
+          - cp_id: CPF-05-002
+            inputs: Intentar crear organización con nombre vacío
+            expected: Rechazar guardado indicando campo requerido.
+            obs: f-
+          - cp_id: CPF-05-003
+            inputs: Nombre con caracteres especiales permitidos
+            expected: Registro y redirección exitosa.
+            obs: f+
+          - cp_id: CPF-05-004
+            inputs: Correo de contacto inválido
+            expected: Rechazar indicando formato de correo incorrecto.
+            obs: f-
+          - cp_id: CPF-05-005
+            inputs: Modificar datos de una organización existente de forma exitosa
+            expected: Registro y redirección exitosa.
+            obs: f+
+          - cp_id: CPF-05-006
+            inputs: Cambiar el nombre de una organización por uno ya existente
+            expected: Rechazar indicando que el nombre ya existe.
+            obs: f-
+    informe_catalog:
+      - cp_id: CONF-01-001
+        execution:
+          description: Crear organización con datos válidos.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: La organización se crea y aparece en la lista de administración.
+          evidence:
+            - image: images/functional-tests/run/config-org-create-input.png
+              alt: config-org-create-input
+              text: ''
+            - image: images/functional-tests/run/config-org-create-success.png
+              alt: config-org-create-success
+              text: Formulario completado y creación exitosa de la organización.
+      - cp_id: CONF-01-002
+        execution:
+          description: Intentar crear organización con nombre vacío.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema previene el envío y resalta el campo vacío.
+          evidence:
+            - image: images/functional-tests/run/config-org-create-empty-name.png
+              alt: config-org-create-empty-name
+              text: Validación del frontend al intentar omitir el nombre.
+      - cp_id: CONF-01-003
+        execution:
+          description: Intentar crear organización con email de formato inválido.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema muestra mensaje de error de correo inválido.
+          evidence:
+            - image: images/functional-tests/run/config-org-create-invalid-email.png
+              alt: config-org-create-invalid-email
+              text: Validación del formato del correo electrónico.
+      - cp_id: CONF-01-004
+        execution:
+          description: Crear organización con nombre de 255 caracteres.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Se guarda el nombre y se muestra completo en la vista.
+          evidence:
+            - image: images/functional-tests/run/config-org-create-name-255-input.png
+              alt: config-org-create-name-255-input
+              text: ''
+            - image: images/functional-tests/run/config-org-create-name-255-view.png
+              alt: config-org-create-name-255-view
+              text: Creación y guardado exitoso con longitud máxima de 255 caracteres.
+      - cp_id: CONF-01-005
+        execution:
+          description: Editar los datos de una organización existente.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Los cambios se aplican y persisten en la base de datos.
+          evidence:
+            - image: images/functional-tests/run/config-org-edit-input.png
+              alt: config-org-edit-input
+              text: ''
+            - image: images/functional-tests/run/config-org-edit-success.png
+              alt: config-org-edit-success
+              text: Edición de datos de la organización guardada exitosamente.
+      - cp_id: CONF-01-006
+        execution:
+          description: Crear organización con nombre de 256 caracteres.
+          type: Manual
+          status: Fallido
+          defects: SQL error message exposure
+          obtained: El sistema lanza un error 500 exponiendo la excepción SQL cruda de base de datos.
+          evidence:
+            - image: images/functional-tests/run/config-org-create-name-256-sql-error.png
+              alt: config-org-create-name-256-sql-error
+              text: Error 500 expone información sensible de base de datos (SQL).
+  - title: Configuración del Evento (CONF-02)
+    level: '###'
+    catalog_header: "Datos de Entrada / Escenario"
+    cases:
+      - id: CPF-0006
+        functionality: Configuración del Evento
+        description: Permite crear y modificar las propiedades básicas de un evento, incluyendo fechas, descripción y códigos de acceso.
+        requirement: RF-CONF-02 (Configuración del Evento)
+        preconditions: El usuario debe estar autenticado y tener permisos de edición sobre el evento.
+        inputs: Nombre del evento, fecha de inicio, fecha de fin, descripción, códigos de acceso.
+        steps:
+          - 'Acceder al panel de administración del evento. <br>Configurar las fechas e información básica. <br>Configurar disponibilidad y fin de venta para las categorías. <br>Guardar los cambios.'
+        techniques:
+          - Partición de Equivalencia.
+        priority: Alta
+        analysis:
+          equivalency_partitions:
+            - field: Fechas
+              valid: Fecha de fin posterior a la de inicio
+              invalid: "Fecha de inicio en el pasado, fecha de fin anterior a la de inicio"
+            - field: Códigos Ocultos
+              valid: Código único por categoría
+              invalid: Códigos duplicados en categorías del mismo evento
+          boundary_values: []
+          decision_tables: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-06-001
+            inputs: Crear evento con datos válidos
+            expected: Guardar exitosamente.
+            obs: f+
+          - cp_id: CPF-06-002
+            inputs: Crear evento con fecha de inicio en el pasado
+            expected: Rechazar indicando error en la fecha.
+            obs: f-
+          - cp_id: CPF-06-003
+            inputs: Crear evento con fecha de fin anterior a la de inicio
+            expected: Rechazar indicando incoherencia en las fechas.
+            obs: f-
+          - cp_id: CPF-06-004
+            inputs: Modificar la descripción de un evento existente
+            expected: Guardar los cambios de forma exitosa.
+            obs: f+
+          - cp_id: CPF-06-005
+            inputs: Configurar disponibilidad de categoría después de inicio del evento
+            expected: Guardar la configuración correctamente.
+            obs: f+
+          - cp_id: CPF-06-006
+            inputs: Configurar fin de venta de categoría después del fin del evento
+            expected: Guardar la configuración correctamente.
+            obs: f+
+          - cp_id: CPF-06-007
+            inputs: Configurar códigos ocultos duplicados en diferentes categorías
+            expected: Guardar el mismo código en múltiples categorías.
+            obs: f+
+    informe_catalog:
+      - cp_id: CONF-02-001
+        execution:
+          description: Configurar fechas del evento con el date picker.
+          type: Manual
+          status: Fallido
+          defects: date picker scroll bug
+          obtained: El widget del date picker tiene un problema de scroll que dificulta su uso.
+          evidence:
+            - image: images/functional-tests/run/config-evt-date-setup.png
+              alt: config-evt-date-setup
+              text: Bug de scroll visualizado al abrir el selector de fechas.
+      - cp_id: CONF-02-002
+        execution:
+          description: Configurar fecha de inicio del evento en el pasado.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema permite seleccionar la fecha pasada en el campo de entrada.
+          evidence:
+            - image: images/functional-tests/run/config-evt-past-start.png
+              alt: config-evt-past-start
+              text: Fecha de inicio en el pasado ingresada en el formulario de configuración.
+      - cp_id: CONF-02-003
+        execution:
+          description: Validar error al guardar evento con fecha de inicio en el pasado.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema muestra alerta de error indicando fecha inválida.
+          evidence:
+            - image: images/functional-tests/run/config-evt-past-error.png
+              alt: config-evt-past-error
+              text: Mensaje de error al intentar guardar un evento con fecha pasada.
+      - cp_id: CONF-02-004
+        execution:
+          description: Validar configuración con fecha de inicio y fin idénticas.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema muestra error de validación impidiendo el guardado.
+          evidence:
+            - image: images/functional-tests/run/config-evt-same-start-end.png
+              alt: config-evt-same-start-end
+              text: Error mostrado cuando las fechas de inicio y fin coinciden exactamente.
+      - cp_id: CONF-02-005
+        execution:
+          description: Configurar disponibilidad de categoría después de inicio del evento.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema procesa y guarda la disponibilidad de la categoría.
+          evidence:
+            - image: images/functional-tests/run/config-evt-cat-avail-after-event.png
+              alt: config-evt-cat-avail-after-event
+              text: Configuración guardada de tickets disponibles post-inicio del evento.
+      - cp_id: CONF-02-006
+        execution:
+          description: Configurar fin de venta de categoría después del fin del evento.
+          type: Manual
+          status: Fallido
+          defects: silent save disable
+          obtained: El botón guardar se inhabilita silenciosamente sin indicar la causa.
+          evidence:
+            - image: images/functional-tests/run/config-evt-cat-end-after-event.png
+              alt: config-evt-cat-end-after-event
+              text: Botón de guardado inactivo de forma silenciosa sin feedback de error.
+      - cp_id: CONF-02-007
+        execution:
+          description: Configurar códigos ocultos duplicados en diferentes categorías.
+          type: Manual
+          status: Fallido
+          defects: duplicate hidden code
+          obtained: El sistema guarda el mismo código oculto en múltiples categorías.
+          evidence:
+            - image: images/functional-tests/run/config-evt-duplicate-hidden-code.png
+              alt: config-evt-duplicate-hidden-code
+              text: Aceptación del mismo código de acceso duplicado en la configuración.
+  - title: Configuración de Categorías de Tickets (CONF-03)
+    level: '###'
+    catalog_header: "Datos de Entrada / Escenario"
+    cases:
+      - id: CPF-0007
+        functionality: Configuración de Categorías de Tickets
+        description: Permite configurar los tipos de tickets, sus precios, disponibilidad, si son internos u ocultos con código de acceso.
+        requirement: RF-CONF-03 (Configuración de Categorías de Tickets)
+        preconditions: El evento debe estar creado y en estado de configuración.
+        inputs: Nombre de la categoría, precio, cantidad de tickets, código de acceso.
+        steps:
+          - 'Acceder a la sección de categorías de tickets en el evento. <br>Modificar el precio o crear una categoría nueva. <br>Configurar código de acceso si es una categoría oculta. <br>Guardar la configuración.'
+        techniques:
+          - Tablas de Decisión
+          - Partición de Equivalencia.
+        priority: Alta
+        analysis:
+          equivalency_partitions:
+            - field: Precio
+              valid: "Valor decimal >= 0"
+              invalid: "Valor decimal < 0"
+          boundary_values: []
+          decision_tables:
+            - title: Comportamiento por Categoría de Ticket
+              raw: |-
+                | ID Caso de Prueba | Escenario / Columna Origen | Dato de Entrada: ¿Es Ticket Interno? | Dato de Entrada: Precio | Resultado Esperado: ¿Visible en página? | Resultado Esperado: ¿Requiere Pago? |
+                | :--- | :--- | :--- | :--- | :--- | :--- |
+                | CP-01 | C1 (Expansión del -) | SÍ | $15.00 (Precio > 0) | NO | NO |
+                | CP-02 | C2 (Expansión del -) | SÍ | $0.00 (Precio = 0) | NO | NO |
+                | CP-03 | C3 | NO | $25.50 (Precio > 0) | SÍ | SÍ (Validar pasarela Stripe/Offline) |
+                | CP-04 | C4 | NO | $0.00 (Precio = 0) | SÍ | NO (Debe dejar hacer checkout gratis) |
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-07-001
+            inputs: Modificar el precio de una categoría existente
+            expected: Guardar el cambio del precio exitosamente.
+            obs: f+
+          - cp_id: CPF-07-002
+            inputs: Ingresar un precio negativo en una categoría
+            expected: Rechazar indicando que el precio no puede ser negativo.
+            obs: f-
+          - cp_id: CPF-07-003
+            inputs: Configurar una categoría de tickets gratuitos (precio cero)
+            expected: Guardar la categoría como gratuita y permitir checkout gratis.
+            obs: f+
+          - cp_id: CPF-07-004
+            inputs: Configurar categoría VIP con precio diferenciado
+            expected: Guardar la categoría VIP y reflejar su precio diferenciado.
+            obs: f+
+          - cp_id: CPF-07-005
+            inputs: Crear categoría oculta con código de acceso
+            expected: Crear la categoría oculta y requerir el código para su visualización.
+            obs: f+
+          - cp_id: CPF-07-006
+            inputs: Eliminar categoría oculta como administrador
+            expected: Remover exitosamente la categoría de la lista.
+            obs: f+
+          - cp_id: CPF-07-007
+            inputs: Ticket interno, Precio > 0 (CP-01)
+            expected: No visible en página y no requiere pago.
+            obs: f-
+          - cp_id: CPF-07-008
+            inputs: Ticket interno, Precio = 0 (CP-02)
+            expected: No visible en página y no requiere pago.
+            obs: f-
+          - cp_id: CPF-07-009
+            inputs: Ticket no interno, Precio > 0 (CP-03)
+            expected: Visible en página y requiere pago (Stripe/Offline).
+            obs: f+
+          - cp_id: CPF-07-010
+            inputs: Ticket no interno, Precio = 0 (CP-04)
+            expected: Visible en página y permite checkout gratis (no requiere pago).
+            obs: f+
+    informe_catalog:
+      - cp_id: CONF-03-001
+        execution:
+          description: Modificar el precio de una categoría de ticket existente.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El precio se modifica y se confirma el cambio exitosamente.
+          evidence:
+            - image: images/functional-tests/run/config-ticket-edit-price.png
+              alt: config-ticket-edit-price
+              text: ''
+            - image: images/functional-tests/run/config-ticket-edit-price-success.png
+              alt: config-ticket-edit-price-success
+              text: Edición de precio de categoría ingresada y guardada correctamente.
+      - cp_id: CONF-03-002
+        execution:
+          description: Ingresar un precio negativo en una categoría de ticket.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema impide guardar y muestra error de formato numérico.
+          evidence:
+            - image: images/functional-tests/run/config-ticket-negative-price.png
+              alt: config-ticket-negative-price
+              text: Error del sistema al intentar guardar un precio negativo.
+      - cp_id: CONF-03-003
+        execution:
+          description: Configurar una categoría de tickets gratuitos (precio cero).
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Se configura correctamente a precio 0.00 y se guarda.
+          evidence:
+            - image: images/functional-tests/run/config-ticket-free-select.png
+              alt: config-ticket-free-select
+              text: ''
+            - image: images/functional-tests/run/config-ticket-free-success.png
+              alt: config-ticket-free-success
+              text: Selección y confirmación exitosa de categoría de tickets gratuitos.
+      - cp_id: CONF-03-004
+        execution:
+          description: Configurar categoría VIP con precio diferenciado.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Categoría VIP creada correctamente en el panel.
+          evidence:
+            - image: images/functional-tests/run/config-ticket-vip-success.png
+              alt: config-ticket-vip-success
+              text: Creación y visualización exitosa de la categoría VIP.
+      - cp_id: CONF-03-005
+        execution:
+          description: Crear categoría oculta con código de acceso.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Categoría configurada con el código de acceso correctamente.
+          evidence:
+            - image: images/functional-tests/run/config-ticket-hidden-access.png
+              alt: config-ticket-hidden-access
+              text: Configuración del código de acceso para categoría oculta.
+      - cp_id: CONF-03-006
+        execution:
+          description: Eliminar categoría oculta como administrador.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: La categoría se remueve exitosamente de la lista.
+          evidence:
+            - image: images/functional-tests/run/config-ticket-hidden-delete-admin.png
+              alt: config-ticket-hidden-delete-admin
+              text: Confirmación de eliminación de la categoría oculta en el panel.
+  - title: Gestión de Capacidad (CONF-04)
+    level: '###'
+    catalog_header: "Datos de Entrada / Escenario"
+    cases:
+      - id: CPF-0008
+        functionality: Gestión de Capacidad
+        description: Permite definir y controlar la capacidad máxima de asistentes del evento y de cada categoría de ticket individualmente.
+        requirement: RF-CONF-04 (Gestión de Capacidad)
+        preconditions: El evento y las categorías deben estar configurados.
+        inputs: Capacidad del evento, capacidad de la categoría, límite de tickets por transacción.
+        steps:
+          - 'Configurar la capacidad máxima del evento y de las categorías. <br>Intentar registrar una compra superando los límites. <br>Verificar el comportamiento cuando se llega al límite.'
+        techniques:
+          - Partición de Equivalencia
+          - Análisis de Valores Límite.
+        priority: Alta
+        analysis:
+          equivalency_partitions:
+            - field: Capacidad
+              valid: Total de categorías <= Capacidad del evento
+              invalid: Total de categorías > Capacidad del evento
+            - field: Cantidad por Compra
+              valid: Menor o igual al límite por transacción
+              invalid: Mayor al límite por transacción, cantidad <= 0
+          boundary_values: []
+          decision_tables: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-08-001
+            inputs: Configurar categorías cuya capacidad supere el límite del evento
+            expected: Impedir guardar o emitir una advertencia de capacidad.
+            obs: f-
+          - cp_id: CPF-08-002
+            inputs: Ingresar cantidad inválida o nula de tickets en una categoría
+            expected: Rechazar indicando error en la capacidad.
+            obs: f-
+          - cp_id: CPF-08-003
+            inputs: Comprar el último ticket disponible de una categoría
+            expected: Procesar la compra y actualizar la disponibilidad a cero.
+            obs: f+
+          - cp_id: CPF-08-004
+            inputs: Comprar tickets respetando el límite máximo por transacción
+            expected: Permitir la compra si está dentro del límite establecido.
+            obs: f+
+          - cp_id: CPF-08-005
+            inputs: Verificar estado de categoría cuando se agotan los tickets
+            expected: Deshabilitar la venta y mostrar la etiqueta "Sold out" (Agotado).
+            obs: f-
+    informe_catalog:
+      - cp_id: CONF-04-001
+        execution:
+          description: Configurar categorías cuya capacidad supere el límite del evento.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema muestra error e impide exceder el total configurado.
+          evidence:
+            - image: images/functional-tests/run/config-capacity-event-limit-error.png
+              alt: config-capacity-event-limit-error
+              text: Validación del límite de capacidad del evento al configurar categorías.
+      - cp_id: CONF-04-002
+        execution:
+          description: Ingresar cantidad inválida o nula de tickets en una categoría.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema bloquea la acción y señala el campo incorrecto.
+          evidence:
+            - image: images/functional-tests/run/config-capacity-invalid-tickets.png
+              alt: config-capacity-invalid-tickets
+              text: Error mostrado ante cantidad de tickets inválida.
+      - cp_id: CONF-04-003
+        execution:
+          description: Comprar el último ticket disponible de una categoría.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Compra exitosa y actualización inmediata de la disponibilidad.
+          evidence:
+            - image: images/functional-tests/run/config-capacity-buy-last.png
+              alt: config-capacity-buy-last
+              text: Visualización de la compra exitosa del último ticket disponible.
+      - cp_id: CONF-04-004
+        execution:
+          description: Comprar tickets respetando el límite máximo por transacción.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Compra procesada exitosamente al respetar la cantidad permitida.
+          evidence:
+            - image: images/functional-tests/run/config-capacity-max-2-buy-1.png
+              alt: config-capacity-max-2-buy-1
+              text: Compra exitosa de un ticket respetando la restricción de máximo dos.
+      - cp_id: CONF-04-005
+        execution:
+          description: Verificar estado de categoría cuando se agotan los tickets.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: La interfaz pública muestra "Sold out" y bloquea la selección.
+          evidence:
+            - image: images/functional-tests/run/config-capacity-sold-out.png
+              alt: config-capacity-sold-out
+              text: Categoría de tickets agotada en la vista pública de selección.
+  - title: Configuración de Impuestos (CONF-05)
+    level: '###'
+    catalog_header: "Datos de Entrada / Escenario"
+    cases:
+      - id: CPF-0009
+        functionality: Configuración de Impuestos
+        description: Permite definir reglas de impuestos (VAT/IVA) y aplicarlas o eximirlas a categorías específicas.
+        requirement: RF-CONF-05 (Configuración de Impuestos)
+        preconditions: La organización y el evento deben estar creados.
+        inputs: Nombre del impuesto, tasa impositiva (porcentaje), categoría a aplicar.
+        steps:
+          - 'Acceder al panel de administración del evento. <br>Configurar una nueva regla de impuestos. <br>Asociar o desvincular el impuesto a una categoría.'
+        techniques:
+          - Partición de Equivalencia.
+        priority: Media
+        analysis:
+          equivalency_partitions:
+            - field: Tasa
+              valid: "Valor porcentual >= 0%"
+              invalid: "Valor porcentual < 0%"
+          boundary_values: []
+          decision_tables: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-09-001
+            inputs: Configurar y aplicar un nuevo impuesto (VAT/IVA)
+            expected: Guardar y aplicar el impuesto correctamente al precio de la categoría.
+            obs: f+
+          - cp_id: CPF-09-002
+            inputs: Actualizar la tasa del impuesto configurado a un valor de 0%
+            expected: Se actualiza la tasa a 0% de forma exitosa en el panel.
+            obs: f+
+          - cp_id: CPF-09-003
+            inputs: Configurar y aplicar exención de impuestos (tax-free) a una categoría
+            expected: Desvincular los impuestos del precio de la categoría.
+            obs: f+
+    informe_catalog:
+      - cp_id: CONF-05-001
+        execution:
+          description: Configurar y aplicar un nuevo impuesto (VAT/IVA).
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El impuesto se configura y se aplica al precio correctamente.
+          evidence:
+            - image: images/functional-tests/run/config-tax-setup.png
+              alt: config-tax-setup
+              text: Formulario de configuración de impuestos guardado correctamente.
+      - cp_id: CONF-05-002
+        execution:
+          description: Actualizar la tasa del impuesto configurado a un valor de 0%.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Se guarda el cambio de tasa a 0% exitosamente en el panel.
+          evidence:
+            - image: images/functional-tests/run/config-tax-0-percent-update.png
+              alt: config-tax-0-percent-update
+              text: Guardado de tasa de impuesto al 0% en la configuración.
+      - cp_id: CONF-05-003
+        execution:
+          description: Configurar y aplicar exención de impuestos (tax-free) a una categoría.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Se desvinculan los impuestos del precio de la categoría.
+          evidence:
+            - image: images/functional-tests/run/config-tax-free-update.png
+              alt: config-tax-free-update
+              text: Actualización de categoría a exenta de impuestos.
+  - title: Configuración de Localización y Moneda (CONF-06)
+    level: '###'
+    catalog_header: "Datos de Entrada / Escenario"
+    cases:
+      - id: CPF-0010
+        functionality: Configuración de Localización y Moneda
+        description: Permite definir el idioma del sistema, la traducción de los detalles del evento, la zona horaria y la moneda por defecto del evento.
+        requirement: RF-CONF-06 (Configuración de Localización y Moneda)
+        preconditions: El evento debe estar creado.
+        inputs: Idioma principal, traducciones secundarias, zona horaria, moneda por defecto (EUR, PEN, etc.).
+        steps:
+          - 'Ir al panel de configuración de localización del evento/organización. <br>Configurar el idioma de visualización y traducciones del evento. <br>Modificar la zona horaria y moneda por defecto.'
+        techniques:
+          - Partición de Equivalencia.
+        priority: Media
+        analysis:
+          equivalency_partitions:
+            - field: Idioma
+              valid: Al menos un idioma configurado en el sistema
+              invalid: Eliminar el último idioma restante
+            - field: Zona Horaria
+              valid: Zona horaria coherente con la del evento
+              invalid: Desfase de zona horaria detectado
+          boundary_values: []
+          decision_tables: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-10-001
+            inputs: Seleccionar el idioma por defecto del sistema
+            expected: Actualizar el idioma de visualización correctamente.
+            obs: f+
+          - cp_id: CPF-10-002
+            inputs: Traducir los detalles del evento a un idioma secundario
+            expected: Guardar traducciones y aplicarlas correctamente a los campos.
+            obs: f+
+          - cp_id: CPF-10-003
+            inputs: Validar el límite mínimo de idiomas requeridos al intentar eliminar
+            expected: Impedir la eliminación si solo queda un idioma configurado.
+            obs: f-
+          - cp_id: CPF-10-004
+            inputs: Validar advertencia por desfase de zona horaria del evento
+            expected: Mostrar alerta explicativa sobre la discrepancia de zona horaria.
+            obs: f-
+          - cp_id: CPF-10-005
+            inputs: Cambiar la moneda por defecto del evento a Euros (EUR)
+            expected: Actualizar la moneda a EUR y reflejarla en la tienda pública.
+            obs: f+
+          - cp_id: CPF-10-006
+            inputs: Cambiar la moneda por defecto del evento a Soles (PEN)
+            expected: Actualizar la moneda a PEN y reflejarla en la tienda pública.
+            obs: f+
+    informe_catalog:
+      - cp_id: CONF-06-001
+        execution:
+          description: Seleccionar el idioma por defecto del sistema.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema actualiza el idioma de visualización correctamente.
+          evidence:
+            - image: images/functional-tests/run/config-loc-language-selector.png
+              alt: config-loc-language-selector
+              text: Selector de idioma configurado en la administración de la organización.
+      - cp_id: CONF-06-002
+        execution:
+          description: Traducir los detalles del evento a un idioma secundario.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: Traducciones guardadas y aplicadas a los campos del evento.
+          evidence:
+            - image: images/functional-tests/run/config-loc-translation-input.png
+              alt: config-loc-translation-input
+              text: Campos de traducción completados y guardados para el evento.
+      - cp_id: CONF-06-003
+        execution:
+          description: Validar el límite mínimo de idiomas requeridos al intentar eliminar.
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: El sistema restringe la eliminación en el límite mínimo de idiomas.
+          evidence:
+            - image: images/functional-tests/run/config-loc-delete-language-boundary.png
+              alt: config-loc-delete-language-boundary
+              text: Validación del límite mínimo de idiomas permitidos en el sistema.
+      - cp_id: CONF-06-004
+        execution:
+          description: Validar advertencia por desfase de zona horaria del evento.
+          type: Manual
+          status: Fallido
+          defects: event timezone warning
+          obtained: Se muestra un mensaje de advertencia sobre la zona horaria del evento.
+          evidence:
+            - image: images/functional-tests/run/config-loc-timezone-warning.png
+              alt: config-loc-timezone-warning
+              text: Mensaje de advertencia por desfase de la zona horaria detectada.
+      - cp_id: CONF-06-005
+        execution:
+          description: Cambiar la moneda por defecto del evento a Euros (EUR).
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: La moneda se actualiza a EUR y se muestra en la tienda pública.
+          evidence:
+            - image: images/functional-tests/run/config-loc-currency-eur.png
+              alt: config-loc-currency-eur
+              text: Moneda configurada a Euros (EUR) en la administración.
+      - cp_id: CONF-06-006
+        execution:
+          description: Cambiar la moneda por defecto del evento a Soles (PEN).
+          type: Manual
+          status: Exitoso
+          defects: No se encontraron defectos
+          obtained: La moneda se actualiza a PEN y se muestra en la tienda pública.
+          evidence:
+            - image: images/functional-tests/run/config-loc-currency-pen.png
+              alt: config-loc-currency-pen
+              text: Moneda configurada a Soles Peruanos (PEN) en la administración.
+  - title: Creación de Usuarios
+    level: '#'
+    catalog_header: Datos de Entrada
+    cases:
+      - id: CPF-011
+        functionality: Creación de usuarios
+        description: Permite a un administrador registrar nuevos usuarios asignándoles una organización y un rol dentro del sistema.
+        requirement: RF-005 (Creación de Usuarios)
+        preconditions: El usuario debe estar autenticado con permisos de administrador.
+        inputs: Organización, rol, nombre de usuario, nombre, apellido y correo electrónico.
+        steps:
+          - Acceder al módulo de usuarios.
+          - Seleccionar "add new".
+          - Completar los campos obligatorios.
+          - Presionar "Save".
+        techniques:
+          - Partición por Equivalencia
+          - Análisis de Valores Límite
+          - Tabla de Decisión.
+        analysis:
+          equivalency_partitions:
+            - field: Organización
+              valid: Organización existente
+              invalid: Vacía
+            - field: Rol
+              valid: Rol existente del sistema
+              invalid: Vacío
+            - field: Username
+              valid: Alfanumérico único
+              invalid: "Vacío, duplicado"
+            - field: Nombre
+              valid: Texto alfabético válido
+              invalid: Vacío, contiene caracteres inválidos
+            - field: Apellido
+              valid: Texto alfabético válido
+              invalid: Vacío, contiene caracteres inválidos
+            - field: E-mail
+              valid: "Formato válido (user@domain.com)"
+              invalid: "Vacío, formato incorrecto, duplicado"
+          boundary_values:
+            - field: Username
+              min_valid: 1 carácter
+              min_invalid: 0 caracteres
+              max_valid: 255 caracteres
+              max_invalid: 256 caracteres
+            - field: Nombre
+              min_valid: 1 carácter
+              min_invalid: 0 caracteres
+              max_valid: 255 caracteres
+              max_invalid: 256 caracteres
+            - field: Apellido
+              min_valid: 1 carácter
+              min_invalid: 0 caracteres
+              max_valid: 255 caracteres
+              max_invalid: 256 caracteres
+            - field: E-mail
+              min_valid: Longitud mínima válida
+              min_invalid: Vacío
+              max_valid: Longitud máxima soportada
+              max_invalid: Excede límite
+          decision_tables:
+            - title: Validación de Campos Obligatorios para la Creación de Usuarios
+              header: Condición
+              columns: [C1, C2, C3, C4, C5, C6, C7]
+              conditions:
+                - name: Organización informada
+                  values: [SI, 'NO', SI, SI, SI, SI, SI]
+                - name: Rol informado
+                  values: [SI, SI, 'NO', SI, SI, SI, SI]
+                - name: Username informado
+                  values: [SI, SI, SI, 'NO', SI, SI, SI]
+                - name: Nombre informado
+                  values: [SI, SI, SI, SI, 'NO', SI, SI]
+                - name: Apellido informado
+                  values: [SI, SI, SI, SI, SI, 'NO', SI]
+                - name: E-mail informado
+                  values: [SI, SI, SI, SI, SI, SI, 'NO']
+              action_name: Crear Usuario
+              actions: [SI, 'NO', 'NO', 'NO', 'NO', 'NO', 'NO']
+            - title: Acciones
+              header: Acción
+              columns: [C1, C2, C3, C4, C5, C6, C7]
+              conditions:
+                - name: 'Permitir guardar usuario    '
+                  values: ['X', ' ', ' ', ' ', ' ', ' ', ' ']
+                - name: 'Mostrar error de validación'
+                  values: [' ', 'X', 'X', 'X', 'X', 'X', 'X']
+              action_name: ''
+              actions: []
+          state_transitions: []
+        catalog:
+          - cp_id: CPF-11-001
+            inputs: 'Username: "usuario_existente"'
+            expected: "Error: Username ya registrado"
+            obs: f-
+            execution:
+              description: No permitir la creación de usuarios con un nombre de usuario ya registrado.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se mostró mensaje de username duplicado y no se creó el usuario.
+              evidence:
+                - image: images/functional-tests/run/user-duplicate-username.png
+                  alt: duplicate-username
+                  text: Validación de unicidad del nombre de usuario.
+          - cp_id: CPF-11-002
+            inputs: 'E-mail: "anarodriguez.com"'
+            expected: "Error: Formato de correo inválido"
+            obs: f-
+            execution:
+              description: No permitir correos electrónicos sin el carácter '@'.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se rechazó el correo "anarodriguez.com" por formato inválido.
+              evidence:
+                - image: images/functional-tests/run/user-invalid-email-format.png
+                  alt: invalid-email
+                  text: Validación de formato de correo electrónico.
+          - cp_id: CPF-11-003
+            inputs: 'E-mail: "ana@"'
+            expected: "Error: Formato de correo inválido"
+            obs: f-
+            execution:
+              description: No permitir correos electrónicos sin dominio válido.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se rechazó el correo "ana@" por no contener un dominio válido.
+              evidence:
+                - image: images/functional-tests/run/user-invalid-email-domain.png
+                  alt: invalid-email-domain
+                  text: Validación de dominio en direcciones de correo.
+          - cp_id: CPF-11-004
+            inputs: 'E-mail: "usuario.existente@techevents.com"'
+            expected: "Error: Correo ya registrado"
+            obs: f-
+            execution:
+              description: No permitir el registro de un correo electrónico ya existente.
+              type: Manual
+              status: Fallido
+              defects: El sistema permite correos duplicados
+              obtained: Se mostró mensaje de correo duplicado y no se creó el usuario.
+              evidence:
+                - image: images/functional-tests/run/user-duplicate-email.png
+                  alt: duplicate-email
+                  text: Verificación de unicidad del correo electrónico.
+          - cp_id: CPF-11-005
+            inputs: 'Username: "   " (solo espacios en blanco)'
+            expected: "Error: Username obligatorio o inválido"
+            obs: f-
+            execution:
+              description: No permitir usernames compuestos únicamente por espacios en blanco.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se rechazó el registro al detectar un username compuesto únicamente por espacios.
+              evidence:
+                - image: images/functional-tests/run/user-blank-username.png
+                  alt: blank-username
+                  text: Validación de espacios en blanco en el nombre de usuario.
+          - cp_id: CPF-11-006
+            inputs: 'Username: "aa"'
+            expected: Usuario creado exitosamente
+            obs: f+
+            execution:
+              description: Permitir la creación de usuarios con un username de longitud mínima válida.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Usuario creado exitosamente utilizando el username "aa".
+              evidence:
+                - image: images/functional-tests/run/user-min-username.png
+                  alt: min-username
+                  text: Validación del límite inferior permitido para username.
+          - cp_id: CPF-11-007
+            inputs: "Username: (255 caracteres)"
+            expected: Usuario creado exitosamente
+            obs: f+
+            execution:
+              description: Permitir la creación de usuarios con un username de longitud máxima válida.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Usuario creado exitosamente con un username en el límite superior permitido.
+              evidence:
+                - image: images/functional-tests/run/user-max-username-valid.png
+                  alt: max-username-valid
+                  text: Validación del límite superior permitido para username.
+          - cp_id: CPF-11-008
+            inputs: "Username: (256 caracteres)"
+            expected: "Error: Username excede la longitud permitida"
+            obs: f-
+            execution:
+              description: No permitir usernames que excedan la longitud máxima definida.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se mostró mensaje indicando que el username excede la longitud permitida.
+              evidence:
+                - image: images/functional-tests/run/user-max-username-invalid.png
+                  alt: max-username-invalid
+                  text: Validación de longitud máxima para username.
+          - cp_id: CPF-11-009
+            inputs: 'Nombre: "   " (solo espacios en blanco)'
+            expected: "Error: Nombre obligatorio o inválido"
+            obs: f-
+            execution:
+              description: No permitir nombres compuestos únicamente por espacios en blanco.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se rechazó el registro al detectar un nombre compuesto únicamente por espacios.
+              evidence:
+                - image: images/functional-tests/run/user-blank-name.png
+                  alt: blank-name
+                  text: Validación de espacios en blanco en el nombre del usuario.
+          - cp_id: CPF-11-010
+            inputs: 'Nombre: "AA"'
+            expected: Usuario creado exitosamente
+            obs: f+
+            execution:
+              description: Permitir la creación de usuarios con un nombre de longitud mínima válida.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Usuario creado exitosamente utilizando el nombre "AA".
+              evidence:
+                - image: images/functional-tests/run/user-min-name.png
+                  alt: min-name
+                  text: Validación del límite inferior permitido para el nombre.
+          - cp_id: CPF-11-011
+            inputs: 'Nombre: "33"'
+            expected: "Error: Nombre no puede ser un número"
+            obs: f-
+            execution:
+              description: No permitir nombres compuestos únicamente por caracteres numéricos.
+              type: Manual
+              status: Fallido
+              defects: El sistema permite nombres numéricos
+              obtained: Se mostraron las credenciales del usuario creado.
+              evidence:
+                - image: images/functional-tests/run/user-numeric-name.png
+                  alt: numeric-name
+                  text: Validación de caracteres numéricos en el campo nombre.
+          - cp_id: CPF-11-012
+            inputs: 'Nombre: "$$"'
+            expected: "Error: Nombre no puede ser un símbolo"
+            obs: f-
+            execution:
+              description: No permitir nombres compuestos únicamente por símbolos especiales.
+              type: Manual
+              status: Fallido
+              defects: El sistema permite nombres con símbolos
+              obtained: Se mostraron las credenciales del usuario creado.
+              evidence:
+                - image: images/functional-tests/run/user-symbol-name.png
+                  alt: symbol-name
+                  text: Validación de caracteres especiales en el campo nombre.
+          - cp_id: CPF-11-013
+            inputs: "Nombre: (255 caracteres)"
+            expected: Usuario creado exitosamente
+            obs: f+
+            execution:
+              description: Permitir nombres con la longitud máxima válida configurada.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Usuario creado exitosamente utilizando un nombre en el límite superior permitido.
+              evidence:
+                - image: images/functional-tests/run/user-max-name-valid.png
+                  alt: max-name-valid
+                  text: Validación del límite superior permitido para el nombre.
+          - cp_id: CPF-11-014
+            inputs: "Nombre: (256 caracteres)"
+            expected: "Error: Nombre excede la longitud permitida"
+            obs: f-
+            execution:
+              description: No permitir nombres que excedan la longitud máxima definida.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se mostró mensaje indicando que el nombre excede la longitud permitida.
+              evidence:
+                - image: images/functional-tests/run/user-max-name-invalid.png
+                  alt: max-name-invalid
+                  text: Validación de longitud máxima para el nombre.
+          - cp_id: CPF-11-015
+            inputs: 'Apellido: "   " (solo espacios en blanco)'
+            expected: "Error: Apellido obligatorio o inválido"
+            obs: f-
+            execution:
+              description: No permitir apellidos compuestos únicamente por espacios en blanco.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se rechazó el registro al detectar un apellido compuesto únicamente por espacios.
+              evidence:
+                - image: images/functional-tests/run/user-blank-lastname.png
+                  alt: blank-lastname
+                  text: Validación de espacios en blanco en el campo apellido.
+          - cp_id: CPF-11-016
+            inputs: 'Apellido: "RR"'
+            expected: Usuario creado exitosamente
+            obs: f+
+            execution:
+              description: Permitir la creación de usuarios con un apellido de longitud mínima válida.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Usuario creado exitosamente utilizando el apellido "RR".
+              evidence:
+                - image: images/functional-tests/run/user-min-lastname.png
+                  alt: min-lastname
+                  text: Validación del límite inferior permitido para el apellido.
+          - cp_id: CPF-11-017
+            inputs: 'Apellido: "33"'
+            expected: "Error: Apellido no puede ser un número"
+            obs: f-
+            execution:
+              description: No permitir apellidos compuestos únicamente por caracteres numéricos.
+              type: Manual
+              status: Fallido
+              defects: El sistema permite nombres numéricos
+              obtained: Se mostraron las credenciales del usuario creado.
+              evidence:
+                - image: images/functional-tests/run/user-numeric-lastname.png
+                  alt: numeric-lastname
+                  text: Validación de caracteres numéricos en el campo apellido.
+          - cp_id: CPF-11-018
+            inputs: 'Apellido: "$$"'
+            expected: "Error: Apellido no puede ser un símbolo"
+            obs: f-
+            execution:
+              description: No permitir apellidos compuestos únicamente por símbolos especiales.
+              type: Manual
+              status: Fallido
+              defects: El sistema permite apellidos con símbolos
+              obtained: Se mostraron las credenciales del usuario creado.
+              evidence:
+                - image: images/functional-tests/run/user-symbol-lastname.png
+                  alt: symbol-lastname
+                  text: Validación de caracteres especiales en el campo apellido.
+          - cp_id: CPF-11-019
+            inputs: "Apellido: (255 caracteres)"
+            expected: Usuario creado exitosamente
+            obs: f+
+            execution:
+              description: Permitir apellidos con la longitud máxima válida configurada.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Usuario creado exitosamente utilizando un apellido en el límite superior permitido.
+              evidence:
+                - image: images/functional-tests/run/user-max-lastname-valid.png
+                  alt: max-lastname-valid
+                  text: Validación del límite superior permitido para el apellido.
+          - cp_id: CPF-11-020
+            inputs: "Apellido: (256 caracteres)"
+            expected: "Error: Apellido excede la longitud permitida"
+            obs: f-
+            execution:
+              description: No permitir apellidos que excedan la longitud máxima definida.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se mostró mensaje indicando que el apellido excede la longitud permitida.
+              evidence:
+                - image: images/functional-tests/run/user-max-lastname-invalid.png
+                  alt: max-lastname-invalid
+                  text: Validación de longitud máxima para el apellido.
+          - cp_id: CPF-11-021
+            inputs: 'Organización: "" (vacía), Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com"'
+            expected: El sistema muestra error de validación y no permite guardar
+            obs: f-
+            execution:
+              description: No permitir la creación de usuarios cuando la organización no ha sido seleccionada.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se bloqueó la creación del usuario al no seleccionar una organización.
+              evidence:
+                - image: images/functional-tests/run/user-without-organization.png
+                  alt: without-organization
+                  text: Validación de obligatoriedad del campo organización.
+          - cp_id: CPF-11-022
+            inputs: 'Organización: "AA", Rol: "" (vacío), Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com"'
+            expected: El sistema muestra error de validación y no permite guardar
+            obs: f-
+            execution:
+              description: No permitir la creación de usuarios cuando el rol no ha sido seleccionado.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se bloqueó la creación del usuario al no seleccionar un rol.
+              evidence:
+                - image: images/functional-tests/run/user-without-role.png
+                  alt: without-role
+                  text: Validación de obligatoriedad del campo rol.
+          - cp_id: CPF-11-023
+            inputs: 'Organización: "AA", Rol: "Organization owner", Username: "" (vacío), Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com"'
+            expected: El sistema muestra error de validación y no permite guardar
+            obs: f-
+            execution:
+              description: No permitir la creación de usuarios cuando el username está vacío.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se bloqueó la creación del usuario al dejar vacío el campo username.
+              evidence:
+                - image: images/functional-tests/run/user-without-username.png
+                  alt: without-username
+                  text: Validación de obligatoriedad del campo username.
+          - cp_id: CPF-11-024
+            inputs: 'Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "" (vacío), Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com"'
+            expected: El sistema muestra error de validación y no permite guardar
+            obs: f-
+            execution:
+              description: No permitir la creación de usuarios cuando el nombre está vacío.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se bloqueó la creación del usuario al dejar vacío el campo nombre.
+              evidence:
+                - image: images/functional-tests/run/user-without-name.png
+                  alt: without-name
+                  text: Validación de obligatoriedad del campo nombre.
+          - cp_id: CPF-11-025
+            inputs: 'Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "" (vacío), E-mail: "carlos.valdez@techevents.com"'
+            expected: El sistema muestra error de validación y no permite guardar
+            obs: f-
+            execution:
+              description: No permitir la creación de usuarios cuando el apellido está vacío.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se bloqueó la creación del usuario al dejar vacío el campo apellido.
+              evidence:
+                - image: images/functional-tests/run/user-without-lastname.png
+                  alt: without-lastname
+                  text: Validación de obligatoriedad del campo apellido.
+          - cp_id: CPF-11-026
+            inputs: 'Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "" (vacío)'
+            expected: El sistema muestra error de validación y no permite guardar
+            obs: f-
+            execution:
+              description: No permitir la creación de usuarios cuando el correo electrónico está vacío.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Se bloqueó la creación del usuario al dejar vacío el campo correo electrónico.
+              evidence:
+                - image: images/functional-tests/run/user-without-email.png
+                  alt: without-email
+                  text: Validación de obligatoriedad del campo correo electrónico.
+          - cp_id: CPF-11-027
+            inputs: 'Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com"'
+            expected: Usuario creado exitosamente
+            obs: f+
+            execution:
+              description: Permitir la creación de usuarios cuando todos los campos obligatorios han sido completados correctamente.
+              type: Manual
+              status: Exitoso
+              defects: No se encontraron defectos
+              obtained: Usuario creado exitosamente con los datos proporcionados.
+              evidence:
+                - image: images/functional-tests/run/user-created-successfully.png
+                  alt: user-created
+                  text: Escenario exitoso de creación de usuario con todos los campos válidos.
+traceability_matrix:
+  - requirement: RF-001
+    description: Gestión de información del asistente (Edición de Ticket)
+    cases: CPF-0001 (001-011)
+  - requirement: RF-002
+    description: Búsqueda administrativa de reservas
+    cases: CPF-0002 (001-003)
+  - requirement: RF-003
+    description: Gestión de estados y flujos de pago
+    cases: CPF-0003 (001-006)
+  - requirement: RF-0004
+    description: Emisión y visualización de entradas (PDF)
+    cases: CPF-0004 (001-006)
+  - requirement: RF-005
+    description: Creación de Usuarios
+    cases: CPF-0011 (001-027)
+  - requirement: RF-CONF-01
+    description: Configuración de la Organización
+    cases: CPF-0005 (001-006)
+  - requirement: RF-CONF-02
+    description: Configuración del Evento
+    cases: CPF-0006 (001-007)
+  - requirement: RF-CONF-03
+    description: Configuración de Categorías de Tickets
+    cases: CPF-0007 (001-010)
+  - requirement: RF-CONF-04
+    description: Gestión de Capacidad
+    cases: CPF-0008 (001-005)
+  - requirement: RF-CONF-05
+    description: Configuración de Impuestos
+    cases: CPF-0009 (001-003)
+  - requirement: RF-CONF-06
+    description: Configuración de Localización y Moneda
+    cases: CPF-0010 (001-006)

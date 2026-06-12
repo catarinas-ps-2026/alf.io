@@ -18,7 +18,10 @@ El propósito de este documento es definir y estructurar el diseño de casos de 
 
 Entre los objetivos específicos se incluyen: establecer casos de prueba basados en los requisitos funcionales, aplicar técnicas como partición por equivalencia, análisis de valores límite, pruebas de casos de uso y tablas de decisión y desarrollar una matriz de trazabilidad entre requisitos y pruebas.
 
+
 ## 2. Alcance de las Pruebas
+
+
 
 ### 2.1 Funcionalidades en Alcance
 
@@ -26,7 +29,6 @@ Entre los objetivos específicos se incluyen: establecer casos de prueba basados
 - **Proceso de reserva y compra de tickets:** Flujo completo desde la selección del ticket por parte del asistente hasta la confirmación de la reserva y generación de la entrada.
 - **Autenticación y autorización:** Verificación de roles (administrador global, propietario del evento, personal del evento) y control de acceso a las rutas.
 - **Integración de pagos (Modo Test):** Simulación de pagos exitosos y fallidos utilizando proveedores compatibles (ej. Stripe Test Mode o pagos offline).
-
 ### 2.2 Funcionalidades Fuera de Alcance
 
 - **Integraciones reales con pasarelas de pago:** Para evitar transacciones financieras reales y costos asociados, todas las pruebas se realizarán en modo de pruebas (sandbox).
@@ -42,14 +44,16 @@ Entre los objetivos específicos se incluyen: establecer casos de prueba basados
    - **Repositorio oficial de alf.io:** [GitHub - alfio-event/alf.io](https://github.com/alfio-event/alf.io)
    - **Documentación de Arquitectura de alf.io:** [[Arquitectura]] del proyecto.
 
+
 ## 4. Criterios de Entrada y Salida
+
+
 
 ### 4.1 Criterios de Entrada
 
 - El código de la aplicación (alf.io) debe estar compilado y desplegado correctamente en el entorno de pruebas.
 - Las pruebas unitarias base deben pasar exitosamente en el entorno de CI (GitHub Actions).
 - La base de datos de pruebas (PostgreSQL) debe estar inicializada con los esquemas actualizados.
-
 ### 4.2 Criterios de Salida
 
 - Se han ejecutado todos los casos de prueba funcionales diseñados y documentados en la sección de la wiki correspondiente.
@@ -57,17 +61,20 @@ Entre los objetivos específicos se incluyen: establecer casos de prueba basados
 
 ## 5. Entorno y Datos de Prueba
 
+
+
 ### 5.1 Entorno de Pruebas
 
 - **Servidor / Hosting:** Entorno remoto de pruebas configurado con Kubernetes, replicando la arquitectura de producción.
 - **Base de datos:** PostgreSQL en versión 16, compatible con los requerimientos actuales del proyecto, corriendo en un pod aislado.
 - **Navegadores soportados:** Pruebas funcionales frontend orientadas a las últimas versiones estables de Google Chrome (148.0.7778.215) y Mozilla Firefox (151.0.2).
-
 ### 5.2 Datos de Prueba
 
 - **Cuentas de usuario:** Cuenta de Administrador Global pre-configurada (datos de las variables de entorno de prueba).
 
 ## 6. Técnicas de Prueba
+
+
 
 ### 6.1 Técnicas de Caja Negra
 
@@ -106,6 +113,8 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | Nombre/Apellido | 1 carácter | 0 caracteres (vacío) | 255 caracteres | 256 caracteres |
 | Correo | Longitud mínima válida | 0 caracteres | Máximo soportado (64 chars local) | Excede límite (65 chars local) |
 
+
+
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
@@ -136,10 +145,13 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 **Análisis de Técnicas**
 
 **Partición de Equivalencia**
-| Cod. | Clase Válida | Clases No Válidas |
+| Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
 | PE-B01 | ID de reserva existente en el sistema | ID inexistente o mal formado |
 | PE-B02 | Apellido exacto de un comprador | Apellido que no figura en ninguna reserva |
+
+
+
 
 **Catálogo de Pruebas**
 | #CP | Criterio de Búsqueda | Resultado Esperado | Obs |
@@ -162,9 +174,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 **Análisis de Técnicas**
 
-**Transición de Estados**
 
-![Diagrama de Transición de Estados](images/functional-tests/design/gestion-estados.png)
 
 **Tabla de Decisión: Visibilidad del botón "Marcar como Completa"**
 | Condición | C1 | C2 | C3 | C4 |
@@ -173,6 +183,10 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | Tipo de Pago | Presencial | Offline | Proveedor | - |
 | ¿Pago Aprobado? | NO | SI | NO | NO |
 | **Mostrar Botón** | **NO** | **SI** | **NO** | **NO** |
+
+**Transición de Estados**
+
+![Diagrama de Transición de Estados](images/functional-tests/design/gestion-estados.png)
 
 **Catálogo de Pruebas**
 | #CP | Acción / Escenario | Resultado Esperado | Obs |
@@ -191,10 +205,14 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Descripción** | Valida las condiciones bajo las cuales un usuario puede descargar su ticket en PDF, basándose en la temporalidad, modalidad y estado financiero. |
 | **Requisito Asociado** | RF-004 (Emisión de Entradas) |
 | **Precondiciones** | Reserva realizada por el usuario. |
+| **Datos de Entrada** |  |
+| **Pasos de Ejecución** | |
 | **Técnicas de Pruebas** | Tablas de Decisión. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
+
+
 
 **Tabla de Decisión: Mostrar botón de descarga de ticket**
 | Condición | C1 | C2 | C3 | C4 | C5 | C6 |
@@ -203,6 +221,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | Modalidad del evento | - | Presencial | Presencial | Híbrido | Híbrido | Virtual |
 | ¿Pago Aprobado? | - | SI | NO | SI | NO | - |
 | **Mostrar Botón** | **NO** | **SI** | **NO** | **SI** | **NO** | **NO** |
+
 
 **Catálogo de Pruebas**
 | #CP | Escenario | Resultado Esperado | Obs |
@@ -222,7 +241,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Requisito Asociado** | RF-CONF-01 (Configuración de la Organización) |
 | **Precondiciones** | El usuario debe estar autenticado con rol de Administrador Global. |
 | **Datos de Entrada** | Nombre de la organización, descripción, correo electrónico de contacto. |
-| **Pasos de Ejecución** | 1. Acceder al panel de administración. <br>2. Ir a la sección de Organizaciones. <br>3. Crear una nueva organización o seleccionar una existente para editar. <br>4. Completar/modificar los campos de información. <br>5. Guardar los cambios. |
+| **Pasos de Ejecución** | 1. Acceder al panel de administración. <br>Ir a la sección de Organizaciones. <br>Crear una nueva organización o seleccionar una existente para editar. <br>Completar/modificar los campos de información. <br>Guardar los cambios. |
 | **Técnicas de Pruebas** | Partición de Equivalencia, Análisis de Valores Límite. |
 | **Prioridad** | Alta |
 
@@ -238,6 +257,8 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
 | :--- | :--- | :--- | :--- | :--- |
 | Nombre | 1 carácter | 0 caracteres (vacío) | 255 caracteres | 256 caracteres |
+
+
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
@@ -257,17 +278,20 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Requisito Asociado** | RF-CONF-02 (Configuración del Evento) |
 | **Precondiciones** | El usuario debe estar autenticado y tener permisos de edición sobre el evento. |
 | **Datos de Entrada** | Nombre del evento, fecha de inicio, fecha de fin, descripción, códigos de acceso. |
-| **Pasos de Ejecución** | 1. Acceder al panel de administración del evento. <br>2. Configurar las fechas e información básica. <br>3. Configurar disponibilidad y fin de venta para las categorías. <br>4. Guardar los cambios. |
+| **Pasos de Ejecución** | 1. Acceder al panel de administración del evento. <br>Configurar las fechas e información básica. <br>Configurar disponibilidad y fin de venta para las categorías. <br>Guardar los cambios. |
 | **Técnicas de Pruebas** | Partición de Equivalencia. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
 
 **Partición de Equivalencia**
-| Campo / Condición | Clase Válida | Clases No Válidas |
+| Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
 | Fechas | Fecha de fin posterior a la de inicio | Fecha de inicio en el pasado, fecha de fin anterior a la de inicio |
 | Códigos Ocultos | Código único por categoría | Códigos duplicados en categorías del mismo evento |
+
+
+
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
@@ -288,7 +312,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Requisito Asociado** | RF-CONF-03 (Configuración de Categorías de Tickets) |
 | **Precondiciones** | El evento debe estar creado y en estado de configuración. |
 | **Datos de Entrada** | Nombre de la categoría, precio, cantidad de tickets, código de acceso. |
-| **Pasos de Ejecución** | 1. Acceder a la sección de categorías de tickets en el evento. <br>2. Modificar el precio o crear una categoría nueva. <br>3. Configurar código de acceso si es una categoría oculta. <br>4. Guardar la configuración. |
+| **Pasos de Ejecución** | 1. Acceder a la sección de categorías de tickets en el evento. <br>Modificar el precio o crear una categoría nueva. <br>Configurar código de acceso si es una categoría oculta. <br>Guardar la configuración. |
 | **Técnicas de Pruebas** | Tablas de Decisión, Partición de Equivalencia. |
 | **Prioridad** | Alta |
 
@@ -299,6 +323,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | :--- | :--- | :--- |
 | Precio | Valor decimal >= 0 | Valor decimal < 0 |
 
+
 **Tabla de Decisión: Comportamiento por Categoría de Ticket**
 | ID Caso de Prueba | Escenario / Columna Origen | Dato de Entrada: ¿Es Ticket Interno? | Dato de Entrada: Precio | Resultado Esperado: ¿Visible en página? | Resultado Esperado: ¿Requiere Pago? |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -306,6 +331,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CP-02 | C2 (Expansión del -) | SÍ | $0.00 (Precio = 0) | NO | NO |
 | CP-03 | C3 | NO | $25.50 (Precio > 0) | SÍ | SÍ (Validar pasarela Stripe/Offline) |
 | CP-04 | C4 | NO | $0.00 (Precio = 0) | SÍ | NO (Debe dejar hacer checkout gratis) |
+
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
@@ -329,17 +355,20 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Requisito Asociado** | RF-CONF-04 (Gestión de Capacidad) |
 | **Precondiciones** | El evento y las categorías deben estar configurados. |
 | **Datos de Entrada** | Capacidad del evento, capacidad de la categoría, límite de tickets por transacción. |
-| **Pasos de Ejecución** | 1. Configurar la capacidad máxima del evento y de las categorías. <br>2. Intentar registrar una compra superando los límites. <br>3. Verificar el comportamiento cuando se llega al límite. |
+| **Pasos de Ejecución** | 1. Configurar la capacidad máxima del evento y de las categorías. <br>Intentar registrar una compra superando los límites. <br>Verificar el comportamiento cuando se llega al límite. |
 | **Técnicas de Pruebas** | Partición de Equivalencia, Análisis de Valores Límite. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
 
 **Partición de Equivalencia**
-| Campo / Condición | Clase Válida | Clases No Válidas |
+| Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
 | Capacidad | Total de categorías <= Capacidad del evento | Total de categorías > Capacidad del evento |
 | Cantidad por Compra | Menor o igual al límite por transacción | Mayor al límite por transacción, cantidad <= 0 |
+
+
+
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
@@ -358,7 +387,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Requisito Asociado** | RF-CONF-05 (Configuración de Impuestos) |
 | **Precondiciones** | La organización y el evento deben estar creados. |
 | **Datos de Entrada** | Nombre del impuesto, tasa impositiva (porcentaje), categoría a aplicar. |
-| **Pasos de Ejecución** | 1. Acceder al panel de administración del evento. <br>2. Configurar una nueva regla de impuestos. <br>3. Asociar o desvincular el impuesto a una categoría. |
+| **Pasos de Ejecución** | 1. Acceder al panel de administración del evento. <br>Configurar una nueva regla de impuestos. <br>Asociar o desvincular el impuesto a una categoría. |
 | **Técnicas de Pruebas** | Partición de Equivalencia. |
 | **Prioridad** | Media |
 
@@ -368,6 +397,9 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
 | Tasa | Valor porcentual >= 0% | Valor porcentual < 0% |
+
+
+
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
@@ -384,17 +416,20 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Requisito Asociado** | RF-CONF-06 (Configuración de Localización y Moneda) |
 | **Precondiciones** | El evento debe estar creado. |
 | **Datos de Entrada** | Idioma principal, traducciones secundarias, zona horaria, moneda por defecto (EUR, PEN, etc.). |
-| **Pasos de Ejecución** | 1. Ir al panel de configuración de localización del evento/organización. <br>2. Configurar el idioma de visualización y traducciones del evento. <br>3. Modificar la zona horaria y moneda por defecto. |
+| **Pasos de Ejecución** | 1. Ir al panel de configuración de localización del evento/organización. <br>Configurar el idioma de visualización y traducciones del evento. <br>Modificar la zona horaria y moneda por defecto. |
 | **Técnicas de Pruebas** | Partición de Equivalencia. |
 | **Prioridad** | Media |
 
 **Análisis de Técnicas**
 
 **Partición de Equivalencia**
-| Campo / Condición | Clase Válida | Clases No Válidas |
+| Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
 | Idioma | Al menos un idioma configurado en el sistema | Eliminar el último idioma restante |
 | Zona Horaria | Zona horaria coherente con la del evento | Desfase de zona horaria detectado |
+
+
+
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada / Escenario | Resultado Esperado | Obs |
@@ -406,9 +441,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-10-005 | Cambiar la moneda por defecto del evento a Euros (EUR) | Actualizar la moneda a EUR y reflejarla en la tienda pública. | f+ |
 | CPF-10-006 | Cambiar la moneda por defecto del evento a Soles (PEN) | Actualizar la moneda a PEN y reflejarla en la tienda pública. | f+ |
 
-
 # Creación de Usuarios
-
 | ID | CPF-011 |
 | :--- | :--- |
 | **Funcionalidad** | Creación de usuarios |
@@ -418,7 +451,11 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Datos de Entrada** | Organización, rol, nombre de usuario, nombre, apellido y correo electrónico. |
 | **Pasos de Ejecución** | 1. Acceder al módulo de usuarios. 2. Seleccionar "add new". 3. Completar los campos obligatorios. 4. Presionar "Save". |
 | **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión. |
+| **Prioridad** |  |
 
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
 | Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
 | Organización | Organización existente | Vacía |
@@ -426,11 +463,10 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | Username | Alfanumérico único | Vacío, duplicado |
 | Nombre | Texto alfabético válido | Vacío, contiene caracteres inválidos |
 | Apellido | Texto alfabético válido | Vacío, contiene caracteres inválidos |
-| E-mail | Formato válido ([user@domain.com](mailto:user@domain.com)) | Vacío, formato incorrecto, duplicado |
+| E-mail | Formato válido (user@domain.com) | Vacío, formato incorrecto, duplicado |
 
 **Valores Límite**
-
-| Campo | Límite Inferior Válido | Límite Inferior No Válido | Límite Superior Válido | Límite Superior No Válido |
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
 | :--- | :--- | :--- | :--- | :--- |
 | Username | 1 carácter | 0 caracteres | 255 caracteres | 256 caracteres |
 | Nombre | 1 carácter | 0 caracteres | 255 caracteres | 256 caracteres |
@@ -438,7 +474,6 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | E-mail | Longitud mínima válida | Vacío | Longitud máxima soportada | Excede límite |
 
 **Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Usuarios**
-
 | Condición | C1 | C2 | C3 | C4 | C5 | C6 | C7 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | Organización informada | SI | NO | SI | SI | SI | SI | SI |
@@ -448,18 +483,15 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | Apellido informado | SI | SI | SI | SI | SI | NO | SI |
 | E-mail informado | SI | SI | SI | SI | SI | SI | NO |
 | **Crear Usuario** | **SI** | **NO** | **NO** | **NO** | **NO** | **NO** | **NO** |
-
-**Acciones**
-
+**Tabla de Decisión: Acciones**
 | Acción | C1 | C2 | C3 | C4 | C5 | C6 | C7 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Permitir guardar usuario    |  X  |     |     |     |     |     |     |
-| Mostrar error de validación |     |  X  |  X  |  X  |  X  |  X  |  X  |
+| Permitir guardar usuario     | X |   |   |   |   |   |   |
+| Mostrar error de validación |   | X | X | X | X | X | X |
+| **** |  |
+
 
 **Catálogo de Pruebas**
-
-**Catálogo de Pruebas**
-
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
 | CPF-11-001 | Username: "usuario_existente" | Error: Username ya registrado | f- |
@@ -490,7 +522,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-11-026 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "" (vacío) | El sistema muestra error de validación y no permite guardar | f- |
 | CPF-11-027 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | Usuario creado exitosamente | f+ |
 
-## Matriz de Trazabilidad
+## 8. Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
 
@@ -499,7 +531,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-001:** Gestión de información del asistente (Edición de Ticket) | CPF-0001 (001-011) |
 | **RF-002:** Búsqueda administrativa de reservas | CPF-0002 (001-003) |
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
-| **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
+| **RF-0004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 | **RF-005:** Creación de Usuarios | CPF-0011 (001-027) |
 | **RF-CONF-01:** Configuración de la Organización | CPF-0005 (001-006) |
 | **RF-CONF-02:** Configuración del Evento | CPF-0006 (001-007) |
