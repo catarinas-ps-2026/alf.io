@@ -5,5 +5,13 @@
 - Docker installed and running
 
 ```docker
-docker run -d --name alfio-db -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=alfio --restart unless-stopped postgres
+docker run \
+  --name alfio-db \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5433:5432 \
+  -d postgres
+```
+- then verify the conection with
+```docker
+docker logs alfio-db
 ```
