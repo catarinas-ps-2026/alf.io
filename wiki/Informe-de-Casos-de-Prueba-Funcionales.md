@@ -1317,6 +1317,131 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+#### Procesamiento de Pago OFFLINE (Transferencia Bancaria)
+
+**CPF-06-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-001</td>
+      <td>Verificar que al seleccionar OFFLINE y aceptar términos, se redirija a la página de instrucciones de pago.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Redirige a "waiting-payment", muestra instrucciones de transferencia, fecha de expiración, ID de reserva.</td>
+      <td colspan="3">Se redirige correctamente a la página "Pago requerido" con instrucciones de transferencia, fecha límite y concepto de pago.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-header.png" alt="offline-waiting-payment-header"><br>
+        Se muestra la página de pago requerido con la fecha de expiración.<br><br>
+        <img src="images/functional-tests/run/offline-waiting-payment-instructions.png" alt="offline-waiting-payment-instructions"><br>
+        Se muestran las instrucciones de transferencia con el monto y concepto de pago.<br><br>
+        <img src="images/functional-tests/run/offline-waiting-payment-full.png" alt="offline-waiting-payment-full"><br>
+        Vista completa de la página con todos los detalles del pedido e instrucciones de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-002</td>
+      <td>Verificar que al seleccionar OFFLINE sin aceptar términos, el botón permanezca deshabilitado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón deshabilitado, no permite continuar.</td>
+      <td colspan="3">El botón "Confirmar" permanece deshabilitado hasta que se acepten los términos y condiciones.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-confirm-disabled-no-terms.png" alt="offline-confirm-disabled-no-terms"><br>
+        Se muestra el botón "Confirmar" deshabilitado con el checkbox de términos sin marcar.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-003</td>
+      <td>Verificar que la página de waiting-payment muestre toda la información necesaria para completar el pago.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Muestra: monto a transferir, cuenta bancaria, concepto de pago (ID), fecha límite.</td>
+      <td colspan="3">La página muestra correctamente: monto (PEN 15.00), concepto de pago (ID de reserva), fecha de expiración, e instrucciones para enviar comprobante.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-instructions.png" alt="offline-waiting-payment-instructions"><br>
+        Se muestra el monto a transferir (PEN 15.00), concepto de pago (AB8B4C1B) e instrucciones.<br><br>
+        <img src="images/functional-tests/run/offline-waiting-payment-full.png" alt="offline-waiting-payment-full"><br>
+        Vista completa con la fecha de expiración, resumen de pedido, y datos de contacto para envío de comprobante.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 7. Limitaciones
 
 - No se realizan pruebas de carga ni de rendimiento bajo estrés.
