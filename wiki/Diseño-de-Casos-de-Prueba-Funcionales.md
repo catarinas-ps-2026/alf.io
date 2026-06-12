@@ -224,6 +224,19 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Técnicas de Pruebas** | Tablas de Decisión.                                                                                                      |
 | **Prioridad**           | Alta                                                                                                                     |
 
+**Análisis de Técnicas**
+
+**Tabla de Decisión: Habilitar botón de auto-check-in**
+
+| Condición                                   | C1     | C2     | C3     | C4     | C5     |
+| ------------------------------------------- | ------ | ------ | ------ | ------ | ------ |
+| ¿Auto-check-in habilitado en el evento?     | NO     | SI     | SI     | SI     | SI     |
+| ¿Estado del ticket es pagado/aprobado?      | -      | NO     | SI     | SI     | SI     |
+| ¿Está dentro del rango de tiempo permitido? | -      | -      | NO     | SI     | SI     |
+| ¿El ticket ya fue ingresado/usado?          | -      | -      | -      | SI     | NO     |
+| **Habilitar Botón / Permitir Acción**       | **NO** | **NO** | **NO** | **NO** | **SI** |
+
+
 
 ## Matriz de Trazabilidad
 
