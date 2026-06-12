@@ -214,12 +214,6 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-04-005 | Futuro, Híbrido, Pago pendiente | El botón de descarga permanece oculto | f- |
 | CPF-04-006 | Futuro, Modalidad Virtual | El botón de descarga no se muestra (acceso digital) | f- |
 
-Siguiendo exactamente el mismo estilo de tu documento, para **Creación de Usuarios** usaría:
-
-* **Partición por Equivalencia** → validar nombres, correos, roles y username.
-* **Valores Límite** → validar longitudes mínimas y máximas.
-* **Tabla de Decisión** → verificar que todos los campos obligatorios estén presentes.
-
 # Creación de Usuarios
 
 | ID | CPF-0005 |
