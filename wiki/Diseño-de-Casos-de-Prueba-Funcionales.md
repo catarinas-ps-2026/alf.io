@@ -315,17 +315,24 @@ stateDiagram-v2
 | ID | CPF-0007 |
 | :--- | :--- |
 | **Funcionalidad** | Procesamiento de pago en efectivo al llegar al evento |
-| **Descripción** | Valida el flujo de pago ON_SITE: aceptación de términos, confirmación directa y generación inmediata del ticket con las opciones de visualización y descarga. |
+| **Descripción** | Valida el flujo completo de pago ON_SITE: confirmación directa, generación inmediata del ticket, visualización, descarga PDF, y verificación de que la reserva no tiene expiración de pago (a diferencia de OFFLINE). |
 | **Requisito Asociado** | RF-007 (Pago ON_SITE) |
 | **Precondiciones** | Reserva creada con tickets seleccionados y datos del comprador completados. Método de pago ON_SITE disponible en la configuración del evento. |
 | **Datos de Entrada** | Método de pago seleccionado (Pago en efectivo), aceptación de términos y condiciones. |
-| **Pasos de Ejecución** | 1. Seleccionar "Pago en efectivo al llegar". 2. Aceptar términos y condiciones. 3. Hacer clic en "Confirmar". 4. Verificar página de éxito con ticket. |
-| **Técnicas de Pruebas** | Transición de Estados. |
+| **Pasos de Ejecución** | 1. Seleccionar "Pago en efectivo al llegar". 2. Aceptar términos y condiciones. 3. Hacer clic en "Confirmar". 4. Verificar página de éxito. 5. Verificar ticket (Ver y Descargar). 6. Verificar ausencia de expiración. |
+| **Técnicas de Pruebas** | Tabla de Decisión, Transición de Estados. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
 
 > **Nota:** La validación de aceptación de términos y condiciones (botón deshabilitado cuando no se aceptan) ya se encuentra cubierta por CPF-0005 (Selección de Método de Pago, caso CPF-05-004), por lo que no se duplica en esta sección.
+
+**Tabla de Decisión: Diferencias entre ON_SITE y OFFLINE**
+| Cod. | Característica | ON_SITE | OFFLINE |
+| :--- | :--- | :--- | :--- |
+| FN7-TD-001 | Página destino tras confirmar | success (ticket inmediato) | waiting-payment (instrucciones de pago) |
+| FN7-TD-002 | Fecha de expiración de pago | No aplica | Sí (48 horas) |
+| FN7-TD-003 | Ticket disponible | Inmediatamente | Tras confirmación del admin |
 
 **Transición de Estados**
 
@@ -333,13 +340,17 @@ stateDiagram-v2
 stateDiagram-v2
     [*] --> ReservaCreada: Datos completados
     ReservaCreada --> COMPLETED: Confirmar pago ON_SITE
-    COMPLETED --> TicketDisponible: Ticket generado
+    COMPLETED --> TicketDisponible: Ticket generado inmediatamente
 ```
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
-| CPF-07-001 | Método: ON_SITE, Términos: Aceptados | Redirige a "success", ticket visible con opciones Ver, Descargar, Email, Actualizar. Muestra confirmación, ticket con nombre del asistente, opción de reenviar email | f+ |
+| CPF-07-001 | Método: ON_SITE, Términos: Aceptados | Redirige a "success", muestra confirmación, ticket con nombre del asistente, opciones Ver, Descargar, Email, Actualizar | f+ |
+| CPF-07-002 | Ver ticket tras pago ON_SITE | Muestra: Titular, Tipo, Número de referencia, Info. del pedido, mensaje "Esta entrada no ha sido pagada, por lo que debe pagar la cantidad requerida al llegar" | f+ |
+| CPF-07-003 | Descargar ticket PDF | El PDF se descarga correctamente con la información del ticket | f+ |
+| CPF-07-004 | Verificar que ON_SITE no muestra fecha de expiración | La página de éxito NO muestra "Pago requerido no más tarde de" | f+ |
+| CPF-07-005 | Verificar persistencia de reserva ON_SITE | La reserva ON_SITE permanece activa hasta la fecha del evento, sin expirar como las OFFLINE | f+ |
 
 #### Confirmación Manual de Pagos (Administrador)
 | ID | CPF-0008 |
@@ -390,7 +401,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 | **RF-005:** Selección de método de pago | CPF-0005 (001-006) |
 | **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-005) |
-| **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-001) |
+| **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-005) |
 | **RF-008:** Confirmación manual de pagos | CPF-0008 (001-002) |
 
 ## 9. Métodos y Herramientas
