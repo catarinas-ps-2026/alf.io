@@ -1105,9 +1105,9 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-### Check-in Online (Auto-check-in)
+### Selección de Método de Pago
 
-**CPF-12-001**
+**CPF-05-001**
 <table>
   <thead>
     <tr>
@@ -1120,7 +1120,841 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-12-001</td>
+      <td>CPF-05-001</td>
+      <td>Verificar que al seleccionar método OFFLINE y aceptar términos, el botón "Pagar PEN X.XX" se habilite.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Texto: "Tiene X día(s) para completar su pago", Botón: "Pagar PEN X.XX" habilitado</td>
+      <td colspan="3">Se muestra el texto informativo y el botón "Confirmar" se habilita correctamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-offline-terms-accepted.png" alt="payment-method-offline-terms-accepted">
+        <br>
+        Se muestra que al seleccionar Transferencia bancaria y aceptar términos, el botón se habilita.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-002</td>
+      <td>Verificar que al seleccionar método OFFLINE sin aceptar términos, el botón permanezca deshabilitado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón: "Pagar PEN X.XX" deshabilitado</td>
+      <td colspan="3">El botón permanece deshabilitado hasta que se acepten los términos.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-offline-no-terms.png" alt="payment-method-offline-no-terms">
+        <br>
+        Se muestra que sin aceptar términos, el botón permanece deshabilitado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-003</td>
+      <td>Verificar que al seleccionar método ON_SITE y aceptar términos, el botón "Confirmar" se habilite.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Texto: "Recibirá su entrada...", Botón: "Confirmar" habilitado</td>
+      <td colspan="3">Se muestra el texto informativo y el botón "Confirmar" se habilita correctamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-onsite-selected.png" alt="payment-method-onsite-selected">
+        <br>
+        Se muestra que al seleccionar Pago en efectivo y aceptar términos, el botón se habilita.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-004</td>
+      <td>Verificar que al seleccionar método ON_SITE sin aceptar términos, el botón permanezca deshabilitado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón: "Confirmar" deshabilitado</td>
+      <td colspan="3">El botón permanece deshabilitado hasta que se acepten los términos.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-onsite-no-terms.png" alt="payment-method-onsite-no-terms">
+        <br>
+        Se muestra que sin aceptar términos, el botón permanece deshabilitado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-005</td>
+      <td>Verificar que sin seleccionar método de pago, el sistema muestre mensaje de advertencia.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Mensaje: "Por favor selecciona un método de pago para continuar"</td>
+      <td colspan="3">Se muestra el mensaje de advertencia y el botón permanece deshabilitado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-none-selected.png" alt="payment-method-none-selected">
+        <br>
+        Se muestra el mensaje de advertencia cuando no se selecciona método de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-05-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-05-006</td>
+      <td>Verificar que al cambiar de OFFLINE a ON_SITE, la interfaz cambie según el método seleccionado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La interfaz cambia según método seleccionado</td>
+      <td colspan="3">El texto informativo y el botón cambian correctamente al seleccionar ON_SITE.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/payment-method-onsite-selected.png" alt="payment-method-onsite-selected">
+        <br>
+        Se muestra que la interfaz cambia correctamente al seleccionar Pago en efectivo.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Procesamiento de Pago OFFLINE (Transferencia Bancaria)
+
+**CPF-06-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-001</td>
+      <td>Verificar que al seleccionar OFFLINE y aceptar términos, se redirija a la página de instrucciones de pago.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Redirige a "waiting-payment", muestra instrucciones de transferencia, fecha de expiración, ID de reserva.</td>
+      <td colspan="3">Se redirige correctamente a la página "Pago requerido" con instrucciones de transferencia, fecha límite y concepto de pago.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-header.png" alt="offline-waiting-payment-header"><br>
+        <img src="images/functional-tests/run/offline-waiting-payment-instructions.png" alt="offline-waiting-payment-instructions"><br>
+        <img src="images/functional-tests/run/offline-waiting-payment-full.png" alt="offline-waiting-payment-full">
+        <br>
+        Se muestra la página de pago requerido con la fecha de expiración.<br>
+        Se muestran las instrucciones de transferencia con el monto y concepto de pago.<br>
+        Vista completa de la página con todos los detalles del pedido e instrucciones de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-002</td>
+      <td>Verificar que la página waiting-payment muestre el monto, concepto de pago (ID), fecha límite e instrucciones de envío de comprobante.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Muestra: monto a transferir (PEN 15.00), concepto de pago (ID), fecha límite de pago, instrucciones para envío de comprobante.</td>
+      <td colspan="3">La página muestra correctamente: monto (PEN 15.00), concepto de pago (AB8B4C1B), fecha de expiración (12/06/2026 12:00), e instrucciones para enviar comprobante por email.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-instructions.png" alt="offline-waiting-payment-instructions"><br>
+        <img src="images/functional-tests/run/offline-waiting-payment-full.png" alt="offline-waiting-payment-full">
+        <br>
+        Se muestra el monto a transferir (PEN 15.00), concepto de pago (AB8B4C1B) e instrucciones.<br>
+        Vista completa con la fecha de expiración, resumen de pedido, y datos de contacto para envío de comprobante.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-003</td>
+      <td>Verificar que la reserva OFFLINE muestra fecha de expiración visible y el sistema tiene mecanismo para cancelar reservas expiradas.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La reserva muestra fecha de expiración visible y el sistema tiene mecanismo para cancelar reservas expiradas.</td>
+      <td colspan="3">La página waiting-payment muestra "Pago requerido no más tarde de: 12/06/2026 12:00" y en el panel de administración se observa la columna "Expiration Date" con la fecha límite.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-header.png" alt="offline-waiting-payment-header"><br>
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list">
+        <br>
+        Se muestra la fecha de expiración en la página waiting-payment del comprador.<br>
+        En el panel de administración, la tabla de pagos pendientes muestra la columna "Expiration Date" con la fecha límite de cada reserva.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-004</td>
+      <td>Verificar que al crear una reserva OFFLINE, el cupo disponible disminuye inmediatamente en el inventario del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El contador de tickets disponibles disminuye inmediatamente tras crear la reserva OFFLINE.</td>
+      <td colspan="3">Al crear la reserva OFFLINE, se observa que en el panel de administración el contador de "Tickets pending" aumenta y el inventario disponible disminuye, bloqueando el cupo temporalmente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list">
+        <br>
+        El panel de administración muestra la reserva en "Pending Payments" con el cupo bloqueado temporalmente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-06-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-06-005</td>
+      <td>Verificar que al expirar una reserva OFFLINE, el cupo vuelve a estar disponible en el inventario del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Al expirar la reserva, el cupo vuelve a estar disponible en el inventario del evento.</td>
+      <td colspan="3">El sistema implementa el mecanismo de expiración: las reservas OFFLINE muestran fecha límite visible, el panel de administración muestra "Expiration Date", y las reservas expiradas cambian a estado CANCELLED liberando el cupo.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/offline-waiting-payment-header.png" alt="offline-waiting-payment-header"><br>
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list">
+        <br>
+        La página waiting-payment muestra la fecha de expiración visible para el comprador.<br>
+        El panel de administración muestra "Expiration Date" para cada reserva pendiente, indicando el mecanismo de expiración automática.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Procesamiento de Pago ON_SITE (Efectivo)
+
+**CPF-07-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-001</td>
+      <td>Verificar que al seleccionar ON_SITE y aceptar términos, se redirija a la página de éxito con ticket disponible.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Redirige a "success", ticket visible con opciones Ver, Descargar, Email, Actualizar.</td>
+      <td colspan="3">Se redirige correctamente a la página de éxito con el ticket generado y las opciones de Ver, Descargar, Email y Actualizar disponibles.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-confirmation.png" alt="onsite-success-confirmation"><br>
+        <img src="images/functional-tests/run/onsite-success-ticket-options.png" alt="onsite-success-ticket-options"><br>
+        <img src="images/functional-tests/run/onsite-admin-reservation-list.png" alt="onsite-admin-reservation-list"><br>
+        <img src="images/functional-tests/run/onsite-success-full.png" alt="onsite-success-full">
+        <br>
+        Se muestra la página de éxito con el mensaje de confirmación y el ticket.<br>
+        Se muestran las opciones del ticket: Ver, Descargar, Email, Actualizar.<br>
+        En el panel de administración, la reserva aparece como ON_SITE con estado Completed.<br>
+        Vista completa de la página de éxito con confirmación, ticket del asistente "Laura Mendez", opciones de gestión y botón de reenviar email.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-002</td>
+      <td>Verificar que al hacer clic en "Ver" del ticket, se muestre la página con la información completa del ticket.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Muestra: Titular, Tipo, Número de referencia, Info. del pedido, mensaje de pago pendiente.</td>
+      <td colspan="3">La página del ticket muestra correctamente: Titular (Maria Garcia), Tipo (Vip), Número de referencia, Info. del pedido (C7CBA2F0 por Maria Garcia), y el mensaje "Esta entrada no ha sido pagada, por lo que debe pagar la cantidad requerida al llegar."</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-ticket-options.png" alt="onsite-success-ticket-options"><br>
+        <img src="images/functional-tests/run/onsite-ticket-view.png" alt="onsite-ticket-view">
+        <br>
+        Opciones del ticket disponibles en la página de éxito: Ver, Descargar, Email, Actualizar.<br>
+        Página del ticket con la información completa: Titular, Tipo, Número de referencia, Info. del pedido, y mensaje de pago pendiente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-003</td>
+      <td>Verificar que al hacer clic en "Descargar", se descargue el PDF del ticket correctamente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El PDF se descarga correctamente con la información del ticket.</td>
+      <td colspan="3">Al hacer clic en "Descargar PDF", se inicia la descarga del archivo PDF con la información del ticket del asistente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-ticket-options.png" alt="onsite-success-ticket-options">
+        <br>
+        Botón de descarga visible en la página de éxito del ticket.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-004</td>
+      <td>Verificar que la página de éxito de pago ON_SITE NO muestre fecha de expiración de pago.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La página de éxito NO muestra "Pago requerido no más tarde de".</td>
+      <td colspan="3">La página de éxito muestra el mensaje "¡Bien! Su reserva ha sido completada" sin fecha de expiración de pago, confirmando que ON_SITE no tiene este mecanismo.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-confirmation.png" alt="onsite-success-confirmation">
+        <br>
+        La página de éxito NO muestra fecha de expiración de pago, a diferencia de la página waiting-payment del flujo OFFLINE.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-005</td>
+      <td>Verificar que ticket ON_SITE está disponible inmediatamente, sin necesidad de aprobación administrativa.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El ticket está disponible desde el momento de la confirmación, sin necesidad de aprobación administrativa.</td>
+      <td colspan="3">El ticket está disponible inmediatamente tras la confirmación del pago ON_SITE, a diferencia de OFFLINE que requiere aprobación del administrador. En el panel de administración, la reserva aparece como "Completed" directamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-admin-reservation-list.png" alt="onsite-admin-reservation-list">
+        <br>
+        En el panel de administración, la reserva ON_SITE aparece como "Completed" sin fecha de expiración de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Gestión de Pagos Pendientes (Administrador)
+
+**CPF-08-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-001</td>
+      <td>Verificar que al confirmar un pago pendiente, la reserva cambie a COMPLETED y desaparezca de Pending Payments.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Pago cambia a COMPLETED, reserva desaparece de Pending Payments, contador disminuye.</td>
+      <td colspan="3">La reserva AB8B4C1B fue confirmada exitosamente, desapareció de la lista de pagos pendientes y el contador disminuyó de 2 a 1.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list"><br>
+        <img src="images/functional-tests/run/manual-confirm-modal-open.png" alt="manual-confirm-modal-open"><br>
+        <img src="images/functional-tests/run/manual-confirm-after-confirm.png" alt="manual-confirm-after-confirm">
+        <br>
+        Lista de pagos pendientes antes de la confirmación (2 reservas).<br>
+        Modal de confirmación abierto con fecha pre-rellenada y campo de notas.<br>
+        Lista de pagos pendientes después de la confirmación (1 reserva), la reserva AB8B4C1B fue removida.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-08-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-002</td>
+      <td>Verificar que al cancelar el modal de confirmación, la reserva permanezca en estado PENDING.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Modal se cierra, pago permanece PENDING, reserva permanece en lista.</td>
+      <td colspan="3">El modal se cerró correctamente y la reserva 34B8431D permaneció en la lista de pagos pendientes sin cambios de estado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-modal-open.png" alt="manual-confirm-modal-open"><br>
+        <img src="images/functional-tests/run/manual-confirm-cancel-still-pending.png" alt="manual-confirm-cancel-still-pending">
+        <br>
+        Modal de confirmación abierto para la reserva 34B8431D.<br>
+        Después de cancelar, la reserva 34B8431D permanece en la lista de pagos pendientes.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-08-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-003</td>
+      <td>Verificar que al hacer clic en "delete" de una reserva pendiente, la reserva desaparezca de Pending Payments y el cupo se libere.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Reserva desaparece de Pending Payments, contador disminuye, cupo se libera.</td>
+      <td colspan="3">La reserva fue eliminada de la lista de pagos pendientes, el contador disminuyó y el cupo del evento se liberó.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-pending-list.png" alt="manual-confirm-pending-list"><br>
+        <img src="images/functional-tests/run/manual-confirm-after-confirm.png" alt="manual-confirm-after-confirm">
+        <br>
+        Lista de pagos pendientes antes de la eliminación.<br>
+        Lista de pagos pendientes después de la eliminación, la reserva fue removida.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-08-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-08-004</td>
+      <td>Verificar que la reserva eliminada aparezca en estado "Cancelled" en la lista de reservas del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Reserva aparece en estado "Cancelled" en la lista de reservas del evento.</td>
+      <td colspan="3">La reserva eliminada aparece en la lista de reservas del evento con estado "Cancelled", confirmando que el cupo fue liberado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/manual-confirm-cancel-still-pending.png" alt="manual-confirm-cancel-still-pending">
+        <br>
+        En la lista de reservas del evento, la reserva eliminada aparece en estado "Cancelled".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Check-in Online (Auto-check-in)
+
+**CPF-16-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-16-001</td>
       <td>Verificar que no se muestre el botón de auto-check-in si la funcionalidad está deshabilitada a nivel de evento.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1147,7 +1981,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-12-002**
+**CPF-16-002**
 <table>
   <thead>
     <tr>
@@ -1160,7 +1994,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-12-002</td>
+      <td>CPF-16-002</td>
       <td>Verificar que el botón de auto-check-in se muestre bloqueado/inactivo si la reserva está con pago pendiente.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1187,7 +2021,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-12-003**
+**CPF-16-003**
 <table>
   <thead>
     <tr>
@@ -1200,7 +2034,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-12-003</td>
+      <td>CPF-16-003</td>
       <td>Verificar comportamiento de auto-check-in fuera de la ventana de tiempo del evento (antes del horario de apertura).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1227,7 +2061,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-12-004**
+**CPF-16-004**
 <table>
   <thead>
     <tr>
@@ -1240,7 +2074,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-12-004</td>
+      <td>CPF-16-004</td>
       <td>Verificar el portal del usuario cuando el ticket ya ha sido registrado como "Ingresado/Checked-in".</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1267,7 +2101,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-12-005**
+**CPF-16-005**
 <table>
   <thead>
     <tr>
@@ -1280,7 +2114,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-12-005</td>
+      <td>CPF-16-005</td>
       <td>Verificar el flujo completo de auto-check-in exitoso en condiciones normales (pagado, dentro del horario y activo).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1309,7 +2143,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Validación de QR (Escaneo de Ticket en Puerta)
 
-**CPF-13-001**
+**CPF-17-001**
 <table>
   <thead>
     <tr>
@@ -1322,7 +2156,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-13-001</td>
+      <td>CPF-17-001</td>
       <td>Simular escaneo de un código QR inválido o que no existe en la base de datos del evento.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1349,7 +2183,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-13-002**
+**CPF-17-002**
 <table>
   <thead>
     <tr>
@@ -1362,7 +2196,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-13-002</td>
+      <td>CPF-17-002</td>
       <td>Simular escaneo de un código QR correspondiente a un ticket cancelado previamente.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1389,7 +2223,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-13-003**
+**CPF-17-003**
 <table>
   <thead>
     <tr>
@@ -1402,7 +2236,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-13-003</td>
+      <td>CPF-17-003</td>
       <td>Simular escaneo de un ticket que ya fue ingresado con anterioridad (control de doble acceso).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1429,7 +2263,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-13-004**
+**CPF-17-004**
 <table>
   <thead>
     <tr>
@@ -1442,7 +2276,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-13-004</td>
+      <td>CPF-17-004</td>
       <td>Simular escaneo exitoso en puerta de un ticket válido sin ingresos previos.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1471,7 +2305,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Generación de Acreditaciones (Badges)
 
-**CPF-14-001**
+**CPF-18-001**
 <table>
   <thead>
     <tr>
@@ -1484,7 +2318,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-14-001</td>
+      <td>CPF-18-001</td>
       <td>Verificar que no esté disponible la descarga del badge para categorías de ticket sin derecho a carnet físico.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1511,7 +2345,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-14-002**
+**CPF-18-002**
 <table>
   <thead>
     <tr>
@@ -1524,7 +2358,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-14-002</td>
+      <td>CPF-18-002</td>
       <td>Verificar que se restrinja la impresión de badges si la reserva tiene estado pendiente de pago.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1551,7 +2385,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-14-003**
+**CPF-18-003**
 <table>
   <thead>
     <tr>
@@ -1564,7 +2398,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-14-003</td>
+      <td>CPF-18-003</td>
       <td>Verificar la descarga anticipada de la credencial en un evento que no requiere check-in físico previo para emitirla.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1591,7 +2425,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-14-004**
+**CPF-18-004**
 <table>
   <thead>
     <tr>
@@ -1604,7 +2438,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-14-004</td>
+      <td>CPF-18-004</td>
       <td>Verificar que no se permita la descarga del badge si el evento requiere check-in previo y el asistente aún no ha ingresado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1631,7 +2465,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-14-005**
+**CPF-18-005**
 <table>
   <thead>
     <tr>
@@ -1644,7 +2478,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-14-005</td>
+      <td>CPF-18-005</td>
       <td>Verificar generación y descarga del badge una vez cumplidas todas las condiciones lógicas.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1671,9 +2505,9 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-### Configuración de la Organización (CONF-01)
+### Configuración de la Organización (CONF-09)
 
-**CONF-01-001**
+**CONF-09-001**
 <table>
   <thead>
     <tr>
@@ -1686,7 +2520,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-01-001</td>
+      <td>CONF-09-001</td>
       <td>Crear organización con datos válidos.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1712,7 +2546,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-01-002**
+**CONF-09-002**
 <table>
   <thead>
     <tr>
@@ -1725,7 +2559,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-01-002</td>
+      <td>CONF-09-002</td>
       <td>Intentar crear organización con nombre vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1752,7 +2586,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-01-003**
+**CONF-09-003**
 <table>
   <thead>
     <tr>
@@ -1765,7 +2599,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-01-003</td>
+      <td>CONF-09-003</td>
       <td>Intentar crear organización con email de formato inválido.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1792,7 +2626,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-01-004**
+**CONF-09-004**
 <table>
   <thead>
     <tr>
@@ -1805,7 +2639,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-01-004</td>
+      <td>CONF-09-004</td>
       <td>Crear organización con nombre de 255 caracteres.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1831,7 +2665,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-01-005**
+**CONF-09-005**
 <table>
   <thead>
     <tr>
@@ -1844,7 +2678,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-01-005</td>
+      <td>CONF-09-005</td>
       <td>Editar los datos de una organización existente.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1870,7 +2704,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-01-006**
+**CONF-09-006**
 <table>
   <thead>
     <tr>
@@ -1883,7 +2717,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-01-006</td>
+      <td>CONF-09-006</td>
       <td>Crear organización con nombre de 256 caracteres.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -1910,9 +2744,9 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-### Configuración del Evento (CONF-02)
+### Configuración del Evento (CONF-10)
 
-**CONF-02-001**
+**CONF-10-001**
 <table>
   <thead>
     <tr>
@@ -1925,7 +2759,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-02-001</td>
+      <td>CONF-10-001</td>
       <td>Configurar fechas del evento con el date picker.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -1952,7 +2786,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-02-002**
+**CONF-10-002**
 <table>
   <thead>
     <tr>
@@ -1965,7 +2799,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-02-002</td>
+      <td>CONF-10-002</td>
       <td>Configurar fecha de inicio del evento en el pasado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -1992,7 +2826,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-02-003**
+**CONF-10-003**
 <table>
   <thead>
     <tr>
@@ -2005,7 +2839,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-02-003</td>
+      <td>CONF-10-003</td>
       <td>Validar error al guardar evento con fecha de inicio en el pasado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2032,7 +2866,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-02-004**
+**CONF-10-004**
 <table>
   <thead>
     <tr>
@@ -2045,7 +2879,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-02-004</td>
+      <td>CONF-10-004</td>
       <td>Validar configuración con fecha de inicio y fin idénticas.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2072,7 +2906,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-02-005**
+**CONF-10-005**
 <table>
   <thead>
     <tr>
@@ -2085,7 +2919,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-02-005</td>
+      <td>CONF-10-005</td>
       <td>Configurar disponibilidad de categoría después de inicio del evento.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2112,7 +2946,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-02-006**
+**CONF-10-006**
 <table>
   <thead>
     <tr>
@@ -2125,7 +2959,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-02-006</td>
+      <td>CONF-10-006</td>
       <td>Configurar fin de venta de categoría después del fin del evento.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -2152,7 +2986,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-02-007**
+**CONF-10-007**
 <table>
   <thead>
     <tr>
@@ -2165,7 +2999,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-02-007</td>
+      <td>CONF-10-007</td>
       <td>Configurar códigos ocultos duplicados en diferentes categorías.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -2192,9 +3026,9 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-### Configuración de Categorías de Tickets (CONF-03)
+### Configuración de Categorías de Tickets (CONF-11)
 
-**CONF-03-001**
+**CONF-11-001**
 <table>
   <thead>
     <tr>
@@ -2207,7 +3041,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-03-001</td>
+      <td>CONF-11-001</td>
       <td>Modificar el precio de una categoría de ticket existente.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2233,7 +3067,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-03-002**
+**CONF-11-002**
 <table>
   <thead>
     <tr>
@@ -2246,7 +3080,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-03-002</td>
+      <td>CONF-11-002</td>
       <td>Ingresar un precio negativo en una categoría de ticket.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2273,7 +3107,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-03-003**
+**CONF-11-003**
 <table>
   <thead>
     <tr>
@@ -2286,7 +3120,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-03-003</td>
+      <td>CONF-11-003</td>
       <td>Configurar una categoría de tickets gratuitos (precio cero).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2312,7 +3146,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-03-004**
+**CONF-11-004**
 <table>
   <thead>
     <tr>
@@ -2325,7 +3159,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-03-004</td>
+      <td>CONF-11-004</td>
       <td>Configurar categoría VIP con precio diferenciado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2352,7 +3186,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-03-005**
+**CONF-11-005**
 <table>
   <thead>
     <tr>
@@ -2365,7 +3199,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-03-005</td>
+      <td>CONF-11-005</td>
       <td>Crear categoría oculta con código de acceso.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2392,7 +3226,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-03-006**
+**CONF-11-006**
 <table>
   <thead>
     <tr>
@@ -2405,7 +3239,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-03-006</td>
+      <td>CONF-11-006</td>
       <td>Eliminar categoría oculta como administrador.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2432,9 +3266,9 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-### Gestión de Capacidad (CONF-04)
+### Gestión de Capacidad (CONF-12)
 
-**CONF-04-001**
+**CONF-12-001**
 <table>
   <thead>
     <tr>
@@ -2447,7 +3281,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-04-001</td>
+      <td>CONF-12-001</td>
       <td>Configurar categorías cuya capacidad supere el límite del evento.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2474,7 +3308,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-04-002**
+**CONF-12-002**
 <table>
   <thead>
     <tr>
@@ -2487,7 +3321,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-04-002</td>
+      <td>CONF-12-002</td>
       <td>Ingresar cantidad inválida o nula de tickets en una categoría.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2514,7 +3348,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-04-003**
+**CONF-12-003**
 <table>
   <thead>
     <tr>
@@ -2527,7 +3361,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-04-003</td>
+      <td>CONF-12-003</td>
       <td>Comprar el último ticket disponible de una categoría.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2554,7 +3388,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-04-004**
+**CONF-12-004**
 <table>
   <thead>
     <tr>
@@ -2567,7 +3401,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-04-004</td>
+      <td>CONF-12-004</td>
       <td>Comprar tickets respetando el límite máximo por transacción.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2594,7 +3428,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-04-005**
+**CONF-12-005**
 <table>
   <thead>
     <tr>
@@ -2607,7 +3441,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-04-005</td>
+      <td>CONF-12-005</td>
       <td>Verificar estado de categoría cuando se agotan los tickets.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2634,9 +3468,9 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-### Configuración de Impuestos (CONF-05)
+### Configuración de Impuestos (CONF-13)
 
-**CONF-05-001**
+**CONF-13-001**
 <table>
   <thead>
     <tr>
@@ -2649,7 +3483,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-05-001</td>
+      <td>CONF-13-001</td>
       <td>Configurar y aplicar un nuevo impuesto (VAT/IVA).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2676,7 +3510,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-05-002**
+**CONF-13-002**
 <table>
   <thead>
     <tr>
@@ -2689,7 +3523,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-05-002</td>
+      <td>CONF-13-002</td>
       <td>Actualizar la tasa del impuesto configurado a un valor de 0%.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2716,7 +3550,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-05-003**
+**CONF-13-003**
 <table>
   <thead>
     <tr>
@@ -2729,7 +3563,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-05-003</td>
+      <td>CONF-13-003</td>
       <td>Configurar y aplicar exención de impuestos (tax-free) a una categoría.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2756,9 +3590,9 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-### Configuración de Localización y Moneda (CONF-06)
+### Configuración de Localización y Moneda (CONF-14)
 
-**CONF-06-001**
+**CONF-14-001**
 <table>
   <thead>
     <tr>
@@ -2771,7 +3605,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-06-001</td>
+      <td>CONF-14-001</td>
       <td>Seleccionar el idioma por defecto del sistema.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2798,7 +3632,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-06-002**
+**CONF-14-002**
 <table>
   <thead>
     <tr>
@@ -2811,7 +3645,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-06-002</td>
+      <td>CONF-14-002</td>
       <td>Traducir los detalles del evento a un idioma secundario.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2838,7 +3672,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-06-003**
+**CONF-14-003**
 <table>
   <thead>
     <tr>
@@ -2851,7 +3685,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-06-003</td>
+      <td>CONF-14-003</td>
       <td>Validar el límite mínimo de idiomas requeridos al intentar eliminar.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2878,7 +3712,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-06-004**
+**CONF-14-004**
 <table>
   <thead>
     <tr>
@@ -2891,7 +3725,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-06-004</td>
+      <td>CONF-14-004</td>
       <td>Validar advertencia por desfase de zona horaria del evento.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -2918,7 +3752,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-06-005**
+**CONF-14-005**
 <table>
   <thead>
     <tr>
@@ -2931,7 +3765,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-06-005</td>
+      <td>CONF-14-005</td>
       <td>Cambiar la moneda por defecto del evento a Euros (EUR).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -2958,7 +3792,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CONF-06-006**
+**CONF-14-006**
 <table>
   <thead>
     <tr>
@@ -2971,7 +3805,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CONF-06-006</td>
+      <td>CONF-14-006</td>
       <td>Cambiar la moneda por defecto del evento a Soles (PEN).</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3000,7 +3834,7 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Creación de Usuarios
 
-**CPF-11-001**
+**CPF-15-001**
 <table>
   <thead>
     <tr>
@@ -3013,7 +3847,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-001</td>
+      <td>CPF-15-001</td>
       <td>No permitir la creación de usuarios con un nombre de usuario ya registrado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3040,7 +3874,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-002**
+**CPF-15-002**
 <table>
   <thead>
     <tr>
@@ -3053,7 +3887,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-002</td>
+      <td>CPF-15-002</td>
       <td>No permitir correos electrónicos sin el carácter '@'.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3080,7 +3914,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-003**
+**CPF-15-003**
 <table>
   <thead>
     <tr>
@@ -3093,7 +3927,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-003</td>
+      <td>CPF-15-003</td>
       <td>No permitir correos electrónicos sin dominio válido.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3120,7 +3954,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-004**
+**CPF-15-004**
 <table>
   <thead>
     <tr>
@@ -3133,7 +3967,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-004</td>
+      <td>CPF-15-004</td>
       <td>No permitir el registro de un correo electrónico ya existente.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -3160,7 +3994,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-005**
+**CPF-15-005**
 <table>
   <thead>
     <tr>
@@ -3173,7 +4007,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-005</td>
+      <td>CPF-15-005</td>
       <td>No permitir usernames compuestos únicamente por espacios en blanco.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3200,7 +4034,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-006**
+**CPF-15-006**
 <table>
   <thead>
     <tr>
@@ -3213,7 +4047,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-006</td>
+      <td>CPF-15-006</td>
       <td>Permitir la creación de usuarios con un username de longitud mínima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3240,7 +4074,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-007**
+**CPF-15-007**
 <table>
   <thead>
     <tr>
@@ -3253,7 +4087,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-007</td>
+      <td>CPF-15-007</td>
       <td>Permitir la creación de usuarios con un username de longitud máxima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3280,7 +4114,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-008**
+**CPF-15-008**
 <table>
   <thead>
     <tr>
@@ -3293,7 +4127,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-008</td>
+      <td>CPF-15-008</td>
       <td>No permitir usernames que excedan la longitud máxima definida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3320,7 +4154,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-009**
+**CPF-15-009**
 <table>
   <thead>
     <tr>
@@ -3333,7 +4167,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-009</td>
+      <td>CPF-15-009</td>
       <td>No permitir nombres compuestos únicamente por espacios en blanco.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3360,7 +4194,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-010**
+**CPF-15-010**
 <table>
   <thead>
     <tr>
@@ -3373,7 +4207,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-010</td>
+      <td>CPF-15-010</td>
       <td>Permitir la creación de usuarios con un nombre de longitud mínima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3400,7 +4234,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-011**
+**CPF-15-011**
 <table>
   <thead>
     <tr>
@@ -3413,7 +4247,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-011</td>
+      <td>CPF-15-011</td>
       <td>No permitir nombres compuestos únicamente por caracteres numéricos.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -3440,7 +4274,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-012**
+**CPF-15-012**
 <table>
   <thead>
     <tr>
@@ -3453,7 +4287,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-012</td>
+      <td>CPF-15-012</td>
       <td>No permitir nombres compuestos únicamente por símbolos especiales.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -3480,7 +4314,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-013**
+**CPF-15-013**
 <table>
   <thead>
     <tr>
@@ -3493,7 +4327,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-013</td>
+      <td>CPF-15-013</td>
       <td>Permitir nombres con la longitud máxima válida configurada.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3520,7 +4354,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-014**
+**CPF-15-014**
 <table>
   <thead>
     <tr>
@@ -3533,7 +4367,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-014</td>
+      <td>CPF-15-014</td>
       <td>No permitir nombres que excedan la longitud máxima definida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3560,7 +4394,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-015**
+**CPF-15-015**
 <table>
   <thead>
     <tr>
@@ -3573,7 +4407,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-015</td>
+      <td>CPF-15-015</td>
       <td>No permitir apellidos compuestos únicamente por espacios en blanco.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3600,7 +4434,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-016**
+**CPF-15-016**
 <table>
   <thead>
     <tr>
@@ -3613,7 +4447,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-016</td>
+      <td>CPF-15-016</td>
       <td>Permitir la creación de usuarios con un apellido de longitud mínima válida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3640,7 +4474,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-017**
+**CPF-15-017**
 <table>
   <thead>
     <tr>
@@ -3653,7 +4487,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-017</td>
+      <td>CPF-15-017</td>
       <td>No permitir apellidos compuestos únicamente por caracteres numéricos.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -3680,7 +4514,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-018**
+**CPF-15-018**
 <table>
   <thead>
     <tr>
@@ -3693,7 +4527,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-018</td>
+      <td>CPF-15-018</td>
       <td>No permitir apellidos compuestos únicamente por símbolos especiales.</td>
       <td>Manual</td>
       <td>Fallido</td>
@@ -3720,7 +4554,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-019**
+**CPF-15-019**
 <table>
   <thead>
     <tr>
@@ -3733,7 +4567,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-019</td>
+      <td>CPF-15-019</td>
       <td>Permitir apellidos con la longitud máxima válida configurada.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3760,7 +4594,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-020**
+**CPF-15-020**
 <table>
   <thead>
     <tr>
@@ -3773,7 +4607,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-020</td>
+      <td>CPF-15-020</td>
       <td>No permitir apellidos que excedan la longitud máxima definida.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3800,7 +4634,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-021**
+**CPF-15-021**
 <table>
   <thead>
     <tr>
@@ -3813,7 +4647,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-021</td>
+      <td>CPF-15-021</td>
       <td>No permitir la creación de usuarios cuando la organización no ha sido seleccionada.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3840,7 +4674,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-022**
+**CPF-15-022**
 <table>
   <thead>
     <tr>
@@ -3853,7 +4687,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-022</td>
+      <td>CPF-15-022</td>
       <td>No permitir la creación de usuarios cuando el rol no ha sido seleccionado.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3880,7 +4714,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-023**
+**CPF-15-023**
 <table>
   <thead>
     <tr>
@@ -3893,7 +4727,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-023</td>
+      <td>CPF-15-023</td>
       <td>No permitir la creación de usuarios cuando el username está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3920,7 +4754,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-024**
+**CPF-15-024**
 <table>
   <thead>
     <tr>
@@ -3933,7 +4767,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-024</td>
+      <td>CPF-15-024</td>
       <td>No permitir la creación de usuarios cuando el nombre está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -3960,7 +4794,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-025**
+**CPF-15-025**
 <table>
   <thead>
     <tr>
@@ -3973,7 +4807,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-025</td>
+      <td>CPF-15-025</td>
       <td>No permitir la creación de usuarios cuando el apellido está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -4000,7 +4834,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-026**
+**CPF-15-026**
 <table>
   <thead>
     <tr>
@@ -4013,7 +4847,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-026</td>
+      <td>CPF-15-026</td>
       <td>No permitir la creación de usuarios cuando el correo electrónico está vacío.</td>
       <td>Manual</td>
       <td>Exitoso</td>
@@ -4040,7 +4874,7 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
-**CPF-11-027**
+**CPF-15-027**
 <table>
   <thead>
     <tr>
@@ -4053,7 +4887,7 @@ Este proceso es controlado mediante Github actions, que:
   </thead>
   <tbody>
     <tr>
-      <td>CPF-11-027</td>
+      <td>CPF-15-027</td>
       <td>Permitir la creación de usuarios cuando todos los campos obligatorios han sido completados correctamente.</td>
       <td>Manual</td>
       <td>Exitoso</td>
