@@ -15,8 +15,8 @@ docker run \
 ```bash
 docker logs alfio-db
 ```
-Finally run the application
 
+Finally run the application on graddle (see if there's a faster way to run the application but it does not work right now)
 ```bash
 ./gradlew -Pprofile=dev :bootRun
 ```
