@@ -35,7 +35,7 @@ export function removeFromSessionStorage(key: string): void {
     } catch (e) {}
 }
 
-export const mobile = window.matchMedia('(max-width: 767px)').matches;
+export const mobile = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 767px)').matches;
 export const embedded = window.parent !== window;
 
 export function notifyPaymentErrorToParent(
