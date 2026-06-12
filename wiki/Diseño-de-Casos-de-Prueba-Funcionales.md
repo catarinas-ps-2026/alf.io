@@ -225,7 +225,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Precondiciones** | Reserva creada con tickets seleccionados y datos del comprador completados. Página de resumen de pedido visible. |
 | **Datos de Entrada** | Selección de método de pago (radio button), aceptación de términos y condiciones. |
 | **Pasos de Ejecución** | 1. Llegar a la página de resumen de pedido. 2. Observar opciones de pago disponibles. 3. Seleccionar un método de pago. 4. Verificar cambio en la interfaz (texto informativo y botón). |
-| **Técnicas de Pruebas** | Partición de Equivalencia, Tabla de Decisión. |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Tabla de Decisión, Transición de Estados. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
@@ -248,6 +248,13 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 **Transición de Estados**
 
+| Cod. | Estado Origen | Estado Destino | Acción |
+| :--- | :--- | :--- | :--- |
+| FN5-TS-001 | Sin selección | OFFLINE | Seleccionar "Transferencia bancaria" |
+| FN5-TS-002 | Sin selección | ON_SITE | Seleccionar "Pago en efectivo al llegar" |
+| FN5-TS-003 | OFFLINE | ON_SITE | Cambiar selección a "Pago en efectivo" |
+| FN5-TS-004 | ON_SITE | OFFLINE | Cambiar selección a "Transferencia bancaria" |
+
 ```mermaid
 stateDiagram-v2
     [*] --> SinSeleccion: Página de resumen
@@ -268,6 +275,8 @@ stateDiagram-v2
 | CPF-05-004 | Método: ON_SITE, Términos: No aceptados | Botón: "Confirmar" deshabilitado | f- |
 | CPF-05-005 | Método: Ninguno | Mensaje: "Por favor selecciona un método de pago para continuar" | f- |
 | CPF-05-006 | Cambiar de OFFLINE a ON_SITE | La interfaz cambia según método seleccionado | f+ |
+
+> **Nota:** CPF-05-006 deriva de FN5-TS-003 (OFFLINE → ON_SITE) y FN5-TS-004 (ON_SITE → OFFLINE).
 
 #### Procesamiento de Pago OFFLINE (Transferencia Bancaria)
 | ID | CPF-0006 |
