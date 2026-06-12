@@ -233,6 +233,109 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-04-005 | Futuro, Híbrido, Pago pendiente | El botón de descarga permanece oculto | f- |
 | CPF-04-006 | Futuro, Modalidad Virtual | El botón de descarga no se muestra (acceso digital) | f- |
 
+### Check-in Online (Auto-check-in)
+| ID | CPF-0012 |
+| :--- | :--- |
+| **Funcionalidad** | Proceso de auto-check-in por parte del usuario asistente |
+| **Descripción** | Valida si un usuario asistente puede realizar el check-in digital de su ticket de manera autónoma desde la interfaz web. |
+| **Requisito Asociado** | RF-005 (Auto-Check-in) |
+| **Precondiciones** | El usuario posee un enlace válido a la página de su ticket personal. |
+| **Datos de Entrada** |  |
+| **Pasos de Ejecución** | |
+| **Técnicas de Pruebas** | Tablas de Decisión. |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+
+
+**Tabla de Decisión: Habilitar botón de auto-check-in**
+| Condición | C1 | C2 | C3 | C4 | C5 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| ¿Auto-check-in habilitado en el evento? | NO | SI | SI | SI | SI |
+| ¿Estado del ticket es pagado/aprobado? | - | NO | SI | SI | SI |
+| ¿Está dentro del rango de tiempo permitido? | - | - | NO | SI | SI |
+| ¿El ticket ya fue ingresado/usado? | - | - | - | SI | NO |
+| **Habilitar Botón / Permitir Acción** | **NO** | **NO** | **NO** | **NO** | **SI** |
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-12-001 | Auto-check-in deshabilitado en evento | El botón no aparece | f- |
+| CPF-12-002 | Con pago pendiente | El botón se muestra inactivo o bloqueado | f- |
+| CPF-12-003 | Fuera de la ventana de tiempo (muy temprano/tarde) | El botón permanece deshabilitado o muestra un aviso con la hora exacta de habilitación. | f- |
+| CPF-12-004 | Ticket ya ingresado | El botón se oculta o cambia a estado "Ingresado" | f- |
+| CPF-12-005 | Condiciones válidas (Habilitado, pagado, a tiempo, sin usar) | Botón visible y funcional; al hacer clic cambia el estado a "Checked-In" | f+ |
+
+### Validación de QR (Escaneo de Ticket en Puerta)
+| ID | CPF-0013 |
+| :--- | :--- |
+| **Funcionalidad** | Validación y control de acceso mediante códigos QR |
+| **Descripción** | Define el comportamiento e indicativo visual del lector de entrada según el estado y validez del QR escaneado. |
+| **Requisito Asociado** | RF-006 (Control de Acceso) |
+| **Precondiciones** | Dispositivo móvil de puerta logueado en la aplicación de check-in del evento. |
+| **Datos de Entrada** |  |
+| **Pasos de Ejecución** | |
+| **Técnicas de Pruebas** | Tablas de Decisión. |
+| **Prioridad** | Crítica |
+
+**Análisis de Técnicas**
+
+
+
+**Tabla de Decisión: Resultado visual del escaneo**
+| Condición | C1 | C2 | C3 | C4 |
+| :--- | :--- | :--- | :--- | :--- |
+| ¿El ticket existe en el sistema? | NO | SI | SI | SI |
+| ¿El estado del ticket es "Cancelado"? | - | SI | NO | NO |
+| ¿El ticket ya figura como ingresado? | - | - | SI | NO |
+| **Resultado de Escaneo** | **Rojo (Inexistente)** | **Rojo (Cancelado)** | **Amarillo (Duplicado)** | **Verde (Éxito)** |
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-13-001 | Escaneo de código QR inválido/inexistente | Pantalla roja indicando: "Ticket no encontrado" | f- |
+| CPF-13-002 | Escaneo de ticket cancelado previamente | Pantalla roja indicando: "Acceso denegado - Ticket Cancelado" | f- |
+| CPF-13-003 | Escaneo de ticket ya ingresado | Pantalla amarilla indicando: "Alerta - Ticket duplicado" (con fecha/hora del 1er ingreso) | f- |
+| CPF-13-004 | Escaneo de ticket válido por primera vez | Pantalla verde indicando: "Acceso Permitido" y registra el ingreso | f+ |
+
+### Generación de Acreditaciones (Badges)
+| ID | CPF-0014 |
+| :--- | :--- |
+| **Funcionalidad** | Emisión e impresión de credenciales físicas |
+| **Descripción** | Determina si el sistema permite la descarga/impresión del badge o carnet del asistente en PDF según las reglas del evento y del ticket. |
+| **Requisito Asociado** | RF-007 (Generación de Acreditaciones) |
+| **Precondiciones** | Diseño de badge cargado y asignado para el evento. |
+| **Datos de Entrada** |  |
+| **Pasos de Ejecución** | |
+| **Técnicas de Pruebas** | Tablas de Decisión. |
+| **Prioridad** | Media |
+
+**Análisis de Técnicas**
+
+
+
+**Tabla de Decisión: Permitir descarga e impresión de Badge**
+| Condición | C1 | C2 | C3 | C4 | C5 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| ¿Categoría de ticket incluye badge? | NO | SI | SI | SI | SI |
+| ¿El ticket está confirmado y pagado? | - | NO | SI | SI | SI |
+| ¿Evento requiere check-in previo para badge? | - | - | NO | SI | SI |
+| ¿Asistente ya realizó el check-in físico? | - | - | - | NO | SI |
+| **Permitir Descarga de PDF** | **NO** | **NO** | **SI** | **NO** | **SI** |
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-14-001 | Categoría sin derecho a badge (ej. Pase Virtual) | El botón o enlace de descarga de badge no está visible | f- |
+| CPF-14-002 | Ticket con derecho a badge pero pago pendiente | Se muestra un aviso indicando que requiere pago completo para emitir | f- |
+| CPF-14-003 | Ticket pagado, evento sin restricción de check-in previo | El botón es visible y permite descargar el PDF del badge antes del evento | f+ |
+| CPF-14-004 | Ticket pagado, requiere check-in previo, pero no ha ingresado | El botón de badge permanece inactivo o ausente en el portal del usuario | f- |
+| CPF-14-005 | Ticket pagado, requiere check-in y ya ingresó al evento | El botón se activa en el panel de puerta/usuario y descarga el PDF generado | f+ |
+
 ### Configuración de la Organización (CONF-01)
 | ID | CPF-0005 |
 | :--- | :--- |
@@ -539,6 +642,9 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-CONF-04:** Gestión de Capacidad | CPF-0008 (001-005) |
 | **RF-CONF-05:** Configuración de Impuestos | CPF-0009 (001-003) |
 | **RF-CONF-06:** Configuración de Localización y Moneda | CPF-0010 (001-006) |
+| **RF-005:** Auto-Check-in | CPF-0012 (001-005) |
+| **RF-006:** Control de Acceso | CPF-0013 (001-004) |
+| **RF-007:** Generación de Acreditaciones | CPF-0014 (001-005) |
 
 ## 9. Métodos y Herramientas
 
