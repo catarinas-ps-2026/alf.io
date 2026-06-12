@@ -352,15 +352,15 @@ stateDiagram-v2
 | CPF-07-004 | Verificar que ON_SITE no muestra fecha de expiración | La página de éxito NO muestra "Pago requerido no más tarde de" | f+ |
 | CPF-07-005 | Verificar persistencia de reserva ON_SITE | La reserva ON_SITE permanece activa hasta la fecha del evento, sin expirar como las OFFLINE | f+ |
 
-#### Confirmación Manual de Pagos (Administrador)
+#### Gestión de Pagos Pendientes (Administrador)
 | ID | CPF-0008 |
 | :--- | :--- |
-| **Funcionalidad** | Confirmación manual de pagos pendientes por parte del administrador |
-| **Descripción** | Valida que el administrador pueda confirmar pagos OFFLINE pendientes mediante un modal que solicita fecha/hora de recepción y notas opcionales, así como cancelar la operación manteniendo el estado pendiente. |
-| **Requisito Asociado** | RF-008 (Confirmación Manual de Pagos) |
+| **Funcionalidad** | Gestión de pagos pendientes por parte del administrador (confirmación y eliminación) |
+| **Descripción** | Valida que el administrador pueda confirmar pagos OFFLINE pendientes mediante un modal, cancelar la operación manteniendo el estado pendiente, y eliminar reservas pendientes liberando el cupo del evento. |
+| **Requisito Asociado** | RF-008 (Gestión de Pagos Pendientes) |
 | **Precondiciones** | Existe al menos una reserva con pago OFFLINE en estado PENDING. Usuario autenticado como administrador. |
-| **Datos de Entrada** | Fecha/hora de recepción (pre-rellenada), Notas (opcional). |
-| **Pasos de Ejecución** | 1. Ingresar a "Pending Payments" del evento. 2. Localizar la reserva pendiente. 3. Hacer clic en "confirm". 4. Completar o cancelar el modal de confirmación. |
+| **Datos de Entrada** | Fecha/hora de recepción (pre-rellenada), Notas (opcional), Confirmación de eliminación. |
+| **Pasos de Ejecución** | 1. Ingresar a "Pending Payments" del evento. 2. Localizar la reserva pendiente. 3. Hacer clic en "confirm" o "delete". 4. Completar la acción correspondiente. |
 | **Técnicas de Pruebas** | Partición de Equivalencia, Transición de Estados. |
 | **Prioridad** | Alta |
 
@@ -378,16 +378,20 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     [*] --> PENDING: Reserva con pago OFFLINE
-    PENDING --> ModalAbierto: Clic en "confirm"
-    ModalAbierto --> COMPLETED: Confirmar con fecha/notas
-    ModalAbierto --> PENDING: Cancelar modal
+    PENDING --> ModalConfirmAbierto: Clic en "confirm"
+    PENDING --> CANCELLED: Clic en "delete"
+    ModalConfirmAbierto --> COMPLETED: Confirmar con fecha/notas
+    ModalConfirmAbierto --> PENDING: Cancelar modal
+    state "Cupo liberado" as CANCELLED
 ```
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
 | CPF-08-001 | Confirmar pago con fecha pre-rellenada | Pago cambia a COMPLETED, reserva desaparece de Pending Payments, contador disminuye | f+ |
-| CPF-08-002 | Clic en "Cancel" del modal | Modal se cierra, pago permanece PENDING, reserva permanece en lista | f+ |
+| CPF-08-002 | Clic en "Cancel" del modal de confirmación | Modal se cierra, pago permanece PENDING, reserva permanece en lista | f+ |
+| CPF-08-003 | Clic en "delete" de reserva pendiente | Reserva desaparece de Pending Payments, contador disminuye, cupo se libera | f+ |
+| CPF-08-004 | Verificar estado tras eliminación | Reserva aparece en estado "Cancelled" en la lista de reservas del evento | f+ |
 
 ## Matriz de Trazabilidad
 
@@ -402,7 +406,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-005:** Selección de método de pago | CPF-0005 (001-006) |
 | **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-005) |
 | **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-005) |
-| **RF-008:** Confirmación manual de pagos | CPF-0008 (001-002) |
+| **RF-008:** Gestión de pagos pendientes | CPF-0008 (001-004) |
 
 ## 9. Métodos y Herramientas
 
