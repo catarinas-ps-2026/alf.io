@@ -15,6 +15,7 @@
 
 El presente informe documenta la estrategia, ejecución y resultados de las pruebas funcionales realizadas sobre alf.io, un sistema de gestión y venta de entradas para eventos de código abierto. Su propósito es evaluar la calidad del software, identificar defectos potenciales y verificar el cumplimiento de los requisitos del sistema, desde unidades de código hasta flujos completos de usuario.
 
+
 ## 2. Propósito
 
 Este documento sirve como referencia para:
@@ -23,6 +24,7 @@ Este documento sirve como referencia para:
 - Detallar la configuración del entorno de pruebas.
 - Proporcionar evidencia sobre el comportamiento del sistema en escenarios controlados.
 - Facilitar la reproducibilidad de las pruebas por parte del equipo de desarrollo y QA.
+
 
 ## 3. Alcance
 
@@ -34,13 +36,17 @@ Las pruebas abarcan los siguiente componentes y funcionalidades de alf.io:
 
 No se incluyen en el alcance las pruebas de infraestructura subyacente, las pruebas de rendimiento ni las integraciones con medios externos en producción.
 
+
 ## 4. Referencias
 
 - **ISO/IEC/IEEE 29119:** estándar internacional para pruebas de software.
 - **Documentación oficial:** [https://alf.io](https://alf.io)
 - **Repositorio oficial:** [https://github.com/alfio-event/alf.io](https://github.com/alfio-event/alf.io)
 
+
 ## 5. Entorno de pruebas
+
+
 
 ### 5.1 Configuración del entorno
 
@@ -86,7 +92,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-field-len-0.png" alt="ticket-edit-field-len-0"><br>
+        <img src="images/functional-tests/run/ticket-edit-field-len-0.png" alt="ticket-edit-field-len-0">
+        <br>
         Se muestra que el sistema valida el campo obligatorio.
       </td>
     </tr>
@@ -125,7 +132,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-field-len-1.png" alt="ticket-edit-field-len-1"><br>
+        <img src="images/functional-tests/run/ticket-edit-field-len-1.png" alt="ticket-edit-field-len-1">
+        <br>
         Se muestra la edición exitosa con un solo carácter.
       </td>
     </tr>
@@ -164,7 +172,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-field-len-254.png" alt="ticket-edit-field-len-254"><br>
+        <img src="images/functional-tests/run/ticket-edit-field-len-254.png" alt="ticket-edit-field-len-254">
+        <br>
         Se observa una excepción inesperada al usar cadenas largas.
       </td>
     </tr>
@@ -203,7 +212,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-field-len-255.png" alt="ticket-edit-field-len-255"><br>
+        <img src="images/functional-tests/run/ticket-edit-field-len-255.png" alt="ticket-edit-field-len-255">
+        <br>
         El sistema falla con error 500 en el límite superior de la base de datos.
       </td>
     </tr>
@@ -242,7 +252,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-field-len-256.png" alt="ticket-edit-field-len-256"><br>
+        <img src="images/functional-tests/run/ticket-edit-field-len-256.png" alt="ticket-edit-field-len-256">
+        <br>
         El sistema rechaza correctamente la longitud excedida.
       </td>
     </tr>
@@ -281,7 +292,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-field-numbers.png" alt="ticket-edit-field-numbers"><br>
+        <img src="images/functional-tests/run/ticket-edit-field-numbers.png" alt="ticket-edit-field-numbers">
+        <br>
         Se observa que el sistema no valida el tipo de dato alfanumérico.
       </td>
     </tr>
@@ -320,7 +332,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-email-len-0.png" alt="ticket-edit-email-len-0"><br>
+        <img src="images/functional-tests/run/ticket-edit-email-len-0.png" alt="ticket-edit-email-len-0">
+        <br>
         Validación de correo obligatorio exitosa.
       </td>
     </tr>
@@ -359,7 +372,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-email-invalid.png" alt="ticket-edit-email-invalid"><br>
+        <img src="images/functional-tests/run/ticket-edit-email-invalid.png" alt="ticket-edit-email-invalid">
+        <br>
         El sistema detecta correctamente el formato de correo inválido.
       </td>
     </tr>
@@ -398,7 +412,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-email-len-63.png" alt="ticket-edit-email-len-63"><br>
+        <img src="images/functional-tests/run/ticket-edit-email-len-63.png" alt="ticket-edit-email-len-63">
+        <br>
         Prueba positiva de longitud de correo exitosa.
       </td>
     </tr>
@@ -437,7 +452,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-email-len-64.png" alt="ticket-edit-email-len-64"><br>
+        <img src="images/functional-tests/run/ticket-edit-email-len-64.png" alt="ticket-edit-email-len-64">
+        <br>
         Prueba positiva en el límite de 64 caracteres exitosa.
       </td>
     </tr>
@@ -476,7 +492,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-edit-email-len-65.png" alt="ticket-edit-email-len-65"><br>
+        <img src="images/functional-tests/run/ticket-edit-email-len-65.png" alt="ticket-edit-email-len-65">
+        <br>
         Se muestra que el sistema no aplica la restricción de longitud en el correo.
       </td>
     </tr>
@@ -517,7 +534,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reserve-search-id.png" alt="reserve-search-id"><br>
+        <img src="images/functional-tests/run/reserve-search-id.png" alt="reserve-search-id">
+        <br>
         Búsqueda exitosa por identificador único.
       </td>
     </tr>
@@ -556,7 +574,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reserve-search-lastname.png" alt="reserve-search-lastname"><br>
+        <img src="images/functional-tests/run/reserve-search-lastname.png" alt="reserve-search-lastname">
+        <br>
         Búsqueda por criterio de texto exitosa.
       </td>
     </tr>
@@ -595,7 +614,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reserve-search-none.png" alt="reserve-search-none"><br>
+        <img src="images/functional-tests/run/reserve-search-none.png" alt="reserve-search-none">
+        <br>
         Comportamiento esperado ante búsqueda sin coincidencias.
       </td>
     </tr>
@@ -636,10 +656,9 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reservation-approve-payment-1.png" alt="approve-1">
-        <img src="images/functional-tests/run/reservation-approve-payment-2.png" alt="approve-2">
-        <img src="images/functional-tests/run/reservation-approve-payment-3.png" alt="approve-3"><br>
-        Flujo completo de aprobación de pago.
+        <img src="images/functional-tests/run/reservation-approve-payment-1.png" alt="approve-1"><br>
+        <img src="images/functional-tests/run/reservation-approve-payment-2.png" alt="approve-2"><br>
+        <img src="images/functional-tests/run/reservation-approve-payment-3.png" alt="approve-3">
       </td>
     </tr>
   </tbody>
@@ -677,10 +696,9 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reservation-cancel-1.png" alt="cancel-1">
-        <img src="images/functional-tests/run/reservation-cancel-2.png" alt="cancel-2">
-        <img src="images/functional-tests/run/reservation-cancel-3.png" alt="cancel-3"><br>
-        Flujo completo de cancelación de reserva.
+        <img src="images/functional-tests/run/reservation-cancel-1.png" alt="cancel-1"><br>
+        <img src="images/functional-tests/run/reservation-cancel-2.png" alt="cancel-2"><br>
+        <img src="images/functional-tests/run/reservation-cancel-3.png" alt="cancel-3">
       </td>
     </tr>
   </tbody>
@@ -718,9 +736,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reservation-approve-payment-2.png" alt="modal-open">
-        <img src="images/functional-tests/run/reservation-approve-payment-1.png" alt="state-result"><br>
-        Al cerrar el modal, se regresa al estado inicial de la lista.
+        <img src="images/functional-tests/run/reservation-approve-payment-2.png" alt="modal-open"><br>
+        <img src="images/functional-tests/run/reservation-approve-payment-1.png" alt="state-result">
       </td>
     </tr>
   </tbody>
@@ -758,7 +775,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reservation-mark-as-complete-should-show.png" alt="mark-complete-show"><br>
+        <img src="images/functional-tests/run/reservation-mark-as-complete-should-show.png" alt="mark-complete-show">
+        <br>
         El botón aparece según las reglas de la tabla de decisión.
       </td>
     </tr>
@@ -797,7 +815,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reservation-mark-as-complete-shouldnt-show.png" alt="mark-complete-hide"><br>
+        <img src="images/functional-tests/run/reservation-mark-as-complete-shouldnt-show.png" alt="mark-complete-hide">
+        <br>
         El botón se oculta correctamente para pagos presenciales no aprobados.
       </td>
     </tr>
@@ -836,7 +855,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/reservation-mark-as-complete-should-show.png" alt="mark-complete-bug"><br>
+        <img src="images/functional-tests/run/reservation-mark-as-complete-should-show.png" alt="mark-complete-bug">
+        <br>
         Se observa la presencia del botón a pesar de no cumplir con las condiciones de llenado.
       </td>
     </tr>
@@ -877,7 +897,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-past"><br>
+        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-past">
+        <br>
         El sistema restringe la descarga post-evento.
       </td>
     </tr>
@@ -916,7 +937,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-download-available.png" alt="download-available"><br>
+        <img src="images/functional-tests/run/ticket-download-available.png" alt="download-available">
+        <br>
         Escenario de éxito para descarga de ticket presencial.
       </td>
     </tr>
@@ -955,7 +977,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-unpaid"><br>
+        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-unpaid">
+        <br>
         Restricción de descarga por estado de pago.
       </td>
     </tr>
@@ -994,7 +1017,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-download-available.png" alt="download-available-hybrid"><br>
+        <img src="images/functional-tests/run/ticket-download-available.png" alt="download-available-hybrid">
+        <br>
         Acceso a ticket en modalidad híbrida exitoso.
       </td>
     </tr>
@@ -1033,7 +1057,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-hybrid-unpaid"><br>
+        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-hybrid-unpaid">
+        <br>
         Bloqueo de descarga en modalidad híbrida sin pago.
       </td>
     </tr>
@@ -1072,7 +1097,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-virtual"><br>
+        <img src="images/functional-tests/run/ticket-download-not-available.png" alt="download-not-virtual">
+        <br>
         Verificación de lógica de negocio para accesos virtuales.
       </td>
     </tr>
@@ -1105,7 +1131,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Registro y redirección exitosa.</td>
+      <td colspan="2"></td>
       <td colspan="3">La organización se crea y aparece en la lista de administración.</td>
     </tr>
     <tr>
@@ -1113,9 +1139,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-org-create-input.png" alt="config-org-create-input">
-        <img src="images/functional-tests/run/config-org-create-success.png" alt="config-org-create-success"><br>
-        Formulario completado y creación exitosa de la organización.
+        <img src="images/functional-tests/run/config-org-create-input.png" alt="config-org-create-input"><br>
+        <img src="images/functional-tests/run/config-org-create-success.png" alt="config-org-create-success">
       </td>
     </tr>
   </tbody>
@@ -1145,7 +1170,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar guardado indicando campo requerido.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema previene el envío y resalta el campo vacío.</td>
     </tr>
     <tr>
@@ -1153,7 +1178,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-org-create-empty-name.png" alt="config-org-create-empty-name"><br>
+        <img src="images/functional-tests/run/config-org-create-empty-name.png" alt="config-org-create-empty-name">
+        <br>
         Validación del frontend al intentar omitir el nombre.
       </td>
     </tr>
@@ -1184,7 +1210,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar guardado indicando error de formato.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema muestra mensaje de error de correo inválido.</td>
     </tr>
     <tr>
@@ -1192,7 +1218,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-org-create-invalid-email.png" alt="config-org-create-invalid-email"><br>
+        <img src="images/functional-tests/run/config-org-create-invalid-email.png" alt="config-org-create-invalid-email">
+        <br>
         Validación del formato del correo electrónico.
       </td>
     </tr>
@@ -1223,7 +1250,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Guardar exitosamente el registro en el límite superior.</td>
+      <td colspan="2"></td>
       <td colspan="3">Se guarda el nombre y se muestra completo en la vista.</td>
     </tr>
     <tr>
@@ -1231,9 +1258,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-org-create-name-255-input.png" alt="config-org-create-name-255-input">
-        <img src="images/functional-tests/run/config-org-create-name-255-view.png" alt="config-org-create-name-255-view"><br>
-        Creación y guardado exitoso con longitud máxima de 255 caracteres.
+        <img src="images/functional-tests/run/config-org-create-name-255-input.png" alt="config-org-create-name-255-input"><br>
+        <img src="images/functional-tests/run/config-org-create-name-255-view.png" alt="config-org-create-name-255-view">
       </td>
     </tr>
   </tbody>
@@ -1263,7 +1289,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Actualizar los datos exitosamente.</td>
+      <td colspan="2"></td>
       <td colspan="3">Los cambios se aplican y persisten en la base de datos.</td>
     </tr>
     <tr>
@@ -1271,9 +1297,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-org-edit-input.png" alt="config-org-edit-input">
-        <img src="images/functional-tests/run/config-org-edit-success.png" alt="config-org-edit-success"><br>
-        Edición de datos de la organización guardada exitosamente.
+        <img src="images/functional-tests/run/config-org-edit-input.png" alt="config-org-edit-input"><br>
+        <img src="images/functional-tests/run/config-org-edit-success.png" alt="config-org-edit-success">
       </td>
     </tr>
   </tbody>
@@ -1303,7 +1328,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar indicando que excede la longitud máxima.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema lanza un error 500 exponiendo la excepción SQL cruda de base de datos.</td>
     </tr>
     <tr>
@@ -1311,7 +1336,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-org-create-name-256-sql-error.png" alt="config-org-create-name-256-sql-error"><br>
+        <img src="images/functional-tests/run/config-org-create-name-256-sql-error.png" alt="config-org-create-name-256-sql-error">
+        <br>
         Error 500 expone información sensible de base de datos (SQL).
       </td>
     </tr>
@@ -1344,7 +1370,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Seleccionar fechas de forma sencilla y fluida.</td>
+      <td colspan="2"></td>
       <td colspan="3">El widget del date picker tiene un problema de scroll que dificulta su uso.</td>
     </tr>
     <tr>
@@ -1352,7 +1378,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-evt-date-setup.png" alt="config-evt-date-setup"><br>
+        <img src="images/functional-tests/run/config-evt-date-setup.png" alt="config-evt-date-setup">
+        <br>
         Bug de scroll visualizado al abrir el selector de fechas.
       </td>
     </tr>
@@ -1383,7 +1410,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Permitir ingresar la fecha en el pasado en el formulario.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema permite seleccionar la fecha pasada en el campo de entrada.</td>
     </tr>
     <tr>
@@ -1391,7 +1418,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-evt-past-start.png" alt="config-evt-past-start"><br>
+        <img src="images/functional-tests/run/config-evt-past-start.png" alt="config-evt-past-start">
+        <br>
         Fecha de inicio en el pasado ingresada en el formulario de configuración.
       </td>
     </tr>
@@ -1422,7 +1450,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar el guardado mostrando error de validación.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema muestra alerta de error indicando fecha inválida.</td>
     </tr>
     <tr>
@@ -1430,7 +1458,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-evt-past-error.png" alt="config-evt-past-error"><br>
+        <img src="images/functional-tests/run/config-evt-past-error.png" alt="config-evt-past-error">
+        <br>
         Mensaje de error al intentar guardar un evento con fecha pasada.
       </td>
     </tr>
@@ -1461,7 +1490,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar por conflicto lógico de tiempos.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema muestra error de validación impidiendo el guardado.</td>
     </tr>
     <tr>
@@ -1469,7 +1498,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-evt-same-start-end.png" alt="config-evt-same-start-end"><br>
+        <img src="images/functional-tests/run/config-evt-same-start-end.png" alt="config-evt-same-start-end">
+        <br>
         Error mostrado cuando las fechas de inicio y fin coinciden exactamente.
       </td>
     </tr>
@@ -1500,7 +1530,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Guardar la configuración de disponibilidad de tickets.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema procesa y guarda la disponibilidad de la categoría.</td>
     </tr>
     <tr>
@@ -1508,7 +1538,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-evt-cat-avail-after-event.png" alt="config-evt-cat-avail-after-event"><br>
+        <img src="images/functional-tests/run/config-evt-cat-avail-after-event.png" alt="config-evt-cat-avail-after-event">
+        <br>
         Configuración guardada de tickets disponibles post-inicio del evento.
       </td>
     </tr>
@@ -1539,7 +1570,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar mostrando advertencia descriptiva al usuario.</td>
+      <td colspan="2"></td>
       <td colspan="3">El botón guardar se inhabilita silenciosamente sin indicar la causa.</td>
     </tr>
     <tr>
@@ -1547,7 +1578,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-evt-cat-end-after-event.png" alt="config-evt-cat-end-after-event"><br>
+        <img src="images/functional-tests/run/config-evt-cat-end-after-event.png" alt="config-evt-cat-end-after-event">
+        <br>
         Botón de guardado inactivo de forma silenciosa sin feedback de error.
       </td>
     </tr>
@@ -1578,7 +1610,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar la duplicidad del código de acceso.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema guarda el mismo código oculto en múltiples categorías.</td>
     </tr>
     <tr>
@@ -1586,7 +1618,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-evt-duplicate-hidden-code.png" alt="config-evt-duplicate-hidden-code"><br>
+        <img src="images/functional-tests/run/config-evt-duplicate-hidden-code.png" alt="config-evt-duplicate-hidden-code">
+        <br>
         Aceptación del mismo código de acceso duplicado en la configuración.
       </td>
     </tr>
@@ -1619,7 +1652,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Actualizar el precio y reflejar el cambio en la lista.</td>
+      <td colspan="2"></td>
       <td colspan="3">El precio se modifica y se confirma el cambio exitosamente.</td>
     </tr>
     <tr>
@@ -1627,9 +1660,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-ticket-edit-price.png" alt="config-ticket-edit-price">
-        <img src="images/functional-tests/run/config-ticket-edit-price-success.png" alt="config-ticket-edit-price-success"><br>
-        Edición de precio de categoría ingresada y guardada correctamente.
+        <img src="images/functional-tests/run/config-ticket-edit-price.png" alt="config-ticket-edit-price"><br>
+        <img src="images/functional-tests/run/config-ticket-edit-price-success.png" alt="config-ticket-edit-price-success">
       </td>
     </tr>
   </tbody>
@@ -1659,7 +1691,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar el precio negativo con validación.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema impide guardar y muestra error de formato numérico.</td>
     </tr>
     <tr>
@@ -1667,7 +1699,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-ticket-negative-price.png" alt="config-ticket-negative-price"><br>
+        <img src="images/functional-tests/run/config-ticket-negative-price.png" alt="config-ticket-negative-price">
+        <br>
         Error del sistema al intentar guardar un precio negativo.
       </td>
     </tr>
@@ -1698,7 +1731,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Crear y guardar la categoría como gratuita.</td>
+      <td colspan="2"></td>
       <td colspan="3">Se configura correctamente a precio 0.00 y se guarda.</td>
     </tr>
     <tr>
@@ -1706,9 +1739,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-ticket-free-select.png" alt="config-ticket-free-select">
-        <img src="images/functional-tests/run/config-ticket-free-success.png" alt="config-ticket-free-success"><br>
-        Selección y confirmación exitosa de categoría de tickets gratuitos.
+        <img src="images/functional-tests/run/config-ticket-free-select.png" alt="config-ticket-free-select"><br>
+        <img src="images/functional-tests/run/config-ticket-free-success.png" alt="config-ticket-free-success">
       </td>
     </tr>
   </tbody>
@@ -1738,7 +1770,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Guardar la categoría VIP y reflejar su precio elevado.</td>
+      <td colspan="2"></td>
       <td colspan="3">Categoría VIP creada correctamente en el panel.</td>
     </tr>
     <tr>
@@ -1746,7 +1778,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-ticket-vip-success.png" alt="config-ticket-vip-success"><br>
+        <img src="images/functional-tests/run/config-ticket-vip-success.png" alt="config-ticket-vip-success">
+        <br>
         Creación y visualización exitosa de la categoría VIP.
       </td>
     </tr>
@@ -1777,7 +1810,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Crear la categoría oculta y requerir código para su acceso.</td>
+      <td colspan="2"></td>
       <td colspan="3">Categoría configurada con el código de acceso correctamente.</td>
     </tr>
     <tr>
@@ -1785,7 +1818,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-ticket-hidden-access.png" alt="config-ticket-hidden-access"><br>
+        <img src="images/functional-tests/run/config-ticket-hidden-access.png" alt="config-ticket-hidden-access">
+        <br>
         Configuración del código de acceso para categoría oculta.
       </td>
     </tr>
@@ -1816,7 +1850,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Eliminar el registro completamente del sistema.</td>
+      <td colspan="2"></td>
       <td colspan="3">La categoría se remueve exitosamente de la lista.</td>
     </tr>
     <tr>
@@ -1824,7 +1858,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-ticket-hidden-delete-admin.png" alt="config-ticket-hidden-delete-admin"><br>
+        <img src="images/functional-tests/run/config-ticket-hidden-delete-admin.png" alt="config-ticket-hidden-delete-admin">
+        <br>
         Confirmación de eliminación de la categoría oculta en el panel.
       </td>
     </tr>
@@ -1857,7 +1892,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar guardado indicando exceso del límite del evento.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema muestra error e impide exceder el total configurado.</td>
     </tr>
     <tr>
@@ -1865,7 +1900,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-capacity-event-limit-error.png" alt="config-capacity-event-limit-error"><br>
+        <img src="images/functional-tests/run/config-capacity-event-limit-error.png" alt="config-capacity-event-limit-error">
+        <br>
         Validación del límite de capacidad del evento al configurar categorías.
       </td>
     </tr>
@@ -1896,7 +1932,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Rechazar guardado por entrada numérica inválida.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema bloquea la acción y señala el campo incorrecto.</td>
     </tr>
     <tr>
@@ -1904,7 +1940,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-capacity-invalid-tickets.png" alt="config-capacity-invalid-tickets"><br>
+        <img src="images/functional-tests/run/config-capacity-invalid-tickets.png" alt="config-capacity-invalid-tickets">
+        <br>
         Error mostrado ante cantidad de tickets inválida.
       </td>
     </tr>
@@ -1935,7 +1972,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Procesar la compra y dejar la capacidad en cero.</td>
+      <td colspan="2"></td>
       <td colspan="3">Compra exitosa y actualización inmediata de la disponibilidad.</td>
     </tr>
     <tr>
@@ -1943,7 +1980,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-capacity-buy-last.png" alt="config-capacity-buy-last"><br>
+        <img src="images/functional-tests/run/config-capacity-buy-last.png" alt="config-capacity-buy-last">
+        <br>
         Visualización de la compra exitosa del último ticket disponible.
       </td>
     </tr>
@@ -1974,7 +2012,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Permitir la compra si está dentro del límite (ej. máx 2).</td>
+      <td colspan="2"></td>
       <td colspan="3">Compra procesada exitosamente al respetar la cantidad permitida.</td>
     </tr>
     <tr>
@@ -1982,7 +2020,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-capacity-max-2-buy-1.png" alt="config-capacity-max-2-buy-1"><br>
+        <img src="images/functional-tests/run/config-capacity-max-2-buy-1.png" alt="config-capacity-max-2-buy-1">
+        <br>
         Compra exitosa de un ticket respetando la restricción de máximo dos.
       </td>
     </tr>
@@ -2013,7 +2052,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Deshabilitar la venta y mostrar la etiqueta "Sold out".</td>
+      <td colspan="2"></td>
       <td colspan="3">La interfaz pública muestra "Sold out" y bloquea la selección.</td>
     </tr>
     <tr>
@@ -2021,7 +2060,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-capacity-sold-out.png" alt="config-capacity-sold-out"><br>
+        <img src="images/functional-tests/run/config-capacity-sold-out.png" alt="config-capacity-sold-out">
+        <br>
         Categoría de tickets agotada en la vista pública de selección.
       </td>
     </tr>
@@ -2054,7 +2094,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Guardar y asociar el impuesto a la categoría de ticket.</td>
+      <td colspan="2"></td>
       <td colspan="3">El impuesto se configura y se aplica al precio correctamente.</td>
     </tr>
     <tr>
@@ -2062,7 +2102,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-tax-setup.png" alt="config-tax-setup"><br>
+        <img src="images/functional-tests/run/config-tax-setup.png" alt="config-tax-setup">
+        <br>
         Formulario de configuración de impuestos guardado correctamente.
       </td>
     </tr>
@@ -2093,7 +2134,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Actualizar y guardar el impuesto con tasa 0%.</td>
+      <td colspan="2"></td>
       <td colspan="3">Se guarda el cambio de tasa a 0% exitosamente en el panel.</td>
     </tr>
     <tr>
@@ -2101,7 +2142,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-tax-0-percent-update.png" alt="config-tax-0-percent-update"><br>
+        <img src="images/functional-tests/run/config-tax-0-percent-update.png" alt="config-tax-0-percent-update">
+        <br>
         Guardado de tasa de impuesto al 0% en la configuración.
       </td>
     </tr>
@@ -2132,7 +2174,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Configurar la categoría libre de cargos impositivos.</td>
+      <td colspan="2"></td>
       <td colspan="3">Se desvinculan los impuestos del precio de la categoría.</td>
     </tr>
     <tr>
@@ -2140,7 +2182,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-tax-free-update.png" alt="config-tax-free-update"><br>
+        <img src="images/functional-tests/run/config-tax-free-update.png" alt="config-tax-free-update">
+        <br>
         Actualización de categoría a exenta de impuestos.
       </td>
     </tr>
@@ -2173,7 +2216,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Cambiar el idioma principal de la configuración.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema actualiza el idioma de visualización correctamente.</td>
     </tr>
     <tr>
@@ -2181,7 +2224,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-loc-language-selector.png" alt="config-loc-language-selector"><br>
+        <img src="images/functional-tests/run/config-loc-language-selector.png" alt="config-loc-language-selector">
+        <br>
         Selector de idioma configurado en la administración de la organización.
       </td>
     </tr>
@@ -2212,7 +2256,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Guardar los campos de traducción correspondientes.</td>
+      <td colspan="2"></td>
       <td colspan="3">Traducciones guardadas y aplicadas a los campos del evento.</td>
     </tr>
     <tr>
@@ -2220,7 +2264,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-loc-translation-input.png" alt="config-loc-translation-input"><br>
+        <img src="images/functional-tests/run/config-loc-translation-input.png" alt="config-loc-translation-input">
+        <br>
         Campos de traducción completados y guardados para el evento.
       </td>
     </tr>
@@ -2251,7 +2296,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Prevenir la eliminación si solo queda el idioma base.</td>
+      <td colspan="2"></td>
       <td colspan="3">El sistema restringe la eliminación en el límite mínimo de idiomas.</td>
     </tr>
     <tr>
@@ -2259,7 +2304,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-loc-delete-language-boundary.png" alt="config-loc-delete-language-boundary"><br>
+        <img src="images/functional-tests/run/config-loc-delete-language-boundary.png" alt="config-loc-delete-language-boundary">
+        <br>
         Validación del límite mínimo de idiomas permitidos en el sistema.
       </td>
     </tr>
@@ -2290,7 +2336,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Mostrar alerta explicativa de discrepancia de zona horaria.</td>
+      <td colspan="2"></td>
       <td colspan="3">Se muestra un mensaje de advertencia sobre la zona horaria del evento.</td>
     </tr>
     <tr>
@@ -2298,7 +2344,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-loc-timezone-warning.png" alt="config-loc-timezone-warning"><br>
+        <img src="images/functional-tests/run/config-loc-timezone-warning.png" alt="config-loc-timezone-warning">
+        <br>
         Mensaje de advertencia por desfase de la zona horaria detectada.
       </td>
     </tr>
@@ -2329,7 +2376,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Actualizar la moneda del evento a EUR.</td>
+      <td colspan="2"></td>
       <td colspan="3">La moneda se actualiza a EUR y se muestra en la tienda pública.</td>
     </tr>
     <tr>
@@ -2337,7 +2384,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-loc-currency-eur.png" alt="config-loc-currency-eur"><br>
+        <img src="images/functional-tests/run/config-loc-currency-eur.png" alt="config-loc-currency-eur">
+        <br>
         Moneda configurada a Euros (EUR) en la administración.
       </td>
     </tr>
@@ -2368,7 +2416,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">Actualizar la moneda del evento a PEN.</td>
+      <td colspan="2"></td>
       <td colspan="3">La moneda se actualiza a PEN y se muestra en la tienda pública.</td>
     </tr>
     <tr>
@@ -2376,12 +2424,15 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/config-loc-currency-pen.png" alt="config-loc-currency-pen"><br>
+        <img src="images/functional-tests/run/config-loc-currency-pen.png" alt="config-loc-currency-pen">
+        <br>
         Moneda configurada a Soles Peruanos (PEN) en la administración.
       </td>
     </tr>
   </tbody>
 </table>
+
+### Creación de Usuarios
 
 **CPF-11-001**
 <table>
@@ -2407,7 +2458,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el registro e informa que el username ya existe.</td>
+      <td colspan="2">Error: Username ya registrado</td>
       <td colspan="3">Se mostró mensaje de username duplicado y no se creó el usuario.</td>
     </tr>
     <tr>
@@ -2415,7 +2466,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-duplicate-username.png" alt="duplicate-username"><br>
+        <img src="images/functional-tests/run/user-duplicate-username.png" alt="duplicate-username">
+        <br>
         Validación de unicidad del nombre de usuario.
       </td>
     </tr>
@@ -2446,7 +2498,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de formato de correo electrónico.</td>
+      <td colspan="2">Error: Formato de correo inválido</td>
       <td colspan="3">Se rechazó el correo "anarodriguez.com" por formato inválido.</td>
     </tr>
     <tr>
@@ -2454,7 +2506,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-invalid-email-format.png" alt="invalid-email"><br>
+        <img src="images/functional-tests/run/user-invalid-email-format.png" alt="invalid-email">
+        <br>
         Validación de formato de correo electrónico.
       </td>
     </tr>
@@ -2485,7 +2538,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de formato de correo electrónico.</td>
+      <td colspan="2">Error: Formato de correo inválido</td>
       <td colspan="3">Se rechazó el correo "ana@" por no contener un dominio válido.</td>
     </tr>
     <tr>
@@ -2493,7 +2546,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-invalid-email-domain.png" alt="invalid-email-domain"><br>
+        <img src="images/functional-tests/run/user-invalid-email-domain.png" alt="invalid-email-domain">
+        <br>
         Validación de dominio en direcciones de correo.
       </td>
     </tr>
@@ -2524,7 +2578,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el registro e informa que el correo ya está en uso.</td>
+      <td colspan="2">Error: Correo ya registrado</td>
       <td colspan="3">Se mostró mensaje de correo duplicado y no se creó el usuario.</td>
     </tr>
     <tr>
@@ -2532,7 +2586,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-duplicate-email.png" alt="duplicate-email"><br>
+        <img src="images/functional-tests/run/user-duplicate-email.png" alt="duplicate-email">
+        <br>
         Verificación de unicidad del correo electrónico.
       </td>
     </tr>
@@ -2563,7 +2618,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el valor e indica que el username es obligatorio o inválido.</td>
+      <td colspan="2">Error: Username obligatorio o inválido</td>
       <td colspan="3">Se rechazó el registro al detectar un username compuesto únicamente por espacios.</td>
     </tr>
     <tr>
@@ -2571,7 +2626,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-blank-username.png" alt="blank-username"><br>
+        <img src="images/functional-tests/run/user-blank-username.png" alt="blank-username">
+        <br>
         Validación de espacios en blanco en el nombre de usuario.
       </td>
     </tr>
@@ -2602,7 +2658,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El usuario se crea correctamente con un username de un carácter.</td>
+      <td colspan="2">Usuario creado exitosamente</td>
       <td colspan="3">Usuario creado exitosamente utilizando el username "aa".</td>
     </tr>
     <tr>
@@ -2610,7 +2666,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-min-username.png" alt="min-username"><br>
+        <img src="images/functional-tests/run/user-min-username.png" alt="min-username">
+        <br>
         Validación del límite inferior permitido para username.
       </td>
     </tr>
@@ -2641,7 +2698,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El usuario se crea correctamente con un username de 255 caracteres.</td>
+      <td colspan="2">Usuario creado exitosamente</td>
       <td colspan="3">Usuario creado exitosamente con un username en el límite superior permitido.</td>
     </tr>
     <tr>
@@ -2649,7 +2706,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-max-username-valid.png" alt="max-username-valid"><br>
+        <img src="images/functional-tests/run/user-max-username-valid.png" alt="max-username-valid">
+        <br>
         Validación del límite superior permitido para username.
       </td>
     </tr>
@@ -2680,7 +2738,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza usernames de 256 caracteres.</td>
+      <td colspan="2">Error: Username excede la longitud permitida</td>
       <td colspan="3">Se mostró mensaje indicando que el username excede la longitud permitida.</td>
     </tr>
     <tr>
@@ -2688,7 +2746,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-max-username-invalid.png" alt="max-username-invalid"><br>
+        <img src="images/functional-tests/run/user-max-username-invalid.png" alt="max-username-invalid">
+        <br>
         Validación de longitud máxima para username.
       </td>
     </tr>
@@ -2719,7 +2778,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el valor e indica que el nombre es obligatorio o inválido.</td>
+      <td colspan="2">Error: Nombre obligatorio o inválido</td>
       <td colspan="3">Se rechazó el registro al detectar un nombre compuesto únicamente por espacios.</td>
     </tr>
     <tr>
@@ -2727,7 +2786,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-blank-name.png" alt="blank-name"><br>
+        <img src="images/functional-tests/run/user-blank-name.png" alt="blank-name">
+        <br>
         Validación de espacios en blanco en el nombre del usuario.
       </td>
     </tr>
@@ -2758,7 +2818,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El usuario se crea correctamente con un nombre de un carácter.</td>
+      <td colspan="2">Usuario creado exitosamente</td>
       <td colspan="3">Usuario creado exitosamente utilizando el nombre "AA".</td>
     </tr>
     <tr>
@@ -2766,7 +2826,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-min-name.png" alt="min-name"><br>
+        <img src="images/functional-tests/run/user-min-name.png" alt="min-name">
+        <br>
         Validación del límite inferior permitido para el nombre.
       </td>
     </tr>
@@ -2797,7 +2858,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el valor e indica que el nombre no puede contener únicamente números.</td>
+      <td colspan="2">Error: Nombre no puede ser un número</td>
       <td colspan="3">Se mostraron las credenciales del usuario creado.</td>
     </tr>
     <tr>
@@ -2805,7 +2866,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-numeric-name.png" alt="numeric-name"><br>
+        <img src="images/functional-tests/run/user-numeric-name.png" alt="numeric-name">
+        <br>
         Validación de caracteres numéricos en el campo nombre.
       </td>
     </tr>
@@ -2836,7 +2898,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el valor e indica que el nombre contiene caracteres inválidos.</td>
+      <td colspan="2">Error: Nombre no puede ser un símbolo</td>
       <td colspan="3">Se mostraron las credenciales del usuario creado.</td>
     </tr>
     <tr>
@@ -2844,7 +2906,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-symbol-name.png" alt="symbol-name"><br>
+        <img src="images/functional-tests/run/user-symbol-name.png" alt="symbol-name">
+        <br>
         Validación de caracteres especiales en el campo nombre.
       </td>
     </tr>
@@ -2875,7 +2938,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El usuario se crea correctamente con un nombre de 255 caracteres.</td>
+      <td colspan="2">Usuario creado exitosamente</td>
       <td colspan="3">Usuario creado exitosamente utilizando un nombre en el límite superior permitido.</td>
     </tr>
     <tr>
@@ -2883,7 +2946,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-max-name-valid.png" alt="max-name-valid"><br>
+        <img src="images/functional-tests/run/user-max-name-valid.png" alt="max-name-valid">
+        <br>
         Validación del límite superior permitido para el nombre.
       </td>
     </tr>
@@ -2914,7 +2978,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza nombres de 256 caracteres.</td>
+      <td colspan="2">Error: Nombre excede la longitud permitida</td>
       <td colspan="3">Se mostró mensaje indicando que el nombre excede la longitud permitida.</td>
     </tr>
     <tr>
@@ -2922,7 +2986,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-max-name-invalid.png" alt="max-name-invalid"><br>
+        <img src="images/functional-tests/run/user-max-name-invalid.png" alt="max-name-invalid">
+        <br>
         Validación de longitud máxima para el nombre.
       </td>
     </tr>
@@ -2953,7 +3018,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el valor e indica que el apellido es obligatorio o inválido.</td>
+      <td colspan="2">Error: Apellido obligatorio o inválido</td>
       <td colspan="3">Se rechazó el registro al detectar un apellido compuesto únicamente por espacios.</td>
     </tr>
     <tr>
@@ -2961,7 +3026,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-blank-lastname.png" alt="blank-lastname"><br>
+        <img src="images/functional-tests/run/user-blank-lastname.png" alt="blank-lastname">
+        <br>
         Validación de espacios en blanco en el campo apellido.
       </td>
     </tr>
@@ -2992,7 +3058,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El usuario se crea correctamente con un apellido de un carácter.</td>
+      <td colspan="2">Usuario creado exitosamente</td>
       <td colspan="3">Usuario creado exitosamente utilizando el apellido "RR".</td>
     </tr>
     <tr>
@@ -3000,7 +3066,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-min-lastname.png" alt="min-lastname"><br>
+        <img src="images/functional-tests/run/user-min-lastname.png" alt="min-lastname">
+        <br>
         Validación del límite inferior permitido para el apellido.
       </td>
     </tr>
@@ -3031,17 +3098,18 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el valor e indica que el apellido no puede contener únicamente números.</td>
-      <td colspan="3">Se mostraron las credenciales del usuario creado.
-      </td>
+      <td colspan="2">Error: Apellido no puede ser un número</td>
+      <td colspan="3">Se mostraron las credenciales del usuario creado.</td>
     </tr>
     <tr>
       <th colspan="5">Evidencia</th>
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-numeric-lastname.png" alt="numeric-lastname"><br>
-        Validación de caracteres numéricos en el campo apellido.</td>
+        <img src="images/functional-tests/run/user-numeric-lastname.png" alt="numeric-lastname">
+        <br>
+        Validación de caracteres numéricos en el campo apellido.
+      </td>
     </tr>
   </tbody>
 </table>
@@ -3070,7 +3138,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza el valor e indica que el apellido contiene caracteres inválidos.</td>
+      <td colspan="2">Error: Apellido no puede ser un símbolo</td>
       <td colspan="3">Se mostraron las credenciales del usuario creado.</td>
     </tr>
     <tr>
@@ -3078,7 +3146,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-symbol-lastname.png" alt="symbol-lastname"><br>
+        <img src="images/functional-tests/run/user-symbol-lastname.png" alt="symbol-lastname">
+        <br>
         Validación de caracteres especiales en el campo apellido.
       </td>
     </tr>
@@ -3109,7 +3178,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El usuario se crea correctamente con un apellido de 255 caracteres.</td>
+      <td colspan="2">Usuario creado exitosamente</td>
       <td colspan="3">Usuario creado exitosamente utilizando un apellido en el límite superior permitido.</td>
     </tr>
     <tr>
@@ -3117,7 +3186,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-max-lastname-valid.png" alt="max-lastname-valid"><br>
+        <img src="images/functional-tests/run/user-max-lastname-valid.png" alt="max-lastname-valid">
+        <br>
         Validación del límite superior permitido para el apellido.
       </td>
     </tr>
@@ -3148,7 +3218,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema rechaza apellidos de 256 caracteres.</td>
+      <td colspan="2">Error: Apellido excede la longitud permitida</td>
       <td colspan="3">Se mostró mensaje indicando que el apellido excede la longitud permitida.</td>
     </tr>
     <tr>
@@ -3156,7 +3226,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-max-lastname-invalid.png" alt="max-lastname-invalid"><br>
+        <img src="images/functional-tests/run/user-max-lastname-invalid.png" alt="max-lastname-invalid">
+        <br>
         Validación de longitud máxima para el apellido.
       </td>
     </tr>
@@ -3187,7 +3258,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="2">El sistema muestra error de validación y no permite guardar</td>
       <td colspan="3">Se bloqueó la creación del usuario al no seleccionar una organización.</td>
     </tr>
     <tr>
@@ -3195,7 +3266,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-without-organization.png" alt="without-organization"><br>
+        <img src="images/functional-tests/run/user-without-organization.png" alt="without-organization">
+        <br>
         Validación de obligatoriedad del campo organización.
       </td>
     </tr>
@@ -3226,7 +3298,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="2">El sistema muestra error de validación y no permite guardar</td>
       <td colspan="3">Se bloqueó la creación del usuario al no seleccionar un rol.</td>
     </tr>
     <tr>
@@ -3234,7 +3306,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-without-role.png" alt="without-role"><br>
+        <img src="images/functional-tests/run/user-without-role.png" alt="without-role">
+        <br>
         Validación de obligatoriedad del campo rol.
       </td>
     </tr>
@@ -3265,7 +3338,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="2">El sistema muestra error de validación y no permite guardar</td>
       <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo username.</td>
     </tr>
     <tr>
@@ -3273,7 +3346,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-without-username.png" alt="without-username"><br>
+        <img src="images/functional-tests/run/user-without-username.png" alt="without-username">
+        <br>
         Validación de obligatoriedad del campo username.
       </td>
     </tr>
@@ -3304,7 +3378,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="2">El sistema muestra error de validación y no permite guardar</td>
       <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo nombre.</td>
     </tr>
     <tr>
@@ -3312,7 +3386,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-without-name.png" alt="without-name"><br>
+        <img src="images/functional-tests/run/user-without-name.png" alt="without-name">
+        <br>
         Validación de obligatoriedad del campo nombre.
       </td>
     </tr>
@@ -3343,7 +3418,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="2">El sistema muestra error de validación y no permite guardar</td>
       <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo apellido.</td>
     </tr>
     <tr>
@@ -3351,7 +3426,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-without-lastname.png" alt="without-lastname"><br>
+        <img src="images/functional-tests/run/user-without-lastname.png" alt="without-lastname">
+        <br>
         Validación de obligatoriedad del campo apellido.
       </td>
     </tr>
@@ -3382,7 +3458,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El sistema muestra un error de validación y no permite guardar el usuario.</td>
+      <td colspan="2">El sistema muestra error de validación y no permite guardar</td>
       <td colspan="3">Se bloqueó la creación del usuario al dejar vacío el campo correo electrónico.</td>
     </tr>
     <tr>
@@ -3390,7 +3466,8 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-without-email.png" alt="without-email"><br>
+        <img src="images/functional-tests/run/user-without-email.png" alt="without-email">
+        <br>
         Validación de obligatoriedad del campo correo electrónico.
       </td>
     </tr>
@@ -3421,7 +3498,7 @@ Este proceso es controlado mediante Github actions, que:
       <th colspan="3">Resultado obtenido</th>
     </tr>
     <tr>
-      <td colspan="2">El usuario se crea correctamente y queda registrado en la organización seleccionada.</td>
+      <td colspan="2">Usuario creado exitosamente</td>
       <td colspan="3">Usuario creado exitosamente con los datos proporcionados.</td>
     </tr>
     <tr>
@@ -3429,12 +3506,14 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="5">
-        <img src="images/functional-tests/run/user-created-successfully.png" alt="user-created"><br>
+        <img src="images/functional-tests/run/user-created-successfully.png" alt="user-created">
+        <br>
         Escenario exitoso de creación de usuario con todos los campos válidos.
       </td>
     </tr>
   </tbody>
 </table>
+
 
 ## 7. Limitaciones
 
