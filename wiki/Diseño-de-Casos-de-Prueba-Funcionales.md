@@ -282,6 +282,17 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 
 ---
 
+## 3. Generación de Acreditaciones (Badges)
+
+| ID                      | CPF-0007                                                                                                                                |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Funcionalidad**       | Emisión e impresión de credenciales físicas                                                                                             |
+| **Descripción**         | Determina si el sistema permite la descarga/impresión del badge o carnet del asistente en PDF según las reglas del evento y del ticket. |
+| **Requisito Asociado**  | RF-007 (Generación de Acreditaciones)                                                                                                   |
+| **Precondiciones**      | Diseño de badge cargado y asignado para el evento.                                                                                      |
+| **Técnicas de Pruebas** | Tablas de Decisión.                                                                                                                     |
+| **Prioridad**           | Media                                                                                                                                   |
+
 ## Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
