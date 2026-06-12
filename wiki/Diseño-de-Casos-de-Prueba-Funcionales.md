@@ -293,6 +293,22 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | **Técnicas de Pruebas** | Tablas de Decisión.                                                                                                                     |
 | **Prioridad**           | Media                                                                                                                                   |
 
+**Análisis de Técnicas**
+
+**Tabla de Decisión: Permitir descarga e impresión de Badge**
+
+| Condición                                    | C1     | C2     | C3     | C4     | C5     |
+| -------------------------------------------- | ------ | ------ | ------ | ------ | ------ |
+| ¿Categoría de ticket incluye badge?          | NO     | SI     | SI     | SI     | SI     |
+| ¿El ticket está confirmado y pagado?         | -      | NO     | SI     | SI     | SI     |
+| ¿Evento requiere check-in previo para badge? | -      | -      | NO     | SI     | SI     |
+| ¿Asistente ya realizó el check-in físico?    | -      | -      | -      | NO     | SI     |
+| **Permitir Descarga de PDF**                 | **NO** | **NO** | **SI** | **NO** | **SI** |
+
+
+
+
+
 ## Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
