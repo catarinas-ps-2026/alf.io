@@ -273,12 +273,12 @@ stateDiagram-v2
 | ID | CPF-0006 |
 | :--- | :--- |
 | **Funcionalidad** | Procesamiento de pago por transferencia bancaria |
-| **Descripción** | Valida el flujo completo de pago OFFLINE: selección del método, aceptación de términos, confirmación, y visualización de instrucciones de pago con fecha de expiración. |
+| **Descripción** | Valida el flujo completo de pago OFFLINE desde la confirmación hasta la gestión de su ciclo de vida: instrucciones de pago, fecha de expiración, bloqueo temporal de cupo y liberación automática al expirar. |
 | **Requisito Asociado** | RF-006 (Pago OFFLINE) |
 | **Precondiciones** | Reserva creada con tickets seleccionados y datos del comprador completados. Método de pago OFFLINE disponible en la configuración del evento. |
 | **Datos de Entrada** | Método de pago seleccionado (Transferencia bancaria), aceptación de términos y condiciones. |
-| **Pasos de Ejecución** | 1. Seleccionar "Transferencia bancaria". 2. Aceptar términos y condiciones. 3. Hacer clic en "Confirmar". 4. Verificar página de instrucciones de pago. |
-| **Técnicas de Pruebas** | Partición de Equivalencia, Tabla de Decisión, Transición de Estados. |
+| **Pasos de Ejecución** | 1. Seleccionar "Transferencia bancaria". 2. Aceptar términos y condiciones. 3. Hacer clic en "Confirmar". 4. Verificar página de instrucciones de pago. 5. Verificar bloqueo de cupo. 6. Verificar expiración y liberación de cupo. |
+| **Técnicas de Pruebas** | Tabla de Decisión, Transición de Estados. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
@@ -288,7 +288,7 @@ stateDiagram-v2
 **Tabla de Decisión**
 | Cod. | Método | Términos aceptados | Acción Sistema |
 | :--- | :--- | :--- | :--- |
-| FN6-TD-001 | OFFLINE | Sí | Redirige a página "waiting-payment" con instrucciones de pago y fecha de expiración |
+| FN6-TD-001 | OFFLINE | Sí | Redirige a página "waiting-payment" con instrucciones de pago, fecha de expiración y concepto de pago (ID) |
 
 **Transición de Estados**
 
@@ -297,15 +297,19 @@ stateDiagram-v2
     [*] --> ReservaCreada: Datos completados
     ReservaCreada --> PENDING: Confirmar pago OFFLINE
     PENDING --> COMPLETED: Admin confirma pago
-    PENDING --> CANCELLED: Admin elimina reserva
-    PENDING --> EXPIRED: Tiempo límite alcanzado
+    PENDING --> CANCELLED: Admin elimina reserva o tiempo límite alcanzado
+    state "Cupo bloqueado" as PENDING
+    state "Cupo liberado" as CANCELLED
 ```
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
 | CPF-06-001 | Método: OFFLINE, Términos: Aceptados | Redirige a "waiting-payment", muestra instrucciones de transferencia, fecha de expiración, ID de reserva | f+ |
-| CPF-06-002 | Verificar página waiting-payment | Muestra: monto a transferir, cuenta bancaria, concepto de pago (ID), fecha límite | f+ |
+| CPF-06-002 | Verificar página waiting-payment | Muestra: monto a transferir, concepto de pago (ID), fecha límite de pago, instrucciones para envío de comprobante | f+ |
+| CPF-06-003 | Verificar expiración de reserva OFFLINE | La reserva muestra fecha de expiración visible y el sistema tiene mecanismo para cancelar reservas expiradas | f+ |
+| CPF-06-004 | Verificar liberación de cupo tras expiración | Al expirar la reserva, el cupo vuelve a estar disponible en el inventario del evento | f+ |
+| CPF-06-005 | Crear reserva OFFLINE y verificar inventario | El contador de tickets disponibles disminuye inmediatamente tras crear la reserva | f+ |
 
 #### Procesamiento de Pago ON_SITE (Efectivo)
 | ID | CPF-0007 |
@@ -385,7 +389,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
 | **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 | **RF-005:** Selección de método de pago | CPF-0005 (001-006) |
-| **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-002) |
+| **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-005) |
 | **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-001) |
 | **RF-008:** Confirmación manual de pagos | CPF-0008 (001-002) |
 
