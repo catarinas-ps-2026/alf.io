@@ -271,7 +271,16 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | ¿El ticket ya figura como ingresado?  | -                      | -                    | SI                       | NO                |
 | **Resultado de Escaneo**              | **Rojo (Inexistente)** | **Rojo (Cancelado)** | **Amarillo (Duplicado)** | **Verde (Éxito)** |
 
+**Catálogo de Pruebas**
 
+| #CP        | Escenario                                 | Resultado Esperado                                                                        | Obs |
+| ---------- | ----------------------------------------- | ----------------------------------------------------------------------------------------- | --- |
+| CPF-06-001 | Escaneo de código QR inválido/inexistente | Pantalla roja indicando: "Ticket no encontrado"                                           | f-  |
+| CPF-06-002 | Escaneo de ticket cancelado previamente   | Pantalla roja indicando: "Acceso denegado - Ticket Cancelado"                             | f-  |
+| CPF-06-003 | Escaneo de ticket ya ingresado            | Pantalla amarilla indicando: "Alerta - Ticket duplicado" (con fecha/hora del 1er ingreso) | f-  |
+| CPF-06-004 | Escaneo de ticket válido por primera vez  | Pantalla verde indicando: "Acceso Permitido" y registra el ingreso                        | f+  |
+
+---
 
 ## Matriz de Trazabilidad
 
