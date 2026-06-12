@@ -344,12 +344,22 @@ stateDiagram-v2
 | **Precondiciones** | Reserva creada con tickets seleccionados y datos del comprador completados. Método de pago ON_SITE disponible en la configuración del evento. |
 | **Datos de Entrada** | Método de pago seleccionado (Pago en efectivo), aceptación de términos y condiciones. |
 | **Pasos de Ejecución** | 1. Seleccionar "Pago en efectivo al llegar". 2. Aceptar términos y condiciones. 3. Hacer clic en "Confirmar". 4. Verificar página de éxito. 5. Verificar ticket (Ver y Descargar). 6. Verificar ausencia de expiración. |
-| **Técnicas de Pruebas** | Tabla de Decisión, Transición de Estados. |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Tabla de Decisión, Transición de Estados. |
 | **Prioridad** | Alta |
 
 **Análisis de Técnicas**
 
 > **Nota:** La validación de aceptación de términos y condiciones (botón deshabilitado cuando no se aceptan) ya se encuentra cubierta por CPF-0005 (Selección de Método de Pago, caso CPF-05-004), por lo que no se duplica en esta sección.
+
+**Partición de Equivalencia**
+
+Acciones disponibles sobre el ticket tras pago ON_SITE:
+| Cod. | Acción | Clase |
+| :--- | :--- | :--- |
+| FN7-PE-001 | Ver | Clase válida: visualiza la página del ticket con su información |
+| FN7-PE-002 | Descargar | Clase válida: descarga el PDF del ticket |
+| FN7-PE-003 | Email | Clase válida: reenvía el ticket por correo |
+| FN7-PE-004 | Actualizar | Clase válida: actualiza los datos del ticket |
 
 **Tabla de Decisión: Diferencias entre ON_SITE y OFFLINE**
 | Cod. | Característica | ON_SITE | OFFLINE |
@@ -359,6 +369,11 @@ stateDiagram-v2
 | FN7-TD-003 | Ticket disponible | Inmediatamente | Tras confirmación del admin |
 
 **Transición de Estados**
+
+| Cod. | Estado Origen | Estado Destino | Acción / Verificación |
+| :--- | :--- | :--- | :--- |
+| FN7-TS-001 | ReservaCreada | COMPLETED | Confirmar pago ON_SITE, ticket se genera inmediatamente |
+| FN7-TS-002 | COMPLETED | TicketDisponible | Ticket muestra info completa: Titular, Tipo, Ref, Mensaje |
 
 ```mermaid
 stateDiagram-v2
@@ -374,7 +389,14 @@ stateDiagram-v2
 | CPF-07-002 | Ver ticket tras pago ON_SITE | Muestra: Titular, Tipo, Número de referencia, Info. del pedido, mensaje "Esta entrada no ha sido pagada, por lo que debe pagar la cantidad requerida al llegar" | f+ |
 | CPF-07-003 | Descargar ticket PDF | El PDF se descarga correctamente con la información del ticket | f+ |
 | CPF-07-004 | Verificar que ON_SITE no muestra fecha de expiración | La página de éxito NO muestra "Pago requerido no más tarde de" | f+ |
-| CPF-07-005 | Verificar persistencia de reserva ON_SITE | La reserva ON_SITE permanece activa hasta la fecha del evento, sin expirar como las OFFLINE | f+ |
+| CPF-07-005 | Verificar que ticket ON_SITE está disponible inmediatamente | El ticket está disponible desde el momento de la confirmación, sin necesidad de aprobación administrativa | f+ |
+
+> **Notas de trazabilidad:**
+> - CPF-07-001 deriva de FN7-TD-001 (Tabla de Decisión: ON_SITE → success) y FN7-TS-001 (transición).
+> - CPF-07-002 deriva de FN7-TS-002 (propiedad del estado TicketDisponible).
+> - CPF-07-003 deriva de FN7-PE-002 (Partición de Equivalencia: acción Descargar).
+> - CPF-07-004 deriva de FN7-TD-002 (Tabla de Decisión: fecha expiración = No aplica).
+> - CPF-07-005 deriva de FN7-TD-003 (Tabla de Decisión: ticket disponible = Inmediatamente).
 
 #### Gestión de Pagos Pendientes (Administrador)
 | ID | CPF-0008 |
