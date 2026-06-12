@@ -1571,6 +1571,164 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+**CPF-07-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-002</td>
+      <td>Verificar que al hacer clic en "Ver" del ticket, se muestre la página con la información completa del ticket.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Muestra: Titular, Tipo, Número de referencia, Info. del pedido, mensaje de pago pendiente.</td>
+      <td colspan="3">La página del ticket muestra correctamente: Titular (Maria Garcia), Tipo (Vip), Número de referencia, Info. del pedido (C7CBA2F0 por Maria Garcia), y el mensaje "Esta entrada no ha sido pagada, por lo que debe pagar la cantidad requerida al llegar."</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-ticket-options.png" alt="onsite-success-ticket-options"><br>
+        Opciones del ticket disponibles en la página de éxito: Ver, Descargar, Email, Actualizar.<br><br>
+        <img src="images/functional-tests/run/onsite-ticket-view.png" alt="onsite-ticket-view"><br>
+        Página del ticket con la información completa: Titular, Tipo, Número de referencia, Info. del pedido, y mensaje de pago pendiente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-003</td>
+      <td>Verificar que al hacer clic en "Descargar", se descargue el PDF del ticket correctamente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El PDF se descarga correctamente con la información del ticket.</td>
+      <td colspan="3">Al hacer clic en "Descargar PDF", se inicia la descarga del archivo PDF con la información del ticket del asistente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-ticket-options.png" alt="onsite-success-ticket-options"><br>
+        Botón de descarga visible en la página de éxito del ticket.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-004</td>
+      <td>Verificar que la página de éxito de pago ON_SITE NO muestre fecha de expiración de pago.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La página de éxito NO muestra "Pago requerido no más tarde de".</td>
+      <td colspan="3">La página de éxito muestra el mensaje "¡Bien! Su reserva ha sido completada" sin fecha de expiración de pago, confirmando que ON_SITE no tiene este mecanismo.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-success-confirmation.png" alt="onsite-success-confirmation"><br>
+        La página de éxito NO muestra fecha de expiración de pago, a diferencia de la página waiting-payment del flujo OFFLINE.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-07-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-07-005</td>
+      <td>Verificar que la reserva ON_SITE permanece activa hasta la fecha del evento, sin expirar como las OFFLINE.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La reserva ON_SITE permanece activa hasta la fecha del evento.</td>
+      <td colspan="3">En el panel de administración, las reservas ON_SITE aparecen en estado "Completed" sin fecha de expiración de pago, y el ticket está disponible inmediatamente para el comprador.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/onsite-admin-reservation-list.png" alt="onsite-admin-reservation-list"><br>
+        En el panel de administración, la reserva ON_SITE aparece como "Completed" sin fecha de expiración de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 #### Confirmación Manual de Pagos (Administrador)
 
 **CPF-08-001**
