@@ -397,7 +397,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | :--- | :--- |
 | **Funcionalidad** | Proceso de auto-check-in por parte del usuario asistente |
 | **Descripción** | Valida si un usuario asistente puede realizar el check-in digital de su ticket de manera autónoma desde la interfaz web. |
-| **Requisito Asociado** | RF-005 (Auto-Check-in) |
+| **Requisito Asociado** | RF-009 (Auto-Check-in) |
 | **Precondiciones** | El usuario posee un enlace válido a la página de su ticket personal. |
 | **Datos de Entrada** |  |
 | **Pasos de Ejecución** | |
@@ -432,7 +432,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | :--- | :--- |
 | **Funcionalidad** | Validación y control de acceso mediante códigos QR |
 | **Descripción** | Define el comportamiento e indicativo visual del lector de entrada según el estado y validez del QR escaneado. |
-| **Requisito Asociado** | RF-006 (Control de Acceso) |
+| **Requisito Asociado** | RF-010 (Control de Acceso) |
 | **Precondiciones** | Dispositivo móvil de puerta logueado en la aplicación de check-in del evento. |
 | **Datos de Entrada** |  |
 | **Pasos de Ejecución** | |
@@ -465,7 +465,7 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | :--- | :--- |
 | **Funcionalidad** | Emisión e impresión de credenciales físicas |
 | **Descripción** | Determina si el sistema permite la descarga/impresión del badge o carnet del asistente en PDF según las reglas del evento y del ticket. |
-| **Requisito Asociado** | RF-007 (Generación de Acreditaciones) |
+| **Requisito Asociado** | RF-011 (Generación de Acreditaciones) |
 | **Precondiciones** | Diseño de badge cargado y asignado para el evento. |
 | **Datos de Entrada** |  |
 | **Pasos de Ejecución** | |
@@ -703,12 +703,12 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-14-005 | Cambiar la moneda por defecto del evento a Euros (EUR) | Actualizar la moneda a EUR y reflejarla en la tienda pública. | f+ |
 | CPF-14-006 | Cambiar la moneda por defecto del evento a Soles (PEN) | Actualizar la moneda a PEN y reflejarla en la tienda pública. | f+ |
 
-# Creación de Usuarios
-| ID | CPF-011 |
+### Creación de Usuarios
+| ID | CPF-0015 |
 | :--- | :--- |
 | **Funcionalidad** | Creación de usuarios |
 | **Descripción** | Permite a un administrador registrar nuevos usuarios asignándoles una organización y un rol dentro del sistema. |
-| **Requisito Asociado** | RF-005 (Creación de Usuarios) |
+| **Requisito Asociado** | RF-012 (Creación de Usuarios) |
 | **Precondiciones** | El usuario debe estar autenticado con permisos de administrador. |
 | **Datos de Entrada** | Organización, rol, nombre de usuario, nombre, apellido y correo electrónico. |
 | **Pasos de Ejecución** | 1. Acceder al módulo de usuarios. 2. Seleccionar "add new". 3. Completar los campos obligatorios. 4. Presionar "Save". |
@@ -1029,21 +1029,21 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-001:** Gestión de información del asistente (Edición de Ticket) | CPF-0001 (001-011) |
 | **RF-002:** Búsqueda administrativa de reservas | CPF-0002 (001-003) |
 | **RF-003:** Gestión de estados y flujos de pago | CPF-0003 (001-006) |
-| **RF-0004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
+| **RF-004:** Emisión y visualización de entradas (PDF) | CPF-0004 (001-006) |
 | **RF-005:** Selección de Método de Pago | CPF-0005 (001-006) |
 | **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-005) |
 | **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-005) |
 | **RF-008:** Gestión de Pagos Pendientes | CPF-0008 (001-004) |
-| **RF-005:** Creación de Usuarios | CPF-0015 (001-027) |
+| **RF-012:** Creación de Usuarios | CPF-0015 (001-027) |
 | **RF-CONF-01:** Configuración de la Organización | CPF-0009 (001-006) |
 | **RF-CONF-02:** Configuración del Evento | CPF-0010 (001-007) |
 | **RF-CONF-03:** Configuración de Categorías de Tickets | CPF-0011 (001-010) |
 | **RF-CONF-04:** Gestión de Capacidad | CPF-0012 (001-005) |
 | **RF-CONF-05:** Configuración de Impuestos | CPF-0013 (001-003) |
 | **RF-CONF-06:** Configuración de Localización y Moneda | CPF-0014 (001-006) |
-| **RF-005:** Auto-Check-in | CPF-0016 (001-005) |
-| **RF-006:** Control de Acceso | CPF-0017 (001-004) |
-| **RF-007:** Generación de Acreditaciones | CPF-0018 (001-005) |
+| **RF-009:** Auto-Check-in | CPF-0016 (001-005) |
+| **RF-010:** Control de Acceso | CPF-0017 (001-004) |
+| **RF-011:** Generación de Acreditaciones | CPF-0018 (001-005) |
 | **RF-RES-01:** Selección de Entradas (Tickets) | CPF-RES-01 (001-005) |
 | **RF-RES-02:** Formulario de Asistente - Validación de Campos | CPF-RES-02 (001-010) |
 | **RF-RES-03:** Tiempo de Expiración de Reserva (Countdown) | CPF-RES-03 (001-006) |
