@@ -1,15 +1,21 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
+import type { PurchaseContext } from '../../model/purchase-context';
+import type { ReservationInfo, CustomOfflinePayment } from '../../model/event';
+
+vi.mock('../../shared/util', () => ({
+    pollReservationStatus: vi.fn(),
+}));
+
 import { CustomOfflinePaymentComponent } from './custom-offline-payment.component';
 import { ReservationService } from '../../shared/reservation.service';
 import { PurchaseContextService } from '../../shared/purchase-context.service';
 import { I18nService } from '../../shared/i18n.service';
 import { AnalyticsService } from '../../shared/analytics.service';
-import type { PurchaseContext } from '../../model/purchase-context';
-import type { ReservationInfo, CustomOfflinePayment } from '../../model/event';
+import { pollReservationStatus } from '../../shared/util';
 
 describe('CustomOfflinePaymentComponent', () => {
     let component: CustomOfflinePaymentComponent;
@@ -135,6 +141,7 @@ describe('CustomOfflinePaymentComponent', () => {
     };
 
     beforeEach(async () => {
+        vi.clearAllMocks();
         TestBed.configureTestingModule({
             declarations: [CustomOfflinePaymentComponent],
             imports: [TranslateModule.forRoot()],
@@ -151,6 +158,10 @@ describe('CustomOfflinePaymentComponent', () => {
 
         fixture = TestBed.createComponent(CustomOfflinePaymentComponent);
         component = fixture.componentInstance;
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it('should create', () => {
@@ -189,21 +200,78 @@ describe('CustomOfflinePaymentComponent', () => {
             await new Promise(resolve => setTimeout(resolve, 100));
             expect(component.reservationFinalized).toBe(true);
         });
+
+        it('should set reservationFinalized to false and poll when status is OFFLINE_FINALIZING', async () => {
+            const finalizingReservation = { ...mockReservationInfo, status: 'OFFLINE_FINALIZING' };
+            mockReservationService.getReservationInfo.mockReturnValueOnce(of(finalizingReservation));
+
+            component.ngOnInit();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expect(component.reservationFinalized).toBe(false);
+            expect(pollReservationStatus).toHaveBeenCalledWith(
+                'res-123',
+                mockReservationService,
+                expect.any(Function),
+            );
+        });
+
+        it('should call callback and set reservationFinalized to true when poll returns COMPLETE', async () => {
+            const finalizingReservation = { ...mockReservationInfo, status: 'OFFLINE_FINALIZING' };
+            const completedReservation = { ...mockReservationInfo, status: 'COMPLETE' };
+            mockReservationService.getReservationInfo.mockReturnValueOnce(of(finalizingReservation));
+
+            let capturedCallback: ((res: ReservationInfo) => void) | null = null;
+            (pollReservationStatus as ReturnType<typeof vi.fn>).mockImplementation((_, __, callback) => {
+                capturedCallback = callback;
+            });
+
+            component.ngOnInit();
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            expect(component.reservationFinalized).toBe(false);
+
+            if (capturedCallback) {
+                capturedCallback(completedReservation);
+            }
+
+            expect(component.reservationFinalized).toBe(true);
+            expect(component.reservationInfo.status).toBe('COMPLETE');
+        });
     });
 
     describe('invoiceAvailable', () => {
-        it('should return true when all conditions are met', async () => {
-            component.ngOnInit();
-
-            await new Promise(resolve => setTimeout(resolve, 100));
+        it('should return true when all conditions are met', () => {
+            component.reservationFinalized = true;
+            component.purchaseContext = mockPurchaseContext;
+            component.reservationInfo = mockReservationInfo;
             expect(component.invoiceAvailable).toBe(true);
         });
 
-        it('should return false when reservationFinalized is false', async () => {
-            component.ngOnInit();
-
-            await new Promise(resolve => setTimeout(resolve, 100));
+        it('should return false when reservationFinalized is false', () => {
             component.reservationFinalized = false;
+            component.purchaseContext = mockPurchaseContext;
+            component.reservationInfo = mockReservationInfo;
+            expect(component.invoiceAvailable).toBe(false);
+        });
+
+        it('should return false when userCanDownloadReceiptOrInvoice is false', () => {
+            component.reservationFinalized = true;
+            component.purchaseContext = {
+                ...mockPurchaseContext,
+                invoicingConfiguration: {
+                    ...mockPurchaseContext.invoicingConfiguration,
+                    userCanDownloadReceiptOrInvoice: false,
+                },
+            } as PurchaseContext;
+            component.reservationInfo = mockReservationInfo;
+            expect(component.invoiceAvailable).toBe(false);
+        });
+
+        it('should return false when invoiceNumber is null', () => {
+            component.reservationFinalized = true;
+            component.purchaseContext = mockPurchaseContext;
+            component.reservationInfo = { ...mockReservationInfo, invoiceNumber: null };
             expect(component.invoiceAvailable).toBe(false);
         });
     });
