@@ -1301,7 +1301,7 @@ Este proceso es controlado mediante Github actions, que:
     </tr>
     <tr>
       <td colspan="2">Pantalla en color rojo indicando error de ticket no encontrado/inexistente.</td>
-      <td colspan="3">Interfaz en rojo mostrando mensaje "Ticket no encontrado".</td>
+      <td colspan="3">No redirige al flujo del evento".</td>
     </tr>
     <tr>
       <th colspan="5">Evidencia</th>
@@ -1309,7 +1309,7 @@ Este proceso es controlado mediante Github actions, que:
     <tr>
       <td colspan="5">
         <img src="images/functional-tests/run/qr-scan-invalid.png" alt="qr-scan-invalid"><br>
-        Lector muestra error en rojo al escanear un código de barras ajeno al sistema.
+        No se muestra la interfaz de check-in.
       </td>
     </tr>
   </tbody>
