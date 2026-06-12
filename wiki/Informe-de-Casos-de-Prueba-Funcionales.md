@@ -4914,6 +4914,1420 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+### Selección de Entradas (Tickets)
+
+**CPF-RES-01-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-01-001</td>
+      <td>Verificar que no se permita avanzar con 0 entradas seleccionadas.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: seleccione al menos una entrada, no avanza</td>
+      <td colspan="3">El sistema muestra el mensaje de error y no permite avanzar.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/11.png" alt="select-0-entries">
+        <br>
+        Se muestra el mensaje de error al intentar continuar con 0 entradas.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-01-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-01-002</td>
+      <td>Verificar selección de entradas con dropdown (rango 0-5).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Dropdown muestra valores 0-5</td>
+      <td colspan="3">El dropdown muestra valores predefinidos 0-5, no acepta valores negativos o superiores.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/21.png" alt="select-dropdown-0-5">
+        <br>
+        Dropdown con rango 0-5 para primera categoría de entradas.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-01-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-01-003</td>
+      <td>Verificar selección de entradas con dropdown (rango 0-10).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Dropdown muestra valores 0-10</td>
+      <td colspan="3">El dropdown muestra valores predefinidos 0-10, no acepta valores negativos o superiores.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/22.png" alt="select-dropdown-0-10">
+        <br>
+        Dropdown con rango 0-10 para segunda categoría de entradas.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-01-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-01-004</td>
+      <td>Verificar mensaje de error cuando no hay suficientes entradas disponibles.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: no hay suficientes entradas, bloquea selección</td>
+      <td colspan="3">El sistema muestra mensaje de error y bloquea la selección.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/12.png" alt="not-enough-tickets">
+        <br>
+        Mensaje de error cuando no hay suficientes entradas disponibles.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-01-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-01-005</td>
+      <td>Verificar mensaje cuando todas las entradas están agotadas (sold out).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Mensaje: entradas agotadas (sold out)</td>
+      <td colspan="3">El sistema muestra que todas las entradas están agotadas.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/13.png" alt="sold-out">
+        <br>
+        Mensaje de entradas agotadas (sold out).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Formulario de Asistente - Validación de Campos
+
+**CPF-RES-02-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-001</td>
+      <td>Verificar que los campos obligatorios muestren error al estar vacíos.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: "Nombre obligatorio"</td>
+      <td colspan="3">El sistema muestra los mensajes de error y no permite continuar.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/31.png" alt="fields-empty-error">
+        <br>
+        Se muestran errores al presionar continuar con campos vacíos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-002</td>
+      <td>Verificar llenado correcto de datos de asistente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Formulario válido, permite continuar</td>
+      <td colspan="3">El sistema permite continuar cuando los campos obligatorios están llenos.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/32.png" alt="fields-filled">
+        <br>
+        Formulario completado con datos válidos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-003</td>
+      <td>Verificar validación de formato de email.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Aceptar formato válido</td>
+      <td colspan="3">El sistema valida correctamente el formato del correo electrónico.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/33.png" alt="email-validation">
+        <br>
+        Validación de email permite formatos válidos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-004</td>
+      <td>Verificar que se puedan usar diferentes nombres para asistente y comprador.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Nombres diferentes aceptados</td>
+      <td colspan="3">El sistema acepta que los datos del comprador sean distintos a los del asistente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/34.png" alt="different-names">
+        <br>
+        Se permite registrar diferentes nombres para comprador y asistente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-005</td>
+      <td>Verificar campos obligatorios para múltiples entradas.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Formularios para ambos asistentes visibles</td>
+      <td colspan="3">El sistema solicita los datos de todos los asistentes cuando se compran múltiples entradas.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/35.png" alt="multiple-attendees">
+        <br>
+        Campos obligatorios para cada asistente adicional.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-006</td>
+      <td>Verificar opción de ocultar campos de asistentes adicionales.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Campos de asistentes ocultos, permite continuar</td>
+      <td colspan="3">Al marcar el checkbox, se ocultan los campos de asistentes y se permite continuar.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/37.png" alt="hide-attendees-checkbox">
+        <br>
+        Checkbox para ocultar campos de asistentes adicionales.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-007**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-007</td>
+      <td>Verificar límite de 255 caracteres en campos de texto.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error de validación</td>
+      <td colspan="3">Se muestra error de validación al ingresar 256 caracteres.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/38.png" alt="255-chars-error">
+        <br>
+        Error de validación al usar 256 caracteres.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-008**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-008</td>
+      <td>Verificar que 100 caracteres sean aceptados.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Aceptar y guardar</td>
+      <td colspan="3">Los 100 caracteres son aceptados y guardados correctamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/39.png" alt="100-chars-ok">
+        <br>
+        100 caracteres aceptados y visibles en la confirmación.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-009**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-009</td>
+      <td>Verificar que 255 caracteres sean aceptados (límite válido).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Aceptar y guardar</td>
+      <td colspan="3">Los 255 caracteres son aceptados y guardados correctamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/39.png" alt="255-chars-ok">
+        <br>
+        255 caracteres aceptados como longitud máxima válida.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-02-010**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-02-010</td>
+      <td>Verificar campos personalizados en el formulario de asistente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Campos personalizados visibles en formulario</td>
+      <td colspan="3">Los campos personalizados aparecen condicionalmente según la configuración regional.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/39.png" alt="custom-fields">
+        <br>
+        Campos personalizados visibles en el formulario (ej: configuración regional como Perú).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Tiempo de Expiración de Reserva (Countdown)
+
+**CPF-RES-03-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-03-001</td>
+      <td>Verificar color azul del contador con tiempo > 5 minutos.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Contador azul</td>
+      <td colspan="3">El contador muestra color azul cuando el tiempo restante es mayor a 5 minutos.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/41.png" alt="countdown-24min">
+        <br>
+        Contador azul con tiempo inicial de 24 minutos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-03-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-03-002</td>
+      <td>Verificar color azul del contador a los 15 minutos.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Contador azul</td>
+      <td colspan="3">El contador continúa mostrando color azul.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/42.png" alt="countdown-15min">
+        <br>
+        Contador azul a los 15 minutos restantes.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-03-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-03-003</td>
+      <td>Verificar color azul del contador cerca de los 10 minutos.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Contador azul</td>
+      <td colspan="3">El contador continúa mostrando color azul.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/43.png" alt="countdown-10min">
+        <br>
+        Contador azul a los 10 minutos con 52 segundos restantes.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-03-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-03-004</td>
+      <td>Verificar cambio a color amarillo cuando el tiempo es <= 5 minutos.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Contador amarillo</td>
+      <td colspan="3">El contador cambia al estilo de alerta amarilla.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/44.png" alt="countdown-yellow">
+        <br>
+        Contador cambia a amarillo cuando quedan menos de 5 minutos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-03-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-03-005</td>
+      <td>Verificar cambio a color rojo cuando el tiempo es <= 1 minuto.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Contador rojo</td>
+      <td colspan="3">El contador cambia al estilo de alerta roja.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/45.png" alt="countdown-red">
+        <br>
+        Contador cambia a rojo cuando queda menos de 1 minuto.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-03-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-03-006</td>
+      <td>Verificar modal de expiración cuando el tiempo llega a 0.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Modal "La sesión ha expirado" con opción volver al inicio</td>
+      <td colspan="3">El sistema muestra el modal de expiración de sesión.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/46.png" alt="session-expired">
+        <br>
+        Modal de sesión expirada con opción de volver al inicio.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Aceptación de Términos y Condiciones
+
+**CPF-RES-04-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-04-001</td>
+      <td>Verificar que el botón de pago esté deshabilitado sin aceptar términos.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón deshabilitado</td>
+      <td colspan="3">El sistema no permite continuar sin aceptar los términos y condiciones.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/51.png" alt="button-disabled">
+        <br>
+        Botón de pago deshabilitado sin aceptación de términos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-04-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-04-002</td>
+      <td>Verificar que el botón permanezca deshabilitado con solo 1 checkbox marcado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón deshabilitado</td>
+      <td colspan="3">El botón permanece deshabilitado con solo un término aceptado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/51.png" alt="button-disabled-1-check">
+        <br>
+        Botón de pago sigue deshabilitado con 1 de 3 términos aceptados.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-04-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-04-003</td>
+      <td>Verificar que el botón permanezca deshabilitado con 2 checkboxes marcados.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón deshabilitado</td>
+      <td colspan="3">El botón permanece deshabilitado con dos términos aceptados.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/51.png" alt="button-disabled-2-check">
+        <br>
+        Botón de pago sigue deshabilitado con 2 de 3 términos aceptados.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-04-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-04-004</td>
+      <td>Verificar que al marcar checkbox se habilite el botón de pago.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón habilitado</td>
+      <td colspan="3">Al hacer click en el checkbox, el botón se activa.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/52.png" alt="button-enabled">
+        <br>
+        Botón de pago habilitado tras aceptar términos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-04-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-04-005</td>
+      <td>Verificar error al no aceptar términos en evento gratuito.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: aceptar términos requerido</td>
+      <td colspan="3">El sistema muestra mensaje de error aunque sea un evento gratuito.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/53.png" alt="free-event-terms-error">
+        <br>
+        Error al intentar continuar sin aceptar términos en evento gratuito.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Reserva Completada - Confirmación y Descarga
+
+**CPF-RES-05-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-05-001</td>
+      <td>Verificar barra de carga durante procesamiento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Barra de carga visible</td>
+      <td colspan="3">Se muestra una barra de carga durante el procesamiento (rápida para pocas entradas).</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/61.png" alt="loading-bar">
+        <br>
+        Barra de carga visible durante el procesamiento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-05-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-05-002</td>
+      <td>Verificar página de confirmación de reserva completada.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Página "La riserva è stata completata" con datos</td>
+      <td colspan="3">La página muestra "La riserva è stata completata" con los datos del comprador.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/71.png" alt="reservation-complete">
+        <br>
+        Confirmación de reserva completada exitosamente.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-05-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-05-003</td>
+      <td>Verificar descarga de PDF de entradas.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Botón de descarga PDF visible</td>
+      <td colspan="3">El sistema genera y permite descargar el PDF con los códigos QR.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/73.png" alt="download-pdf-button">
+        <br>
+        Botón para descargar PDF de entradas.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-05-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-05-004</td>
+      <td>Verificar contenido del PDF generado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Contiene códigos QR y datos completos</td>
+      <td colspan="3">El PDF generado incluye la información completa de las entradas.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/74.png" alt="pdf-content">
+        <br>
+        Contenido del PDF con códigos QR y datos de entrada.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-05-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-05-005</td>
+      <td>Verificar envío de email de confirmación.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Email enviado con confirmación</td>
+      <td colspan="3">El sistema muestra mensaje de "Email enviado" tras reenviar.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/75.png" alt="email-sent">
+        <br>
+        Mensaje de confirmación de email enviado.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-05-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-05-006</td>
+      <td>Verificar visualización de entradas en el email.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Contiene entradas con códigos QR</td>
+      <td colspan="3">El email recibido muestra las entradas registradas.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/76.png" alt="email-entries">
+        <br>
+        Entradas visibles en el email de confirmación.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Panel de Administración - Gestión de Reservas
+
+**CPF-RES-06-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-06-001</td>
+      <td>Verificar visualización de reserva en el panel de administración.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Reserva visible en el listado</td>
+      <td colspan="3">La reserva completada se muestra correctamente en el manager.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/77.png" alt="manager-reservation">
+        <br>
+        Reserva visible en el panel de administración.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-RES-06-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-06-002</td>
+      <td>Verificar opción de imprimir recibo desde el manager.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Boleta disponible para impresión</td>
+      <td colspan="3">Se puede acceder a la impresión del recibo desde el panel.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/78.png" alt="print-receipt">
+        <br>
+        Opción de imprimir boleta visible en el manager.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Campos Personalizados
+
+**CPF-RES-07-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-RES-07-001</td>
+      <td>Verificar campos personalizados en el formulario de asistente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Campos personalizados visibles en formulario</td>
+      <td colspan="3">Los campos personalizados aparecen condicionalmente según la configuración regional.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/reservation/39.png" alt="custom-fields">
+        <br>
+        Campos personalizados visibles en el formulario (ej: configuración regional como Perú).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 
 ## 7. Limitaciones
 

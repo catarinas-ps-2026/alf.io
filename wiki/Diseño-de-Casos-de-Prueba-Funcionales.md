@@ -784,6 +784,242 @@ Se aplicarán las siguientes técnicas de diseño de pruebas basadas en los requ
 | CPF-15-026 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "" (vacío) | El sistema muestra error de validación y no permite guardar | f- |
 | CPF-15-027 | Organización: "AA", Rol: "Organization owner", Username: "cvaldez", Nombre: "Carlos", Apellido: "Valdez", E-mail: "carlos.valdez@techevents.com" | Usuario creado exitosamente | f+ |
 
+### Selección de Entradas (Tickets)
+| ID | CPF-RES-01 |
+| :--- | :--- |
+| **Funcionalidad** | Selección y validación de cantidad de entradas |
+| **Descripción** | Valida que el sistema controle la selección de entradas: cantidad mínima (no avanzar con 0), rangos de dropdown predefinidos (0-5 y 0-10), y disponibilidad de inventario (insuficiente y sold out). |
+| **Requisito Asociado** | RF-RES-01 (Selección de Entradas) |
+| **Precondiciones** | Evento público visible con al menos una categoría de tickets configurada. |
+| **Datos de Entrada** | Cantidad de entradas (dropdown o campo numérico), categoría de ticket. |
+| **Pasos de Ejecución** | 1. Acceder a la página pública del evento. 2. Intentar continuar con 0 entradas. 3. Seleccionar cantidades en dropdown (rangos 0-5 y 0-10). 4. Intentar seleccionar más entradas de las disponibles. |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Análisis de Valores Límite |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Cantidad de tickets | 1-5 o 1-10 (según categoría) | 0 entradas |
+| Rango 0-5 | 0, 1, 2, 3, 4, 5 | Negativos, >5 |
+| Rango 0-10 | 0, 1, 2, ..., 10 | Negativos, >10 |
+| Disponibilidad | Tickets > 0 | Tickets = 0 (sold out) |
+| Solicitud | Cantidad <= disponibles | Cantidad > disponibles |
+
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Cantidad | 1 | 0 | 5 o 10 | 6 o 11 |
+
+
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-01-001 | Cantidad: 0 | Error: seleccione al menos una entrada, no avanza | f- |
+| CPF-RES-01-002 | Dropdown rango 0-5, seleccionar 0 | Dropdown muestra valores 0-5 | f+ |
+| CPF-RES-01-003 | Dropdown rango 0-10, seleccionar 0 | Dropdown muestra valores 0-10 | f+ |
+| CPF-RES-01-004 | Cantidad solicitada > disponibles | Error: no hay suficientes entradas, bloquea selección | f- |
+| CPF-RES-01-005 | Disponibilidad = 0 | Mensaje: entradas agotadas (sold out) | f- |
+
+### Formulario de Asistente - Validación de Campos
+| ID | CPF-RES-02 |
+| :--- | :--- |
+| **Funcionalidad** | Validación de formulario de datos del asistente |
+| **Descripción** | Valida la correcta validación de campos obligatorios (nombre, apellido, email), formato de email, manejo de múltiples asistentes, límite de 255 caracteres, y campos personalizados. |
+| **Requisito Asociado** | RF-RES-02 (Formulario de Asistente) |
+| **Precondiciones** | Flujo de reserva en paso de formulario de asistente. |
+| **Datos de Entrada** | Nombre, Apellido, Email, cantidad de asistentes. |
+| **Pasos de Ejecución** | 1. Avanzar al paso de formulario de asistente. 2. Intentar continuar con campos vacíos. 3. Llenar datos válidos y continuar. 4. Probar formatos de email inválidos. 5. Seleccionar múltiples entradas y verificar campos adicionales. 6. Probar límite de 255 caracteres. |
+| **Técnicas de Pruebas** | Partición de Equivalencia, Análisis de Valores Límite |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Nombre | Texto no vacío (1-255 chars) | Vacío |
+| Apellido | Texto no vacío (1-255 chars) | Vacío |
+| Email | Formato válido (user@domain.com) | Vacío, sin @, sin dominio |
+| Campos de texto | 1-255 caracteres | 0 chars, >255 chars |
+
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Nombre/Apellido | 1 carácter | 0 caracteres (vacío) | 255 caracteres | 256 caracteres |
+
+
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-02-001 | Nombre vacío | Error: "Nombre obligatorio" | f- |
+| CPF-RES-02-002 | Nombre: "Juan", Apellido: "Pérez", Email: "juan@test.com" | Formulario válido, permite continuar | f+ |
+| CPF-RES-02-003 | Email: "test@test.com" | Aceptar formato válido | f+ |
+| CPF-RES-02-004 | Comprador: "Juan Pérez", Asistente: "María López" | Nombres diferentes aceptados | f+ |
+| CPF-RES-02-005 | 2 entradas seleccionadas | Formularios para ambos asistentes visibles | f+ |
+| CPF-RES-02-006 | Checkbox "ocultar asistentes" marcado | Campos de asistentes ocultos, permite continuar | f+ |
+| CPF-RES-02-007 | Campo con 256 caracteres | Error de validación | f- |
+| CPF-RES-02-008 | Campo con 100 caracteres | Aceptar y guardar | f+ |
+| CPF-RES-02-009 | Campo con 255 caracteres | Aceptar y guardar | f+ |
+| CPF-RES-02-010 | Evento con campos regionales | Campos personalizados visibles en formulario | f+ |
+
+### Tiempo de Expiración de Reserva (Countdown)
+| ID | CPF-RES-03 |
+| :--- | :--- |
+| **Funcionalidad** | Visualización del contador de expiración y transición de estados por tiempo |
+| **Descripción** | Valida que el contador de expiración de reserva cambie de color según el tiempo restante: azul (>5min), amarillo (<=5min), rojo (<=1min), y muestre modal de expiración al llegar a 0. |
+| **Requisito Asociado** | RF-RES-03 (Tiempo de Expiración) |
+| **Precondiciones** | Reserva activa con countdown en curso. |
+| **Datos de Entrada** | Tiempo restante del countdown. |
+| **Pasos de Ejecución** | 1. Iniciar una reserva y observar el countdown. 2. Verificar color azul con tiempo > 5 minutos. 3. Esperar a que el tiempo llegue a <= 5 minutos y verificar cambio a amarillo. 4. Esperar a que el tiempo llegue a <= 1 minuto y verificar cambio a rojo. 5. Esperar a que el tiempo llegue a 0 y verificar modal de expiración. |
+| **Técnicas de Pruebas** | Transición de Estados, Análisis de Valores Límite |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Tiempo | 0:01 | 0:00 (expirado) | 24:00 | - |
+
+
+**Transición de Estados**
+
+![Diagrama de Transición de Estados - Countdown](images/functional-tests/design/countdown-expiration.png)
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-03-001 | Tiempo: 24:00 | Contador azul | f+ |
+| CPF-RES-03-002 | Tiempo: 15:00 | Contador azul | f+ |
+| CPF-RES-03-003 | Tiempo: 10:52 | Contador azul | f+ |
+| CPF-RES-03-004 | Tiempo: <=5:00 | Contador amarillo | f+ |
+| CPF-RES-03-005 | Tiempo: <=1:00 | Contador rojo | f+ |
+| CPF-RES-03-006 | Tiempo: 0:00 | Modal "La sesión ha expirado" con opción volver al inicio | f- |
+
+### Aceptación de Términos y Condiciones
+| ID | CPF-RES-04 |
+| :--- | :--- |
+| **Funcionalidad** | Control de habilitación del botón de pago según aceptación de términos |
+| **Descripción** | Valida que el botón de pago solo se habilita al aceptar los 3 checkboxes (Condiciones di vendita, Privacy Policy, Informativa sulla privacy), y que eventos gratuitos también requieren aceptación. |
+| **Requisito Asociado** | RF-RES-04 (Términos y Condiciones) |
+| **Precondiciones** | Flujo de reserva en paso de términos y condiciones. |
+| **Datos de Entrada** | Estado de los 3 checkboxes de aceptación. |
+| **Pasos de Ejecución** | 1. Avanzar al paso de términos y condiciones. 2. Verificar que el botón está deshabilitado sin aceptar. 3. Marcar los 3 checkboxes y verificar que se habilita. |
+| **Técnicas de Pruebas** | Tabla de Decisión, Partición de Equivalencia |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Aceptación de términos | 3 checkboxes marcados | 0, 1 o 2 checkboxes marcados |
+
+
+**Tabla de Decisión: Habilitación del botón de pago**
+| Condición | C1 | C2 | C3 | C4 |
+| :--- | :--- | :--- | :--- | :--- |
+| ¿Condizioni di vendita aceptada? | NO | SI | SI | SI |
+| ¿Privacy Policy aceptada? | - | NO | SI | SI |
+| ¿Informativa sulla privacy aceptada? | - | - | NO | SI |
+| **Habilitar botón** | **NO** | **NO** | **NO** | **SI** |
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-04-001 | 0 checkboxes marcados | Botón deshabilitado | f- |
+| CPF-RES-04-002 | 1 checkbox marcado | Botón deshabilitado | f- |
+| CPF-RES-04-003 | 2 checkboxes marcados | Botón deshabilitado | f- |
+| CPF-RES-04-004 | 3 checkboxes marcados | Botón habilitado | f+ |
+| CPF-RES-04-005 | 0 checkboxes, evento gratuito | Error: aceptar términos requerido | f- |
+
+### Reserva Completada - Confirmación y Descarga
+| ID | CPF-RES-05 |
+| :--- | :--- |
+| **Funcionalidad** | Confirmación de reserva completada, descarga de PDF y envío de email |
+| **Descripción** | Valida el flujo post-pago: barra de carga durante procesamiento, página de confirmación, descarga de PDF con códigos QR, y envío de email de confirmación. |
+| **Requisito Asociado** | RF-RES-05 (Confirmación y Descarga) |
+| **Precondiciones** | Pago procesado exitosamente. |
+| **Datos de Entrada** |  |
+| **Pasos de Ejecución** | 1. Completar el pago de la reserva. 2. Verificar barra de carga durante procesamiento. 3. Verificar página de confirmación. 4. Descargar PDF y verificar contenido. 5. Verificar envío de email de confirmación. |
+| **Técnicas de Pruebas** | Transición de Estados, Partición de Equivalencia |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+
+
+
+**Transición de Estados**
+
+```
+S0 (Procesando) --[pago OK]--> S1 (Confirmación)
+S0 (Procesando) --[error]--> S2 (Error)
+```
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-05-001 | Pago procesándose | Barra de carga visible | f+ |
+| CPF-RES-05-002 | Pago completado | Página "La riserva è stata completata" con datos | f+ |
+| CPF-RES-05-003 | Reserva completada | Botón de descarga PDF visible | f+ |
+| CPF-RES-05-004 | PDF descargado | Contiene códigos QR y datos completos | f+ |
+| CPF-RES-05-005 | Reserva completada | Email enviado con confirmación | f+ |
+| CPF-RES-05-006 | Email recibido | Contiene entradas con códigos QR | f+ |
+
+### Panel de Administración - Gestión de Reservas
+| ID | CPF-RES-06 |
+| :--- | :--- |
+| **Funcionalidad** | Visualización e impresión de reservas en el panel de administración |
+| **Descripción** | Valida que las reservas completadas aparezcan en el panel de administración del evento y que se puedan imprimir recibos/boletas. |
+| **Requisito Asociado** | RF-RES-06 (Gestión de Reservas en Admin) |
+| **Precondiciones** | Reserva completada, acceso admin al evento. |
+| **Datos de Entrada** |  |
+| **Pasos de Ejecución** | 1. Acceder al panel de administración del evento. 2. Buscar la reserva en el listado. 3. Seleccionar opción de imprimir recibo. |
+| **Técnicas de Pruebas** | Partición de Equivalencia |
+| **Prioridad** | Media |
+
+**Análisis de Técnicas**
+
+
+
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-06-001 | Acceder al manager del evento | Reserva visible en el listado | f+ |
+| CPF-RES-06-002 | Seleccionar opción imprimir | Boleta disponible para impresión | f+ |
+
+### Campos Personalizados
+| ID | CPF-RES-07 |
+| :--- | :--- |
+| **Funcionalidad** | Campos personalizados en formulario de asistente |
+| **Descripción** | Valida que los campos adicionales configurados para un evento (ej: campos regionales como los de Perú) aparezcan condicionalmente en el formulario de asistente. |
+| **Requisito Asociado** | RF-RES-07 (Campos Personalizados) |
+| **Precondiciones** | Evento con campos personalizados configurados. |
+| **Datos de Entrada** |  |
+| **Pasos de Ejecución** | 1. Acceder al formulario de asistente de un evento con campos personalizados. 2. Verificar que los campos adicionales sean visibles. |
+| **Técnicas de Pruebas** | Partición de Equivalencia |
+| **Prioridad** | Media |
+
+**Análisis de Técnicas**
+
+
+
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-07-001 | Evento con campos regionales | Campos personalizados visibles en formulario | f+ |
+
 ## 8. Matriz de Trazabilidad
 
 En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
@@ -808,6 +1044,13 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-005:** Auto-Check-in | CPF-0016 (001-005) |
 | **RF-006:** Control de Acceso | CPF-0017 (001-004) |
 | **RF-007:** Generación de Acreditaciones | CPF-0018 (001-005) |
+| **RF-RES-01:** Selección de Entradas (Tickets) | CPF-RES-01 (001-005) |
+| **RF-RES-02:** Formulario de Asistente - Validación de Campos | CPF-RES-02 (001-010) |
+| **RF-RES-03:** Tiempo de Expiración de Reserva (Countdown) | CPF-RES-03 (001-006) |
+| **RF-RES-04:** Aceptación de Términos y Condiciones | CPF-RES-04 (001-005) |
+| **RF-RES-05:** Reserva Completada - Confirmación y Descarga | CPF-RES-05 (001-006) |
+| **RF-RES-06:** Panel de Administración - Gestión de Reservas | CPF-RES-06 (001-002) |
+| **RF-RES-07:** Campos Personalizados | CPF-RES-07 (001) |
 
 ## 9. Métodos y Herramientas
 
