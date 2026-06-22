@@ -18,52 +18,50 @@ package alfio.manager.system;
 
 import alfio.config.Initializer;
 import alfio.util.ClockProvider;
+import java.time.ZonedDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.ZonedDateTime;
-
 @Component
 @Profile(&quot;!&quot; + Initializer.PROFILE_DISABLE_JOBS)
 public class AdminJobManagerScheduler {
 
-<span class="nc" id="L33">    private static final Logger log = LoggerFactory.getLogger(AdminJobManagerScheduler.class);</span>
+<span class="nc" id="L32">    private static final Logger log = LoggerFactory.getLogger(AdminJobManagerScheduler.class);</span>
     private final AdminJobManager adminJobManager;
     private final ClockProvider clockProvider;
 
-    public AdminJobManagerScheduler(AdminJobManager adminJobManager,
-<span class="nc" id="L38">                                    ClockProvider clockProvider) {</span>
-<span class="nc" id="L39">        this.adminJobManager = adminJobManager;</span>
-<span class="nc" id="L40">        this.clockProvider = clockProvider;</span>
-<span class="nc" id="L41">    }</span>
+<span class="nc" id="L36">    public AdminJobManagerScheduler(AdminJobManager adminJobManager, ClockProvider clockProvider) {</span>
+<span class="nc" id="L37">        this.adminJobManager = adminJobManager;</span>
+<span class="nc" id="L38">        this.clockProvider = clockProvider;</span>
+<span class="nc" id="L39">    }</span>
 
     @Scheduled(fixedDelay = 1000L)
     void processPendingExtensionRetry() {
-<span class="nc" id="L45">        log.trace(&quot;Processing pending extensions retry&quot;);</span>
-<span class="nc" id="L46">        adminJobManager.processPendingExtensionRetry(ZonedDateTime.now(clockProvider.getClock()));</span>
-<span class="nc" id="L47">        log.trace(&quot;done processing pending extensions retry&quot;);</span>
-<span class="nc" id="L48">    }</span>
+<span class="nc" id="L43">        log.trace(&quot;Processing pending extensions retry&quot;);</span>
+<span class="nc" id="L44">        adminJobManager.processPendingExtensionRetry(ZonedDateTime.now(clockProvider.getClock()));</span>
+<span class="nc" id="L45">        log.trace(&quot;done processing pending extensions retry&quot;);</span>
+<span class="nc" id="L46">    }</span>
 
     @Scheduled(fixedDelay = 1000L)
     void processPendingReservationsRetry() {
-<span class="nc" id="L52">        log.trace(&quot;Processing pending reservations retry&quot;);</span>
-<span class="nc" id="L53">        adminJobManager.processPendingReservationsRetry(ZonedDateTime.now(clockProvider.getClock()));</span>
-<span class="nc" id="L54">        log.trace(&quot;done processing pending reservations retry&quot;);</span>
-<span class="nc" id="L55">    }</span>
+<span class="nc" id="L50">        log.trace(&quot;Processing pending reservations retry&quot;);</span>
+<span class="nc" id="L51">        adminJobManager.processPendingReservationsRetry(ZonedDateTime.now(clockProvider.getClock()));</span>
+<span class="nc" id="L52">        log.trace(&quot;done processing pending reservations retry&quot;);</span>
+<span class="nc" id="L53">    }</span>
 
     @Scheduled(fixedDelay = 60 * 1000)
     void processPendingRequests() {
-<span class="nc" id="L59">        log.trace(&quot;Processing pending requests&quot;);</span>
-<span class="nc" id="L60">        adminJobManager.processPendingRequests();</span>
-<span class="nc" id="L61">        log.trace(&quot;done processing pending requests&quot;);</span>
-<span class="nc" id="L62">    }</span>
+<span class="nc" id="L57">        log.trace(&quot;Processing pending requests&quot;);</span>
+<span class="nc" id="L58">        adminJobManager.processPendingRequests();</span>
+<span class="nc" id="L59">        log.trace(&quot;done processing pending requests&quot;);</span>
+<span class="nc" id="L60">    }</span>
 
     @Scheduled(cron = &quot;#{environment.acceptsProfiles('dev') ? '0 * * * * *' : '0 0 0 * * *'}&quot;)
     void cleanupExpiredRequests() {
-<span class="nc" id="L66">        adminJobManager.cleanupExpiredRequests();</span>
-<span class="nc" id="L67">    }</span>
+<span class="nc" id="L64">        adminJobManager.cleanupExpiredRequests();</span>
+<span class="nc" id="L65">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -32,60 +32,61 @@ public class TicketInfo {
     private final PriceContainer.VatStatus taxStatus;
 
     @JsonCreator
-    private TicketInfo(@JsonProperty(&quot;id&quot;) String id,
-                       @JsonProperty(&quot;firstName&quot;) String firstName,
-                       @JsonProperty(&quot;lastName&quot;) String lastName,
-                       @JsonProperty(&quot;type&quot;) String type,
-                       @JsonProperty(&quot;status&quot;) String status,
-                       @JsonProperty(&quot;finalPriceCts&quot;) Integer finalPriceCts,
-                       @JsonProperty(&quot;srcPriceCts&quot;) Integer srcPriceCts,
-                       @JsonProperty(&quot;taxCts&quot;) Integer taxCts,
-<span class="fc" id="L43">                       @JsonProperty(&quot;taxStatus&quot;) PriceContainer.VatStatus taxStatus) {</span>
-<span class="fc" id="L44">        this.id = id;</span>
-<span class="fc" id="L45">        this.firstName = firstName;</span>
-<span class="fc" id="L46">        this.lastName = lastName;</span>
-<span class="fc" id="L47">        this.type = type;</span>
-<span class="fc" id="L48">        this.status = status;</span>
-<span class="fc" id="L49">        this.finalPriceCts = finalPriceCts;</span>
-<span class="fc" id="L50">        this.srcPriceCts = srcPriceCts;</span>
-<span class="fc" id="L51">        this.taxCts = taxCts;</span>
-<span class="fc" id="L52">        this.taxStatus = taxStatus;</span>
-<span class="fc" id="L53">    }</span>
+    private TicketInfo(
+            @JsonProperty(&quot;id&quot;) String id,
+            @JsonProperty(&quot;firstName&quot;) String firstName,
+            @JsonProperty(&quot;lastName&quot;) String lastName,
+            @JsonProperty(&quot;type&quot;) String type,
+            @JsonProperty(&quot;status&quot;) String status,
+            @JsonProperty(&quot;finalPriceCts&quot;) Integer finalPriceCts,
+            @JsonProperty(&quot;srcPriceCts&quot;) Integer srcPriceCts,
+            @JsonProperty(&quot;taxCts&quot;) Integer taxCts,
+<span class="fc" id="L44">            @JsonProperty(&quot;taxStatus&quot;) PriceContainer.VatStatus taxStatus) {</span>
+<span class="fc" id="L45">        this.id = id;</span>
+<span class="fc" id="L46">        this.firstName = firstName;</span>
+<span class="fc" id="L47">        this.lastName = lastName;</span>
+<span class="fc" id="L48">        this.type = type;</span>
+<span class="fc" id="L49">        this.status = status;</span>
+<span class="fc" id="L50">        this.finalPriceCts = finalPriceCts;</span>
+<span class="fc" id="L51">        this.srcPriceCts = srcPriceCts;</span>
+<span class="fc" id="L52">        this.taxCts = taxCts;</span>
+<span class="fc" id="L53">        this.taxStatus = taxStatus;</span>
+<span class="fc" id="L54">    }</span>
 
     public String getId() {
-<span class="nc" id="L56">        return id;</span>
+<span class="nc" id="L57">        return id;</span>
     }
 
     public String getFirstName() {
-<span class="nc" id="L60">        return firstName;</span>
+<span class="nc" id="L61">        return firstName;</span>
     }
 
     public String getLastName() {
-<span class="nc" id="L64">        return lastName;</span>
+<span class="nc" id="L65">        return lastName;</span>
     }
 
     public String getType() {
-<span class="nc" id="L68">        return type;</span>
+<span class="nc" id="L69">        return type;</span>
     }
 
     public String getStatus() {
-<span class="nc" id="L72">        return status;</span>
+<span class="nc" id="L73">        return status;</span>
     }
 
     public Integer getFinalPriceCts() {
-<span class="nc" id="L76">        return finalPriceCts;</span>
+<span class="nc" id="L77">        return finalPriceCts;</span>
     }
 
     public Integer getSrcPriceCts() {
-<span class="nc" id="L80">        return srcPriceCts;</span>
+<span class="nc" id="L81">        return srcPriceCts;</span>
     }
 
     public Integer getTaxCts() {
-<span class="nc" id="L84">        return taxCts;</span>
+<span class="nc" id="L85">        return taxCts;</span>
     }
 
     public PriceContainer.VatStatus getTaxStatus() {
-<span class="nc" id="L88">        return taxStatus;</span>
+<span class="nc" id="L89">        return taxStatus;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

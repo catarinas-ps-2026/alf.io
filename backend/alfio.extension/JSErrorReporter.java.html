@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
  */
-
 package alfio.extension;
 
 import org.mozilla.javascript.ErrorReporter;
@@ -29,17 +28,18 @@ import org.slf4j.LoggerFactory;
  *
  * Implements ErrorReporter interface of Rhino and prints syntax errors in the JS script.
  */
-<span class="fc" id="L32">public class JSErrorReporter implements ErrorReporter {</span>
+<span class="fc" id="L31">public class JSErrorReporter implements ErrorReporter {</span>
 
-<span class="fc" id="L34">    private static final Logger log = LoggerFactory.getLogger(JSErrorReporter.class);</span>
+<span class="fc" id="L33">    private static final Logger log = LoggerFactory.getLogger(JSErrorReporter.class);</span>
 
     @Override
     public void warning(String message, String sourceName, int line, String lineSource, int lineOffset) {
-<span class="nc" id="L38">        log.warn(&quot;Warning : &quot; + message);</span>
-<span class="nc" id="L39">    }</span>
+<span class="nc" id="L37">        log.warn(&quot;Warning : &quot; + message);</span>
+<span class="nc" id="L38">    }</span>
 
     @Override
-    public EvaluatorException runtimeError(String message, String sourceName, int line, String lineSource, int lineOffset) {
+    public EvaluatorException runtimeError(
+            String message, String sourceName, int line, String lineSource, int lineOffset) {
 <span class="nc" id="L43">        return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);</span>
     }
 
@@ -47,6 +47,5 @@ import org.slf4j.LoggerFactory;
     public void error(String message, String sourceName, int line, String lineSource, int lineOffset) {
 <span class="nc" id="L48">        log.warn(&quot;Error : &quot; + message);</span>
 <span class="nc" id="L49">    }</span>
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

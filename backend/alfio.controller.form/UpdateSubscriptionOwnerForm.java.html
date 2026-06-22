@@ -16,43 +16,42 @@
  */
 package alfio.controller.form;
 
-import lombok.Getter;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.commons.lang3.StringUtils.trimToNull;
+import lombok.Getter;
 
 @Getter
-<span class="nc" id="L28">public class UpdateSubscriptionOwnerForm implements Serializable, AdditionalFieldsContainer {</span>
+<span class="nc" id="L27">public class UpdateSubscriptionOwnerForm implements Serializable, AdditionalFieldsContainer {</span>
     private String email;
     private String firstName;
     private String lastName;
     private Map&lt;String, List&lt;String&gt;&gt; additional;
 
     public void setEmail(String email) {
-<span class="nc" id="L35">        this.email = trimToNull(email);</span>
-<span class="nc" id="L36">    }</span>
+<span class="nc" id="L34">        this.email = trimToNull(email);</span>
+<span class="nc" id="L35">    }</span>
 
     public void setFirstName(String firstName) {
-<span class="nc" id="L39">        this.firstName = trimToNull(firstName);</span>
-<span class="nc" id="L40">    }</span>
+<span class="nc" id="L38">        this.firstName = trimToNull(firstName);</span>
+<span class="nc" id="L39">    }</span>
 
     public void setLastName(String lastName) {
-<span class="nc" id="L43">        this.lastName = trimToNull(lastName);</span>
-<span class="nc" id="L44">    }</span>
+<span class="nc" id="L42">        this.lastName = trimToNull(lastName);</span>
+<span class="nc" id="L43">    }</span>
 
     public Map&lt;String, List&lt;String&gt;&gt; getAdditional() {
-<span class="nc" id="L47">        return additional;</span>
+<span class="nc" id="L46">        return additional;</span>
     }
 
     public void setAdditional(Map&lt;String, List&lt;String&gt;&gt; additional) {
-<span class="nc" id="L51">        this.additional = additional;</span>
-<span class="nc" id="L52">    }</span>
+<span class="nc" id="L50">        this.additional = additional;</span>
+<span class="nc" id="L51">    }</span>
 
     public boolean validate() {
-<span class="nc bnc" id="L55" title="All 6 branches missed.">        return this.email != null &amp;&amp; this.firstName != null &amp;&amp; this.lastName != null;</span>
+<span class="nc bnc" id="L54" title="All 6 branches missed.">        return this.email != null &amp;&amp; this.firstName != null &amp;&amp; this.lastName != null;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -18,10 +18,9 @@ package alfio.model.support;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class CheckInOutputColorConfiguration {
@@ -29,8 +28,9 @@ public class CheckInOutputColorConfiguration {
     private final List&lt;ColorConfiguration&gt; configurations;
 
     @JsonCreator
-    public CheckInOutputColorConfiguration(@JsonProperty(&quot;defaultColorName&quot;) String defaultColorName,
-<span class="fc" id="L33">                                           @JsonProperty(&quot;configurations&quot;) List&lt;ColorConfiguration&gt; configurations) {</span>
+    public CheckInOutputColorConfiguration(
+            @JsonProperty(&quot;defaultColorName&quot;) String defaultColorName,
+<span class="fc" id="L33">            @JsonProperty(&quot;configurations&quot;) List&lt;ColorConfiguration&gt; configurations) {</span>
 <span class="fc" id="L34">        this.defaultColorName = defaultColorName;</span>
 <span class="fc" id="L35">        this.configurations = configurations;</span>
 <span class="fc" id="L36">    }</span>
@@ -40,12 +40,11 @@ public class CheckInOutputColorConfiguration {
         private final String colorName;
         private final List&lt;Integer&gt; categories;
 
-        public ColorConfiguration(@JsonProperty(&quot;colorName&quot;) String colorName,
-                                   @JsonProperty(&quot;categories&quot;) List&lt;Integer&gt; categories) {
+        public ColorConfiguration(
+                @JsonProperty(&quot;colorName&quot;) String colorName, @JsonProperty(&quot;categories&quot;) List&lt;Integer&gt; categories) {
             this.colorName = colorName;
             this.categories = Optional.ofNullable(categories).orElse(List.of());
         }
     }
 }
-
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

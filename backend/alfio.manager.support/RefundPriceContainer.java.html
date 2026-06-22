@@ -17,10 +17,8 @@
 package alfio.manager.support;
 
 import alfio.model.PriceContainer;
-
 import java.math.BigDecimal;
 import java.util.Optional;
-
 
 public class RefundPriceContainer implements PriceContainer {
 
@@ -29,43 +27,41 @@ public class RefundPriceContainer implements PriceContainer {
     private final BigDecimal vatPercentage;
     private final VatStatus vatStatus;
 
-    public RefundPriceContainer(int priceCts,
-                                String currencyCode,
-                                VatStatus reservationVatStatus,
-<span class="fc" id="L35">                                BigDecimal vatPercentage) {</span>
-<span class="fc" id="L36">        this.priceCts = priceCts;</span>
-<span class="fc" id="L37">        this.currencyCode = currencyCode;</span>
-<span class="fc" id="L38">        this.vatPercentage = vatPercentage;</span>
-<span class="fc" id="L39">        this.vatStatus = determineRefundVatStatus(reservationVatStatus);</span>
-<span class="fc" id="L40">    }</span>
+    public RefundPriceContainer(
+<span class="fc" id="L31">            int priceCts, String currencyCode, VatStatus reservationVatStatus, BigDecimal vatPercentage) {</span>
+<span class="fc" id="L32">        this.priceCts = priceCts;</span>
+<span class="fc" id="L33">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L34">        this.vatPercentage = vatPercentage;</span>
+<span class="fc" id="L35">        this.vatStatus = determineRefundVatStatus(reservationVatStatus);</span>
+<span class="fc" id="L36">    }</span>
 
     @Override
     public int getSrcPriceCts() {
-<span class="fc" id="L44">        return priceCts;</span>
+<span class="fc" id="L40">        return priceCts;</span>
     }
 
     @Override
     public String getCurrencyCode() {
-<span class="fc" id="L49">        return currencyCode;</span>
+<span class="fc" id="L45">        return currencyCode;</span>
     }
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="fc" id="L54">        return Optional.ofNullable(vatPercentage);</span>
+<span class="fc" id="L50">        return Optional.ofNullable(vatPercentage);</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="fc" id="L59">        return vatStatus;</span>
+<span class="fc" id="L55">        return vatStatus;</span>
     }
 
     private static VatStatus determineRefundVatStatus(VatStatus reservationVatStatus) {
-<span class="pc bpc" id="L63" title="4 of 5 branches missed.">        return switch (reservationVatStatus) {</span>
-<span class="nc" id="L64">            case NOT_INCLUDED_NOT_CHARGED, INCLUDED_NOT_CHARGED -&gt; VatStatus.NOT_INCLUDED_NOT_CHARGED;</span>
-<span class="nc" id="L65">            case NOT_INCLUDED_EXEMPT, INCLUDED_EXEMPT -&gt; VatStatus.NOT_INCLUDED_EXEMPT;</span>
-<span class="fc" id="L66">            case INCLUDED, NOT_INCLUDED -&gt; VatStatus.INCLUDED;</span>
-<span class="nc" id="L67">            case NONE -&gt; VatStatus.NONE;</span>
-<span class="nc" id="L68">            default -&gt; throw new IllegalStateException(&quot;Vat status &quot; + reservationVatStatus + &quot; not mapped&quot;);</span>
+<span class="pc bpc" id="L59" title="4 of 5 branches missed.">        return switch (reservationVatStatus) {</span>
+<span class="nc" id="L60">            case NOT_INCLUDED_NOT_CHARGED, INCLUDED_NOT_CHARGED -&gt; VatStatus.NOT_INCLUDED_NOT_CHARGED;</span>
+<span class="nc" id="L61">            case NOT_INCLUDED_EXEMPT, INCLUDED_EXEMPT -&gt; VatStatus.NOT_INCLUDED_EXEMPT;</span>
+<span class="fc" id="L62">            case INCLUDED, NOT_INCLUDED -&gt; VatStatus.INCLUDED;</span>
+<span class="nc" id="L63">            case NONE -&gt; VatStatus.NONE;</span>
+<span class="nc" id="L64">            default -&gt; throw new IllegalStateException(&quot;Vat status &quot; + reservationVatStatus + &quot; not mapped&quot;);</span>
         };
     }
 }

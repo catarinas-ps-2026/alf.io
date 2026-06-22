@@ -29,18 +29,19 @@ public class HoursRange {
 <span class="fc" id="L29">    }</span>
 
     public boolean includes(LocalTime localTime) {
-<span class="fc bfc" id="L32" title="All 4 branches covered.">        return Duration.between(localTime, start).isNegative() &amp;&amp; Duration.between(end, localTime).isNegative();</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        return Duration.between(localTime, start).isNegative()</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">                &amp;&amp; Duration.between(end, localTime).isNegative();</span>
     }
 
     public int getDistanceInHours(LocalTime localTime) {
-<span class="fc bfc" id="L36" title="All 2 branches covered.">        if(includes(localTime)) {</span>
-<span class="fc" id="L37">            return 0;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (includes(localTime)) {</span>
+<span class="fc" id="L38">            return 0;</span>
         }
-<span class="fc" id="L39">        Duration distanceFromStart = Duration.between(localTime, start);</span>
-<span class="fc bfc" id="L40" title="All 2 branches covered.">        if(distanceFromStart.isNegative()) {</span>
-<span class="fc" id="L41">            return 24 + (int) distanceFromStart.toHours();</span>
+<span class="fc" id="L40">        Duration distanceFromStart = Duration.between(localTime, start);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (distanceFromStart.isNegative()) {</span>
+<span class="fc" id="L42">            return 24 + (int) distanceFromStart.toHours();</span>
         }
-<span class="fc" id="L43">        return (int) distanceFromStart.toHours();</span>
+<span class="fc" id="L44">        return (int) distanceFromStart.toHours();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

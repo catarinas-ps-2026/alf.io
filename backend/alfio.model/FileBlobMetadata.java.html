@@ -19,12 +19,11 @@ package alfio.model;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-import org.apache.commons.lang3.ObjectUtils;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import org.apache.commons.lang3.ObjectUtils;
 
 @Getter
 public class FileBlobMetadata {
@@ -38,11 +37,12 @@ public class FileBlobMetadata {
     private final String contentType;
     private final Map&lt;String, String&gt; attributes;
 
-    public FileBlobMetadata(@Column(&quot;id&quot;) String id,
-                            @Column(&quot;name&quot;) String name,
-                            @Column(&quot;content_size&quot;) int contentSize,
-                            @Column(&quot;content_type&quot;) String contentType,
-<span class="fc" id="L45">                            @Column(&quot;attributes&quot;) String attributes) {</span>
+    public FileBlobMetadata(
+            @Column(&quot;id&quot;) String id,
+            @Column(&quot;name&quot;) String name,
+            @Column(&quot;content_size&quot;) int contentSize,
+            @Column(&quot;content_type&quot;) String contentType,
+<span class="fc" id="L45">            @Column(&quot;attributes&quot;) String attributes) {</span>
 <span class="fc" id="L46">        this.id = id;</span>
 <span class="fc" id="L47">        this.name = name;</span>
 <span class="fc" id="L48">        this.contentSize = contentSize;</span>
@@ -51,11 +51,7 @@ public class FileBlobMetadata {
 <span class="fc" id="L51">        this.attributes = ObjectUtils.firstNonNull(parsed, Collections.emptyMap());</span>
 <span class="fc" id="L52">    }</span>
 
-<span class="fc" id="L54">    private static final Set&lt;String&gt; VALID_TYPE = Set.of(</span>
-        &quot;image/jpeg&quot;,
-        &quot;image/png&quot;,
-        &quot;image/gif&quot;
-    );
+<span class="fc" id="L54">    private static final Set&lt;String&gt; VALID_TYPE = Set.of(&quot;image/jpeg&quot;, &quot;image/png&quot;, &quot;image/gif&quot;);</span>
     // consider adding image/webp , image/avif  ?
 
     public String getContentType() {
@@ -63,10 +59,10 @@ public class FileBlobMetadata {
         // - fonts
         // - css
         // - pdf files etc...
-<span class="pc bpc" id="L66" title="2 of 4 branches missed.">        if (contentType != null &amp;&amp; VALID_TYPE.contains(contentType)) {</span>
-<span class="nc" id="L67">            return contentType;</span>
+<span class="pc bpc" id="L62" title="2 of 4 branches missed.">        if (contentType != null &amp;&amp; VALID_TYPE.contains(contentType)) {</span>
+<span class="nc" id="L63">            return contentType;</span>
         } else {
-<span class="fc" id="L69">            return &quot;application/octet-stream&quot;;</span>
+<span class="fc" id="L65">            return &quot;application/octet-stream&quot;;</span>
         }
     }
 }

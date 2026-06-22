@@ -16,13 +16,13 @@
  */
 package alfio.manager.support.extension;
 
+import static alfio.manager.support.extension.ExtensionEvent.EVENT_METADATA_UPDATE;
+import static alfio.manager.support.extension.ExtensionEvent.ONLINE_CHECK_IN_REDIRECT;
+
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static alfio.manager.support.extension.ExtensionEvent.EVENT_METADATA_UPDATE;
-import static alfio.manager.support.extension.ExtensionEvent.ONLINE_CHECK_IN_REDIRECT;
 
 <span class="fc" id="L27">public enum ExtensionCapability {</span>
     // online event
@@ -32,29 +32,28 @@ import static alfio.manager.support.extension.ExtensionEvent.ONLINE_CHECK_IN_RED
 <span class="fc" id="L32">    CREATE_GUEST_LINK(EnumSet.of(EVENT_METADATA_UPDATE, ONLINE_CHECK_IN_REDIRECT)),</span>
 
     // link with external applications
-<span class="fc" id="L35">    LINK_EXTERNAL_APPLICATION(EnumSet.of(EVENT_METADATA_UPDATE))</span>
-    ;
+<span class="fc" id="L35">    LINK_EXTERNAL_APPLICATION(EnumSet.of(EVENT_METADATA_UPDATE));</span>
 
     private final Set&lt;ExtensionEvent&gt; compatibleEvents;
 
-<span class="fc" id="L40">    ExtensionCapability(Set&lt;ExtensionEvent&gt; compatibleEvents) {</span>
-<span class="fc" id="L41">        this.compatibleEvents = compatibleEvents;</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L39">    ExtensionCapability(Set&lt;ExtensionEvent&gt; compatibleEvents) {</span>
+<span class="fc" id="L40">        this.compatibleEvents = compatibleEvents;</span>
+<span class="fc" id="L41">    }</span>
 
     public Set&lt;ExtensionEvent&gt; getCompatibleEvents() {
-<span class="fc" id="L45">        return compatibleEvents;</span>
+<span class="fc" id="L44">        return compatibleEvents;</span>
     }
 
     public Collection&lt;String&gt; getCompatibleEventNames() {
-<span class="nc" id="L49">        return compatibleEvents.stream().map(ExtensionEvent::name).collect(Collectors.toList());</span>
+<span class="nc" id="L48">        return compatibleEvents.stream().map(ExtensionEvent::name).collect(Collectors.toList());</span>
     }
 
     public static Collection&lt;String&gt; toString(Set&lt;ExtensionCapability&gt; capabilities) {
-<span class="fc" id="L53">        return capabilities.stream().map(ExtensionCapability::name).collect(Collectors.toSet());</span>
+<span class="fc" id="L52">        return capabilities.stream().map(ExtensionCapability::name).collect(Collectors.toSet());</span>
     }
 
     public static Set&lt;ExtensionCapability&gt; fromString(Collection&lt;String&gt; capabilities) {
-<span class="nc" id="L57">        return capabilities.stream().map(ExtensionCapability::valueOf).collect(Collectors.toSet());</span>
+<span class="nc" id="L56">        return capabilities.stream().map(ExtensionCapability::valueOf).collect(Collectors.toSet());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

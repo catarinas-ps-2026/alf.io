@@ -20,7 +20,6 @@ import alfio.model.PriceContainer;
 import alfio.model.transaction.PaymentProxy;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 public class ReservationInfo {
@@ -42,22 +41,23 @@ public class ReservationInfo {
     private final List&lt;TicketInfo&gt; tickets;
 
     @JsonCreator
-    ReservationInfo(@JsonProperty(&quot;id&quot;) String id,
-                    @JsonProperty(&quot;invoiceNumber&quot;) String invoiceNumber,
-                    @JsonProperty(&quot;firstName&quot;) String firstName,
-                    @JsonProperty(&quot;lastName&quot;) String lastName,
-                    @JsonProperty(&quot;companyName&quot;) String companyName,
-                    @JsonProperty(&quot;taxId&quot;) String taxId,
-                    @JsonProperty(&quot;email&quot;) String email,
-                    @JsonProperty(&quot;paymentType&quot;) PaymentProxy paymentType,
-                    @JsonProperty(&quot;finalPriceCts&quot;) Integer finalPriceCts,
-                    @JsonProperty(&quot;srcPriceCts&quot;) Integer srcPriceCts,
-                    @JsonProperty(&quot;taxCts&quot;) Integer taxCts,
-                    @JsonProperty(&quot;taxStatus&quot;) PriceContainer.VatStatus taxStatus,
-                    @JsonProperty(&quot;taxCode&quot;) String taxCode,
-                    @JsonProperty(&quot;currency&quot;) String currency,
-                    @JsonProperty(&quot;confirmationTimestamp&quot;) String confirmationTimestamp,
-<span class="fc" id="L60">                    @JsonProperty(&quot;tickets&quot;) List&lt;TicketInfo&gt; tickets) {</span>
+    ReservationInfo(
+            @JsonProperty(&quot;id&quot;) String id,
+            @JsonProperty(&quot;invoiceNumber&quot;) String invoiceNumber,
+            @JsonProperty(&quot;firstName&quot;) String firstName,
+            @JsonProperty(&quot;lastName&quot;) String lastName,
+            @JsonProperty(&quot;companyName&quot;) String companyName,
+            @JsonProperty(&quot;taxId&quot;) String taxId,
+            @JsonProperty(&quot;email&quot;) String email,
+            @JsonProperty(&quot;paymentType&quot;) PaymentProxy paymentType,
+            @JsonProperty(&quot;finalPriceCts&quot;) Integer finalPriceCts,
+            @JsonProperty(&quot;srcPriceCts&quot;) Integer srcPriceCts,
+            @JsonProperty(&quot;taxCts&quot;) Integer taxCts,
+            @JsonProperty(&quot;taxStatus&quot;) PriceContainer.VatStatus taxStatus,
+            @JsonProperty(&quot;taxCode&quot;) String taxCode,
+            @JsonProperty(&quot;currency&quot;) String currency,
+            @JsonProperty(&quot;confirmationTimestamp&quot;) String confirmationTimestamp,
+<span class="fc" id="L60">            @JsonProperty(&quot;tickets&quot;) List&lt;TicketInfo&gt; tickets) {</span>
 <span class="fc" id="L61">        this.id = id;</span>
 <span class="fc" id="L62">        this.invoiceNumber = invoiceNumber;</span>
 <span class="fc" id="L63">        this.firstName = firstName;</span>

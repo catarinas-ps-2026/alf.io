@@ -16,23 +16,22 @@
  */
 package alfio.extension.support;
 
-import org.mozilla.javascript.*;
-
 import java.util.List;
 import java.util.Map;
+import org.mozilla.javascript.*;
 
 // source: https://codeutopia.net/blog/2009/01/02/sandboxing-rhino-in-java/
-<span class="fc" id="L25">public class SandboxWrapFactory extends WrapFactory {</span>
+<span class="fc" id="L24">public class SandboxWrapFactory extends WrapFactory {</span>
 
     @Override
     public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class&lt;?&gt; staticType) {
-<span class="fc bfc" id="L29" title="All 2 branches covered.">        if (List.class.isAssignableFrom(javaObject.getClass())) {</span>
-<span class="fc" id="L30">            return new SandboxNativeJavaList(scope, javaObject);</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (List.class.isAssignableFrom(javaObject.getClass())) {</span>
+<span class="fc" id="L29">            return new SandboxNativeJavaList(scope, javaObject);</span>
         }
-<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (Map.class.isAssignableFrom(javaObject.getClass())) {</span>
-<span class="fc" id="L33">            return new SandboxNativeJavaMap(scope, javaObject);</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (Map.class.isAssignableFrom(javaObject.getClass())) {</span>
+<span class="fc" id="L32">            return new SandboxNativeJavaMap(scope, javaObject);</span>
         }
-<span class="fc" id="L35">        return new SandboxNativeJavaObject(scope, javaObject, staticType);</span>
+<span class="fc" id="L34">        return new SandboxNativeJavaObject(scope, javaObject, staticType);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -21,73 +21,81 @@ import alfio.model.modification.SubscriptionDescriptorModification;
 import alfio.model.subscription.SubscriptionDescriptor;
 import alfio.model.system.command.CleanupReservations;
 import alfio.repository.SubscriptionRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 @Component
 @Transactional
 public class SubscriptionReservationManager {
 
-<span class="fc" id="L40">    private static final Logger log = LoggerFactory.getLogger(SubscriptionReservationManager.class);</span>
+<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(SubscriptionReservationManager.class);</span>
 
     private final SubscriptionRepository subscriptionRepository;
     private final ExtensionManager extensionManager;
 
-    public SubscriptionReservationManager(SubscriptionRepository subscriptionRepository,
-<span class="fc" id="L46">                                          ExtensionManager extensionManager) {</span>
-<span class="fc" id="L47">        this.subscriptionRepository = subscriptionRepository;</span>
-<span class="fc" id="L48">        this.extensionManager = extensionManager;</span>
-<span class="fc" id="L49">    }</span>
+    public SubscriptionReservationManager(
+<span class="fc" id="L45">            SubscriptionRepository subscriptionRepository, ExtensionManager extensionManager) {</span>
+<span class="fc" id="L46">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="fc" id="L47">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L48">    }</span>
 
     @EventListener(CleanupReservations.class)
     public void cleanupReservations(CleanupReservations cleanupReservations) {
-<span class="fc bfc" id="L53" title="All 4 branches covered.">        if (cleanupReservations.purchaseContext() != null &amp;&amp; cleanupReservations.purchaseContext() instanceof SubscriptionDescriptor sd) {</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (cleanupReservations.purchaseContext() != null</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">                &amp;&amp; cleanupReservations.purchaseContext() instanceof SubscriptionDescriptor sd) {</span>
 <span class="fc" id="L54">            deleteReservationsForDescriptor(cleanupReservations.reservationIds(), sd, cleanupReservations.expired());</span>
 <span class="fc bfc" id="L55" title="All 2 branches covered.">        } else if (cleanupReservations.purchaseContext() == null) {</span>
-<span class="fc" id="L56">            var involvedDescriptors = subscriptionRepository.findDescriptorsByReservationIds(cleanupReservations.reservationIds());</span>
+<span class="fc" id="L56">            var involvedDescriptors =</span>
+<span class="fc" id="L57">                    subscriptionRepository.findDescriptorsByReservationIds(cleanupReservations.reservationIds());</span>
 
-<span class="fc" id="L58">            var descriptorsIdsNeedingUpdate = involvedDescriptors.stream()</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">                .filter(d -&gt; d.maxAvailable() &gt; 0)</span>
-<span class="fc" id="L60">                .map(DescriptorIdAndReservationId::descriptorId)</span>
-<span class="fc" id="L61">                .collect(Collectors.toSet());</span>
+<span class="fc" id="L59">            var descriptorsIdsNeedingUpdate = involvedDescriptors.stream()</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">                    .filter(d -&gt; d.maxAvailable() &gt; 0)</span>
+<span class="fc" id="L61">                    .map(DescriptorIdAndReservationId::descriptorId)</span>
+<span class="fc" id="L62">                    .collect(Collectors.toSet());</span>
 
-<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (descriptorsIdsNeedingUpdate.isEmpty()) {</span>
-<span class="fc" id="L64">                deleteReservationsForDescriptor(cleanupReservations.reservationIds(), null, cleanupReservations.expired());</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">            if (descriptorsIdsNeedingUpdate.isEmpty()) {</span>
+<span class="fc" id="L65">                deleteReservationsForDescriptor(</span>
+<span class="fc" id="L66">                        cleanupReservations.reservationIds(), null, cleanupReservations.expired());</span>
             } else {
-<span class="fc" id="L66">                Map&lt;UUID, SubscriptionDescriptor&gt; descriptorsById = subscriptionRepository.findByIds(descriptorsIdsNeedingUpdate).stream()</span>
-<span class="fc" id="L67">                    .collect(Collectors.toMap(SubscriptionDescriptor::getId, Function.identity()));</span>
-<span class="fc" id="L68">                var reservationByDescriptorId = involvedDescriptors.stream()</span>
-<span class="fc" id="L69">                    .collect(Collectors.groupingBy(DescriptorIdAndReservationId::descriptorId));</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">                for (var entry : reservationByDescriptorId.entrySet()) {</span>
-<span class="fc" id="L71">                    var reservations = entry.getValue().stream().map(DescriptorIdAndReservationId::reservationId).toList();</span>
-<span class="fc" id="L72">                    deleteReservationsForDescriptor(reservations, descriptorsById.get(entry.getKey()), cleanupReservations.expired());</span>
-<span class="fc" id="L73">                }</span>
+<span class="fc" id="L68">                Map&lt;UUID, SubscriptionDescriptor&gt; descriptorsById =</span>
+<span class="fc" id="L69">                        subscriptionRepository.findByIds(descriptorsIdsNeedingUpdate).stream()</span>
+<span class="fc" id="L70">                                .collect(Collectors.toMap(SubscriptionDescriptor::getId, Function.identity()));</span>
+<span class="fc" id="L71">                var reservationByDescriptorId = involvedDescriptors.stream()</span>
+<span class="fc" id="L72">                        .collect(Collectors.groupingBy(DescriptorIdAndReservationId::descriptorId));</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">                for (var entry : reservationByDescriptorId.entrySet()) {</span>
+<span class="fc" id="L74">                    var reservations = entry.getValue().stream()</span>
+<span class="fc" id="L75">                            .map(DescriptorIdAndReservationId::reservationId)</span>
+<span class="fc" id="L76">                            .toList();</span>
+<span class="fc" id="L77">                    deleteReservationsForDescriptor(</span>
+<span class="fc" id="L78">                            reservations, descriptorsById.get(entry.getKey()), cleanupReservations.expired());</span>
+<span class="fc" id="L79">                }</span>
             }
         }
-<span class="fc" id="L76">    }</span>
+<span class="fc" id="L82">    }</span>
 
-    private void deleteReservationsForDescriptor(List&lt;String&gt; reservationIds, SubscriptionDescriptor sd, boolean expired) {
-<span class="fc" id="L79">        int deleted = subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds);</span>
-<span class="fc" id="L80">        log.trace(&quot;deleted {} subscriptions&quot;, deleted);</span>
-<span class="fc bfc" id="L81" title="All 4 branches covered.">        if (sd != null &amp;&amp; sd.getMaxAvailable() &gt; -1) {</span>
+    private void deleteReservationsForDescriptor(
+            List&lt;String&gt; reservationIds, SubscriptionDescriptor sd, boolean expired) {
+<span class="fc" id="L86">        int deleted = subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds);</span>
+<span class="fc" id="L87">        log.trace(&quot;deleted {} subscriptions&quot;, deleted);</span>
+<span class="fc bfc" id="L88" title="All 4 branches covered.">        if (sd != null &amp;&amp; sd.getMaxAvailable() &gt; -1) {</span>
             // restore deleted subscriptions
-<span class="fc" id="L83">            subscriptionRepository.preGenerateSubscriptions(SubscriptionDescriptorModification.fromModel(sd), sd.getId(), deleted);</span>
-<span class="fc" id="L84">            log.trace(&quot;created {} subscriptions to replace deleted&quot;, deleted);</span>
+<span class="fc" id="L90">            subscriptionRepository.preGenerateSubscriptions(</span>
+<span class="fc" id="L91">                    SubscriptionDescriptorModification.fromModel(sd), sd.getId(), deleted);</span>
+<span class="fc" id="L92">            log.trace(&quot;created {} subscriptions to replace deleted&quot;, deleted);</span>
         }
-<span class="fc bfc" id="L86" title="All 2 branches covered.">        if(expired) {</span>
-<span class="fc" id="L87">            extensionManager.handleReservationsExpired(sd, reservationIds);</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (expired) {</span>
+<span class="fc" id="L95">            extensionManager.handleReservationsExpired(sd, reservationIds);</span>
         } else {
-<span class="fc" id="L89">            extensionManager.handleReservationsCancelled(sd, reservationIds);</span>
+<span class="fc" id="L97">            extensionManager.handleReservationsCancelled(sd, reservationIds);</span>
         }
-<span class="fc" id="L91">    }</span>
+<span class="fc" id="L99">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

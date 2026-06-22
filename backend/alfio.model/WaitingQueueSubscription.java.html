@@ -18,21 +18,25 @@ package alfio.model;
 
 import alfio.util.LocaleUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
 import java.util.Locale;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class WaitingQueueSubscription {
 
     public enum Status {
-        WAITING, PENDING, ACQUIRED, EXPIRED, CANCELLED
+        WAITING,
+        PENDING,
+        ACQUIRED,
+        EXPIRED,
+        CANCELLED
     }
 
     public enum Type {
-        PRE_SALES, SOLD_OUT
+        PRE_SALES,
+        SOLD_OUT
     }
 
     private final int id;
@@ -48,56 +52,58 @@ public class WaitingQueueSubscription {
     private final Integer selectedCategoryId;
     private final Type subscriptionType;
 
-    public WaitingQueueSubscription(@Column(&quot;id&quot;) int id,
-                                    @Column(&quot;creation&quot;) ZonedDateTime creation,
-                                    @Column(&quot;event_id&quot;) int eventId,
-                                    @Column(&quot;status&quot;) String status,
-                                    @Column(&quot;full_name&quot;) String fullName,
-                                    @Column(&quot;first_name&quot;) String firstName,
-                                    @Column(&quot;last_name&quot;) String lastName,
-                                    @Column(&quot;email_address&quot;) String emailAddress,
-                                    @Column(&quot;ticket_reservation_id&quot;) String reservationId,
-                                    @Column(&quot;user_language&quot;) String userLanguage,
-                                    @Column(&quot;selected_category_id&quot;) Integer selectedCategoryId,
-<span class="fc" id="L62">                                    @Column(&quot;subscription_type&quot;) Type subscriptionType) {</span>
-<span class="fc" id="L63">        this.id = id;</span>
-<span class="fc" id="L64">        this.creation = creation;</span>
-<span class="fc" id="L65">        this.eventId = eventId;</span>
-<span class="fc" id="L66">        this.userLanguage = userLanguage;</span>
-<span class="fc" id="L67">        this.selectedCategoryId = selectedCategoryId;</span>
-<span class="fc" id="L68">        this.subscriptionType = subscriptionType;</span>
-<span class="fc" id="L69">        this.status = Status.valueOf(status);</span>
-<span class="fc" id="L70">        this.fullName = fullName;</span>
-<span class="fc" id="L71">        this.firstName = firstName;</span>
-<span class="fc" id="L72">        this.lastName = lastName;</span>
-<span class="fc" id="L73">        this.reservationId = reservationId;</span>
-<span class="fc" id="L74">        this.emailAddress = emailAddress;</span>
-<span class="fc" id="L75">    }</span>
+    public WaitingQueueSubscription(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;creation&quot;) ZonedDateTime creation,
+            @Column(&quot;event_id&quot;) int eventId,
+            @Column(&quot;status&quot;) String status,
+            @Column(&quot;full_name&quot;) String fullName,
+            @Column(&quot;first_name&quot;) String firstName,
+            @Column(&quot;last_name&quot;) String lastName,
+            @Column(&quot;email_address&quot;) String emailAddress,
+            @Column(&quot;ticket_reservation_id&quot;) String reservationId,
+            @Column(&quot;user_language&quot;) String userLanguage,
+            @Column(&quot;selected_category_id&quot;) Integer selectedCategoryId,
+<span class="fc" id="L67">            @Column(&quot;subscription_type&quot;) Type subscriptionType) {</span>
+<span class="fc" id="L68">        this.id = id;</span>
+<span class="fc" id="L69">        this.creation = creation;</span>
+<span class="fc" id="L70">        this.eventId = eventId;</span>
+<span class="fc" id="L71">        this.userLanguage = userLanguage;</span>
+<span class="fc" id="L72">        this.selectedCategoryId = selectedCategoryId;</span>
+<span class="fc" id="L73">        this.subscriptionType = subscriptionType;</span>
+<span class="fc" id="L74">        this.status = Status.valueOf(status);</span>
+<span class="fc" id="L75">        this.fullName = fullName;</span>
+<span class="fc" id="L76">        this.firstName = firstName;</span>
+<span class="fc" id="L77">        this.lastName = lastName;</span>
+<span class="fc" id="L78">        this.reservationId = reservationId;</span>
+<span class="fc" id="L79">        this.emailAddress = emailAddress;</span>
+<span class="fc" id="L80">    }</span>
 
     public Locale getLocale() {
-<span class="fc" id="L78">        return LocaleUtil.forLanguageTag(userLanguage);</span>
+<span class="fc" id="L83">        return LocaleUtil.forLanguageTag(userLanguage);</span>
     }
 
     public boolean isPreSales() {
-<span class="fc bfc" id="L82" title="All 2 branches covered.">        return Optional.ofNullable(subscriptionType).map(s -&gt; s == Type.PRE_SALES).orElse(false);</span>
+<span class="fc" id="L87">        return Optional.ofNullable(subscriptionType)</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">                .map(s -&gt; s == Type.PRE_SALES)</span>
+<span class="fc" id="L89">                .orElse(false);</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L87">        return &quot;WaitingQueueSubscription(&quot; +</span>
-            &quot;id=&quot; + id +
-            &quot;, creation=&quot; + creation +
-            &quot;, eventId=&quot; + eventId +
-            &quot;, status=&quot; + status +
-            &quot;, fullName=&quot; + fullName +
-            &quot;, firstName=&quot; + firstName +
-            &quot;, lastName=&quot; + lastName +
-            &quot;, emailAddress=&quot; + emailAddress +
-            &quot;, reservationId=&quot; + reservationId +
-            &quot;, userLanguage=&quot; + userLanguage +
-            &quot;, selectedCategoryId=&quot; + selectedCategoryId +
-            &quot;, subscriptionType=&quot; + subscriptionType +
-            ')';
+<span class="fc" id="L94">        return &quot;WaitingQueueSubscription(&quot; + &quot;id=&quot;</span>
+                + id + &quot;, creation=&quot;
+                + creation + &quot;, eventId=&quot;
+                + eventId + &quot;, status=&quot;
+                + status + &quot;, fullName=&quot;
+                + fullName + &quot;, firstName=&quot;
+                + firstName + &quot;, lastName=&quot;
+                + lastName + &quot;, emailAddress=&quot;
+                + emailAddress + &quot;, reservationId=&quot;
+                + reservationId + &quot;, userLanguage=&quot;
+                + userLanguage + &quot;, selectedCategoryId=&quot;
+                + selectedCategoryId + &quot;, subscriptionType=&quot;
+                + subscriptionType + ')';
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

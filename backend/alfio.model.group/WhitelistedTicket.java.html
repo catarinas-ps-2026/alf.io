@@ -28,15 +28,15 @@ public class WhitelistedTicket {
     private final int ticketId;
     private final boolean requiresUniqueValue;
 
-    public WhitelistedTicket(@Column(&quot;group_member_id_fk&quot;) int groupMemberId,
-                             @Column(&quot;group_link_id_fk&quot;) int groupLinkId,
-                             @Column(&quot;ticket_id_fk&quot;) int ticketId,
-<span class="nc" id="L34">                             @Column(&quot;requires_unique_value&quot;) Boolean requiresUniqueValue) {</span>
-<span class="nc" id="L35">        this.groupMemberId = groupMemberId;</span>
-<span class="nc" id="L36">        this.groupLinkId = groupLinkId;</span>
-<span class="nc" id="L37">        this.ticketId = ticketId;</span>
-<span class="nc" id="L38">        this.requiresUniqueValue = ObjectUtils.firstNonNull(requiresUniqueValue, Boolean.FALSE);</span>
-<span class="nc" id="L39">    }</span>
-
+    public WhitelistedTicket(
+            @Column(&quot;group_member_id_fk&quot;) int groupMemberId,
+            @Column(&quot;group_link_id_fk&quot;) int groupLinkId,
+            @Column(&quot;ticket_id_fk&quot;) int ticketId,
+<span class="nc" id="L35">            @Column(&quot;requires_unique_value&quot;) Boolean requiresUniqueValue) {</span>
+<span class="nc" id="L36">        this.groupMemberId = groupMemberId;</span>
+<span class="nc" id="L37">        this.groupLinkId = groupLinkId;</span>
+<span class="nc" id="L38">        this.ticketId = ticketId;</span>
+<span class="nc" id="L39">        this.requiresUniqueValue = ObjectUtils.firstNonNull(requiresUniqueValue, Boolean.FALSE);</span>
+<span class="nc" id="L40">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

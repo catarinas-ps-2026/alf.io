@@ -20,7 +20,6 @@ import alfio.model.transaction.PaymentMethod;
 import alfio.model.transaction.PaymentProxy;
 import alfio.model.transaction.PaymentToken;
 import alfio.model.transaction.StaticPaymentMethods;
-
 import java.beans.ConstructorProperties;
 
 public class StripeCreditCardToken implements PaymentToken {
@@ -28,23 +27,23 @@ public class StripeCreditCardToken implements PaymentToken {
     private final String token;
 
     @ConstructorProperties({&quot;token&quot;})
-<span class="fc" id="L31">    public StripeCreditCardToken(String token) {</span>
-<span class="fc" id="L32">        this.token = token;</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L30">    public StripeCreditCardToken(String token) {</span>
+<span class="fc" id="L31">        this.token = token;</span>
+<span class="fc" id="L32">    }</span>
 
     @Override
     public String getToken() {
-<span class="fc" id="L37">        return token;</span>
+<span class="fc" id="L36">        return token;</span>
     }
 
     @Override
     public PaymentMethod getPaymentMethod() {
-<span class="nc" id="L42">        return StaticPaymentMethods.CREDIT_CARD;</span>
+<span class="nc" id="L41">        return StaticPaymentMethods.CREDIT_CARD;</span>
     }
 
     @Override
     public PaymentProxy getPaymentProvider() {
-<span class="fc" id="L47">        return PaymentProxy.STRIPE;</span>
+<span class="fc" id="L46">        return PaymentProxy.STRIPE;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

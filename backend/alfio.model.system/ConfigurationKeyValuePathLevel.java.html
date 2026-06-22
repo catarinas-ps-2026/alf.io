@@ -26,12 +26,13 @@ public class ConfigurationKeyValuePathLevel {
     private final String value;
     private final ConfigurationPathLevel configurationPathLevel;
 
-    public ConfigurationKeyValuePathLevel(@Column(&quot;c_key&quot;) String key,
-                                          @Column(&quot;c_value&quot;) String value,
-<span class="fc" id="L31">                                          @Column(&quot;configuration_path_level&quot;) ConfigurationPathLevel configurationPathLevel) {</span>
-<span class="fc" id="L32">        this.configurationKey = ConfigurationKeys.safeValueOf(key);</span>
-<span class="fc" id="L33">        this.value = value;</span>
-<span class="fc" id="L34">        this.configurationPathLevel = configurationPathLevel;</span>
-<span class="fc" id="L35">    }</span>
+    public ConfigurationKeyValuePathLevel(
+            @Column(&quot;c_key&quot;) String key,
+            @Column(&quot;c_value&quot;) String value,
+<span class="fc" id="L32">            @Column(&quot;configuration_path_level&quot;) ConfigurationPathLevel configurationPathLevel) {</span>
+<span class="fc" id="L33">        this.configurationKey = ConfigurationKeys.safeValueOf(key);</span>
+<span class="fc" id="L34">        this.value = value;</span>
+<span class="fc" id="L35">        this.configurationPathLevel = configurationPathLevel;</span>
+<span class="fc" id="L36">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

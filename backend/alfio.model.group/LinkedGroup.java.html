@@ -22,7 +22,6 @@ import lombok.Getter;
 @Getter
 public class LinkedGroup {
 
-
     /**
      * Link type
      */
@@ -60,13 +59,14 @@ public class LinkedGroup {
     private final MatchType matchType;
     private final Integer maxAllocation;
 
-    public LinkedGroup(@Column(&quot;id&quot;) int id,
-                       @Column(&quot;a_group_id_fk&quot;) int groupId,
-                       @Column(&quot;event_id_fk&quot;) Integer eventId,
-                       @Column(&quot;ticket_category_id_fk&quot;) Integer ticketCategoryId,
-                       @Column(&quot;type&quot;) Type type,
-                       @Column(&quot;match_type&quot;) MatchType matchType,
-<span class="fc" id="L69">                       @Column(&quot;max_allocation&quot;) Integer maxAllocation) {</span>
+    public LinkedGroup(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;a_group_id_fk&quot;) int groupId,
+            @Column(&quot;event_id_fk&quot;) Integer eventId,
+            @Column(&quot;ticket_category_id_fk&quot;) Integer ticketCategoryId,
+            @Column(&quot;type&quot;) Type type,
+            @Column(&quot;match_type&quot;) MatchType matchType,
+<span class="fc" id="L69">            @Column(&quot;max_allocation&quot;) Integer maxAllocation) {</span>
 <span class="fc" id="L70">        this.id = id;</span>
 <span class="fc" id="L71">        this.groupId = groupId;</span>
 <span class="fc" id="L72">        this.eventId = eventId;</span>

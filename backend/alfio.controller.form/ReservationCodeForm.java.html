@@ -16,11 +16,10 @@
  */
 package alfio.controller.form;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class ReservationCodeForm implements Serializable {
@@ -30,16 +29,15 @@ public class ReservationCodeForm implements Serializable {
     private int amount;
     private ReservationCodeType type;
 
-
     public enum ReservationCodeType {
         SUBSCRIPTION
     }
 
     public Optional&lt;UUID&gt; getCodeAsUUID() {
         try {
-<span class="fc" id="L40">            return Optional.of(UUID.fromString(code));</span>
-<span class="fc" id="L41">        } catch (IllegalArgumentException e) {</span>
-<span class="fc" id="L42">            return Optional.empty();</span>
+<span class="fc" id="L38">            return Optional.of(UUID.fromString(code));</span>
+<span class="fc" id="L39">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L40">            return Optional.empty();</span>
         }
     }
 }

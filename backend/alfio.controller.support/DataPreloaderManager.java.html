@@ -16,6 +16,11 @@
  */
 package alfio.controller.support;
 
+import static alfio.controller.Constants.*;
+import static alfio.model.system.ConfigurationKeys.BASE_CUSTOM_CSS;
+import static alfio.util.HttpUtils.APPLICATION_JSON;
+import static java.util.Objects.requireNonNull;
+
 import alfio.config.authentication.support.OpenIdPrincipal;
 import alfio.controller.api.support.TicketHelper;
 import alfio.controller.api.v2.model.Language;
@@ -41,6 +46,13 @@ import ch.digitalfondue.jfiveparse.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -49,19 +61,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.util.UriUtils;
-
-import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import static alfio.controller.Constants.*;
-import static alfio.model.system.ConfigurationKeys.BASE_CUSTOM_CSS;
-import static alfio.util.HttpUtils.APPLICATION_JSON;
-import static java.util.Objects.requireNonNull;
 
 @Component
 public class DataPreloaderManager {
@@ -78,131 +77,175 @@ public class DataPreloaderManager {
     private final EventDescriptionRepository eventDescriptionRepository;
     private final Json json;
 
-<span class="fc" id="L81">    public DataPreloaderManager(ConfigurationManager configurationManager, CsrfTokenRepository csrfTokenRepository, EventLoader eventLoader, CSPConfigurer cspConfigurer, PurchaseContextManager purchaseContextManager, EventRepository eventRepository, MessageSourceManager messageSourceManager, OrganizationRepository organizationRepository, FileUploadRepository fileUploadRepository, EventDescriptionRepository eventDescriptionRepository, Json json) {</span>
-<span class="fc" id="L82">        this.configurationManager = configurationManager;</span>
-<span class="fc" id="L83">        this.csrfTokenRepository = csrfTokenRepository;</span>
-<span class="fc" id="L84">        this.eventLoader = eventLoader;</span>
-<span class="fc" id="L85">        this.cspConfigurer = cspConfigurer;</span>
-<span class="fc" id="L86">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="fc" id="L87">        this.eventRepository = eventRepository;</span>
-<span class="fc" id="L88">        this.messageSourceManager = messageSourceManager;</span>
-<span class="fc" id="L89">        this.organizationRepository = organizationRepository;</span>
-<span class="fc" id="L90">        this.fileUploadRepository = fileUploadRepository;</span>
-<span class="fc" id="L91">        this.eventDescriptionRepository = eventDescriptionRepository;</span>
-<span class="fc" id="L92">        this.json = json;</span>
-<span class="fc" id="L93">    }</span>
+    public DataPreloaderManager(
+            ConfigurationManager configurationManager,
+            CsrfTokenRepository csrfTokenRepository,
+            EventLoader eventLoader,
+            CSPConfigurer cspConfigurer,
+            PurchaseContextManager purchaseContextManager,
+            EventRepository eventRepository,
+            MessageSourceManager messageSourceManager,
+            OrganizationRepository organizationRepository,
+            FileUploadRepository fileUploadRepository,
+            EventDescriptionRepository eventDescriptionRepository,
+<span class="fc" id="L91">            Json json) {</span>
+<span class="fc" id="L92">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L93">        this.csrfTokenRepository = csrfTokenRepository;</span>
+<span class="fc" id="L94">        this.eventLoader = eventLoader;</span>
+<span class="fc" id="L95">        this.cspConfigurer = cspConfigurer;</span>
+<span class="fc" id="L96">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L97">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L98">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L99">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L100">        this.fileUploadRepository = fileUploadRepository;</span>
+<span class="fc" id="L101">        this.eventDescriptionRepository = eventDescriptionRepository;</span>
+<span class="fc" id="L102">        this.json = json;</span>
+<span class="fc" id="L103">    }</span>
 
     @Transactional
-    public Document generateIndexDocument(String eventShortName,
-                                          String subscriptionId,
-                                          String userAgent,
-                                          String lang,
-                                          ServletWebRequest request,
-                                          HttpServletResponse response,
-                                          HttpSession session,
-                                          Authentication authentication,
-                                          Document openGraphPage,
-                                          Document indexPage) {
-<span class="fc" id="L106">        var nonce = cspConfigurer.addCspHeader(response, detectConfigurationLevel(eventShortName, subscriptionId), true);</span>
-<span class="pc bpc" id="L107" title="2 of 6 branches missed.">        if (eventShortName != null &amp;&amp; RequestUtils.isSocialMediaShareUA(userAgent) &amp;&amp; eventRepository.existsByShortName(eventShortName)) {</span>
-<span class="fc" id="L108">            return getOpenGraphPage((Document) openGraphPage.cloneNode(true), eventShortName, request, lang);</span>
+    public Document generateIndexDocument(
+            String eventShortName,
+            String subscriptionId,
+            String userAgent,
+            String lang,
+            ServletWebRequest request,
+            HttpServletResponse response,
+            HttpSession session,
+            Authentication authentication,
+            Document openGraphPage,
+            Document indexPage) {
+<span class="fc" id="L117">        var nonce =</span>
+<span class="fc" id="L118">                cspConfigurer.addCspHeader(response, detectConfigurationLevel(eventShortName, subscriptionId), true);</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (eventShortName != null</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">                &amp;&amp; RequestUtils.isSocialMediaShareUA(userAgent)</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">                &amp;&amp; eventRepository.existsByShortName(eventShortName)) {</span>
+<span class="fc" id="L122">            return getOpenGraphPage((Document) openGraphPage.cloneNode(true), eventShortName, request, lang);</span>
         } else {
-<span class="fc" id="L110">            var baseCustomCss = configurationManager.getForSystem(BASE_CUSTOM_CSS).getValueOrNull();</span>
-<span class="fc" id="L111">            Document idx = (Document) indexPage.cloneNode(true);</span>
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">            if (authentication instanceof OAuth2AuthenticationToken oauth</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">                &amp;&amp; oauth.getPrincipal() instanceof OpenIdPrincipal principal</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">                &amp;&amp; principal.isSignedUp()</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">                &amp;&amp; session.isNew()) {</span>
-<span class="nc" id="L116">                Optional.ofNullable(IterableUtils.get(idx.getElementsByTagName(&quot;html&quot;), 0))</span>
-<span class="nc" id="L117">                    .ifPresent(html -&gt; html.setAttribute(&quot;data-signed-up&quot;, &quot;true&quot;));</span>
+<span class="fc" id="L124">            var baseCustomCss =</span>
+<span class="fc" id="L125">                    configurationManager.getForSystem(BASE_CUSTOM_CSS).getValueOrNull();</span>
+<span class="fc" id="L126">            Document idx = (Document) indexPage.cloneNode(true);</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">            if (authentication instanceof OAuth2AuthenticationToken oauth</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                    &amp;&amp; oauth.getPrincipal() instanceof OpenIdPrincipal principal</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                    &amp;&amp; principal.isSignedUp()</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                    &amp;&amp; session.isNew()) {</span>
+<span class="nc" id="L131">                Optional.ofNullable(IterableUtils.get(idx.getElementsByTagName(&quot;html&quot;), 0))</span>
+<span class="nc" id="L132">                        .ifPresent(html -&gt; html.setAttribute(&quot;data-signed-up&quot;, &quot;true&quot;));</span>
             }
-<span class="pc" id="L119">            idx.getElementsByTagName(&quot;script&quot;).forEach(element -&gt; element.setAttribute(NONCE, nonce));</span>
-<span class="fc" id="L120">            var head = idx.getElementsByTagName(&quot;head&quot;).get(0);</span>
-<span class="fc" id="L121">            head.appendChild(buildScripTag(json.asJsonString(configurationManager.getInfo(session)), APPLICATION_JSON, &quot;preload-info&quot;, null));</span>
-<span class="fc" id="L122">            var httpServletRequest = requireNonNull(request.getNativeRequest(HttpServletRequest.class));</span>
-<span class="fc" id="L123">            head.appendChild(buildMetaTag(&quot;GID&quot;, request.getSessionId()));</span>
-<span class="fc" id="L124">            var csrf = csrfTokenRepository.loadToken(httpServletRequest);</span>
-<span class="pc bpc" id="L125" title="1 of 2 branches missed.">            if (csrf == null) {</span>
-<span class="fc" id="L126">                csrf = csrfTokenRepository.generateToken(httpServletRequest);</span>
+<span class="pc" id="L134">            idx.getElementsByTagName(&quot;script&quot;).forEach(element -&gt; element.setAttribute(NONCE, nonce));</span>
+<span class="fc" id="L135">            var head = idx.getElementsByTagName(&quot;head&quot;).get(0);</span>
+<span class="fc" id="L136">            head.appendChild(buildScripTag(</span>
+<span class="fc" id="L137">                    json.asJsonString(configurationManager.getInfo(session)), APPLICATION_JSON, &quot;preload-info&quot;, null));</span>
+<span class="fc" id="L138">            var httpServletRequest = requireNonNull(request.getNativeRequest(HttpServletRequest.class));</span>
+<span class="fc" id="L139">            head.appendChild(buildMetaTag(&quot;GID&quot;, request.getSessionId()));</span>
+<span class="fc" id="L140">            var csrf = csrfTokenRepository.loadToken(httpServletRequest);</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">            if (csrf == null) {</span>
+<span class="fc" id="L142">                csrf = csrfTokenRepository.generateToken(httpServletRequest);</span>
             }
-<span class="fc" id="L128">            head.appendChild(buildMetaTag(&quot;XSRF_TOKEN&quot;, csrf.getToken()));</span>
-<span class="pc bpc" id="L129" title="1 of 2 branches missed.">            if (baseCustomCss != null) {</span>
-<span class="nc" id="L130">                var style = new Element(&quot;style&quot;);</span>
-<span class="nc" id="L131">                style.setAttribute(&quot;type&quot;, &quot;text/css&quot;);</span>
-<span class="nc" id="L132">                style.appendChild(new Text(baseCustomCss));</span>
-<span class="nc" id="L133">                head.appendChild(style);</span>
+<span class="fc" id="L144">            head.appendChild(buildMetaTag(&quot;XSRF_TOKEN&quot;, csrf.getToken()));</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">            if (baseCustomCss != null) {</span>
+<span class="nc" id="L146">                var style = new Element(&quot;style&quot;);</span>
+<span class="nc" id="L147">                style.setAttribute(&quot;type&quot;, &quot;text/css&quot;);</span>
+<span class="nc" id="L148">                style.appendChild(new Text(baseCustomCss));</span>
+<span class="nc" id="L149">                head.appendChild(style);</span>
             }
-<span class="fc" id="L135">            head.appendChild(buildMetaTag(&quot;authentication-enabled&quot;, Boolean.toString(configurationManager.isPublicOpenIdEnabled())));</span>
-<span class="fc" id="L136">            preloadEventData(eventShortName, request, session, eventLoader, head, messageSourceManager, idx, json, lang);</span>
-<span class="fc" id="L137">            return idx;</span>
+<span class="fc" id="L151">            head.appendChild(buildMetaTag(</span>
+<span class="fc" id="L152">                    &quot;authentication-enabled&quot;, Boolean.toString(configurationManager.isPublicOpenIdEnabled())));</span>
+<span class="fc" id="L153">            preloadEventData(</span>
+                    eventShortName, request, session, eventLoader, head, messageSourceManager, idx, json, lang);
+<span class="fc" id="L155">            return idx;</span>
         }
     }
 
     private ConfigurationLevel detectConfigurationLevel(String eventShortName, String subscriptionId) {
-<span class="fc" id="L142">        return purchaseContextManager.detectConfigurationLevel(eventShortName, subscriptionId)</span>
-<span class="fc" id="L143">            .orElseGet(ConfigurationLevel::system);</span>
+<span class="fc" id="L160">        return purchaseContextManager</span>
+<span class="fc" id="L161">                .detectConfigurationLevel(eventShortName, subscriptionId)</span>
+<span class="fc" id="L162">                .orElseGet(ConfigurationLevel::system);</span>
     }
 
     // see https://github.com/alfio-event/alf.io/issues/708
     // use ngrok to test the preview
-    private Document getOpenGraphPage(Document eventOpenGraph, String eventShortName, ServletWebRequest request, String lang) {
-<span class="fc" id="L149">        var event = eventRepository.findByShortName(eventShortName);</span>
-<span class="fc" id="L150">        var locale = getMatchingLocale(request, event.getContentLanguages().stream().map(ContentLanguage::getLanguage).toList(), lang);</span>
+    private Document getOpenGraphPage(
+            Document eventOpenGraph, String eventShortName, ServletWebRequest request, String lang) {
+<span class="fc" id="L169">        var event = eventRepository.findByShortName(eventShortName);</span>
+<span class="fc" id="L170">        var locale = getMatchingLocale(</span>
+                request,
+<span class="fc" id="L172">                event.getContentLanguages().stream()</span>
+<span class="fc" id="L173">                        .map(ContentLanguage::getLanguage)</span>
+<span class="fc" id="L174">                        .toList(),</span>
+                lang);
 
-<span class="fc" id="L152">        var baseUrl = configurationManager.getForSystem(ConfigurationKeys.BASE_URL).getRequiredValue();</span>
+<span class="fc" id="L177">        var baseUrl =</span>
+<span class="fc" id="L178">                configurationManager.getForSystem(ConfigurationKeys.BASE_URL).getRequiredValue();</span>
 
-<span class="fc" id="L154">        var title = messageSourceManager.getMessageSourceFor(event).getMessage(&quot;event.get-your-ticket-for&quot;, new String[] {event.getDisplayName()}, locale);</span>
+<span class="fc" id="L180">        var title = messageSourceManager</span>
+<span class="fc" id="L181">                .getMessageSourceFor(event)</span>
+<span class="fc" id="L182">                .getMessage(&quot;event.get-your-ticket-for&quot;, new String[] {event.getDisplayName()}, locale);</span>
 
-<span class="fc" id="L156">        var head = eventOpenGraph.getElementsByTagName(&quot;head&quot;).get(0);</span>
+<span class="fc" id="L184">        var head = eventOpenGraph.getElementsByTagName(&quot;head&quot;).get(0);</span>
 
-<span class="fc" id="L158">        eventOpenGraph.getElementsByTagName(&quot;html&quot;).get(0).setAttribute(&quot;lang&quot;, locale.getLanguage());</span>
+<span class="fc" id="L186">        eventOpenGraph.getElementsByTagName(&quot;html&quot;).get(0).setAttribute(&quot;lang&quot;, locale.getLanguage());</span>
 
         //
 
-<span class="fc" id="L162">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;twitter:image&quot;).setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
+<span class="fc" id="L190">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;twitter:image&quot;)</span>
+<span class="fc" id="L191">                .setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
         //
 
-<span class="fc" id="L165">        eventOpenGraph.getElementsByTagName(&quot;title&quot;).get(0).appendChild(new Text(title));</span>
-<span class="fc" id="L166">        getMetaElement(eventOpenGraph, PROPERTY, &quot;og:title&quot;).setAttribute(CONTENT, title);</span>
-<span class="fc" id="L167">        getMetaElement(eventOpenGraph, PROPERTY,&quot;og:image&quot;).setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
+<span class="fc" id="L194">        eventOpenGraph.getElementsByTagName(&quot;title&quot;).get(0).appendChild(new Text(title));</span>
+<span class="fc" id="L195">        getMetaElement(eventOpenGraph, PROPERTY, &quot;og:title&quot;).setAttribute(CONTENT, title);</span>
+<span class="fc" id="L196">        getMetaElement(eventOpenGraph, PROPERTY, &quot;og:image&quot;)</span>
+<span class="fc" id="L197">                .setAttribute(CONTENT, baseUrl + &quot;/file/&quot; + event.getFileBlobId());</span>
 
-<span class="fc" id="L169">        var eventDesc = eventDescriptionRepository.findDescriptionByEventIdTypeAndLocale(event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, locale.toLanguageTag()).orElse(&quot;&quot;).trim();</span>
-<span class="fc" id="L170">        var firstLine = Pattern.compile(&quot;\n&quot;).splitAsStream(MustacheCustomTag.renderToTextCommonmark(eventDesc)).findFirst().orElse(&quot;&quot;);</span>
-<span class="fc" id="L171">        getMetaElement(eventOpenGraph, PROPERTY,&quot;og:description&quot;).setAttribute(CONTENT, firstLine);</span>
+<span class="fc" id="L199">        var eventDesc = eventDescriptionRepository</span>
+<span class="fc" id="L200">                .findDescriptionByEventIdTypeAndLocale(</span>
+<span class="fc" id="L201">                        event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, locale.toLanguageTag())</span>
+<span class="fc" id="L202">                .orElse(&quot;&quot;)</span>
+<span class="fc" id="L203">                .trim();</span>
+<span class="fc" id="L204">        var firstLine = Pattern.compile(&quot;\n&quot;)</span>
+<span class="fc" id="L205">                .splitAsStream(MustacheCustomTag.renderToTextCommonmark(eventDesc))</span>
+<span class="fc" id="L206">                .findFirst()</span>
+<span class="fc" id="L207">                .orElse(&quot;&quot;);</span>
+<span class="fc" id="L208">        getMetaElement(eventOpenGraph, PROPERTY, &quot;og:description&quot;).setAttribute(CONTENT, firstLine);</span>
 
+<span class="fc" id="L210">        var org = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L211">        var author = String.format(&quot;%s &lt;%s&gt;&quot;, org.getName(), org.getEmail());</span>
+<span class="fc" id="L212">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;author&quot;).setAttribute(CONTENT, author);</span>
 
-<span class="fc" id="L174">        var org = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="fc" id="L175">        var author = String.format(&quot;%s &lt;%s&gt;&quot;, org.getName(), org.getEmail());</span>
-<span class="fc" id="L176">        getMetaElement(eventOpenGraph, &quot;name&quot;, &quot;author&quot;).setAttribute(CONTENT, author);</span>
-
-<span class="fc" id="L178">        fileUploadRepository.findById(event.getFileBlobId()).ifPresent(metadata -&gt; {</span>
-<span class="nc" id="L179">            var attributes = metadata.getAttributes();</span>
-<span class="nc bnc" id="L180" title="All 4 branches missed.">            if (attributes.containsKey(FileBlobMetadata.ATTR_IMG_HEIGHT) &amp;&amp; attributes.containsKey(FileBlobMetadata.ATTR_IMG_WIDTH)) {</span>
-<span class="nc" id="L181">                head.appendChild(buildOGMetaTag(&quot;og:image:width&quot;, attributes.get(FileBlobMetadata.ATTR_IMG_WIDTH)));</span>
-<span class="nc" id="L182">                head.appendChild(buildOGMetaTag(&quot;og:image:height&quot;, attributes.get(FileBlobMetadata.ATTR_IMG_HEIGHT)));</span>
+<span class="fc" id="L214">        fileUploadRepository.findById(event.getFileBlobId()).ifPresent(metadata -&gt; {</span>
+<span class="nc" id="L215">            var attributes = metadata.getAttributes();</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">            if (attributes.containsKey(FileBlobMetadata.ATTR_IMG_HEIGHT)</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                    &amp;&amp; attributes.containsKey(FileBlobMetadata.ATTR_IMG_WIDTH)) {</span>
+<span class="nc" id="L218">                head.appendChild(buildOGMetaTag(&quot;og:image:width&quot;, attributes.get(FileBlobMetadata.ATTR_IMG_WIDTH)));</span>
+<span class="nc" id="L219">                head.appendChild(buildOGMetaTag(&quot;og:image:height&quot;, attributes.get(FileBlobMetadata.ATTR_IMG_HEIGHT)));</span>
             }
-<span class="nc" id="L184">        });</span>
+<span class="nc" id="L221">        });</span>
 
-<span class="fc" id="L186">        return eventOpenGraph;</span>
+<span class="fc" id="L223">        return eventOpenGraph;</span>
     }
 
     private static Element buildOGMetaTag(String propertyValue, String contentValue) {
-<span class="nc" id="L190">        return buildMetaTag(PROPERTY, propertyValue, contentValue);</span>
+<span class="nc" id="L227">        return buildMetaTag(PROPERTY, propertyValue, contentValue);</span>
     }
 
     private static Element buildMetaTag(String name, String content) {
-<span class="fc" id="L194">        return buildMetaTag(&quot;name&quot;, name, content);</span>
+<span class="fc" id="L231">        return buildMetaTag(&quot;name&quot;, name, content);</span>
     }
 
     private static Element buildMetaTag(String property, String propertyValue, String content) {
-<span class="fc" id="L198">        var meta = new Element(&quot;meta&quot;);</span>
-<span class="fc" id="L199">        meta.setAttribute(property, propertyValue);</span>
-<span class="fc" id="L200">        meta.setAttribute(CONTENT, content);</span>
-<span class="fc" id="L201">        return meta;</span>
+<span class="fc" id="L235">        var meta = new Element(&quot;meta&quot;);</span>
+<span class="fc" id="L236">        meta.setAttribute(property, propertyValue);</span>
+<span class="fc" id="L237">        meta.setAttribute(CONTENT, content);</span>
+<span class="fc" id="L238">        return meta;</span>
     }
 
     private static Element getMetaElement(Document document, String attrName, String propertyValue) {
-<span class="fc" id="L205">        return (Element) document.getAllNodesMatching(Selector.select().element(&quot;meta&quot;).attrValEq(attrName, propertyValue).toMatcher(), true).get(0);</span>
+<span class="fc" id="L242">        return (Element) document.getAllNodesMatching(</span>
+<span class="fc" id="L243">                        Selector.select()</span>
+<span class="fc" id="L244">                                .element(&quot;meta&quot;)</span>
+<span class="fc" id="L245">                                .attrValEq(attrName, propertyValue)</span>
+<span class="fc" id="L246">                                .toMatcher(),</span>
+                        true)
+<span class="fc" id="L248">                .get(0);</span>
     }
 
     /**
@@ -214,65 +257,84 @@ public class DataPreloaderManager {
      * @return
      */
     private static Locale getMatchingLocale(ServletWebRequest request, List&lt;String&gt; contextLanguages, String lang) {
-<span class="fc" id="L217">        var locale = RequestUtils.getMatchingLocale(request, contextLanguages);</span>
-<span class="fc bfc" id="L218" title="All 4 branches covered.">        if (lang != null &amp;&amp; contextLanguages.stream().anyMatch(lang::equalsIgnoreCase)) {</span>
-<span class="fc" id="L219">            locale = Locale.forLanguageTag(lang);</span>
+<span class="fc" id="L260">        var locale = RequestUtils.getMatchingLocale(request, contextLanguages);</span>
+<span class="fc bfc" id="L261" title="All 4 branches covered.">        if (lang != null &amp;&amp; contextLanguages.stream().anyMatch(lang::equalsIgnoreCase)) {</span>
+<span class="fc" id="L262">            locale = Locale.forLanguageTag(lang);</span>
         }
-<span class="fc" id="L221">        return locale;</span>
+<span class="fc" id="L264">        return locale;</span>
     }
 
     private static Element buildScripTag(String content, String type, String id, String param) {
-<span class="fc" id="L225">        var encodedContent = UriUtils.encodeFragment(content, StandardCharsets.UTF_8);</span>
-<span class="fc" id="L226">        var e = new Element(&quot;script&quot;);</span>
-<span class="fc" id="L227">        e.appendChild(new Text(encodedContent));</span>
-<span class="fc" id="L228">        e.setAttribute(&quot;type&quot;, type);</span>
-<span class="fc" id="L229">        e.setAttribute(&quot;id&quot;, id);</span>
-<span class="fc bfc" id="L230" title="All 2 branches covered.">        if (param != null) {</span>
-<span class="fc" id="L231">            e.setAttribute(&quot;data-param&quot;, param);</span>
+<span class="fc" id="L268">        var encodedContent = UriUtils.encodeFragment(content, StandardCharsets.UTF_8);</span>
+<span class="fc" id="L269">        var e = new Element(&quot;script&quot;);</span>
+<span class="fc" id="L270">        e.appendChild(new Text(encodedContent));</span>
+<span class="fc" id="L271">        e.setAttribute(&quot;type&quot;, type);</span>
+<span class="fc" id="L272">        e.setAttribute(&quot;id&quot;, id);</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">        if (param != null) {</span>
+<span class="fc" id="L274">            e.setAttribute(&quot;data-param&quot;, param);</span>
         }
-<span class="fc" id="L233">        return e;</span>
+<span class="fc" id="L276">        return e;</span>
     }
 
-    public static void preloadEventData(String eventShortName,
-                                 ServletWebRequest request,
-                                 HttpSession session,
-                                 EventLoader eventLoader,
-                                 Element head,
-                                 MessageSourceManager messageSourceManager,
-                                 Node idx,
-                                 Json json,
-                                 String lang) {
-<span class="fc" id="L245">        String preloadLang = Objects.requireNonNullElse(lang, &quot;en&quot;);</span>
-<span class="fc bfc" id="L246" title="All 2 branches covered.">        if (eventShortName != null) {</span>
-<span class="fc" id="L247">            var eventInfoOptional = eventLoader.loadEventInfo(eventShortName, session);</span>
-<span class="pc bpc" id="L248" title="1 of 2 branches missed.">            if (eventInfoOptional.isPresent()) {</span>
-<span class="fc" id="L249">                var ev = eventInfoOptional.get();</span>
-<span class="fc" id="L250">                head.appendChild(buildScripTag(json.asJsonString(ev), APPLICATION_JSON, &quot;preload-event&quot;, eventShortName));</span>
-<span class="fc" id="L251">                preloadLang = getMatchingLocale(request, ev.getContentLanguages().stream().map(Language::getLocale).toList(), lang).getLanguage();</span>
-<span class="fc bfc" id="L252" title="All 2 branches covered.">                if (ZonedDateTime.now(ClockProvider.clock()).isAfter(((Event)ev.purchaseContext()).getEnd())) {</span>
+    public static void preloadEventData(
+            String eventShortName,
+            ServletWebRequest request,
+            HttpSession session,
+            EventLoader eventLoader,
+            Element head,
+            MessageSourceManager messageSourceManager,
+            Node idx,
+            Json json,
+            String lang) {
+<span class="fc" id="L289">        String preloadLang = Objects.requireNonNullElse(lang, &quot;en&quot;);</span>
+<span class="fc bfc" id="L290" title="All 2 branches covered.">        if (eventShortName != null) {</span>
+<span class="fc" id="L291">            var eventInfoOptional = eventLoader.loadEventInfo(eventShortName, session);</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">            if (eventInfoOptional.isPresent()) {</span>
+<span class="fc" id="L293">                var ev = eventInfoOptional.get();</span>
+<span class="fc" id="L294">                head.appendChild(</span>
+<span class="fc" id="L295">                        buildScripTag(json.asJsonString(ev), APPLICATION_JSON, &quot;preload-event&quot;, eventShortName));</span>
+<span class="fc" id="L296">                preloadLang = getMatchingLocale(</span>
+                                request,
+<span class="fc" id="L298">                                ev.getContentLanguages().stream()</span>
+<span class="fc" id="L299">                                        .map(Language::getLocale)</span>
+<span class="fc" id="L300">                                        .toList(),</span>
+                                lang)
+<span class="fc" id="L302">                        .getLanguage();</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">                if (ZonedDateTime.now(ClockProvider.clock()).isAfter(((Event) ev.purchaseContext()).getEnd())) {</span>
                     // event is over.
-<span class="fc" id="L254">                    head.appendChild(buildMetaTag(&quot;robots&quot;, &quot;noindex&quot;));</span>
+<span class="fc" id="L305">                    head.appendChild(buildMetaTag(&quot;robots&quot;, &quot;noindex&quot;));</span>
                 }
             }
         }
-<span class="fc" id="L258">        head.appendChild(buildScripTag(json.asJsonString(messageSourceManager.getBundleAsMap(&quot;alfio.i18n.public&quot;, true, preloadLang, MessageSourceManager.PUBLIC_FRONTEND)), &quot;application/json&quot;, &quot;preload-bundle&quot;, preloadLang));</span>
-<span class="fc" id="L259">        head.appendChild(buildScripTag(countriesForVatAsJson(json, preloadLang), &quot;application/json&quot;, &quot;preload-vat-countries&quot;, preloadLang));</span>
-<span class="fc" id="L260">        head.appendChild(buildScripTag(countriesAsJson(json, preloadLang), &quot;application/json&quot;, &quot;preload-countries&quot;, preloadLang));</span>
+<span class="fc" id="L309">        head.appendChild(buildScripTag(</span>
+<span class="fc" id="L310">                json.asJsonString(messageSourceManager.getBundleAsMap(</span>
+                        &quot;alfio.i18n.public&quot;, true, preloadLang, MessageSourceManager.PUBLIC_FRONTEND)),
+                &quot;application/json&quot;,
+                &quot;preload-bundle&quot;,
+                preloadLang));
+<span class="fc" id="L315">        head.appendChild(buildScripTag(</span>
+<span class="fc" id="L316">                countriesForVatAsJson(json, preloadLang), &quot;application/json&quot;, &quot;preload-vat-countries&quot;, preloadLang));</span>
+<span class="fc" id="L317">        head.appendChild(buildScripTag(</span>
+<span class="fc" id="L318">                countriesAsJson(json, preloadLang), &quot;application/json&quot;, &quot;preload-countries&quot;, preloadLang));</span>
         // add fallback in english
-<span class="fc bfc" id="L262" title="All 2 branches covered.">        if (!&quot;en&quot;.equals(preloadLang)) {</span>
-<span class="fc" id="L263">            head.appendChild(buildScripTag(json.asJsonString(messageSourceManager.getBundleAsMap(&quot;alfio.i18n.public&quot;, true, &quot;en&quot;, MessageSourceManager.PUBLIC_FRONTEND)), &quot;application/json&quot;, &quot;preload-bundle&quot;, &quot;en&quot;));</span>
+<span class="fc bfc" id="L320" title="All 2 branches covered.">        if (!&quot;en&quot;.equals(preloadLang)) {</span>
+<span class="fc" id="L321">            head.appendChild(buildScripTag(</span>
+<span class="fc" id="L322">                    json.asJsonString(messageSourceManager.getBundleAsMap(</span>
+                            &quot;alfio.i18n.public&quot;, true, &quot;en&quot;, MessageSourceManager.PUBLIC_FRONTEND)),
+                    &quot;application/json&quot;,
+                    &quot;preload-bundle&quot;,
+                    &quot;en&quot;));
         }
-<span class="fc" id="L265">        var htmlElement = IterableUtils.get(idx.getElementsByTagName(&quot;html&quot;), 0);</span>
-<span class="fc" id="L266">        htmlElement.setAttribute(&quot;lang&quot;, preloadLang);</span>
-<span class="fc" id="L267">    }</span>
+<span class="fc" id="L328">        var htmlElement = IterableUtils.get(idx.getElementsByTagName(&quot;html&quot;), 0);</span>
+<span class="fc" id="L329">        htmlElement.setAttribute(&quot;lang&quot;, preloadLang);</span>
+<span class="fc" id="L330">    }</span>
 
     private static String countriesForVatAsJson(Json json, String preloadLang) {
-<span class="fc" id="L270">        return json.asJsonString(TicketHelper.getSortedLocalizedVatCountries(Locale.forLanguageTag(preloadLang)));</span>
+<span class="fc" id="L333">        return json.asJsonString(TicketHelper.getSortedLocalizedVatCountries(Locale.forLanguageTag(preloadLang)));</span>
     }
 
     private static String countriesAsJson(Json json, String preloadLang) {
-<span class="fc" id="L274">        return json.asJsonString(TicketHelper.getSortedLocalizedCountries(Locale.forLanguageTag(preloadLang)));</span>
+<span class="fc" id="L337">        return json.asJsonString(TicketHelper.getSortedLocalizedCountries(Locale.forLanguageTag(preloadLang)));</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

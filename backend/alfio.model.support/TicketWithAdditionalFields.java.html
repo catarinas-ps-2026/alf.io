@@ -18,50 +18,49 @@ package alfio.model.support;
 
 import alfio.model.FieldConfigurationDescriptionAndValue;
 import alfio.model.Ticket;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class TicketWithAdditionalFields {
     private final Ticket ticket;
     private final List&lt;FieldConfigurationDescriptionAndValue&gt; additionalFieldsDescriptionsAndValues;
 
-    public TicketWithAdditionalFields(Ticket ticket,
-<span class="fc" id="L32">                                      List&lt;FieldConfigurationDescriptionAndValue&gt; additionalFieldsDescriptionsAndValues) {</span>
-<span class="fc" id="L33">        this.ticket = ticket;</span>
-<span class="fc" id="L34">        this.additionalFieldsDescriptionsAndValues = additionalFieldsDescriptionsAndValues;</span>
-<span class="fc" id="L35">    }</span>
+    public TicketWithAdditionalFields(
+<span class="fc" id="L31">            Ticket ticket, List&lt;FieldConfigurationDescriptionAndValue&gt; additionalFieldsDescriptionsAndValues) {</span>
+<span class="fc" id="L32">        this.ticket = ticket;</span>
+<span class="fc" id="L33">        this.additionalFieldsDescriptionsAndValues = additionalFieldsDescriptionsAndValues;</span>
+<span class="fc" id="L34">    }</span>
 
     public Map&lt;String, String&gt; getAdditionalFields() {
-<span class="nc" id="L38">        return additionalFieldsDescriptionsAndValues.stream()</span>
-<span class="nc" id="L39">            .map(af -&gt; Pair.of(af.getLabelDescription(), af.getValueDescription()))</span>
-<span class="nc" id="L40">            .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
+<span class="nc" id="L37">        return additionalFieldsDescriptionsAndValues.stream()</span>
+<span class="nc" id="L38">                .map(af -&gt; Pair.of(af.getLabelDescription(), af.getValueDescription()))</span>
+<span class="nc" id="L39">                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
     }
 
     public String getUuid() {
-<span class="nc" id="L44">        return ticket.getUuid();</span>
+<span class="nc" id="L43">        return ticket.getUuid();</span>
     }
 
     public String getFullName() {
-<span class="nc" id="L48">        return ticket.getFullName();</span>
+<span class="nc" id="L47">        return ticket.getFullName();</span>
     }
 
     public String getFirstName() {
-<span class="nc" id="L52">        return ticket.getFirstName();</span>
+<span class="nc" id="L51">        return ticket.getFirstName();</span>
     }
 
     public String getLastName() {
-<span class="nc" id="L56">        return ticket.getLastName();</span>
+<span class="nc" id="L55">        return ticket.getLastName();</span>
     }
 
     public String getEmail() {
-<span class="nc" id="L60">        return ticket.getEmail();</span>
+<span class="nc" id="L59">        return ticket.getEmail();</span>
     }
 
     public String getUserLanguage() {
-<span class="nc" id="L64">        return ticket.getUserLanguage();</span>
+<span class="nc" id="L63">        return ticket.getUserLanguage();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

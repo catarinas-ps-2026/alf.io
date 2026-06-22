@@ -17,16 +17,18 @@
 package alfio.model.user;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class User implements Serializable {
 
     public enum Type {
-        INTERNAL, DEMO, API_KEY, PUBLIC
+        INTERNAL,
+        DEMO,
+        API_KEY,
+        PUBLIC
     }
 
     private final int id;
@@ -39,33 +41,33 @@ public class User implements Serializable {
     private final ZonedDateTime validTo;
     private final String description;
 
-
-    public User(@Column(&quot;id&quot;) int id,
-                @Column(&quot;username&quot;) String username,
-                @Column(&quot;first_name&quot;) String firstName,
-                @Column(&quot;last_name&quot;) String lastName,
-                @Column(&quot;email_address&quot;) String emailAddress,
-                @Column(&quot;enabled&quot;) boolean enabled,
-                @Column(&quot;user_type&quot;) Type type,
-                @Column(&quot;valid_to&quot;) ZonedDateTime validTo,
-<span class="fc" id="L51">                @Column(&quot;description&quot;) String description) {</span>
-<span class="fc" id="L52">        this.id = id;</span>
-<span class="fc" id="L53">        this.username = username;</span>
-<span class="fc" id="L54">        this.firstName = firstName;</span>
-<span class="fc" id="L55">        this.lastName = lastName;</span>
-<span class="fc" id="L56">        this.emailAddress = emailAddress;</span>
-<span class="fc" id="L57">        this.enabled=enabled;</span>
-<span class="fc" id="L58">        this.type = type;</span>
-<span class="fc" id="L59">        this.validTo = validTo;</span>
-<span class="fc" id="L60">        this.description = description;</span>
-<span class="fc" id="L61">    }</span>
+    public User(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;username&quot;) String username,
+            @Column(&quot;first_name&quot;) String firstName,
+            @Column(&quot;last_name&quot;) String lastName,
+            @Column(&quot;email_address&quot;) String emailAddress,
+            @Column(&quot;enabled&quot;) boolean enabled,
+            @Column(&quot;user_type&quot;) Type type,
+            @Column(&quot;valid_to&quot;) ZonedDateTime validTo,
+<span class="fc" id="L53">            @Column(&quot;description&quot;) String description) {</span>
+<span class="fc" id="L54">        this.id = id;</span>
+<span class="fc" id="L55">        this.username = username;</span>
+<span class="fc" id="L56">        this.firstName = firstName;</span>
+<span class="fc" id="L57">        this.lastName = lastName;</span>
+<span class="fc" id="L58">        this.emailAddress = emailAddress;</span>
+<span class="fc" id="L59">        this.enabled = enabled;</span>
+<span class="fc" id="L60">        this.type = type;</span>
+<span class="fc" id="L61">        this.validTo = validTo;</span>
+<span class="fc" id="L62">        this.description = description;</span>
+<span class="fc" id="L63">    }</span>
 
     public boolean isCurrentlyValid(ZonedDateTime date) {
-<span class="nc bnc" id="L64" title="All 4 branches missed.">        return validTo == null || validTo.isAfter(date);</span>
+<span class="nc bnc" id="L66" title="All 4 branches missed.">        return validTo == null || validTo.isAfter(date);</span>
     }
 
     public Long getValidToEpochSecond() {
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        return validTo == null ? null : validTo.toEpochSecond();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        return validTo == null ? null : validTo.toEpochSecond();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

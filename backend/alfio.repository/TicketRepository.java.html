@@ -31,13 +31,12 @@ import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
 import ch.digitalfondue.npjt.QueryType;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @QueryRepository
 public interface TicketRepository {
@@ -47,62 +46,99 @@ public interface TicketRepository {
     String RELEASED = &quot;RELEASED&quot;;
     String REVERT_TO_FREE = &quot;update ticket set status = 'FREE' where status = 'RELEASED' and event_id = :eventId&quot;;
     String SORT_TICKETS = &quot;order by category_id asc, uuid asc&quot;;
-    String FIND_TICKETS_IN_RESERVATION = &quot;select * from ticket where tickets_reservation_id = :reservationId &quot; + SORT_TICKETS;
+    String FIND_TICKETS_IN_RESERVATION =
+            &quot;select * from ticket where tickets_reservation_id = :reservationId &quot; + SORT_TICKETS;
 
-    String RESET_TICKET = &quot; TICKETS_RESERVATION_ID = null, FULL_NAME = null, EMAIL_ADDRESS = null, SPECIAL_PRICE_ID_FK = null, LOCKED_ASSIGNMENT = false, USER_LANGUAGE = null, REMINDER_SENT = false, SRC_PRICE_CTS = 0, FINAL_PRICE_CTS = 0, VAT_CTS = 0, DISCOUNT_CTS = 0, FIRST_NAME = null, LAST_NAME = null, EXT_REFERENCE = null, TAGS = array[]::text[], VAT_STATUS = null, METADATA = '{}'::jsonb &quot;;
-    String RELEASE_TICKET_QUERY = &quot;update ticket set status = 'RELEASED', uuid = :newUuid, public_uuid = :newPublicUuid, &quot; + RESET_TICKET + &quot; where id = :ticketId and status in('ACQUIRED', 'PENDING', 'TO_BE_PAID') and tickets_reservation_id = :reservationId and event_id = :eventId&quot;;
-    String FIND_BASIC_TICKET_INFO_BY_EVENT_ID = &quot;select t.id t_id, t.uuid t_uuid, t.public_uuid t_public_uuid, tc.id tc_id, tc.bounded tc_bounded, t.vat_status t_vat_status from ticket t inner join ticket_category tc on t.category_id = tc.id where t.event_id = :eventId&quot;;
-    String UPDATE_TICKET_PRICE = &quot;update ticket set src_price_cts = :srcPriceCts, final_price_cts = :finalPriceCts, vat_cts = :vatCts, discount_cts = :discountCts, currency_code = :currencyCode, vat_status = :vatStatus::VAT_STATUS where event_id = :eventId and category_id = :categoryId&quot;;
+    String RESET_TICKET =
+            &quot; TICKETS_RESERVATION_ID = null, FULL_NAME = null, EMAIL_ADDRESS = null, SPECIAL_PRICE_ID_FK = null, LOCKED_ASSIGNMENT = false, USER_LANGUAGE = null, REMINDER_SENT = false, SRC_PRICE_CTS = 0, FINAL_PRICE_CTS = 0, VAT_CTS = 0, DISCOUNT_CTS = 0, FIRST_NAME = null, LAST_NAME = null, EXT_REFERENCE = null, TAGS = array[]::text[], VAT_STATUS = null, METADATA = '{}'::jsonb &quot;;
+    String RELEASE_TICKET_QUERY =
+            &quot;update ticket set status = 'RELEASED', uuid = :newUuid, public_uuid = :newPublicUuid, &quot; + RESET_TICKET
+                    + &quot; where id = :ticketId and status in('ACQUIRED', 'PENDING', 'TO_BE_PAID') and tickets_reservation_id = :reservationId and event_id = :eventId&quot;;
+    String FIND_BASIC_TICKET_INFO_BY_EVENT_ID =
+            &quot;select t.id t_id, t.uuid t_uuid, t.public_uuid t_public_uuid, tc.id tc_id, tc.bounded tc_bounded, t.vat_status t_vat_status from ticket t inner join ticket_category tc on t.category_id = tc.id where t.event_id = :eventId&quot;;
+    String UPDATE_TICKET_PRICE =
+            &quot;update ticket set src_price_cts = :srcPriceCts, final_price_cts = :finalPriceCts, vat_cts = :vatCts, discount_cts = :discountCts, currency_code = :currencyCode, vat_status = :vatStatus::VAT_STATUS where event_id = :eventId and category_id = :categoryId&quot;;
 
-
-    //TODO: refactor, try to move the MapSqlParameterSource inside the default method!
+    // TODO: refactor, try to move the MapSqlParameterSource inside the default method!
     default void bulkTicketInitialization(MapSqlParameterSource[] args) {
-<span class="fc" id="L60">        getNamedParameterJdbcTemplate().batchUpdate(&quot;&quot;&quot;</span>
+<span class="fc" id="L64">        getNamedParameterJdbcTemplate()</span>
+<span class="fc" id="L65">                .batchUpdate(</span>
+                        &quot;&quot;&quot;
             insert into ticket (uuid, public_uuid, creation, category_id, event_id, status, original_price_cts, paid_price_cts, src_price_cts)
             values(:uuid, :publicUuid, :creation, :categoryId, :eventId, :status, 0, 0, :srcPriceCts)
-            &quot;&quot;&quot;, args);
-<span class="fc" id="L64">    }</span>
+            &quot;&quot;&quot;,
+                        args);
+<span class="fc" id="L71">    }</span>
 
     default void bulkTicketUpdate(List&lt;Integer&gt; ids, TicketCategory ticketCategory) {
-<span class="fc" id="L67">        MapSqlParameterSource[] params = ids.stream().map(id -&gt; new MapSqlParameterSource(&quot;id&quot;, id)</span>
-<span class="fc" id="L68">            .addValue(&quot;categoryId&quot;, ticketCategory.getId())</span>
-<span class="fc" id="L69">            .addValue(&quot;srcPriceCts&quot;, ticketCategory.getSrcPriceCts()))</span>
-<span class="fc" id="L70">            .toArray(MapSqlParameterSource[]::new);</span>
-<span class="fc" id="L71">        getNamedParameterJdbcTemplate().batchUpdate(&quot;update ticket set category_id = :categoryId, src_price_cts = :srcPriceCts where id = :id&quot;, params);</span>
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L74">        MapSqlParameterSource[] params = ids.stream()</span>
+<span class="fc" id="L75">                .map(id -&gt; new MapSqlParameterSource(&quot;id&quot;, id)</span>
+<span class="fc" id="L76">                        .addValue(&quot;categoryId&quot;, ticketCategory.getId())</span>
+<span class="fc" id="L77">                        .addValue(&quot;srcPriceCts&quot;, ticketCategory.getSrcPriceCts()))</span>
+<span class="fc" id="L78">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L79">        getNamedParameterJdbcTemplate()</span>
+<span class="fc" id="L80">                .batchUpdate(</span>
+                        &quot;update ticket set category_id = :categoryId, src_price_cts = :srcPriceCts where id = :id&quot;,
+                        params);
+<span class="fc" id="L83">    }</span>
 
-    @Query(&quot;select id from ticket where status in (:requiredStatuses) and category_id = :categoryId and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update&quot;)
-    List&lt;Integer&gt; selectTicketInCategoryForUpdate(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;amount&quot;) int amount, @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatus);
+    @Query(
+            &quot;select id from ticket where status in (:requiredStatuses) and category_id = :categoryId and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update&quot;)
+    List&lt;Integer&gt; selectTicketInCategoryForUpdate(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;categoryId&quot;) int categoryId,
+            @Bind(&quot;amount&quot;) int amount,
+            @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatus);
 
-    @Query(&quot;select id from ticket where status in (:requiredStatuses) and category_id = :categoryId and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update skip locked&quot;)
-    List&lt;Integer&gt; selectTicketInCategoryForUpdateSkipLocked(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;amount&quot;) int amount, @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatus);
+    @Query(
+            &quot;select id from ticket where status in (:requiredStatuses) and category_id = :categoryId and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update skip locked&quot;)
+    List&lt;Integer&gt; selectTicketInCategoryForUpdateSkipLocked(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;categoryId&quot;) int categoryId,
+            @Bind(&quot;amount&quot;) int amount,
+            @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatus);
 
-    @Query(&quot;select id from ticket where status in(:requiredStatuses) and category_id is null and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update&quot;)
-    List&lt;Integer&gt; selectNotAllocatedTicketsForUpdate(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;amount&quot;) int amount, @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatuses);
+    @Query(
+            &quot;select id from ticket where status in(:requiredStatuses) and category_id is null and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update&quot;)
+    List&lt;Integer&gt; selectNotAllocatedTicketsForUpdate(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;amount&quot;) int amount,
+            @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatuses);
 
-    @Query(&quot;select id from ticket where status in(:requiredStatuses) and category_id is null and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update skip locked&quot;)
-    List&lt;Integer&gt; selectNotAllocatedTicketsForUpdateSkipLocked(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;amount&quot;) int amount, @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatuses);
+    @Query(
+            &quot;select id from ticket where status in(:requiredStatuses) and category_id is null and event_id = :eventId and tickets_reservation_id is null order by id limit :amount for update skip locked&quot;)
+    List&lt;Integer&gt; selectNotAllocatedTicketsForUpdateSkipLocked(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;amount&quot;) int amount,
+            @Bind(&quot;requiredStatuses&quot;) List&lt;String&gt; requiredStatuses);
 
-    @Query(&quot;select id from ticket where status = 'FREE' and category_id = :categoryId and event_id = :eventId and tickets_reservation_id is null order by id desc limit :amount for update&quot;)
-    List&lt;Integer&gt; lockTicketsToInvalidate(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;amount&quot;) int amount);
+    @Query(
+            &quot;select id from ticket where status = 'FREE' and category_id = :categoryId and event_id = :eventId and tickets_reservation_id is null order by id desc limit :amount for update&quot;)
+    List&lt;Integer&gt; lockTicketsToInvalidate(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;amount&quot;) int amount);
 
-    @Query(&quot;select count(*) from ticket where status in (&quot;+CONFIRMED+&quot;) and category_id = :categoryId and event_id = :eventId and full_name is not null and email_address is not null&quot;)
+    @Query(
+            &quot;select count(*) from ticket where status in (&quot; + CONFIRMED
+                    + &quot;) and category_id = :categoryId and event_id = :eventId and full_name is not null and email_address is not null&quot;)
     Integer countAssignedTickets(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
-
-    @Query(&quot;select count(*) from ticket where status in (&quot;+CONFIRMED+&quot;, 'PENDING') and category_id = :categoryId and event_id = :eventId&quot;)
+    @Query(&quot;select count(*) from ticket where status in (&quot; + CONFIRMED
+            + &quot;, 'PENDING') and category_id = :categoryId and event_id = :eventId&quot;)
     Integer countConfirmedAndPendingTickets(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
-    @Query(&quot;select count(*) from ticket where status in (&quot;+CONFIRMED+&quot;) and category_id = :categoryId and event_id = :eventId&quot;)
+    @Query(&quot;select count(*) from ticket where status in (&quot; + CONFIRMED
+            + &quot;) and category_id = :categoryId and event_id = :eventId&quot;)
     Integer countConfirmedForCategory(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
-    @Query(&quot;select count(*) from ticket where status in ('PENDING', 'RELEASED') and category_id = :categoryId and event_id = :eventId&quot;)
+    @Query(
+            &quot;select count(*) from ticket where status in ('PENDING', 'RELEASED') and category_id = :categoryId and event_id = :eventId&quot;)
     Integer countPendingOrReleasedForCategory(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
     @Query(&quot;select count(*) from ticket where status = 'FREE'  and category_id = :categoryId and event_id = :eventId&quot;)
     Integer countFreeTickets(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         select count(*) filter (where status = 'FREE') as available_tickets,
                count(*) filter (where status = 'PENDING' or status = 'RELEASED') as pending_tickets
         from ticket
@@ -110,71 +146,85 @@ public interface TicketRepository {
         &quot;&quot;&quot;)
     CategoryAvailability getCategoryAvailability(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         select count(*) filter (where category_id is null and status = 'FREE') as available_tickets,
                count(*) filter (where (category_id = :categoryId and status = 'PENDING') or status = 'RELEASED') as pending_tickets
         from ticket
         where event_id = :eventId
         &quot;&quot;&quot;)
-    CategoryAvailability getUnboundedCategoryAvailability(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
+    CategoryAvailability getUnboundedCategoryAvailability(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
     @Query(&quot;select count(*) from ticket where status = 'FREE' and category_id is null and event_id = :eventId&quot;)
     Integer countFreeTicketsForUnbounded(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;select case(show_public_statistics) when true then dynamic_allocation else 0 end from events_statistics where id = :eventId&quot;)
+    @Query(
+            &quot;select case(show_public_statistics) when true then dynamic_allocation else 0 end from events_statistics where id = :eventId&quot;)
     Integer countFreeTicketsForPublicStatistics(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;select count(*) from ticket where status in ('FREE', 'RELEASED') and category_id is null and event_id = :eventId&quot;)
+    @Query(
+            &quot;select count(*) from ticket where status in ('FREE', 'RELEASED') and category_id is null and event_id = :eventId&quot;)
     Integer countNotAllocatedFreeAndReleasedTicket(@Bind(&quot;eventId&quot;) int eventId);
 
     @Query(&quot;select count(*) from ticket where status = 'RELEASED' and category_id is null and event_id = :eventId&quot;)
     Integer countReleasedUnboundedTickets(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;select count(*) from ticket where status = 'RELEASED' and category_id = :categoryId and event_id = :eventId&quot;)
+    @Query(
+            &quot;select count(*) from ticket where status = 'RELEASED' and category_id = :categoryId and event_id = :eventId&quot;)
     Integer countReleasedTicketInCategory(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
-    default int reserveTickets(String reservationId,
-                               List&lt;Integer&gt; ticketIds,
-                               TicketCategory category,
-                               String userLanguage,
-                               PriceContainer.VatStatus vatStatus,
-                               IntFunction&lt;AttendeeData&gt; attendeeDataSupplier) {
-<span class="fc" id="L142">        var idx = new AtomicInteger();</span>
-<span class="fc" id="L143">        var batchReserveParameters = ticketIds.stream()</span>
-<span class="fc" id="L144">            .map(id -&gt; {</span>
-<span class="fc" id="L145">                var attendee = Objects.requireNonNullElse(attendeeDataSupplier.apply(idx.getAndIncrement()), AttendeeData.empty());</span>
-<span class="fc" id="L146">                String metadata = null;</span>
-<span class="fc bfc" id="L147" title="All 2 branches covered.">                if (attendee.hasMetadata()) {</span>
-<span class="fc" id="L148">                    metadata = Json.toJson(TicketMetadataContainer.fromMetadata(new TicketMetadata(null, null, attendee.getMetadata())));</span>
-                }
-<span class="fc" id="L150">                return new MapSqlParameterSource(&quot;reservationId&quot;, reservationId)</span>
-<span class="fc" id="L151">                    .addValue(&quot;id&quot;, id)</span>
-<span class="fc" id="L152">                    .addValue(&quot;categoryId&quot;, category.getId())</span>
-<span class="fc" id="L153">                    .addValue(&quot;userLanguage&quot;, userLanguage)</span>
-<span class="fc" id="L154">                    .addValue(&quot;srcPriceCts&quot;, category.getSrcPriceCts())</span>
-<span class="fc" id="L155">                    .addValue(&quot;currencyCode&quot;, category.getCurrencyCode())</span>
-<span class="fc" id="L156">                    .addValue(&quot;ticketMetadata&quot;, Objects.requireNonNullElse(metadata, &quot;{}&quot;))</span>
-<span class="fc" id="L157">                    .addValue(&quot;firstName&quot;, attendee.getFirstName())</span>
-<span class="fc" id="L158">                    .addValue(&quot;lastName&quot;, attendee.getLastName())</span>
-<span class="fc" id="L159">                    .addValue(&quot;fullName&quot;, attendee.getFullName())</span>
-<span class="fc" id="L160">                    .addValue(&quot;email&quot;, attendee.getEmail())</span>
-<span class="fc" id="L161">                    .addValue(&quot;vatStatus&quot;, vatStatus.name());</span>
-<span class="fc" id="L162">            }).toArray(MapSqlParameterSource[]::new);</span>
-<span class="fc" id="L163">        return (int) Arrays.stream(getNamedParameterJdbcTemplate().batchUpdate(batchReserveTickets(), batchReserveParameters))</span>
-<span class="fc" id="L164">            .asLongStream()</span>
-<span class="fc" id="L165">            .sum();</span>
+    default int reserveTickets(
+            String reservationId,
+            List&lt;Integer&gt; ticketIds,
+            TicketCategory category,
+            String userLanguage,
+            PriceContainer.VatStatus vatStatus,
+            IntFunction&lt;AttendeeData&gt; attendeeDataSupplier) {
+<span class="fc" id="L184">        var idx = new AtomicInteger();</span>
+<span class="fc" id="L185">        var batchReserveParameters = ticketIds.stream()</span>
+<span class="fc" id="L186">                .map(id -&gt; {</span>
+<span class="fc" id="L187">                    var attendee = Objects.requireNonNullElse(</span>
+<span class="fc" id="L188">                            attendeeDataSupplier.apply(idx.getAndIncrement()), AttendeeData.empty());</span>
+<span class="fc" id="L189">                    String metadata = null;</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">                    if (attendee.hasMetadata()) {</span>
+<span class="fc" id="L191">                        metadata = Json.toJson(TicketMetadataContainer.fromMetadata(</span>
+<span class="fc" id="L192">                                new TicketMetadata(null, null, attendee.getMetadata())));</span>
+                    }
+<span class="fc" id="L194">                    return new MapSqlParameterSource(&quot;reservationId&quot;, reservationId)</span>
+<span class="fc" id="L195">                            .addValue(&quot;id&quot;, id)</span>
+<span class="fc" id="L196">                            .addValue(&quot;categoryId&quot;, category.getId())</span>
+<span class="fc" id="L197">                            .addValue(&quot;userLanguage&quot;, userLanguage)</span>
+<span class="fc" id="L198">                            .addValue(&quot;srcPriceCts&quot;, category.getSrcPriceCts())</span>
+<span class="fc" id="L199">                            .addValue(&quot;currencyCode&quot;, category.getCurrencyCode())</span>
+<span class="fc" id="L200">                            .addValue(&quot;ticketMetadata&quot;, Objects.requireNonNullElse(metadata, &quot;{}&quot;))</span>
+<span class="fc" id="L201">                            .addValue(&quot;firstName&quot;, attendee.getFirstName())</span>
+<span class="fc" id="L202">                            .addValue(&quot;lastName&quot;, attendee.getLastName())</span>
+<span class="fc" id="L203">                            .addValue(&quot;fullName&quot;, attendee.getFullName())</span>
+<span class="fc" id="L204">                            .addValue(&quot;email&quot;, attendee.getEmail())</span>
+<span class="fc" id="L205">                            .addValue(&quot;vatStatus&quot;, vatStatus.name());</span>
+                })
+<span class="fc" id="L207">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L208">        return (int) Arrays.stream(</span>
+<span class="fc" id="L209">                        getNamedParameterJdbcTemplate().batchUpdate(batchReserveTickets(), batchReserveParameters))</span>
+<span class="fc" id="L210">                .asLongStream()</span>
+<span class="fc" id="L211">                .sum();</span>
     }
 
-    @Query(type = QueryType.TEMPLATE,
-        value = &quot;&quot;&quot;
+    @Query(
+            type = QueryType.TEMPLATE,
+            value =
+                    &quot;&quot;&quot;
             update ticket set tickets_reservation_id = :reservationId, status = 'PENDING', category_id = :categoryId, \
             user_language = :userLanguage, src_price_cts = :srcPriceCts, currency_code = :currencyCode, metadata = :ticketMetadata::jsonb, \
             vat_status = :vatStatus::VAT_STATUS, first_name = :firstName, last_name = :lastName, email_address = :email, full_name = :fullName where id = :id\
             &quot;&quot;&quot;)
     String batchReserveTickets();
 
-    @Query(type = QueryType.TEMPLATE,
-        value = &quot;&quot;&quot;
+    @Query(
+            type = QueryType.TEMPLATE,
+            value =
+                    &quot;&quot;&quot;
             update ticket set tickets_reservation_id = :reservationId, special_price_id_fk = :specialCodeId,\
              user_language = :userLanguage, status = 'PENDING', src_price_cts = :srcPriceCts,\
              currency_code = :currencyCode, vat_status = :vatStatus::VAT_STATUS,\
@@ -183,22 +233,25 @@ public interface TicketRepository {
             &quot;&quot;&quot;)
     String batchReserveTicketsForSpecialPrice();
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         update ticket set tickets_reservation_id = :reservationId, special_price_id_fk = :specialCodeId,\
          user_language = :userLanguage, status = 'PENDING', src_price_cts = :srcPriceCts, currency_code = :currencyCode,\
          vat_status = :vatStatus::VAT_STATUS, metadata = :ticketMetadata::jsonb where id = :ticketId\
         &quot;&quot;&quot;)
-    void reserveTicket(@Bind(&quot;reservationId&quot;)String transactionId,
-                       @Bind(&quot;ticketId&quot;) int ticketId,
-                       @Bind(&quot;specialCodeId&quot;) int specialCodeId,
-                       @Bind(&quot;userLanguage&quot;) String userLanguage,
-                       @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
-                       @Bind(&quot;currencyCode&quot;) String currencyCode,
-                       @Bind(&quot;vatStatus&quot;) @EnumTypeAsString PriceContainer.VatStatus vatStatus,
-                       @Bind(&quot;ticketMetadata&quot;) @JSONData TicketMetadataContainer ticketMetadata);
+    void reserveTicket(
+            @Bind(&quot;reservationId&quot;) String transactionId,
+            @Bind(&quot;ticketId&quot;) int ticketId,
+            @Bind(&quot;specialCodeId&quot;) int specialCodeId,
+            @Bind(&quot;userLanguage&quot;) String userLanguage,
+            @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
+            @Bind(&quot;currencyCode&quot;) String currencyCode,
+            @Bind(&quot;vatStatus&quot;) @EnumTypeAsString PriceContainer.VatStatus vatStatus,
+            @Bind(&quot;ticketMetadata&quot;) @JSONData TicketMetadataContainer ticketMetadata);
 
     @Query(&quot;update ticket set status = :status where tickets_reservation_id = :reservationId&quot;)
-    int updateTicketsStatusWithReservationId(@Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;status&quot;) String status);
+    int updateTicketsStatusWithReservationId(
+            @Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;status&quot;) String status);
 
     @Query(&quot;update ticket set status = :status where uuid = :uuid&quot;)
     int updateTicketStatusWithUUID(@Bind(&quot;uuid&quot;) String uuid, @Bind(&quot;status&quot;) String status);
@@ -206,36 +259,39 @@ public interface TicketRepository {
     @Query(&quot;update ticket set status = 'INVALIDATED' where id in (:ids)&quot;)
     int invalidateTickets(@Bind(&quot;ids&quot;) List&lt;Integer&gt; ids);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         update ticket set src_price_cts = :srcPriceCts, final_price_cts = :finalPriceCts,\
          vat_cts = :vatCts, discount_cts = :discountCts, currency_code = :currencyCode, vat_status = null\
          where event_id = :eventId and category_id = :categoryId and status = 'FREE'\
         &quot;&quot;&quot;)
-    int updateTicketPrice(@Bind(&quot;categoryId&quot;) int categoryId,
-                          @Bind(&quot;eventId&quot;) int eventId,
-                          @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
-                          @Bind(&quot;finalPriceCts&quot;) int finalPriceCts,
-                          @Bind(&quot;vatCts&quot;) int vatCts,
-                          @Bind(&quot;discountCts&quot;) int discountCts,
-                          @Bind(&quot;currencyCode&quot;) String currencyCode);
+    int updateTicketPrice(
+            @Bind(&quot;categoryId&quot;) int categoryId,
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
+            @Bind(&quot;finalPriceCts&quot;) int finalPriceCts,
+            @Bind(&quot;vatCts&quot;) int vatCts,
+            @Bind(&quot;discountCts&quot;) int discountCts,
+            @Bind(&quot;currencyCode&quot;) String currencyCode);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         update ticket set src_price_cts = :srcPriceCts, final_price_cts = :finalPriceCts,\
          vat_cts = :vatCts, discount_cts = :discountCts, currency_code = :currencyCode,\
          vat_status = :vatStatus::VAT_STATUS where event_id = :eventId and category_id = :categoryId and id in(:ids)\
         &quot;&quot;&quot;)
-    int updateTicketPrice(@Bind(&quot;ids&quot;) List&lt;Integer&gt; ids,
-                          @Bind(&quot;categoryId&quot;) int categoryId,
-                          @Bind(&quot;eventId&quot;) int eventId,
-                          @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
-                          @Bind(&quot;finalPriceCts&quot;) int finalPriceCts,
-                          @Bind(&quot;vatCts&quot;) int vatCts,
-                          @Bind(&quot;discountCts&quot;) int discountCts,
-                          @Bind(&quot;currencyCode&quot;) String currencyCode,
-                          @Bind(&quot;vatStatus&quot;) @EnumTypeAsString PriceContainer.VatStatus vatStatus);
+    int updateTicketPrice(
+            @Bind(&quot;ids&quot;) List&lt;Integer&gt; ids,
+            @Bind(&quot;categoryId&quot;) int categoryId,
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;srcPriceCts&quot;) int srcPriceCts,
+            @Bind(&quot;finalPriceCts&quot;) int finalPriceCts,
+            @Bind(&quot;vatCts&quot;) int vatCts,
+            @Bind(&quot;discountCts&quot;) int discountCts,
+            @Bind(&quot;currencyCode&quot;) String currencyCode,
+            @Bind(&quot;vatStatus&quot;) @EnumTypeAsString PriceContainer.VatStatus vatStatus);
 
-    @Query(type = QueryType.TEMPLATE, value = UPDATE_TICKET_PRICE +
-        &quot; and tickets_reservation_id = :reservationId&quot;)
+    @Query(type = QueryType.TEMPLATE, value = UPDATE_TICKET_PRICE + &quot; and tickets_reservation_id = :reservationId&quot;)
     String updateTicketPriceForCategoryInReservation();
 
     @Query(type = QueryType.TEMPLATE, value = UPDATE_TICKET_PRICE + &quot; and uuid = :uuid&quot;)
@@ -244,14 +300,18 @@ public interface TicketRepository {
     @Query(&quot;update ticket set tags = :tags::text[] where id in(:ids)&quot;)
     int updateTicketTags(@Bind(&quot;ids&quot;) List&lt;Integer&gt; ticketIds, @Bind(&quot;tags&quot;) @Array List&lt;String&gt; tags);
 
-    @Query(&quot;update ticket set category_id = null where tickets_reservation_id in (:reservationIds) and status in ('PENDING', 'OFFLINE_PAYMENT') and category_id in (select tc.id from ticket_category tc, ticket t where t.tickets_reservation_id in (:reservationIds) and t.category_id = tc.id and tc.bounded = false)&quot;)
+    @Query(
+            &quot;update ticket set category_id = null where tickets_reservation_id in (:reservationIds) and status in ('PENDING', 'OFFLINE_PAYMENT') and category_id in (select tc.id from ticket_category tc, ticket t where t.tickets_reservation_id in (:reservationIds) and t.category_id = tc.id and tc.bounded = false)&quot;)
     int resetCategoryIdForUnboundedCategories(@Bind(&quot;reservationIds&quot;) List&lt;String&gt; reservationIds);
 
-    @Query(&quot;update ticket set category_id = null where id in (:ticketIds) and category_id in (select tc.id from ticket_category tc, ticket t where t.id in (:ticketIds) and t.category_id = tc.id and tc.bounded = false)&quot;)
+    @Query(
+            &quot;update ticket set category_id = null where id in (:ticketIds) and category_id in (select tc.id from ticket_category tc, ticket t where t.id in (:ticketIds) and t.category_id = tc.id and tc.bounded = false)&quot;)
     int resetCategoryIdForUnboundedCategoriesWithTicketIds(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds);
 
-    @Query(&quot;update ticket set category_id = null where event_id = :eventId and category_id = :categoryId and id in (:ticketIds)&quot;)
-    int unbindTicketsFromCategory(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ids);
+    @Query(
+            &quot;update ticket set category_id = null where event_id = :eventId and category_id = :categoryId and id in (:ticketIds)&quot;)
+    int unbindTicketsFromCategory(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ids);
 
     @Query(FIND_TICKETS_IN_RESERVATION)
     List&lt;Ticket&gt; findTicketsInReservation(@Bind(&quot;reservationId&quot;) String reservationId);
@@ -287,25 +347,45 @@ public interface TicketRepository {
     Optional&lt;Ticket&gt; findByUUIDForUpdate(@Bind(&quot;uuid&quot;) String uuid);
 
     @Query(&quot;select * from ticket where event_id = :eventId and status = :status and uuid like :uuid for update&quot;)
-    List&lt;Ticket&gt; findByEventIdAndPartialUUIDForUpdate(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;uuid&quot;) String partialUUID, @Bind(&quot;status&quot;) Ticket.TicketStatus status);
+    List&lt;Ticket&gt; findByEventIdAndPartialUUIDForUpdate(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;uuid&quot;) String partialUUID, @Bind(&quot;status&quot;) Ticket.TicketStatus status);
 
-    @Query(&quot;update ticket set email_address = :email, full_name = :fullName, first_name = :firstName, last_name = :lastName where uuid = :ticketIdentifier&quot;)
-    int updateTicketOwner(@Bind(&quot;ticketIdentifier&quot;) String ticketIdentifier, @Bind(&quot;email&quot;) String email, @Bind(&quot;fullName&quot;) String fullName, @Bind(&quot;firstName&quot;) String firstName, @Bind(&quot;lastName&quot;) String lastName);
+    @Query(
+            &quot;update ticket set email_address = :email, full_name = :fullName, first_name = :firstName, last_name = :lastName where uuid = :ticketIdentifier&quot;)
+    int updateTicketOwner(
+            @Bind(&quot;ticketIdentifier&quot;) String ticketIdentifier,
+            @Bind(&quot;email&quot;) String email,
+            @Bind(&quot;fullName&quot;) String fullName,
+            @Bind(&quot;firstName&quot;) String firstName,
+            @Bind(&quot;lastName&quot;) String lastName);
 
-    @Query(&quot;update ticket set email_address = :email, full_name = :fullName, first_name = :firstName, last_name = :lastName where id = :id&quot;)
-    int updateTicketOwnerById(@Bind(&quot;id&quot;) int id, @Bind(&quot;email&quot;) String email, @Bind(&quot;fullName&quot;) String fullName, @Bind(&quot;firstName&quot;) String firstName, @Bind(&quot;lastName&quot;) String lastName);
+    @Query(
+            &quot;update ticket set email_address = :email, full_name = :fullName, first_name = :firstName, last_name = :lastName where id = :id&quot;)
+    int updateTicketOwnerById(
+            @Bind(&quot;id&quot;) int id,
+            @Bind(&quot;email&quot;) String email,
+            @Bind(&quot;fullName&quot;) String fullName,
+            @Bind(&quot;firstName&quot;) String firstName,
+            @Bind(&quot;lastName&quot;) String lastName);
 
     @Query(&quot;update ticket set locked_assignment = :lockedAssignment where id = :id and category_id = :categoryId&quot;)
-    int toggleTicketLocking(@Bind(&quot;id&quot;) int ticketId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;lockedAssignment&quot;) boolean locked);
+    int toggleTicketLocking(
+            @Bind(&quot;id&quot;) int ticketId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;lockedAssignment&quot;) boolean locked);
 
     @Query(&quot;update ticket set locked_assignment = true where id in (:ids)&quot;)
     int forbidReassignment(@Bind(&quot;ids&quot;) Collection&lt;Integer&gt; ticketIds);
 
-    @Query(&quot;update ticket set ext_reference = :extReference, locked_assignment = :lockedAssignment where id = :id and category_id = :categoryId&quot;)
-    int updateExternalReferenceAndLocking(@Bind(&quot;id&quot;) int ticketId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;extReference&quot;) String extReference, @Bind(&quot;lockedAssignment&quot;) boolean locked);
+    @Query(
+            &quot;update ticket set ext_reference = :extReference, locked_assignment = :lockedAssignment where id = :id and category_id = :categoryId&quot;)
+    int updateExternalReferenceAndLocking(
+            @Bind(&quot;id&quot;) int ticketId,
+            @Bind(&quot;categoryId&quot;) int categoryId,
+            @Bind(&quot;extReference&quot;) String extReference,
+            @Bind(&quot;lockedAssignment&quot;) boolean locked);
 
     @Query(&quot;update ticket set user_language = :userLanguage where uuid = :ticketIdentifier&quot;)
-    int updateOptionalTicketInfo(@Bind(&quot;ticketIdentifier&quot;) String ticketIdentifier, @Bind(&quot;userLanguage&quot;) String userLanguage);
+    int updateOptionalTicketInfo(
+            @Bind(&quot;ticketIdentifier&quot;) String ticketIdentifier, @Bind(&quot;userLanguage&quot;) String userLanguage);
 
     @Query(&quot;select * from ticket where id = :id and category_id = :categoryId&quot;)
     Ticket findById(@Bind(&quot;id&quot;) int ticketId, @Bind(&quot;categoryId&quot;) int categoryId);
@@ -323,12 +403,16 @@ public interface TicketRepository {
     List&lt;String&gt; findReservationIds(@Bind(&quot;ids&quot;) List&lt;Integer&gt; ticketIds);
 
     @Query(&quot;update ticket set category_id = :targetCategoryId, src_price_cts = :srcPriceCts where id in (:ticketIds)&quot;)
-    int moveToAnotherCategory(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds, @Bind(&quot;targetCategoryId&quot;) int targetCategoryId, @Bind(&quot;srcPriceCts&quot;) int srcPriceCts);
+    int moveToAnotherCategory(
+            @Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds,
+            @Bind(&quot;targetCategoryId&quot;) int targetCategoryId,
+            @Bind(&quot;srcPriceCts&quot;) int srcPriceCts);
 
     @Query(&quot;select * from ticket where category_id in (:categories) and status = 'PENDING'&quot;)
     List&lt;Ticket&gt; findPendingTicketsInCategories(@Bind(&quot;categories&quot;) List&lt;Integer&gt; categories);
 
-    String FIND_FULL_TICKET_INFO = &quot;&quot;&quot;
+    String FIND_FULL_TICKET_INFO =
+            &quot;&quot;&quot;
         select \
          t.id t_id, t.uuid t_uuid, t.public_uuid t_public_uuid, t.creation t_creation, t.category_id t_category_id, t.status t_status, t.event_id t_event_id,\
          t.src_price_cts t_src_price_cts, t.final_price_cts t_final_price_cts, t.vat_cts t_vat_cts, t.discount_cts t_discount_cts, t.tickets_reservation_id t_tickets_reservation_id,\
@@ -347,12 +431,14 @@ public interface TicketRepository {
          inner join ticket_category_with_currency tc on t.category_id = tc.id \
         &quot;&quot;&quot;;
 
-    @Query(FIND_FULL_TICKET_INFO +
-            &quot; where t.event_id = :eventId and t.full_name is not null and t.email_address is not null and t.id in (:ids) order by t.id asc&quot;)
-    List&lt;FullTicketInfo&gt; findAllFullTicketInfoAssignedByEventId(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;ids&quot;) List&lt;Integer&gt; ids);
+    @Query(
+            FIND_FULL_TICKET_INFO
+                    + &quot; where t.event_id = :eventId and t.full_name is not null and t.email_address is not null and t.id in (:ids) order by t.id asc&quot;)
+    List&lt;FullTicketInfo&gt; findAllFullTicketInfoAssignedByEventId(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;ids&quot;) List&lt;Integer&gt; ids);
 
-
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
             select t.id \
              from ticket t \
              join ticket_category tc on t.category_id = tc.id\
@@ -360,139 +446,183 @@ public interface TicketRepository {
              where t.event_id = :eventId and tc.ticket_access_type &lt;&gt; 'ONLINE'\
              and t.full_name is not null and t.email_address is not null and (coalesce(ltu.last_update, t.creation) &gt; :changedSince)  order by t.id asc\
             &quot;&quot;&quot;)
-    List&lt;Integer&gt; findAllAssignedByEventIdForCheckIn(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;changedSince&quot;) Date changedSince);
+    List&lt;Integer&gt; findAllAssignedByEventIdForCheckIn(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;changedSince&quot;) Date changedSince);
 
-    @Query(&quot;select * from reservation_and_ticket_and_tx where t_id is not null and t_status in (&quot; + CONFIRMED + &quot;) and t_event_id = :eventId order by tr_confirmation_ts, t_id&quot;)
+    @Query(&quot;select * from reservation_and_ticket_and_tx where t_id is not null and t_status in (&quot; + CONFIRMED
+            + &quot;) and t_event_id = :eventId order by tr_confirmation_ts, t_id&quot;)
     List&lt;TicketWithReservationAndTransaction&gt; findAllConfirmedForCSV(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;select a.*, b.confirmation_ts from ticket a, tickets_reservation b where a.event_id = :eventId and a.status in(&quot; + CONFIRMED + &quot;) and a.tickets_reservation_id = b.id order by b.confirmation_ts&quot;)
+    @Query(
+            &quot;select a.*, b.confirmation_ts from ticket a, tickets_reservation b where a.event_id = :eventId and a.status in(&quot;
+                    + CONFIRMED + &quot;) and a.tickets_reservation_id = b.id order by b.confirmation_ts&quot;)
     List&lt;Ticket&gt; findAllConfirmed(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;select * from ticket where event_id = :eventId and status in(&quot; + CONFIRMED + &quot;) and category_id = :categoryId&quot;)
+    @Query(&quot;select * from ticket where event_id = :eventId and status in(&quot; + CONFIRMED
+            + &quot;) and category_id = :categoryId&quot;)
     List&lt;Ticket&gt; findConfirmedByCategoryId(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId);
 
-    @Query(&quot;select count(*) from ticket where event_id = :eventId and status in(&quot; + CONFIRMED + &quot;) and full_name is not null and email_address is not null&quot;)
+    @Query(&quot;select count(*) from ticket where event_id = :eventId and status in(&quot; + CONFIRMED
+            + &quot;) and full_name is not null and email_address is not null&quot;)
     Integer countAllAssigned(@Bind(&quot;eventId&quot;) int eventId);
 
     //
-    @Query(&quot;select tickets_reservation_id from ticket where event_id = :eventId and status in('ACQUIRED', 'TO_BE_PAID') and (full_name is null or email_address is null) for update skip locked&quot;)
+    @Query(
+            &quot;select tickets_reservation_id from ticket where event_id = :eventId and status in('ACQUIRED', 'TO_BE_PAID') and (full_name is null or email_address is null) for update skip locked&quot;)
     List&lt;String&gt; internalFindAllReservationsConfirmedButNotAssignedForUpdate(@Bind(&quot;eventId&quot;) int eventId);
 
     default Set&lt;String&gt; findAllReservationsConfirmedButNotAssignedForUpdate(int eventId) {
-<span class="fc" id="L382">        return new TreeSet&lt;&gt;(internalFindAllReservationsConfirmedButNotAssignedForUpdate(eventId));</span>
+<span class="fc" id="L475">        return new TreeSet&lt;&gt;(internalFindAllReservationsConfirmedButNotAssignedForUpdate(eventId));</span>
     }
     //
 
-    @Query(&quot;select * from ticket where event_id = :eventId  and status in('ACQUIRED', 'TO_BE_PAID') and full_name is not null and email_address is not null and reminder_sent = false for update skip locked&quot;)
+    @Query(
+            &quot;select * from ticket where event_id = :eventId  and status in('ACQUIRED', 'TO_BE_PAID') and full_name is not null and email_address is not null and reminder_sent = false for update skip locked&quot;)
     List&lt;Ticket&gt; findAllAssignedButNotYetNotifiedForUpdate(@Bind(&quot;eventId&quot;) int eventId);
 
     @Query(&quot;update ticket set reminder_sent = true where id = :id and reminder_sent = false&quot;)
     int flagTicketAsReminderSent(@Bind(&quot;id&quot;) int ticketId);
 
     @Query(RELEASE_TICKET_QUERY)
-    int releaseTicket(@Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;newUuid&quot;) String newUuid, @Bind(&quot;newPublicUuid&quot;) UUID newPublicUuid, @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;ticketId&quot;) int ticketId);
+    int releaseTicket(
+            @Bind(&quot;reservationId&quot;) String reservationId,
+            @Bind(&quot;newUuid&quot;) String newUuid,
+            @Bind(&quot;newPublicUuid&quot;) UUID newPublicUuid,
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;ticketId&quot;) int ticketId);
 
     default int[] batchReleaseTickets(String reservationId, List&lt;Integer&gt; ticketIds, Event event) {
-<span class="fc" id="L396">        MapSqlParameterSource[] args = ticketIds.stream().map(id -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, id)</span>
-<span class="fc" id="L397">            .addValue(&quot;reservationId&quot;, reservationId)</span>
-<span class="fc" id="L398">            .addValue(&quot;eventId&quot;, event.getId())</span>
-<span class="fc" id="L399">            .addValue(&quot;newUuid&quot;, UUID.randomUUID().toString())</span>
-<span class="fc" id="L400">            .addValue(&quot;newPublicUuid&quot;, UUID.randomUUID())</span>
-<span class="fc" id="L401">        ).toArray(MapSqlParameterSource[]::new);</span>
-<span class="fc" id="L402">        return getNamedParameterJdbcTemplate().batchUpdate(RELEASE_TICKET_QUERY, args);</span>
+<span class="fc" id="L495">        MapSqlParameterSource[] args = ticketIds.stream()</span>
+<span class="fc" id="L496">                .map(id -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, id)</span>
+<span class="fc" id="L497">                        .addValue(&quot;reservationId&quot;, reservationId)</span>
+<span class="fc" id="L498">                        .addValue(&quot;eventId&quot;, event.getId())</span>
+<span class="fc" id="L499">                        .addValue(&quot;newUuid&quot;, UUID.randomUUID().toString())</span>
+<span class="fc" id="L500">                        .addValue(&quot;newPublicUuid&quot;, UUID.randomUUID()))</span>
+<span class="fc" id="L501">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L502">        return getNamedParameterJdbcTemplate().batchUpdate(RELEASE_TICKET_QUERY, args);</span>
     }
 
-    @Query(type = QueryType.TEMPLATE, value = &quot;update ticket set status = 'RELEASED', uuid = :newUuid, public_uuid = :newPublicUuid, &quot; + RESET_TICKET + &quot; where id = :ticketId and status = 'PENDING' and tickets_reservation_id = :reservationId and event_id = :eventId&quot;)
+    @Query(
+            type = QueryType.TEMPLATE,
+            value =
+                    &quot;update ticket set status = 'RELEASED', uuid = :newUuid, public_uuid = :newPublicUuid, &quot;
+                            + RESET_TICKET
+                            + &quot; where id = :ticketId and status = 'PENDING' and tickets_reservation_id = :reservationId and event_id = :eventId&quot;)
     String batchReleaseTickets();
 
     NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
 
     default void resetTickets(List&lt;Integer&gt; ticketIds) {
-<span class="fc" id="L411">        MapSqlParameterSource[] params = ticketIds.stream()</span>
-<span class="fc" id="L412">            .map(ticketId -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, ticketId)</span>
-<span class="fc" id="L413">                .addValue(&quot;newUuid&quot;, UUID.randomUUID().toString())</span>
-<span class="fc" id="L414">                .addValue(&quot;newPublicUuid&quot;, UUID.randomUUID())</span>
-            )
-<span class="fc" id="L416">            .toArray(MapSqlParameterSource[]::new);</span>
-<span class="fc" id="L417">        getNamedParameterJdbcTemplate().batchUpdate(&quot;update ticket set status = 'RELEASED', uuid = :newUuid, public_uuid = :newPublicUuid, &quot; + RESET_TICKET + &quot; where id = :ticketId&quot;, params);</span>
-<span class="fc" id="L418">    }</span>
+<span class="fc" id="L516">        MapSqlParameterSource[] params = ticketIds.stream()</span>
+<span class="fc" id="L517">                .map(ticketId -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, ticketId)</span>
+<span class="fc" id="L518">                        .addValue(&quot;newUuid&quot;, UUID.randomUUID().toString())</span>
+<span class="fc" id="L519">                        .addValue(&quot;newPublicUuid&quot;, UUID.randomUUID()))</span>
+<span class="fc" id="L520">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L521">        getNamedParameterJdbcTemplate()</span>
+<span class="fc" id="L522">                .batchUpdate(</span>
+                        &quot;update ticket set status = 'RELEASED', uuid = :newUuid, public_uuid = :newPublicUuid, &quot;
+                                + RESET_TICKET + &quot; where id = :ticketId&quot;,
+                        params);
+<span class="fc" id="L526">    }</span>
 
     @Query(&quot;select count(*) from ticket where status = 'RELEASED' and event_id = :eventId&quot;)
     Integer countWaiting(@Bind(&quot;eventId&quot;) int eventId);
 
     @Query(FIND_BASIC_TICKET_INFO_BY_EVENT_ID + &quot; and t.status = 'RELEASED' and tc.expiration &lt;= :currentTs&quot;)
-    List&lt;TicketInfo&gt; findReleasedBelongingToExpiredCategories(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;currentTs&quot;) ZonedDateTime now);
+    List&lt;TicketInfo&gt; findReleasedBelongingToExpiredCategories(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;currentTs&quot;) ZonedDateTime now);
 
     @Query(FIND_BASIC_TICKET_INFO_BY_EVENT_ID + &quot; and t.tickets_reservation_id = :reservationId&quot;)
-    List&lt;TicketInfo&gt; findBasicTicketInfoForReservation(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;reservationId&quot;) String reservationId);
+    List&lt;TicketInfo&gt; findBasicTicketInfoForReservation(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;reservationId&quot;) String reservationId);
 
     @Query(REVERT_TO_FREE)
     int revertToFree(@Bind(&quot;eventId&quot;) int eventId);
 
     @Query(REVERT_TO_FREE + &quot; and category_id = :categoryId and id in (:ticketIds)&quot;)
-    int revertToFree(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) int categoryId, @Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds);
+    int revertToFree(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;categoryId&quot;) int categoryId,
+            @Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds);
 
     @Query(&quot;select * from ticket where status = :status and event_id = :eventId order by id limit :amount for update&quot;)
-    List&lt;Ticket&gt; selectWaitingTicketsForUpdate(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;status&quot;) String status, @Bind(&quot;amount&quot;) int amount);
+    List&lt;Ticket&gt; selectWaitingTicketsForUpdate(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;status&quot;) String status, @Bind(&quot;amount&quot;) int amount);
 
-    @Query(&quot;select id from ticket where status = 'FREE' and event_id = :eventId and category_id = :categoryId order by id limit :amount for update skip locked&quot;)
-    List&lt;Integer&gt; selectFreeTicketsForPreReservation(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;amount&quot;) int amount, @Bind(&quot;categoryId&quot;) int categoryId);
+    @Query(
+            &quot;select id from ticket where status = 'FREE' and event_id = :eventId and category_id = :categoryId order by id limit :amount for update skip locked&quot;)
+    List&lt;Integer&gt; selectFreeTicketsForPreReservation(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;amount&quot;) int amount, @Bind(&quot;categoryId&quot;) int categoryId);
 
-    @Query(&quot;select id from ticket where status = 'FREE' and event_id = :eventId and category_id is null order by id limit :amount for update skip locked&quot;)
-    List&lt;Integer&gt; selectNotAllocatedFreeTicketsForPreReservation(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;amount&quot;) int amount);
+    @Query(
+            &quot;select id from ticket where status = 'FREE' and event_id = :eventId and category_id is null order by id limit :amount for update skip locked&quot;)
+    List&lt;Integer&gt; selectNotAllocatedFreeTicketsForPreReservation(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;amount&quot;) int amount);
 
     @Query(&quot;select count(*) from ticket where status = 'PRE_RESERVED'&quot;)
     Integer countPreReservedTickets(@Bind(&quot;eventId&quot;) int eventId);
 
     default void preReserveTicket(List&lt;Integer&gt; ids) {
-<span class="fc" id="L448">        MapSqlParameterSource[] params = ids.stream()</span>
-<span class="fc" id="L449">            .map(id -&gt; new MapSqlParameterSource().addValue(&quot;id&quot;, id))</span>
-<span class="fc" id="L450">            .toArray(MapSqlParameterSource[]::new);</span>
-<span class="fc" id="L451">        getNamedParameterJdbcTemplate().batchUpdate(&quot;update ticket set status = 'PRE_RESERVED' where id = :id&quot;, params);</span>
-<span class="fc" id="L452">    }</span>
+<span class="fc" id="L566">        MapSqlParameterSource[] params = ids.stream()</span>
+<span class="fc" id="L567">                .map(id -&gt; new MapSqlParameterSource().addValue(&quot;id&quot;, id))</span>
+<span class="fc" id="L568">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="fc" id="L569">        getNamedParameterJdbcTemplate().batchUpdate(&quot;update ticket set status = 'PRE_RESERVED' where id = :id&quot;, params);</span>
+<span class="fc" id="L570">    }</span>
 
     @Query(&quot;select * from ticket where status = 'FREE' and event_id = :eventId&quot;)
     List&lt;Ticket&gt; findFreeByEventId(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;select count(*) from ticket where event_id = :eventId and category_id is not null and status &lt;&gt; 'INVALIDATED'&quot;)
+    @Query(
+            &quot;select count(*) from ticket where event_id = :eventId and category_id is not null and status &lt;&gt; 'INVALIDATED'&quot;)
     Integer countAllocatedTicketsForEvent(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;update ticket set status = 'FREE' where event_id = :eventId and category_id in(:categoryId) and status = '&quot;+RELEASED+&quot;'&quot;)
+    @Query(&quot;update ticket set status = 'FREE' where event_id = :eventId and category_id in(:categoryId) and status = '&quot;
+            + RELEASED + &quot;'&quot;)
     int revertToFreeForRestrictedCategories(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;categoryId&quot;) List&lt;Integer&gt; categoryId);
 
-    @Query(&quot;select distinct category_id from ticket where tickets_reservation_id = :reservationId and src_price_cts &gt; 0&quot;)
+    @Query(
+            &quot;select distinct category_id from ticket where tickets_reservation_id = :reservationId and src_price_cts &gt; 0&quot;)
     List&lt;Integer&gt; getCategoriesIdToPayInReservation(@Bind(&quot;reservationId&quot;) String reservationId);
 
-    @Query(&quot;select * from checkin_ticket_event_and_category_info where t_public_uuid = :publicUUID and e_short_name = :eventShortName and (e_format = 'ONLINE' or tc_ticket_access_type = 'ONLINE') &quot;)
-    Optional&lt;CheckInFullInfo&gt; getFullInfoForOnlineCheckin(@Bind(&quot;eventShortName&quot;) String eventShortName, @Bind(&quot;publicUUID&quot;) UUID publicUUID);
+    @Query(
+            &quot;select * from checkin_ticket_event_and_category_info where t_public_uuid = :publicUUID and e_short_name = :eventShortName and (e_format = 'ONLINE' or tc_ticket_access_type = 'ONLINE') &quot;)
+    Optional&lt;CheckInFullInfo&gt; getFullInfoForOnlineCheckin(
+            @Bind(&quot;eventShortName&quot;) String eventShortName, @Bind(&quot;publicUUID&quot;) UUID publicUUID);
 
-    @Query(&quot;select * from checkin_ticket_event_and_category_info where e_id = :eventId &quot; +
-        &quot;and (&quot; + TicketSearchRepository.BASE_FILTER + &quot; or lower(tc_name) like lower(:search)) &quot;+
-        &quot;and (e_format = 'IN_PERSON' or tc_ticket_access_type = 'IN_PERSON') &quot; +
-        &quot;order by t_last_name, t_first_name, t_uuid limit :limit offset :offset&quot;)
-    List&lt;CheckInFullInfo&gt; searchAttendees(@Bind(&quot;eventId&quot;) int eventId,
-                                          @Bind(&quot;search&quot;) String search,
-                                          @Bind(&quot;limit&quot;) int limit,
-                                          @Bind(&quot;offset&quot;) int offset);
+    @Query(&quot;select * from checkin_ticket_event_and_category_info where e_id = :eventId &quot; + &quot;and (&quot;
+            + TicketSearchRepository.BASE_FILTER + &quot; or lower(tc_name) like lower(:search)) &quot;
+            + &quot;and (e_format = 'IN_PERSON' or tc_ticket_access_type = 'IN_PERSON') &quot;
+            + &quot;order by t_last_name, t_first_name, t_uuid limit :limit offset :offset&quot;)
+    List&lt;CheckInFullInfo&gt; searchAttendees(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;search&quot;) String search,
+            @Bind(&quot;limit&quot;) int limit,
+            @Bind(&quot;offset&quot;) int offset);
 
-    @Query(&quot;select count(*) as total, count(*) filter (where t_status = 'CHECKED_IN') as checked_in &quot; +
-        &quot;from checkin_ticket_event_and_category_info where e_id = :eventId &quot; +
-        &quot;and (&quot; + TicketSearchRepository.BASE_FILTER + &quot; or lower(tc_name) like lower(:search)) &quot;+
-        &quot;and (e_format = 'IN_PERSON' or tc_ticket_access_type = 'IN_PERSON') &quot;)
-    AttendeeSearchResultsCount countSearchResults(@Bind(&quot;eventId&quot;) int eventId,
-                                                  @Bind(&quot;search&quot;) String search);
+    @Query(&quot;select count(*) as total, count(*) filter (where t_status = 'CHECKED_IN') as checked_in &quot;
+            + &quot;from checkin_ticket_event_and_category_info where e_id = :eventId &quot;
+            + &quot;and (&quot;
+            + TicketSearchRepository.BASE_FILTER + &quot; or lower(tc_name) like lower(:search)) &quot;
+            + &quot;and (e_format = 'IN_PERSON' or tc_ticket_access_type = 'IN_PERSON') &quot;)
+    AttendeeSearchResultsCount countSearchResults(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;search&quot;) String search);
 
-    @Query(&quot;update ticket set status = 'CHECKED_IN', locked_assignment = true where uuid = :uuid and event_id = :eventId and status = 'ACQUIRED'&quot;)
+    @Query(
+            &quot;update ticket set status = 'CHECKED_IN', locked_assignment = true where uuid = :uuid and event_id = :eventId and status = 'ACQUIRED'&quot;)
     int performCheckIn(@Bind(&quot;uuid&quot;) String ticketUUID, @Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         select t.id as t_id, t.first_name as t_first_name, t.last_name as t_last_name, t.email_address as t_email_address, tc.name as tc_name from ticket t \
          join ticket_category tc on t.category_id = tc.id where t.event_id = :eventId and t.status in ('ACQUIRED', 'TO_BE_PAID', 'CHECKED_IN') and t.tags @&gt; ARRAY[ :tags ]::text[]\
         &quot;&quot;&quot;)
     List&lt;PollParticipant&gt; getTicketsForEventByTags(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;tags&quot;) List&lt;String&gt; tags);
 
-    @Query(&quot;select count(*) from ticket t where t.event_id = :eventId and t.status in (:statuses) and t.tags @&gt; ARRAY[ :tags ]::text[]&quot;)
-    Integer countTicketsMatchingTagsAndStatus(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;tags&quot;) List&lt;String&gt; tags, @Bind(&quot;statuses&quot;) Collection&lt;String&gt; statuses);
+    @Query(
+            &quot;select count(*) from ticket t where t.event_id = :eventId and t.status in (:statuses) and t.tags @&gt; ARRAY[ :tags ]::text[]&quot;)
+    Integer countTicketsMatchingTagsAndStatus(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;tags&quot;) List&lt;String&gt; tags,
+            @Bind(&quot;statuses&quot;) Collection&lt;String&gt; statuses);
 
     @Query(&quot;update ticket set tags = array_append(tags, :tag::text) where id in (:ticketIds) and event_id = :eventId&quot;)
     int tagTickets(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds, @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;tag&quot;) String tag);
@@ -500,29 +630,34 @@ public interface TicketRepository {
     @Query(&quot;update ticket set tags = array_remove(tags, :tag::text) where id in (:ticketIds) and event_id = :eventId&quot;)
     int untagTickets(@Bind(&quot;ticketIds&quot;) List&lt;Integer&gt; ticketIds, @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;tag&quot;) String tag);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         update ticket set subscription_id_fk = :subscriptionId from \
          (select id from ticket where tickets_reservation_id = :reservationId order by final_price_cts limit :limit) t\
          where ticket.id = t.id\
         &quot;&quot;&quot;)
-    int applySubscriptionToTicketsInReservation(@Bind(&quot;reservationId&quot;) String reservationId,
-                                                @Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
-                                                @Bind(&quot;limit&quot;) int limit);
+    int applySubscriptionToTicketsInReservation(
+            @Bind(&quot;reservationId&quot;) String reservationId,
+            @Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+            @Bind(&quot;limit&quot;) int limit);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         update ticket set subscription_id_fk = :subscriptionId from \
          (select id from ticket where tickets_reservation_id = :reservationId and category_id in (:categories) order by final_price_cts limit :limit) t\
          where ticket.id = t.id\
         &quot;&quot;&quot;)
-    int applySubscriptionToTicketsInReservation(@Bind(&quot;reservationId&quot;) String reservationId,
-                                                @Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
-                                                @Bind(&quot;categories&quot;) Collection&lt;Integer&gt; categories,
-                                                @Bind(&quot;limit&quot;) int limit);
+    int applySubscriptionToTicketsInReservation(
+            @Bind(&quot;reservationId&quot;) String reservationId,
+            @Bind(&quot;subscriptionId&quot;) UUID subscriptionId,
+            @Bind(&quot;categories&quot;) Collection&lt;Integer&gt; categories,
+            @Bind(&quot;limit&quot;) int limit);
 
     @Query(&quot;update ticket set subscription_id_fk = null where tickets_reservation_id = :reservationId&quot;)
     int removeSubscriptionFromTicketsInReservation(@Bind(&quot;reservationId&quot;) String reservationId);
 
-    @Query(&quot;select count(*) from ticket where subscription_id_fk = :subscriptionId and (:eventId is null or event_id = :eventId)&quot;)
+    @Query(
+            &quot;select count(*) from ticket where subscription_id_fk = :subscriptionId and (:eventId is null or event_id = :eventId)&quot;)
     Integer countSubscriptionUsage(@Bind(&quot;subscriptionId&quot;) UUID subscriptionId, @Bind(&quot;eventId&quot;) Integer eventId);
 
     @JSONData
@@ -530,28 +665,36 @@ public interface TicketRepository {
     TicketMetadataContainer getTicketMetadata(@Bind(&quot;ticketId&quot;) int ticketId);
 
     @Query(&quot;update ticket set metadata = :metadata::jsonb where id = :ticketId&quot;)
-    int updateTicketMetadata(@Bind(&quot;ticketId&quot;) int ticketId, @JSONData @Bind(&quot;metadata&quot;) TicketMetadataContainer ticketMetadataContainer);
+    int updateTicketMetadata(
+            @Bind(&quot;ticketId&quot;) int ticketId,
+            @JSONData @Bind(&quot;metadata&quot;) TicketMetadataContainer ticketMetadataContainer);
 
     @Query(&quot;update ticket set vat_status = :vatStatus::VAT_STATUS where tickets_reservation_id = :reservationId&quot;)
-    int updateVatStatusForReservation(@Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;vatStatus&quot;) @EnumTypeAsString PriceContainer.VatStatus vatStatus);
+    int updateVatStatusForReservation(
+            @Bind(&quot;reservationId&quot;) String reservationId,
+            @Bind(&quot;vatStatus&quot;) @EnumTypeAsString PriceContainer.VatStatus vatStatus);
 
     @Query(FIND_TICKETS_IN_RESERVATION)
-    List&lt;TicketWithMetadataAttributes&gt; findTicketsInReservationWithMetadata(@Bind(&quot;reservationId&quot;) String reservationId);
+    List&lt;TicketWithMetadataAttributes&gt; findTicketsInReservationWithMetadata(
+            @Bind(&quot;reservationId&quot;) String reservationId);
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
            select t.id from ticket t\
                join event e on t.event_id = e.id\
                join tickets_reservation tr on t.tickets_reservation_id = tr.id\
                join all_ticket_field_values tfv on t.id = tfv.ticket_id_fk\
             where e.short_name = :eventPublicIdentifier and tr.id = :reservationId\
            &quot;&quot;&quot;)
-    List&lt;Integer&gt; findTicketsWithAdditionalData(@Bind(&quot;reservationId&quot;) String reservationId,
-                                                @Bind(&quot;eventPublicIdentifier&quot;) String eventPublicIdentifier);
+    List&lt;Integer&gt; findTicketsWithAdditionalData(
+            @Bind(&quot;reservationId&quot;) String reservationId, @Bind(&quot;eventPublicIdentifier&quot;) String eventPublicIdentifier);
 
     @Query(&quot;select exists ( select id from ticket where uuid = :uuid and event_id = :eventId)&quot;)
     boolean isTicketInEvent(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;uuid&quot;) String uuid);
 
-    @Query(&quot;select count(*) from ticket where category_id = :categoryId and lower(email_address) = lower(:emailAddress)&quot;)
-    Integer countByEmailAddressAndCategory(@Bind(&quot;emailAddress&quot;) String emailAddress, @Bind(&quot;categoryId&quot;) int categoryId);
+    @Query(
+            &quot;select count(*) from ticket where category_id = :categoryId and lower(email_address) = lower(:emailAddress)&quot;)
+    Integer countByEmailAddressAndCategory(
+            @Bind(&quot;emailAddress&quot;) String emailAddress, @Bind(&quot;categoryId&quot;) int categoryId);
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

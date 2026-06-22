@@ -16,51 +16,50 @@
  */
 package alfio.extension;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 public class ConsoleLogger {
-<span class="fc" id="L26">    private static final Logger log = LoggerFactory.getLogger(ConsoleLogger.class);</span>
+<span class="fc" id="L25">    private static final Logger log = LoggerFactory.getLogger(ConsoleLogger.class);</span>
     private final ExtensionLogger extensionLogger;
 
-<span class="fc" id="L29">    public ConsoleLogger(ExtensionLogger extensionLogger) {</span>
-<span class="fc" id="L30">        this.extensionLogger = extensionLogger;</span>
-<span class="fc" id="L31">    }</span>
+<span class="fc" id="L28">    public ConsoleLogger(ExtensionLogger extensionLogger) {</span>
+<span class="fc" id="L29">        this.extensionLogger = extensionLogger;</span>
+<span class="fc" id="L30">    }</span>
 
     public void log(Object first, Object... others) {
-<span class="fc" id="L34">        var message = composeMessage(first, others);</span>
-<span class="fc" id="L35">        log.info(message);</span>
-<span class="fc" id="L36">        extensionLogger.logInfo(message);</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L33">        var message = composeMessage(first, others);</span>
+<span class="fc" id="L34">        log.info(message);</span>
+<span class="fc" id="L35">        extensionLogger.logInfo(message);</span>
+<span class="fc" id="L36">    }</span>
 
     public void warn(Object first, Object... others) {
-<span class="fc" id="L40">        var message = composeMessage(first, others);</span>
-<span class="fc" id="L41">        log.warn(message);</span>
-<span class="fc" id="L42">        extensionLogger.logWarning(message);</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L39">        var message = composeMessage(first, others);</span>
+<span class="fc" id="L40">        log.warn(message);</span>
+<span class="fc" id="L41">        extensionLogger.logWarning(message);</span>
+<span class="fc" id="L42">    }</span>
 
     public void error(Object first, Object... others) {
-<span class="nc" id="L46">        var message = composeMessage(first, others);</span>
-<span class="nc" id="L47">        log.error(message);</span>
-<span class="nc" id="L48">        extensionLogger.logError(message);</span>
-<span class="nc" id="L49">    }</span>
+<span class="nc" id="L45">        var message = composeMessage(first, others);</span>
+<span class="nc" id="L46">        log.error(message);</span>
+<span class="nc" id="L47">        extensionLogger.logError(message);</span>
+<span class="nc" id="L48">    }</span>
 
     private static String composeMessage(Object first, Object... others) {
-<span class="fc" id="L52">        String messageTemplate = &quot;%s&quot;;</span>
-<span class="fc" id="L53">        var parameterPlaceholders = &quot;&quot;;</span>
+<span class="fc" id="L51">        String messageTemplate = &quot;%s&quot;;</span>
+<span class="fc" id="L52">        var parameterPlaceholders = &quot;&quot;;</span>
         Object[] paramObjects;
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if(others != null) {</span>
-<span class="fc" id="L56">            parameterPlaceholders = &quot; %s&quot;.repeat(others.length);</span>
-<span class="fc" id="L57">            paramObjects = Stream.concat(Stream.of(first), Arrays.stream(others))</span>
-<span class="fc" id="L58">                .map(ExtensionUtils::unwrap)</span>
-<span class="fc" id="L59">                .toArray();</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (others != null) {</span>
+<span class="fc" id="L55">            parameterPlaceholders = &quot; %s&quot;.repeat(others.length);</span>
+<span class="fc" id="L56">            paramObjects = Stream.concat(Stream.of(first), Arrays.stream(others))</span>
+<span class="fc" id="L57">                    .map(ExtensionUtils::unwrap)</span>
+<span class="fc" id="L58">                    .toArray();</span>
         } else {
-<span class="nc" id="L61">            paramObjects = new Object[] {first};</span>
+<span class="nc" id="L60">            paramObjects = new Object[] {first};</span>
         }
-<span class="fc" id="L63">        return (messageTemplate + parameterPlaceholders).formatted(paramObjects);</span>
+<span class="fc" id="L62">        return (messageTemplate + parameterPlaceholders).formatted(paramObjects);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

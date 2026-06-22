@@ -16,6 +16,14 @@
  */
 package alfio.manager.support.reservation;
 
+import static alfio.model.BillingDocument.Type.INVOICE;
+import static alfio.model.BillingDocument.Type.RECEIPT;
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.ReservationUtil.reservationUrl;
+import static alfio.util.TemplateManager.METADATA_ATTRIBUTES_KEY;
+import static java.util.stream.Collectors.*;
+import static org.springframework.http.MediaType.APPLICATION_PDF;
+
 import alfio.controller.support.TemplateProcessor;
 import alfio.manager.BillingDocumentManager;
 import alfio.manager.ExtensionManager;
@@ -38,19 +46,10 @@ import alfio.repository.*;
 import alfio.repository.user.OrganizationRepository;
 import alfio.util.*;
 import alfio.util.checkin.TicketCheckInUtil;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.*;
-
-import static alfio.model.BillingDocument.Type.INVOICE;
-import static alfio.model.BillingDocument.Type.RECEIPT;
-import static alfio.model.system.ConfigurationKeys.*;
-import static alfio.util.ReservationUtil.reservationUrl;
-import static alfio.util.TemplateManager.METADATA_ATTRIBUTES_KEY;
-import static java.util.stream.Collectors.*;
-import static org.springframework.http.MediaType.APPLICATION_PDF;
 
 @Component
 public class ReservationEmailContentHelper {
@@ -71,281 +70,418 @@ public class ReservationEmailContentHelper {
     private final ExtensionManager extensionManager;
     private final EventRepository eventRepository;
 
+    public ReservationEmailContentHelper(
+            ConfigurationManager configurationManager,
+            NotificationManager notificationManager,
+            SubscriptionRepository subscriptionRepository,
+            MessageSourceManager messageSourceManager,
+            OrderSummaryGenerator orderSummaryGenerator,
+            TicketReservationRepository ticketReservationRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            PurchaseContextFieldRepository purchaseContextFieldRepository,
+            OrganizationRepository organizationRepository,
+            TicketRepository ticketRepository,
+            TemplateManager templateManager,
+            BillingDocumentManager billingDocumentManager,
+            ExtensionManager extensionManager,
+<span class="fc" id="L87">            EventRepository eventRepository) {</span>
+<span class="fc" id="L88">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L89">        this.notificationManager = notificationManager;</span>
+<span class="fc" id="L90">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="fc" id="L91">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L92">        this.orderSummaryGenerator = orderSummaryGenerator;</span>
+<span class="fc" id="L93">        this.ticketReservationRepository = ticketReservationRepository;</span>
+<span class="fc" id="L94">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L95">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
+<span class="fc" id="L96">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L97">        this.ticketRepository = ticketRepository;</span>
+<span class="fc" id="L98">        this.templateManager = templateManager;</span>
+<span class="fc" id="L99">        this.billingDocumentManager = billingDocumentManager;</span>
+<span class="fc" id="L100">        this.extensionManager = extensionManager;</span>
+<span class="fc" id="L101">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L102">    }</span>
 
-    public ReservationEmailContentHelper(ConfigurationManager configurationManager,
-                                         NotificationManager notificationManager,
-                                         SubscriptionRepository subscriptionRepository,
-                                         MessageSourceManager messageSourceManager,
-                                         OrderSummaryGenerator orderSummaryGenerator,
-                                         TicketReservationRepository ticketReservationRepository,
-                                         TicketCategoryRepository ticketCategoryRepository,
-                                         PurchaseContextFieldRepository purchaseContextFieldRepository,
-                                         OrganizationRepository organizationRepository,
-                                         TicketRepository ticketRepository,
-                                         TemplateManager templateManager,
-                                         BillingDocumentManager billingDocumentManager,
-                                         ExtensionManager extensionManager,
-<span class="fc" id="L88">                                         EventRepository eventRepository) {</span>
-<span class="fc" id="L89">        this.configurationManager = configurationManager;</span>
-<span class="fc" id="L90">        this.notificationManager = notificationManager;</span>
-<span class="fc" id="L91">        this.subscriptionRepository = subscriptionRepository;</span>
-<span class="fc" id="L92">        this.messageSourceManager = messageSourceManager;</span>
-<span class="fc" id="L93">        this.orderSummaryGenerator = orderSummaryGenerator;</span>
-<span class="fc" id="L94">        this.ticketReservationRepository = ticketReservationRepository;</span>
-<span class="fc" id="L95">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
-<span class="fc" id="L96">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
-<span class="fc" id="L97">        this.organizationRepository = organizationRepository;</span>
-<span class="fc" id="L98">        this.ticketRepository = ticketRepository;</span>
-<span class="fc" id="L99">        this.templateManager = templateManager;</span>
-<span class="fc" id="L100">        this.billingDocumentManager = billingDocumentManager;</span>
-<span class="fc" id="L101">        this.extensionManager = extensionManager;</span>
-<span class="fc" id="L102">        this.eventRepository = eventRepository;</span>
-<span class="fc" id="L103">    }</span>
-
-
-    public void sendConfirmationEmail(PurchaseContext purchaseContext, TicketReservation ticketReservation, Locale language, String username) {
-<span class="fc" id="L107">        String reservationId = ticketReservation.getId();</span>
-<span class="fc" id="L108">        checkIfFinalized(reservationId);</span>
-<span class="fc" id="L109">        OrderSummary summary = orderSummaryGenerator.orderSummaryForReservationId(reservationId, purchaseContext);</span>
+    public void sendConfirmationEmail(
+            PurchaseContext purchaseContext, TicketReservation ticketReservation, Locale language, String username) {
+<span class="fc" id="L106">        String reservationId = ticketReservation.getId();</span>
+<span class="fc" id="L107">        checkIfFinalized(reservationId);</span>
+<span class="fc" id="L108">        OrderSummary summary = orderSummaryGenerator.orderSummaryForReservationId(reservationId, purchaseContext);</span>
 
         List&lt;Mailer.Attachment&gt; attachments;
-<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (configurationManager.canAttachBillingDocumentToConfirmationEmail(purchaseContext)) { // https://github.com/alfio-event/alf.io/issues/573</span>
-<span class="fc" id="L113">            attachments = generateAttachmentForConfirmationEmail(purchaseContext, ticketReservation, language, summary, username);</span>
-        } else{
-<span class="fc" id="L115">            attachments = List.of();</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (configurationManager.canAttachBillingDocumentToConfirmationEmail(</span>
+                purchaseContext)) { // https://github.com/alfio-event/alf.io/issues/573
+<span class="fc" id="L113">            attachments = generateAttachmentForConfirmationEmail(</span>
+                    purchaseContext, ticketReservation, language, summary, username);
+        } else {
+<span class="fc" id="L116">            attachments = List.of();</span>
         }
-<span class="fc" id="L117">        var vat = getVAT(purchaseContext);</span>
+<span class="fc" id="L118">        var vat = getVAT(purchaseContext);</span>
 
-<span class="fc" id="L119">        List&lt;ConfirmationEmailConfiguration&gt; configurations = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.subscription)) {</span>
-<span class="fc" id="L121">            var firstSubscription = subscriptionRepository.findSubscriptionsByReservationId(reservationId).stream().findFirst().orElseThrow();</span>
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">            boolean sendSeparateEmailToOwner = !Objects.equals(firstSubscription.getEmail(), ticketReservation.getEmail());</span>
-<span class="fc" id="L123">            var metadata = Objects.requireNonNullElseGet(subscriptionRepository.getSubscriptionMetadata(firstSubscription.getId()), SubscriptionMetadata::empty);</span>
-<span class="fc" id="L124">            Map&lt;String, Object&gt; initialModel = Map.of(</span>
-<span class="fc" id="L125">                &quot;pin&quot;, firstSubscription.getPin(),</span>
-<span class="fc" id="L126">                &quot;subscriptionId&quot;, firstSubscription.getId(),</span>
-<span class="fc" id="L127">                &quot;includePin&quot;, metadata.getConfiguration().isDisplayPin(),</span>
-<span class="fc" id="L128">                &quot;fullName&quot;, firstSubscription.getFirstName() + &quot; &quot; + firstSubscription.getLastName(),</span>
-<span class="fc" id="L129">                METADATA_ATTRIBUTES_KEY, metadata.getProperties());</span>
-<span class="fc" id="L130">            var model = prepareModelForReservationEmail(purchaseContext, ticketReservation, vat, summary, List.of(), initialModel);</span>
-<span class="fc" id="L131">            var subscriptionAttachments = new ArrayList&lt;&gt;(attachments);</span>
-<span class="fc" id="L132">            var subscriptionAttachment = generateSubscriptionAttachment(firstSubscription);</span>
-<span class="fc" id="L133">            subscriptionAttachments.add(subscriptionAttachment);</span>
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">            configurations.add(new ConfirmationEmailConfiguration(TemplateResource.CONFIRMATION_EMAIL_SUBSCRIPTION, firstSubscription.getEmail(), model, sendSeparateEmailToOwner ? List.of(subscriptionAttachment) : subscriptionAttachments));</span>
-<span class="pc bpc" id="L135" title="1 of 2 branches missed.">            if(sendSeparateEmailToOwner) {</span>
-<span class="nc" id="L136">                var separateModel = new HashMap&lt;&gt;(model);</span>
-<span class="nc" id="L137">                separateModel.put(&quot;includePin&quot;, false);</span>
-<span class="nc" id="L138">                separateModel.put(&quot;fullName&quot;, ticketReservation.getFullName());</span>
-<span class="nc" id="L139">                configurations.add(new ConfirmationEmailConfiguration(TemplateResource.CONFIRMATION_EMAIL_SUBSCRIPTION, ticketReservation.getEmail(), separateModel, subscriptionAttachments));</span>
+<span class="fc" id="L120">        List&lt;ConfirmationEmailConfiguration&gt; configurations = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.subscription)) {</span>
+<span class="fc" id="L122">            var firstSubscription = subscriptionRepository.findSubscriptionsByReservationId(reservationId).stream()</span>
+<span class="fc" id="L123">                    .findFirst()</span>
+<span class="fc" id="L124">                    .orElseThrow();</span>
+<span class="fc" id="L125">            boolean sendSeparateEmailToOwner =</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">                    !Objects.equals(firstSubscription.getEmail(), ticketReservation.getEmail());</span>
+<span class="fc" id="L127">            var metadata = Objects.requireNonNullElseGet(</span>
+<span class="fc" id="L128">                    subscriptionRepository.getSubscriptionMetadata(firstSubscription.getId()),</span>
+                    SubscriptionMetadata::empty);
+<span class="fc" id="L130">            Map&lt;String, Object&gt; initialModel = Map.of(</span>
+                    &quot;pin&quot;,
+<span class="fc" id="L132">                    firstSubscription.getPin(),</span>
+                    &quot;subscriptionId&quot;,
+<span class="fc" id="L134">                    firstSubscription.getId(),</span>
+                    &quot;includePin&quot;,
+<span class="fc" id="L136">                    metadata.getConfiguration().isDisplayPin(),</span>
+                    &quot;fullName&quot;,
+<span class="fc" id="L138">                    firstSubscription.getFirstName() + &quot; &quot; + firstSubscription.getLastName(),</span>
+                    METADATA_ATTRIBUTES_KEY,
+<span class="fc" id="L140">                    metadata.getProperties());</span>
+<span class="fc" id="L141">            var model = prepareModelForReservationEmail(</span>
+<span class="fc" id="L142">                    purchaseContext, ticketReservation, vat, summary, List.of(), initialModel);</span>
+<span class="fc" id="L143">            var subscriptionAttachments = new ArrayList&lt;&gt;(attachments);</span>
+<span class="fc" id="L144">            var subscriptionAttachment = generateSubscriptionAttachment(firstSubscription);</span>
+<span class="fc" id="L145">            subscriptionAttachments.add(subscriptionAttachment);</span>
+<span class="fc" id="L146">            configurations.add(new ConfirmationEmailConfiguration(</span>
+                    TemplateResource.CONFIRMATION_EMAIL_SUBSCRIPTION,
+<span class="fc" id="L148">                    firstSubscription.getEmail(),</span>
+                    model,
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">                    sendSeparateEmailToOwner ? List.of(subscriptionAttachment) : subscriptionAttachments));</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">            if (sendSeparateEmailToOwner) {</span>
+<span class="nc" id="L152">                var separateModel = new HashMap&lt;&gt;(model);</span>
+<span class="nc" id="L153">                separateModel.put(&quot;includePin&quot;, false);</span>
+<span class="nc" id="L154">                separateModel.put(&quot;fullName&quot;, ticketReservation.getFullName());</span>
+<span class="nc" id="L155">                configurations.add(new ConfirmationEmailConfiguration(</span>
+                        TemplateResource.CONFIRMATION_EMAIL_SUBSCRIPTION,
+<span class="nc" id="L157">                        ticketReservation.getEmail(),</span>
+                        separateModel,
+                        subscriptionAttachments));
             }
-<span class="fc" id="L141">        } else {</span>
-<span class="fc" id="L142">            var model = prepareModelForReservationEmail(purchaseContext, ticketReservation, vat, summary, ticketRepository.findTicketsInReservation(ticketReservation.getId()), Map.of());</span>
-<span class="fc" id="L143">            configurations.add(new ConfirmationEmailConfiguration(TemplateResource.CONFIRMATION_EMAIL, ticketReservation.getEmail(), model, attachments));</span>
+<span class="fc" id="L161">        } else {</span>
+<span class="fc" id="L162">            var model = prepareModelForReservationEmail(</span>
+                    purchaseContext,
+                    ticketReservation,
+                    vat,
+                    summary,
+<span class="fc" id="L167">                    ticketRepository.findTicketsInReservation(ticketReservation.getId()),</span>
+<span class="fc" id="L168">                    Map.of());</span>
+<span class="fc" id="L169">            configurations.add(new ConfirmationEmailConfiguration(</span>
+<span class="fc" id="L170">                    TemplateResource.CONFIRMATION_EMAIL, ticketReservation.getEmail(), model, attachments));</span>
         }
 
-<span class="fc" id="L146">        var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
-<span class="fc" id="L147">        var localizedType = messageSource.getMessage(&quot;purchase-context.&quot;+purchaseContext.getType(), null, language);</span>
-<span class="fc" id="L148">        configurations.forEach(configuration -&gt; {</span>
-<span class="fc" id="L149">            notificationManager.sendSimpleEmail(purchaseContext, ticketReservation.getId(), configuration.getEmailAddress(), messageSource.getMessage(&quot;reservation-email-subject&quot;,</span>
-<span class="fc" id="L150">                    new Object[]{ configurationManager.getShortReservationID(purchaseContext, ticketReservation), purchaseContext.getTitle().get(language.getLanguage()), localizedType}, language),</span>
-<span class="fc" id="L151">                () -&gt; templateManager.renderTemplate(purchaseContext, configuration.getTemplateResource(), configuration.getModel(), language),</span>
-<span class="fc" id="L152">                configuration.getAttachments());</span>
-<span class="fc" id="L153">        });</span>
-<span class="fc" id="L154">    }</span>
+<span class="fc" id="L173">        var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
+<span class="fc" id="L174">        var localizedType = messageSource.getMessage(&quot;purchase-context.&quot; + purchaseContext.getType(), null, language);</span>
+<span class="fc" id="L175">        configurations.forEach(configuration -&gt; {</span>
+<span class="fc" id="L176">            notificationManager.sendSimpleEmail(</span>
+                    purchaseContext,
+<span class="fc" id="L178">                    ticketReservation.getId(),</span>
+<span class="fc" id="L179">                    configuration.getEmailAddress(),</span>
+<span class="fc" id="L180">                    messageSource.getMessage(</span>
+                            &quot;reservation-email-subject&quot;,
+                            new Object[] {
+<span class="fc" id="L183">                                configurationManager.getShortReservationID(purchaseContext, ticketReservation),</span>
+<span class="fc" id="L184">                                purchaseContext.getTitle().get(language.getLanguage()),</span>
+                                localizedType
+                            },
+                            language),
+<span class="fc" id="L188">                    () -&gt; templateManager.renderTemplate(</span>
+<span class="fc" id="L189">                            purchaseContext, configuration.getTemplateResource(), configuration.getModel(), language),</span>
+<span class="fc" id="L190">                    configuration.getAttachments());</span>
+<span class="fc" id="L191">        });</span>
+<span class="fc" id="L192">    }</span>
 
     private Mailer.Attachment generateSubscriptionAttachment(Subscription subscription) {
-<span class="fc" id="L157">        var model = new HashMap&lt;String, String&gt;();</span>
-<span class="fc" id="L158">        model.put(&quot;subscriptionId&quot;, subscription.getId().toString());</span>
-<span class="fc" id="L159">        return new Mailer.Attachment(&quot;subscription_&quot; + subscription.getId() + &quot;.pdf&quot;, null, APPLICATION_PDF.toString(), model, Mailer.AttachmentIdentifier.SUBSCRIPTION_PDF);</span>
+<span class="fc" id="L195">        var model = new HashMap&lt;String, String&gt;();</span>
+<span class="fc" id="L196">        model.put(&quot;subscriptionId&quot;, subscription.getId().toString());</span>
+<span class="fc" id="L197">        return new Mailer.Attachment(</span>
+<span class="fc" id="L198">                &quot;subscription_&quot; + subscription.getId() + &quot;.pdf&quot;,</span>
+                null,
+<span class="fc" id="L200">                APPLICATION_PDF.toString(),</span>
+                model,
+                Mailer.AttachmentIdentifier.SUBSCRIPTION_PDF);
     }
 
-    private List&lt;Mailer.Attachment&gt; generateAttachmentForConfirmationEmail(PurchaseContext purchaseContext,
-                                                                           TicketReservation ticketReservation,
-                                                                           Locale language,
-                                                                           OrderSummary summary,
-                                                                           String username) {
-<span class="fc bfc" id="L167" title="All 2 branches covered.">        if(mustGenerateBillingDocument(summary, ticketReservation)) { //#459 - include PDF invoice in reservation email</span>
-<span class="fc bfc" id="L168" title="All 2 branches covered.">            BillingDocument.Type type = ticketReservation.getHasInvoiceNumber() ? INVOICE : RECEIPT;</span>
-<span class="fc" id="L169">            return billingDocumentManager.generateBillingDocumentAttachment(purchaseContext, ticketReservation, language, type, username, summary);</span>
+    private List&lt;Mailer.Attachment&gt; generateAttachmentForConfirmationEmail(
+            PurchaseContext purchaseContext,
+            TicketReservation ticketReservation,
+            Locale language,
+            OrderSummary summary,
+            String username) {
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        if (mustGenerateBillingDocument(</span>
+                summary, ticketReservation)) { // #459 - include PDF invoice in reservation email
+<span class="fc bfc" id="L213" title="All 2 branches covered.">            BillingDocument.Type type = ticketReservation.getHasInvoiceNumber() ? INVOICE : RECEIPT;</span>
+<span class="fc" id="L214">            return billingDocumentManager.generateBillingDocumentAttachment(</span>
+                    purchaseContext, ticketReservation, language, type, username, summary);
         }
-<span class="fc" id="L171">        return List.of();</span>
+<span class="fc" id="L217">        return List.of();</span>
     }
 
-    public void sendReservationCompleteEmailToOrganizer(PurchaseContext purchaseContext, TicketReservation ticketReservation, Locale language, String username) {
-<span class="fc" id="L175">        String reservationId = ticketReservation.getId();</span>
+    public void sendReservationCompleteEmailToOrganizer(
+            PurchaseContext purchaseContext, TicketReservation ticketReservation, Locale language, String username) {
+<span class="fc" id="L222">        String reservationId = ticketReservation.getId();</span>
 
-<span class="fc" id="L177">        checkIfFinalized(reservationId);</span>
+<span class="fc" id="L224">        checkIfFinalized(reservationId);</span>
 
-<span class="fc" id="L179">        Organization organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
-<span class="fc" id="L180">        List&lt;String&gt; cc = notificationManager.getCCForEventOrganizer(purchaseContext);</span>
+<span class="fc" id="L226">        Organization organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
+<span class="fc" id="L227">        List&lt;String&gt; cc = notificationManager.getCCForEventOrganizer(purchaseContext);</span>
 
-<span class="fc" id="L182">        Map&lt;String, Object&gt; reservationEmailModel = prepareModelForReservationEmail(purchaseContext, ticketReservation);</span>
+<span class="fc" id="L229">        Map&lt;String, Object&gt; reservationEmailModel = prepareModelForReservationEmail(purchaseContext, ticketReservation);</span>
 
-<span class="fc" id="L184">        OrderSummary summary = orderSummaryGenerator.orderSummaryForReservationId(reservationId, purchaseContext);</span>
+<span class="fc" id="L231">        OrderSummary summary = orderSummaryGenerator.orderSummaryForReservationId(reservationId, purchaseContext);</span>
 
-<span class="fc" id="L186">        List&lt;Mailer.Attachment&gt; attachments = Collections.emptyList();</span>
+<span class="fc" id="L233">        List&lt;Mailer.Attachment&gt; attachments = Collections.emptyList();</span>
 
-<span class="fc bfc" id="L188" title="All 4 branches covered.">        if (!configurationManager.canGenerateReceiptOrInvoiceToCustomer(purchaseContext) || configurationManager.isInvoiceOnly(purchaseContext)) { // https://github.com/alfio-event/alf.io/issues/573</span>
-<span class="fc" id="L189">            attachments = generateAttachmentForConfirmationEmail(purchaseContext, ticketReservation, language, summary, username);</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        if (!configurationManager.canGenerateReceiptOrInvoiceToCustomer(purchaseContext)</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">                || configurationManager.isInvoiceOnly(</span>
+                        purchaseContext)) { // https://github.com/alfio-event/alf.io/issues/573
+<span class="fc" id="L238">            attachments = generateAttachmentForConfirmationEmail(</span>
+                    purchaseContext, ticketReservation, language, summary, username);
         }
 
-<span class="pc bpc" id="L192" title="1 of 2 branches missed.">        if(configurationManager.isNotifyOrganizerOnReservationEnabled(purchaseContext)){</span>
-<span class="fc" id="L193">            String shortReservationID = configurationManager.getShortReservationID(purchaseContext, ticketReservation);</span>
-<span class="fc" id="L194">            notificationManager.sendSimpleEmail(purchaseContext, null, organization.getEmail(), cc, &quot;Reservation complete &quot; + shortReservationID,</span>
-<span class="fc" id="L195">                () -&gt; templateManager.renderTemplate(purchaseContext, TemplateResource.CONFIRMATION_EMAIL_FOR_ORGANIZER, reservationEmailModel, language),</span>
-                attachments);
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">        if (configurationManager.isNotifyOrganizerOnReservationEnabled(purchaseContext)) {</span>
+<span class="fc" id="L243">            String shortReservationID = configurationManager.getShortReservationID(purchaseContext, ticketReservation);</span>
+<span class="fc" id="L244">            notificationManager.sendSimpleEmail(</span>
+                    purchaseContext,
+                    null,
+<span class="fc" id="L247">                    organization.getEmail(),</span>
+                    cc,
+                    &quot;Reservation complete &quot; + shortReservationID,
+<span class="fc" id="L250">                    () -&gt; templateManager.renderTemplate(</span>
+                            purchaseContext,
+                            TemplateResource.CONFIRMATION_EMAIL_FOR_ORGANIZER,
+                            reservationEmailModel,
+                            language),
+                    attachments);
         }
-<span class="fc" id="L198">    }</span>
+<span class="fc" id="L257">    }</span>
 
     private static boolean mustGenerateBillingDocument(OrderSummary summary, TicketReservation ticketReservation) {
-<span class="fc bfc" id="L201" title="All 8 branches covered.">        return !summary.getFree() &amp;&amp; (!summary.getNotYetPaid() || (summary.getWaitingForPayment() &amp;&amp; ticketReservation.isInvoiceRequested()));</span>
+<span class="fc bfc" id="L260" title="All 2 branches covered.">        return !summary.getFree()</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">                &amp;&amp; (!summary.getNotYetPaid()</span>
+<span class="fc bfc" id="L262" title="All 4 branches covered.">                        || (summary.getWaitingForPayment() &amp;&amp; ticketReservation.isInvoiceRequested()));</span>
     }
 
-    public List&lt;Mailer.Attachment&gt; generateBillingDocumentAttachment(PurchaseContext purchaseContext,
-                                                                      TicketReservation ticketReservation,
-                                                                      Locale language,
-                                                                      Map&lt;String, Object&gt; billingDocumentModel,
-                                                                      BillingDocument.Type documentType) {
-<span class="nc" id="L209">        Map&lt;String, String&gt; model = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L210">        model.put(RESERVATION_ID, ticketReservation.getId());</span>
-<span class="nc" id="L211">        purchaseContext.event().ifPresent(event -&gt; model.put(&quot;eventId&quot;, Integer.toString(event.getId())));</span>
-<span class="nc" id="L212">        model.put(&quot;language&quot;, Json.toJson(language));</span>
-<span class="nc" id="L213">        model.put(&quot;reservationEmailModel&quot;, Json.toJson(billingDocumentModel));//ticketReservation.getHasInvoiceNumber()</span>
-<span class="nc bnc" id="L214" title="All 4 branches missed.">        return switch (documentType) {</span>
-            case INVOICE -&gt;
-<span class="nc" id="L216">                Collections.singletonList(new Mailer.Attachment(&quot;invoice.pdf&quot;, null, APPLICATION_PDF.getType(), model, Mailer.AttachmentIdentifier.INVOICE_PDF));</span>
-            case RECEIPT -&gt;
-<span class="nc" id="L218">                Collections.singletonList(new Mailer.Attachment(&quot;receipt.pdf&quot;, null, APPLICATION_PDF.getType(), model, Mailer.AttachmentIdentifier.RECEIPT_PDF));</span>
-            case CREDIT_NOTE -&gt;
-<span class="nc" id="L220">                Collections.singletonList(new Mailer.Attachment(&quot;credit-note.pdf&quot;, null, APPLICATION_PDF.getType(), model, Mailer.AttachmentIdentifier.CREDIT_NOTE_PDF));</span>
-<span class="nc" id="L221">            default -&gt; throw new IllegalStateException(documentType + &quot; is not supported&quot;);</span>
+    public List&lt;Mailer.Attachment&gt; generateBillingDocumentAttachment(
+            PurchaseContext purchaseContext,
+            TicketReservation ticketReservation,
+            Locale language,
+            Map&lt;String, Object&gt; billingDocumentModel,
+            BillingDocument.Type documentType) {
+<span class="nc" id="L271">        Map&lt;String, String&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L272">        model.put(RESERVATION_ID, ticketReservation.getId());</span>
+<span class="nc" id="L273">        purchaseContext.event().ifPresent(event -&gt; model.put(&quot;eventId&quot;, Integer.toString(event.getId())));</span>
+<span class="nc" id="L274">        model.put(&quot;language&quot;, Json.toJson(language));</span>
+<span class="nc" id="L275">        model.put(</span>
+<span class="nc" id="L276">                &quot;reservationEmailModel&quot;, Json.toJson(billingDocumentModel)); // ticketReservation.getHasInvoiceNumber()</span>
+<span class="nc bnc" id="L277" title="All 4 branches missed.">        return switch (documentType) {</span>
+<span class="nc" id="L278">            case INVOICE -&gt; Collections.singletonList(new Mailer.Attachment(</span>
+<span class="nc" id="L279">                    &quot;invoice.pdf&quot;, null, APPLICATION_PDF.getType(), model, Mailer.AttachmentIdentifier.INVOICE_PDF));</span>
+<span class="nc" id="L280">            case RECEIPT -&gt; Collections.singletonList(new Mailer.Attachment(</span>
+<span class="nc" id="L281">                    &quot;receipt.pdf&quot;, null, APPLICATION_PDF.getType(), model, Mailer.AttachmentIdentifier.RECEIPT_PDF));</span>
+<span class="nc" id="L282">            case CREDIT_NOTE -&gt; Collections.singletonList(new Mailer.Attachment(</span>
+                    &quot;credit-note.pdf&quot;,
+                    null,
+<span class="nc" id="L285">                    APPLICATION_PDF.getType(),</span>
+                    model,
+                    Mailer.AttachmentIdentifier.CREDIT_NOTE_PDF));
+<span class="nc" id="L288">            default -&gt; throw new IllegalStateException(documentType + &quot; is not supported&quot;);</span>
         };
     }
 
-    public String getReservationEmailSubject(PurchaseContext purchaseContext, Locale reservationLanguage, String key, String id) {
-<span class="fc" id="L226">        return messageSourceManager.getMessageSourceFor(purchaseContext)</span>
-<span class="fc" id="L227">            .getMessage(key, new Object[]{id, purchaseContext.getDisplayName()}, reservationLanguage);</span>
+    public String getReservationEmailSubject(
+            PurchaseContext purchaseContext, Locale reservationLanguage, String key, String id) {
+<span class="fc" id="L294">        return messageSourceManager</span>
+<span class="fc" id="L295">                .getMessageSourceFor(purchaseContext)</span>
+<span class="fc" id="L296">                .getMessage(key, new Object[] {id, purchaseContext.getDisplayName()}, reservationLanguage);</span>
     }
 
-    public Map&lt;String, Object&gt; prepareModelForReservationEmail(PurchaseContext purchaseContext,
-                                                               TicketReservation reservation,
-                                                               Optional&lt;String&gt; vat,
-                                                               OrderSummary summary,
-                                                               List&lt;Ticket&gt; ticketsToInclude,
-                                                               Map&lt;String, Object&gt; initialOptions) {
-<span class="fc" id="L236">        Organization organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
-<span class="fc" id="L237">        String baseUrl = configurationManager.baseUrl(purchaseContext);</span>
-<span class="fc" id="L238">        var reservationId = reservation.getId();</span>
-<span class="fc" id="L239">        String reservationUrl = reservationUrl(reservation, purchaseContext, configurationManager);</span>
-<span class="fc" id="L240">        String reservationShortID = configurationManager.getShortReservationID(purchaseContext, reservation);</span>
+    public Map&lt;String, Object&gt; prepareModelForReservationEmail(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            Optional&lt;String&gt; vat,
+            OrderSummary summary,
+            List&lt;Ticket&gt; ticketsToInclude,
+            Map&lt;String, Object&gt; initialOptions) {
+<span class="fc" id="L306">        Organization organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
+<span class="fc" id="L307">        String baseUrl = configurationManager.baseUrl(purchaseContext);</span>
+<span class="fc" id="L308">        var reservationId = reservation.getId();</span>
+<span class="fc" id="L309">        String reservationUrl = reservationUrl(reservation, purchaseContext, configurationManager);</span>
+<span class="fc" id="L310">        String reservationShortID = configurationManager.getShortReservationID(purchaseContext, reservation);</span>
 
-<span class="fc" id="L242">        var bankingInfo = configurationManager.getFor(Set.of(INVOICE_ADDRESS, BANK_ACCOUNT_NR, BANK_ACCOUNT_OWNER), ConfigurationLevel.purchaseContext(purchaseContext));</span>
-<span class="fc" id="L243">        Optional&lt;String&gt; invoiceAddress = bankingInfo.get(INVOICE_ADDRESS).getValue();</span>
-<span class="fc" id="L244">        Optional&lt;String&gt; bankAccountNr = bankingInfo.get(BANK_ACCOUNT_NR).getValue();</span>
-<span class="fc" id="L245">        Optional&lt;String&gt; bankAccountOwner = bankingInfo.get(BANK_ACCOUNT_OWNER).getValue();</span>
+<span class="fc" id="L312">        var bankingInfo = configurationManager.getFor(</span>
+<span class="fc" id="L313">                Set.of(INVOICE_ADDRESS, BANK_ACCOUNT_NR, BANK_ACCOUNT_OWNER),</span>
+<span class="fc" id="L314">                ConfigurationLevel.purchaseContext(purchaseContext));</span>
+<span class="fc" id="L315">        Optional&lt;String&gt; invoiceAddress = bankingInfo.get(INVOICE_ADDRESS).getValue();</span>
+<span class="fc" id="L316">        Optional&lt;String&gt; bankAccountNr = bankingInfo.get(BANK_ACCOUNT_NR).getValue();</span>
+<span class="fc" id="L317">        Optional&lt;String&gt; bankAccountOwner = bankingInfo.get(BANK_ACCOUNT_OWNER).getValue();</span>
 
-<span class="fc" id="L247">        Map&lt;Integer, List&lt;Ticket&gt;&gt; ticketsByCategory = ticketsToInclude</span>
-<span class="fc" id="L248">            .stream()</span>
-<span class="fc" id="L249">            .collect(groupingBy(Ticket::getCategoryId));</span>
-<span class="fc" id="L250">        final List&lt;TicketWithCategory&gt; ticketsWithCategory = ReservationUtil.collectTicketsWithCategory(ticketsByCategory, ticketCategoryRepository);</span>
-<span class="fc" id="L251">        Map&lt;String, Object&gt; baseModel = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L252">        baseModel.putAll(initialOptions);</span>
-<span class="fc" id="L253">        baseModel.putAll(extensionManager.handleReservationEmailCustomText(purchaseContext, reservation, ticketReservationRepository.getAdditionalInfo(reservationId))</span>
-<span class="fc" id="L254">            .map(CustomEmailText::toMap)</span>
-<span class="fc" id="L255">            .orElse(Map.of()));</span>
-<span class="fc" id="L256">        Map&lt;String, Object&gt; model = TemplateResource.prepareModelForConfirmationEmail(organization, purchaseContext, reservation, vat, ticketsWithCategory, summary, baseUrl, reservationUrl, reservationShortID, invoiceAddress, bankAccountNr, bankAccountOwner, baseModel);</span>
-<span class="fc bfc" id="L257" title="All 4 branches covered.">        boolean euBusiness = StringUtils.isNotBlank(reservation.getVatCountryCode()) &amp;&amp; StringUtils.isNotBlank(reservation.getVatNr())</span>
-<span class="fc bfc" id="L258" title="All 2 branches covered.">            &amp;&amp; configurationManager.getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST).getRequiredValue().contains(reservation.getVatCountryCode())</span>
-<span class="pc bpc" id="L259" title="1 of 2 branches missed.">            &amp;&amp; PriceContainer.VatStatus.isVatExempt(reservation.getVatStatus());</span>
-<span class="fc" id="L260">        model.put(&quot;euBusiness&quot;, euBusiness);</span>
-<span class="fc" id="L261">        model.put(&quot;publicId&quot;, configurationManager.getPublicReservationID(purchaseContext, reservation));</span>
-<span class="fc" id="L262">        model.put(&quot;invoicingAdditionalInfo&quot;, ticketReservationRepository.getAdditionalInfo(reservationId).getInvoicingAdditionalInfo());</span>
-<span class="fc bfc" id="L263" title="All 2 branches covered.">        if(purchaseContext.getType() == PurchaseContext.PurchaseContextType.event) {</span>
-<span class="fc" id="L264">            var event = purchaseContext.event().orElseThrow();</span>
-<span class="fc" id="L265">            model.put(&quot;displayLocation&quot;, ticketsWithCategory.stream()</span>
-<span class="fc" id="L266">                .noneMatch(tc -&gt; EventUtil.isAccessOnline(tc.category(), event)));</span>
-<span class="fc" id="L267">        } else {</span>
-<span class="fc" id="L268">            model.put(&quot;displayLocation&quot;, false);</span>
+<span class="fc" id="L319">        Map&lt;Integer, List&lt;Ticket&gt;&gt; ticketsByCategory =</span>
+<span class="fc" id="L320">                ticketsToInclude.stream().collect(groupingBy(Ticket::getCategoryId));</span>
+<span class="fc" id="L321">        final List&lt;TicketWithCategory&gt; ticketsWithCategory =</span>
+<span class="fc" id="L322">                ReservationUtil.collectTicketsWithCategory(ticketsByCategory, ticketCategoryRepository);</span>
+<span class="fc" id="L323">        Map&lt;String, Object&gt; baseModel = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L324">        baseModel.putAll(initialOptions);</span>
+<span class="fc" id="L325">        baseModel.putAll(extensionManager</span>
+<span class="fc" id="L326">                .handleReservationEmailCustomText(</span>
+<span class="fc" id="L327">                        purchaseContext, reservation, ticketReservationRepository.getAdditionalInfo(reservationId))</span>
+<span class="fc" id="L328">                .map(CustomEmailText::toMap)</span>
+<span class="fc" id="L329">                .orElse(Map.of()));</span>
+<span class="fc" id="L330">        Map&lt;String, Object&gt; model = TemplateResource.prepareModelForConfirmationEmail(</span>
+                organization,
+                purchaseContext,
+                reservation,
+                vat,
+                ticketsWithCategory,
+                summary,
+                baseUrl,
+                reservationUrl,
+                reservationShortID,
+                invoiceAddress,
+                bankAccountNr,
+                bankAccountOwner,
+                baseModel);
+<span class="fc bfc" id="L344" title="All 2 branches covered.">        boolean euBusiness = StringUtils.isNotBlank(reservation.getVatCountryCode())</span>
+<span class="fc bfc" id="L345" title="All 2 branches covered.">                &amp;&amp; StringUtils.isNotBlank(reservation.getVatNr())</span>
+                &amp;&amp; configurationManager
+<span class="fc" id="L347">                        .getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST)</span>
+<span class="fc" id="L348">                        .getRequiredValue()</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">                        .contains(reservation.getVatCountryCode())</span>
+<span class="pc bpc" id="L350" title="1 of 2 branches missed.">                &amp;&amp; PriceContainer.VatStatus.isVatExempt(reservation.getVatStatus());</span>
+<span class="fc" id="L351">        model.put(&quot;euBusiness&quot;, euBusiness);</span>
+<span class="fc" id="L352">        model.put(&quot;publicId&quot;, configurationManager.getPublicReservationID(purchaseContext, reservation));</span>
+<span class="fc" id="L353">        model.put(</span>
+                &quot;invoicingAdditionalInfo&quot;,
+<span class="fc" id="L355">                ticketReservationRepository.getAdditionalInfo(reservationId).getInvoicingAdditionalInfo());</span>
+<span class="fc bfc" id="L356" title="All 2 branches covered.">        if (purchaseContext.getType() == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="fc" id="L357">            var event = purchaseContext.event().orElseThrow();</span>
+<span class="fc" id="L358">            model.put(</span>
+                    &quot;displayLocation&quot;,
+<span class="fc" id="L360">                    ticketsWithCategory.stream().noneMatch(tc -&gt; EventUtil.isAccessOnline(tc.category(), event)));</span>
+<span class="fc" id="L361">        } else {</span>
+<span class="fc" id="L362">            model.put(&quot;displayLocation&quot;, false);</span>
         }
-<span class="fc bfc" id="L270" title="All 2 branches covered.">        if(ticketReservationRepository.hasSubscriptionApplied(reservationId)) {</span>
-<span class="fc" id="L271">            model.put(&quot;displaySubscriptionUsage&quot;, true);</span>
-<span class="fc" id="L272">            var subscription = subscriptionRepository.findAppliedSubscriptionByReservationId(reservationId).orElseThrow();</span>
-<span class="pc bpc" id="L273" title="1 of 2 branches missed.">            if(subscription.getMaxEntries() &gt; -1) {</span>
-<span class="fc" id="L274">                var subscriptionUsageDetails = UsageDetails.fromSubscription(subscription, ticketRepository.countSubscriptionUsage(subscription.getId(), null));</span>
-<span class="fc" id="L275">                model.put(&quot;subscriptionUsageDetails&quot;, subscriptionUsageDetails);</span>
-<span class="fc" id="L276">                model.put(&quot;subscriptionUrl&quot;, reservationUrl(reservation, purchaseContext, configurationManager));</span>
+<span class="fc bfc" id="L364" title="All 2 branches covered.">        if (ticketReservationRepository.hasSubscriptionApplied(reservationId)) {</span>
+<span class="fc" id="L365">            model.put(&quot;displaySubscriptionUsage&quot;, true);</span>
+<span class="fc" id="L366">            var subscription = subscriptionRepository</span>
+<span class="fc" id="L367">                    .findAppliedSubscriptionByReservationId(reservationId)</span>
+<span class="fc" id="L368">                    .orElseThrow();</span>
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">            if (subscription.getMaxEntries() &gt; -1) {</span>
+<span class="fc" id="L370">                var subscriptionUsageDetails = UsageDetails.fromSubscription(</span>
+<span class="fc" id="L371">                        subscription, ticketRepository.countSubscriptionUsage(subscription.getId(), null));</span>
+<span class="fc" id="L372">                model.put(&quot;subscriptionUsageDetails&quot;, subscriptionUsageDetails);</span>
+<span class="fc" id="L373">                model.put(&quot;subscriptionUrl&quot;, reservationUrl(reservation, purchaseContext, configurationManager));</span>
             }
         }
-<span class="fc" id="L279">        return model;</span>
+<span class="fc" id="L376">        return model;</span>
     }
 
-    public void sendTicketByEmail(Ticket ticket, Locale locale, Event event, PartialTicketTextGenerator confirmationTextBuilder) {
-<span class="fc" id="L283">        TicketReservation reservation = ticketReservationRepository.findReservationById(ticket.getTicketsReservationId());</span>
-<span class="fc" id="L284">        checkIfFinalized(reservation.getId());</span>
-<span class="fc" id="L285">        TicketCategory ticketCategory = ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), event.getId());</span>
-<span class="pc" id="L286">        notificationManager.sendTicketByEmail(ticket, event, locale, confirmationTextBuilder, reservation, ticketCategory, () -&gt; retrieveAttendeeAdditionalInfoForTicket(ticket));</span>
-<span class="fc" id="L287">    }</span>
+    public void sendTicketByEmail(
+            Ticket ticket, Locale locale, Event event, PartialTicketTextGenerator confirmationTextBuilder) {
+<span class="fc" id="L381">        TicketReservation reservation =</span>
+<span class="fc" id="L382">                ticketReservationRepository.findReservationById(ticket.getTicketsReservationId());</span>
+<span class="fc" id="L383">        checkIfFinalized(reservation.getId());</span>
+<span class="fc" id="L384">        TicketCategory ticketCategory =</span>
+<span class="fc" id="L385">                ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), event.getId());</span>
+<span class="fc" id="L386">        notificationManager.sendTicketByEmail(</span>
+                ticket,
+                event,
+                locale,
+                confirmationTextBuilder,
+                reservation,
+                ticketCategory,
+<span class="nc" id="L393">                () -&gt; retrieveAttendeeAdditionalInfoForTicket(ticket));</span>
+<span class="fc" id="L394">    }</span>
 
     private void checkIfFinalized(String reservationId) {
-<span class="pc bpc" id="L290" title="1 of 2 branches missed.">        if (!Boolean.TRUE.equals(ticketReservationRepository.checkIfFinalized(reservationId))) {</span>
-<span class="nc" id="L291">            throw new IncompatibleStateException(&quot;Reservation was confirmed but not finalized yet. Cannot send emails.&quot;);</span>
+<span class="pc bpc" id="L397" title="1 of 2 branches missed.">        if (!Boolean.TRUE.equals(ticketReservationRepository.checkIfFinalized(reservationId))) {</span>
+<span class="nc" id="L398">            throw new IncompatibleStateException(</span>
+                    &quot;Reservation was confirmed but not finalized yet. Cannot send emails.&quot;);
         }
-<span class="fc" id="L293">    }</span>
+<span class="fc" id="L401">    }</span>
 
     public Map&lt;String, List&lt;String&gt;&gt; retrieveAttendeeAdditionalInfoForTicket(Ticket ticket) {
-<span class="fc" id="L296">        return purchaseContextFieldRepository.findNameAndValue(ticket.getId())</span>
-<span class="fc" id="L297">            .stream()</span>
-<span class="fc" id="L298">            .collect(groupingBy(FieldNameAndValue::getName, mapping(FieldNameAndValue::getValue, toList())));</span>
+<span class="fc" id="L404">        return purchaseContextFieldRepository.findNameAndValue(ticket.getId()).stream()</span>
+<span class="fc" id="L405">                .collect(groupingBy(FieldNameAndValue::getName, mapping(FieldNameAndValue::getValue, toList())));</span>
     }
 
     public Map&lt;String, List&lt;String&gt;&gt; retrieveAttendeeAdditionalInfoForSubscription(UUID subscriptionId) {
-<span class="fc" id="L302">        return purchaseContextFieldRepository.findNameAndValue(subscriptionId)</span>
-<span class="fc" id="L303">            .stream()</span>
-<span class="fc" id="L304">            .collect(groupingBy(FieldNameAndValue::getName, mapping(FieldNameAndValue::getValue, toList())));</span>
+<span class="fc" id="L409">        return purchaseContextFieldRepository.findNameAndValue(subscriptionId).stream()</span>
+<span class="fc" id="L410">                .collect(groupingBy(FieldNameAndValue::getName, mapping(FieldNameAndValue::getValue, toList())));</span>
     }
 
-    public PartialTicketTextGenerator getTicketEmailGenerator(Event event,
-                                                              TicketReservation ticketReservation,
-                                                              Locale ticketLanguage,
-                                                              Map&lt;String, List&lt;String&gt;&gt; additionalInfo) {
-<span class="fc" id="L311">        return ticket -&gt; {</span>
-<span class="fc" id="L312">            Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="fc" id="L313">            String ticketUrl = ReservationUtil.ticketUpdateUrl(event, ticket, configurationManager);</span>
-<span class="fc" id="L314">            var ticketCategory = ticketCategoryRepository.getById(ticket.getCategoryId());</span>
+    public PartialTicketTextGenerator getTicketEmailGenerator(
+            Event event,
+            TicketReservation ticketReservation,
+            Locale ticketLanguage,
+            Map&lt;String, List&lt;String&gt;&gt; additionalInfo) {
+<span class="fc" id="L418">        return ticket -&gt; {</span>
+<span class="fc" id="L419">            Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L420">            String ticketUrl = ReservationUtil.ticketUpdateUrl(event, ticket, configurationManager);</span>
+<span class="fc" id="L421">            var ticketCategory = ticketCategoryRepository.getById(ticket.getCategoryId());</span>
 
-<span class="fc" id="L316">            var initialModel = new HashMap&lt;&gt;(extensionManager.handleTicketEmailCustomText(event, ticketReservation, ticketReservationRepository.getAdditionalInfo(ticketReservation.getId()), purchaseContextFieldRepository.findAllByTicketId(ticket.getId()))</span>
-<span class="fc" id="L317">                .map(CustomEmailText::toMap)</span>
-<span class="fc" id="L318">                .orElse(Map.of()));</span>
-<span class="fc bfc" id="L319" title="All 2 branches covered.">            if(EventUtil.isAccessOnline(ticketCategory, event)) {</span>
-<span class="fc" id="L320">                initialModel.putAll(TicketCheckInUtil.getOnlineCheckInInfo(</span>
-                    extensionManager,
-                    eventRepository,
-                    ticketCategoryRepository,
-                    configurationManager,
-                    event,
-                    ticketLanguage,
-                    ticket,
-                    ticketCategory,
-                    additionalInfo
-                ));
+<span class="fc" id="L423">            var initialModel = new HashMap&lt;&gt;(extensionManager</span>
+<span class="fc" id="L424">                    .handleTicketEmailCustomText(</span>
+                            event,
+                            ticketReservation,
+<span class="fc" id="L427">                            ticketReservationRepository.getAdditionalInfo(ticketReservation.getId()),</span>
+<span class="fc" id="L428">                            purchaseContextFieldRepository.findAllByTicketId(ticket.getId()))</span>
+<span class="fc" id="L429">                    .map(CustomEmailText::toMap)</span>
+<span class="fc" id="L430">                    .orElse(Map.of()));</span>
+<span class="fc bfc" id="L431" title="All 2 branches covered.">            if (EventUtil.isAccessOnline(ticketCategory, event)) {</span>
+<span class="fc" id="L432">                initialModel.putAll(TicketCheckInUtil.getOnlineCheckInInfo(</span>
+                        extensionManager,
+                        eventRepository,
+                        ticketCategoryRepository,
+                        configurationManager,
+                        event,
+                        ticketLanguage,
+                        ticket,
+                        ticketCategory,
+                        additionalInfo));
             }
-<span class="fc" id="L332">            var baseUrl = StringUtils.removeEnd(configurationManager.getFor(BASE_URL, ConfigurationLevel.event(event)).getRequiredValue(), &quot;/&quot;);</span>
-<span class="fc" id="L333">            var calendarUrl = UriComponentsBuilder.fromUriString(baseUrl + &quot;/api/v2/public/event/{eventShortName}/calendar/{currentLang}&quot;)</span>
-<span class="fc" id="L334">                .queryParam(&quot;type&quot;, &quot;google&quot;)</span>
-<span class="fc" id="L335">                .build(Map.of(&quot;eventShortName&quot;, event.getShortName(), &quot;currentLang&quot;, ticketLanguage.getLanguage()))</span>
-<span class="fc" id="L336">                .toString();</span>
-<span class="fc" id="L337">            return TemplateProcessor.buildPartialEmail(event, organization, ticketReservation, ticketCategory, templateManager, baseUrl, ticketUrl, calendarUrl, ticketLanguage, initialModel).generate(ticket);</span>
+<span class="fc" id="L443">            var baseUrl = StringUtils.removeEnd(</span>
+                    configurationManager
+<span class="fc" id="L445">                            .getFor(BASE_URL, ConfigurationLevel.event(event))</span>
+<span class="fc" id="L446">                            .getRequiredValue(),</span>
+                    &quot;/&quot;);
+<span class="fc" id="L448">            var calendarUrl = UriComponentsBuilder.fromUriString(</span>
+                            baseUrl + &quot;/api/v2/public/event/{eventShortName}/calendar/{currentLang}&quot;)
+<span class="fc" id="L450">                    .queryParam(&quot;type&quot;, &quot;google&quot;)</span>
+<span class="fc" id="L451">                    .build(Map.of(&quot;eventShortName&quot;, event.getShortName(), &quot;currentLang&quot;, ticketLanguage.getLanguage()))</span>
+<span class="fc" id="L452">                    .toString();</span>
+<span class="fc" id="L453">            return TemplateProcessor.buildPartialEmail(</span>
+                            event,
+                            organization,
+                            ticketReservation,
+                            ticketCategory,
+                            templateManager,
+                            baseUrl,
+                            ticketUrl,
+                            calendarUrl,
+                            ticketLanguage,
+                            initialModel)
+<span class="fc" id="L464">                    .generate(ticket);</span>
         };
     }
 
     public Optional&lt;String&gt; getVAT(PurchaseContext purchaseContext) {
-<span class="fc" id="L342">        return configurationManager.getFor(VAT_NR, purchaseContext.getConfigurationLevel()).getValue();</span>
+<span class="fc" id="L469">        return configurationManager</span>
+<span class="fc" id="L470">                .getFor(VAT_NR, purchaseContext.getConfigurationLevel())</span>
+<span class="fc" id="L471">                .getValue();</span>
     }
 
-    public Map&lt;String, Object&gt; prepareModelForReservationEmail(PurchaseContext purchaseContext, TicketReservation reservation) {
-<span class="fc" id="L346">        Optional&lt;String&gt; vat = getVAT(purchaseContext);</span>
-<span class="fc" id="L347">        OrderSummary summary = orderSummaryGenerator.orderSummaryForReservationId(reservation.getId(), purchaseContext);</span>
-<span class="fc" id="L348">        return prepareModelForReservationEmail(purchaseContext, reservation, vat, summary, ticketRepository.findTicketsInReservation(reservation.getId()), Map.of());</span>
+    public Map&lt;String, Object&gt; prepareModelForReservationEmail(
+            PurchaseContext purchaseContext, TicketReservation reservation) {
+<span class="fc" id="L476">        Optional&lt;String&gt; vat = getVAT(purchaseContext);</span>
+<span class="fc" id="L477">        OrderSummary summary = orderSummaryGenerator.orderSummaryForReservationId(reservation.getId(), purchaseContext);</span>
+<span class="fc" id="L478">        return prepareModelForReservationEmail(</span>
+                purchaseContext,
+                reservation,
+                vat,
+                summary,
+<span class="fc" id="L483">                ticketRepository.findTicketsInReservation(reservation.getId()),</span>
+<span class="fc" id="L484">                Map.of());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

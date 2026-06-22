@@ -34,15 +34,15 @@ public class ExtensionSupport {
     private final String script;
     private final ExtensionMetadata extensionMetadata;
 
-
-    public ExtensionSupport(@Column(&quot;es_id&quot;) Integer id,
-                            @Column(&quot;path&quot;) String path,
-                            @Column(&quot;name&quot;) String name,
-                            @Column(&quot;hash&quot;) String hash,
-                            @Column(&quot;enabled&quot;) boolean enabled,
-                            @Column(&quot;async&quot;) boolean async,
-                            @Column(&quot;script&quot;) String script,
-<span class="fc" id="L45">                            @Column(&quot;metadata&quot;) @JSONData ExtensionMetadata extensionMetadata) {</span>
+    public ExtensionSupport(
+            @Column(&quot;es_id&quot;) Integer id,
+            @Column(&quot;path&quot;) String path,
+            @Column(&quot;name&quot;) String name,
+            @Column(&quot;hash&quot;) String hash,
+            @Column(&quot;enabled&quot;) boolean enabled,
+            @Column(&quot;async&quot;) boolean async,
+            @Column(&quot;script&quot;) String script,
+<span class="fc" id="L45">            @Column(&quot;metadata&quot;) @JSONData ExtensionMetadata extensionMetadata) {</span>
 <span class="fc" id="L46">        this.id = id;</span>
 <span class="fc" id="L47">        this.path = path;</span>
 <span class="fc" id="L48">        this.name = name;</span>
@@ -53,16 +53,14 @@ public class ExtensionSupport {
 <span class="fc" id="L53">        this.extensionMetadata = extensionMetadata;</span>
 <span class="fc" id="L54">    }</span>
 
-
     @Getter
     public static class ScriptPathNameHash {
         private final String path;
         private final String name;
         private final String hash;
 
-        public ScriptPathNameHash(@Column(&quot;path&quot;) String path,
-                                  @Column(&quot;name&quot;) String name,
-                                  @Column(&quot;hash&quot;) String hash) {
+        public ScriptPathNameHash(
+                @Column(&quot;path&quot;) String path, @Column(&quot;name&quot;) String name, @Column(&quot;hash&quot;) String hash) {
             this.path = path;
             this.name = name;
             this.hash = hash;
@@ -76,10 +74,11 @@ public class ExtensionSupport {
         private final String configurationPath;
         private final String configurationValue;
 
-        public ExtensionParameterKeyValue(@Column(&quot;ecm_name&quot;) String name,
-                                          @Column(&quot;ecm_configuration_level&quot;) String configurationLevel,
-                                          @Column(&quot;conf_path&quot;) String configurationPath,
-                                          @Column(&quot;conf_value&quot;) String configurationValue) {
+        public ExtensionParameterKeyValue(
+                @Column(&quot;ecm_name&quot;) String name,
+                @Column(&quot;ecm_configuration_level&quot;) String configurationLevel,
+                @Column(&quot;conf_path&quot;) String configurationPath,
+                @Column(&quot;conf_value&quot;) String configurationValue) {
             this.name = name;
             this.configurationLevel = configurationLevel;
             this.configurationPath = configurationPath;
@@ -102,19 +101,19 @@ public class ExtensionSupport {
         private final String configurationPath;
         private final String configurationValue;
 
-
-        public ExtensionParameterMetadataAndValue(@Column(&quot;ecm_id&quot;) int id,
-                                                  @Column(&quot;ecm_name&quot;) String name,
-                                                  @Column(&quot;ecm_configuration_level&quot;) String configurationLevel,
-                                                  @Column(&quot;ecm_description&quot;) String description,
-                                                  @Column(&quot;ecm_type&quot;) String type,
-                                                  @Column(&quot;ecm_mandatory&quot;) boolean mandatory,
-                                                  @Column(&quot;path&quot;) String path,
-                                                  @Column(&quot;es_id&quot;) int extensionId,
-                                                  @Column(&quot;name&quot;) String extensionName,
-                                                  @Column(&quot;display_name&quot;) String extensionDisplayName,
-                                                  @Column(&quot;conf_path&quot;) String configurationPath,
-                                                  @Column(&quot;conf_value&quot;) String configurationValue) {
+        public ExtensionParameterMetadataAndValue(
+                @Column(&quot;ecm_id&quot;) int id,
+                @Column(&quot;ecm_name&quot;) String name,
+                @Column(&quot;ecm_configuration_level&quot;) String configurationLevel,
+                @Column(&quot;ecm_description&quot;) String description,
+                @Column(&quot;ecm_type&quot;) String type,
+                @Column(&quot;ecm_mandatory&quot;) boolean mandatory,
+                @Column(&quot;path&quot;) String path,
+                @Column(&quot;es_id&quot;) int extensionId,
+                @Column(&quot;name&quot;) String extensionName,
+                @Column(&quot;display_name&quot;) String extensionDisplayName,
+                @Column(&quot;conf_path&quot;) String configurationPath,
+                @Column(&quot;conf_value&quot;) String configurationValue) {
             this.id = id;
             this.name = name;
             this.configurationLevel = configurationLevel;
@@ -129,7 +128,7 @@ public class ExtensionSupport {
             this.configurationValue = configurationValue;
         }
 
-        //for compatibility
+        // for compatibility
         public String getComponentType() {
             return type;
         }
@@ -150,14 +149,12 @@ public class ExtensionSupport {
         private final String value;
     }
 
-
     @Getter
     public static class NameAndValue {
         private final String name;
         private final String value;
 
-        public NameAndValue(@Column(&quot;ecm_name&quot;) String name,
-                            @Column(&quot;conf_value&quot;) String value) {
+        public NameAndValue(@Column(&quot;ecm_name&quot;) String name, @Column(&quot;conf_value&quot;) String value) {
             this.name = name;
             this.value = value;
         }
@@ -168,8 +165,7 @@ public class ExtensionSupport {
         private final int id;
         private final String name;
 
-        public ExtensionMetadataIdAndName(@Column(&quot;ecm_id&quot;) int id,
-                                          @Column(&quot;ecm_name&quot;) String name) {
+        public ExtensionMetadataIdAndName(@Column(&quot;ecm_id&quot;) int id, @Column(&quot;ecm_name&quot;) String name) {
             this.id = id;
             this.name = name;
         }

@@ -25,7 +25,6 @@ import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
 import ch.digitalfondue.npjt.QueryType;
-
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -37,50 +36,71 @@ public interface EmailMessageRepository {
     @Query(&quot;select id from email_message where event_id = :eventId and checksum = :checksum limit 1&quot;)
     Optional&lt;Integer&gt; findIdByEventIdAndChecksum(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;checksum&quot;) String checksum);
 
-    @Query(&quot;select id from email_message where subscription_descriptor_id_fk = :subscriptionDescriptorId and checksum = :checksum limit 1&quot;)
-    Optional&lt;Integer&gt; findIdBySubscriptionDescriptorAndChecksum(@Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;checksum&quot;) String checksum);
+    @Query(
+            &quot;select id from email_message where subscription_descriptor_id_fk = :subscriptionDescriptorId and checksum = :checksum limit 1&quot;)
+    Optional&lt;Integer&gt; findIdBySubscriptionDescriptorAndChecksum(
+            @Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;checksum&quot;) String checksum);
 
     default Optional&lt;Integer&gt; findIdByPurchaseContextAndChecksum(PurchaseContext purchaseContext, String checksum) {
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
-<span class="fc" id="L45">            return findIdByEventIdAndChecksum(((Event)purchaseContext).getId(), checksum);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
+<span class="fc" id="L46">            return findIdByEventIdAndChecksum(((Event) purchaseContext).getId(), checksum);</span>
         } else {
-<span class="fc" id="L47">            return findIdBySubscriptionDescriptorAndChecksum(((SubscriptionDescriptor) purchaseContext).getId(), checksum);</span>
+<span class="fc" id="L48">            return findIdBySubscriptionDescriptorAndChecksum(</span>
+<span class="fc" id="L49">                    ((SubscriptionDescriptor) purchaseContext).getId(), checksum);</span>
         }
     }
 
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         insert into email_message (event_id, organization_id_fk, subscription_descriptor_id_fk, reservation_id, status, recipient, subject, message, html_message, attachments, checksum, request_ts, email_cc)\
          values(:eventId, :organizationId, :subscriptionDescriptorId, :reservationId, 'WAITING', :recipient, :subject, :message, :htmlMessage, :attachments, :checksum, :timestamp, :emailCC)\
         &quot;&quot;&quot;)
-    int insert(@Bind(&quot;eventId&quot;) Integer eventId,
-               @Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId,
-               @Bind(&quot;reservationId&quot;) String reservationId,
-               @Bind(&quot;recipient&quot;) String recipient,
-               @Bind(&quot;emailCC&quot;) String cc,
-               @Bind(&quot;subject&quot;) String subject,
-               @Bind(&quot;message&quot;) String message,
-               @Bind(&quot;htmlMessage&quot;) String htmlMessage,
-               @Bind(&quot;attachments&quot;) String attachments,
-               @Bind(&quot;checksum&quot;) String checksum,
-               @Bind(&quot;timestamp&quot;) ZonedDateTime requestTimestamp,
-               @Bind(&quot;organizationId&quot;) int organizationId);
+    int insert(
+            @Bind(&quot;eventId&quot;) Integer eventId,
+            @Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId,
+            @Bind(&quot;reservationId&quot;) String reservationId,
+            @Bind(&quot;recipient&quot;) String recipient,
+            @Bind(&quot;emailCC&quot;) String cc,
+            @Bind(&quot;subject&quot;) String subject,
+            @Bind(&quot;message&quot;) String message,
+            @Bind(&quot;htmlMessage&quot;) String htmlMessage,
+            @Bind(&quot;attachments&quot;) String attachments,
+            @Bind(&quot;checksum&quot;) String checksum,
+            @Bind(&quot;timestamp&quot;) ZonedDateTime requestTimestamp,
+            @Bind(&quot;organizationId&quot;) int organizationId);
 
-
-    @Query(&quot;update email_message set status = :status where id = :id and checksum = :checksum and status in (:expectedStatuses)&quot;)
-    int updateStatus(@Bind(&quot;id&quot;) int messageId, @Bind(&quot;checksum&quot;) String checksum, @Bind(&quot;status&quot;) String status, @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
+    @Query(
+            &quot;update email_message set status = :status where id = :id and checksum = :checksum and status in (:expectedStatuses)&quot;)
+    int updateStatus(
+            @Bind(&quot;id&quot;) int messageId,
+            @Bind(&quot;checksum&quot;) String checksum,
+            @Bind(&quot;status&quot;) String status,
+            @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
 
     @Query(&quot;update email_message set status = 'WAITING', html_message = :htmlMessage where id = :messageId&quot;)
     int updateStatusToWaitingWithHtml(@Bind(&quot;messageId&quot;) int messageId, @Bind(&quot;htmlMessage&quot;) String htmlMessage);
 
-    @Query(&quot;update email_message set status = :status, attempts = :attempts where id = :messageId and status in (:expectedStatuses) &quot;)
-    int updateStatusAndAttempts(@Bind(&quot;messageId&quot;) int messageId, @Bind(&quot;status&quot;) String status, @Bind(&quot;attempts&quot;) int attempts, @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
+    @Query(
+            &quot;update email_message set status = :status, attempts = :attempts where id = :messageId and status in (:expectedStatuses) &quot;)
+    int updateStatusAndAttempts(
+            @Bind(&quot;messageId&quot;) int messageId,
+            @Bind(&quot;status&quot;) String status,
+            @Bind(&quot;attempts&quot;) int attempts,
+            @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
 
-    @Query(&quot;update email_message set status = :status, attempts = :attempts, request_ts = :nextDate where id = :messageId and status in (:expectedStatuses) &quot;)
-    int updateStatusAndAttempts(@Bind(&quot;messageId&quot;) int messageId, @Bind(&quot;status&quot;) String status, @Bind(&quot;nextDate&quot;) ZonedDateTime date, @Bind(&quot;attempts&quot;) int attempts, @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
+    @Query(
+            &quot;update email_message set status = :status, attempts = :attempts, request_ts = :nextDate where id = :messageId and status in (:expectedStatuses) &quot;)
+    int updateStatusAndAttempts(
+            @Bind(&quot;messageId&quot;) int messageId,
+            @Bind(&quot;status&quot;) String status,
+            @Bind(&quot;nextDate&quot;) ZonedDateTime date,
+            @Bind(&quot;attempts&quot;) int attempts,
+            @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
 
-
-    @Query(type = QueryType.SELECT,
-        value = &quot;&quot;&quot;
+    @Query(
+            type = QueryType.SELECT,
+            value =
+                    &quot;&quot;&quot;
                 select * from email_message\
                  where (\
                  (event_id is not null and event_id in (select id from event where end_ts &gt; now())) or \
@@ -89,49 +109,76 @@ public interface EmailMessageRepository {
                 &quot;&quot;&quot;)
     List&lt;EmailMessage&gt; loadAllWaitingForProcessing();
 
-    @Query(&quot;update email_message set status = 'SENT', sent_ts = :sentTimestamp, html_message = null where id = :id and checksum = :checksum and status in (:expectedStatuses)&quot;)
-    int updateStatusToSent(@Bind(&quot;id&quot;) int id, @Bind(&quot;checksum&quot;) String checksum, @Bind(&quot;sentTimestamp&quot;) ZonedDateTime sentTimestamp, @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
+    @Query(
+            &quot;update email_message set status = 'SENT', sent_ts = :sentTimestamp, html_message = null where id = :id and checksum = :checksum and status in (:expectedStatuses)&quot;)
+    int updateStatusToSent(
+            @Bind(&quot;id&quot;) int id,
+            @Bind(&quot;checksum&quot;) String checksum,
+            @Bind(&quot;sentTimestamp&quot;) ZonedDateTime sentTimestamp,
+            @Bind(&quot;expectedStatuses&quot;) List&lt;String&gt; expectedStatuses);
 
-    String LIGHTWEIGHT_FIELDS = &quot;id, event_id, subscription_descriptor_id_fk, status, recipient, subject, message, checksum, request_ts, sent_ts, attempts, email_cc, organization_id_fk &quot;;
-    String FIND_MAILS_BY_EVENT = &quot;select &quot; + LIGHTWEIGHT_FIELDS + &quot; from email_message where event_id = :eventId and &quot; +
-        &quot; (:search is null or (recipient like :search or subject like :search or message like :search)) order by sent_ts desc, id &quot;;
+    String LIGHTWEIGHT_FIELDS =
+            &quot;id, event_id, subscription_descriptor_id_fk, status, recipient, subject, message, checksum, request_ts, sent_ts, attempts, email_cc, organization_id_fk &quot;;
+    String FIND_MAILS_BY_EVENT = &quot;select &quot; + LIGHTWEIGHT_FIELDS + &quot; from email_message where event_id = :eventId and &quot;
+            + &quot; (:search is null or (recipient like :search or subject like :search or message like :search)) order by sent_ts desc, id &quot;;
 
-    String FIND_MAILS_BY_SUBSCRIPTION = &quot;select &quot; + LIGHTWEIGHT_FIELDS + &quot; from email_message where subscription_descriptor_id_fk = :subscriptionId and &quot; +
-        &quot; (:search is null or (recipient like :search or subject like :search or message like :search)) order by sent_ts desc, id &quot;;
+    String FIND_MAILS_BY_SUBSCRIPTION = &quot;select &quot; + LIGHTWEIGHT_FIELDS
+            + &quot; from email_message where subscription_descriptor_id_fk = :subscriptionId and &quot;
+            + &quot; (:search is null or (recipient like :search or subject like :search or message like :search)) order by sent_ts desc, id &quot;;
 
-    @Query(&quot;select * from (&quot; + FIND_MAILS_BY_EVENT +&quot; limit :pageSize offset :page) as d_tbl&quot;)
-    List&lt;LightweightMailMessage&gt; findByEventId(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;page&quot;) int page, @Bind(&quot;pageSize&quot;) int pageSize, @Bind(&quot;search&quot;) String search);
+    @Query(&quot;select * from (&quot; + FIND_MAILS_BY_EVENT + &quot; limit :pageSize offset :page) as d_tbl&quot;)
+    List&lt;LightweightMailMessage&gt; findByEventId(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;page&quot;) int page,
+            @Bind(&quot;pageSize&quot;) int pageSize,
+            @Bind(&quot;search&quot;) String search);
 
-    @Query(&quot;select id, event_id, status, recipient, subject, message, checksum, request_ts, sent_ts, attempts, email_cc, subscription_descriptor_id_fk, organization_id_fk from email_message where event_id = :eventId and reservation_id = :reservationId order by sent_ts desc, id&quot;)
-    List&lt;LightweightMailMessage&gt; findByEventIdAndReservationId(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;reservationId&quot;) String reservationId);
+    @Query(
+            &quot;select id, event_id, status, recipient, subject, message, checksum, request_ts, sent_ts, attempts, email_cc, subscription_descriptor_id_fk, organization_id_fk from email_message where event_id = :eventId and reservation_id = :reservationId order by sent_ts desc, id&quot;)
+    List&lt;LightweightMailMessage&gt; findByEventIdAndReservationId(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;reservationId&quot;) String reservationId);
 
     @Query(&quot;select * from (&quot; + FIND_MAILS_BY_SUBSCRIPTION + &quot; limit :pageSize offset :page) as d_tbl&quot;)
-    List&lt;LightweightMailMessage&gt; findBySubscriptionDescriptorId(@Bind(&quot;subscriptionId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;page&quot;) int page, @Bind(&quot;pageSize&quot;) int pageSize, @Bind(&quot;search&quot;) String search);
+    List&lt;LightweightMailMessage&gt; findBySubscriptionDescriptorId(
+            @Bind(&quot;subscriptionId&quot;) UUID subscriptionDescriptorId,
+            @Bind(&quot;page&quot;) int page,
+            @Bind(&quot;pageSize&quot;) int pageSize,
+            @Bind(&quot;search&quot;) String search);
 
-    @Query(&quot;select id, event_id, status, recipient, subject, message, checksum, request_ts, sent_ts, attempts, email_cc, subscription_descriptor_id_fk, organization_id_fk from email_message where subscription_descriptor_id_fk = :subscriptionDescriptorId and reservation_id = :reservationId order by sent_ts desc, id&quot;)
-    List&lt;LightweightMailMessage&gt; findBySubscriptionDescriptorAndReservationId(@Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId, @Bind(&quot;reservationId&quot;) String reservationId);
+    @Query(
+            &quot;select id, event_id, status, recipient, subject, message, checksum, request_ts, sent_ts, attempts, email_cc, subscription_descriptor_id_fk, organization_id_fk from email_message where subscription_descriptor_id_fk = :subscriptionDescriptorId and reservation_id = :reservationId order by sent_ts desc, id&quot;)
+    List&lt;LightweightMailMessage&gt; findBySubscriptionDescriptorAndReservationId(
+            @Bind(&quot;subscriptionDescriptorId&quot;) UUID subscriptionDescriptorId,
+            @Bind(&quot;reservationId&quot;) String reservationId);
 
-    default List&lt;LightweightMailMessage&gt; findByPurchaseContextAndReservationId(PurchaseContext purchaseContext, String reservationId) {
-<span class="fc bfc" id="L115" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
-<span class="fc" id="L116">            return findByEventIdAndReservationId(((Event)purchaseContext).getId(), reservationId);</span>
+    default List&lt;LightweightMailMessage&gt; findByPurchaseContextAndReservationId(
+            PurchaseContext purchaseContext, String reservationId) {
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
+<span class="fc" id="L157">            return findByEventIdAndReservationId(((Event) purchaseContext).getId(), reservationId);</span>
         } else {
-<span class="fc" id="L118">            return findBySubscriptionDescriptorAndReservationId(((SubscriptionDescriptor)purchaseContext).getId(), reservationId);</span>
+<span class="fc" id="L159">            return findBySubscriptionDescriptorAndReservationId(</span>
+<span class="fc" id="L160">                    ((SubscriptionDescriptor) purchaseContext).getId(), reservationId);</span>
         }
     }
 
     @Query(&quot;select count(*) from (&quot; + FIND_MAILS_BY_EVENT + &quot;) as d_tbl&quot;)
     Integer countFindByEventId(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;search&quot;) String search);
 
-    @Query(&quot;select count(*) from (&quot;+FIND_MAILS_BY_SUBSCRIPTION+&quot;) as d_tbl&quot;)
-    Integer countFindBySubscriptionDescriptorId(@Bind(&quot;subscriptionId&quot;) UUID subscriptionId, @Bind(&quot;search&quot;) String search);
+    @Query(&quot;select count(*) from (&quot; + FIND_MAILS_BY_SUBSCRIPTION + &quot;) as d_tbl&quot;)
+    Integer countFindBySubscriptionDescriptorId(
+            @Bind(&quot;subscriptionId&quot;) UUID subscriptionId, @Bind(&quot;search&quot;) String search);
 
-    @Query(&quot;select &quot;+LIGHTWEIGHT_FIELDS+&quot; from email_message where id = :messageId and event_id = :eventId&quot;)
-    Optional&lt;LightweightMailMessage&gt; findByEventIdAndMessageId(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;messageId&quot;) int messageId);
+    @Query(&quot;select &quot; + LIGHTWEIGHT_FIELDS + &quot; from email_message where id = :messageId and event_id = :eventId&quot;)
+    Optional&lt;LightweightMailMessage&gt; findByEventIdAndMessageId(
+            @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;messageId&quot;) int messageId);
 
-    @Query(&quot;select &quot;+LIGHTWEIGHT_FIELDS+&quot; from email_message where id = :messageId and subscription_descriptor_id_fk = :subscriptionId&quot;)
-    Optional&lt;LightweightMailMessage&gt; findBySubscriptionDescriptorIdAndMessageId(@Bind(&quot;subscriptionId&quot;) UUID subscriptionId, @Bind(&quot;messageId&quot;) int messageId);
+    @Query(&quot;select &quot; + LIGHTWEIGHT_FIELDS
+            + &quot; from email_message where id = :messageId and subscription_descriptor_id_fk = :subscriptionId&quot;)
+    Optional&lt;LightweightMailMessage&gt; findBySubscriptionDescriptorIdAndMessageId(
+            @Bind(&quot;subscriptionId&quot;) UUID subscriptionId, @Bind(&quot;messageId&quot;) int messageId);
 
-    @Query(&quot;update email_message set status = 'RETRY', attempts = coalesce(attempts, 0) +1 where status = 'IN_PROCESS' and request_ts &lt; :date&quot;)
+    @Query(
+            &quot;update email_message set status = 'RETRY', attempts = coalesce(attempts, 0) +1 where status = 'IN_PROCESS' and request_ts &lt; :date&quot;)
     int setToRetryOldInProcess(@Bind(&quot;date&quot;) ZonedDateTime date);
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

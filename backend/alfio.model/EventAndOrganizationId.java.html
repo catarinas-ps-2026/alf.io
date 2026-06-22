@@ -26,16 +26,15 @@ public class EventAndOrganizationId implements Configurable {
     protected final int id;
     protected final int organizationId;
 
-    public EventAndOrganizationId(@Column(&quot;id&quot;) int id,
-<span class="fc" id="L30">                                  @Column(&quot;org_id&quot;) int organizationId) {</span>
-<span class="fc" id="L31">        this.id = id;</span>
-<span class="fc" id="L32">        this.organizationId = organizationId;</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L29">    public EventAndOrganizationId(@Column(&quot;id&quot;) int id, @Column(&quot;org_id&quot;) int organizationId) {</span>
+<span class="fc" id="L30">        this.id = id;</span>
+<span class="fc" id="L31">        this.organizationId = organizationId;</span>
+<span class="fc" id="L32">    }</span>
 
     @JsonIgnore
     @Override
     public ConfigurationLevel getConfigurationLevel() {
-<span class="fc" id="L38">        return ConfigurationLevel.event(this);</span>
+<span class="fc" id="L37">        return ConfigurationLevel.event(this);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

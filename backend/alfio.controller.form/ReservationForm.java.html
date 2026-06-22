@@ -18,12 +18,11 @@ package alfio.controller.form;
 
 import alfio.model.modification.AdditionalServiceReservationModification;
 import alfio.model.modification.TicketReservationModification;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
+import lombok.Data;
 
-//step 1 : choose tickets
+// step 1 : choose tickets
 @Data
 public class ReservationForm implements Serializable, ReservationCreate&lt;TicketReservationModification&gt; {
 
@@ -34,12 +33,12 @@ public class ReservationForm implements Serializable, ReservationCreate&lt;Ticke
 
     @Override
     public List&lt;TicketReservationModification&gt; getTickets() {
-<span class="fc" id="L37">        return reservation;</span>
+<span class="fc" id="L36">        return reservation;</span>
     }
 
     @Override
     public List&lt;AdditionalServiceReservationModification&gt; getAdditionalServices() {
-<span class="fc" id="L42">        return additionalService;</span>
+<span class="fc" id="L41">        return additionalService;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

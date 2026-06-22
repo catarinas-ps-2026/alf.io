@@ -18,101 +18,102 @@ package alfio.model;
 
 import alfio.model.transaction.PaymentProxy;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.experimental.Delegate;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import lombok.experimental.Delegate;
 
 public class TicketReservationWithEventIdentifier {
     @Delegate(excludes = PriceContainer.class)
     private final TicketReservation reservation;
+
     private final String eventPublicIdentifier;
 
     public TicketReservationWithEventIdentifier(
-        @Column(&quot;id&quot;) String id,
-        @Column(&quot;validity&quot;) Date validity,
-        @Column(&quot;status&quot;) TicketReservation.TicketReservationStatus status,
-        @Column(&quot;full_name&quot;) String fullName,
-        @Column(&quot;first_name&quot;) String firstName,
-        @Column(&quot;last_name&quot;) String lastName,
-        @Column(&quot;email_address&quot;) String email,
-        @Column(&quot;billing_address&quot;) String billingAddress,
-        @Column(&quot;confirmation_ts&quot;) ZonedDateTime confirmationTimestamp,
-        @Column(&quot;latest_reminder_ts&quot;) ZonedDateTime latestReminder,
-        @Column(&quot;payment_method&quot;) PaymentProxy paymentMethod,
-        @Column(&quot;offline_payment_reminder_sent&quot;) Boolean reminderSent,
-        @Column(&quot;promo_code_id_fk&quot;) Integer promoCodeDiscountId,
-        @Column(&quot;automatic&quot;) boolean automatic,
-        @Column(&quot;user_language&quot;) String userLanguage,
-        @Column(&quot;direct_assignment&quot;) boolean directAssignmentRequested,
-        @Column(&quot;invoice_number&quot;) String invoiceNumber,
-        @Column(&quot;invoice_model&quot;) String invoiceModel,
-        @Column(&quot;vat_status&quot;) PriceContainer.VatStatus vatStatus,
-        @Column(&quot;vat_nr&quot;) String vatNr,
-        @Column(&quot;vat_country&quot;) String vatCountryCode,
-        @Column(&quot;invoice_requested&quot;) boolean invoiceRequested,
-        @Column(&quot;used_vat_percent&quot;) BigDecimal usedVatPercent,
-        @Column(&quot;vat_included&quot;) Boolean vatIncluded,
-        @Column(&quot;creation_ts&quot;) ZonedDateTime creationTimestamp,
-        @Column(&quot;customer_reference&quot;) String customerReference,
-        @Column(&quot;registration_ts&quot;) ZonedDateTime registrationTimestamp,
-        @Column(&quot;src_price_cts&quot;) Integer srcPriceCts,
-        @Column(&quot;final_price_cts&quot;) Integer finalPriceCts,
-        @Column(&quot;vat_cts&quot;) Integer vatCts,
-        @Column(&quot;discount_cts&quot;) Integer discountCts,
-        @Column(&quot;currency_code&quot;) String currencyCode,
-<span class="nc" id="L65">        @Column(&quot;short_name&quot;) String eventPublicIdentifier) {</span>
+            @Column(&quot;id&quot;) String id,
+            @Column(&quot;validity&quot;) Date validity,
+            @Column(&quot;status&quot;) TicketReservation.TicketReservationStatus status,
+            @Column(&quot;full_name&quot;) String fullName,
+            @Column(&quot;first_name&quot;) String firstName,
+            @Column(&quot;last_name&quot;) String lastName,
+            @Column(&quot;email_address&quot;) String email,
+            @Column(&quot;billing_address&quot;) String billingAddress,
+            @Column(&quot;confirmation_ts&quot;) ZonedDateTime confirmationTimestamp,
+            @Column(&quot;latest_reminder_ts&quot;) ZonedDateTime latestReminder,
+            @Column(&quot;payment_method&quot;) PaymentProxy paymentMethod,
+            @Column(&quot;offline_payment_reminder_sent&quot;) Boolean reminderSent,
+            @Column(&quot;promo_code_id_fk&quot;) Integer promoCodeDiscountId,
+            @Column(&quot;automatic&quot;) boolean automatic,
+            @Column(&quot;user_language&quot;) String userLanguage,
+            @Column(&quot;direct_assignment&quot;) boolean directAssignmentRequested,
+            @Column(&quot;invoice_number&quot;) String invoiceNumber,
+            @Column(&quot;invoice_model&quot;) String invoiceModel,
+            @Column(&quot;vat_status&quot;) PriceContainer.VatStatus vatStatus,
+            @Column(&quot;vat_nr&quot;) String vatNr,
+            @Column(&quot;vat_country&quot;) String vatCountryCode,
+            @Column(&quot;invoice_requested&quot;) boolean invoiceRequested,
+            @Column(&quot;used_vat_percent&quot;) BigDecimal usedVatPercent,
+            @Column(&quot;vat_included&quot;) Boolean vatIncluded,
+            @Column(&quot;creation_ts&quot;) ZonedDateTime creationTimestamp,
+            @Column(&quot;customer_reference&quot;) String customerReference,
+            @Column(&quot;registration_ts&quot;) ZonedDateTime registrationTimestamp,
+            @Column(&quot;src_price_cts&quot;) Integer srcPriceCts,
+            @Column(&quot;final_price_cts&quot;) Integer finalPriceCts,
+            @Column(&quot;vat_cts&quot;) Integer vatCts,
+            @Column(&quot;discount_cts&quot;) Integer discountCts,
+            @Column(&quot;currency_code&quot;) String currencyCode,
+<span class="nc" id="L65">            @Column(&quot;short_name&quot;) String eventPublicIdentifier) {</span>
 
 <span class="nc" id="L67">        this.eventPublicIdentifier = eventPublicIdentifier;</span>
-<span class="nc" id="L68">        this.reservation = new TicketReservation(id,</span>
-            validity,
-            status,
-            fullName,
-            firstName,
-            lastName,
-            email,
-            billingAddress,
-            confirmationTimestamp,
-            latestReminder,
-            paymentMethod,
-            reminderSent,
-            promoCodeDiscountId,
-            automatic,
-            userLanguage,
-            directAssignmentRequested,
-            invoiceNumber,
-            invoiceModel,
-            vatStatus,
-            vatNr,
-            vatCountryCode,
-            invoiceRequested,
-            usedVatPercent,
-            vatIncluded,
-            creationTimestamp,
-            customerReference,
-            registrationTimestamp,
-            srcPriceCts,
-            finalPriceCts,
-            vatCts,
-            discountCts,
-            currencyCode);
-<span class="nc" id="L100">    }</span>
+<span class="nc" id="L68">        this.reservation = new TicketReservation(</span>
+                id,
+                validity,
+                status,
+                fullName,
+                firstName,
+                lastName,
+                email,
+                billingAddress,
+                confirmationTimestamp,
+                latestReminder,
+                paymentMethod,
+                reminderSent,
+                promoCodeDiscountId,
+                automatic,
+                userLanguage,
+                directAssignmentRequested,
+                invoiceNumber,
+                invoiceModel,
+                vatStatus,
+                vatNr,
+                vatCountryCode,
+                invoiceRequested,
+                usedVatPercent,
+                vatIncluded,
+                creationTimestamp,
+                customerReference,
+                registrationTimestamp,
+                srcPriceCts,
+                finalPriceCts,
+                vatCts,
+                discountCts,
+                currencyCode);
+<span class="nc" id="L101">    }</span>
 
     public String getEventPublicIdentifier() {
-<span class="nc" id="L103">        return eventPublicIdentifier;</span>
+<span class="nc" id="L104">        return eventPublicIdentifier;</span>
     }
 
     public int getFinalPriceCts() {
-<span class="nc" id="L107">        return reservation.getFinalPriceCts();</span>
+<span class="nc" id="L108">        return reservation.getFinalPriceCts();</span>
     }
 
     public String getPaidAmount() {
-<span class="nc" id="L111">        return reservation.getPaidAmount();</span>
+<span class="nc" id="L112">        return reservation.getPaidAmount();</span>
     }
 
     public String getCurrencyCode() {
-<span class="nc" id="L115">        return reservation.getCurrencyCode();</span>
+<span class="nc" id="L116">        return reservation.getCurrencyCode();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

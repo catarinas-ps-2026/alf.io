@@ -19,24 +19,24 @@ package alfio.model.decorator;
 import alfio.model.PromoCodeDiscount;
 import alfio.model.SummaryPriceContainer;
 import alfio.model.Ticket;
-import lombok.experimental.Delegate;
-import org.apache.commons.lang3.ObjectUtils;
-
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.util.Optional;
-
+import lombok.experimental.Delegate;
+import org.apache.commons.lang3.ObjectUtils;
 
 public class TicketPriceContainer implements SummaryPriceContainer {
 
     @Delegate(excludes = OverridePriceContainer.class)
     private final Ticket ticket;
+
     private final PromoCodeDiscount promoCodeDiscount;
     private final BigDecimal vatPercentage;
     private final VatStatus vatStatus;
 
     @ConstructorProperties({&quot;ticket&quot;, &quot;promoCodeDiscount&quot;, &quot;vatPercentage&quot;, &quot;vatStatus&quot;})
-<span class="fc" id="L39">    private TicketPriceContainer(Ticket ticket, PromoCodeDiscount promoCodeDiscount, BigDecimal vatPercentage, VatStatus vatStatus) {</span>
+    private TicketPriceContainer(
+<span class="fc" id="L39">            Ticket ticket, PromoCodeDiscount promoCodeDiscount, BigDecimal vatPercentage, VatStatus vatStatus) {</span>
 <span class="fc" id="L40">        this.ticket = ticket;</span>
 <span class="fc" id="L41">        this.promoCodeDiscount = promoCodeDiscount;</span>
 <span class="fc" id="L42">        this.vatPercentage = vatPercentage;</span>
@@ -46,49 +46,59 @@ public class TicketPriceContainer implements SummaryPriceContainer {
     @Override
     public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
 <span class="fc" id="L48">        return Optional.ofNullable(promoCodeDiscount)</span>
-<span class="pc bpc" id="L49" title="2 of 6 branches missed.">            .filter(discount -&gt; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION &amp;&amp; (discount.getCategories().isEmpty() || discount.getCategories().contains(getCategoryId())));</span>
+<span class="fc" id="L49">                .filter(discount -&gt;</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">                        discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">                                &amp;&amp; (discount.getCategories().isEmpty()</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">                                        || discount.getCategories().contains(getCategoryId())));</span>
     }
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="fc" id="L54">        return Optional.ofNullable(vatPercentage);</span>
+<span class="fc" id="L57">        return Optional.ofNullable(vatPercentage);</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="fc" id="L59">        return vatStatus;</span>
+<span class="fc" id="L62">        return vatStatus;</span>
     }
 
     public int getSummarySrcPriceCts() {
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        if(VatStatus.isVatExempt(getVatStatus())) {</span>
-<span class="fc" id="L64">            return getFinalPriceCts();</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (VatStatus.isVatExempt(getVatStatus())) {</span>
+<span class="fc" id="L67">            return getFinalPriceCts();</span>
         }
-<span class="fc" id="L66">        return getSrcPriceCts();</span>
+<span class="fc" id="L69">        return getSrcPriceCts();</span>
     }
 
-    public static TicketPriceContainer from(Ticket t, VatStatus reservationVatStatus, BigDecimal vat, VatStatus eventVatStatus, PromoCodeDiscount discount) {
-<span class="fc" id="L70">        VatStatus vatStatus = ObjectUtils.firstNonNull(t.getVatStatus(), reservationVatStatus, eventVatStatus);</span>
-<span class="fc" id="L71">        return new TicketPriceContainer(t, discount, vat, vatStatus);</span>
+    public static TicketPriceContainer from(
+            Ticket t,
+            VatStatus reservationVatStatus,
+            BigDecimal vat,
+            VatStatus eventVatStatus,
+            PromoCodeDiscount discount) {
+<span class="fc" id="L78">        VatStatus vatStatus = ObjectUtils.firstNonNull(t.getVatStatus(), reservationVatStatus, eventVatStatus);</span>
+<span class="fc" id="L79">        return new TicketPriceContainer(t, discount, vat, vatStatus);</span>
     }
 
     @Override
     public BigDecimal getTaxablePrice() {
-<span class="pc bpc" id="L76" title="1 of 6 branches missed.">        if(vatStatus != VatStatus.INCLUDED_EXEMPT</span>
-            &amp;&amp; vatStatus != VatStatus.NOT_INCLUDED_EXEMPT
-            &amp;&amp; vatStatus != VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {
-<span class="fc" id="L79">            return SummaryPriceContainer.super.getTaxablePrice();</span>
+<span class="pc bpc" id="L84" title="1 of 6 branches missed.">        if (vatStatus != VatStatus.INCLUDED_EXEMPT</span>
+                &amp;&amp; vatStatus != VatStatus.NOT_INCLUDED_EXEMPT
+                &amp;&amp; vatStatus != VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {
+<span class="fc" id="L87">            return SummaryPriceContainer.super.getTaxablePrice();</span>
         }
-<span class="fc" id="L81">        return BigDecimal.ZERO;</span>
+<span class="fc" id="L89">        return BigDecimal.ZERO;</span>
     }
 
     @Override
     public Integer getFinalPriceCts() {
-<span class="fc" id="L86">        return ticket.getFinalPriceCts();</span>
+<span class="fc" id="L94">        return ticket.getFinalPriceCts();</span>
     }
 
     private interface OverridePriceContainer {
         VatStatus getVatStatus();
+
         int getVatCts();
+
         int getFinalPriceCts();
     }
 }

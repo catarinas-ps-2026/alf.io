@@ -32,14 +32,16 @@ public class EventDescription {
     private final EventDescriptionType eventDescriptionType;
     private final String description;
 
-    public EventDescription(@Column(&quot;event_id_fk&quot;) Integer eventId, @Column(&quot;locale&quot;) String locale,
-                            @Column(&quot;type&quot;) EventDescriptionType eventDescriptionType,
-<span class="fc" id="L37">                            @Column(&quot;description&quot;) String description) {</span>
-<span class="fc" id="L38">        this.eventId = eventId;</span>
-<span class="fc" id="L39">        this.locale = locale;</span>
-<span class="fc" id="L40">        this.eventDescriptionType = eventDescriptionType;</span>
-<span class="fc" id="L41">        this.description = description;</span>
-<span class="fc" id="L42">    }</span>
+    public EventDescription(
+            @Column(&quot;event_id_fk&quot;) Integer eventId,
+            @Column(&quot;locale&quot;) String locale,
+            @Column(&quot;type&quot;) EventDescriptionType eventDescriptionType,
+<span class="fc" id="L39">            @Column(&quot;description&quot;) String description) {</span>
+<span class="fc" id="L40">        this.eventId = eventId;</span>
+<span class="fc" id="L41">        this.locale = locale;</span>
+<span class="fc" id="L42">        this.eventDescriptionType = eventDescriptionType;</span>
+<span class="fc" id="L43">        this.description = description;</span>
+<span class="fc" id="L44">    }</span>
 
     @Getter
     public static class LocaleDescription {

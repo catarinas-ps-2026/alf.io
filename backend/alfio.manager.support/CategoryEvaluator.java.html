@@ -18,20 +18,23 @@ package alfio.manager.support;
 
 import alfio.model.Ticket;
 import alfio.repository.TicketCategoryRepository;
-
 import java.util.function.Function;
 
 public final class CategoryEvaluator {
-    private CategoryEvaluator() {
+    private CategoryEvaluator() {}
+
+    public static Function&lt;Ticket, Boolean&gt; ticketCancellationAvailabilityChecker(
+            TicketCategoryRepository ticketCategoryRepository) {
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        return ticket -&gt; ticket.getStatus() == Ticket.TicketStatus.ACQUIRED</span>
+                &amp;&amp; (!ticketCategoryRepository
+<span class="fc" id="L30">                                .getByIdAndActive(ticket.getCategoryId(), ticket.getEventId())</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">                                .isAccessRestricted()</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">                        || ticketCategoryRepository.countUnboundedCategoriesByEventId(ticket.getEventId()) &gt; 0);</span>
     }
 
-    public static Function&lt;Ticket, Boolean&gt; ticketCancellationAvailabilityChecker(TicketCategoryRepository ticketCategoryRepository) {
-<span class="fc bfc" id="L29" title="All 4 branches covered.">        return ticket -&gt; ticket.getStatus() == Ticket.TicketStatus.ACQUIRED &amp;&amp; (!ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), ticket.getEventId()).isAccessRestricted()</span>
-<span class="fc bfc" id="L30" title="All 2 branches covered.">                         || ticketCategoryRepository.countUnboundedCategoriesByEventId(ticket.getEventId()) &gt; 0);</span>
-    }
-
-    public static boolean isTicketCancellationAvailable(TicketCategoryRepository ticketCategoryRepository, Ticket ticket) {
-<span class="fc" id="L34">        return ticketCancellationAvailabilityChecker(ticketCategoryRepository).apply(ticket);</span>
+    public static boolean isTicketCancellationAvailable(
+            TicketCategoryRepository ticketCategoryRepository, Ticket ticket) {
+<span class="fc" id="L37">        return ticketCancellationAvailabilityChecker(ticketCategoryRepository).apply(ticket);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

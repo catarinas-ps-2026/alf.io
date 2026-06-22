@@ -19,19 +19,22 @@ package alfio.model.system;
 import java.util.Comparator;
 
 <span class="fc" id="L21">public enum ConfigurationPathLevel implements Comparable&lt;ConfigurationPathLevel&gt; {</span>
-<span class="fc" id="L22">    EXTERNAL(-1), SYSTEM(0), ORGANIZATION(1), PURCHASE_CONTEXT(2), TICKET_CATEGORY(3);</span>
+<span class="fc" id="L22">    EXTERNAL(-1),</span>
+<span class="fc" id="L23">    SYSTEM(0),</span>
+<span class="fc" id="L24">    ORGANIZATION(1),</span>
+<span class="fc" id="L25">    PURCHASE_CONTEXT(2),</span>
+<span class="fc" id="L26">    TICKET_CATEGORY(3);</span>
 
     private final int priority;
 
-<span class="fc" id="L26">    ConfigurationPathLevel(int priority) {</span>
-<span class="fc" id="L27">        this.priority = priority;</span>
-<span class="fc" id="L28">    }</span>
+<span class="fc" id="L30">    ConfigurationPathLevel(int priority) {</span>
+<span class="fc" id="L31">        this.priority = priority;</span>
+<span class="fc" id="L32">    }</span>
 
     public int getPriority() {
-<span class="fc" id="L31">        return priority;</span>
+<span class="fc" id="L35">        return priority;</span>
     }
 
-<span class="fc" id="L34">    public static final Comparator&lt;ConfigurationPathLevel&gt; COMPARATOR = Comparator.comparingInt(l -&gt; l.priority);</span>
-
+<span class="fc" id="L38">    public static final Comparator&lt;ConfigurationPathLevel&gt; COMPARATOR = Comparator.comparingInt(l -&gt; l.priority);</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

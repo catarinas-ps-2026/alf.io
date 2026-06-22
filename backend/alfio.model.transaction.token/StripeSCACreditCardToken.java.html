@@ -28,32 +28,34 @@ public class StripeSCACreditCardToken implements TransactionInitializationToken 
 
     @JsonIgnore
     private final String paymentIntentId;
+
     @JsonIgnore
     private final String chargeId;
+
     private final String clientSecret;
 
     @Override
     public String getToken() {
-<span class="nc" id="L37">        return chargeId;</span>
+<span class="nc" id="L39">        return chargeId;</span>
     }
 
     public String getPaymentIntentId() {
-<span class="nc" id="L41">        return paymentIntentId;</span>
+<span class="nc" id="L43">        return paymentIntentId;</span>
     }
 
     @Override
     public String getClientSecret() {
-<span class="nc" id="L46">        return clientSecret;</span>
+<span class="nc" id="L48">        return clientSecret;</span>
     }
 
     @Override
     public PaymentMethod getPaymentMethod() {
-<span class="nc" id="L51">        return StaticPaymentMethods.CREDIT_CARD;</span>
+<span class="nc" id="L53">        return StaticPaymentMethods.CREDIT_CARD;</span>
     }
 
     @Override
     public PaymentProxy getPaymentProvider() {
-<span class="fc" id="L56">        return PaymentProxy.STRIPE;</span>
+<span class="fc" id="L58">        return PaymentProxy.STRIPE;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -16,8 +16,8 @@
  */
 package alfio.model.system;
 
-import lombok.Getter;
-import org.apache.commons.lang3.BooleanUtils;
+import static alfio.model.system.ConfigurationPathLevel.*;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,271 +25,1278 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import lombok.Getter;
+import org.apache.commons.lang3.BooleanUtils;
 
-import static alfio.model.system.ConfigurationPathLevel.*;
-import static java.util.stream.Collectors.toList;
-
-<span class="fc" id="L32">@Getter</span>
+<span class="fc" id="L31">@Getter</span>
 public enum ConfigurationKeys {
+<span class="fc" id="L33">    NOT_RECOGNIZED(</span>
+            &quot;option not recognized&quot;,
+            true,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L39">            EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
 
-<span class="fc" id="L35">    NOT_RECOGNIZED(&quot;option not recognized&quot;, true, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
+<span class="fc" id="L41">    INIT_COMPLETED(</span>
+            &quot;init succeeded&quot;,
+            true,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L47">            EnumSet.noneOf(ConfigurationPathLevel.class),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L49">    SYSTEM_API_KEY(</span>
+            &quot;System API Key&quot;,
+            true,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L55">            EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
+<span class="fc" id="L56">    SHOW_PROJECT_BANNER(</span>
+            &quot;project banner dismissed&quot;,
+            true,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L62">            EnumSet.noneOf(ConfigurationPathLevel.class),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L64">    @Deprecated</span>
+    SUPPORTED_LANGUAGES(
+<span class="fc" id="L66">            &quot;supported languages&quot;, true, SettingCategory.GENERAL, ComponentType.LIST, false, EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L37">    INIT_COMPLETED(&quot;init succeeded&quot;, true, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.noneOf(ConfigurationPathLevel.class), BooleanUtils.FALSE),</span>
-<span class="fc" id="L38">    SYSTEM_API_KEY(&quot;System API Key&quot;, true, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
-<span class="fc" id="L39">    SHOW_PROJECT_BANNER(&quot;project banner dismissed&quot;, true, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.noneOf(ConfigurationPathLevel.class), BooleanUtils.TRUE),</span>
-<span class="fc" id="L40">    @Deprecated</span>
-<span class="fc" id="L41">    SUPPORTED_LANGUAGES(&quot;supported languages&quot;, true, SettingCategory.GENERAL, ComponentType.LIST, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L68">    BASE_URL(&quot;Base application url&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, true, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L69">    GLOBAL_PRIVACY_POLICY(</span>
+            &quot;Global Privacy Policy URL (to be displayed on the event list)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L75">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L76">    GLOBAL_TERMS(</span>
+            &quot;Global Terms And Conditions (to be displayed on the event list)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L82">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L83">    ANNOUNCEMENT_BANNER_CONTENT(</span>
+            &quot;Announcement banner content&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L89">            EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L43">    BASE_URL(&quot;Base application url&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, true, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L44">    GLOBAL_PRIVACY_POLICY(&quot;Global Privacy Policy URL (to be displayed on the event list)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L45">    GLOBAL_TERMS(&quot;Global Terms And Conditions (to be displayed on the event list)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L46">    ANNOUNCEMENT_BANNER_CONTENT(&quot;Announcement banner content&quot;, false, SettingCategory.GENERAL, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L91">    MAPS_PROVIDER(</span>
+            &quot;Select the maps provider (None, Google, Here)&quot;,
+            false,
+            SettingCategory.MAP,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L97">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L98">    MAPS_CLIENT_API_KEY(</span>
+<span class="fc" id="L99">            &quot;Google maps' client api key&quot;, false, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L48">    MAPS_PROVIDER(&quot;Select the maps provider (None, Google, Here)&quot;, false, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L49">    MAPS_CLIENT_API_KEY(&quot;Google maps' client api key&quot;, false, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L101">    @Deprecated</span>
+<span class="fc" id="L102">    MAPS_HERE_APP_ID(&quot;HERE map App ID&quot;, true, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L103">    @Deprecated</span>
+<span class="fc" id="L104">    MAPS_HERE_APP_CODE(&quot;HERE map App Code&quot;, true, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L51">    @Deprecated</span>
-<span class="fc" id="L52">    MAPS_HERE_APP_ID(&quot;HERE map App ID&quot;, true, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L53">    @Deprecated</span>
-<span class="fc" id="L54">    MAPS_HERE_APP_CODE(&quot;HERE map App Code&quot;, true, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L106">    MAPS_HERE_API_KEY(&quot;HERE map Api Key&quot;, false, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L56">    MAPS_HERE_API_KEY(&quot;HERE map Api Key&quot;, false, SettingCategory.MAP, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-
-
-<span class="fc" id="L59">    RECAPTCHA_API_KEY(&quot;reCAPTCHA v2 api key&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L60">    RECAPTCHA_SECRET(&quot;reCAPTCHA v2 secret&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L61">    ENABLE_CAPTCHA_FOR_LOGIN(&quot;Enable captcha for login (default true)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.TRUE),</span>
-<span class="fc" id="L62">    HTTPS_FORCE_REDIRECT(&quot;Force HTTPS redirection (default false)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
+<span class="fc" id="L108">    RECAPTCHA_API_KEY(</span>
+<span class="fc" id="L109">            &quot;reCAPTCHA v2 api key&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L110">    RECAPTCHA_SECRET(</span>
+<span class="fc" id="L111">            &quot;reCAPTCHA v2 secret&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L112">    ENABLE_CAPTCHA_FOR_LOGIN(</span>
+            &quot;Enable captcha for login (default true)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L118">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L120">    HTTPS_FORCE_REDIRECT(</span>
+            &quot;Force HTTPS redirection (default false)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L126">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
 
     // CloudFlare Turnstile
-<span class="fc" id="L65">    CF_TURNSTILE_ENABLED(&quot;Enable Cloudflare Turnstile integration (default false)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L66">    CF_TURNSTILE_PRE_CLEARANCE(&quot;Use Cloudflare pre-clearance (default false)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L67">    CF_TURNSTILE_SITE_KEY(&quot;Cloudflare Turnstile Site Key&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM), BooleanUtils.TRUE),</span>
-<span class="fc" id="L68">    CF_TURNSTILE_SECRET_KEY(&quot;Cloudflare Turnstile Secret Key&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM), BooleanUtils.TRUE),</span>
+<span class="fc" id="L130">    CF_TURNSTILE_ENABLED(</span>
+            &quot;Enable Cloudflare Turnstile integration (default false)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L136">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L138">    CF_TURNSTILE_PRE_CLEARANCE(</span>
+            &quot;Use Cloudflare pre-clearance (default false)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L144">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L146">    CF_TURNSTILE_SITE_KEY(</span>
+            &quot;Cloudflare Turnstile Site Key&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L152">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L154">    CF_TURNSTILE_SECRET_KEY(</span>
+            &quot;Cloudflare Turnstile Secret Key&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L160">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.TRUE),
 
-<span class="fc" id="L70">    DISPLAY_STATS_IN_EVENT_DETAIL(&quot;Display stats (sold tickets, gross income, pending reservations) in event detail (default true)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
+<span class="fc" id="L163">    DISPLAY_STATS_IN_EVENT_DETAIL(</span>
+            &quot;Display stats (sold tickets, gross income, pending reservations) in event detail (default true)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L169">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
 
-<span class="fc" id="L72">    NOTIFY_ORGANIZER_ON_RESERVATION(&quot;Notify the organizer when a reservation is made (default true)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
+<span class="fc" id="L172">    NOTIFY_ORGANIZER_ON_RESERVATION(</span>
+            &quot;Notify the organizer when a reservation is made (default true)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L178">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
 
-<span class="fc" id="L74">    DEMO_MODE_ACCOUNT_EXPIRATION_DAYS(&quot;Account expiration days&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L75">    PLATFORM_MODE_ENABLED(&quot;Enable Platform mode&quot;, false, SettingCategory.PAYMENT, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L76">    @Deprecated</span>
-<span class="fc" id="L77">    PLATFORM_FEE(&quot;Platform fee to apply for each ticket sold&quot;, true, SettingCategory.PAYMENT, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L78">    PLATFORM_FIXED_FEE(&quot;Platform fee to apply for each ticket sold&quot;, false, SettingCategory.PAYMENT, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L79">    PLATFORM_PERCENTAGE_FEE(&quot;Platform Percentage fee to apply for each ticket&quot;, false, SettingCategory.PAYMENT, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L80">    PLATFORM_MINIMUM_FEE(&quot;Platform minimum fee to apply for each ticket&quot;, false, SettingCategory.PAYMENT, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L81">    PLATFORM_MAXIMUM_FEE(&quot;Platform maximum fee to apply for each ticket&quot;, false, SettingCategory.PAYMENT, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L82">    PAYMENT_METHODS_BLACKLIST(&quot;Payment methods blacklist. Comma-separated list of methods&quot;, false, SettingCategory.PAYMENT, ComponentType.TEXT, false, EnumSet.of(SYSTEM, TICKET_CATEGORY)),</span>
+<span class="fc" id="L181">    DEMO_MODE_ACCOUNT_EXPIRATION_DAYS(</span>
+<span class="fc" id="L182">            &quot;Account expiration days&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L183">    PLATFORM_MODE_ENABLED(</span>
+            &quot;Enable Platform mode&quot;,
+            false,
+            SettingCategory.PAYMENT,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L189">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L191">    @Deprecated</span>
+    PLATFORM_FEE(
+            &quot;Platform fee to apply for each ticket sold&quot;,
+            true,
+            SettingCategory.PAYMENT,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L198">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L199">    PLATFORM_FIXED_FEE(</span>
+            &quot;Platform fee to apply for each ticket sold&quot;,
+            false,
+            SettingCategory.PAYMENT,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L205">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L206">    PLATFORM_PERCENTAGE_FEE(</span>
+            &quot;Platform Percentage fee to apply for each ticket&quot;,
+            false,
+            SettingCategory.PAYMENT,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L212">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L213">    PLATFORM_MINIMUM_FEE(</span>
+            &quot;Platform minimum fee to apply for each ticket&quot;,
+            false,
+            SettingCategory.PAYMENT,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L219">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L220">    PLATFORM_MAXIMUM_FEE(</span>
+            &quot;Platform maximum fee to apply for each ticket&quot;,
+            false,
+            SettingCategory.PAYMENT,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L226">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L227">    PAYMENT_METHODS_BLACKLIST(</span>
+            &quot;Payment methods blacklist. Comma-separated list of methods&quot;,
+            false,
+            SettingCategory.PAYMENT,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L233">            EnumSet.of(SYSTEM, TICKET_CATEGORY)),</span>
 
-<span class="fc" id="L84">    STRIPE_CC_ENABLED(&quot;Stripe enabled&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L85">    STRIPE_PUBLIC_KEY(&quot;Stripe's public key&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L86">    STRIPE_SECRET_KEY(&quot;Stripe's secret key&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L87">    STRIPE_CONNECT_CLIENT_ID(&quot;Stripe Connect Client ID&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L88">    STRIPE_CONNECT_CALLBACK(&quot;Stripe Connect Callback URL&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L89">    STRIPE_WEBHOOK_KEY(&quot;Stripe Signature key for Account-related events&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L90">    STRIPE_WEBHOOK_PAYMENT_KEY(&quot;Payment Webhook signing secret&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L91">    STRIPE_CONNECTED_ID(&quot;Connected ID&quot;, true, SettingCategory.PAYMENT_STRIPE, ComponentType.TEXT, false, EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
-<span class="fc" id="L92">    STRIPE_ENABLE_SCA(&quot;Enable Strong Customer Authentication&quot;, false, SettingCategory.PAYMENT_STRIPE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
+<span class="fc" id="L235">    STRIPE_CC_ENABLED(</span>
+            &quot;Stripe enabled&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L241">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L243">    STRIPE_PUBLIC_KEY(</span>
+            &quot;Stripe's public key&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L249">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L250">    STRIPE_SECRET_KEY(</span>
+            &quot;Stripe's secret key&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L256">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L257">    STRIPE_CONNECT_CLIENT_ID(</span>
+            &quot;Stripe Connect Client ID&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L263">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L264">    STRIPE_CONNECT_CALLBACK(</span>
+            &quot;Stripe Connect Callback URL&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L270">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L271">    STRIPE_WEBHOOK_KEY(</span>
+            &quot;Stripe Signature key for Account-related events&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L277">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L278">    STRIPE_WEBHOOK_PAYMENT_KEY(</span>
+            &quot;Payment Webhook signing secret&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L284">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L285">    STRIPE_CONNECTED_ID(</span>
+            &quot;Connected ID&quot;,
+            true,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L291">            EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
+<span class="fc" id="L292">    STRIPE_ENABLE_SCA(</span>
+            &quot;Enable Strong Customer Authentication&quot;,
+            false,
+            SettingCategory.PAYMENT_STRIPE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L298">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
 
     // Saferpay by SIX
-<span class="fc" id="L95">    SAFERPAY_ENABLED(&quot;Saferpay enabled&quot;, false, SettingCategory.PAYMENT_SAFERPAY, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L96">    SAFERPAY_LIVE_MODE(&quot;Live Mode (default false)&quot;, false, SettingCategory.PAYMENT_SAFERPAY, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L97">    SAFERPAY_API_USERNAME(&quot;API Username&quot;, false, SettingCategory.PAYMENT_SAFERPAY, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L98">    SAFERPAY_API_PASSWORD(&quot;API Password&quot;, false, SettingCategory.PAYMENT_SAFERPAY, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L99">    SAFERPAY_CUSTOMER_ID(&quot;Customer ID&quot;, false, SettingCategory.PAYMENT_SAFERPAY, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L100">    SAFERPAY_TERMINAL_ID(&quot;Terminal ID&quot;, false, SettingCategory.PAYMENT_SAFERPAY, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L302">    SAFERPAY_ENABLED(</span>
+            &quot;Saferpay enabled&quot;,
+            false,
+            SettingCategory.PAYMENT_SAFERPAY,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L308">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L310">    SAFERPAY_LIVE_MODE(</span>
+            &quot;Live Mode (default false)&quot;,
+            false,
+            SettingCategory.PAYMENT_SAFERPAY,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L316">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L318">    SAFERPAY_API_USERNAME(</span>
+            &quot;API Username&quot;,
+            false,
+            SettingCategory.PAYMENT_SAFERPAY,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L324">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L325">    SAFERPAY_API_PASSWORD(</span>
+            &quot;API Password&quot;,
+            false,
+            SettingCategory.PAYMENT_SAFERPAY,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L331">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L332">    SAFERPAY_CUSTOMER_ID(</span>
+            &quot;Customer ID&quot;,
+            false,
+            SettingCategory.PAYMENT_SAFERPAY,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L338">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L339">    SAFERPAY_TERMINAL_ID(</span>
+            &quot;Terminal ID&quot;,
+            false,
+            SettingCategory.PAYMENT_SAFERPAY,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L345">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
 
+<span class="fc" id="L347">    SPECIAL_PRICE_CODE_LENGTH(</span>
+            &quot;Length of special price code&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L353">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L354">    MAX_AMOUNT_OF_TICKETS_BY_RESERVATION(</span>
+            &quot;How many tickets can be purchased in a single reservation (default 5)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L360">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT, TICKET_CATEGORY)),</span>
+<span class="fc" id="L361">    ASSIGNMENT_REMINDER_START(</span>
+            &quot;How many days before the event should be sent a reminder to the users about Tickets assignment? (default: 10 days)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L367">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L368">    ASSIGNMENT_REMINDER_INTERVAL(</span>
+            &quot;How long should be the 'quiet period' (in days) between the reminders? (default: 3 days)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L374">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L375">    OPTIONAL_DATA_REMINDER_ENABLED(</span>
+            &quot;Send a reminder for optional data? (default: false)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L381">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L383">    RESERVATION_TIMEOUT(</span>
+            &quot;The amount of time, in MINUTES, that the user have to complete the reservation process (default: 25)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L389">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L390">    RESERVATION_MIN_TIMEOUT_AFTER_FAILED_PAYMENT(</span>
+            &quot;The minimum amount of time, in MINUTES, that we grant to the user after a failed payment attempt (default: 10)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L396">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L397">    NOTIFY_ALL_FAILED_PAYMENT_ATTEMPTS(</span>
+            &quot;Receive a mail for all failed payment attempts (provider dependant, default: false)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L403">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
 
-<span class="fc" id="L103">    SPECIAL_PRICE_CODE_LENGTH(&quot;Length of special price code&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L104">    MAX_AMOUNT_OF_TICKETS_BY_RESERVATION(&quot;How many tickets can be purchased in a single reservation (default 5)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT, TICKET_CATEGORY)),</span>
-<span class="fc" id="L105">    ASSIGNMENT_REMINDER_START(&quot;How many days before the event should be sent a reminder to the users about Tickets assignment? (default: 10 days)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L106">    ASSIGNMENT_REMINDER_INTERVAL(&quot;How long should be the 'quiet period' (in days) between the reminders? (default: 3 days)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L107">    OPTIONAL_DATA_REMINDER_ENABLED(&quot;Send a reminder for optional data? (default: false)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L108">    RESERVATION_TIMEOUT(&quot;The amount of time, in MINUTES, that the user have to complete the reservation process (default: 25)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L109">    RESERVATION_MIN_TIMEOUT_AFTER_FAILED_PAYMENT(&quot;The minimum amount of time, in MINUTES, that we grant to the user after a failed payment attempt (default: 10)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L110">    NOTIFY_ALL_FAILED_PAYMENT_ATTEMPTS(&quot;Receive a mail for all failed payment attempts (provider dependant, default: false)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-
-<span class="fc" id="L112">    DISPLAY_TICKETS_LEFT_INDICATOR(&quot;Display how many tickets are left for the event (default false)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L113">    ENABLE_CAPTCHA_FOR_TICKET_SELECTION(&quot;Enable captcha for ticket selection (default false)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L114">    DISPLAY_EXPIRED_CATEGORIES(&quot;Display expired categories in the Event page (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L115">    DISPLAY_DISCOUNT_CODE_BOX(&quot;Display discount code box in the Event page (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L116">    USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL(&quot;Wording: Use 'Partner Code' instead of 'Promotional Code' (default: false)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L117">    ENABLE_CUSTOMER_REFERENCE(&quot;Enable Customer Reference (Purchase Order) field in contact detail (default: false)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L118">    ENABLE_ATTENDEE_AUTOCOMPLETE(&quot;Enable attendee autocomplete for 1-ticket reservations (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L119">    FORCE_TICKET_OWNER_ASSIGNMENT_AT_RESERVATION(&quot;Force ticket owner assignment at reservation time&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L120">    SEND_TICKETS_AUTOMATICALLY(&quot;Send tickets to attendees automatically (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L121">    ALLOW_TICKET_DOWNLOAD(&quot;Allow tickets to be downloaded as PDF (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L122">    SEND_RESERVATION_EMAIL_IF_NECESSARY(&quot;Send reservation email only if there is a transaction or if contact person differs from ticket holder (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L123">    ENABLE_TICKET_TRANSFER(&quot;Enable ticket transfer after confirmation (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L124">    ALLOW_FREE_TICKETS_CANCELLATION(&quot;Allow cancellation for free tickets (default: false)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT, TICKET_CATEGORY), BooleanUtils.FALSE),</span>
-<span class="fc" id="L125">    INCLUDE_CHECK_IN_URL_ICAL(&quot;Include check-in URL for online tickets in the iCal invitation (default: true)&quot;, false, SettingCategory.RESERVATION_UI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
+<span class="fc" id="L406">    DISPLAY_TICKETS_LEFT_INDICATOR(</span>
+            &quot;Display how many tickets are left for the event (default false)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L412">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L414">    ENABLE_CAPTCHA_FOR_TICKET_SELECTION(</span>
+            &quot;Enable captcha for ticket selection (default false)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L420">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L422">    DISPLAY_EXPIRED_CATEGORIES(</span>
+            &quot;Display expired categories in the Event page (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L428">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L430">    DISPLAY_DISCOUNT_CODE_BOX(</span>
+            &quot;Display discount code box in the Event page (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L436">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L438">    USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL(</span>
+            &quot;Wording: Use 'Partner Code' instead of 'Promotional Code' (default: false)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L444">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L446">    ENABLE_CUSTOMER_REFERENCE(</span>
+            &quot;Enable Customer Reference (Purchase Order) field in contact detail (default: false)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L452">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L454">    ENABLE_ATTENDEE_AUTOCOMPLETE(</span>
+            &quot;Enable attendee autocomplete for 1-ticket reservations (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L460">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L462">    FORCE_TICKET_OWNER_ASSIGNMENT_AT_RESERVATION(</span>
+            &quot;Force ticket owner assignment at reservation time&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L468">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L470">    SEND_TICKETS_AUTOMATICALLY(</span>
+            &quot;Send tickets to attendees automatically (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L476">            EnumSet.of(SYSTEM, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L478">    ALLOW_TICKET_DOWNLOAD(</span>
+            &quot;Allow tickets to be downloaded as PDF (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L484">            EnumSet.of(SYSTEM, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L486">    SEND_RESERVATION_EMAIL_IF_NECESSARY(</span>
+            &quot;Send reservation email only if there is a transaction or if contact person differs from ticket holder (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L492">            EnumSet.of(SYSTEM, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L494">    ENABLE_TICKET_TRANSFER(</span>
+            &quot;Enable ticket transfer after confirmation (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L500">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L502">    ALLOW_FREE_TICKETS_CANCELLATION(</span>
+            &quot;Allow cancellation for free tickets (default: false)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L508">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT, TICKET_CATEGORY),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L510">    INCLUDE_CHECK_IN_URL_ICAL(</span>
+            &quot;Include check-in URL for online tickets in the iCal invitation (default: true)&quot;,
+            false,
+            SettingCategory.RESERVATION_UI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L516">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
 
     //
-<span class="fc" id="L128">    MAILER_TYPE(&quot;Mailer type (if not set, default will be disabled)&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, true, EnumSet.of(SYSTEM)),//valid values: smtp | mailgun</span>
+<span class="fc" id="L520">    MAILER_TYPE(</span>
+            &quot;Mailer type (if not set, default will be disabled)&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.TEXT,
+            true,
+<span class="fc" id="L526">            EnumSet.of(SYSTEM)), // valid values: smtp | mailgun</span>
     //
 
-<span class="fc" id="L131">    MAX_EMAIL_PER_CYCLE(&quot;How many e-mail should be managed within 5 sec.&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L529">    MAX_EMAIL_PER_CYCLE(</span>
+            &quot;How many e-mail should be managed within 5 sec.&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L535">            EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L133">    MAIL_REPLY_TO(&quot;Reply-to address&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L134">    MAIL_SET_ORG_REPLY_TO(&quot;Set organizer email as reply-to (default: false)&quot;, false, SettingCategory.MAIL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), &quot;false&quot;),</span>
+<span class="fc" id="L537">    MAIL_REPLY_TO(</span>
+            &quot;Reply-to address&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L543">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L544">    MAIL_SET_ORG_REPLY_TO(</span>
+            &quot;Set organizer email as reply-to (default: false)&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L550">            EnumSet.of(SYSTEM),</span>
+            &quot;false&quot;),
 
-<span class="fc" id="L136">    MAIL_SYSTEM_NOTIFICATION_CC(&quot;Add additional CC when the system send notifications to the event organizer, can insert multiple email (comma separated)&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L553">    MAIL_SYSTEM_NOTIFICATION_CC(</span>
+            &quot;Add additional CC when the system send notifications to the event organizer, can insert multiple email (comma separated)&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L559">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
 
-<span class="fc" id="L138">    MAIL_FOOTER(&quot;Email footer&quot;, false, SettingCategory.MAIL, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L561">    MAIL_FOOTER(</span>
+            &quot;Email footer&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L567">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
 
-    //smtp configuration related keys
-<span class="fc" id="L141">    SMTP_HOST(&quot;SMTP hostname&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L142">    SMTP_PORT(&quot;SMTP port&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L143">    SMTP_PROTOCOL(&quot;SMTP Protocol (smtp or smtps)&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)), //smtp or smtps</span>
-<span class="fc" id="L144">    SMTP_USERNAME(&quot;SMTP Username&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L145">    SMTP_PASSWORD(&quot;SMTP Password&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L146">    SMTP_FROM_EMAIL(&quot;E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L147">    SMTP_PROPERTIES(&quot;SMTP Properties&quot;, false, SettingCategory.MAIL, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
+    // smtp configuration related keys
+<span class="fc" id="L570">    SMTP_HOST(&quot;SMTP hostname&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L571">    SMTP_PORT(&quot;SMTP port&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L572">    SMTP_PROTOCOL(</span>
+            &quot;SMTP Protocol (smtp or smtps)&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L578">            EnumSet.of(SYSTEM)), // smtp or smtps</span>
+<span class="fc" id="L579">    SMTP_USERNAME(&quot;SMTP Username&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L580">    SMTP_PASSWORD(&quot;SMTP Password&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L581">    SMTP_FROM_EMAIL(&quot;E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L582">    SMTP_PROPERTIES(&quot;SMTP Properties&quot;, false, SettingCategory.MAIL, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L149">    BANK_TRANSFER_ENABLED(&quot;Bank transfer enabled&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L150">    DEFERRED_BANK_TRANSFER_ENABLED(&quot;Send payment instructions manually (default false)&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L151">    SHOW_ONLY_BASIC_INSTRUCTIONS(&quot;Display only basic payment instructions (default false)&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L152">    DEFERRED_BANK_TRANSFER_SEND_CONFIRMATION_EMAIL(&quot;Send payment confirmation email (default true)&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L153">    OFFLINE_PAYMENT_DAYS(&quot;Maximum number of days allowed to pay an offline ticket&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L154">    OFFLINE_PAYMENT_BUSINESS_DAYS(&quot;Consider only business days (MON-FRI) when calculating payment deadline (default true)&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L155">    OFFLINE_REMINDER_HOURS(&quot;How many hours before expiration should be sent a reminder e-mail for offline payments?&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L584">    BANK_TRANSFER_ENABLED(</span>
+            &quot;Bank transfer enabled&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L590">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L592">    DEFERRED_BANK_TRANSFER_ENABLED(</span>
+            &quot;Send payment instructions manually (default false)&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L598">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L600">    SHOW_ONLY_BASIC_INSTRUCTIONS(</span>
+            &quot;Display only basic payment instructions (default false)&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L606">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L608">    DEFERRED_BANK_TRANSFER_SEND_CONFIRMATION_EMAIL(</span>
+            &quot;Send payment confirmation email (default true)&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L614">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L616">    OFFLINE_PAYMENT_DAYS(</span>
+            &quot;Maximum number of days allowed to pay an offline ticket&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L622">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L623">    OFFLINE_PAYMENT_BUSINESS_DAYS(</span>
+            &quot;Consider only business days (MON-FRI) when calculating payment deadline (default true)&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L629">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L631">    OFFLINE_REMINDER_HOURS(</span>
+            &quot;How many hours before expiration should be sent a reminder e-mail for offline payments?&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L637">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
 
-<span class="fc" id="L157">    CUSTOM_OFFLINE_PAYMENTS(&quot;Defines custom payment methods defined by organizers&quot;, true, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(ORGANIZATION)),</span>
-<span class="fc" id="L158">    SELECTED_CUSTOM_PAYMENTS(&quot;Which custom payment methods are allowed for the event&quot;, true, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L159">    DENIED_CUSTOM_PAYMENTS(&quot;Which custom payment methods are explicitly disallowed for the category&quot;, true, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(TICKET_CATEGORY)),</span>
+<span class="fc" id="L639">    CUSTOM_OFFLINE_PAYMENTS(</span>
+            &quot;Defines custom payment methods defined by organizers&quot;,
+            true,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L645">            EnumSet.of(ORGANIZATION)),</span>
+<span class="fc" id="L646">    SELECTED_CUSTOM_PAYMENTS(</span>
+            &quot;Which custom payment methods are allowed for the event&quot;,
+            true,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L652">            EnumSet.of(PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L653">    DENIED_CUSTOM_PAYMENTS(</span>
+            &quot;Which custom payment methods are explicitly disallowed for the category&quot;,
+            true,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L659">            EnumSet.of(TICKET_CATEGORY)),</span>
 
-<span class="fc" id="L161">    ENABLE_CAPTCHA_FOR_OFFLINE_PAYMENTS(&quot;Enable captcha for offline payments / free of charge tickets (default false)&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L162">    BANK_ACCOUNT_NR(&quot;Bank Account number&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L163">    BANK_ACCOUNT_OWNER(&quot;Bank Account owner&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L164">    AUTOMATIC_REMOVAL_EXPIRED_OFFLINE_PAYMENT(&quot;Cancel Reservation automatically when payment is overdue (default: false)&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L165">    PARTIAL_RESERVATION_ID_LENGTH(&quot;Partial reservationID length&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L166">    REVOLUT_ENABLED(&quot;Revolut integration enabled&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L167">    REVOLUT_MANUAL_REVIEW(&quot;Review matching transactions manually (default true)&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L168">    REVOLUT_LIVE_MODE(&quot;Revolut live mode&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L169">    REVOLUT_API_KEY(&quot;Revolut Api Key&quot;, false, SettingCategory.PAYMENT_OFFLINE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L661">    ENABLE_CAPTCHA_FOR_OFFLINE_PAYMENTS(</span>
+            &quot;Enable captcha for offline payments / free of charge tickets (default false)&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L667">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L669">    BANK_ACCOUNT_NR(</span>
+            &quot;Bank Account number&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L675">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L676">    BANK_ACCOUNT_OWNER(</span>
+            &quot;Bank Account owner&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L682">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L683">    AUTOMATIC_REMOVAL_EXPIRED_OFFLINE_PAYMENT(</span>
+            &quot;Cancel Reservation automatically when payment is overdue (default: false)&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L689">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L691">    PARTIAL_RESERVATION_ID_LENGTH(</span>
+            &quot;Partial reservationID length&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L697">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L698">    REVOLUT_ENABLED(</span>
+            &quot;Revolut integration enabled&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L704">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L706">    REVOLUT_MANUAL_REVIEW(</span>
+            &quot;Review matching transactions manually (default true)&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L712">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L714">    REVOLUT_LIVE_MODE(</span>
+            &quot;Revolut live mode&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L720">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L722">    REVOLUT_API_KEY(</span>
+            &quot;Revolut Api Key&quot;,
+            false,
+            SettingCategory.PAYMENT_OFFLINE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L728">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
     //
 
-    //mailgun configuration related info
-<span class="fc" id="L173">    MAILGUN_KEY(&quot;Mailgun key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L174">    MAILGUN_DOMAIN(&quot;Mailgun domain&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L175">    MAILGUN_FROM(&quot;Mailgun E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L176">    MAILGUN_EU(&quot;Use Mailgun EU region&quot;, false, SettingCategory.MAIL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
+    // mailgun configuration related info
+<span class="fc" id="L732">    MAILGUN_KEY(&quot;Mailgun key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L733">    MAILGUN_DOMAIN(&quot;Mailgun domain&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L734">    MAILGUN_FROM(&quot;Mailgun E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L735">    MAILGUN_EU(</span>
+            &quot;Use Mailgun EU region&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L741">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
 
     // sendgrid related config
-<span class="fc" id="L179">    SENDGRID_API_KEY(&quot;Sendgrid api key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L180">    SENDGRID_FROM(&quot;Sendgrid E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L745">    SENDGRID_API_KEY(&quot;Sendgrid api key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L746">    SENDGRID_FROM(&quot;Sendgrid E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
 
     // mailjet
-<span class="fc" id="L183">    MAILJET_APIKEY_PUBLIC(&quot;Mailjet public api key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L184">    MAILJET_APIKEY_PRIVATE(&quot;Mailjet private api key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L185">    MAILJET_FROM(&quot;Mailjet E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L749">    MAILJET_APIKEY_PUBLIC(</span>
+<span class="fc" id="L750">            &quot;Mailjet public api key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L751">    MAILJET_APIKEY_PRIVATE(</span>
+<span class="fc" id="L752">            &quot;Mailjet private api key&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L753">    MAILJET_FROM(&quot;Mailjet E-Mail sender&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
     //
 
-<span class="fc" id="L188">    GOOGLE_ANALYTICS_KEY(&quot;Google Analytics tracking ID&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L189">    GOOGLE_ANALYTICS_ANONYMOUS_MODE(&quot;Run Google Analytics without cookies and scrambling the client IP address (default true)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.TRUE),</span>
+<span class="fc" id="L756">    GOOGLE_ANALYTICS_KEY(</span>
+            &quot;Google Analytics tracking ID&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L762">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L763">    GOOGLE_ANALYTICS_ANONYMOUS_MODE(</span>
+            &quot;Run Google Analytics without cookies and scrambling the client IP address (default true)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L769">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.TRUE),
 
-<span class="fc" id="L191">    ENABLE_WAITING_QUEUE(&quot;Enable waiting list in case of sold-out (default: false)&quot;, false, SettingCategory.WAITING_LIST, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L192">    ENABLE_PRE_REGISTRATION(&quot;Enable pre-registration (default false)&quot;, false, SettingCategory.WAITING_LIST, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L193">    ENABLE_WAITING_QUEUE_NOTIFICATION(&quot;Do you want to receive an e-mail when someone subscribes to the waiting list? (default: false)&quot;, false, SettingCategory.WAITING_LIST, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L194">    WAITING_QUEUE_RESERVATION_TIMEOUT(&quot;The maximum time, in hours, before the \&quot;waiting list\&quot; reservation would expire (default: 4)&quot;, false, SettingCategory.WAITING_LIST, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L195">    STOP_WAITING_QUEUE_SUBSCRIPTIONS(&quot;Stop subscriptions&quot;, true, SettingCategory.WAITING_LIST, ComponentType.BOOLEAN, false, EnumSet.noneOf(ConfigurationPathLevel.class), BooleanUtils.FALSE),</span>
-
-    //
-<span class="fc" id="L198">    ENABLE_HTML_EMAILS(&quot;Enable HTML emails (default: true, if disabled only plain text emails will be sent)&quot;, false, SettingCategory.MAIL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L199">    MAIL_ATTEMPTS_COUNT(&quot;The number of attempts when trying to sending an email (default: 10)&quot;, false, SettingCategory.MAIL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-
-    //
-<span class="fc" id="L202">    PAYPAL_ENABLED(&quot;Paypal enabled&quot;, false, SettingCategory.PAYMENT_PAYPAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L203">    PAYPAL_CLIENT_ID(&quot;Paypal REST API client ID&quot;, false, SettingCategory.PAYMENT_PAYPAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L204">    PAYPAL_CLIENT_SECRET(&quot;Paypal REST API client secret&quot;, false, SettingCategory.PAYMENT_PAYPAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L205">    PAYPAL_LIVE_MODE(&quot;Enable live mode for Paypal&quot;, false, SettingCategory.PAYMENT_PAYPAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L206">    PAYPAL_DEMO_MODE_USERNAME(&quot;Paypal demo mode username&quot;, false, SettingCategory.PAYMENT_PAYPAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L207">    PAYPAL_DEMO_MODE_PASSWORD(&quot;Paypal demo mode password&quot;, false, SettingCategory.PAYMENT_PAYPAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-    //
-
-    //
-<span class="fc" id="L211">    MOLLIE_CC_ENABLED(&quot;Enabled&quot;, false, SettingCategory.PAYMENT_MOLLIE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L212">    MOLLIE_API_KEY(&quot;API key&quot;, false, SettingCategory.PAYMENT_MOLLIE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L213">    MOLLIE_CONNECT_CLIENT_ID(&quot;Mollie Connect Client ID&quot;, false, SettingCategory.PAYMENT_MOLLIE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L214">    MOLLIE_CONNECT_REFRESH_TOKEN(&quot;Mollie Connect Refresh Token&quot;, true, SettingCategory.PAYMENT_MOLLIE, ComponentType.TEXT, false, EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
-<span class="fc" id="L215">    MOLLIE_CONNECT_CLIENT_SECRET(&quot;Mollie Connect Client Secret&quot;, false, SettingCategory.PAYMENT_MOLLIE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L216">    MOLLIE_CONNECT_CALLBACK(&quot;Mollie Connect Callback URL&quot;, false, SettingCategory.PAYMENT_MOLLIE, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L217">    MOLLIE_CONNECT_PROFILE_ID(&quot;Profile ID&quot;, false, SettingCategory.PAYMENT_MOLLIE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L218">    MOLLIE_CONNECT_LIVE_MODE(&quot;Live mode (default false)&quot;, false, SettingCategory.PAYMENT_MOLLIE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-    //
-
-<span class="fc" id="L221">    ON_SITE_ENABLED(&quot;On site enabled&quot;, false, SettingCategory.PAYMENT, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-
-<span class="fc" id="L223">    SEND_TICKETS_AFTER_IMPORT_ATTENDEE(&quot;Send tickets after importing attendees&quot;, false, SettingCategory.IMPORT_ATTENDEE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L224">    CREATE_RESERVATION_FOR_EACH_IMPORTED_ATTENDEE(&quot;Create a reservation for each attendee imported&quot;, false, SettingCategory.IMPORT_ATTENDEE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-
-    //
-<span class="fc" id="L227">    VAT_NR(&quot;VAT number&quot;, false, SettingCategory.INVOICE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L228">    INVOICE_NUMBER_PATTERN(&quot;Invoice number pattern, example: INVOICE-%d&quot;, false, SettingCategory.INVOICE, ComponentType.TEXT, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L229">    INVOICE_ADDRESS(&quot;Invoice address&quot;, false, SettingCategory.INVOICE, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L230">    USE_INVOICE_NUMBER_AS_ID(&quot;Use invoice number for public references (instead of Reservation ID, default: false)&quot;, false, SettingCategory.INVOICE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L231">    VAT_NUMBER_IS_REQUIRED(&quot;VAT/GST Number is required for Business Customers (default: false)&quot;, false, SettingCategory.INVOICE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L232">    GENERATE_ONLY_INVOICE(&quot;Always generate an invoice for paid reservations (default: false)&quot;, false, SettingCategory.INVOICE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L233">    REUSE_INVOICE_NUMBER_FOR_CREDIT_NOTE(&quot;Reuse invoice number as Credit Note number (default: true)&quot;, false, SettingCategory.INVOICE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.TRUE),</span>
-<span class="fc" id="L234">    ENABLE_ITALY_E_INVOICING(&quot;Enable the support for italian e-invoicing (default: false)&quot;, false, SettingCategory.INVOICE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L235">    ITALY_E_INVOICING_SEND_PROFORMA(&quot;Italian e-invoicing: send proforma invoice (default: false)&quot;, false, SettingCategory.INVOICE, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE),</span>
-<span class="fc" id="L236">    ENABLE_EU_VAT_DIRECTIVE(&quot;Enable VAT Reverse Charge (default: false)&quot;, false, SettingCategory.INVOICE_EU, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.FALSE),</span>
-<span class="fc" id="L237">    ENABLE_REVERSE_CHARGE_ONLINE(&quot;Enable VAT Reverse Charge for online tickets (if set overrides global reverse charge, default: true)&quot;, false, SettingCategory.INVOICE_EU, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.TRUE),</span>
-<span class="fc" id="L238">    ENABLE_REVERSE_CHARGE_IN_PERSON(&quot;Enable VAT Reverse Charge for in-person tickets (if set overrides global reverse charge, default: true)&quot;, false, SettingCategory.INVOICE_EU, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.TRUE),</span>
-<span class="fc" id="L239">    ENABLE_VIES_VALIDATION(&quot;Validate EU VAT numbers using EU VIES Webservice (default: true)&quot;, false, SettingCategory.INVOICE_EU, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.TRUE),</span>
-<span class="fc" id="L240">    APPLY_VAT_FOREIGN_BUSINESS(&quot;Apply VAT to foreign B2B customers (default: true)&quot;, false, SettingCategory.INVOICE_EU, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION), BooleanUtils.TRUE),</span>
-<span class="fc" id="L241">    COUNTRY_OF_BUSINESS(&quot;The Country where the organizer runs its Business (can differ from event location)&quot;, false, SettingCategory.INVOICE_EU, ComponentType.LIST, false, EnumSet.of(SYSTEM, ORGANIZATION)),</span>
-<span class="fc" id="L242">    EU_COUNTRIES_LIST(&quot;EU Countries&quot;, true, SettingCategory.INVOICE_EU, ComponentType.LIST, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L243">    @Deprecated</span>
-<span class="fc" id="L244">    EU_VAT_API_ADDRESS(&quot;EU VAT API address&quot;, true, SettingCategory.INVOICE_EU, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L245">    APPLY_TAX_TO_CATEGORY(&quot;Apply taxes to this Category (default: true)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(TICKET_CATEGORY), BooleanUtils.TRUE),</span>
+<span class="fc" id="L772">    ENABLE_WAITING_QUEUE(</span>
+            &quot;Enable waiting list in case of sold-out (default: false)&quot;,
+            false,
+            SettingCategory.WAITING_LIST,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L778">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L780">    ENABLE_PRE_REGISTRATION(</span>
+            &quot;Enable pre-registration (default false)&quot;,
+            false,
+            SettingCategory.WAITING_LIST,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L786">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L788">    ENABLE_WAITING_QUEUE_NOTIFICATION(</span>
+            &quot;Do you want to receive an e-mail when someone subscribes to the waiting list? (default: false)&quot;,
+            false,
+            SettingCategory.WAITING_LIST,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L794">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L796">    WAITING_QUEUE_RESERVATION_TIMEOUT(</span>
+            &quot;The maximum time, in hours, before the \&quot;waiting list\&quot; reservation would expire (default: 4)&quot;,
+            false,
+            SettingCategory.WAITING_LIST,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L802">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L803">    STOP_WAITING_QUEUE_SUBSCRIPTIONS(</span>
+            &quot;Stop subscriptions&quot;,
+            true,
+            SettingCategory.WAITING_LIST,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L809">            EnumSet.noneOf(ConfigurationPathLevel.class),</span>
+            BooleanUtils.FALSE),
 
     //
+<span class="fc" id="L813">    ENABLE_HTML_EMAILS(</span>
+            &quot;Enable HTML emails (default: true, if disabled only plain text emails will be sent)&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L819">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L821">    MAIL_ATTEMPTS_COUNT(</span>
+            &quot;The number of attempts when trying to sending an email (default: 10)&quot;,
+            false,
+            SettingCategory.MAIL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L827">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
 
-    //PASSBOOK
-<span class="fc" id="L250">    ENABLE_PASS(&quot;Enable Apple(tm) Wallet integration (default: false)&quot;, false, SettingCategory.PASS_INTEGRATION, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L251">    PASSBOOK_TYPE_IDENTIFIER(&quot;Passbook type identifier&quot;, false, SettingCategory.PASS_INTEGRATION, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L252">    PASSBOOK_TEAM_IDENTIFIER(&quot;Passbook team identifier&quot;, false, SettingCategory.PASS_INTEGRATION, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L253">    PASSBOOK_KEYSTORE(&quot;Passbook keystore(base64 encoded keystore)&quot;, false, SettingCategory.PASS_INTEGRATION, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L254">    PASSBOOK_KEYSTORE_PASSWORD(&quot;Passbook keystore password&quot;, false, SettingCategory.PASS_INTEGRATION, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L255">    PASSBOOK_PRIVATE_KEY_ALIAS(&quot;Passbook Private Key alias&quot;, false, SettingCategory.PASS_INTEGRATION, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-
-    //WALLET
-<span class="fc" id="L258">    ENABLE_WALLET(&quot;Enable Google Wallet(tm) integration  (default: false)&quot;, false, SettingCategory.WALLET_INTEGRATION, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L259">    WALLET_ISSUER_IDENTIFIER(&quot;Google Wallet Issuer ID&quot;, false, SettingCategory.WALLET_INTEGRATION, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L260">    WALLET_SERVICE_ACCOUNT_KEY(&quot;Google Wallet Service Account Key in JSON format&quot;, false, SettingCategory.WALLET_INTEGRATION, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L261">    WALLET_OVERWRITE_PREVIOUS_CLASSES_AND_EVENTS(&quot;Overwrite previous EventClass and EventObject definitions (use after code changes affecting the JSON, default: false)&quot;, false, SettingCategory.WALLET_INTEGRATION, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-    //CHECK-IN
-<span class="fc" id="L263">    CHECK_IN_STATS(&quot;Display check-in statistics in mobile apps&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-
-    //ALF.IO-PI
-<span class="fc" id="L266">    ALFIO_PI_INTEGRATION_ENABLED(&quot;Enable Alf.io-PI integration (default:true)&quot;, false, SettingCategory.ALFIO_PI, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.TRUE),</span>
-<span class="fc" id="L267">    OFFLINE_CHECKIN_ENABLED(&quot;Offline Check-in enabled (default:true)&quot;, false, SettingCategory.ALFIO_PI, ComponentType.BOOLEAN, false, EnumSet.of(PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L268">    LABEL_PRINTING_ENABLED(&quot;Label Printing enabled (default:true)&quot;, false, SettingCategory.ALFIO_PI, ComponentType.BOOLEAN, false, EnumSet.of(PURCHASE_CONTEXT), BooleanUtils.TRUE),</span>
-<span class="fc" id="L269">    LABEL_LAYOUT(&quot;Label layout&quot;, false, SettingCategory.ALFIO_PI, ComponentType.TEXTAREA, false, EnumSet.of(PURCHASE_CONTEXT)),</span>
-<span class="fc" id="L270">    CHECK_IN_COLOR_CONFIGURATION(&quot;Categories color configuration&quot;, false, SettingCategory.ALFIO_PI, ComponentType.TEXTAREA, false, EnumSet.of(PURCHASE_CONTEXT)),</span>
+    //
+<span class="fc" id="L830">    PAYPAL_ENABLED(</span>
+            &quot;Paypal enabled&quot;,
+            false,
+            SettingCategory.PAYMENT_PAYPAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L836">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L838">    PAYPAL_CLIENT_ID(</span>
+            &quot;Paypal REST API client ID&quot;,
+            false,
+            SettingCategory.PAYMENT_PAYPAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L844">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L845">    PAYPAL_CLIENT_SECRET(</span>
+            &quot;Paypal REST API client secret&quot;,
+            false,
+            SettingCategory.PAYMENT_PAYPAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L851">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L852">    PAYPAL_LIVE_MODE(</span>
+            &quot;Enable live mode for Paypal&quot;,
+            false,
+            SettingCategory.PAYMENT_PAYPAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L858">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L860">    PAYPAL_DEMO_MODE_USERNAME(</span>
+            &quot;Paypal demo mode username&quot;,
+            false,
+            SettingCategory.PAYMENT_PAYPAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L866">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L867">    PAYPAL_DEMO_MODE_PASSWORD(</span>
+            &quot;Paypal demo mode password&quot;,
+            false,
+            SettingCategory.PAYMENT_PAYPAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L873">            EnumSet.of(SYSTEM)),</span>
     //
 
     //
-<span class="fc" id="L274">    SECURITY_CSP_REPORT_ENABLED(&quot;Enable Content-Security-Policy reporting (default: false)&quot;, false, SettingCategory.GENERAL, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L275">    SECURITY_CSP_REPORT_URI(&quot;Define Content-Security-Policy reporting URI (default: /report-csp-violation)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L877">    MOLLIE_CC_ENABLED(</span>
+            &quot;Enabled&quot;,
+            false,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L883">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L885">    MOLLIE_API_KEY(</span>
+            &quot;API key&quot;,
+            false,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L891">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L892">    MOLLIE_CONNECT_CLIENT_ID(</span>
+            &quot;Mollie Connect Client ID&quot;,
+            false,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L898">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L899">    MOLLIE_CONNECT_REFRESH_TOKEN(</span>
+            &quot;Mollie Connect Refresh Token&quot;,
+            true,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L905">            EnumSet.noneOf(ConfigurationPathLevel.class)),</span>
+<span class="fc" id="L906">    MOLLIE_CONNECT_CLIENT_SECRET(</span>
+            &quot;Mollie Connect Client Secret&quot;,
+            false,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L912">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L913">    MOLLIE_CONNECT_CALLBACK(</span>
+            &quot;Mollie Connect Callback URL&quot;,
+            false,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L919">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L920">    MOLLIE_CONNECT_PROFILE_ID(</span>
+            &quot;Profile ID&quot;,
+            false,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L926">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L927">    MOLLIE_CONNECT_LIVE_MODE(</span>
+            &quot;Live mode (default false)&quot;,
+            false,
+            SettingCategory.PAYMENT_MOLLIE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L933">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+    //
 
-<span class="fc" id="L277">    EMBED_ALLOWED_ORIGINS(&quot;Allowed origins. Separate different origins with a newline&quot;, false, SettingCategory.RESERVATION_EMBED, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L278">    EMBED_POST_MESSAGE_ORIGIN(&quot;URI to notify container (via PostMessage API) for Reservation success / cancel&quot;, false, SettingCategory.RESERVATION_EMBED, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L937">    ON_SITE_ENABLED(</span>
+            &quot;On site enabled&quot;,
+            false,
+            SettingCategory.PAYMENT,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L943">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+
+<span class="fc" id="L946">    SEND_TICKETS_AFTER_IMPORT_ATTENDEE(</span>
+            &quot;Send tickets after importing attendees&quot;,
+            false,
+            SettingCategory.IMPORT_ATTENDEE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L952">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L954">    CREATE_RESERVATION_FOR_EACH_IMPORTED_ATTENDEE(</span>
+            &quot;Create a reservation for each attendee imported&quot;,
+            false,
+            SettingCategory.IMPORT_ATTENDEE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L960">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
 
     //
-<span class="fc" id="L281">    TRANSLATION_OVERRIDE(&quot;Translation override (json)&quot;, false, SettingCategory.TRANSLATIONS, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L964">    VAT_NR(</span>
+            &quot;VAT number&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L970">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L971">    INVOICE_NUMBER_PATTERN(</span>
+            &quot;Invoice number pattern, example: INVOICE-%d&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L977">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L978">    INVOICE_ADDRESS(</span>
+            &quot;Invoice address&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L984">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L985">    USE_INVOICE_NUMBER_AS_ID(</span>
+            &quot;Use invoice number for public references (instead of Reservation ID, default: false)&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L991">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L993">    VAT_NUMBER_IS_REQUIRED(</span>
+            &quot;VAT/GST Number is required for Business Customers (default: false)&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L999">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1001">    GENERATE_ONLY_INVOICE(</span>
+            &quot;Always generate an invoice for paid reservations (default: false)&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1007">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1009">    REUSE_INVOICE_NUMBER_FOR_CREDIT_NOTE(</span>
+            &quot;Reuse invoice number as Credit Note number (default: true)&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1015">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1017">    ENABLE_ITALY_E_INVOICING(</span>
+            &quot;Enable the support for italian e-invoicing (default: false)&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1023">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1025">    ITALY_E_INVOICING_SEND_PROFORMA(</span>
+            &quot;Italian e-invoicing: send proforma invoice (default: false)&quot;,
+            false,
+            SettingCategory.INVOICE,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1031">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1033">    ENABLE_EU_VAT_DIRECTIVE(</span>
+            &quot;Enable VAT Reverse Charge (default: false)&quot;,
+            false,
+            SettingCategory.INVOICE_EU,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1039">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1041">    ENABLE_REVERSE_CHARGE_ONLINE(</span>
+            &quot;Enable VAT Reverse Charge for online tickets (if set overrides global reverse charge, default: true)&quot;,
+            false,
+            SettingCategory.INVOICE_EU,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1047">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1049">    ENABLE_REVERSE_CHARGE_IN_PERSON(</span>
+            &quot;Enable VAT Reverse Charge for in-person tickets (if set overrides global reverse charge, default: true)&quot;,
+            false,
+            SettingCategory.INVOICE_EU,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1055">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1057">    ENABLE_VIES_VALIDATION(</span>
+            &quot;Validate EU VAT numbers using EU VIES Webservice (default: true)&quot;,
+            false,
+            SettingCategory.INVOICE_EU,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1063">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1065">    APPLY_VAT_FOREIGN_BUSINESS(</span>
+            &quot;Apply VAT to foreign B2B customers (default: true)&quot;,
+            false,
+            SettingCategory.INVOICE_EU,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1071">            EnumSet.of(SYSTEM, ORGANIZATION),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1073">    COUNTRY_OF_BUSINESS(</span>
+            &quot;The Country where the organizer runs its Business (can differ from event location)&quot;,
+            false,
+            SettingCategory.INVOICE_EU,
+            ComponentType.LIST,
+            false,
+<span class="fc" id="L1079">            EnumSet.of(SYSTEM, ORGANIZATION)),</span>
+<span class="fc" id="L1080">    EU_COUNTRIES_LIST(&quot;EU Countries&quot;, true, SettingCategory.INVOICE_EU, ComponentType.LIST, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1081">    @Deprecated</span>
+    EU_VAT_API_ADDRESS(
+<span class="fc" id="L1083">            &quot;EU VAT API address&quot;, true, SettingCategory.INVOICE_EU, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1084">    APPLY_TAX_TO_CATEGORY(</span>
+            &quot;Apply taxes to this Category (default: true)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1090">            EnumSet.of(TICKET_CATEGORY),</span>
+            BooleanUtils.TRUE),
 
-<span class="fc" id="L283">    BASE_CUSTOM_CSS(&quot;Base custom css&quot;, false, SettingCategory.GENERAL, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
-<span class="fc" id="L284">    EVENT_CUSTOM_CSS(&quot;Event custom css&quot;, false, SettingCategory.GENERAL, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+    //
 
-<span class="fc" id="L286">    DESCRIPTION_MAXLENGTH(&quot;Max characters in descriptions (default 4000)&quot;, false, SettingCategory.GENERAL, ComponentType.TEXT, false, EnumSet.of(SYSTEM)),</span>
+    // PASSBOOK
+<span class="fc" id="L1096">    ENABLE_PASS(</span>
+            &quot;Enable Apple(tm) Wallet integration (default: false)&quot;,
+            false,
+            SettingCategory.PASS_INTEGRATION,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1102">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1104">    PASSBOOK_TYPE_IDENTIFIER(</span>
+            &quot;Passbook type identifier&quot;,
+            false,
+            SettingCategory.PASS_INTEGRATION,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1110">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1111">    PASSBOOK_TEAM_IDENTIFIER(</span>
+            &quot;Passbook team identifier&quot;,
+            false,
+            SettingCategory.PASS_INTEGRATION,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1117">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1118">    PASSBOOK_KEYSTORE(</span>
+            &quot;Passbook keystore(base64 encoded keystore)&quot;,
+            false,
+            SettingCategory.PASS_INTEGRATION,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L1124">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1125">    PASSBOOK_KEYSTORE_PASSWORD(</span>
+            &quot;Passbook keystore password&quot;,
+            false,
+            SettingCategory.PASS_INTEGRATION,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1131">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1132">    PASSBOOK_PRIVATE_KEY_ALIAS(</span>
+            &quot;Passbook Private Key alias&quot;,
+            false,
+            SettingCategory.PASS_INTEGRATION,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1138">            EnumSet.of(SYSTEM)),</span>
 
-<span class="fc" id="L288">    OPENID_PUBLIC_ENABLED(&quot;Enable OpenID for public users (default: false)&quot;, false, SettingCategory.OPENID, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM), BooleanUtils.FALSE),</span>
-<span class="fc" id="L289">    OPENID_CONFIGURATION_JSON(&quot;OpenID configuration&quot;, false, SettingCategory.OPENID, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
+    // WALLET
+<span class="fc" id="L1141">    ENABLE_WALLET(</span>
+            &quot;Enable Google Wallet(tm) integration  (default: false)&quot;,
+            false,
+            SettingCategory.WALLET_INTEGRATION,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1147">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1149">    WALLET_ISSUER_IDENTIFIER(</span>
+            &quot;Google Wallet Issuer ID&quot;,
+            false,
+            SettingCategory.WALLET_INTEGRATION,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1155">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1156">    WALLET_SERVICE_ACCOUNT_KEY(</span>
+            &quot;Google Wallet Service Account Key in JSON format&quot;,
+            false,
+            SettingCategory.WALLET_INTEGRATION,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L1162">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1163">    WALLET_OVERWRITE_PREVIOUS_CLASSES_AND_EVENTS(</span>
+            &quot;Overwrite previous EventClass and EventObject definitions (use after code changes affecting the JSON, default: false)&quot;,
+            false,
+            SettingCategory.WALLET_INTEGRATION,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1169">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+    // CHECK-IN
+<span class="fc" id="L1172">    CHECK_IN_STATS(</span>
+            &quot;Display check-in statistics in mobile apps&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1178">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
 
-<span class="fc" id="L291">    GENERATE_TICKETS_FOR_SUBSCRIPTIONS(&quot;Generate and send tickets automatically to subscription holders for compatible events (default: false)&quot;, false, SettingCategory.SUBSCRIPTIONS, ComponentType.BOOLEAN, false, EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT), BooleanUtils.FALSE)</span>
-    ;
+    // ALF.IO-PI
+<span class="fc" id="L1182">    ALFIO_PI_INTEGRATION_ENABLED(</span>
+            &quot;Enable Alf.io-PI integration (default:true)&quot;,
+            false,
+            SettingCategory.ALFIO_PI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1188">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1190">    OFFLINE_CHECKIN_ENABLED(</span>
+            &quot;Offline Check-in enabled (default:true)&quot;,
+            false,
+            SettingCategory.ALFIO_PI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1196">            EnumSet.of(PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1198">    LABEL_PRINTING_ENABLED(</span>
+            &quot;Label Printing enabled (default:true)&quot;,
+            false,
+            SettingCategory.ALFIO_PI,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1204">            EnumSet.of(PURCHASE_CONTEXT),</span>
+            BooleanUtils.TRUE),
+<span class="fc" id="L1206">    LABEL_LAYOUT(</span>
+            &quot;Label layout&quot;,
+            false,
+            SettingCategory.ALFIO_PI,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L1212">            EnumSet.of(PURCHASE_CONTEXT)),</span>
+<span class="fc" id="L1213">    CHECK_IN_COLOR_CONFIGURATION(</span>
+            &quot;Categories color configuration&quot;,
+            false,
+            SettingCategory.ALFIO_PI,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L1219">            EnumSet.of(PURCHASE_CONTEXT)),</span>
+    //
+
+    //
+<span class="fc" id="L1223">    SECURITY_CSP_REPORT_ENABLED(</span>
+            &quot;Enable Content-Security-Policy reporting (default: false)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1229">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1231">    SECURITY_CSP_REPORT_URI(</span>
+            &quot;Define Content-Security-Policy reporting URI (default: /report-csp-violation)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1237">            EnumSet.of(SYSTEM)),</span>
+
+<span class="fc" id="L1239">    EMBED_ALLOWED_ORIGINS(</span>
+            &quot;Allowed origins. Separate different origins with a newline&quot;,
+            false,
+            SettingCategory.RESERVATION_EMBED,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L1245">            EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1246">    EMBED_POST_MESSAGE_ORIGIN(</span>
+            &quot;URI to notify container (via PostMessage API) for Reservation success / cancel&quot;,
+            false,
+            SettingCategory.RESERVATION_EMBED,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1252">            EnumSet.of(SYSTEM)),</span>
+
+    //
+<span class="fc" id="L1255">    TRANSLATION_OVERRIDE(</span>
+            &quot;Translation override (json)&quot;,
+            false,
+            SettingCategory.TRANSLATIONS,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L1261">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+
+<span class="fc" id="L1263">    BASE_CUSTOM_CSS(</span>
+<span class="fc" id="L1264">            &quot;Base custom css&quot;, false, SettingCategory.GENERAL, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
+<span class="fc" id="L1265">    EVENT_CUSTOM_CSS(</span>
+            &quot;Event custom css&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXTAREA,
+            false,
+<span class="fc" id="L1271">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT)),</span>
+
+<span class="fc" id="L1273">    DESCRIPTION_MAXLENGTH(</span>
+            &quot;Max characters in descriptions (default 4000)&quot;,
+            false,
+            SettingCategory.GENERAL,
+            ComponentType.TEXT,
+            false,
+<span class="fc" id="L1279">            EnumSet.of(SYSTEM)),</span>
+
+<span class="fc" id="L1281">    OPENID_PUBLIC_ENABLED(</span>
+            &quot;Enable OpenID for public users (default: false)&quot;,
+            false,
+            SettingCategory.OPENID,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1287">            EnumSet.of(SYSTEM),</span>
+            BooleanUtils.FALSE),
+<span class="fc" id="L1289">    OPENID_CONFIGURATION_JSON(</span>
+<span class="fc" id="L1290">            &quot;OpenID configuration&quot;, false, SettingCategory.OPENID, ComponentType.TEXTAREA, false, EnumSet.of(SYSTEM)),</span>
+
+<span class="fc" id="L1292">    GENERATE_TICKETS_FOR_SUBSCRIPTIONS(</span>
+            &quot;Generate and send tickets automatically to subscription holders for compatible events (default: false)&quot;,
+            false,
+            SettingCategory.SUBSCRIPTIONS,
+            ComponentType.BOOLEAN,
+            false,
+<span class="fc" id="L1298">            EnumSet.of(SYSTEM, ORGANIZATION, PURCHASE_CONTEXT),</span>
+            BooleanUtils.FALSE);
 
     @Getter
     public enum SettingCategory {
@@ -316,17 +1323,19 @@ public enum ConfigurationKeys {
         SUBSCRIPTIONS(&quot;Subscriptions&quot;);
 
         private final String description;
+
         SettingCategory(String description) {
             this.description = description;
         }
-
     }
 
     public enum GeoInfoProvider {
-        GOOGLE, HERE, NONE
+        GOOGLE,
+        HERE,
+        NONE
     }
 
-<span class="fc" id="L329">    private static final Predicate&lt;ConfigurationKeys&gt; INTERNAL_PREDICATE = ConfigurationKeys::isInternal;</span>
+<span class="fc" id="L1338">    private static final Predicate&lt;ConfigurationKeys&gt; INTERNAL_PREDICATE = ConfigurationKeys::isInternal;</span>
     private final String description;
     private final boolean internal;
     private final SettingCategory category;
@@ -335,33 +1344,35 @@ public enum ConfigurationKeys {
     private final Collection&lt;ConfigurationPathLevel&gt; pathLevels;
     private final String defaultValue;
 
-    ConfigurationKeys(String description,
-                      boolean internal,
-                      SettingCategory category,
-                      ComponentType componentType,
-                      boolean basic,
-                      Collection&lt;ConfigurationPathLevel&gt; pathLevels) {
-<span class="fc" id="L344">        this(description, internal, category, componentType, basic, pathLevels, null);</span>
-<span class="fc" id="L345">    }</span>
+    ConfigurationKeys(
+            String description,
+            boolean internal,
+            SettingCategory category,
+            ComponentType componentType,
+            boolean basic,
+            Collection&lt;ConfigurationPathLevel&gt; pathLevels) {
+<span class="fc" id="L1354">        this(description, internal, category, componentType, basic, pathLevels, null);</span>
+<span class="fc" id="L1355">    }</span>
 
-    ConfigurationKeys(String description,
-                      boolean internal,
-                      SettingCategory category,
-                      ComponentType componentType,
-                      boolean basic,
-                      Collection&lt;ConfigurationPathLevel&gt; pathLevels,
-<span class="fc" id="L353">                      String defaultValue) {</span>
-<span class="fc" id="L354">        this.description = description;</span>
-<span class="fc" id="L355">        this.internal = internal;</span>
-<span class="fc" id="L356">        this.category = category;</span>
-<span class="fc" id="L357">        this.componentType = componentType;</span>
-<span class="fc" id="L358">        this.basic = basic;</span>
-<span class="fc" id="L359">        this.pathLevels = pathLevels;</span>
-<span class="fc" id="L360">        this.defaultValue = defaultValue;</span>
-<span class="fc" id="L361">    }</span>
+    ConfigurationKeys(
+            String description,
+            boolean internal,
+            SettingCategory category,
+            ComponentType componentType,
+            boolean basic,
+            Collection&lt;ConfigurationPathLevel&gt; pathLevels,
+<span class="fc" id="L1364">            String defaultValue) {</span>
+<span class="fc" id="L1365">        this.description = description;</span>
+<span class="fc" id="L1366">        this.internal = internal;</span>
+<span class="fc" id="L1367">        this.category = category;</span>
+<span class="fc" id="L1368">        this.componentType = componentType;</span>
+<span class="fc" id="L1369">        this.basic = basic;</span>
+<span class="fc" id="L1370">        this.pathLevels = pathLevels;</span>
+<span class="fc" id="L1371">        this.defaultValue = defaultValue;</span>
+<span class="fc" id="L1372">    }</span>
 
     public String getValue() {
-<span class="fc" id="L364">        return name();</span>
+<span class="fc" id="L1375">        return name();</span>
     }
 
     /**
@@ -369,45 +1380,42 @@ public enum ConfigurationKeys {
      * @return default value
      */
     public String getDefaultValue() {
-<span class="fc" id="L372">        return defaultValue;</span>
+<span class="fc" id="L1383">        return defaultValue;</span>
     }
 
     public boolean supports(ConfigurationPathLevel pathLevel) {
-<span class="fc" id="L376">        return pathLevels.contains(pathLevel);</span>
+<span class="fc" id="L1387">        return pathLevels.contains(pathLevel);</span>
     }
 
     public static ConfigurationKeys fromString(String configurationKey) {
-<span class="fc" id="L380">        return safeValueOf(configurationKey);</span>
+<span class="fc" id="L1391">        return safeValueOf(configurationKey);</span>
     }
 
     public static ConfigurationKeys[] visible() {
-<span class="nc" id="L384">        return visibleStream().toArray(ConfigurationKeys[]::new);</span>
+<span class="nc" id="L1395">        return visibleStream().toArray(ConfigurationKeys[]::new);</span>
     }
 
     private static Stream&lt;ConfigurationKeys&gt; visibleStream() {
-<span class="fc" id="L388">        return Arrays.stream(values()).filter(INTERNAL_PREDICATE.negate());</span>
+<span class="fc" id="L1399">        return Arrays.stream(values()).filter(INTERNAL_PREDICATE.negate());</span>
     }
 
     public static List&lt;ConfigurationKeys&gt; basic() {
-<span class="fc" id="L392">        return visibleStream()</span>
-<span class="fc" id="L393">            .filter(ConfigurationKeys::isBasic)</span>
-<span class="fc" id="L394">            .collect(toList());</span>
-
+<span class="fc" id="L1403">        return visibleStream().filter(ConfigurationKeys::isBasic).collect(toList());</span>
     }
 
     public boolean isBooleanComponentType() {
-<span class="fc bfc" id="L399" title="All 2 branches covered.">        return componentType == ComponentType.BOOLEAN;</span>
+<span class="fc bfc" id="L1407" title="All 2 branches covered.">        return componentType == ComponentType.BOOLEAN;</span>
     }
 
     public static List&lt;ConfigurationKeys&gt; byPathLevel(ConfigurationPathLevel pathLevel) {
-<span class="fc" id="L403">        return visibleStream().filter(k -&gt; k.supports(pathLevel)).toList();</span>
+<span class="fc" id="L1411">        return visibleStream().filter(k -&gt; k.supports(pathLevel)).toList();</span>
     }
 
     public static ConfigurationKeys safeValueOf(String key) {
-<span class="fc" id="L407">        return Arrays.stream(values())</span>
-<span class="fc" id="L408">            .filter(k -&gt; k.name().equals(key))</span>
-<span class="fc" id="L409">            .findFirst()</span>
-<span class="fc" id="L410">            .orElse(ConfigurationKeys.NOT_RECOGNIZED);</span>
+<span class="fc" id="L1415">        return Arrays.stream(values())</span>
+<span class="fc" id="L1416">                .filter(k -&gt; k.name().equals(key))</span>
+<span class="fc" id="L1417">                .findFirst()</span>
+<span class="fc" id="L1418">                .orElse(ConfigurationKeys.NOT_RECOGNIZED);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

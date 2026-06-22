@@ -19,20 +19,22 @@ package alfio.model;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class BillingDocument {
 
     public enum Type {
-        INVOICE, RECEIPT, CREDIT_NOTE
+        INVOICE,
+        RECEIPT,
+        CREDIT_NOTE
     }
 
     public enum Status {
-        VALID, NOT_VALID
+        VALID,
+        NOT_VALID
     }
 
     private final long id;
@@ -45,25 +47,25 @@ public class BillingDocument {
     private final Status status;
     private final String externalId;
 
-    public BillingDocument(@Column(&quot;id&quot;) long id,
-                           @Column(&quot;event_id_fk&quot;) Integer eventId,
-                           @Column(&quot;reservation_id_fk&quot;) String reservationId,
-                           @Column(&quot;number&quot;) String number,
-                           @Column(&quot;type&quot;) Type type,
-                           @Column(&quot;model&quot;) String model,
-                           @Column(&quot;generation_ts&quot;) ZonedDateTime generationTimestamp,
-                           @Column(&quot;status&quot;) Status status,
-<span class="fc" id="L56">                           @Column(&quot;external_id&quot;) String externalId) {</span>
-<span class="fc" id="L57">        this.id = id;</span>
-<span class="fc" id="L58">        this.eventId = eventId;</span>
-<span class="fc" id="L59">        this.number = number;</span>
-<span class="fc" id="L60">        this.reservationId = reservationId;</span>
-<span class="fc" id="L61">        this.type = type;</span>
-<span class="fc" id="L62">        this.model = Json.fromJson(model, new TypeReference&lt;&gt;() {</span>
-        });
-<span class="fc" id="L64">        this.generationTimestamp = generationTimestamp;</span>
-<span class="fc" id="L65">        this.status = status;</span>
-<span class="fc" id="L66">        this.externalId = externalId;</span>
-<span class="fc" id="L67">    }</span>
+    public BillingDocument(
+            @Column(&quot;id&quot;) long id,
+            @Column(&quot;event_id_fk&quot;) Integer eventId,
+            @Column(&quot;reservation_id_fk&quot;) String reservationId,
+            @Column(&quot;number&quot;) String number,
+            @Column(&quot;type&quot;) Type type,
+            @Column(&quot;model&quot;) String model,
+            @Column(&quot;generation_ts&quot;) ZonedDateTime generationTimestamp,
+            @Column(&quot;status&quot;) Status status,
+<span class="fc" id="L59">            @Column(&quot;external_id&quot;) String externalId) {</span>
+<span class="fc" id="L60">        this.id = id;</span>
+<span class="fc" id="L61">        this.eventId = eventId;</span>
+<span class="fc" id="L62">        this.number = number;</span>
+<span class="fc" id="L63">        this.reservationId = reservationId;</span>
+<span class="fc" id="L64">        this.type = type;</span>
+<span class="fc" id="L65">        this.model = Json.fromJson(model, new TypeReference&lt;&gt;() {});</span>
+<span class="fc" id="L66">        this.generationTimestamp = generationTimestamp;</span>
+<span class="fc" id="L67">        this.status = status;</span>
+<span class="fc" id="L68">        this.externalId = externalId;</span>
+<span class="fc" id="L69">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

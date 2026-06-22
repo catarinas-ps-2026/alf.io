@@ -19,16 +19,18 @@ package alfio.model.system;
 import alfio.manager.system.AdminJobExecutor.JobName;
 import alfio.model.support.JSONData;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class AdminJobSchedule {
 
     public enum Status {
-        SCHEDULED, RUNNING, EXECUTED, FAILED
+        SCHEDULED,
+        RUNNING,
+        EXECUTED,
+        FAILED
     }
 
     private final long id;
@@ -39,20 +41,21 @@ public class AdminJobSchedule {
     private final Map&lt;String, Object&gt; metadata;
     private final int attempts;
 
-    public AdminJobSchedule(@Column(&quot;id&quot;) long id,
-                            @Column(&quot;job_name&quot;) String jobName,
-                            @Column(&quot;request_ts&quot;) ZonedDateTime requestTimestamp,
-                            @Column(&quot;status&quot;) Status status,
-                            @Column(&quot;execution_ts&quot;) ZonedDateTime executionTimestamp,
-                            @Column(&quot;metadata&quot;) @JSONData Map&lt;String, Object&gt; metadata,
-<span class="fc" id="L48">                            @Column(&quot;attempts&quot;) int attempts) {</span>
-<span class="fc" id="L49">        this.id = id;</span>
-<span class="fc" id="L50">        this.jobName = JobName.safeValueOf(jobName);</span>
-<span class="fc" id="L51">        this.requestTimestamp = requestTimestamp;</span>
-<span class="fc" id="L52">        this.status = status;</span>
-<span class="fc" id="L53">        this.executionTimestamp = executionTimestamp;</span>
-<span class="fc" id="L54">        this.metadata = metadata;</span>
-<span class="fc" id="L55">        this.attempts = attempts;</span>
-<span class="fc" id="L56">    }</span>
+    public AdminJobSchedule(
+            @Column(&quot;id&quot;) long id,
+            @Column(&quot;job_name&quot;) String jobName,
+            @Column(&quot;request_ts&quot;) ZonedDateTime requestTimestamp,
+            @Column(&quot;status&quot;) Status status,
+            @Column(&quot;execution_ts&quot;) ZonedDateTime executionTimestamp,
+            @Column(&quot;metadata&quot;) @JSONData Map&lt;String, Object&gt; metadata,
+<span class="fc" id="L51">            @Column(&quot;attempts&quot;) int attempts) {</span>
+<span class="fc" id="L52">        this.id = id;</span>
+<span class="fc" id="L53">        this.jobName = JobName.safeValueOf(jobName);</span>
+<span class="fc" id="L54">        this.requestTimestamp = requestTimestamp;</span>
+<span class="fc" id="L55">        this.status = status;</span>
+<span class="fc" id="L56">        this.executionTimestamp = executionTimestamp;</span>
+<span class="fc" id="L57">        this.metadata = metadata;</span>
+<span class="fc" id="L58">        this.attempts = attempts;</span>
+<span class="fc" id="L59">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

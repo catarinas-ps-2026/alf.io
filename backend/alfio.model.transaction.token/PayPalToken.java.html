@@ -20,9 +20,8 @@ import alfio.model.transaction.PaymentMethod;
 import alfio.model.transaction.PaymentProxy;
 import alfio.model.transaction.PaymentToken;
 import alfio.model.transaction.StaticPaymentMethods;
-import lombok.Getter;
-
 import java.beans.ConstructorProperties;
+import lombok.Getter;
 
 @Getter
 public class PayPalToken implements PaymentToken {
@@ -32,25 +31,25 @@ public class PayPalToken implements PaymentToken {
     private final String hmac;
 
     @ConstructorProperties({&quot;payerId&quot;, &quot;paymentId&quot;, &quot;hmac&quot;})
-<span class="fc" id="L35">    public PayPalToken(String payerId, String paymentId, String hmac) {</span>
-<span class="fc" id="L36">        this.payerId = payerId;</span>
-<span class="fc" id="L37">        this.paymentId = paymentId;</span>
-<span class="fc" id="L38">        this.hmac = hmac;</span>
-<span class="fc" id="L39">    }</span>
+<span class="fc" id="L34">    public PayPalToken(String payerId, String paymentId, String hmac) {</span>
+<span class="fc" id="L35">        this.payerId = payerId;</span>
+<span class="fc" id="L36">        this.paymentId = paymentId;</span>
+<span class="fc" id="L37">        this.hmac = hmac;</span>
+<span class="fc" id="L38">    }</span>
 
     @Override
     public String getToken() {
-<span class="nc" id="L43">        return paymentId;</span>
+<span class="nc" id="L42">        return paymentId;</span>
     }
 
     @Override
     public PaymentMethod getPaymentMethod() {
-<span class="nc" id="L48">        return StaticPaymentMethods.PAYPAL;</span>
+<span class="nc" id="L47">        return StaticPaymentMethods.PAYPAL;</span>
     }
 
     @Override
     public PaymentProxy getPaymentProvider() {
-<span class="nc" id="L53">        return PaymentProxy.PAYPAL;</span>
+<span class="nc" id="L52">        return PaymentProxy.PAYPAL;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -19,12 +19,11 @@ package alfio.model;
 import alfio.model.metadata.AlfioMetadata;
 import alfio.model.modification.StatisticsContainer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.math.BigDecimal;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Delegate;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 @AllArgsConstructor
 @Getter
@@ -52,48 +51,49 @@ public class EventWithAdditionalInfo implements StatisticsContainer, PriceContai
 
     @JsonIgnore
     public Event getEvent() {
-<span class="fc" id="L55">        return event;</span>
+<span class="fc" id="L54">        return event;</span>
     }
 
     @JsonIgnore
     public EventStatistic getEventStatistic() {
-<span class="nc" id="L60">       return eventStatistic;</span>
+<span class="nc" id="L59">        return eventStatistic;</span>
     }
 
     @Override
     @JsonIgnore
     public int getSrcPriceCts() {
-<span class="fc" id="L66">        return event.getSrcPriceCts();</span>
+<span class="fc" id="L65">        return event.getSrcPriceCts();</span>
     }
 
     @Override
     public String getCurrencyCode() {
-<span class="fc" id="L71">        return getCurrency();</span>
+<span class="fc" id="L70">        return getCurrency();</span>
     }
 
     @Override
     @JsonIgnore
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        return getVatStatus() != VatStatus.NONE ? Optional.ofNullable(event.getVat()) : Optional.empty();</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        return getVatStatus() != VatStatus.NONE ? Optional.ofNullable(event.getVat()) : Optional.empty();</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="fc" id="L82">        return event.getVatStatus();</span>
+<span class="fc" id="L81">        return event.getVatStatus();</span>
     }
 
     public BigDecimal getVatPercentage() {
-<span class="nc" id="L86">        return getVatPercentageOrZero();</span>
+<span class="nc" id="L85">        return getVatPercentageOrZero();</span>
     }
 
     public BigDecimal getVat() {
-<span class="fc" id="L90">        return getVAT();</span>
+<span class="fc" id="L89">        return getVAT();</span>
     }
 
     public boolean isAddCategoryEnabled() {
-<span class="nc" id="L94">        return ticketCategories.stream()</span>
-<span class="nc" id="L95">            .mapToInt(TicketCategoryWithAdditionalInfo::getMaxTickets)</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            .sum() &lt; getAvailableSeats();</span>
+<span class="nc" id="L93">        return ticketCategories.stream()</span>
+<span class="nc" id="L94">                        .mapToInt(TicketCategoryWithAdditionalInfo::getMaxTickets)</span>
+<span class="nc" id="L95">                        .sum()</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                &lt; getAvailableSeats();</span>
     }
 
     public boolean isContainingUnboundedCategories() {

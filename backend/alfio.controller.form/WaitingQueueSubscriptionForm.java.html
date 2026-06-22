@@ -18,10 +18,9 @@ package alfio.controller.form;
 
 import alfio.model.CustomerName;
 import alfio.model.Event;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Locale;
+import lombok.Data;
 
 @Data
 public class WaitingQueueSubscriptionForm implements Serializable {
@@ -35,7 +34,7 @@ public class WaitingQueueSubscriptionForm implements Serializable {
     private Integer selectedCategory;
 
     public CustomerName toCustomerName(Event event) {
-<span class="fc" id="L38">        return new CustomerName(fullName, firstName, lastName, event.mustUseFirstAndLastName());</span>
+<span class="fc" id="L37">        return new CustomerName(fullName, firstName, lastName, event.mustUseFirstAndLastName());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

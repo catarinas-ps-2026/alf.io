@@ -19,7 +19,6 @@ package alfio.model.transaction;
 import alfio.manager.system.ConfigurationLevel;
 import alfio.model.Event;
 import alfio.model.PurchaseContext;
-
 import java.util.Optional;
 
 public class PaymentContext {
@@ -29,22 +28,23 @@ public class PaymentContext {
     private final ConfigurationLevel configurationLevel;
 
     public PaymentContext() {
-<span class="fc" id="L32">        this(null, ConfigurationLevel.system());</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L31">        this(null, ConfigurationLevel.system());</span>
+<span class="fc" id="L32">    }</span>
 
     public PaymentContext(PurchaseContext purchaseContext) {
-<span class="fc" id="L36">        this(purchaseContext, purchaseContext.getConfigurationLevel());</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L35">        this(purchaseContext, purchaseContext.getConfigurationLevel());</span>
+<span class="fc" id="L36">    }</span>
 
     public PaymentContext(PurchaseContext purchaseContext, String reservationId) {
-<span class="fc" id="L40">        this(purchaseContext, purchaseContext.getConfigurationLevel(), reservationId);</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L39">        this(purchaseContext, purchaseContext.getConfigurationLevel(), reservationId);</span>
+<span class="fc" id="L40">    }</span>
 
     public PaymentContext(PurchaseContext purchaseContext, ConfigurationLevel configurationLevel) {
-<span class="fc" id="L44">        this(purchaseContext, configurationLevel, null);</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L43">        this(purchaseContext, configurationLevel, null);</span>
+<span class="fc" id="L44">    }</span>
 
-<span class="fc" id="L47">    public PaymentContext(PurchaseContext purchaseContext, ConfigurationLevel configurationLevel, String reservationId) {</span>
+    public PaymentContext(
+<span class="fc" id="L47">            PurchaseContext purchaseContext, ConfigurationLevel configurationLevel, String reservationId) {</span>
 <span class="fc" id="L48">        this.purchaseContext = purchaseContext;</span>
 <span class="fc" id="L49">        this.configurationLevel = configurationLevel;</span>
 <span class="fc" id="L50">        this.reservationId = reservationId;</span>

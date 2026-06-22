@@ -32,22 +32,28 @@ public class SummaryRow {
     private final PriceContainer.VatStatus vatStatus;
 
     public enum SummaryType {
-        TICKET, SUBSCRIPTION, PROMOTION_CODE, DYNAMIC_DISCOUNT, ADDITIONAL_SERVICE, APPLIED_SUBSCRIPTION, TAX_DETAIL
+        TICKET,
+        SUBSCRIPTION,
+        PROMOTION_CODE,
+        DYNAMIC_DISCOUNT,
+        ADDITIONAL_SERVICE,
+        APPLIED_SUBSCRIPTION,
+        TAX_DETAIL
     }
 
     public String getDescriptionForPayment() {
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if(name != null) {</span>
-<span class="fc" id="L40">            return amount + &quot; x &quot; + name;</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        if (name != null) {</span>
+<span class="fc" id="L46">            return amount + &quot; x &quot; + name;</span>
         }
-<span class="nc" id="L42">        return &quot;&quot;;</span>
+<span class="nc" id="L48">        return &quot;&quot;;</span>
     }
 
     public boolean isDiscount() {
-<span class="pc bpc" id="L46" title="1 of 4 branches missed.">        return type == SummaryType.PROMOTION_CODE || type == SummaryType.DYNAMIC_DISCOUNT;</span>
+<span class="pc bpc" id="L52" title="1 of 4 branches missed.">        return type == SummaryType.PROMOTION_CODE || type == SummaryType.DYNAMIC_DISCOUNT;</span>
     }
 
     public boolean getTaxDetail() {
-<span class="fc bfc" id="L50" title="All 2 branches covered.">        return type == SummaryType.TAX_DETAIL;</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        return type == SummaryType.TAX_DETAIL;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

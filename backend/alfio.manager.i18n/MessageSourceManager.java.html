@@ -20,10 +20,6 @@ import alfio.model.PurchaseContext;
 import alfio.repository.system.ConfigurationRepository;
 import alfio.util.CustomResourceBundleMessageSource;
 import alfio.util.LocaleUtil;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.context.MessageSource;
-import org.springframework.context.support.AbstractMessageSource;
-
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -33,92 +29,99 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.AbstractMessageSource;
 
 public class MessageSourceManager {
 
     /**
      * No-op filter used to load all keys in the resource bundle, to be used with the new Admin frontend
      */
-<span class="pc" id="L42">    public static final Predicate&lt;String&gt; ADMIN_FRONTEND = key -&gt; true;</span>
+<span class="pc" id="L41">    public static final Predicate&lt;String&gt; ADMIN_FRONTEND = key -&gt; true;</span>
     /**
      * Filters out all the &quot;admin&quot; keys which would not make sense to load on the public frontend
      */
-<span class="fc bfc" id="L46" title="All 2 branches covered.">    public static final Predicate&lt;String&gt; PUBLIC_FRONTEND = key -&gt; !key.startsWith(&quot;admin.&quot;);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">    public static final Predicate&lt;String&gt; PUBLIC_FRONTEND = key -&gt; !key.startsWith(&quot;admin.&quot;);</span>
 
-<span class="fc" id="L48">    private static final Pattern ARGUMENT_FINDER = Pattern.compile(&quot;\\{+(\\d+)}+&quot;);</span>
+<span class="fc" id="L47">    private static final Pattern ARGUMENT_FINDER = Pattern.compile(&quot;\\{+(\\d+)}+&quot;);</span>
     private final CustomResourceBundleMessageSource messageSource;
     private final ConfigurationRepository configurationRepository;
 
-    public MessageSourceManager(CustomResourceBundleMessageSource messageSource,
-<span class="fc" id="L53">                                ConfigurationRepository configurationRepository) {</span>
-<span class="fc" id="L54">        this.messageSource = messageSource;</span>
-<span class="fc" id="L55">        this.configurationRepository = configurationRepository;</span>
-<span class="fc" id="L56">    }</span>
+    public MessageSourceManager(
+<span class="fc" id="L52">            CustomResourceBundleMessageSource messageSource, ConfigurationRepository configurationRepository) {</span>
+<span class="fc" id="L53">        this.messageSource = messageSource;</span>
+<span class="fc" id="L54">        this.configurationRepository = configurationRepository;</span>
+<span class="fc" id="L55">    }</span>
 
     public Set&lt;String&gt; getKeys(String basename, Locale locale) {
-<span class="fc" id="L59">        return messageSource.getKeys(basename, locale);</span>
+<span class="fc" id="L58">        return messageSource.getKeys(basename, locale);</span>
     }
 
-    public Pair&lt;MessageSource, Map&lt;String, Map&lt;String, String&gt;&gt;&gt; getMessageSourceForPurchaseContextAndOverride(PurchaseContext purchaseContext) {
-<span class="fc" id="L63">        Map&lt;String, Map&lt;String, String&gt;&gt; override = purchaseContext.event()</span>
-<span class="fc" id="L64">            .map(event -&gt; configurationRepository.getEventOverrideMessages(event.getOrganizationId(), event.getId()))</span>
-<span class="fc" id="L65">            .orElseGet(() -&gt; configurationRepository.getOrganizationOverrideMessages(purchaseContext.getOrganizationId()));</span>
-<span class="fc" id="L66">        return Pair.of(new MessageSourceWithOverride(messageSource, override), override);</span>
+    public Pair&lt;MessageSource, Map&lt;String, Map&lt;String, String&gt;&gt;&gt; getMessageSourceForPurchaseContextAndOverride(
+            PurchaseContext purchaseContext) {
+<span class="fc" id="L63">        Map&lt;String, Map&lt;String, String&gt;&gt; override = purchaseContext</span>
+<span class="fc" id="L64">                .event()</span>
+<span class="fc" id="L65">                .map(event -&gt;</span>
+<span class="fc" id="L66">                        configurationRepository.getEventOverrideMessages(event.getOrganizationId(), event.getId()))</span>
+<span class="fc" id="L67">                .orElseGet(() -&gt;</span>
+<span class="fc" id="L68">                        configurationRepository.getOrganizationOverrideMessages(purchaseContext.getOrganizationId()));</span>
+<span class="fc" id="L69">        return Pair.of(new MessageSourceWithOverride(messageSource, override), override);</span>
     }
 
     public MessageSource getMessageSourceFor(PurchaseContext purchaseContext) {
-<span class="fc" id="L70">        return getMessageSourceForPurchaseContextAndOverride(purchaseContext).getLeft();</span>
+<span class="fc" id="L73">        return getMessageSourceForPurchaseContextAndOverride(purchaseContext).getLeft();</span>
     }
 
     public MessageSource getMessageSourceFor(int orgId, int eventId) {
-<span class="fc" id="L74">        var override = configurationRepository.getEventOverrideMessages(orgId, eventId);</span>
-<span class="fc" id="L75">        return new MessageSourceWithOverride(messageSource, override);</span>
+<span class="fc" id="L77">        var override = configurationRepository.getEventOverrideMessages(orgId, eventId);</span>
+<span class="fc" id="L78">        return new MessageSourceWithOverride(messageSource, override);</span>
     }
 
     public MessageSource getRootMessageSource() {
-<span class="fc" id="L79">        return getRootMessageSource(true);</span>
+<span class="fc" id="L82">        return getRootMessageSource(true);</span>
     }
 
     public MessageSource getRootMessageSource(boolean withSystemOverride) {
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (withSystemOverride) {</span>
-<span class="fc" id="L84">            return new MessageSourceWithOverride(messageSource, configurationRepository.getSystemOverrideMessages());</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (withSystemOverride) {</span>
+<span class="fc" id="L87">            return new MessageSourceWithOverride(messageSource, configurationRepository.getSystemOverrideMessages());</span>
         } else {
-<span class="nc" id="L86">            return messageSource;</span>
+<span class="nc" id="L89">            return messageSource;</span>
         }
     }
 
-<span class="fc" id="L90">    private static final String[] EMPTY_ARRAY = new String[]{};</span>
+<span class="fc" id="L93">    private static final String[] EMPTY_ARRAY = new String[] {};</span>
 
-<span class="fc" id="L92">    private static final Pattern PLACEHOLDER_TO_REPLACE = Pattern.compile(&quot;\\{(\\d+)\\}&quot;);</span>
+<span class="fc" id="L95">    private static final Pattern PLACEHOLDER_TO_REPLACE = Pattern.compile(&quot;\\{(\\d+)\\}&quot;);</span>
 
     private static String convertPlaceholder(String value) {
-<span class="fc" id="L95">        return PLACEHOLDER_TO_REPLACE.matcher(value).replaceAll(&quot;{{$1}}&quot;).replace(&quot;\'\'&quot;, &quot;\'&quot;);</span>
+<span class="fc" id="L98">        return PLACEHOLDER_TO_REPLACE.matcher(value).replaceAll(&quot;{{$1}}&quot;).replace(&quot;\'\'&quot;, &quot;\'&quot;);</span>
     }
 
-    public static Map&lt;String, Map&lt;String, String&gt;&gt; convertPlaceholdersForEachLanguage(Map&lt;String, Map&lt;String, String&gt;&gt; bundles) {
-<span class="fc" id="L99">        Map&lt;String, Map&lt;String, String&gt;&gt; res = new HashMap&lt;&gt;(bundles.size());</span>
-<span class="fc" id="L100">        bundles.entrySet().stream()</span>
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">            .filter(entry -&gt; entry.getValue() != null)</span>
-<span class="fc" id="L102">            .forEach(entry -&gt; res.put(entry.getKey(), convertPlaceholders(entry.getValue())));</span>
-<span class="fc" id="L103">        return res;</span>
+    public static Map&lt;String, Map&lt;String, String&gt;&gt; convertPlaceholdersForEachLanguage(
+            Map&lt;String, Map&lt;String, String&gt;&gt; bundles) {
+<span class="fc" id="L103">        Map&lt;String, Map&lt;String, String&gt;&gt; res = new HashMap&lt;&gt;(bundles.size());</span>
+<span class="fc" id="L104">        bundles.entrySet().stream()</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                .filter(entry -&gt; entry.getValue() != null)</span>
+<span class="fc" id="L106">                .forEach(entry -&gt; res.put(entry.getKey(), convertPlaceholders(entry.getValue())));</span>
+<span class="fc" id="L107">        return res;</span>
     }
 
     private static Map&lt;String, String&gt; convertPlaceholders(Map&lt;String, String&gt; bundle) {
-<span class="fc" id="L107">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;(bundle.size());</span>
-<span class="fc" id="L108">        bundle.forEach((k, v) -&gt; res.put(k, convertPlaceholder(v)));</span>
-<span class="fc" id="L109">        return res;</span>
+<span class="fc" id="L111">        Map&lt;String, String&gt; res = new HashMap&lt;&gt;(bundle.size());</span>
+<span class="fc" id="L112">        bundle.forEach((k, v) -&gt; res.put(k, convertPlaceholder(v)));</span>
+<span class="fc" id="L113">        return res;</span>
     }
 
-    public Map&lt;String, String&gt; getBundleAsMap(String baseName,
-                                              boolean withSystemOverride,
-                                              String lang,
-                                              Predicate&lt;String&gt; keysFilter) {
-<span class="fc" id="L116">        var locale = LocaleUtil.forLanguageTag(lang);</span>
-<span class="fc" id="L117">        var rootMessageSource = getRootMessageSource(withSystemOverride);</span>
-<span class="fc" id="L118">        return getKeys(baseName, locale)</span>
-<span class="fc" id="L119">            .stream()</span>
-<span class="fc" id="L120">            .filter(keysFilter)</span>
-<span class="fc" id="L121">            .collect(Collectors.toMap(Function.identity(), k -&gt; convertPlaceholder(rootMessageSource.getMessage(k, EMPTY_ARRAY, locale))));</span>
+    public Map&lt;String, String&gt; getBundleAsMap(
+            String baseName, boolean withSystemOverride, String lang, Predicate&lt;String&gt; keysFilter) {
+<span class="fc" id="L118">        var locale = LocaleUtil.forLanguageTag(lang);</span>
+<span class="fc" id="L119">        var rootMessageSource = getRootMessageSource(withSystemOverride);</span>
+<span class="fc" id="L120">        return getKeys(baseName, locale).stream()</span>
+<span class="fc" id="L121">                .filter(keysFilter)</span>
+<span class="fc" id="L122">                .collect(Collectors.toMap(</span>
+<span class="fc" id="L123">                        Function.identity(),</span>
+<span class="fc" id="L124">                        k -&gt; convertPlaceholder(rootMessageSource.getMessage(k, EMPTY_ARRAY, locale))));</span>
     }
 
     private static class MessageSourceWithOverride extends AbstractMessageSource {
@@ -126,11 +129,12 @@ public class MessageSourceManager {
         private final CustomResourceBundleMessageSource messageSource;
         private final Map&lt;String, Map&lt;String, String&gt;&gt; override;
 
-        private MessageSourceWithOverride(CustomResourceBundleMessageSource messageSource, Map&lt;String, Map&lt;String, String&gt;&gt; override) {
+        private MessageSourceWithOverride(
+                CustomResourceBundleMessageSource messageSource, Map&lt;String, Map&lt;String, String&gt;&gt; override) {
             this.messageSource = messageSource;
             this.override = override.entrySet().stream()
-                .filter(entry -&gt; entry.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .filter(entry -&gt; entry.getValue() != null)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
         @Override
@@ -145,13 +149,15 @@ public class MessageSourceManager {
     }
 
     static String cleanArguments(String translation, String replacement) {
-<span class="fc" id="L148">        return ARGUMENT_FINDER.matcher(translation).replaceAll(replacement);</span>
+<span class="fc" id="L152">        return ARGUMENT_FINDER.matcher(translation).replaceAll(replacement);</span>
     }
 
     static Map&lt;String, String&gt; cleanTranslationsForFrontend(Map&lt;String, String&gt; translations) {
-<span class="fc" id="L152">        return translations.entrySet().stream()</span>
-<span class="fc" id="L153">            .map(entry -&gt; Pair.of(entry.getKey(), cleanArguments(entry.getValue(), &quot;{{$1}}&quot;).replace(&quot;''&quot;, &quot;'&quot;)))</span>
-<span class="fc" id="L154">            .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
+<span class="fc" id="L156">        return translations.entrySet().stream()</span>
+<span class="fc" id="L157">                .map(entry -&gt; Pair.of(</span>
+<span class="fc" id="L158">                        entry.getKey(),</span>
+<span class="fc" id="L159">                        cleanArguments(entry.getValue(), &quot;{{$1}}&quot;).replace(&quot;''&quot;, &quot;'&quot;)))</span>
+<span class="fc" id="L160">                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

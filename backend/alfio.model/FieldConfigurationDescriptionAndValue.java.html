@@ -18,13 +18,6 @@ package alfio.model;
 
 import alfio.util.Json;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Delegate;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Triple;
-
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,86 +26,93 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Delegate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 
 @AllArgsConstructor
 public class FieldConfigurationDescriptionAndValue {
 
     @Delegate
     private final PurchaseContextFieldConfiguration purchaseContextFieldConfiguration;
+
     @Delegate
     private final PurchaseContextFieldDescription purchaseContextFieldDescription;
+
     private final int count;
     private final String value;
 
-<span class="fc" id="L47">    private static final List&lt;String&gt; TEXT_FIELD_TYPES = List.of(</span>
-        &quot;input:text&quot;,
-        &quot;input:tel&quot;,
-        &quot;textarea&quot;,
-        &quot;vat:eu&quot;,
-        &quot;dateOfBirth&quot;
-    );
-<span class="fc" id="L54">    private static final Pattern CHECKBOX_VALUES_PATTERN = Pattern.compile(&quot;\&quot;(.*?)\&quot;,?&quot;);</span>
+<span class="fc" id="L48">    private static final List&lt;String&gt; TEXT_FIELD_TYPES =</span>
+<span class="fc" id="L49">            List.of(&quot;input:text&quot;, &quot;input:tel&quot;, &quot;textarea&quot;, &quot;vat:eu&quot;, &quot;dateOfBirth&quot;);</span>
+<span class="fc" id="L50">    private static final Pattern CHECKBOX_VALUES_PATTERN = Pattern.compile(&quot;\&quot;(.*?)\&quot;,?&quot;);</span>
 
     public String getTranslatedValue() {
-<span class="nc bnc" id="L57" title="All 2 branches missed.">        if(StringUtils.isBlank(value)) {</span>
-<span class="nc" id="L58">            return value;</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (StringUtils.isBlank(value)) {</span>
+<span class="nc" id="L54">            return value;</span>
         }
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if(isSelectField()) {</span>
-<span class="nc" id="L61">            return purchaseContextFieldDescription.getRestrictedValuesDescription().getOrDefault(value, &quot;MISSING_DESCRIPTION&quot;);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (isSelectField()) {</span>
+<span class="nc" id="L57">            return purchaseContextFieldDescription</span>
+<span class="nc" id="L58">                    .getRestrictedValuesDescription()</span>
+<span class="nc" id="L59">                    .getOrDefault(value, &quot;MISSING_DESCRIPTION&quot;);</span>
         }
-<span class="nc" id="L63">        return value;</span>
+<span class="nc" id="L61">        return value;</span>
     }
 
     public List&lt;Triple&lt;String, String, Boolean&gt;&gt; getTranslatedRestrictedValue() {
-<span class="fc" id="L67">        Map&lt;String, String&gt; description = purchaseContextFieldDescription.getRestrictedValuesDescription();</span>
-<span class="fc" id="L68">        return purchaseContextFieldConfiguration.getRestrictedValues()</span>
-<span class="fc" id="L69">            .stream()</span>
-<span class="fc" id="L70">            .map(val -&gt; Triple.of(val, description.getOrDefault(val, &quot;MISSING_DESCRIPTION&quot;), isFieldValueEnabled(purchaseContextFieldConfiguration, val)))</span>
-<span class="fc" id="L71">            .collect(Collectors.toList());</span>
+<span class="fc" id="L65">        Map&lt;String, String&gt; description = purchaseContextFieldDescription.getRestrictedValuesDescription();</span>
+<span class="fc" id="L66">        return purchaseContextFieldConfiguration.getRestrictedValues().stream()</span>
+<span class="fc" id="L67">                .map(val -&gt; Triple.of(</span>
+                        val,
+<span class="fc" id="L69">                        description.getOrDefault(val, &quot;MISSING_DESCRIPTION&quot;),</span>
+<span class="fc" id="L70">                        isFieldValueEnabled(purchaseContextFieldConfiguration, val)))</span>
+<span class="fc" id="L71">                .collect(Collectors.toList());</span>
     }
 
     public List&lt;TicketFieldValue&gt; getFields() {
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if(count == 1) {</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (count == 1) {</span>
 <span class="fc" id="L76">            return Collections.singletonList(new TicketFieldValue(0, 1, value, isAcceptingValues()));</span>
         }
-<span class="nc bnc" id="L78" title="All 2 branches missed.">        List&lt;String&gt; values = StringUtils.isBlank(value) ? Collections.emptyList() : Json.fromJson(value, new TypeReference&lt;&gt;() {});</span>
-<span class="nc" id="L79">        return IntStream.range(0, count)</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">            .mapToObj(i -&gt; new TicketFieldValue(i, i+1, i &lt; values.size() ? values.get(i) : &quot;&quot;, isAcceptingValues()))</span>
-<span class="nc" id="L81">            .collect(Collectors.toList());</span>
-
+        List&lt;String&gt; values =
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                StringUtils.isBlank(value) ? Collections.emptyList() : Json.fromJson(value, new TypeReference&lt;&gt;() {});</span>
+<span class="nc" id="L80">        return IntStream.range(0, count)</span>
+<span class="nc" id="L81">                .mapToObj(i -&gt;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                        new TicketFieldValue(i, i + 1, i &lt; values.size() ? values.get(i) : &quot;&quot;, isAcceptingValues()))</span>
+<span class="nc" id="L83">                .collect(Collectors.toList());</span>
     }
 
     private boolean isText() {
-<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        return purchaseContextFieldConfiguration.isTextField()</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">            || TEXT_FIELD_TYPES.contains(purchaseContextFieldConfiguration.getType());</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        return purchaseContextFieldConfiguration.isTextField()</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">                || TEXT_FIELD_TYPES.contains(purchaseContextFieldConfiguration.getType());</span>
     }
 
     public String getValueDescription() {
-<span class="pc bpc" id="L91" title="1 of 4 branches missed.">        if(isText() || isCountryField()) {</span>
-<span class="fc" id="L92">            return value;</span>
-<span class="fc bfc" id="L93" title="All 2 branches covered.">        } else if(isCheckboxField()) {</span>
-<span class="fc" id="L94">            var matches = new ArrayList&lt;String&gt;();</span>
-<span class="fc" id="L95">            var matcher = CHECKBOX_VALUES_PATTERN.matcher(value);</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">            while(matcher.find()) {</span>
-<span class="fc" id="L97">                matches.add(matcher.group(1));</span>
+<span class="pc bpc" id="L92" title="1 of 4 branches missed.">        if (isText() || isCountryField()) {</span>
+<span class="fc" id="L93">            return value;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        } else if (isCheckboxField()) {</span>
+<span class="fc" id="L95">            var matches = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L96">            var matcher = CHECKBOX_VALUES_PATTERN.matcher(value);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            while (matcher.find()) {</span>
+<span class="fc" id="L98">                matches.add(matcher.group(1));</span>
             }
-<span class="fc" id="L99">            var restrictedValues = getTranslatedRestrictedValue();</span>
-<span class="fc" id="L100">            return matches.stream()</span>
-<span class="fc" id="L101">                .map(v -&gt; findValueDescription(restrictedValues, v))</span>
-<span class="fc" id="L102">                .filter(StringUtils::isNotBlank)</span>
-<span class="fc" id="L103">                .collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="fc" id="L100">            var restrictedValues = getTranslatedRestrictedValue();</span>
+<span class="fc" id="L101">            return matches.stream()</span>
+<span class="fc" id="L102">                    .map(v -&gt; findValueDescription(restrictedValues, v))</span>
+<span class="fc" id="L103">                    .filter(StringUtils::isNotBlank)</span>
+<span class="fc" id="L104">                    .collect(Collectors.joining(&quot;, &quot;));</span>
         } else {
-<span class="fc" id="L105">            return findValueDescription(getTranslatedRestrictedValue(), value);</span>
+<span class="fc" id="L106">            return findValueDescription(getTranslatedRestrictedValue(), value);</span>
         }
     }
 
-    private String findValueDescription(List&lt;Triple&lt;String, String, Boolean&gt;&gt; translateRestrictedValues,
-                                        String value) {
+    private String findValueDescription(List&lt;Triple&lt;String, String, Boolean&gt;&gt; translateRestrictedValues, String value) {
 <span class="fc" id="L111">        return translateRestrictedValues.stream()</span>
-<span class="fc" id="L112">            .filter(t -&gt; StringUtils.equals(t.getLeft(), value))</span>
-<span class="fc" id="L113">            .map(Triple::getMiddle)</span>
-<span class="fc" id="L114">            .findFirst()</span>
-<span class="fc" id="L115">            .orElse(&quot;&quot;);</span>
+<span class="fc" id="L112">                .filter(t -&gt; StringUtils.equals(t.getLeft(), value))</span>
+<span class="fc" id="L113">                .map(Triple::getMiddle)</span>
+<span class="fc" id="L114">                .findFirst()</span>
+<span class="fc" id="L115">                .orElse(&quot;&quot;);</span>
     }
 
     public String getValue() {
@@ -127,12 +127,12 @@ public class FieldConfigurationDescriptionAndValue {
 <span class="fc" id="L127">        return isBeforeStandardFields(purchaseContextFieldConfiguration);</span>
     }
 
-    private static boolean isFieldValueEnabled(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration, String value) {
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        return !purchaseContextFieldConfiguration.isSelectField()</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">            || CollectionUtils.isEmpty(purchaseContextFieldConfiguration.getDisabledValues())</span>
-<span class="pc bnc" id="L133" title="All 2 branches missed.">            || !purchaseContextFieldConfiguration.getDisabledValues().contains(value);</span>
+    private static boolean isFieldValueEnabled(
+            PurchaseContextFieldConfiguration purchaseContextFieldConfiguration, String value) {
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        return !purchaseContextFieldConfiguration.isSelectField()</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                || CollectionUtils.isEmpty(purchaseContextFieldConfiguration.getDisabledValues())</span>
+<span class="pc bnc" id="L134" title="All 2 branches missed.">                || !purchaseContextFieldConfiguration.getDisabledValues().contains(value);</span>
     }
-
 
     @Getter
     public static class TicketFieldValue {
@@ -153,6 +153,5 @@ public class FieldConfigurationDescriptionAndValue {
     public static boolean isBeforeStandardFields(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration) {
 <span class="fc bfc" id="L154" title="All 2 branches covered.">        return purchaseContextFieldConfiguration.getOrder() &lt; 0;</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

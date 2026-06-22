@@ -23,7 +23,8 @@ import lombok.Getter;
 public class AdditionalServiceDescription {
 
     public enum AdditionalServiceDescriptionType {
-        TITLE, DESCRIPTION
+        TITLE,
+        DESCRIPTION
     }
 
     private final Integer additionalServiceId;
@@ -31,15 +32,15 @@ public class AdditionalServiceDescription {
     private final AdditionalServiceDescriptionType type;
     private final String value;
 
-    public AdditionalServiceDescription(@Column(&quot;additional_service_id_fk&quot;) Integer additionalServiceId,
-                                        @Column(&quot;locale&quot;) String locale,
-                                        @Column(&quot;type&quot;) AdditionalServiceDescriptionType type,
-<span class="nc" id="L37">                                        @Column(&quot;value&quot;) String value) {</span>
-<span class="nc" id="L38">        this.additionalServiceId = additionalServiceId;</span>
-<span class="nc" id="L39">        this.locale = locale;</span>
-<span class="nc" id="L40">        this.type = type;</span>
-<span class="nc" id="L41">        this.value = value;</span>
-<span class="nc" id="L42">    }</span>
-
+    public AdditionalServiceDescription(
+            @Column(&quot;additional_service_id_fk&quot;) Integer additionalServiceId,
+            @Column(&quot;locale&quot;) String locale,
+            @Column(&quot;type&quot;) AdditionalServiceDescriptionType type,
+<span class="nc" id="L39">            @Column(&quot;value&quot;) String value) {</span>
+<span class="nc" id="L40">        this.additionalServiceId = additionalServiceId;</span>
+<span class="nc" id="L41">        this.locale = locale;</span>
+<span class="nc" id="L42">        this.type = type;</span>
+<span class="nc" id="L43">        this.value = value;</span>
+<span class="nc" id="L44">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

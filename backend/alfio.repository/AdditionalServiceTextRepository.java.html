@@ -20,67 +20,84 @@ import alfio.model.AdditionalServiceText;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
-
 import java.util.*;
 
 @QueryRepository
 public interface AdditionalServiceTextRepository {
 
-    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId&quot;)
+    @Query(
+            &quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId&quot;)
     List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceId(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId);
 
     @Query(&quot;delete from additional_service_description where additional_service_id_fk = :additionalServiceId&quot;)
     int deleteAdditionalServiceTexts(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId);
 
-    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId and type = :type&quot;)
-    List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceIdAndType(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type);
+    @Query(
+            &quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId and type = :type&quot;)
+    List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceIdAndType(
+            @Bind(&quot;additionalServiceId&quot;) int additionalServiceId, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type);
 
-    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId and locale = :locale and type = :type&quot;)
-    Optional&lt;AdditionalServiceText&gt; findByLocaleAndType(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId, @Bind(&quot;locale&quot;) String locale, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type);
+    @Query(
+            &quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk = :additionalServiceId and locale = :locale and type = :type&quot;)
+    Optional&lt;AdditionalServiceText&gt; findByLocaleAndType(
+            @Bind(&quot;additionalServiceId&quot;) int additionalServiceId,
+            @Bind(&quot;locale&quot;) String locale,
+            @Bind(&quot;type&quot;) AdditionalServiceText.TextType type);
 
-    @Query(&quot;insert into additional_service_description(additional_service_id_fk, locale, type, value) values(:additionalServiceId, :locale, :type, :value)&quot;)
-    int insert(@Bind(&quot;additionalServiceId&quot;) int additionalServiceId, @Bind(&quot;locale&quot;) String locale, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type, @Bind(&quot;value&quot;) String value);
+    @Query(
+            &quot;insert into additional_service_description(additional_service_id_fk, locale, type, value) values(:additionalServiceId, :locale, :type, :value)&quot;)
+    int insert(
+            @Bind(&quot;additionalServiceId&quot;) int additionalServiceId,
+            @Bind(&quot;locale&quot;) String locale,
+            @Bind(&quot;type&quot;) AdditionalServiceText.TextType type,
+            @Bind(&quot;value&quot;) String value);
 
-    @Query(&quot;update additional_service_description set locale = :locale, type = :type, value = :value where id = :id and additional_service_id_fk = :additionalServiceId&quot;)
-    int update(@Bind(&quot;id&quot;) int id, @Bind(&quot;locale&quot;) String locale, @Bind(&quot;type&quot;) AdditionalServiceText.TextType type, @Bind(&quot;value&quot;) String value, @Bind(&quot;additionalServiceId&quot;) int additionalServiceId);
+    @Query(
+            &quot;update additional_service_description set locale = :locale, type = :type, value = :value where id = :id and additional_service_id_fk = :additionalServiceId&quot;)
+    int update(
+            @Bind(&quot;id&quot;) int id,
+            @Bind(&quot;locale&quot;) String locale,
+            @Bind(&quot;type&quot;) AdditionalServiceText.TextType type,
+            @Bind(&quot;value&quot;) String value,
+            @Bind(&quot;additionalServiceId&quot;) int additionalServiceId);
 
+    @Query(
+            &quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk in (:additionalServiceIds)&quot;)
+    List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceIds(
+            @Bind(&quot;additionalServiceIds&quot;) Collection&lt;Integer&gt; additionalServiceIds);
 
-    @Query(&quot;select id, additional_service_id_fk, locale, type, value from additional_service_description where additional_service_id_fk in (:additionalServiceIds)&quot;)
-    List&lt;AdditionalServiceText&gt; findAllByAdditionalServiceIds(@Bind(&quot;additionalServiceIds&quot;) Collection&lt;Integer&gt; additionalServiceIds);
-
-
-    default Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; getDescriptionsByAdditionalServiceIds(Collection&lt;Integer&gt; additionalServiceIds) {
-<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (additionalServiceIds.isEmpty()) {</span>
-<span class="fc" id="L54">            return Collections.emptyMap();</span>
+    default Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt;
+            getDescriptionsByAdditionalServiceIds(Collection&lt;Integer&gt; additionalServiceIds) {
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (additionalServiceIds.isEmpty()) {</span>
+<span class="fc" id="L72">            return Collections.emptyMap();</span>
         }
 
-<span class="fc" id="L57">        Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; res = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L58">        findAllByAdditionalServiceIds(additionalServiceIds).forEach(t -&gt; {</span>
-<span class="fc" id="L59">            var id = t.getAdditionalServiceId();</span>
+<span class="fc" id="L75">        Map&lt;Integer, Map&lt;AdditionalServiceText.TextType, Map&lt;String, String&gt;&gt;&gt; res = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L76">        findAllByAdditionalServiceIds(additionalServiceIds).forEach(t -&gt; {</span>
+<span class="fc" id="L77">            var id = t.getAdditionalServiceId();</span>
 
-<span class="fc bfc" id="L61" title="All 2 branches covered.">            if (!res.containsKey(id)) {</span>
-<span class="fc" id="L62">                res.put(id, new EnumMap&lt;&gt;(AdditionalServiceText.TextType.class));</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">            if (!res.containsKey(id)) {</span>
+<span class="fc" id="L80">                res.put(id, new EnumMap&lt;&gt;(AdditionalServiceText.TextType.class));</span>
             }
 
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">            if(!res.get(id).containsKey(t.getType())) {</span>
-<span class="fc" id="L66">                res.get(id).put(t.getType(), new HashMap&lt;&gt;());</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (!res.get(id).containsKey(t.getType())) {</span>
+<span class="fc" id="L84">                res.get(id).put(t.getType(), new HashMap&lt;&gt;());</span>
             }
 
-<span class="fc" id="L69">            res.get(id).get(t.getType()).put(t.getLocale(), t.getValue());</span>
-<span class="fc" id="L70">        });</span>
+<span class="fc" id="L87">            res.get(id).get(t.getType()).put(t.getLocale(), t.getValue());</span>
+<span class="fc" id="L88">        });</span>
 
-<span class="fc" id="L72">        return res;</span>
-
+<span class="fc" id="L90">        return res;</span>
     }
 
-    default AdditionalServiceText findBestMatchByLocaleAndType(int additionalServiceId, String locale, AdditionalServiceText.TextType type) {
-<span class="fc" id="L77">        return findByLocaleAndType(additionalServiceId, locale, type)</span>
-<span class="fc" id="L78">            .orElseGet(() -&gt; {</span>
-<span class="fc" id="L79">                List&lt;AdditionalServiceText&gt; texts = findAllByAdditionalServiceIdAndType(additionalServiceId, type);</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">                return !texts.isEmpty() ? texts.get(0) : new AdditionalServiceText(-1, additionalServiceId, locale, type, &quot;N/A&quot;);</span>
-            });
+    default AdditionalServiceText findBestMatchByLocaleAndType(
+            int additionalServiceId, String locale, AdditionalServiceText.TextType type) {
+<span class="fc" id="L95">        return findByLocaleAndType(additionalServiceId, locale, type).orElseGet(() -&gt; {</span>
+<span class="fc" id="L96">            List&lt;AdditionalServiceText&gt; texts = findAllByAdditionalServiceIdAndType(additionalServiceId, type);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            return !texts.isEmpty()</span>
+<span class="fc" id="L98">                    ? texts.get(0)</span>
+<span class="fc" id="L99">                    : new AdditionalServiceText(-1, additionalServiceId, locale, type, &quot;N/A&quot;);</span>
+        });
     }
-
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

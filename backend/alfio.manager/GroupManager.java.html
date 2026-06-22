@@ -16,6 +16,11 @@
  */
 package alfio.manager;
 
+import static alfio.model.group.LinkedGroup.MatchType.FULL;
+import static alfio.model.group.LinkedGroup.Type.*;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
+
 import alfio.model.Audit;
 import alfio.model.Ticket;
 import alfio.model.group.Group;
@@ -30,6 +35,10 @@ import alfio.repository.AuditingRepository;
 import alfio.repository.GroupRepository;
 import alfio.repository.TicketRepository;
 import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import java.beans.ConstructorProperties;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -43,256 +52,296 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.beans.ConstructorProperties;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static alfio.model.group.LinkedGroup.MatchType.FULL;
-import static alfio.model.group.LinkedGroup.Type.*;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
-
 @Component
 public class GroupManager {
 
-<span class="fc" id="L59">    private static final Logger log = LoggerFactory.getLogger(GroupManager.class);</span>
+<span class="fc" id="L58">    private static final Logger log = LoggerFactory.getLogger(GroupManager.class);</span>
     private final GroupRepository groupRepository;
     private final TicketRepository ticketRepository;
     private final AuditingRepository auditingRepository;
     private final TransactionTemplate requiresNewTransactionTemplate;
 
-    public GroupManager(GroupRepository groupRepository,
-                        TicketRepository ticketRepository,
-                        AuditingRepository auditingRepository,
-<span class="fc" id="L68">                        PlatformTransactionManager transactionManager) {</span>
+    public GroupManager(
+            GroupRepository groupRepository,
+            TicketRepository ticketRepository,
+            AuditingRepository auditingRepository,
+<span class="fc" id="L68">            PlatformTransactionManager transactionManager) {</span>
 <span class="fc" id="L69">        this.groupRepository = groupRepository;</span>
 <span class="fc" id="L70">        this.ticketRepository = ticketRepository;</span>
 <span class="fc" id="L71">        this.auditingRepository = auditingRepository;</span>
-<span class="fc" id="L72">        this.requiresNewTransactionTemplate = new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));</span>
-<span class="fc" id="L73">    }</span>
+<span class="fc" id="L72">        this.requiresNewTransactionTemplate = new TransactionTemplate(</span>
+                transactionManager, new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+<span class="fc" id="L74">    }</span>
 
     public Result&lt;Integer&gt; createNew(GroupModification input) {
-<span class="fc" id="L76">        return requiresNewTransactionTemplate.execute(status -&gt; {</span>
-<span class="fc" id="L77">            Group wl = createNew(input.getName(), input.getDescription(), input.getOrganizationId());</span>
-<span class="fc" id="L78">            Result&lt;Integer&gt; insertMembers = insertMembers(wl.getId(), input.getItems());</span>
-<span class="fc bfc" id="L79" title="All 2 branches covered.">            if(!insertMembers.isSuccess()) {</span>
-<span class="fc" id="L80">                status.setRollbackOnly();</span>
+<span class="fc" id="L77">        return requiresNewTransactionTemplate.execute(status -&gt; {</span>
+<span class="fc" id="L78">            Group wl = createNew(input.getName(), input.getDescription(), input.getOrganizationId());</span>
+<span class="fc" id="L79">            Result&lt;Integer&gt; insertMembers = insertMembers(wl.getId(), input.getItems());</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">            if (!insertMembers.isSuccess()) {</span>
+<span class="fc" id="L81">                status.setRollbackOnly();</span>
             }
-<span class="fc" id="L82">            return insertMembers;</span>
+<span class="fc" id="L83">            return insertMembers;</span>
         });
     }
 
     Group createNew(String name, String description, int organizationId) {
-<span class="fc" id="L87">        AffectedRowCountAndKey&lt;Integer&gt; insert = groupRepository.insert(escapeHtml4(name), escapeHtml4(description), organizationId);</span>
-<span class="fc" id="L88">        return groupRepository.getById(insert.getKey());</span>
+<span class="fc" id="L88">        AffectedRowCountAndKey&lt;Integer&gt; insert =</span>
+<span class="fc" id="L89">                groupRepository.insert(escapeHtml4(name), escapeHtml4(description), organizationId);</span>
+<span class="fc" id="L90">        return groupRepository.getById(insert.getKey());</span>
     }
 
     @Transactional
-    public LinkedGroup createLink(int groupId,
-                                  int eventId,
-                                  LinkedGroupModification modification) {
+    public LinkedGroup createLink(int groupId, int eventId, LinkedGroupModification modification) {
 <span class="fc" id="L95">        Objects.requireNonNull(groupRepository.getById(groupId), &quot;Group not found&quot;);</span>
-<span class="fc bfc" id="L96" title="All 4 branches covered.">        Validate.isTrue(modification.getType() != LIMITED_QUANTITY || modification.getMaxAllocation() != null, &quot;Missing max allocation&quot;);</span>
-<span class="fc" id="L97">        AffectedRowCountAndKey&lt;Integer&gt; configuration = groupRepository.createConfiguration(groupId, eventId,</span>
-<span class="fc" id="L98">            modification.getTicketCategoryId(), modification.getType(), modification.getMatchType(), modification.getMaxAllocation());</span>
-<span class="fc" id="L99">        return groupRepository.getConfiguration(configuration.getKey());</span>
+<span class="fc" id="L96">        Validate.isTrue(</span>
+<span class="fc bfc" id="L97" title="All 4 branches covered.">                modification.getType() != LIMITED_QUANTITY || modification.getMaxAllocation() != null,</span>
+                &quot;Missing max allocation&quot;);
+<span class="fc" id="L99">        AffectedRowCountAndKey&lt;Integer&gt; configuration = groupRepository.createConfiguration(</span>
+                groupId,
+                eventId,
+<span class="fc" id="L102">                modification.getTicketCategoryId(),</span>
+<span class="fc" id="L103">                modification.getType(),</span>
+<span class="fc" id="L104">                modification.getMatchType(),</span>
+<span class="fc" id="L105">                modification.getMaxAllocation());</span>
+<span class="fc" id="L106">        return groupRepository.getConfiguration(configuration.getKey());</span>
     }
 
     @Transactional
     public LinkedGroup updateLink(int id, LinkedGroupModification modification) {
-<span class="fc" id="L104">        LinkedGroup original = groupRepository.getConfigurationForUpdate(id);</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        if(requiresCleanState(modification, original)) {</span>
-<span class="fc bfc" id="L106" title="All 2 branches covered.">            Validate.isTrue(groupRepository.countWhitelistedTicketsForConfiguration(original.getId()) == 0, &quot;Cannot update as there are already confirmed tickets.&quot;);</span>
+<span class="fc" id="L111">        LinkedGroup original = groupRepository.getConfigurationForUpdate(id);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (requiresCleanState(modification, original)) {</span>
+<span class="fc" id="L113">            Validate.isTrue(</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">                    groupRepository.countWhitelistedTicketsForConfiguration(original.getId()) == 0,</span>
+                    &quot;Cannot update as there are already confirmed tickets.&quot;);
         }
-<span class="fc bfc" id="L108" title="All 2 branches covered.">        Validate.isTrue(groupRepository.updateConfiguration(id, modification.getGroupId(), original.getEventId(), modification.getTicketCategoryId(), modification.getType(), modification.getMatchType(), modification.getMaxAllocation()) == 1);</span>
-<span class="fc" id="L109">        return groupRepository.getConfiguration(id);</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">        Validate.isTrue(groupRepository.updateConfiguration(</span>
+                        id,
+<span class="fc" id="L119">                        modification.getGroupId(),</span>
+<span class="fc" id="L120">                        original.getEventId(),</span>
+<span class="fc" id="L121">                        modification.getTicketCategoryId(),</span>
+<span class="fc" id="L122">                        modification.getType(),</span>
+<span class="fc" id="L123">                        modification.getMatchType(),</span>
+<span class="fc" id="L124">                        modification.getMaxAllocation())</span>
+                == 1);
+<span class="fc" id="L126">        return groupRepository.getConfiguration(id);</span>
     }
 
     private boolean requiresCleanState(LinkedGroupModification modification, LinkedGroup original) {
-<span class="fc bfc" id="L113" title="All 4 branches covered.">        return (original.getType() == UNLIMITED &amp;&amp; modification.getType() != UNLIMITED)</span>
-<span class="fc bfc" id="L114" title="All 2 branches covered.">            || original.getGroupId() != modification.getGroupId()</span>
-<span class="pc bpc" id="L115" title="3 of 8 branches missed.">            || (modification.getType() == LIMITED_QUANTITY &amp;&amp; modification.getMaxAllocation() != null &amp;&amp; original.getMaxAllocation() != null &amp;&amp; modification.getMaxAllocation().compareTo(original.getMaxAllocation()) &lt; 0);</span>
+<span class="fc bfc" id="L130" title="All 4 branches covered.">        return (original.getType() == UNLIMITED &amp;&amp; modification.getType() != UNLIMITED)</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">                || original.getGroupId() != modification.getGroupId()</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">                || (modification.getType() == LIMITED_QUANTITY</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">                        &amp;&amp; modification.getMaxAllocation() != null</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">                        &amp;&amp; original.getMaxAllocation() != null</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">                        &amp;&amp; modification.getMaxAllocation().compareTo(original.getMaxAllocation()) &lt; 0);</span>
     }
 
     boolean isGroupLinked(int eventId, int categoryId) {
-<span class="fc" id="L119">        return CollectionUtils.isNotEmpty(findLinks(eventId, categoryId));</span>
+<span class="fc" id="L139">        return CollectionUtils.isNotEmpty(findLinks(eventId, categoryId));</span>
     }
 
     @Transactional(readOnly = true)
     public List&lt;Group&gt; getAllActiveForOrganization(int organizationId) {
-<span class="fc" id="L124">        return groupRepository.getAllActiveForOrganization(organizationId);</span>
+<span class="fc" id="L144">        return groupRepository.getAllActiveForOrganization(organizationId);</span>
     }
 
     @Transactional(readOnly = true)
     public List&lt;Group&gt; getAllForOrganization(int organizationId) {
-<span class="fc" id="L129">        return groupRepository.getAllForOrganization(organizationId);</span>
+<span class="fc" id="L149">        return groupRepository.getAllForOrganization(organizationId);</span>
     }
 
     @Transactional
     public Optional&lt;GroupModification&gt; loadComplete(int id) {
-<span class="fc" id="L134">        return groupRepository.getOptionalById(id)</span>
-<span class="fc" id="L135">            .map(wl -&gt; {</span>
-<span class="fc" id="L136">                List&lt;GroupMemberModification&gt; items = groupRepository.getItems(wl.getId()).stream().map(i -&gt; new GroupMemberModification(i.getId(), i.getValue(), i.getDescription())).toList();</span>
-<span class="fc" id="L137">                return new GroupModification(wl.getId(), wl.getName(), wl.getDescription(), wl.getOrganizationId(), items);</span>
-            });
+<span class="fc" id="L154">        return groupRepository.getOptionalById(id).map(wl -&gt; {</span>
+<span class="fc" id="L155">            List&lt;GroupMemberModification&gt; items = groupRepository.getItems(wl.getId()).stream()</span>
+<span class="fc" id="L156">                    .map(i -&gt; new GroupMemberModification(i.getId(), i.getValue(), i.getDescription()))</span>
+<span class="fc" id="L157">                    .toList();</span>
+<span class="fc" id="L158">            return new GroupModification(wl.getId(), wl.getName(), wl.getDescription(), wl.getOrganizationId(), items);</span>
+        });
     }
 
     @Transactional
     public Optional&lt;Group&gt; findById(int groupId, int organizationId) {
-<span class="fc bfc" id="L143" title="All 2 branches covered.">        return groupRepository.getOptionalById(groupId).filter(w -&gt; w.getOrganizationId() == organizationId);</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        return groupRepository.getOptionalById(groupId).filter(w -&gt; w.getOrganizationId() == organizationId);</span>
     }
 
     @Transactional
     public boolean isAllowed(String value, int eventId, int categoryId) {
 
-<span class="fc" id="L149">        List&lt;LinkedGroup&gt; configurations = findLinks(eventId, categoryId);</span>
-<span class="fc bfc" id="L150" title="All 2 branches covered.">        if(CollectionUtils.isEmpty(configurations)) {</span>
-<span class="fc" id="L151">            return true;</span>
+<span class="fc" id="L170">        List&lt;LinkedGroup&gt; configurations = findLinks(eventId, categoryId);</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(configurations)) {</span>
+<span class="fc" id="L172">            return true;</span>
         }
-<span class="fc" id="L153">        LinkedGroup configuration = configurations.get(0);</span>
-<span class="fc" id="L154">        return getMatchingMember(configuration, value).isPresent();</span>
+<span class="fc" id="L174">        LinkedGroup configuration = configurations.get(0);</span>
+<span class="fc" id="L175">        return getMatchingMember(configuration, value).isPresent();</span>
     }
 
     @Transactional
     public List&lt;LinkedGroup&gt; getLinksForEvent(int eventId) {
-<span class="fc" id="L159">        return groupRepository.findActiveConfigurationsForEvent(eventId);</span>
+<span class="fc" id="L180">        return groupRepository.findActiveConfigurationsForEvent(eventId);</span>
     }
 
     @Transactional
     public List&lt;LinkedGroup&gt; findLinks(int eventId, int categoryId) {
-<span class="fc" id="L164">        return groupRepository.findActiveConfigurationsFor(eventId, categoryId);</span>
+<span class="fc" id="L185">        return groupRepository.findActiveConfigurationsFor(eventId, categoryId);</span>
     }
 
     Result&lt;Integer&gt; insertMembers(int groupId, List&lt;GroupMemberModification&gt; members) {
 
-<span class="fc" id="L169">        Map&lt;String, List&lt;GroupMemberModification&gt;&gt; grouped = members.stream().collect(Collectors.groupingBy(GroupMemberModification::getValue));</span>
-<span class="fc bfc" id="L170" title="All 2 branches covered.">        List&lt;String&gt; duplicates = grouped.entrySet().stream().filter(e -&gt; e.getValue().size() &gt; 1).map(Map.Entry::getKey).toList();</span>
+<span class="fc" id="L190">        Map&lt;String, List&lt;GroupMemberModification&gt;&gt; grouped =</span>
+<span class="fc" id="L191">                members.stream().collect(Collectors.groupingBy(GroupMemberModification::getValue));</span>
+<span class="fc" id="L192">        List&lt;String&gt; duplicates = grouped.entrySet().stream()</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">                .filter(e -&gt; e.getValue().size() &gt; 1)</span>
+<span class="fc" id="L194">                .map(Map.Entry::getKey)</span>
+<span class="fc" id="L195">                .toList();</span>
 
-<span class="fc" id="L172">        return new Result.Builder&lt;Integer&gt;()</span>
-<span class="fc" id="L173">            .checkPrecondition(duplicates::isEmpty, ErrorCode.lazy(() -&gt; ErrorCode.custom(&quot;value.duplicate&quot;, duplicates.stream().limit(10).collect(Collectors.joining(&quot;, &quot;)))))</span>
-<span class="fc" id="L174">            .build(() -&gt; Arrays.stream(groupRepository.insert(groupId, members)).sum());</span>
+<span class="fc" id="L197">        return new Result.Builder&lt;Integer&gt;()</span>
+<span class="fc" id="L198">                .checkPrecondition(</span>
+<span class="fc" id="L199">                        duplicates::isEmpty,</span>
+<span class="fc" id="L200">                        ErrorCode.lazy(() -&gt; ErrorCode.custom(</span>
+<span class="fc" id="L201">                                &quot;value.duplicate&quot;, duplicates.stream().limit(10).collect(Collectors.joining(&quot;, &quot;)))))</span>
+<span class="fc" id="L202">                .build(() -&gt;</span>
+<span class="fc" id="L203">                        Arrays.stream(groupRepository.insert(groupId, members)).sum());</span>
     }
 
     @Transactional
     public boolean acquireMemberForTicket(Ticket ticket) {
-<span class="fc" id="L179">        List&lt;LinkedGroup&gt; configurations = findLinks(ticket.getEventId(), ticket.getCategoryId());</span>
-<span class="fc bfc" id="L180" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(configurations)) {</span>
-<span class="fc" id="L181">            return true;</span>
+<span class="fc" id="L208">        List&lt;LinkedGroup&gt; configurations = findLinks(ticket.getEventId(), ticket.getCategoryId());</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(configurations)) {</span>
+<span class="fc" id="L210">            return true;</span>
         }
-<span class="fc" id="L183">        LinkedGroup configuration = configurations.get(0);</span>
-<span class="fc" id="L184">        Optional&lt;MatchingMember&gt; optionalItem = getMatchingMember(configuration, ticket.getEmail());</span>
-<span class="fc bfc" id="L185" title="All 2 branches covered.">        if (optionalItem.isEmpty()) {</span>
-<span class="fc" id="L186">            return false;</span>
+<span class="fc" id="L212">        LinkedGroup configuration = configurations.get(0);</span>
+<span class="fc" id="L213">        Optional&lt;MatchingMember&gt; optionalItem = getMatchingMember(configuration, ticket.getEmail());</span>
+<span class="fc bfc" id="L214" title="All 2 branches covered.">        if (optionalItem.isEmpty()) {</span>
+<span class="fc" id="L215">            return false;</span>
         }
-<span class="fc" id="L188">        MatchingMember matchingMember = optionalItem.get();</span>
-<span class="fc" id="L189">        GroupMember item = matchingMember.member;</span>
-<span class="fc bfc" id="L190" title="All 2 branches covered.">        boolean preventDuplication = configuration.getType() == ONCE_PER_VALUE;</span>
-<span class="fc bfc" id="L191" title="All 4 branches covered.">        boolean limitAssignments = preventDuplication || configuration.getType() == LIMITED_QUANTITY;</span>
-<span class="fc bfc" id="L192" title="All 4 branches covered.">        if(limitAssignments &amp;&amp; ticketFailsValidation(matchingMember, ticket, configuration.getId())) {</span>
-<span class="fc" id="L193">            return false;</span>
+<span class="fc" id="L217">        MatchingMember matchingMember = optionalItem.get();</span>
+<span class="fc" id="L218">        GroupMember item = matchingMember.member;</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">        boolean preventDuplication = configuration.getType() == ONCE_PER_VALUE;</span>
+<span class="fc bfc" id="L220" title="All 4 branches covered.">        boolean limitAssignments = preventDuplication || configuration.getType() == LIMITED_QUANTITY;</span>
+<span class="fc bfc" id="L221" title="All 4 branches covered.">        if (limitAssignments &amp;&amp; ticketFailsValidation(matchingMember, ticket, configuration.getId())) {</span>
+<span class="fc" id="L222">            return false;</span>
         }
-<span class="fc bfc" id="L195" title="All 4 branches covered.">        groupRepository.insertWhitelistedTicket(item.getId(), configuration.getId(), ticket.getId(), preventDuplication &amp;&amp; matchingMember.matchType == MatchType.FULL ? Boolean.TRUE : null);</span>
-<span class="fc" id="L196">        Map&lt;String, Object&gt; modifications = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L197">        modifications.put(&quot;itemId&quot;, item.getId());</span>
-<span class="fc" id="L198">        modifications.put(&quot;configurationId&quot;, configuration.getId());</span>
-<span class="fc" id="L199">        modifications.put(&quot;ticketId&quot;, ticket.getId());</span>
-<span class="fc" id="L200">        auditingRepository.insert(ticket.getTicketsReservationId(), null, ticket.getEventId(), Audit.EventType.GROUP_MEMBER_ACQUIRED, new Date(), Audit.EntityType.TICKET, String.valueOf(ticket.getId()), singletonList(modifications));</span>
-<span class="fc" id="L201">        return true;</span>
+<span class="fc" id="L224">        groupRepository.insertWhitelistedTicket(</span>
+<span class="fc" id="L225">                item.getId(),</span>
+<span class="fc" id="L226">                configuration.getId(),</span>
+<span class="fc" id="L227">                ticket.getId(),</span>
+<span class="fc bfc" id="L228" title="All 4 branches covered.">                preventDuplication &amp;&amp; matchingMember.matchType == MatchType.FULL ? Boolean.TRUE : null);</span>
+<span class="fc" id="L229">        Map&lt;String, Object&gt; modifications = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L230">        modifications.put(&quot;itemId&quot;, item.getId());</span>
+<span class="fc" id="L231">        modifications.put(&quot;configurationId&quot;, configuration.getId());</span>
+<span class="fc" id="L232">        modifications.put(&quot;ticketId&quot;, ticket.getId());</span>
+<span class="fc" id="L233">        auditingRepository.insert(</span>
+<span class="fc" id="L234">                ticket.getTicketsReservationId(),</span>
+                null,
+<span class="fc" id="L236">                ticket.getEventId(),</span>
+                Audit.EventType.GROUP_MEMBER_ACQUIRED,
+                new Date(),
+                Audit.EntityType.TICKET,
+<span class="fc" id="L240">                String.valueOf(ticket.getId()),</span>
+<span class="fc" id="L241">                singletonList(modifications));</span>
+<span class="fc" id="L242">        return true;</span>
     }
 
-    private boolean ticketFailsValidation(MatchingMember matchingMember,
-                                          Ticket ticket,
-                                          int configurationId) {
-        //reload and lock configuration
-<span class="fc" id="L208">        LinkedGroup configuration = groupRepository.getConfigurationForUpdate(configurationId);</span>
-<span class="fc bfc" id="L209" title="All 2 branches covered.">        boolean preventDuplication = configuration.getType() == ONCE_PER_VALUE;</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">        int expected = preventDuplication ? 1 : Optional.ofNullable(configuration.getMaxAllocation()).orElse(0);</span>
+    private boolean ticketFailsValidation(MatchingMember matchingMember, Ticket ticket, int configurationId) {
+        // reload and lock configuration
+<span class="fc" id="L247">        LinkedGroup configuration = groupRepository.getConfigurationForUpdate(configurationId);</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">        boolean preventDuplication = configuration.getType() == ONCE_PER_VALUE;</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">        int expected = preventDuplication</span>
+<span class="fc" id="L250">                ? 1</span>
+<span class="fc" id="L251">                : Optional.ofNullable(configuration.getMaxAllocation()).orElse(0);</span>
 
-<span class="fc bfc" id="L212" title="All 2 branches covered.">        return switch (matchingMember.matchType) {</span>
+<span class="fc bfc" id="L253" title="All 2 branches covered.">        return switch (matchingMember.matchType) {</span>
             case FULL -&gt; {
-<span class="fc" id="L214">                int existing = groupRepository.countExistingWhitelistedTickets(matchingMember.member.getId(), configuration.getId());</span>
-<span class="fc bfc" id="L215" title="All 2 branches covered.">                yield existing &gt;= expected;</span>
+<span class="fc" id="L255">                int existing = groupRepository.countExistingWhitelistedTickets(</span>
+<span class="fc" id="L256">                        matchingMember.member.getId(), configuration.getId());</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">                yield existing &gt;= expected;</span>
             }
             case PARTIAL -&gt; {
-<span class="fc" id="L218">                int existing = ticketRepository.countByEmailAddressAndCategory(ticket.getEmail(), configuration.getTicketCategoryId());</span>
-<span class="fc bfc" id="L219" title="All 2 branches covered.">                yield existing &gt; expected;</span>
+<span class="fc" id="L260">                int existing = ticketRepository.countByEmailAddressAndCategory(</span>
+<span class="fc" id="L261">                        ticket.getEmail(), configuration.getTicketCategoryId());</span>
+<span class="fc bfc" id="L262" title="All 2 branches covered.">                yield existing &gt; expected;</span>
             }
         };
     }
 
     private Optional&lt;MatchingMember&gt; getMatchingMember(LinkedGroup configuration, String email) {
-<span class="fc" id="L225">        String trimmed = StringUtils.trimToEmpty(email);</span>
-<span class="fc" id="L226">        Optional&lt;GroupMember&gt; exactMatch = groupRepository.findItemByValueExactMatch(configuration.getGroupId(), trimmed);</span>
-<span class="fc bfc" id="L227" title="All 4 branches covered.">        if(exactMatch.isPresent() || configuration.getMatchType() == FULL) {</span>
-<span class="fc" id="L228">            return exactMatch.map(m -&gt; new MatchingMember(m, MatchType.FULL, null));</span>
+<span class="fc" id="L268">        String trimmed = StringUtils.trimToEmpty(email);</span>
+<span class="fc" id="L269">        Optional&lt;GroupMember&gt; exactMatch =</span>
+<span class="fc" id="L270">                groupRepository.findItemByValueExactMatch(configuration.getGroupId(), trimmed);</span>
+<span class="fc bfc" id="L271" title="All 4 branches covered.">        if (exactMatch.isPresent() || configuration.getMatchType() == FULL) {</span>
+<span class="fc" id="L272">            return exactMatch.map(m -&gt; new MatchingMember(m, MatchType.FULL, null));</span>
         }
-<span class="fc" id="L230">        String partial = StringUtils.substringAfterLast(trimmed, &quot;@&quot;);</span>
-<span class="fc bfc" id="L231" title="All 2 branches covered.">        if (!partial.isEmpty()) {</span>
-<span class="fc" id="L232">            return groupRepository.findItemEndsWith(configuration.getId(), configuration.getGroupId(), &quot;%@&quot;+partial)</span>
-<span class="fc" id="L233">                .map(m -&gt; new MatchingMember(m, MatchType.PARTIAL, partial.toLowerCase()));</span>
+<span class="fc" id="L274">        String partial = StringUtils.substringAfterLast(trimmed, &quot;@&quot;);</span>
+<span class="fc bfc" id="L275" title="All 2 branches covered.">        if (!partial.isEmpty()) {</span>
+<span class="fc" id="L276">            return groupRepository</span>
+<span class="fc" id="L277">                    .findItemEndsWith(configuration.getId(), configuration.getGroupId(), &quot;%@&quot; + partial)</span>
+<span class="fc" id="L278">                    .map(m -&gt; new MatchingMember(m, MatchType.PARTIAL, partial.toLowerCase()));</span>
         }
-<span class="fc" id="L235">        return Optional.empty();</span>
+<span class="fc" id="L280">        return Optional.empty();</span>
     }
 
     @Transactional
     public void deleteWhitelistedTicketsForReservation(String reservationId) {
-<span class="fc" id="L240">        List&lt;Integer&gt; tickets = ticketRepository.findTicketsInReservation(reservationId).stream().map(Ticket::getId).toList();</span>
-<span class="fc bfc" id="L241" title="All 2 branches covered.">        if(!tickets.isEmpty()) {</span>
-<span class="fc" id="L242">            int result = groupRepository.deleteExistingWhitelistedTickets(tickets);</span>
-<span class="fc" id="L243">            log.trace(&quot;deleted {} whitelisted tickets for reservation {}&quot;, result, reservationId);</span>
+<span class="fc" id="L285">        List&lt;Integer&gt; tickets = ticketRepository.findTicketsInReservation(reservationId).stream()</span>
+<span class="fc" id="L286">                .map(Ticket::getId)</span>
+<span class="fc" id="L287">                .toList();</span>
+<span class="fc bfc" id="L288" title="All 2 branches covered.">        if (!tickets.isEmpty()) {</span>
+<span class="fc" id="L289">            int result = groupRepository.deleteExistingWhitelistedTickets(tickets);</span>
+<span class="fc" id="L290">            log.trace(&quot;deleted {} whitelisted tickets for reservation {}&quot;, result, reservationId);</span>
         }
-<span class="fc" id="L245">    }</span>
+<span class="fc" id="L292">    }</span>
 
     @Transactional
     public void disableLink(int linkId) {
-<span class="fc bfc" id="L249" title="All 2 branches covered.">        Validate.isTrue(groupRepository.disableLink(linkId) == 1, &quot;Error while disabling link&quot;);</span>
-<span class="fc" id="L250">    }</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        Validate.isTrue(groupRepository.disableLink(linkId) == 1, &quot;Error while disabling link&quot;);</span>
+<span class="fc" id="L297">    }</span>
 
     @Transactional
     public Optional&lt;GroupModification&gt; update(int listId, GroupModification modification) {
 
-<span class="fc bfc" id="L255" title="All 4 branches covered.">        if(groupRepository.getOptionalById(listId).isEmpty() || CollectionUtils.isEmpty(modification.getItems())) {</span>
-<span class="fc" id="L256">            return Optional.empty();</span>
+<span class="fc bfc" id="L302" title="All 4 branches covered.">        if (groupRepository.getOptionalById(listId).isEmpty() || CollectionUtils.isEmpty(modification.getItems())) {</span>
+<span class="fc" id="L303">            return Optional.empty();</span>
         }
 
-<span class="fc" id="L259">        List&lt;String&gt; existingValues = groupRepository.getAllValuesIncludingNotActive(listId);</span>
-<span class="fc" id="L260">        List&lt;GroupMemberModification&gt; notPresent = modification.getItems().stream()</span>
-<span class="fc bfc" id="L261" title="All 4 branches covered.">            .filter(i -&gt; i.getId() == null &amp;&amp; !existingValues.contains(i.getValue().strip().toLowerCase()))</span>
-<span class="fc" id="L262">            .distinct()</span>
-<span class="fc" id="L263">            .toList();</span>
+<span class="fc" id="L306">        List&lt;String&gt; existingValues = groupRepository.getAllValuesIncludingNotActive(listId);</span>
+<span class="fc" id="L307">        List&lt;GroupMemberModification&gt; notPresent = modification.getItems().stream()</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">                .filter(i -&gt; i.getId() == null</span>
+<span class="fc bfc" id="L309" title="All 2 branches covered.">                        &amp;&amp; !existingValues.contains(i.getValue().strip().toLowerCase()))</span>
+<span class="fc" id="L310">                .distinct()</span>
+<span class="fc" id="L311">                .toList();</span>
 
-<span class="fc bfc" id="L265" title="All 2 branches covered.">        if(!notPresent.isEmpty()) {</span>
-<span class="fc" id="L266">            var insertResult = insertMembers(listId, notPresent);</span>
-<span class="fc bfc" id="L267" title="All 2 branches covered.">            if(!insertResult.isSuccess()) {</span>
-<span class="fc" id="L268">                var error = Objects.requireNonNull(insertResult.getFirstErrorOrNull());</span>
-<span class="fc" id="L269">                throw new DuplicateGroupItemException(error.getDescription());</span>
+<span class="fc bfc" id="L313" title="All 2 branches covered.">        if (!notPresent.isEmpty()) {</span>
+<span class="fc" id="L314">            var insertResult = insertMembers(listId, notPresent);</span>
+<span class="fc bfc" id="L315" title="All 2 branches covered.">            if (!insertResult.isSuccess()) {</span>
+<span class="fc" id="L316">                var error = Objects.requireNonNull(insertResult.getFirstErrorOrNull());</span>
+<span class="fc" id="L317">                throw new DuplicateGroupItemException(error.getDescription());</span>
             }
         }
-<span class="fc" id="L272">        groupRepository.update(listId, escapeHtml4(modification.getName()), escapeHtml4(modification.getDescription()));</span>
-<span class="fc" id="L273">        return loadComplete(listId);</span>
+<span class="fc" id="L320">        groupRepository.update(listId, escapeHtml4(modification.getName()), escapeHtml4(modification.getDescription()));</span>
+<span class="fc" id="L321">        return loadComplete(listId);</span>
     }
 
     @Transactional
     public boolean deactivateMembers(List&lt;Integer&gt; memberIds, int groupId) {
-<span class="fc bfc" id="L278" title="All 2 branches covered.">        if(memberIds.isEmpty()) {</span>
-<span class="fc" id="L279">            return false;</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">        if (memberIds.isEmpty()) {</span>
+<span class="fc" id="L327">            return false;</span>
         }
-<span class="fc" id="L281">        groupRepository.deactivateGroupMember(memberIds, groupId);</span>
-<span class="fc" id="L282">        return true;</span>
+<span class="fc" id="L329">        groupRepository.deactivateGroupMember(memberIds, groupId);</span>
+<span class="fc" id="L330">        return true;</span>
     }
 
     @Transactional
     public boolean deactivateGroup(int groupId) {
-<span class="fc" id="L287">        List&lt;Integer&gt; members = groupRepository.getItems(groupId).stream().map(GroupMember::getId).toList();</span>
-<span class="fc bfc" id="L288" title="All 2 branches covered.">        if(!members.isEmpty()) {</span>
-<span class="fc" id="L289">            Validate.isTrue(deactivateMembers(members, groupId), &quot;error while disabling group members&quot;);</span>
+<span class="fc" id="L335">        List&lt;Integer&gt; members = groupRepository.getItems(groupId).stream()</span>
+<span class="fc" id="L336">                .map(GroupMember::getId)</span>
+<span class="fc" id="L337">                .toList();</span>
+<span class="fc bfc" id="L338" title="All 2 branches covered.">        if (!members.isEmpty()) {</span>
+<span class="fc" id="L339">            Validate.isTrue(deactivateMembers(members, groupId), &quot;error while disabling group members&quot;);</span>
         }
-<span class="fc" id="L291">        groupRepository.disableAllLinks(groupId);</span>
-<span class="fc bfc" id="L292" title="All 2 branches covered.">        Validate.isTrue(groupRepository.deactivateGroup(groupId) == 1, &quot;unexpected error while disabling group&quot;);</span>
-<span class="fc" id="L293">        return true;</span>
+<span class="fc" id="L341">        groupRepository.disableAllLinks(groupId);</span>
+<span class="fc bfc" id="L342" title="All 2 branches covered.">        Validate.isTrue(groupRepository.deactivateGroup(groupId) == 1, &quot;unexpected error while disabling group&quot;);</span>
+<span class="fc" id="L343">        return true;</span>
     }
-
 
     public static class WhitelistValidator implements Predicate&lt;WhitelistValidationItem&gt; {
 
@@ -309,7 +358,6 @@ public class GroupManager {
             return groupManager.isAllowed(item.value, eventId, item.categoryId);
         }
     }
-
 
     public static class WhitelistValidationItem {
         private final int categoryId;
@@ -328,7 +376,11 @@ public class GroupManager {
         }
     }
 
-    enum MatchType { FULL, PARTIAL }
+    enum MatchType {
+        FULL,
+        PARTIAL
+    }
+
     record MatchingMember(GroupMember member, MatchType matchType, @Nullable String domainMatch) {}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

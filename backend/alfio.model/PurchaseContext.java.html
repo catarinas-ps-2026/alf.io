@@ -17,7 +17,6 @@
 package alfio.model;
 
 import alfio.model.transaction.PaymentProxy;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -29,12 +28,17 @@ public interface PurchaseContext extends Configurable, TimeZoneInfo, LocalizedCo
     Map&lt;String, String&gt; getTitle();
 
     BigDecimal getVat();
+
     PriceContainer.VatStatus getVatStatus();
+
     String getCurrency();
 
     List&lt;PaymentProxy&gt; getAllowedPaymentProxies();
+
     String getPrivacyPolicyLinkOrNull();
+
     String getPrivacyPolicyUrl();
+
     String getTermsAndConditionsUrl();
 
     //
@@ -42,23 +46,23 @@ public interface PurchaseContext extends Configurable, TimeZoneInfo, LocalizedCo
 
     //
     PurchaseContextType getType();
+
     String getPublicIdentifier();
 
     String getFileBlobId();
 
     boolean isFreeOfCharge();
 
-
     String getDisplayName();
 
-    //FIXME: check every USE
+    // FIXME: check every USE
     Optional&lt;Event&gt; event();
 
     ZonedDateTime getBegin();
 
-
     enum PurchaseContextType {
-        subscription(&quot;subscription&quot;), event(&quot;event&quot;);
+        subscription(&quot;subscription&quot;),
+        event(&quot;event&quot;);
 
         private final String urlComponent;
 
@@ -82,15 +86,15 @@ public interface PurchaseContext extends Configurable, TimeZoneInfo, LocalizedCo
     String getPrivateKey();
 
     default boolean mustUseFirstAndLastName() {
-<span class="fc" id="L85">        return true;</span>
-    }
-
-    default boolean getFileBlobIdIsPresent() {
 <span class="fc" id="L89">        return true;</span>
     }
 
+    default boolean getFileBlobIdIsPresent() {
+<span class="fc" id="L93">        return true;</span>
+    }
+
     default boolean ofType(PurchaseContextType purchaseContextType) {
-<span class="fc bfc" id="L93" title="All 2 branches covered.">        return getType() == purchaseContextType;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        return getType() == purchaseContextType;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

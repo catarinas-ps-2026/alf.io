@@ -19,12 +19,11 @@ package alfio.model;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class DynamicFieldTemplate {
@@ -37,24 +36,27 @@ public class DynamicFieldTemplate {
     private final Integer maxLength;
     private final Integer minLength;
 
-    public DynamicFieldTemplate(@Column(&quot;id&quot;) int id,
-                                @Column(&quot;field_name&quot;) String name,
-                                @Column(&quot;field_type&quot;) String type,
-                                @Column(&quot;field_restricted_values&quot;) String restrictedValuesJson,
-                                @Column(&quot;field_description&quot;) String descriptionJson,
-                                @Column(&quot;field_maxlength&quot;) Integer maxLength,
-<span class="nc" id="L46">                                @Column(&quot;field_minlength&quot;) Integer minLength) {</span>
+    public DynamicFieldTemplate(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;field_name&quot;) String name,
+            @Column(&quot;field_type&quot;) String type,
+            @Column(&quot;field_restricted_values&quot;) String restrictedValuesJson,
+            @Column(&quot;field_description&quot;) String descriptionJson,
+            @Column(&quot;field_maxlength&quot;) Integer maxLength,
+<span class="nc" id="L46">            @Column(&quot;field_minlength&quot;) Integer minLength) {</span>
 <span class="nc" id="L47">        this.id = id;</span>
 <span class="nc" id="L48">        this.name = name;</span>
 <span class="nc" id="L49">        this.type = type;</span>
-<span class="nc" id="L50">        this.restrictedValues = Optional.ofNullable(restrictedValuesJson).map(DynamicFieldTemplate::parseRestrictedValues).orElse(Collections.emptyList());</span>
-<span class="nc" id="L51">        this.description = Json.GSON.fromJson(descriptionJson, new TypeToken&lt;Map&lt;String, Object&gt;&gt;(){}.getType());</span>
-<span class="nc" id="L52">        this.maxLength = maxLength;</span>
-<span class="nc" id="L53">        this.minLength = minLength;</span>
-<span class="nc" id="L54">    }</span>
+<span class="nc" id="L50">        this.restrictedValues = Optional.ofNullable(restrictedValuesJson)</span>
+<span class="nc" id="L51">                .map(DynamicFieldTemplate::parseRestrictedValues)</span>
+<span class="nc" id="L52">                .orElse(Collections.emptyList());</span>
+<span class="nc" id="L53">        this.description = Json.GSON.fromJson(descriptionJson, new TypeToken&lt;Map&lt;String, Object&gt;&gt;() {}.getType());</span>
+<span class="nc" id="L54">        this.maxLength = maxLength;</span>
+<span class="nc" id="L55">        this.minLength = minLength;</span>
+<span class="nc" id="L56">    }</span>
 
     private static List&lt;String&gt; parseRestrictedValues(String v) {
-<span class="nc" id="L57">        return Json.GSON.fromJson(v, new TypeToken&lt;List&lt;String&gt;&gt;(){}.getType());</span>
+<span class="nc" id="L59">        return Json.GSON.fromJson(v, new TypeToken&lt;List&lt;String&gt;&gt;() {}.getType());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

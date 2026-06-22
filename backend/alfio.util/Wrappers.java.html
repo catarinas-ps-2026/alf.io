@@ -16,42 +16,40 @@
  */
 package alfio.util;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 public class Wrappers {
 
-<span class="fc" id="L29">    private static final Logger log = LoggerFactory.getLogger(Wrappers.class);</span>
+<span class="fc" id="L28">    private static final Logger log = LoggerFactory.getLogger(Wrappers.class);</span>
 
-    private Wrappers() {
-    }
+    private Wrappers() {}
 
     public static &lt;I&gt; void voidTransactionWrapper(Consumer&lt;I&gt; consumer, I input) {
         try {
-<span class="fc" id="L36">            consumer.accept(input);</span>
-<span class="nc" id="L37">        } catch(Exception ex) {</span>
-<span class="nc" id="L38">            log.error(&quot;Unexpected exception&quot;, ex);</span>
-<span class="fc" id="L39">        }</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L34">            consumer.accept(input);</span>
+<span class="nc" id="L35">        } catch (Exception ex) {</span>
+<span class="nc" id="L36">            log.error(&quot;Unexpected exception&quot;, ex);</span>
+<span class="fc" id="L37">        }</span>
+<span class="fc" id="L38">    }</span>
 
     public static &lt;T&gt; Optional&lt;T&gt; safeSupplier(Supplier&lt;T&gt; supplier) {
         try {
-<span class="fc" id="L44">            return Optional.ofNullable(supplier.get());</span>
-<span class="nc" id="L45">        } catch (Exception e) {</span>
-<span class="nc" id="L46">            return Optional.empty();</span>
+<span class="fc" id="L42">            return Optional.ofNullable(supplier.get());</span>
+<span class="nc" id="L43">        } catch (Exception e) {</span>
+<span class="nc" id="L44">            return Optional.empty();</span>
         }
     }
 
     public static &lt;T&gt; Optional&lt;T&gt; optionally(Supplier&lt;T&gt; s) {
         try {
-<span class="fc" id="L52">            return Optional.ofNullable(s.get());</span>
-<span class="fc" id="L53">        } catch (EmptyResultDataAccessException | IllegalArgumentException | IllegalStateException e) {</span>
-<span class="fc" id="L54">            return Optional.empty();</span>
+<span class="fc" id="L50">            return Optional.ofNullable(s.get());</span>
+<span class="fc" id="L51">        } catch (EmptyResultDataAccessException | IllegalArgumentException | IllegalStateException e) {</span>
+<span class="fc" id="L52">            return Optional.empty();</span>
         }
     }
 }

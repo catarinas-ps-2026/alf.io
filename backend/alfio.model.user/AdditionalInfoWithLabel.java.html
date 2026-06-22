@@ -18,7 +18,6 @@ package alfio.model.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Map;
 
@@ -28,18 +27,18 @@ public class AdditionalInfoWithLabel {
     private final List&lt;String&gt; values;
 
     @JsonCreator
-    public AdditionalInfoWithLabel(@JsonProperty(&quot;label&quot;) Map&lt;String, String&gt; label,
-<span class="nc" id="L32">                                   @JsonProperty(&quot;values&quot;) List&lt;String&gt; values) {</span>
-<span class="nc" id="L33">        this.label = label;</span>
-<span class="nc" id="L34">        this.values = values;</span>
-<span class="nc" id="L35">    }</span>
+    public AdditionalInfoWithLabel(
+<span class="nc" id="L31">            @JsonProperty(&quot;label&quot;) Map&lt;String, String&gt; label, @JsonProperty(&quot;values&quot;) List&lt;String&gt; values) {</span>
+<span class="nc" id="L32">        this.label = label;</span>
+<span class="nc" id="L33">        this.values = values;</span>
+<span class="nc" id="L34">    }</span>
 
     public Map&lt;String, String&gt; getLabel() {
-<span class="nc" id="L38">        return label;</span>
+<span class="nc" id="L37">        return label;</span>
     }
 
     public List&lt;String&gt; getValues() {
-<span class="nc" id="L42">        return values;</span>
+<span class="nc" id="L41">        return values;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

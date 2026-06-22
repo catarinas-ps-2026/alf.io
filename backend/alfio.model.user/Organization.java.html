@@ -22,12 +22,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.IOException;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.io.IOException;
 
 @Getter
 @JsonSerialize(using = Organization.OrganizationSerializer.class)
@@ -39,12 +38,13 @@ public class Organization {
     private final String externalId;
     private final String slug;
 
-    public Organization(@Column(&quot;id&quot;) int id,
-                        @Column(&quot;name&quot;) String name,
-                        @Column(&quot;description&quot;) String description,
-                        @Column(&quot;email&quot;) String email,
-                        @Column(&quot;name_openid&quot;) String externalId,
-<span class="fc" id="L47">                        @Column(&quot;slug&quot;) String slug) {</span>
+    public Organization(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;name&quot;) String name,
+            @Column(&quot;description&quot;) String description,
+            @Column(&quot;email&quot;) String email,
+            @Column(&quot;name_openid&quot;) String externalId,
+<span class="fc" id="L47">            @Column(&quot;slug&quot;) String slug) {</span>
 <span class="fc" id="L48">        this.id = id;</span>
 <span class="fc" id="L49">        this.name = name;</span>
 <span class="fc" id="L50">        this.description = description;</span>
@@ -57,22 +57,18 @@ public class Organization {
     public boolean equals(Object o) {
 <span class="nc bnc" id="L58" title="All 2 branches missed.">        if (this == o) return true;</span>
 
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (! (o instanceof Organization)) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (!(o instanceof Organization)) {</span>
 <span class="nc" id="L61">            return false;</span>
         }
 
 <span class="nc" id="L64">        Organization that = (Organization) o;</span>
 
-<span class="nc" id="L66">        return new EqualsBuilder()</span>
-<span class="nc" id="L67">            .append(id, that.id)</span>
-<span class="nc" id="L68">            .isEquals();</span>
+<span class="nc" id="L66">        return new EqualsBuilder().append(id, that.id).isEquals();</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L73">        return new HashCodeBuilder()</span>
-<span class="nc" id="L74">            .append(id)</span>
-<span class="nc" id="L75">            .toHashCode();</span>
+<span class="nc" id="L71">        return new HashCodeBuilder().append(id).toHashCode();</span>
     }
 
     /**
@@ -81,7 +77,7 @@ public class Organization {
      */
     @Deprecated(forRemoval = true)
     public String getNameOpenId() {
-<span class="nc" id="L84">        return externalId;</span>
+<span class="nc" id="L80">        return externalId;</span>
     }
 
     @Getter
@@ -97,7 +93,8 @@ public class Organization {
 
     public static class OrganizationSerializer extends JsonSerializer&lt;Organization&gt; {
         @Override
-        public void serialize(Organization value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        public void serialize(Organization value, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
             if (value != null) {
                 gen.writeStartObject();
                 gen.writeNumberField(&quot;id&quot;, value.getId());
@@ -105,7 +102,7 @@ public class Organization {
                 gen.writeStringField(&quot;email&quot;, value.getEmail());
                 gen.writeStringField(&quot;description&quot;, value.getDescription());
                 var authentication = SecurityContextHolder.getContext().getAuthentication();
-                if(RequestUtils.isAdmin(authentication) || RequestUtils.isSystemApiKey(authentication)) {
+                if (RequestUtils.isAdmin(authentication) || RequestUtils.isSystemApiKey(authentication)) {
                     gen.writeStringField(&quot;externalId&quot;, value.getExternalId());
                     gen.writeStringField(&quot;slug&quot;, value.getSlug());
                 } else {

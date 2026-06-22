@@ -21,13 +21,12 @@ import alfio.model.support.Array;
 import alfio.model.support.JSONData;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.Getter;
 
 @Getter
 public class SubscriptionDescriptorWithStatistics {
@@ -39,85 +38,81 @@ public class SubscriptionDescriptorWithStatistics {
     private final SubscriptionDescriptor descriptor;
 
     public SubscriptionDescriptorWithStatistics(
+            @Column(&quot;sd_id&quot;) UUID id,
+            @Column(&quot;sd_title&quot;) @JSONData Map&lt;String, String&gt; title,
+            @Column(&quot;sd_description&quot;) @JSONData Map&lt;String, String&gt; description,
+            @Column(&quot;sd_max_available&quot;) int maxAvailable,
+            @Column(&quot;sd_creation_ts&quot;) ZonedDateTime creation,
+            @Column(&quot;sd_on_sale_from&quot;) ZonedDateTime onSaleFrom,
+            @Column(&quot;sd_on_sale_to&quot;) ZonedDateTime onSaleTo,
+            @Column(&quot;sd_price_cts&quot;) int price,
+            @Column(&quot;sd_vat&quot;) BigDecimal vat,
+            @Column(&quot;sd_vat_status&quot;) PriceContainer.VatStatus vatStatus,
+            @Column(&quot;sd_currency&quot;) String currency,
+            @Column(&quot;sd_is_public&quot;) boolean isPublic,
+            @Column(&quot;sd_organization_id_fk&quot;) int organizationId,
+            @Column(&quot;sd_max_entries&quot;) int maxEntries,
+            @Column(&quot;sd_validity_type&quot;) SubscriptionDescriptor.SubscriptionValidityType validityType,
+            @Column(&quot;sd_validity_time_unit&quot;) SubscriptionDescriptor.SubscriptionTimeUnit validityTimeUnit,
+            @Column(&quot;sd_validity_units&quot;) Integer validityUnits,
+            @Column(&quot;sd_validity_from&quot;) ZonedDateTime validityFrom,
+            @Column(&quot;sd_validity_to&quot;) ZonedDateTime validityTo,
+            @Column(&quot;sd_usage_type&quot;) SubscriptionDescriptor.SubscriptionUsageType usageType,
+            @Column(&quot;sd_terms_conditions_url&quot;) String termsAndConditionsUrl,
+            @Column(&quot;sd_privacy_policy_url&quot;) String privacyPolicyUrl,
+            @Column(&quot;sd_file_blob_id_fk&quot;) String fileBlobId,
+            @Column(&quot;sd_allowed_payment_proxies&quot;) @Array List&lt;String&gt; paymentProxies,
+            @Column(&quot;sd_private_key&quot;) String privateKey,
+            @Column(&quot;sd_time_zone&quot;) String timeZone,
+            @Column(&quot;sd_supports_tickets_generation&quot;) Boolean supportsTicketsGeneration,
+            @Column(&quot;s_pending_count&quot;) int pendingCount,
+            @Column(&quot;s_sold_count&quot;) int soldCount,
+            @Column(&quot;s_reservations_count&quot;) int reservationsCount,
+<span class="fc" id="L71">            @Column(&quot;s_events_count&quot;) int linkedEventsCount) {</span>
 
-        @Column(&quot;sd_id&quot;) UUID id,
-        @Column(&quot;sd_title&quot;) @JSONData Map&lt;String, String&gt; title,
-        @Column(&quot;sd_description&quot;) @JSONData Map&lt;String, String&gt; description,
-        @Column(&quot;sd_max_available&quot;) int maxAvailable,
-        @Column(&quot;sd_creation_ts&quot;) ZonedDateTime creation,
-        @Column(&quot;sd_on_sale_from&quot;) ZonedDateTime onSaleFrom,
-        @Column(&quot;sd_on_sale_to&quot;) ZonedDateTime onSaleTo,
-        @Column(&quot;sd_price_cts&quot;) int price,
-        @Column(&quot;sd_vat&quot;) BigDecimal vat,
-        @Column(&quot;sd_vat_status&quot;) PriceContainer.VatStatus vatStatus,
-        @Column(&quot;sd_currency&quot;) String currency,
-        @Column(&quot;sd_is_public&quot;) boolean isPublic,
-        @Column(&quot;sd_organization_id_fk&quot;) int organizationId,
-
-        @Column(&quot;sd_max_entries&quot;) int maxEntries,
-        @Column(&quot;sd_validity_type&quot;) SubscriptionDescriptor.SubscriptionValidityType validityType,
-        @Column(&quot;sd_validity_time_unit&quot;) SubscriptionDescriptor.SubscriptionTimeUnit validityTimeUnit,
-        @Column(&quot;sd_validity_units&quot;) Integer validityUnits,
-        @Column(&quot;sd_validity_from&quot;) ZonedDateTime validityFrom,
-        @Column(&quot;sd_validity_to&quot;) ZonedDateTime validityTo,
-        @Column(&quot;sd_usage_type&quot;) SubscriptionDescriptor.SubscriptionUsageType usageType,
-
-        @Column(&quot;sd_terms_conditions_url&quot;) String termsAndConditionsUrl,
-        @Column(&quot;sd_privacy_policy_url&quot;) String privacyPolicyUrl,
-        @Column(&quot;sd_file_blob_id_fk&quot;) String fileBlobId,
-        @Column(&quot;sd_allowed_payment_proxies&quot;) @Array List&lt;String&gt; paymentProxies,
-        @Column(&quot;sd_private_key&quot;) String privateKey,
-        @Column(&quot;sd_time_zone&quot;) String timeZone,
-        @Column(&quot;sd_supports_tickets_generation&quot;) Boolean supportsTicketsGeneration,
-
-
-        @Column(&quot;s_pending_count&quot;) int pendingCount,
-        @Column(&quot;s_sold_count&quot;) int soldCount,
-        @Column(&quot;s_reservations_count&quot;) int reservationsCount,
-<span class="fc" id="L77">        @Column(&quot;s_events_count&quot;) int linkedEventsCount) {</span>
-
-<span class="fc" id="L79">        this.pendingCount = pendingCount;</span>
-<span class="fc" id="L80">        this.soldCount = soldCount;</span>
-<span class="fc" id="L81">        this.linkedEventsCount = linkedEventsCount;</span>
-<span class="fc" id="L82">        this.reservationsCount = reservationsCount;</span>
-<span class="fc" id="L83">        this.descriptor = new SubscriptionDescriptor(id,</span>
-            title,
-            description,
-            maxAvailable,
-            creation,
-            onSaleFrom,
-            onSaleTo,
-            price,
-            vat,
-            vatStatus,
-            currency,
-            isPublic,
-            organizationId,
-            maxEntries,
-            validityType,
-            validityTimeUnit,
-            validityUnits,
-            validityFrom,
-            validityTo,
-            usageType,
-            termsAndConditionsUrl,
-            privacyPolicyUrl,
-            fileBlobId,
-            paymentProxies,
-            privateKey,
-            timeZone,
-            supportsTicketsGeneration);
-<span class="fc" id="L110">    }</span>
+<span class="fc" id="L73">        this.pendingCount = pendingCount;</span>
+<span class="fc" id="L74">        this.soldCount = soldCount;</span>
+<span class="fc" id="L75">        this.linkedEventsCount = linkedEventsCount;</span>
+<span class="fc" id="L76">        this.reservationsCount = reservationsCount;</span>
+<span class="fc" id="L77">        this.descriptor = new SubscriptionDescriptor(</span>
+                id,
+                title,
+                description,
+                maxAvailable,
+                creation,
+                onSaleFrom,
+                onSaleTo,
+                price,
+                vat,
+                vatStatus,
+                currency,
+                isPublic,
+                organizationId,
+                maxEntries,
+                validityType,
+                validityTimeUnit,
+                validityUnits,
+                validityFrom,
+                validityTo,
+                usageType,
+                termsAndConditionsUrl,
+                privacyPolicyUrl,
+                fileBlobId,
+                paymentProxies,
+                privateKey,
+                timeZone,
+                supportsTicketsGeneration);
+<span class="fc" id="L105">    }</span>
 
     public BigDecimal getUnitPrice() {
-<span class="nc" id="L113">        return MonetaryUtil.centsToUnit(descriptor.getPrice(), descriptor.getCurrency());</span>
+<span class="nc" id="L108">        return MonetaryUtil.centsToUnit(descriptor.getPrice(), descriptor.getCurrency());</span>
     }
 
     public int getAvailableCount() {
-<span class="nc bnc" id="L117" title="All 2 branches missed.">        if(descriptor.getMaxAvailable() &gt; 0) {</span>
-<span class="nc" id="L118">            return Math.max(0, descriptor.getMaxAvailable() - soldCount - pendingCount);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (descriptor.getMaxAvailable() &gt; 0) {</span>
+<span class="nc" id="L113">            return Math.max(0, descriptor.getMaxAvailable() - soldCount - pendingCount);</span>
         }
-<span class="nc" id="L120">        return 0;</span>
+<span class="nc" id="L115">        return 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

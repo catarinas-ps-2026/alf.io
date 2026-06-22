@@ -17,15 +17,16 @@
 package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class SponsorScan {
 
     public enum LeadStatus {
-        COLD, WARM, HOT
+        COLD,
+        WARM,
+        HOT
     }
 
     private final int userId;
@@ -36,21 +37,21 @@ public class SponsorScan {
     private final LeadStatus leadStatus;
     private final String operator;
 
-
-    public SponsorScan(@Column(&quot;user_id&quot;) int userId,
-                       @Column(&quot;creation&quot;) ZonedDateTime timestamp,
-                       @Column(&quot;event_id&quot;) int eventId,
-                       @Column(&quot;ticket_id&quot;) int ticketId,
-                       @Column(&quot;notes&quot;) String notes,
-                       @Column(&quot;lead_status&quot;) LeadStatus leadStatus,
-<span class="fc" id="L46">                       @Column(&quot;operator&quot;) String operator) {</span>
-<span class="fc" id="L47">        this.userId = userId;</span>
-<span class="fc" id="L48">        this.timestamp = timestamp;</span>
-<span class="fc" id="L49">        this.eventId = eventId;</span>
-<span class="fc" id="L50">        this.ticketId = ticketId;</span>
-<span class="fc" id="L51">        this.notes = notes;</span>
-<span class="fc" id="L52">        this.leadStatus = leadStatus;</span>
-<span class="fc" id="L53">        this.operator = operator;</span>
-<span class="fc" id="L54">    }</span>
+    public SponsorScan(
+            @Column(&quot;user_id&quot;) int userId,
+            @Column(&quot;creation&quot;) ZonedDateTime timestamp,
+            @Column(&quot;event_id&quot;) int eventId,
+            @Column(&quot;ticket_id&quot;) int ticketId,
+            @Column(&quot;notes&quot;) String notes,
+            @Column(&quot;lead_status&quot;) LeadStatus leadStatus,
+<span class="fc" id="L47">            @Column(&quot;operator&quot;) String operator) {</span>
+<span class="fc" id="L48">        this.userId = userId;</span>
+<span class="fc" id="L49">        this.timestamp = timestamp;</span>
+<span class="fc" id="L50">        this.eventId = eventId;</span>
+<span class="fc" id="L51">        this.ticketId = ticketId;</span>
+<span class="fc" id="L52">        this.notes = notes;</span>
+<span class="fc" id="L53">        this.leadStatus = leadStatus;</span>
+<span class="fc" id="L54">        this.operator = operator;</span>
+<span class="fc" id="L55">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

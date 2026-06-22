@@ -17,15 +17,15 @@
 package alfio.controller.support;
 
 import alfio.model.result.WarningMessage;
-import lombok.experimental.Delegate;
-import org.springframework.validation.BindingResult;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.experimental.Delegate;
+import org.springframework.validation.BindingResult;
 
 public class CustomBindingResult implements BindingResult {
     @Delegate
     private final BindingResult target;
+
 <span class="fc" id="L29">    private final List&lt;WarningMessage&gt; warnings = new ArrayList&lt;&gt;();</span>
 
 <span class="fc" id="L31">    public CustomBindingResult(BindingResult target) {</span>
@@ -47,6 +47,5 @@ public class CustomBindingResult implements BindingResult {
     public boolean hasWarnings() {
 <span class="pc bpc" id="L48" title="1 of 2 branches missed.">        return !warnings.isEmpty();</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

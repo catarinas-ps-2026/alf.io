@@ -25,11 +25,14 @@ import lombok.Getter;
 public class AdminReservationRequest {
 
     public enum RequestType {
-        ADMIN, IMPORT
+        ADMIN,
+        IMPORT
     }
 
     public enum Status {
-        PENDING, SUCCESS, ERROR
+        PENDING,
+        SUCCESS,
+        ERROR
     }
 
     private final long id;
@@ -42,25 +45,25 @@ public class AdminReservationRequest {
     private final AdminReservationModification body;
     private final String failureCode;
 
-    public AdminReservationRequest(@Column(&quot;id&quot;) long id,
-                                   @Column(&quot;request_id&quot;) String requestId,
-                                   @Column(&quot;user_id&quot;) long userId,
-                                   @Column(&quot;event_id&quot;) long eventId,
-                                   @Column(&quot;reservation_id&quot;) String reservationId,
-                                   @Column(&quot;request_type&quot;) RequestType requestType,
-                                   @Column(&quot;status&quot;) Status status,
-                                   @Column(&quot;body&quot;) String body,
-<span class="fc" id="L53">                                   @Column(&quot;failure_code&quot;) String failureCode) {</span>
-<span class="fc" id="L54">        this.id = id;</span>
-<span class="fc" id="L55">        this.requestId = requestId;</span>
-<span class="fc" id="L56">        this.userId = userId;</span>
-<span class="fc" id="L57">        this.eventId = eventId;</span>
-<span class="fc" id="L58">        this.reservationId = reservationId;</span>
-<span class="fc" id="L59">        this.requestType = requestType;</span>
-<span class="fc" id="L60">        this.status = status;</span>
-<span class="fc" id="L61">        this.body = Json.fromJson(body, AdminReservationModification.class);</span>
-<span class="fc" id="L62">        this.failureCode = failureCode;</span>
-<span class="fc" id="L63">    }</span>
-
+    public AdminReservationRequest(
+            @Column(&quot;id&quot;) long id,
+            @Column(&quot;request_id&quot;) String requestId,
+            @Column(&quot;user_id&quot;) long userId,
+            @Column(&quot;event_id&quot;) long eventId,
+            @Column(&quot;reservation_id&quot;) String reservationId,
+            @Column(&quot;request_type&quot;) RequestType requestType,
+            @Column(&quot;status&quot;) Status status,
+            @Column(&quot;body&quot;) String body,
+<span class="fc" id="L57">            @Column(&quot;failure_code&quot;) String failureCode) {</span>
+<span class="fc" id="L58">        this.id = id;</span>
+<span class="fc" id="L59">        this.requestId = requestId;</span>
+<span class="fc" id="L60">        this.userId = userId;</span>
+<span class="fc" id="L61">        this.eventId = eventId;</span>
+<span class="fc" id="L62">        this.reservationId = reservationId;</span>
+<span class="fc" id="L63">        this.requestType = requestType;</span>
+<span class="fc" id="L64">        this.status = status;</span>
+<span class="fc" id="L65">        this.body = Json.fromJson(body, AdminReservationModification.class);</span>
+<span class="fc" id="L66">        this.failureCode = failureCode;</span>
+<span class="fc" id="L67">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

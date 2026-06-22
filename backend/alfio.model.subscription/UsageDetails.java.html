@@ -28,9 +28,8 @@ public class UsageDetails {
 
     public static UsageDetails fromSubscription(Subscription subscription, int usageCount) {
 <span class="fc" id="L30">        int maxEntries = Math.max(subscription.getMaxEntries(), 0);</span>
-<span class="fc bfc" id="L31" title="All 2 branches covered.">        return new UsageDetails(maxEntries == 0 ? null : maxEntries,</span>
-<span class="fc" id="L32">                                usageCount,</span>
-<span class="fc bfc" id="L33" title="All 2 branches covered.">                                maxEntries == 0 ? null : maxEntries - usageCount);</span>
+<span class="fc" id="L31">        return new UsageDetails(</span>
+<span class="fc bfc" id="L32" title="All 4 branches covered.">                maxEntries == 0 ? null : maxEntries, usageCount, maxEntries == 0 ? null : maxEntries - usageCount);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

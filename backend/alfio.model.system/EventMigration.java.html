@@ -17,15 +17,16 @@
 package alfio.model.system;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class EventMigration {
 
     public enum Status {
-        WAITING, PENDING, COMPLETE
+        WAITING,
+        PENDING,
+        COMPLETE
     }
 
     private final int id;
@@ -34,16 +35,17 @@ public class EventMigration {
     private final ZonedDateTime buildTimestamp;
     private final Status status;
 
-    public EventMigration(@Column(&quot;id&quot;) int id,
-                          @Column(&quot;event_id&quot;) int eventId,
-                          @Column(&quot;current_version&quot;) String currentVersion,
-                          @Column(&quot;build_ts&quot;) ZonedDateTime buildTimestamp,
-<span class="fc" id="L41">                          @Column(&quot;status&quot;) String status) {</span>
-<span class="fc" id="L42">        this.id = id;</span>
-<span class="fc" id="L43">        this.eventId = eventId;</span>
-<span class="fc" id="L44">        this.currentVersion = currentVersion;</span>
-<span class="fc" id="L45">        this.buildTimestamp = buildTimestamp;</span>
-<span class="fc" id="L46">        this.status = Status.valueOf(status);</span>
-<span class="fc" id="L47">    }</span>
+    public EventMigration(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;event_id&quot;) int eventId,
+            @Column(&quot;current_version&quot;) String currentVersion,
+            @Column(&quot;build_ts&quot;) ZonedDateTime buildTimestamp,
+<span class="fc" id="L43">            @Column(&quot;status&quot;) String status) {</span>
+<span class="fc" id="L44">        this.id = id;</span>
+<span class="fc" id="L45">        this.eventId = eventId;</span>
+<span class="fc" id="L46">        this.currentVersion = currentVersion;</span>
+<span class="fc" id="L47">        this.buildTimestamp = buildTimestamp;</span>
+<span class="fc" id="L48">        this.status = Status.valueOf(status);</span>
+<span class="fc" id="L49">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

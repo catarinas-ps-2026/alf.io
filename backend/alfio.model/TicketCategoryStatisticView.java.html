@@ -20,14 +20,12 @@ import alfio.model.system.Configuration;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 
 @Getter
 public class TicketCategoryStatisticView {
-
 
     private final int id;
     private final int maxTickets;
@@ -44,38 +42,41 @@ public class TicketCategoryStatisticView {
     private final boolean containsStuckTickets;
     private final List&lt;Configuration&gt; configuration;
 
-    public TicketCategoryStatisticView(@Column(&quot;ticket_category_id&quot;) int id,
-                                       @Column(&quot;max_tickets&quot;) int maxTickets,
-                                       @Column(&quot;bounded&quot;) boolean bounded,
-                                       @Column(&quot;is_expired&quot;) boolean expired,
-                                       @Column(&quot;event_id&quot;) int eventId,
-                                       @Column(&quot;pending_count&quot;) int pendingCount,
-                                       @Column(&quot;checked_in_count&quot;) int checkedInCount,
-                                       @Column(&quot;sold_tickets_count&quot;) int soldTicketsCount,
-                                       @Column(&quot;not_sold_tickets&quot;) int notSoldTicketsCount,
-                                       @Column(&quot;released_count&quot;) int releasedCount,
-                                       @Column(&quot;stuck_count&quot;) int stuckCount,
-                                       @Column(&quot;is_containing_orphan_tickets&quot;) boolean containsOrphanTickets,
-                                       @Column(&quot;is_containing_stuck_tickets&quot;) boolean containsStuckTickets,
-<span class="fc" id="L60">                                       @Column(&quot;category_configuration&quot;) String configurationJson) {</span>
-<span class="fc" id="L61">        this.id = id;</span>
-<span class="fc" id="L62">        this.maxTickets = maxTickets;</span>
-<span class="fc" id="L63">        this.bounded = bounded;</span>
-<span class="fc" id="L64">        this.expired = expired;</span>
-<span class="fc" id="L65">        this.eventId = eventId;</span>
-<span class="fc" id="L66">        this.pendingCount = pendingCount;</span>
-<span class="fc" id="L67">        this.checkedInCount = checkedInCount;</span>
-<span class="fc" id="L68">        this.soldTicketsCount = soldTicketsCount;</span>
-<span class="fc" id="L69">        this.notSoldTicketsCount = notSoldTicketsCount;</span>
-<span class="fc" id="L70">        this.stuckCount = stuckCount;</span>
-<span class="fc" id="L71">        this.containsOrphanTickets = containsOrphanTickets;</span>
-<span class="fc" id="L72">        this.containsStuckTickets = containsStuckTickets;</span>
-<span class="fc" id="L73">        this.releasedTicketsCount = releasedCount;</span>
-<span class="fc" id="L74">        this.configuration = Json.fromJson(Objects.requireNonNullElse(configurationJson, &quot;[]&quot;), new TypeReference&lt;&gt;() {});</span>
+    public TicketCategoryStatisticView(
+            @Column(&quot;ticket_category_id&quot;) int id,
+            @Column(&quot;max_tickets&quot;) int maxTickets,
+            @Column(&quot;bounded&quot;) boolean bounded,
+            @Column(&quot;is_expired&quot;) boolean expired,
+            @Column(&quot;event_id&quot;) int eventId,
+            @Column(&quot;pending_count&quot;) int pendingCount,
+            @Column(&quot;checked_in_count&quot;) int checkedInCount,
+            @Column(&quot;sold_tickets_count&quot;) int soldTicketsCount,
+            @Column(&quot;not_sold_tickets&quot;) int notSoldTicketsCount,
+            @Column(&quot;released_count&quot;) int releasedCount,
+            @Column(&quot;stuck_count&quot;) int stuckCount,
+            @Column(&quot;is_containing_orphan_tickets&quot;) boolean containsOrphanTickets,
+            @Column(&quot;is_containing_stuck_tickets&quot;) boolean containsStuckTickets,
+<span class="fc" id="L59">            @Column(&quot;category_configuration&quot;) String configurationJson) {</span>
+<span class="fc" id="L60">        this.id = id;</span>
+<span class="fc" id="L61">        this.maxTickets = maxTickets;</span>
+<span class="fc" id="L62">        this.bounded = bounded;</span>
+<span class="fc" id="L63">        this.expired = expired;</span>
+<span class="fc" id="L64">        this.eventId = eventId;</span>
+<span class="fc" id="L65">        this.pendingCount = pendingCount;</span>
+<span class="fc" id="L66">        this.checkedInCount = checkedInCount;</span>
+<span class="fc" id="L67">        this.soldTicketsCount = soldTicketsCount;</span>
+<span class="fc" id="L68">        this.notSoldTicketsCount = notSoldTicketsCount;</span>
+<span class="fc" id="L69">        this.stuckCount = stuckCount;</span>
+<span class="fc" id="L70">        this.containsOrphanTickets = containsOrphanTickets;</span>
+<span class="fc" id="L71">        this.containsStuckTickets = containsStuckTickets;</span>
+<span class="fc" id="L72">        this.releasedTicketsCount = releasedCount;</span>
+<span class="fc" id="L73">        this.configuration =</span>
+<span class="fc" id="L74">                Json.fromJson(Objects.requireNonNullElse(configurationJson, &quot;[]&quot;), new TypeReference&lt;&gt;() {});</span>
 <span class="fc" id="L75">    }</span>
 
     public static TicketCategoryStatisticView empty(int ticketCategoryId, int eventId) {
-<span class="fc" id="L78">        return new TicketCategoryStatisticView(ticketCategoryId, 0, false, false, eventId, 0, 0, 0, 0, 0, 0, false, false, null);</span>
+<span class="fc" id="L78">        return new TicketCategoryStatisticView(</span>
+                ticketCategoryId, 0, false, false, eventId, 0, 0, 0, 0, 0, 0, false, false, null);
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

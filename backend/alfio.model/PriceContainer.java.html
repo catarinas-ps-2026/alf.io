@@ -16,22 +16,21 @@
  */
 package alfio.model;
 
+import static alfio.util.MonetaryUtil.*;
+import static java.math.RoundingMode.UNNECESSARY;
+
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
-import static alfio.util.MonetaryUtil.*;
-import static java.math.RoundingMode.UNNECESSARY;
-
 public interface PriceContainer {
 
-<span class="fc" id="L33">    BinaryOperator&lt;BigDecimal&gt; includedVatExtractor = MonetaryUtil::extractVAT;</span>
-<span class="fc" id="L34">    BinaryOperator&lt;BigDecimal&gt; notIncludedVatCalculator = MonetaryUtil::calcVat;</span>
+<span class="fc" id="L32">    BinaryOperator&lt;BigDecimal&gt; includedVatExtractor = MonetaryUtil::extractVAT;</span>
+<span class="fc" id="L33">    BinaryOperator&lt;BigDecimal&gt; notIncludedVatCalculator = MonetaryUtil::calcVat;</span>
 
     enum VatStatus {
         NONE((price, vatPercentage) -&gt; BigDecimal.ZERO, UnaryOperator.identity()),
@@ -50,8 +49,7 @@ public interface PriceContainer {
         private final UnaryOperator&lt;BigDecimal&gt; transformer;
         private final BinaryOperator&lt;BigDecimal&gt; extractor;
 
-        VatStatus(BinaryOperator&lt;BigDecimal&gt; extractor,
-                  UnaryOperator&lt;BigDecimal&gt; transformer) {
+        VatStatus(BinaryOperator&lt;BigDecimal&gt; extractor, UnaryOperator&lt;BigDecimal&gt; transformer) {
             this.extractor = extractor;
             this.transformer = transformer;
         }
@@ -65,8 +63,10 @@ public interface PriceContainer {
         }
 
         public static boolean isVatExempt(VatStatus vatStatus) {
-            return vatStatus == INCLUDED_EXEMPT || vatStatus == NOT_INCLUDED_EXEMPT
-                || vatStatus == CUSTOM_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
+            return vatStatus == INCLUDED_EXEMPT
+                    || vatStatus == NOT_INCLUDED_EXEMPT
+                    || vatStatus == CUSTOM_INCLUDED_EXEMPT
+                    || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
         }
 
         public static boolean isVatIncluded(VatStatus vatStatus) {
@@ -79,7 +79,9 @@ public interface PriceContainer {
          * @return true if not included
          */
         public static boolean isVatNotIncluded(VatStatus vatStatus) {
-            return vatStatus == NOT_INCLUDED || vatStatus == NOT_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
+            return vatStatus == NOT_INCLUDED
+                    || vatStatus == NOT_INCLUDED_EXEMPT
+                    || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
         }
 
         public static VatStatus forceExempt(VatStatus original) {
@@ -100,7 +102,7 @@ public interface PriceContainer {
      */
     @JsonIgnore
     default Optional&lt;PromoCodeDiscount&gt; getDiscount() {
-<span class="fc" id="L103">        return Optional.empty();</span>
+<span class="fc" id="L105">        return Optional.empty();</span>
     }
 
     /**
@@ -122,7 +124,7 @@ public interface PriceContainer {
      */
     @JsonIgnore
     default BigDecimal getVatPercentageOrZero() {
-<span class="fc" id="L125">        return getOptionalVatPercentage().orElse(BigDecimal.ZERO);</span>
+<span class="fc" id="L127">        return getOptionalVatPercentage().orElse(BigDecimal.ZERO);</span>
     }
 
     /**
@@ -136,16 +138,16 @@ public interface PriceContainer {
      * @return net + tax
      */
     default BigDecimal getFinalPrice() {
-<span class="fc" id="L139">        var vatStatus = getVatStatus();</span>
-<span class="fc bfc" id="L140" title="All 4 branches covered.">        if(getSrcPriceCts() == 0 || vatStatus == null) {</span>
-<span class="fc" id="L141">            return BigDecimal.ZERO;</span>
+<span class="fc" id="L141">        var vatStatus = getVatStatus();</span>
+<span class="fc bfc" id="L142" title="All 4 branches covered.">        if (getSrcPriceCts() == 0 || vatStatus == null) {</span>
+<span class="fc" id="L143">            return BigDecimal.ZERO;</span>
         }
-<span class="fc" id="L143">        final BigDecimal price = centsToUnit(getSrcPriceCts(), getCurrencyCode());</span>
-<span class="fc" id="L144">        BigDecimal discountedPrice = price.subtract(getAppliedDiscount());</span>
-<span class="fc bfc" id="L145" title="All 3 branches covered.">        return switch (vatStatus) {</span>
-<span class="fc" id="L146">            case INCLUDED, NOT_INCLUDED_NOT_CHARGED -&gt; discountedPrice;</span>
-<span class="fc" id="L147">            case INCLUDED_NOT_CHARGED -&gt; discountedPrice.subtract(getVAT());</span>
-<span class="fc" id="L148">            default -&gt; discountedPrice.add(getVAT());</span>
+<span class="fc" id="L145">        final BigDecimal price = centsToUnit(getSrcPriceCts(), getCurrencyCode());</span>
+<span class="fc" id="L146">        BigDecimal discountedPrice = price.subtract(getAppliedDiscount());</span>
+<span class="fc bfc" id="L147" title="All 3 branches covered.">        return switch (vatStatus) {</span>
+<span class="fc" id="L148">            case INCLUDED, NOT_INCLUDED_NOT_CHARGED -&gt; discountedPrice;</span>
+<span class="fc" id="L149">            case INCLUDED_NOT_CHARGED -&gt; discountedPrice.subtract(getVAT());</span>
+<span class="fc" id="L150">            default -&gt; discountedPrice.add(getVAT());</span>
         };
     }
 
@@ -154,7 +156,7 @@ public interface PriceContainer {
      * This is often the price itself, but it can also be a fraction of it, if some items are not taxable
      */
     default BigDecimal getTaxablePrice() {
-<span class="fc" id="L157">        return centsToUnit(getSrcPriceCts(), getCurrencyCode()).subtract(getAppliedDiscount());</span>
+<span class="fc" id="L159">        return centsToUnit(getSrcPriceCts(), getCurrencyCode()).subtract(getAppliedDiscount());</span>
     }
 
     /**
@@ -163,51 +165,57 @@ public interface PriceContainer {
      */
     @JsonIgnore
     default BigDecimal getVAT() {
-<span class="fc" id="L166">        return getVAT(getTaxablePrice(), getVatStatus(), getVatPercentageOrZero());</span>
+<span class="fc" id="L168">        return getVAT(getTaxablePrice(), getVatStatus(), getVatPercentageOrZero());</span>
     }
-
 
     /**
      * @return the discount applied, if any
      */
     @JsonIgnore
     default BigDecimal getAppliedDiscount() {
-<span class="fc" id="L175">        return getDiscount()</span>
-            // do not take into account reservation-level discount or access codes
-<span class="pc bpc" id="L177" title="1 of 4 branches missed.">            .filter(discount -&gt; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION &amp;&amp; discount.getCodeType() != PromoCodeDiscount.CodeType.ACCESS)</span>
-<span class="fc" id="L178">            .map(discount -&gt; {</span>
-<span class="fc" id="L179">                String currencyCode = getCurrencyCode();</span>
-<span class="fc" id="L180">                final BigDecimal price = centsToUnit(getSrcPriceCts(), currencyCode);</span>
-<span class="fc bfc" id="L181" title="All 2 branches covered.">                if(discount.getFixedAmount()) {</span>
-<span class="fc" id="L182">                    return centsToUnit(Math.min(getSrcPriceCts(), discount.getDiscountAmount()), currencyCode);</span>
-                } else {
-<span class="fc" id="L184">                    return fixScale(price.multiply(new BigDecimal(discount.getDiscountAmount()).divide(HUNDRED, 2, UNNECESSARY)), currencyCode);</span>
-                }
-<span class="fc" id="L186">            }).orElse(BigDecimal.ZERO);</span>
+<span class="fc" id="L176">        return getDiscount()</span>
+                // do not take into account reservation-level discount or access codes
+<span class="fc" id="L178">                .filter(discount -&gt;</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">                        discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">                                &amp;&amp; discount.getCodeType() != PromoCodeDiscount.CodeType.ACCESS)</span>
+<span class="fc" id="L181">                .map(discount -&gt; {</span>
+<span class="fc" id="L182">                    String currencyCode = getCurrencyCode();</span>
+<span class="fc" id="L183">                    final BigDecimal price = centsToUnit(getSrcPriceCts(), currencyCode);</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">                    if (discount.getFixedAmount()) {</span>
+<span class="fc" id="L185">                        return centsToUnit(Math.min(getSrcPriceCts(), discount.getDiscountAmount()), currencyCode);</span>
+                    } else {
+<span class="fc" id="L187">                        return fixScale(</span>
+<span class="fc" id="L188">                                price.multiply(</span>
+<span class="fc" id="L189">                                        new BigDecimal(discount.getDiscountAmount()).divide(HUNDRED, 2, UNNECESSARY)),</span>
+                                currencyCode);
+                    }
+                })
+<span class="fc" id="L193">                .orElse(BigDecimal.ZERO);</span>
     }
 
     /**
      * @return the net price, or the price before taxes
      */
     default BigDecimal getNetPrice() {
-<span class="fc" id="L193">        var vatStatus = getVatStatus();</span>
-<span class="fc" id="L194">        var currencyCode = getCurrencyCode();</span>
-<span class="pc bpc" id="L195" title="1 of 4 branches missed.">        if(vatStatus == VatStatus.NOT_INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {</span>
-<span class="fc" id="L196">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode);</span>
-<span class="pc bpc" id="L197" title="1 of 4 branches missed.">        } else if(vatStatus == VatStatus.INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_INCLUDED_EXEMPT) {</span>
-<span class="fc" id="L198">            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());</span>
-<span class="fc" id="L199">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode).add(rawVat);</span>
-<span class="pc bpc" id="L200" title="1 of 4 branches missed.">        } else if(vatStatus == VatStatus.INCLUDED || vatStatus == VatStatus.INCLUDED_NOT_CHARGED) {</span>
-<span class="fc" id="L201">            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());</span>
-<span class="fc" id="L202">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode).subtract(rawVat);</span>
+<span class="fc" id="L200">        var vatStatus = getVatStatus();</span>
+<span class="fc" id="L201">        var currencyCode = getCurrencyCode();</span>
+<span class="pc bpc" id="L202" title="1 of 4 branches missed.">        if (vatStatus == VatStatus.NOT_INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {</span>
+<span class="fc" id="L203">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode);</span>
+<span class="pc bpc" id="L204" title="1 of 4 branches missed.">        } else if (vatStatus == VatStatus.INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_INCLUDED_EXEMPT) {</span>
+<span class="fc" id="L205">            var rawVat =</span>
+<span class="fc" id="L206">                    vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());</span>
+<span class="fc" id="L207">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode).add(rawVat);</span>
+<span class="pc bpc" id="L208" title="1 of 4 branches missed.">        } else if (vatStatus == VatStatus.INCLUDED || vatStatus == VatStatus.INCLUDED_NOT_CHARGED) {</span>
+<span class="fc" id="L209">            var rawVat =</span>
+<span class="fc" id="L210">                    vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());</span>
+<span class="fc" id="L211">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode).subtract(rawVat);</span>
         } else {
-<span class="fc" id="L204">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode);</span>
+<span class="fc" id="L213">            return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode);</span>
         }
     }
 
     static BigDecimal getVAT(BigDecimal price, VatStatus vatStatus, BigDecimal vatPercentage) {
-<span class="fc" id="L209">        return vatStatus.extractVat(price, vatPercentage);</span>
+<span class="fc" id="L218">        return vatStatus.extractVat(price, vatPercentage);</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

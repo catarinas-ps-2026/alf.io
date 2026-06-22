@@ -16,6 +16,9 @@
  */
 package alfio.util;
 
+import static org.apache.commons.lang3.StringUtils.center;
+import static org.apache.commons.lang3.StringUtils.truncate;
+
 import alfio.manager.FileUploadManager;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -24,23 +27,19 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.EnumMap;
 import java.util.Map;
-
-import static org.apache.commons.lang3.StringUtils.center;
-import static org.apache.commons.lang3.StringUtils.truncate;
+import javax.imageio.ImageIO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 
 public final class ImageUtil {
 
-<span class="fc" id="L43">    private static final Logger log = LoggerFactory.getLogger(ImageUtil.class);</span>
+<span class="fc" id="L42">    private static final Logger log = LoggerFactory.getLogger(ImageUtil.class);</span>
 
     private static final String DEJA_VU_SANS_MONO = &quot;/alfio/font/DejaVuSansMono.ttf&quot;;
     private static final String DEJA_VU_SANS = &quot;/alfio/font/DejaVuSans.ttf&quot;;
@@ -49,8 +48,9 @@ public final class ImageUtil {
 
     private static File loadDejaVuFont(String name) {
         try {
-<span class="fc" id="L52">            var cachedFile = File.createTempFile(&quot;font-cache&quot;, &quot;.tmp&quot;);</span>
-<span class="fc" id="L53">            try (InputStream is = new ClassPathResource(name).getInputStream(); OutputStream tmpOs = new FileOutputStream(cachedFile)) {</span>
+<span class="fc" id="L51">            var cachedFile = File.createTempFile(&quot;font-cache&quot;, &quot;.tmp&quot;);</span>
+<span class="fc" id="L52">            try (InputStream is = new ClassPathResource(name).getInputStream();</span>
+<span class="fc" id="L53">                    OutputStream tmpOs = new FileOutputStream(cachedFile)) {</span>
 <span class="fc" id="L54">                is.transferTo(tmpOs);</span>
             }
 <span class="fc" id="L56">            return cachedFile;</span>
@@ -72,49 +72,47 @@ public final class ImageUtil {
 <span class="fc" id="L72">        return fileUploadManager.getFile(FONT_SECTION, &quot;DejaVuSerif&quot;, () -&gt; loadDejaVuFont(DEJA_VU_SERIF));</span>
     }
 
-
-    private ImageUtil() {
-    }
+    private ImageUtil() {}
 
     public static byte[] createQRCode(String text) {
         try {
-<span class="fc" id="L81">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="fc" id="L82">            BitMatrix matrix = drawQRCode(text);</span>
-<span class="fc" id="L83">            MatrixToImageWriter.writeToStream(matrix, &quot;png&quot;, baos);</span>
-<span class="fc" id="L84">            return baos.toByteArray();</span>
-<span class="nc" id="L85">        } catch (WriterException | IOException e) {</span>
-<span class="nc" id="L86">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L79">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L80">            BitMatrix matrix = drawQRCode(text);</span>
+<span class="fc" id="L81">            MatrixToImageWriter.writeToStream(matrix, &quot;png&quot;, baos);</span>
+<span class="fc" id="L82">            return baos.toByteArray();</span>
+<span class="nc" id="L83">        } catch (WriterException | IOException e) {</span>
+<span class="nc" id="L84">            throw new IllegalStateException(e);</span>
         }
     }
 
     private static BitMatrix drawQRCode(String text) throws WriterException {
-<span class="fc" id="L91">        Map&lt;EncodeHintType, Object&gt; hintMap = new EnumMap&lt;&gt;(EncodeHintType.class);</span>
-<span class="fc" id="L92">        hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);</span>
-<span class="fc" id="L93">        return new MultiFormatWriter().encode(text, BarcodeFormat.QR_CODE, 200, 200, hintMap);</span>
+<span class="fc" id="L89">        Map&lt;EncodeHintType, Object&gt; hintMap = new EnumMap&lt;&gt;(EncodeHintType.class);</span>
+<span class="fc" id="L90">        hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);</span>
+<span class="fc" id="L91">        return new MultiFormatWriter().encode(text, BarcodeFormat.QR_CODE, 200, 200, hintMap);</span>
     }
 
-    public static byte[] createQRCodeWithDescription(String text, String description, FileUploadManager fileUploadManager) {
-<span class="fc" id="L97">        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {</span>
-<span class="fc" id="L98">            BitMatrix matrix = drawQRCode(text);</span>
-<span class="fc" id="L99">            BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(matrix);</span>
-<span class="fc" id="L100">            BufferedImage scaled = new BufferedImage(200, 230, BufferedImage.TYPE_INT_ARGB);</span>
-<span class="fc" id="L101">            Graphics2D graphics = (Graphics2D)scaled.getGraphics();</span>
-<span class="fc" id="L102">            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);</span>
-<span class="fc" id="L103">            graphics.drawImage(bufferedImage, 0,0, null);</span>
-<span class="fc" id="L104">            graphics.setColor(Color.WHITE);</span>
-<span class="fc" id="L105">            graphics.fillRect(0, 200, 200, 30);</span>
-<span class="fc" id="L106">            graphics.setColor(Color.BLACK);</span>
-<span class="fc" id="L107">            File fontFile = getDejaVuSansMonoFont(fileUploadManager);</span>
-<span class="pc bpc" id="L108" title="1 of 2 branches missed.">            if (fontFile != null) {</span>
-<span class="fc" id="L109">                graphics.setFont(Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(14f));</span>
-<span class="fc" id="L110">                graphics.drawString(center(truncate(description, 23), 25), 0, 215);</span>
+    public static byte[] createQRCodeWithDescription(
+            String text, String description, FileUploadManager fileUploadManager) {
+<span class="fc" id="L96">        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L97">            BitMatrix matrix = drawQRCode(text);</span>
+<span class="fc" id="L98">            BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(matrix);</span>
+<span class="fc" id="L99">            BufferedImage scaled = new BufferedImage(200, 230, BufferedImage.TYPE_INT_ARGB);</span>
+<span class="fc" id="L100">            Graphics2D graphics = (Graphics2D) scaled.getGraphics();</span>
+<span class="fc" id="L101">            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);</span>
+<span class="fc" id="L102">            graphics.drawImage(bufferedImage, 0, 0, null);</span>
+<span class="fc" id="L103">            graphics.setColor(Color.WHITE);</span>
+<span class="fc" id="L104">            graphics.fillRect(0, 200, 200, 30);</span>
+<span class="fc" id="L105">            graphics.setColor(Color.BLACK);</span>
+<span class="fc" id="L106">            File fontFile = getDejaVuSansMonoFont(fileUploadManager);</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">            if (fontFile != null) {</span>
+<span class="fc" id="L108">                graphics.setFont(Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(14f));</span>
+<span class="fc" id="L109">                graphics.drawString(center(truncate(description, 23), 25), 0, 215);</span>
             }
-<span class="fc" id="L112">            ImageIO.write(scaled, &quot;png&quot;, baos);</span>
-<span class="fc" id="L113">            return baos.toByteArray();</span>
-<span class="nc" id="L114">        } catch (WriterException | IOException | FontFormatException e) {</span>
-<span class="nc" id="L115">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L111">            ImageIO.write(scaled, &quot;png&quot;, baos);</span>
+<span class="fc" id="L112">            return baos.toByteArray();</span>
+<span class="nc" id="L113">        } catch (WriterException | IOException | FontFormatException e) {</span>
+<span class="nc" id="L114">            throw new IllegalStateException(e);</span>
         }
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -16,6 +16,14 @@
  */
 package alfio.manager.support.reservation;
 
+import static alfio.manager.support.reservation.ReservationCostCalculator.totalReservationCostWithVAT;
+import static alfio.model.TicketReservation.TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
+import static alfio.util.MonetaryUtil.formatCents;
+import static alfio.util.MonetaryUtil.formatUnit;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import alfio.manager.PaymentManager;
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.model.*;
@@ -28,30 +36,21 @@ import alfio.model.transaction.PaymentProxy;
 import alfio.repository.*;
 import alfio.util.LocaleUtil;
 import alfio.util.MonetaryUtil;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static alfio.manager.support.reservation.ReservationCostCalculator.totalReservationCostWithVAT;
-import static alfio.model.TicketReservation.TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
-import static alfio.util.MonetaryUtil.formatCents;
-import static alfio.util.MonetaryUtil.formatUnit;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
 @Component
 public class OrderSummaryGenerator {
 
-<span class="fc" id="L54">    private static final Logger log = LoggerFactory.getLogger(OrderSummaryGenerator.class);</span>
+<span class="fc" id="L53">    private static final Logger log = LoggerFactory.getLogger(OrderSummaryGenerator.class);</span>
     private final TicketReservationRepository ticketReservationRepository;
     private final AuditingRepository auditingRepository;
     private final PaymentManager paymentManager;
@@ -63,267 +62,373 @@ public class OrderSummaryGenerator {
     private final ReservationCostCalculator reservationCostCalculator;
     private final TransactionRepository transactionRepository;
 
-    public OrderSummaryGenerator(TicketReservationRepository ticketReservationRepository,
-                                 AuditingRepository auditingRepository,
-                                 PaymentManager paymentManager,
-                                 TicketCategoryRepository ticketCategoryRepository,
-                                 AdditionalServiceTextRepository additionalServiceTextRepository,
-                                 SubscriptionRepository subscriptionRepository,
-                                 TicketRepository ticketRepository,
-                                 MessageSourceManager messageSourceManager,
-<span class="fc" id="L74">                                 ReservationCostCalculator reservationCostCalculator, TransactionRepository transactionRepository) {</span>
-<span class="fc" id="L75">        this.ticketReservationRepository = ticketReservationRepository;</span>
-<span class="fc" id="L76">        this.auditingRepository = auditingRepository;</span>
-<span class="fc" id="L77">        this.paymentManager = paymentManager;</span>
-<span class="fc" id="L78">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
-<span class="fc" id="L79">        this.additionalServiceTextRepository = additionalServiceTextRepository;</span>
-<span class="fc" id="L80">        this.subscriptionRepository = subscriptionRepository;</span>
-<span class="fc" id="L81">        this.ticketRepository = ticketRepository;</span>
-<span class="fc" id="L82">        this.messageSourceManager = messageSourceManager;</span>
-<span class="fc" id="L83">        this.reservationCostCalculator = reservationCostCalculator;</span>
-<span class="fc" id="L84">        this.transactionRepository = transactionRepository;</span>
-<span class="fc" id="L85">    }</span>
+    public OrderSummaryGenerator(
+            TicketReservationRepository ticketReservationRepository,
+            AuditingRepository auditingRepository,
+            PaymentManager paymentManager,
+            TicketCategoryRepository ticketCategoryRepository,
+            AdditionalServiceTextRepository additionalServiceTextRepository,
+            SubscriptionRepository subscriptionRepository,
+            TicketRepository ticketRepository,
+            MessageSourceManager messageSourceManager,
+            ReservationCostCalculator reservationCostCalculator,
+<span class="fc" id="L75">            TransactionRepository transactionRepository) {</span>
+<span class="fc" id="L76">        this.ticketReservationRepository = ticketReservationRepository;</span>
+<span class="fc" id="L77">        this.auditingRepository = auditingRepository;</span>
+<span class="fc" id="L78">        this.paymentManager = paymentManager;</span>
+<span class="fc" id="L79">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="fc" id="L80">        this.additionalServiceTextRepository = additionalServiceTextRepository;</span>
+<span class="fc" id="L81">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="fc" id="L82">        this.ticketRepository = ticketRepository;</span>
+<span class="fc" id="L83">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L84">        this.reservationCostCalculator = reservationCostCalculator;</span>
+<span class="fc" id="L85">        this.transactionRepository = transactionRepository;</span>
+<span class="fc" id="L86">    }</span>
 
     public OrderSummary orderSummaryForReservationId(String reservationId, PurchaseContext purchaseContext) {
-<span class="fc" id="L88">        TicketReservation reservation = ticketReservationRepository.findReservationById(reservationId);</span>
-<span class="fc" id="L89">        return orderSummaryForReservation(reservation, purchaseContext);</span>
+<span class="fc" id="L89">        TicketReservation reservation = ticketReservationRepository.findReservationById(reservationId);</span>
+<span class="fc" id="L90">        return orderSummaryForReservation(reservation, purchaseContext);</span>
     }
+
     public OrderSummary orderSummaryForReservation(TicketReservation reservation, PurchaseContext context) {
-<span class="fc" id="L92">        var totalPriceAndDiscount = reservationCostCalculator.totalReservationCostWithVAT(reservation);</span>
-<span class="fc" id="L93">        TotalPrice reservationCost = totalPriceAndDiscount.getLeft();</span>
-<span class="fc" id="L94">        PromoCodeDiscount discount = totalPriceAndDiscount.getRight().orElse(null);</span>
+<span class="fc" id="L94">        var totalPriceAndDiscount = reservationCostCalculator.totalReservationCostWithVAT(reservation);</span>
+<span class="fc" id="L95">        TotalPrice reservationCost = totalPriceAndDiscount.getLeft();</span>
+<span class="fc" id="L96">        PromoCodeDiscount discount = totalPriceAndDiscount.getRight().orElse(null);</span>
         //
-<span class="fc bfc" id="L96" title="All 2 branches covered.">        boolean free = reservationCost.getPriceWithVAT() == 0;</span>
-<span class="fc" id="L97">        String refundedAmount = null;</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">        boolean free = reservationCost.getPriceWithVAT() == 0;</span>
+<span class="fc" id="L99">        String refundedAmount = null;</span>
 
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        boolean hasRefund = auditingRepository.countAuditsOfTypeForReservation(reservation.getId(), Audit.EventType.REFUND) &gt; 0;</span>
+<span class="fc" id="L101">        boolean hasRefund =</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">                auditingRepository.countAuditsOfTypeForReservation(reservation.getId(), Audit.EventType.REFUND) &gt; 0;</span>
 
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if(hasRefund) {</span>
-<span class="nc" id="L102">            refundedAmount = paymentManager.getInfo(reservation, context).getPaymentInformation().getRefundedAmount();</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if (hasRefund) {</span>
+<span class="nc" id="L105">            refundedAmount = paymentManager</span>
+<span class="nc" id="L106">                    .getInfo(reservation, context)</span>
+<span class="nc" id="L107">                    .getPaymentInformation()</span>
+<span class="nc" id="L108">                    .getRefundedAmount();</span>
         }
 
-<span class="fc" id="L105">        var currencyCode = reservation.getCurrencyCode();</span>
-<span class="fc" id="L106">        return new OrderSummary(reservationCost,</span>
-<span class="fc" id="L107">            extractSummary(reservation.getId(), reservation.getVatStatus(), context, LocaleUtil.forLanguageTag(reservation.getUserLanguage()), discount, reservationCost),</span>
-            free,
-<span class="fc" id="L109">            formatCents(reservationCost.getPriceWithVAT(), currencyCode),</span>
-<span class="fc" id="L110">            formatCents(reservationCost.getVAT(), currencyCode),</span>
-<span class="fc bfc" id="L111" title="All 2 branches covered.">            reservation.getStatus() == TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">                || reservation.getStatus() == TicketReservation.TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT,</span>
-<span class="fc bfc" id="L113" title="All 2 branches covered.">            reservation.getStatus() == DEFERRED_OFFLINE_PAYMENT,</span>
-<span class="fc" id="L114">            isCashPayment(reservation),</span>
-<span class="fc" id="L115">            Optional.ofNullable(context.getVat()).map(p -&gt; MonetaryUtil.formatCents(MonetaryUtil.unitToCents(p, currencyCode), currencyCode)).orElse(null),</span>
-<span class="fc" id="L116">            reservation.getVatStatus(),</span>
-            refundedAmount);
+<span class="fc" id="L111">        var currencyCode = reservation.getCurrencyCode();</span>
+<span class="fc" id="L112">        return new OrderSummary(</span>
+                reservationCost,
+<span class="fc" id="L114">                extractSummary(</span>
+<span class="fc" id="L115">                        reservation.getId(),</span>
+<span class="fc" id="L116">                        reservation.getVatStatus(),</span>
+                        context,
+<span class="fc" id="L118">                        LocaleUtil.forLanguageTag(reservation.getUserLanguage()),</span>
+                        discount,
+                        reservationCost),
+                free,
+<span class="fc" id="L122">                formatCents(reservationCost.getPriceWithVAT(), currencyCode),</span>
+<span class="fc" id="L123">                formatCents(reservationCost.getVAT(), currencyCode),</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">                reservation.getStatus() == TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">                        || reservation.getStatus() == TicketReservation.TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT,</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">                reservation.getStatus() == DEFERRED_OFFLINE_PAYMENT,</span>
+<span class="fc" id="L127">                isCashPayment(reservation),</span>
+<span class="fc" id="L128">                Optional.ofNullable(context.getVat())</span>
+<span class="fc" id="L129">                        .map(p -&gt; MonetaryUtil.formatCents(MonetaryUtil.unitToCents(p, currencyCode), currencyCode))</span>
+<span class="fc" id="L130">                        .orElse(null),</span>
+<span class="fc" id="L131">                reservation.getVatStatus(),</span>
+                refundedAmount);
     }
 
     private boolean isCashPayment(TicketReservation reservation) {
-<span class="pc bpc" id="L121" title="1 of 4 branches missed.">        return reservation.getPaymentMethod() == PaymentProxy.ON_SITE &amp;&amp; !transactionRepository.transactionExists(reservation.getId());</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">        return reservation.getPaymentMethod() == PaymentProxy.ON_SITE</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">                &amp;&amp; !transactionRepository.transactionExists(reservation.getId());</span>
     }
 
-    public OrderSummary orderSummaryForCreditNote(TicketReservation reservation, PurchaseContext purchaseContext, List&lt;Ticket&gt; removedTickets) {
-<span class="fc" id="L125">        var totalPriceAndDiscount = totalReservationCostWithVAT(null, purchaseContext, reservation, removedTickets, List.of(), List.of(), Optional.empty());</span>
-<span class="fc" id="L126">        TotalPrice reservationCost = totalPriceAndDiscount.getLeft();</span>
+    public OrderSummary orderSummaryForCreditNote(
+            TicketReservation reservation, PurchaseContext purchaseContext, List&lt;Ticket&gt; removedTickets) {
+<span class="fc" id="L142">        var totalPriceAndDiscount = totalReservationCostWithVAT(</span>
+<span class="fc" id="L143">                null, purchaseContext, reservation, removedTickets, List.of(), List.of(), Optional.empty());</span>
+<span class="fc" id="L144">        TotalPrice reservationCost = totalPriceAndDiscount.getLeft();</span>
         //
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">        boolean free = reservationCost.getPriceWithVAT() == 0;</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">        boolean free = reservationCost.getPriceWithVAT() == 0;</span>
 
-<span class="fc" id="L130">        var currencyCode = reservation.getCurrencyCode();</span>
-<span class="fc" id="L131">        return new OrderSummary(reservationCost,</span>
-<span class="fc" id="L132">            extractSummary(reservation.getVatStatus(), purchaseContext, LocaleUtil.forLanguageTag(reservation.getUserLanguage()), null, reservationCost, removedTickets, Stream.empty(), subscriptionRepository.findSubscriptionsByReservationId(reservation.getId())),</span>
-            free,
-<span class="fc" id="L134">            formatCents(reservationCost.getPriceWithVAT(), currencyCode),</span>
-<span class="fc" id="L135">            formatCents(reservationCost.getVAT(), currencyCode),</span>
-<span class="pc bpc" id="L136" title="1 of 2 branches missed.">            reservation.getStatus() == TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT,</span>
-<span class="pc bpc" id="L137" title="1 of 2 branches missed.">            reservation.getStatus() == DEFERRED_OFFLINE_PAYMENT,</span>
-<span class="fc" id="L138">            isCashPayment(reservation),</span>
-<span class="fc" id="L139">            Optional.ofNullable(purchaseContext.getVat()).map(p -&gt; MonetaryUtil.formatCents(MonetaryUtil.unitToCents(p, currencyCode), currencyCode)).orElse(null),</span>
-<span class="fc" id="L140">            reservation.getVatStatus(),</span>
-            null);
+<span class="fc" id="L148">        var currencyCode = reservation.getCurrencyCode();</span>
+<span class="fc" id="L149">        return new OrderSummary(</span>
+                reservationCost,
+<span class="fc" id="L151">                extractSummary(</span>
+<span class="fc" id="L152">                        reservation.getVatStatus(),</span>
+                        purchaseContext,
+<span class="fc" id="L154">                        LocaleUtil.forLanguageTag(reservation.getUserLanguage()),</span>
+                        null,
+                        reservationCost,
+                        removedTickets,
+<span class="fc" id="L158">                        Stream.empty(),</span>
+<span class="fc" id="L159">                        subscriptionRepository.findSubscriptionsByReservationId(reservation.getId())),</span>
+                free,
+<span class="fc" id="L161">                formatCents(reservationCost.getPriceWithVAT(), currencyCode),</span>
+<span class="fc" id="L162">                formatCents(reservationCost.getVAT(), currencyCode),</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">                reservation.getStatus() == TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT,</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">                reservation.getStatus() == DEFERRED_OFFLINE_PAYMENT,</span>
+<span class="fc" id="L165">                isCashPayment(reservation),</span>
+<span class="fc" id="L166">                Optional.ofNullable(purchaseContext.getVat())</span>
+<span class="fc" id="L167">                        .map(p -&gt; MonetaryUtil.formatCents(MonetaryUtil.unitToCents(p, currencyCode), currencyCode))</span>
+<span class="fc" id="L168">                        .orElse(null),</span>
+<span class="fc" id="L169">                reservation.getVatStatus(),</span>
+                null);
     }
 
-    List&lt;SummaryRow&gt; extractSummary(PriceContainer.VatStatus reservationVatStatus,
-                                    PurchaseContext purchaseContext,
-                                    Locale locale,
-                                    PromoCodeDiscount promoCodeDiscount,
-                                    TotalPrice reservationCost,
-                                    List&lt;Ticket&gt; ticketsToInclude,
-                                    Stream&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; additionalServicesToInclude,
-                                    List&lt;Subscription&gt; subscriptionsToInclude) {
-<span class="fc" id="L152">        log.trace(&quot;extract summary subscriptionsToInclude {}&quot;, subscriptionsToInclude);</span>
-<span class="fc" id="L153">        List&lt;SummaryRow&gt; summary = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L154">        var currencyCode = reservationCost.getCurrencyCode();</span>
-<span class="fc" id="L155">        List&lt;TicketPriceContainer&gt; tickets = ticketsToInclude.stream()</span>
-<span class="fc" id="L156">            .map(t -&gt; TicketPriceContainer.from(t, reservationVatStatus, purchaseContext.getVat(), purchaseContext.getVatStatus(), promoCodeDiscount)).toList();</span>
-<span class="fc" id="L157">        purchaseContext.event().ifPresent(event -&gt; {</span>
-<span class="fc bfc" id="L158" title="All 2 branches covered.">            boolean multipleTaxRates = tickets.stream().map(TicketPriceContainer::getVatStatus).collect(Collectors.toSet()).size() &gt; 1;</span>
-<span class="fc" id="L159">            var ticketsByCategory = tickets.stream()</span>
-<span class="fc" id="L160">                .collect(Collectors.groupingBy(TicketPriceContainer::getCategoryId));</span>
+    List&lt;SummaryRow&gt; extractSummary(
+            PriceContainer.VatStatus reservationVatStatus,
+            PurchaseContext purchaseContext,
+            Locale locale,
+            PromoCodeDiscount promoCodeDiscount,
+            TotalPrice reservationCost,
+            List&lt;Ticket&gt; ticketsToInclude,
+            Stream&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; additionalServicesToInclude,
+            List&lt;Subscription&gt; subscriptionsToInclude) {
+<span class="fc" id="L182">        log.trace(&quot;extract summary subscriptionsToInclude {}&quot;, subscriptionsToInclude);</span>
+<span class="fc" id="L183">        List&lt;SummaryRow&gt; summary = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L184">        var currencyCode = reservationCost.getCurrencyCode();</span>
+<span class="fc" id="L185">        List&lt;TicketPriceContainer&gt; tickets = ticketsToInclude.stream()</span>
+<span class="fc" id="L186">                .map(t -&gt; TicketPriceContainer.from(</span>
+                        t,
+                        reservationVatStatus,
+<span class="fc" id="L189">                        purchaseContext.getVat(),</span>
+<span class="fc" id="L190">                        purchaseContext.getVatStatus(),</span>
+                        promoCodeDiscount))
+<span class="fc" id="L192">                .toList();</span>
+<span class="fc" id="L193">        purchaseContext.event().ifPresent(event -&gt; {</span>
+<span class="fc" id="L194">            boolean multipleTaxRates = tickets.stream()</span>
+<span class="fc" id="L195">                            .map(TicketPriceContainer::getVatStatus)</span>
+<span class="fc" id="L196">                            .collect(Collectors.toSet())</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">                            .size()</span>
+                    &gt; 1;
+<span class="fc" id="L199">            var ticketsByCategory =</span>
+<span class="fc" id="L200">                    tickets.stream().collect(Collectors.groupingBy(TicketPriceContainer::getCategoryId));</span>
             List&lt;Map.Entry&lt;Integer, List&lt;TicketPriceContainer&gt;&gt;&gt; sorted;
-<span class="fc bfc" id="L162" title="All 2 branches covered.">            if (multipleTaxRates) {</span>
-<span class="fc" id="L163">                sorted = ticketsByCategory</span>
-<span class="fc" id="L164">                    .entrySet()</span>
-<span class="fc" id="L165">                    .stream()</span>
-<span class="fc" id="L166">                    .sorted(Comparator.comparing((Map.Entry&lt;Integer, List&lt;TicketPriceContainer&gt;&gt; e) -&gt; e.getValue().get(0).getVatStatus()).reversed())</span>
-<span class="fc" id="L167">                    .toList();</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">            if (multipleTaxRates) {</span>
+<span class="fc" id="L203">                sorted = ticketsByCategory.entrySet().stream()</span>
+<span class="fc" id="L204">                        .sorted(Comparator.comparing((Map.Entry&lt;Integer, List&lt;TicketPriceContainer&gt;&gt; e) -&gt;</span>
+<span class="fc" id="L205">                                        e.getValue().get(0).getVatStatus())</span>
+<span class="fc" id="L206">                                .reversed())</span>
+<span class="fc" id="L207">                        .toList();</span>
             } else {
-<span class="fc" id="L169">                sorted = new ArrayList&lt;&gt;(ticketsByCategory.entrySet());</span>
+<span class="fc" id="L209">                sorted = new ArrayList&lt;&gt;(ticketsByCategory.entrySet());</span>
             }
             Map&lt;Integer, TicketCategory&gt; categoriesById;
 
-<span class="fc bfc" id="L173" title="All 2 branches covered.">            if(ticketsByCategory.isEmpty()) {</span>
-<span class="fc" id="L174">                categoriesById = Map.of();</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">            if (ticketsByCategory.isEmpty()) {</span>
+<span class="fc" id="L214">                categoriesById = Map.of();</span>
             } else {
-<span class="fc" id="L176">                categoriesById = ticketCategoryRepository.getByIdsAndActive(ticketsByCategory.keySet(), event.getId())</span>
-<span class="fc" id="L177">                    .stream()</span>
-<span class="fc" id="L178">                    .collect(Collectors.toMap(TicketCategory::getId, Function.identity()));</span>
+<span class="fc" id="L216">                categoriesById =</span>
+<span class="fc" id="L217">                        ticketCategoryRepository.getByIdsAndActive(ticketsByCategory.keySet(), event.getId()).stream()</span>
+<span class="fc" id="L218">                                .collect(Collectors.toMap(TicketCategory::getId, Function.identity()));</span>
             }
 
-<span class="fc bfc" id="L181" title="All 2 branches covered.">            for (var categoryWithTickets : sorted) {</span>
-<span class="fc" id="L182">                var categoryTickets = categoryWithTickets.getValue();</span>
-<span class="fc" id="L183">                final int subTotal = categoryTickets.stream().mapToInt(TicketPriceContainer::getSummarySrcPriceCts).sum();</span>
-<span class="fc" id="L184">                final int subTotalBeforeVat = SummaryPriceContainer.getSummaryPriceBeforeVatCts(categoryTickets);</span>
-<span class="fc" id="L185">                var firstTicket = categoryTickets.get(0);</span>
-<span class="fc" id="L186">                final int ticketPriceCts = firstTicket.getSummarySrcPriceCts();</span>
-<span class="fc" id="L187">                final int priceBeforeVat = SummaryPriceContainer.getSummaryPriceBeforeVatCts(singletonList(firstTicket));</span>
-<span class="fc" id="L188">                String categoryName = categoriesById.get(categoryWithTickets.getKey()).getName();</span>
-<span class="fc" id="L189">                var ticketVatStatus = firstTicket.getVatStatus();</span>
-<span class="fc" id="L190">                summary.add(new SummaryRow(categoryName, formatCents(ticketPriceCts, currencyCode), formatCents(priceBeforeVat, currencyCode), categoryTickets.size(), formatCents(subTotal, currencyCode), formatCents(subTotalBeforeVat, currencyCode), subTotal, SummaryRow.SummaryType.TICKET, null, ticketVatStatus));</span>
-<span class="fc bfc" id="L191" title="All 4 branches covered.">                if (PriceContainer.VatStatus.isVatExempt(ticketVatStatus) &amp;&amp; ticketVatStatus != reservationVatStatus) {</span>
-<span class="fc" id="L192">                    summary.add(new SummaryRow(null,</span>
-                        &quot;&quot;,
-                        &quot;&quot;,
-                        0,
-<span class="fc" id="L196">                        formatCents(0, currencyCode, true),</span>
-<span class="fc" id="L197">                        formatCents(0, currencyCode, true),</span>
-                        0,
-                        SummaryRow.SummaryType.TAX_DETAIL,
-                        &quot;0&quot;, ticketVatStatus));
+<span class="fc bfc" id="L221" title="All 2 branches covered.">            for (var categoryWithTickets : sorted) {</span>
+<span class="fc" id="L222">                var categoryTickets = categoryWithTickets.getValue();</span>
+<span class="fc" id="L223">                final int subTotal = categoryTickets.stream()</span>
+<span class="fc" id="L224">                        .mapToInt(TicketPriceContainer::getSummarySrcPriceCts)</span>
+<span class="fc" id="L225">                        .sum();</span>
+<span class="fc" id="L226">                final int subTotalBeforeVat = SummaryPriceContainer.getSummaryPriceBeforeVatCts(categoryTickets);</span>
+<span class="fc" id="L227">                var firstTicket = categoryTickets.get(0);</span>
+<span class="fc" id="L228">                final int ticketPriceCts = firstTicket.getSummarySrcPriceCts();</span>
+<span class="fc" id="L229">                final int priceBeforeVat =</span>
+<span class="fc" id="L230">                        SummaryPriceContainer.getSummaryPriceBeforeVatCts(singletonList(firstTicket));</span>
+<span class="fc" id="L231">                String categoryName =</span>
+<span class="fc" id="L232">                        categoriesById.get(categoryWithTickets.getKey()).getName();</span>
+<span class="fc" id="L233">                var ticketVatStatus = firstTicket.getVatStatus();</span>
+<span class="fc" id="L234">                summary.add(new SummaryRow(</span>
+                        categoryName,
+<span class="fc" id="L236">                        formatCents(ticketPriceCts, currencyCode),</span>
+<span class="fc" id="L237">                        formatCents(priceBeforeVat, currencyCode),</span>
+<span class="fc" id="L238">                        categoryTickets.size(),</span>
+<span class="fc" id="L239">                        formatCents(subTotal, currencyCode),</span>
+<span class="fc" id="L240">                        formatCents(subTotalBeforeVat, currencyCode),</span>
+                        subTotal,
+                        SummaryRow.SummaryType.TICKET,
+                        null,
+                        ticketVatStatus));
+<span class="fc bfc" id="L245" title="All 4 branches covered.">                if (PriceContainer.VatStatus.isVatExempt(ticketVatStatus) &amp;&amp; ticketVatStatus != reservationVatStatus) {</span>
+<span class="fc" id="L246">                    summary.add(new SummaryRow(</span>
+                            null,
+                            &quot;&quot;,
+                            &quot;&quot;,
+                            0,
+<span class="fc" id="L251">                            formatCents(0, currencyCode, true),</span>
+<span class="fc" id="L252">                            formatCents(0, currencyCode, true),</span>
+                            0,
+                            SummaryRow.SummaryType.TAX_DETAIL,
+                            &quot;0&quot;,
+                            ticketVatStatus));
                 }
-<span class="fc" id="L202">            }</span>
-<span class="fc" id="L203">        });</span>
+<span class="fc" id="L258">            }</span>
+<span class="fc" id="L259">        });</span>
 
-<span class="fc" id="L205">        summary.addAll(additionalServicesToInclude</span>
-<span class="fc" id="L206">            .map(entry -&gt; {</span>
-<span class="fc" id="L207">                String language = locale.getLanguage();</span>
-<span class="fc" id="L208">                AdditionalServiceText title = additionalServiceTextRepository.findBestMatchByLocaleAndType(entry.getKey().id(), language, AdditionalServiceText.TextType.TITLE);</span>
-<span class="pc bpc" id="L209" title="1 of 4 branches missed.">                if(!title.getLocale().equals(language) || title.getId() == -1) {</span>
-<span class="fc" id="L210">                    log.debug(&quot;additional service {}: title not found for locale {}&quot;, title.getAdditionalServiceId(), language);</span>
-                }
-<span class="fc" id="L212">                List&lt;AdditionalServiceItemPriceContainer&gt; prices = generateASIPriceContainers(purchaseContext, null).apply(entry).collect(toList());</span>
-<span class="fc" id="L213">                AdditionalServiceItemPriceContainer first = prices.get(0);</span>
-<span class="fc" id="L214">                final int subtotal = prices.stream().mapToInt(AdditionalServiceItemPriceContainer::getSrcPriceCts).sum();</span>
-<span class="fc" id="L215">                final int subtotalBeforeVat = SummaryPriceContainer.getSummaryPriceBeforeVatCts(prices);</span>
-<span class="fc" id="L216">                return new SummaryRow(title.getValue(),</span>
-<span class="fc" id="L217">                    formatCents(first.getSrcPriceCts(), currencyCode),</span>
-<span class="fc" id="L218">                    formatCents(SummaryPriceContainer.getSummaryPriceBeforeVatCts(singletonList(first)), currencyCode),</span>
-<span class="fc" id="L219">                    prices.size(),</span>
-<span class="fc" id="L220">                    formatCents(subtotal, currencyCode),</span>
-<span class="fc" id="L221">                    formatCents(subtotalBeforeVat, currencyCode),</span>
-                    subtotal,
-                    SummaryRow.SummaryType.ADDITIONAL_SERVICE,
+<span class="fc" id="L261">        summary.addAll(additionalServicesToInclude</span>
+<span class="fc" id="L262">                .map(entry -&gt; {</span>
+<span class="fc" id="L263">                    String language = locale.getLanguage();</span>
+<span class="fc" id="L264">                    AdditionalServiceText title = additionalServiceTextRepository.findBestMatchByLocaleAndType(</span>
+<span class="fc" id="L265">                            entry.getKey().id(), language, AdditionalServiceText.TextType.TITLE);</span>
+<span class="pc bpc" id="L266" title="1 of 4 branches missed.">                    if (!title.getLocale().equals(language) || title.getId() == -1) {</span>
+<span class="fc" id="L267">                        log.debug(</span>
+                                &quot;additional service {}: title not found for locale {}&quot;,
+<span class="fc" id="L269">                                title.getAdditionalServiceId(),</span>
+                                language);
+                    }
+<span class="fc" id="L272">                    List&lt;AdditionalServiceItemPriceContainer&gt; prices = generateASIPriceContainers(purchaseContext, null)</span>
+<span class="fc" id="L273">                            .apply(entry)</span>
+<span class="fc" id="L274">                            .collect(toList());</span>
+<span class="fc" id="L275">                    AdditionalServiceItemPriceContainer first = prices.get(0);</span>
+<span class="fc" id="L276">                    final int subtotal = prices.stream()</span>
+<span class="fc" id="L277">                            .mapToInt(AdditionalServiceItemPriceContainer::getSrcPriceCts)</span>
+<span class="fc" id="L278">                            .sum();</span>
+<span class="fc" id="L279">                    final int subtotalBeforeVat = SummaryPriceContainer.getSummaryPriceBeforeVatCts(prices);</span>
+<span class="fc" id="L280">                    return new SummaryRow(</span>
+<span class="fc" id="L281">                            title.getValue(),</span>
+<span class="fc" id="L282">                            formatCents(first.getSrcPriceCts(), currencyCode),</span>
+<span class="fc" id="L283">                            formatCents(</span>
+<span class="fc" id="L284">                                    SummaryPriceContainer.getSummaryPriceBeforeVatCts(singletonList(first)),</span>
+                                    currencyCode),
+<span class="fc" id="L286">                            prices.size(),</span>
+<span class="fc" id="L287">                            formatCents(subtotal, currencyCode),</span>
+<span class="fc" id="L288">                            formatCents(subtotalBeforeVat, currencyCode),</span>
+                            subtotal,
+                            SummaryRow.SummaryType.ADDITIONAL_SERVICE,
+                            null,
+<span class="fc" id="L292">                            first.getVatStatus());</span>
+                })
+<span class="fc" id="L294">                .toList());</span>
+
+<span class="fc" id="L296">        Optional.ofNullable(promoCodeDiscount).ifPresent(promo -&gt; {</span>
+            String formattedSingleAmount = &quot;-&quot;
+<span class="fc bfc" id="L298" title="All 2 branches covered.">                    + (PromoCodeDiscount.DiscountType.isFixedAmount(promo.getDiscountType())</span>
+<span class="fc" id="L299">                            ? formatCents(promo.getDiscountAmount(), currencyCode)</span>
+<span class="fc" id="L300">                            : (promo.getDiscountAmount() + &quot;%&quot;));</span>
+<span class="fc" id="L301">            summary.add(new SummaryRow(</span>
+<span class="fc" id="L302">                    formatPromoCode(promo, ticketsToInclude, locale, purchaseContext),</span>
+                    formattedSingleAmount,
+                    formattedSingleAmount,
+<span class="fc" id="L305">                    reservationCost.getDiscountAppliedCount(),</span>
+<span class="fc" id="L306">                    formatCents(reservationCost.getDiscount(), currencyCode),</span>
+<span class="fc" id="L307">                    formatCents(reservationCost.getDiscount(), currencyCode),</span>
+<span class="fc" id="L308">                    reservationCost.getDiscount(),</span>
+<span class="pc bpc" id="L309" title="1 of 2 branches missed.">                    promo.isDynamic() ? SummaryRow.SummaryType.DYNAMIC_DISCOUNT : SummaryRow.SummaryType.PROMOTION_CODE,</span>
                     null,
-<span class="fc" id="L225">                    first.getVatStatus());</span>
-<span class="fc" id="L226">            }).toList());</span>
-
-<span class="fc" id="L228">        Optional.ofNullable(promoCodeDiscount).ifPresent(promo -&gt; {</span>
-<span class="fc bfc" id="L229" title="All 2 branches covered.">            String formattedSingleAmount = &quot;-&quot; + (PromoCodeDiscount.DiscountType.isFixedAmount(promo.getDiscountType())  ? formatCents(promo.getDiscountAmount(), currencyCode) : (promo.getDiscountAmount()+&quot;%&quot;));</span>
-<span class="fc" id="L230">            summary.add(new SummaryRow(formatPromoCode(promo, ticketsToInclude, locale, purchaseContext),</span>
-                formattedSingleAmount,
-                formattedSingleAmount,
-<span class="fc" id="L233">                reservationCost.getDiscountAppliedCount(),</span>
-<span class="fc" id="L234">                formatCents(reservationCost.getDiscount(), currencyCode), formatCents(reservationCost.getDiscount(), currencyCode), reservationCost.getDiscount(),</span>
-<span class="pc bpc" id="L235" title="1 of 2 branches missed.">                promo.isDynamic() ? SummaryRow.SummaryType.DYNAMIC_DISCOUNT : SummaryRow.SummaryType.PROMOTION_CODE,</span>
-                null, reservationVatStatus));
-<span class="fc" id="L237">        });</span>
+                    reservationVatStatus));
+<span class="fc" id="L312">        });</span>
         //
-<span class="fc bfc" id="L239" title="All 2 branches covered.">        if(purchaseContext instanceof SubscriptionDescriptor descriptor) {</span>
-<span class="pc bpc" id="L240" title="1 of 2 branches missed.">            if(!subscriptionsToInclude.isEmpty()) {</span>
-<span class="fc" id="L241">                var subscription = subscriptionsToInclude.get(0);</span>
-<span class="fc" id="L242">                var priceContainer = new SubscriptionPriceContainer(subscription, promoCodeDiscount, descriptor);</span>
-<span class="fc" id="L243">                var priceBeforeVat = formatUnit(priceContainer.getNetPrice(), currencyCode);</span>
-<span class="fc" id="L244">                summary.add(new SummaryRow(purchaseContext.getTitle().get(locale.getLanguage()),</span>
-<span class="fc" id="L245">                    formatCents(priceContainer.getSummarySrcPriceCts(), currencyCode),</span>
-                    priceBeforeVat,
-<span class="fc" id="L247">                    subscriptionsToInclude.size(),</span>
-<span class="fc" id="L248">                    formatCents(priceContainer.getSummarySrcPriceCts() * subscriptionsToInclude.size(), currencyCode),</span>
-<span class="fc" id="L249">                    formatUnit(priceContainer.getNetPrice().multiply(new BigDecimal(subscriptionsToInclude.size())), currencyCode),</span>
-<span class="fc" id="L250">                    priceContainer.getSummarySrcPriceCts(),</span>
-                    SummaryRow.SummaryType.SUBSCRIPTION,
-                    null,
-                    reservationVatStatus));
-<span class="fc" id="L254">            }</span>
-<span class="fc bfc" id="L255" title="All 2 branches covered.">        } else if(CollectionUtils.isNotEmpty(subscriptionsToInclude)) {</span>
-<span class="fc" id="L256">            log.trace(&quot;subscriptions to include is not empty&quot;);</span>
-<span class="fc" id="L257">            var subscription = subscriptionsToInclude.get(0);</span>
-<span class="fc" id="L258">            subscriptionRepository.findOne(subscription.getSubscriptionDescriptorId(), subscription.getOrganizationId()).ifPresent(subscriptionDescriptor -&gt; {</span>
-<span class="fc" id="L259">                log.trace(&quot;found subscriptionDescriptor with ID {}&quot;, subscriptionDescriptor.getId());</span>
-                // find tickets with subscription applied
-<span class="fc" id="L261">                var ticketsSubscription = tickets.stream().filter(t -&gt; Objects.equals(subscription.getId(), t.getSubscriptionId())).toList();</span>
-<span class="fc" id="L262">                final int ticketPriceCts = ticketsSubscription.stream().mapToInt(TicketPriceContainer::getSummarySrcPriceCts).sum();</span>
-<span class="fc" id="L263">                final int priceBeforeVat = SummaryPriceContainer.getSummaryPriceBeforeVatCts(ticketsSubscription);</span>
-<span class="fc" id="L264">                summary.add(new SummaryRow(subscriptionDescriptor.getLocalizedTitle(locale),</span>
-<span class="fc" id="L265">                    &quot;-&quot; + formatCents(ticketPriceCts, currencyCode),</span>
-<span class="fc" id="L266">                    &quot;-&quot; + formatCents(priceBeforeVat, currencyCode),</span>
-<span class="fc" id="L267">                    ticketsSubscription.size(),</span>
-<span class="fc" id="L268">                    &quot;-&quot; + formatCents(ticketPriceCts, currencyCode),</span>
-<span class="fc" id="L269">                    &quot;-&quot; + formatCents(priceBeforeVat, currencyCode),</span>
-                    ticketPriceCts,
-                    SummaryRow.SummaryType.APPLIED_SUBSCRIPTION,
-                    null,
-                    reservationVatStatus));
-<span class="fc" id="L274">            });</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">        if (purchaseContext instanceof SubscriptionDescriptor descriptor) {</span>
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">            if (!subscriptionsToInclude.isEmpty()) {</span>
+<span class="fc" id="L316">                var subscription = subscriptionsToInclude.get(0);</span>
+<span class="fc" id="L317">                var priceContainer = new SubscriptionPriceContainer(subscription, promoCodeDiscount, descriptor);</span>
+<span class="fc" id="L318">                var priceBeforeVat = formatUnit(priceContainer.getNetPrice(), currencyCode);</span>
+<span class="fc" id="L319">                summary.add(new SummaryRow(</span>
+<span class="fc" id="L320">                        purchaseContext.getTitle().get(locale.getLanguage()),</span>
+<span class="fc" id="L321">                        formatCents(priceContainer.getSummarySrcPriceCts(), currencyCode),</span>
+                        priceBeforeVat,
+<span class="fc" id="L323">                        subscriptionsToInclude.size(),</span>
+<span class="fc" id="L324">                        formatCents(</span>
+<span class="fc" id="L325">                                priceContainer.getSummarySrcPriceCts() * subscriptionsToInclude.size(), currencyCode),</span>
+<span class="fc" id="L326">                        formatUnit(</span>
+<span class="fc" id="L327">                                priceContainer.getNetPrice().multiply(new BigDecimal(subscriptionsToInclude.size())),</span>
+                                currencyCode),
+<span class="fc" id="L329">                        priceContainer.getSummarySrcPriceCts(),</span>
+                        SummaryRow.SummaryType.SUBSCRIPTION,
+                        null,
+                        reservationVatStatus));
+<span class="fc" id="L333">            }</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">        } else if (CollectionUtils.isNotEmpty(subscriptionsToInclude)) {</span>
+<span class="fc" id="L335">            log.trace(&quot;subscriptions to include is not empty&quot;);</span>
+<span class="fc" id="L336">            var subscription = subscriptionsToInclude.get(0);</span>
+<span class="fc" id="L337">            subscriptionRepository</span>
+<span class="fc" id="L338">                    .findOne(subscription.getSubscriptionDescriptorId(), subscription.getOrganizationId())</span>
+<span class="fc" id="L339">                    .ifPresent(subscriptionDescriptor -&gt; {</span>
+<span class="fc" id="L340">                        log.trace(&quot;found subscriptionDescriptor with ID {}&quot;, subscriptionDescriptor.getId());</span>
+                        // find tickets with subscription applied
+<span class="fc" id="L342">                        var ticketsSubscription = tickets.stream()</span>
+<span class="fc" id="L343">                                .filter(t -&gt; Objects.equals(subscription.getId(), t.getSubscriptionId()))</span>
+<span class="fc" id="L344">                                .toList();</span>
+<span class="fc" id="L345">                        final int ticketPriceCts = ticketsSubscription.stream()</span>
+<span class="fc" id="L346">                                .mapToInt(TicketPriceContainer::getSummarySrcPriceCts)</span>
+<span class="fc" id="L347">                                .sum();</span>
+<span class="fc" id="L348">                        final int priceBeforeVat =</span>
+<span class="fc" id="L349">                                SummaryPriceContainer.getSummaryPriceBeforeVatCts(ticketsSubscription);</span>
+<span class="fc" id="L350">                        summary.add(new SummaryRow(</span>
+<span class="fc" id="L351">                                subscriptionDescriptor.getLocalizedTitle(locale),</span>
+<span class="fc" id="L352">                                &quot;-&quot; + formatCents(ticketPriceCts, currencyCode),</span>
+<span class="fc" id="L353">                                &quot;-&quot; + formatCents(priceBeforeVat, currencyCode),</span>
+<span class="fc" id="L354">                                ticketsSubscription.size(),</span>
+<span class="fc" id="L355">                                &quot;-&quot; + formatCents(ticketPriceCts, currencyCode),</span>
+<span class="fc" id="L356">                                &quot;-&quot; + formatCents(priceBeforeVat, currencyCode),</span>
+                                ticketPriceCts,
+                                SummaryRow.SummaryType.APPLIED_SUBSCRIPTION,
+                                null,
+                                reservationVatStatus));
+<span class="fc" id="L361">                    });</span>
         }
 
         //
-<span class="fc" id="L278">        return summary;</span>
+<span class="fc" id="L365">        return summary;</span>
     }
 
-    public List&lt;SummaryRow&gt; extractSummary(String reservationId, PriceContainer.VatStatus reservationVatStatus,
-                                    PurchaseContext purchaseContext, Locale locale, PromoCodeDiscount promoCodeDiscount, TotalPrice reservationCost) {
+    public List&lt;SummaryRow&gt; extractSummary(
+            String reservationId,
+            PriceContainer.VatStatus reservationVatStatus,
+            PurchaseContext purchaseContext,
+            Locale locale,
+            PromoCodeDiscount promoCodeDiscount,
+            TotalPrice reservationCost) {
         List&lt;Subscription&gt; subscriptionsToInclude;
-<span class="fc bfc" id="L284" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
-<span class="fc" id="L285">            subscriptionsToInclude = subscriptionRepository.findAppliedSubscriptionByReservationId(reservationId)</span>
-<span class="fc" id="L286">                .map(List::of)</span>
-<span class="fc" id="L287">                .orElse(List.of());</span>
+<span class="fc bfc" id="L376" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
+<span class="fc" id="L377">            subscriptionsToInclude = subscriptionRepository</span>
+<span class="fc" id="L378">                    .findAppliedSubscriptionByReservationId(reservationId)</span>
+<span class="fc" id="L379">                    .map(List::of)</span>
+<span class="fc" id="L380">                    .orElse(List.of());</span>
         } else {
-<span class="fc" id="L289">            subscriptionsToInclude = subscriptionRepository.findSubscriptionsByReservationId(reservationId);</span>
+<span class="fc" id="L382">            subscriptionsToInclude = subscriptionRepository.findSubscriptionsByReservationId(reservationId);</span>
         }
 
-<span class="fc" id="L292">        return extractSummary(reservationVatStatus,</span>
-            purchaseContext,
-            locale,
-            promoCodeDiscount,
-            reservationCost,
-<span class="fc" id="L297">            ticketRepository.findTicketsInReservation(reservationId),</span>
-<span class="fc" id="L298">            reservationCostCalculator.streamAdditionalServiceItems(reservationId, purchaseContext),</span>
-            subscriptionsToInclude);
+<span class="fc" id="L385">        return extractSummary(</span>
+                reservationVatStatus,
+                purchaseContext,
+                locale,
+                promoCodeDiscount,
+                reservationCost,
+<span class="fc" id="L391">                ticketRepository.findTicketsInReservation(reservationId),</span>
+<span class="fc" id="L392">                reservationCostCalculator.streamAdditionalServiceItems(reservationId, purchaseContext),</span>
+                subscriptionsToInclude);
     }
 
-    private String formatPromoCode(PromoCodeDiscount promoCodeDiscount, List&lt;Ticket&gt; tickets, Locale locale, PurchaseContext purchaseContext) {
+    private String formatPromoCode(
+            PromoCodeDiscount promoCodeDiscount, List&lt;Ticket&gt; tickets, Locale locale, PurchaseContext purchaseContext) {
 
-<span class="pc bpc" id="L304" title="1 of 2 branches missed.">        if(promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DYNAMIC) {</span>
-<span class="nc" id="L305">            return messageSourceManager.getMessageSourceFor(purchaseContext).getMessage(&quot;reservation.dynamic.discount.description&quot;, null, locale); //we don't expose the internal promo code</span>
+<span class="pc bpc" id="L399" title="1 of 2 branches missed.">        if (promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DYNAMIC) {</span>
+<span class="nc" id="L400">            return messageSourceManager</span>
+<span class="nc" id="L401">                    .getMessageSourceFor(purchaseContext)</span>
+<span class="nc" id="L402">                    .getMessage(</span>
+                            &quot;reservation.dynamic.discount.description&quot;,
+                            null,
+                            locale); // we don't expose the internal promo code
         }
 
-<span class="fc" id="L308">        List&lt;Ticket&gt; filteredTickets = tickets.stream().filter(ticket -&gt; promoCodeDiscount.getCategories().contains(ticket.getCategoryId())).toList();</span>
+<span class="fc" id="L408">        List&lt;Ticket&gt; filteredTickets = tickets.stream()</span>
+<span class="fc" id="L409">                .filter(ticket -&gt; promoCodeDiscount.getCategories().contains(ticket.getCategoryId()))</span>
+<span class="fc" id="L410">                .toList();</span>
 
-<span class="pc bpc" id="L310" title="1 of 4 branches missed.">        if (promoCodeDiscount.getCategories().isEmpty() || filteredTickets.isEmpty()) {</span>
-<span class="fc" id="L311">            return promoCodeDiscount.getPromoCode();</span>
+<span class="pc bpc" id="L412" title="1 of 4 branches missed.">        if (promoCodeDiscount.getCategories().isEmpty() || filteredTickets.isEmpty()) {</span>
+<span class="fc" id="L413">            return promoCodeDiscount.getPromoCode();</span>
         }
 
-<span class="fc" id="L314">        String formattedDiscountedCategories = filteredTickets.stream()</span>
-<span class="fc" id="L315">            .map(Ticket::getCategoryId)</span>
-<span class="fc" id="L316">            .collect(toSet())</span>
-<span class="fc" id="L317">            .stream()</span>
-<span class="fc" id="L318">            .map(categoryId -&gt; ticketCategoryRepository.getByIdAndActive(categoryId, promoCodeDiscount.getEventId()).getName())</span>
-<span class="fc" id="L319">            .collect(Collectors.joining(&quot;, &quot;, &quot;(&quot;, &quot;)&quot;));</span>
+<span class="fc" id="L416">        String formattedDiscountedCategories =</span>
+<span class="fc" id="L417">                filteredTickets.stream().map(Ticket::getCategoryId).collect(toSet()).stream()</span>
+<span class="fc" id="L418">                        .map(categoryId -&gt; ticketCategoryRepository</span>
+<span class="fc" id="L419">                                .getByIdAndActive(categoryId, promoCodeDiscount.getEventId())</span>
+<span class="fc" id="L420">                                .getName())</span>
+<span class="fc" id="L421">                        .collect(Collectors.joining(&quot;, &quot;, &quot;(&quot;, &quot;)&quot;));</span>
 
-
-<span class="fc" id="L322">        return promoCodeDiscount.getPromoCode() + &quot; &quot; + formattedDiscountedCategories;</span>
+<span class="fc" id="L423">        return promoCodeDiscount.getPromoCode() + &quot; &quot; + formattedDiscountedCategories;</span>
     }
 
-    private static Function&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;, Stream&lt;? extends AdditionalServiceItemPriceContainer&gt;&gt; generateASIPriceContainers(PurchaseContext purchaseContext, PromoCodeDiscount discount) {
-<span class="fc" id="L326">        return p -&gt; p.getValue().stream().map(asi -&gt; AdditionalServiceItemPriceContainer.from(asi, p.getKey(), purchaseContext, discount));</span>
+    private static Function&lt;
+                    Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;,
+                    Stream&lt;? extends AdditionalServiceItemPriceContainer&gt;&gt;
+            generateASIPriceContainers(PurchaseContext purchaseContext, PromoCodeDiscount discount) {
+<span class="fc" id="L430">        return p -&gt; p.getValue().stream()</span>
+<span class="fc" id="L431">                .map(asi -&gt; AdditionalServiceItemPriceContainer.from(asi, p.getKey(), purchaseContext, discount));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

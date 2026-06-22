@@ -16,38 +16,39 @@
  */
 package alfio.model.user;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
+import lombok.Getter;
 
-<span class="fc" id="L25">@Getter</span>
+<span class="fc" id="L24">@Getter</span>
 public enum Role {
-<span class="fc" id="L27">    ADMIN(&quot;ROLE_ADMIN&quot;, &quot;Administrator&quot;, EnumSet.of(RoleTarget.ADMIN)),</span>
-<span class="fc" id="L28">    OWNER(&quot;ROLE_OWNER&quot;, &quot;Organization owner&quot;, EnumSet.of(RoleTarget.USER)),</span>
-<span class="fc" id="L29">    SUPERVISOR(&quot;ROLE_SUPERVISOR&quot;, &quot;Check-in supervisor&quot;, EnumSet.of(RoleTarget.USER, RoleTarget.API_KEY)),</span>
-<span class="fc" id="L30">    OPERATOR(&quot;ROLE_OPERATOR&quot;, &quot;Check-in operator&quot;, EnumSet.of(RoleTarget.API_KEY)),</span>
-<span class="fc" id="L31">    SPONSOR(&quot;ROLE_SPONSOR&quot;, &quot;Sponsor&quot;, EnumSet.of(RoleTarget.API_KEY)),</span>
-<span class="fc" id="L32">    API_CONSUMER(&quot;ROLE_API_CLIENT&quot;, &quot;API Client&quot;, EnumSet.of(RoleTarget.API_KEY));</span>
+<span class="fc" id="L26">    ADMIN(&quot;ROLE_ADMIN&quot;, &quot;Administrator&quot;, EnumSet.of(RoleTarget.ADMIN)),</span>
+<span class="fc" id="L27">    OWNER(&quot;ROLE_OWNER&quot;, &quot;Organization owner&quot;, EnumSet.of(RoleTarget.USER)),</span>
+<span class="fc" id="L28">    SUPERVISOR(&quot;ROLE_SUPERVISOR&quot;, &quot;Check-in supervisor&quot;, EnumSet.of(RoleTarget.USER, RoleTarget.API_KEY)),</span>
+<span class="fc" id="L29">    OPERATOR(&quot;ROLE_OPERATOR&quot;, &quot;Check-in operator&quot;, EnumSet.of(RoleTarget.API_KEY)),</span>
+<span class="fc" id="L30">    SPONSOR(&quot;ROLE_SPONSOR&quot;, &quot;Sponsor&quot;, EnumSet.of(RoleTarget.API_KEY)),</span>
+<span class="fc" id="L31">    API_CONSUMER(&quot;ROLE_API_CLIENT&quot;, &quot;API Client&quot;, EnumSet.of(RoleTarget.API_KEY));</span>
 
     private final String roleName;
     private final String description;
     private final Set&lt;RoleTarget&gt; target;
 
-<span class="fc" id="L38">    Role(String roleName, String description, Set&lt;RoleTarget&gt; target) {</span>
-<span class="fc" id="L39">        this.roleName = roleName;</span>
-<span class="fc" id="L40">        this.description = description;</span>
-<span class="fc" id="L41">        this.target = target;</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L37">    Role(String roleName, String description, Set&lt;RoleTarget&gt; target) {</span>
+<span class="fc" id="L38">        this.roleName = roleName;</span>
+<span class="fc" id="L39">        this.description = description;</span>
+<span class="fc" id="L40">        this.target = target;</span>
+<span class="fc" id="L41">    }</span>
 
     public static Role fromRoleName(String roleName) {
-<span class="fc" id="L45">        return Arrays.stream(values()).filter(r -&gt; r.getRoleName().equals(roleName)).findFirst().orElse(OPERATOR);</span>
+<span class="fc" id="L44">        return Arrays.stream(values())</span>
+<span class="fc" id="L45">                .filter(r -&gt; r.getRoleName().equals(roleName))</span>
+<span class="fc" id="L46">                .findFirst()</span>
+<span class="fc" id="L47">                .orElse(OPERATOR);</span>
     }
 
-    public String getRoleName()
-    {
-<span class="fc" id="L50">        return roleName;</span>
+    public String getRoleName() {
+<span class="fc" id="L51">        return roleName;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

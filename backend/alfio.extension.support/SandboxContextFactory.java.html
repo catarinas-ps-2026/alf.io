@@ -32,48 +32,47 @@ import org.mozilla.javascript.Scriptable;
 
         public MyContext(ContextFactory factory) {
             super(factory);
-
         }
     }
 
     @Override
     protected Context makeContext() {
-<span class="fc" id="L41">        MyContext cx = new MyContext(ContextFactory.getGlobal());</span>
-<span class="fc" id="L42">        cx.setWrapFactory(new SandboxWrapFactory());</span>
+<span class="fc" id="L40">        MyContext cx = new MyContext(ContextFactory.getGlobal());</span>
+<span class="fc" id="L41">        cx.setWrapFactory(new SandboxWrapFactory());</span>
         // Use pure interpreter mode to allow for observeInstructionCount(Context, int) to work
-<span class="fc" id="L44">        cx.setOptimizationLevel(-1);</span>
+<span class="fc" id="L43">        cx.setOptimizationLevel(-1);</span>
         // Make Rhino runtime to call observeInstructionCount each 10000 bytecode instructions
-<span class="fc" id="L46">        cx.setInstructionObserverThreshold(10000);</span>
-<span class="fc" id="L47">        return cx;</span>
+<span class="fc" id="L45">        cx.setInstructionObserverThreshold(10000);</span>
+<span class="fc" id="L46">        return cx;</span>
     }
 
     @Override
     protected void observeInstructionCount(Context cx, int instructionCount) {
-<span class="fc" id="L52">        MyContext mcx = (MyContext)cx;</span>
-<span class="fc" id="L53">        long currentTime = System.currentTimeMillis();</span>
-<span class="fc" id="L54">        long executionTime = currentTime - mcx.startTime;</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (executionTime &gt; 15*1000) {</span>
+<span class="fc" id="L51">        MyContext mcx = (MyContext) cx;</span>
+<span class="fc" id="L52">        long currentTime = System.currentTimeMillis();</span>
+<span class="fc" id="L53">        long executionTime = currentTime - mcx.startTime;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (executionTime &gt; 15 * 1000) {</span>
             // More than 15 seconds from Context creation time:
             // it is time to stop the script.
             // Throw Error instance to ensure that script will never
             // get control back through catch or finally.
-<span class="fc" id="L60">            throw new ExecutionTimeoutException(&quot;Script execution timeout.&quot;);</span>
+<span class="fc" id="L59">            throw new ExecutionTimeoutException(&quot;Script execution timeout.&quot;);</span>
         }
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L61">    }</span>
 
     @Override
     protected Object doTopCall(Callable callable, Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-<span class="fc" id="L66">        MyContext mcx = (MyContext) cx;</span>
-<span class="fc" id="L67">        mcx.startTime = System.currentTimeMillis();</span>
-<span class="fc" id="L68">        return super.doTopCall(callable, cx, scope, thisObj, args);</span>
+<span class="fc" id="L65">        MyContext mcx = (MyContext) cx;</span>
+<span class="fc" id="L66">        mcx.startTime = System.currentTimeMillis();</span>
+<span class="fc" id="L67">        return super.doTopCall(callable, cx, scope, thisObj, args);</span>
     }
 
     @Override
     protected boolean hasFeature(Context cx, int featureIndex) {
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (featureIndex == Context.FEATURE_ENABLE_JAVA_MAP_ACCESS) {</span>
-<span class="fc" id="L74">            return true;</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (featureIndex == Context.FEATURE_ENABLE_JAVA_MAP_ACCESS) {</span>
+<span class="fc" id="L73">            return true;</span>
         }
-<span class="fc" id="L76">        return super.hasFeature(cx, featureIndex);</span>
+<span class="fc" id="L75">        return super.hasFeature(cx, featureIndex);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

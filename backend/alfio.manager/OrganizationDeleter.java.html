@@ -20,19 +20,18 @@ import alfio.repository.*;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.join.UserOrganizationRepository;
 import alfio.util.RequestUtils;
+import java.security.Principal;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
-import java.util.List;
-
 @Component
 @Transactional
 public class OrganizationDeleter {
 
-<span class="fc" id="L35">    private static final Logger log = LoggerFactory.getLogger(OrganizationDeleter.class);</span>
+<span class="fc" id="L34">    private static final Logger log = LoggerFactory.getLogger(OrganizationDeleter.class);</span>
 
     private final UserOrganizationRepository userOrganizationRepository;
     private final OrganizationRepository organizationRepository;
@@ -40,11 +39,12 @@ public class OrganizationDeleter {
     private final EventDeleterRepository eventDeleterRepository;
     private final OrganizationDeleterRepository organizationDeleterRepository;
 
-    public OrganizationDeleter(UserOrganizationRepository userOrganizationRepository,
-                               OrganizationRepository organizationRepository,
-                               EventRepository eventRepository,
-                               EventDeleterRepository eventDeleterRepository,
-<span class="fc" id="L47">                               OrganizationDeleterRepository organizationDeleterRepository) {</span>
+    public OrganizationDeleter(
+            UserOrganizationRepository userOrganizationRepository,
+            OrganizationRepository organizationRepository,
+            EventRepository eventRepository,
+            EventDeleterRepository eventDeleterRepository,
+<span class="fc" id="L47">            OrganizationDeleterRepository organizationDeleterRepository) {</span>
 <span class="fc" id="L48">        this.userOrganizationRepository = userOrganizationRepository;</span>
 <span class="fc" id="L49">        this.organizationRepository = organizationRepository;</span>
 <span class="fc" id="L50">        this.eventRepository = eventRepository;</span>
@@ -52,29 +52,30 @@ public class OrganizationDeleter {
 <span class="fc" id="L52">        this.organizationDeleterRepository = organizationDeleterRepository;</span>
 <span class="fc" id="L53">    }</span>
 
-
     public boolean deleteOrganization(int organizationId, Principal principal) {
-<span class="fc bfc" id="L57" title="All 4 branches covered.">        boolean isAdmin = RequestUtils.isAdmin(principal) || RequestUtils.isSystemApiKey(principal);</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (isAdmin) {</span>
-<span class="fc" id="L59">            var originalOrg = organizationRepository.getById(organizationId);</span>
-<span class="fc" id="L60">            log.warn(&quot;Delete organization {} ({}) initiated by user {}&quot;, organizationId, originalOrg.getName(), principal.getName());</span>
-<span class="fc" id="L61">            var disabledEventIds = eventRepository.disableEventsForOrganization(organizationId);</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">            if (!disabledEventIds.isEmpty()) {</span>
-<span class="fc" id="L63">                log.warn(&quot;deleting {} events linked to organization {}&quot;, disabledEventIds.size(), organizationId);</span>
-<span class="fc" id="L64">                disabledEventIds.forEach(eventDeleterRepository::deleteAllForEvent);</span>
+<span class="fc bfc" id="L56" title="All 4 branches covered.">        boolean isAdmin = RequestUtils.isAdmin(principal) || RequestUtils.isSystemApiKey(principal);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (isAdmin) {</span>
+<span class="fc" id="L58">            var originalOrg = organizationRepository.getById(organizationId);</span>
+<span class="fc" id="L59">            log.warn(</span>
+                    &quot;Delete organization {} ({}) initiated by user {}&quot;,
+<span class="fc" id="L61">                    organizationId,</span>
+<span class="fc" id="L62">                    originalOrg.getName(),</span>
+<span class="fc" id="L63">                    principal.getName());</span>
+<span class="fc" id="L64">            var disabledEventIds = eventRepository.disableEventsForOrganization(organizationId);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">            if (!disabledEventIds.isEmpty()) {</span>
+<span class="fc" id="L66">                log.warn(&quot;deleting {} events linked to organization {}&quot;, disabledEventIds.size(), organizationId);</span>
+<span class="fc" id="L67">                disabledEventIds.forEach(eventDeleterRepository::deleteAllForEvent);</span>
             }
-<span class="fc" id="L66">            List&lt;Integer&gt; organizationIds = List.of(organizationId);</span>
-<span class="fc" id="L67">            organizationDeleterRepository.deleteFieldValues(organizationIds);</span>
-<span class="fc" id="L68">            organizationDeleterRepository.deleteFieldDescription(organizationIds);</span>
-<span class="fc" id="L69">            organizationDeleterRepository.deleteFieldConfiguration(organizationIds);</span>
-<span class="fc" id="L70">            int users = userOrganizationRepository.cleanupOrganization(organizationId);</span>
-<span class="fc" id="L71">            log.warn(&quot;removed {} user(s) from organization {}&quot;, users, organizationId);</span>
-<span class="fc" id="L72">            organizationDeleterRepository.deleteEmptyOrganizations(organizationIds);</span>
-<span class="fc" id="L73">            return true;</span>
+<span class="fc" id="L69">            List&lt;Integer&gt; organizationIds = List.of(organizationId);</span>
+<span class="fc" id="L70">            organizationDeleterRepository.deleteFieldValues(organizationIds);</span>
+<span class="fc" id="L71">            organizationDeleterRepository.deleteFieldDescription(organizationIds);</span>
+<span class="fc" id="L72">            organizationDeleterRepository.deleteFieldConfiguration(organizationIds);</span>
+<span class="fc" id="L73">            int users = userOrganizationRepository.cleanupOrganization(organizationId);</span>
+<span class="fc" id="L74">            log.warn(&quot;removed {} user(s) from organization {}&quot;, users, organizationId);</span>
+<span class="fc" id="L75">            organizationDeleterRepository.deleteEmptyOrganizations(organizationIds);</span>
+<span class="fc" id="L76">            return true;</span>
         }
-<span class="fc" id="L75">        return false;</span>
+<span class="fc" id="L78">        return false;</span>
     }
-
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

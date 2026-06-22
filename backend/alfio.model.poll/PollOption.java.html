@@ -18,9 +18,8 @@ package alfio.model.poll;
 
 import alfio.model.support.JSONData;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class PollOption {
@@ -29,10 +28,11 @@ public class PollOption {
     private final Map&lt;String, String&gt; title;
     private final Map&lt;String, String&gt; description;
 
-    public PollOption(@Column(&quot;id&quot;) Long id,
-                      @Column(&quot;poll_id_fk&quot;) Long pollId,
-                      @Column(&quot;title&quot;) @JSONData Map&lt;String, String&gt; title,
-<span class="fc" id="L35">                      @Column(&quot;description&quot;) @JSONData Map&lt;String, String&gt; description) {</span>
+    public PollOption(
+            @Column(&quot;id&quot;) Long id,
+            @Column(&quot;poll_id_fk&quot;) Long pollId,
+            @Column(&quot;title&quot;) @JSONData Map&lt;String, String&gt; title,
+<span class="fc" id="L35">            @Column(&quot;description&quot;) @JSONData Map&lt;String, String&gt; description) {</span>
 <span class="fc" id="L36">        this.id = id;</span>
 <span class="fc" id="L37">        this.pollId = pollId;</span>
 <span class="fc" id="L38">        this.title = title;</span>

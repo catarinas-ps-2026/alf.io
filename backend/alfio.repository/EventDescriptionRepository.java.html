@@ -20,7 +20,6 @@ import alfio.model.EventDescription;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,22 +31,36 @@ public interface EventDescriptionRepository {
     @Query(&quot;select * from event_description_text where event_id_fk = :eventId&quot;)
     List&lt;EventDescription&gt; findByEventId(@Bind(&quot;eventId&quot;) int eventId);
 
-    @Query(&quot;select locale, description from event_description_text where event_id_fk = :eventId and type = 'DESCRIPTION'&quot;)
+    @Query(
+            &quot;select locale, description from event_description_text where event_id_fk = :eventId and type = 'DESCRIPTION'&quot;)
     List&lt;EventDescription.LocaleDescription&gt; findDescriptionByEventId(@Bind(&quot;eventId&quot;) int eventId);
 
     default Map&lt;String, String&gt; findByEventIdAsMap(int eventId) {
-<span class="fc" id="L39">        return findByEventId(eventId).stream().collect(Collectors.toMap(EventDescription::getLocale, EventDescription::getDescription));</span>
+<span class="fc" id="L39">        return findByEventId(eventId).stream()</span>
+<span class="fc" id="L40">                .collect(Collectors.toMap(EventDescription::getLocale, EventDescription::getDescription));</span>
     }
 
     default Map&lt;String, String&gt; findDescriptionByEventIdAsMap(int eventId) {
-<span class="fc" id="L43">        return findDescriptionByEventId(eventId).stream().collect(Collectors.toMap(EventDescription.LocaleDescription::getLocale, EventDescription.LocaleDescription::getDescription));</span>
+<span class="fc" id="L44">        return findDescriptionByEventId(eventId).stream()</span>
+<span class="fc" id="L45">                .collect(Collectors.toMap(</span>
+                        EventDescription.LocaleDescription::getLocale,
+                        EventDescription.LocaleDescription::getDescription));
     }
 
-    @Query(&quot;select description from event_description_text where event_id_fk = :eventId and type = :type and locale = :locale&quot;)
-    Optional&lt;String&gt; findDescriptionByEventIdTypeAndLocale(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;type&quot;) EventDescription.EventDescriptionType type, @Bind(&quot;locale&quot;) String locale);
+    @Query(
+            &quot;select description from event_description_text where event_id_fk = :eventId and type = :type and locale = :locale&quot;)
+    Optional&lt;String&gt; findDescriptionByEventIdTypeAndLocale(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;type&quot;) EventDescription.EventDescriptionType type,
+            @Bind(&quot;locale&quot;) String locale);
 
-    @Query(&quot;insert into event_description_text(event_id_fk, locale, type, description) values (:eventId, :locale, :type, :description)&quot;)
-    int insert(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;locale&quot;) String locale, @Bind(&quot;type&quot;) EventDescription.EventDescriptionType type, @Bind(&quot;description&quot;) String description);
+    @Query(
+            &quot;insert into event_description_text(event_id_fk, locale, type, description) values (:eventId, :locale, :type, :description)&quot;)
+    int insert(
+            @Bind(&quot;eventId&quot;) int eventId,
+            @Bind(&quot;locale&quot;) String locale,
+            @Bind(&quot;type&quot;) EventDescription.EventDescriptionType type,
+            @Bind(&quot;description&quot;) String description);
 
     @Query(&quot;delete from event_description_text where event_id_fk = :eventId and type = :type&quot;)
     int delete(@Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;type&quot;) EventDescription.EventDescriptionType type);

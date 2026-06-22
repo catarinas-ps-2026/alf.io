@@ -16,23 +16,22 @@
  */
 package alfio.manager.support.reservation;
 
+import static alfio.util.MonetaryUtil.unitToCents;
+import static java.util.stream.Collectors.toList;
+
 import alfio.manager.PurchaseContextManager;
 import alfio.model.*;
 import alfio.model.decorator.TicketPriceContainer;
 import alfio.model.subscription.Subscription;
 import alfio.repository.*;
 import alfio.util.MonetaryUtil;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static alfio.util.MonetaryUtil.unitToCents;
-import static java.util.stream.Collectors.toList;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ReservationCostCalculator {
@@ -45,13 +44,14 @@ public class ReservationCostCalculator {
     private final AdditionalServiceRepository additionalServiceRepository;
     private final AdditionalServiceItemRepository additionalServiceItemRepository;
 
-    public ReservationCostCalculator(TicketReservationRepository ticketReservationRepository,
-                                     PurchaseContextManager purchaseContextManager,
-                                     PromoCodeDiscountRepository promoCodeDiscountRepository,
-                                     SubscriptionRepository subscriptionRepository,
-                                     TicketRepository ticketRepository,
-                                     AdditionalServiceRepository additionalServiceRepository,
-<span class="fc" id="L54">                                     AdditionalServiceItemRepository additionalServiceItemRepository) {</span>
+    public ReservationCostCalculator(
+            TicketReservationRepository ticketReservationRepository,
+            PurchaseContextManager purchaseContextManager,
+            PromoCodeDiscountRepository promoCodeDiscountRepository,
+            SubscriptionRepository subscriptionRepository,
+            TicketRepository ticketRepository,
+            AdditionalServiceRepository additionalServiceRepository,
+<span class="fc" id="L54">            AdditionalServiceItemRepository additionalServiceItemRepository) {</span>
 <span class="fc" id="L55">        this.ticketReservationRepository = ticketReservationRepository;</span>
 <span class="fc" id="L56">        this.purchaseContextManager = purchaseContextManager;</span>
 <span class="fc" id="L57">        this.promoCodeDiscountRepository = promoCodeDiscountRepository;</span>
@@ -73,55 +73,97 @@ public class ReservationCostCalculator {
     }
 
     public Pair&lt;TotalPrice, Optional&lt;PromoCodeDiscount&gt;&gt; totalReservationCostWithVAT(TicketReservation reservation) {
-<span class="fc" id="L76">        return totalReservationCostWithVAT(purchaseContextManager.findByReservationId(reservation.getId()).orElseThrow(), reservation, ticketRepository.findTicketsInReservation(reservation.getId()));</span>
+<span class="fc" id="L76">        return totalReservationCostWithVAT(</span>
+<span class="fc" id="L77">                purchaseContextManager.findByReservationId(reservation.getId()).orElseThrow(),</span>
+                reservation,
+<span class="fc" id="L79">                ticketRepository.findTicketsInReservation(reservation.getId()));</span>
     }
 
-    private Pair&lt;TotalPrice, Optional&lt;PromoCodeDiscount&gt;&gt; totalReservationCostWithVAT(PurchaseContext purchaseContext, TicketReservation reservation, List&lt;Ticket&gt; tickets) {
-<span class="fc" id="L80">        var promoCodeDiscount = Optional.ofNullable(reservation.getPromoCodeDiscountId()).map(promoCodeDiscountRepository::findById);</span>
-<span class="fc" id="L81">        var subscriptions = subscriptionRepository.findSubscriptionsByReservationId(reservation.getId());</span>
-<span class="fc" id="L82">        var appliedSubscription = subscriptionRepository.findAppliedSubscriptionByReservationId(reservation.getId());</span>
-<span class="fc" id="L83">        return totalReservationCostWithVAT(promoCodeDiscount.orElse(null), purchaseContext, reservation, tickets,</span>
-<span class="fc" id="L84">            purchaseContext.event().map(event -&gt; collectAdditionalServiceItems(reservation.getId(), event)).orElse(List.of()),</span>
-            subscriptions,
-            appliedSubscription);
+    private Pair&lt;TotalPrice, Optional&lt;PromoCodeDiscount&gt;&gt; totalReservationCostWithVAT(
+            PurchaseContext purchaseContext, TicketReservation reservation, List&lt;Ticket&gt; tickets) {
+<span class="fc" id="L84">        var promoCodeDiscount =</span>
+<span class="fc" id="L85">                Optional.ofNullable(reservation.getPromoCodeDiscountId()).map(promoCodeDiscountRepository::findById);</span>
+<span class="fc" id="L86">        var subscriptions = subscriptionRepository.findSubscriptionsByReservationId(reservation.getId());</span>
+<span class="fc" id="L87">        var appliedSubscription = subscriptionRepository.findAppliedSubscriptionByReservationId(reservation.getId());</span>
+<span class="fc" id="L88">        return totalReservationCostWithVAT(</span>
+<span class="fc" id="L89">                promoCodeDiscount.orElse(null),</span>
+                purchaseContext,
+                reservation,
+                tickets,
+                purchaseContext
+<span class="fc" id="L94">                        .event()</span>
+<span class="fc" id="L95">                        .map(event -&gt; collectAdditionalServiceItems(reservation.getId(), event))</span>
+<span class="fc" id="L96">                        .orElse(List.of()),</span>
+                subscriptions,
+                appliedSubscription);
     }
 
-    public static Pair&lt;TotalPrice, Optional&lt;PromoCodeDiscount&gt;&gt; totalReservationCostWithVAT(PromoCodeDiscount promoCodeDiscount,
-                                                                                             PurchaseContext purchaseContext,
-                                                                                             TicketReservation reservation,
-                                                                                             List&lt;Ticket&gt; tickets,
-                                                                                             List&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; additionalServiceItems,
-                                                                                             List&lt;Subscription&gt; subscriptions,
-                                                                                             Optional&lt;Subscription&gt; appliedSubscription) {
+    public static Pair&lt;TotalPrice, Optional&lt;PromoCodeDiscount&gt;&gt; totalReservationCostWithVAT(
+            PromoCodeDiscount promoCodeDiscount,
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            List&lt;Ticket&gt; tickets,
+            List&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; additionalServiceItems,
+            List&lt;Subscription&gt; subscriptions,
+            Optional&lt;Subscription&gt; appliedSubscription) {
 
-<span class="fc" id="L97">        String currencyCode = purchaseContext.getCurrency();</span>
-<span class="fc" id="L98">        List&lt;TicketPriceContainer&gt; ticketPrices = tickets.stream().map(t -&gt; TicketPriceContainer.from(t, reservation.getVatStatus(), purchaseContext.getVat(), purchaseContext.getVatStatus(), promoCodeDiscount)).collect(toList());</span>
-<span class="fc bfc" id="L99" title="All 2 branches covered.">        int discountedTickets = (int) ticketPrices.stream().filter(t -&gt; t.getAppliedDiscount().compareTo(BigDecimal.ZERO) &gt; 0).count();</span>
-<span class="fc bfc" id="L100" title="All 4 branches covered.">        int discountAppliedCount = discountedTickets &lt;= 1 || promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT ? discountedTickets : 1;</span>
-<span class="pc bpc" id="L101" title="1 of 6 branches missed.">        if(discountAppliedCount == 0 &amp;&amp; promoCodeDiscount != null &amp;&amp; promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
-<span class="nc" id="L102">            discountAppliedCount = 1;</span>
+<span class="fc" id="L110">        String currencyCode = purchaseContext.getCurrency();</span>
+<span class="fc" id="L111">        List&lt;TicketPriceContainer&gt; ticketPrices = tickets.stream()</span>
+<span class="fc" id="L112">                .map(t -&gt; TicketPriceContainer.from(</span>
+                        t,
+<span class="fc" id="L114">                        reservation.getVatStatus(),</span>
+<span class="fc" id="L115">                        purchaseContext.getVat(),</span>
+<span class="fc" id="L116">                        purchaseContext.getVatStatus(),</span>
+                        promoCodeDiscount))
+<span class="fc" id="L118">                .collect(toList());</span>
+<span class="fc" id="L119">        int discountedTickets = (int) ticketPrices.stream()</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">                .filter(t -&gt; t.getAppliedDiscount().compareTo(BigDecimal.ZERO) &gt; 0)</span>
+<span class="fc" id="L121">                .count();</span>
+        int discountAppliedCount = discountedTickets &lt;= 1
+<span class="fc bfc" id="L123" title="All 4 branches covered.">                        || promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT</span>
+<span class="fc" id="L124">                ? discountedTickets</span>
+<span class="fc" id="L125">                : 1;</span>
+<span class="fc bfc" id="L126" title="All 4 branches covered.">        if (discountAppliedCount == 0</span>
+                &amp;&amp; promoCodeDiscount != null
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">                &amp;&amp; promoCodeDiscount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
+<span class="nc" id="L129">            discountAppliedCount = 1;</span>
         }
-<span class="fc" id="L104">        var reservationPriceCalculator = alfio.manager.system.ReservationPriceCalculator.from(reservation, promoCodeDiscount, tickets, purchaseContext, additionalServiceItems, subscriptions, appliedSubscription);</span>
-<span class="fc" id="L105">        var price = new TotalPrice(unitToCents(reservationPriceCalculator.getFinalPrice(), currencyCode),</span>
-<span class="fc" id="L106">            unitToCents(reservationPriceCalculator.getVAT(), currencyCode),</span>
-<span class="fc" id="L107">            -MonetaryUtil.unitToCents(reservationPriceCalculator.getAppliedDiscount(), currencyCode),</span>
-            discountAppliedCount,
-            currencyCode);
-<span class="fc" id="L110">        return Pair.of(price, Optional.ofNullable(promoCodeDiscount));</span>
+<span class="fc" id="L131">        var reservationPriceCalculator = alfio.manager.system.ReservationPriceCalculator.from(</span>
+                reservation,
+                promoCodeDiscount,
+                tickets,
+                purchaseContext,
+                additionalServiceItems,
+                subscriptions,
+                appliedSubscription);
+<span class="fc" id="L139">        var price = new TotalPrice(</span>
+<span class="fc" id="L140">                unitToCents(reservationPriceCalculator.getFinalPrice(), currencyCode),</span>
+<span class="fc" id="L141">                unitToCents(reservationPriceCalculator.getVAT(), currencyCode),</span>
+<span class="fc" id="L142">                -MonetaryUtil.unitToCents(reservationPriceCalculator.getAppliedDiscount(), currencyCode),</span>
+                discountAppliedCount,
+                currencyCode);
+<span class="fc" id="L145">        return Pair.of(price, Optional.ofNullable(promoCodeDiscount));</span>
     }
 
-    Stream&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; streamAdditionalServiceItems(String reservationId, PurchaseContext purchaseContext) {
-<span class="fc" id="L114">        return purchaseContext.event().map(event -&gt; {</span>
-<span class="fc" id="L115">            return additionalServiceItemRepository.findByReservationUuid(event.getId(), reservationId)</span>
-<span class="fc" id="L116">                .stream()</span>
-<span class="fc" id="L117">                .collect(Collectors.groupingBy(AdditionalServiceItem::getAdditionalServiceId))</span>
-<span class="fc" id="L118">                .entrySet()</span>
-<span class="fc" id="L119">                .stream()</span>
-<span class="fc" id="L120">                .map(entry -&gt; Pair.of(additionalServiceRepository.getById(entry.getKey(), event.getId()), entry.getValue()));</span>
-<span class="fc" id="L121">        }).orElse(Stream.empty());</span>
+    Stream&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; streamAdditionalServiceItems(
+            String reservationId, PurchaseContext purchaseContext) {
+<span class="fc" id="L150">        return purchaseContext</span>
+<span class="fc" id="L151">                .event()</span>
+<span class="fc" id="L152">                .map(event -&gt; {</span>
+<span class="fc" id="L153">                    return additionalServiceItemRepository.findByReservationUuid(event.getId(), reservationId).stream()</span>
+<span class="fc" id="L154">                            .collect(Collectors.groupingBy(AdditionalServiceItem::getAdditionalServiceId))</span>
+<span class="fc" id="L155">                            .entrySet()</span>
+<span class="fc" id="L156">                            .stream()</span>
+<span class="fc" id="L157">                            .map(entry -&gt; Pair.of(</span>
+<span class="fc" id="L158">                                    additionalServiceRepository.getById(entry.getKey(), event.getId()),</span>
+<span class="fc" id="L159">                                    entry.getValue()));</span>
+                })
+<span class="fc" id="L161">                .orElse(Stream.empty());</span>
     }
-    public List&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; collectAdditionalServiceItems(String reservationId, Event event) {
-<span class="fc" id="L124">        return streamAdditionalServiceItems(reservationId, event).collect(Collectors.toList());</span>
+
+    public List&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; collectAdditionalServiceItems(
+            String reservationId, Event event) {
+<span class="fc" id="L166">        return streamAdditionalServiceItems(reservationId, event).collect(Collectors.toList());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

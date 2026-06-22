@@ -17,15 +17,15 @@
 package alfio.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.io.Serializable;
 import lombok.Data;
 import lombok.experimental.Delegate;
-
-import java.io.Serializable;
 
 @Data
 public class UserWithPassword implements Serializable {
     @Delegate
     private final User user;
+
     private final String password;
     private final String uniqueId;
 

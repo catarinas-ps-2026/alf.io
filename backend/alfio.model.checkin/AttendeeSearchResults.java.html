@@ -17,39 +17,32 @@
 package alfio.model.checkin;
 
 import alfio.model.Ticket;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-<span class="fc" id="L26">public record AttendeeSearchResults(</span>
-    int totalResults,
-    int checkedIn,
-    int totalPages,
-    int numPage,
-    List&lt;AttendeeResult&gt; attendees
-) {
+<span class="fc" id="L25">public record AttendeeSearchResults(</span>
+        int totalResults, int checkedIn, int totalPages, int numPage, List&lt;AttendeeResult&gt; attendees) {
 
     public boolean hasMorePages() {
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        return numPage &lt; totalPages - 1;</span>
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        return numPage &lt; totalPages - 1;</span>
     }
 
     public record AttendeeResult(
-        String uuid,
-        UUID publicUUID,
-        String firstName,
-        String lastName,
-        String categoryName,
-        Map&lt;String, List&lt;String&gt;&gt; additionalInfo,
-        Ticket.TicketStatus ticketStatus,
-        String amountToPay
-    ) {
+            String uuid,
+            UUID publicUUID,
+            String firstName,
+            String lastName,
+            String categoryName,
+            Map&lt;String, List&lt;String&gt;&gt; additionalInfo,
+            Ticket.TicketStatus ticketStatus,
+            String amountToPay) {
 
         @Override
         public Map&lt;String, List&lt;String&gt;&gt; additionalInfo() {
-                return Objects.requireNonNullElse(additionalInfo, Map.of());
-            }
+            return Objects.requireNonNullElse(additionalInfo, Map.of());
         }
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

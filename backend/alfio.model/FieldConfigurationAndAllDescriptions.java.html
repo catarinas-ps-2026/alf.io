@@ -16,13 +16,12 @@
  */
 package alfio.model;
 
-import lombok.Getter;
-import lombok.experimental.Delegate;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.experimental.Delegate;
 
 @Getter
 public class FieldConfigurationAndAllDescriptions {
@@ -32,11 +31,12 @@ public class FieldConfigurationAndAllDescriptions {
 
     private final Map&lt;String, PurchaseContextFieldDescription&gt; description;
 
-
-    public FieldConfigurationAndAllDescriptions(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration,
-<span class="nc" id="L37">                                                List&lt;PurchaseContextFieldDescription&gt; descriptions) {</span>
-<span class="nc" id="L38">        this.purchaseContextFieldConfiguration = purchaseContextFieldConfiguration;</span>
-<span class="nc" id="L39">        this.description = descriptions.stream().collect(Collectors.toMap(PurchaseContextFieldDescription::getLocale, Function.identity()));</span>
+    public FieldConfigurationAndAllDescriptions(
+            PurchaseContextFieldConfiguration purchaseContextFieldConfiguration,
+<span class="nc" id="L36">            List&lt;PurchaseContextFieldDescription&gt; descriptions) {</span>
+<span class="nc" id="L37">        this.purchaseContextFieldConfiguration = purchaseContextFieldConfiguration;</span>
+<span class="nc" id="L38">        this.description = descriptions.stream()</span>
+<span class="nc" id="L39">                .collect(Collectors.toMap(PurchaseContextFieldDescription::getLocale, Function.identity()));</span>
 <span class="nc" id="L40">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

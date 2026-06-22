@@ -28,44 +28,46 @@ public class ReservationMetadata {
     private final boolean lockEmailEdit;
 
     @JsonCreator
-    public ReservationMetadata(@JsonProperty(&quot;hideContactData&quot;) Boolean hideContactData,
-                               @JsonProperty(&quot;readyForConfirmation&quot;) Boolean readyForConfirmation,
-                               @JsonProperty(&quot;finalized&quot;) Boolean finalized,
-                               @JsonProperty(&quot;hideConfirmationButtons&quot;) Boolean hideConfirmationButtons,
-<span class="fc" id="L35">                               @JsonProperty(&quot;lockEmailEdit&quot;) Boolean lockEmailEdit) {</span>
-<span class="fc" id="L36">        this.hideContactData = Boolean.TRUE.equals(hideContactData);</span>
-<span class="fc" id="L37">        this.readyForConfirmation = Boolean.TRUE.equals(readyForConfirmation);</span>
-<span class="fc" id="L38">        this.finalized = Boolean.TRUE.equals(finalized);</span>
-<span class="fc" id="L39">        this.hideConfirmationButtons = Boolean.TRUE.equals(hideConfirmationButtons);</span>
-<span class="fc" id="L40">        this.lockEmailEdit = Boolean.TRUE.equals(lockEmailEdit);</span>
-<span class="fc" id="L41">    }</span>
+    public ReservationMetadata(
+            @JsonProperty(&quot;hideContactData&quot;) Boolean hideContactData,
+            @JsonProperty(&quot;readyForConfirmation&quot;) Boolean readyForConfirmation,
+            @JsonProperty(&quot;finalized&quot;) Boolean finalized,
+            @JsonProperty(&quot;hideConfirmationButtons&quot;) Boolean hideConfirmationButtons,
+<span class="fc" id="L36">            @JsonProperty(&quot;lockEmailEdit&quot;) Boolean lockEmailEdit) {</span>
+<span class="fc" id="L37">        this.hideContactData = Boolean.TRUE.equals(hideContactData);</span>
+<span class="fc" id="L38">        this.readyForConfirmation = Boolean.TRUE.equals(readyForConfirmation);</span>
+<span class="fc" id="L39">        this.finalized = Boolean.TRUE.equals(finalized);</span>
+<span class="fc" id="L40">        this.hideConfirmationButtons = Boolean.TRUE.equals(hideConfirmationButtons);</span>
+<span class="fc" id="L41">        this.lockEmailEdit = Boolean.TRUE.equals(lockEmailEdit);</span>
+<span class="fc" id="L42">    }</span>
 
     public boolean isHideContactData() {
-<span class="fc" id="L44">        return hideContactData;</span>
+<span class="fc" id="L45">        return hideContactData;</span>
     }
 
     public boolean isFinalized() {
-<span class="fc" id="L48">        return finalized;</span>
+<span class="fc" id="L49">        return finalized;</span>
     }
 
     public boolean isReadyForConfirmation() {
-<span class="fc" id="L52">        return readyForConfirmation;</span>
+<span class="fc" id="L53">        return readyForConfirmation;</span>
     }
 
     public boolean isHideConfirmationButtons() {
-<span class="fc" id="L56">        return hideConfirmationButtons;</span>
+<span class="fc" id="L57">        return hideConfirmationButtons;</span>
     }
 
     public boolean isLockEmailEdit() {
-<span class="fc" id="L60">        return lockEmailEdit;</span>
+<span class="fc" id="L61">        return lockEmailEdit;</span>
     }
 
     public ReservationMetadata withFinalized(boolean newValue) {
-<span class="fc" id="L64">        return new ReservationMetadata(hideContactData, readyForConfirmation, newValue, hideConfirmationButtons, lockEmailEdit);</span>
+<span class="fc" id="L65">        return new ReservationMetadata(</span>
+<span class="fc" id="L66">                hideContactData, readyForConfirmation, newValue, hideConfirmationButtons, lockEmailEdit);</span>
     }
 
     public ReservationMetadata withReadyForConfirmation(boolean newValue) {
-<span class="fc" id="L68">        return new ReservationMetadata(hideContactData, newValue, finalized, hideConfirmationButtons, lockEmailEdit);</span>
+<span class="fc" id="L70">        return new ReservationMetadata(hideContactData, newValue, finalized, hideConfirmationButtons, lockEmailEdit);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

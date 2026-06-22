@@ -16,22 +16,21 @@
  */
 package alfio.manager.system;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+
 import alfio.model.*;
 import alfio.model.decorator.AdditionalServiceItemPriceContainer;
 import alfio.model.decorator.SubscriptionPriceContainer;
 import alfio.model.decorator.TicketPriceContainer;
 import alfio.model.subscription.Subscription;
 import alfio.util.MonetaryUtil;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class ReservationPriceCalculator implements PriceContainer {
     final TicketReservation reservation;
@@ -43,98 +42,169 @@ public class ReservationPriceCalculator implements PriceContainer {
     private final List&lt;Subscription&gt; subscriptions;
     private final Optional&lt;Subscription&gt; appliedSubscription;
 
-    @ConstructorProperties({&quot;reservation&quot;, &quot;discount&quot;, &quot;tickets&quot;, &quot;additionalServiceItems&quot;,
-        &quot;additionalServices&quot;, &quot;purchaseContext&quot;, &quot;subscriptions&quot;, &quot;appliedSubscription&quot;})
-<span class="fc" id="L48">    public ReservationPriceCalculator(TicketReservation reservation, PromoCodeDiscount discount, List&lt;Ticket&gt; tickets, List&lt;AdditionalServiceItem&gt; additionalServiceItems, List&lt;AdditionalService&gt; additionalServices, PurchaseContext purchaseContext, List&lt;Subscription&gt; subscriptions, Optional&lt;Subscription&gt; appliedSubscription) {</span>
-<span class="fc" id="L49">        this.reservation = reservation;</span>
-<span class="fc" id="L50">        this.discount = discount;</span>
-<span class="fc" id="L51">        this.tickets = tickets;</span>
-<span class="fc" id="L52">        this.additionalServiceItems = additionalServiceItems;</span>
-<span class="fc" id="L53">        this.additionalServices = additionalServices;</span>
-<span class="fc" id="L54">        this.purchaseContext = purchaseContext;</span>
-<span class="fc" id="L55">        this.subscriptions = subscriptions;</span>
-<span class="fc" id="L56">        this.appliedSubscription = appliedSubscription;</span>
-<span class="fc" id="L57">    }</span>
+    @ConstructorProperties({
+        &quot;reservation&quot;,
+        &quot;discount&quot;,
+        &quot;tickets&quot;,
+        &quot;additionalServiceItems&quot;,
+        &quot;additionalServices&quot;,
+        &quot;purchaseContext&quot;,
+        &quot;subscriptions&quot;,
+        &quot;appliedSubscription&quot;
+    })
+    public ReservationPriceCalculator(
+            TicketReservation reservation,
+            PromoCodeDiscount discount,
+            List&lt;Ticket&gt; tickets,
+            List&lt;AdditionalServiceItem&gt; additionalServiceItems,
+            List&lt;AdditionalService&gt; additionalServices,
+            PurchaseContext purchaseContext,
+            List&lt;Subscription&gt; subscriptions,
+<span class="fc" id="L63">            Optional&lt;Subscription&gt; appliedSubscription) {</span>
+<span class="fc" id="L64">        this.reservation = reservation;</span>
+<span class="fc" id="L65">        this.discount = discount;</span>
+<span class="fc" id="L66">        this.tickets = tickets;</span>
+<span class="fc" id="L67">        this.additionalServiceItems = additionalServiceItems;</span>
+<span class="fc" id="L68">        this.additionalServices = additionalServices;</span>
+<span class="fc" id="L69">        this.purchaseContext = purchaseContext;</span>
+<span class="fc" id="L70">        this.subscriptions = subscriptions;</span>
+<span class="fc" id="L71">        this.appliedSubscription = appliedSubscription;</span>
+<span class="fc" id="L72">    }</span>
 
     @Override
     public int getSrcPriceCts() {
-<span class="fc" id="L61">        return tickets.stream().mapToInt(this::getTicketSrcPriceCts).sum() +</span>
-<span class="fc" id="L62">            additionalServiceItems.stream().mapToInt(AdditionalServiceItem::getSrcPriceCts).sum() +</span>
-<span class="fc" id="L63">            subscriptions.stream().mapToInt(Subscription::getSrcPriceCts).sum();</span>
+<span class="fc" id="L76">        return tickets.stream().mapToInt(this::getTicketSrcPriceCts).sum()</span>
+<span class="fc" id="L77">                + additionalServiceItems.stream()</span>
+<span class="fc" id="L78">                        .mapToInt(AdditionalServiceItem::getSrcPriceCts)</span>
+<span class="fc" id="L79">                        .sum()</span>
+<span class="fc" id="L80">                + subscriptions.stream().mapToInt(Subscription::getSrcPriceCts).sum();</span>
     }
 
     @Override
     public BigDecimal getAppliedDiscount() {
 
-<span class="fc" id="L69">        int subscriptionDiscount = appliedSubscription</span>
-<span class="fc" id="L70">            .map(subscription -&gt; tickets.stream().filter(t -&gt; Objects.equals(t.getSubscriptionId(), subscription.getId())).mapToInt(Ticket::getSrcPriceCts).sum())</span>
-<span class="fc" id="L71">            .orElse(0);</span>
+<span class="fc" id="L86">        int subscriptionDiscount = appliedSubscription</span>
+<span class="fc" id="L87">                .map(subscription -&gt; tickets.stream()</span>
+<span class="fc" id="L88">                        .filter(t -&gt; Objects.equals(t.getSubscriptionId(), subscription.getId()))</span>
+<span class="fc" id="L89">                        .mapToInt(Ticket::getSrcPriceCts)</span>
+<span class="fc" id="L90">                        .sum())</span>
+<span class="fc" id="L91">                .orElse(0);</span>
 
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if(discount != null) {</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">            if (discount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
-<span class="fc" id="L75">                return MonetaryUtil.centsToUnit(discount.getDiscountAmount() + subscriptionDiscount, reservation.getCurrencyCode());</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (discount != null) {</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">            if (discount.getDiscountType() == PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
+<span class="fc" id="L95">                return MonetaryUtil.centsToUnit(</span>
+<span class="fc" id="L96">                        discount.getDiscountAmount() + subscriptionDiscount, reservation.getCurrencyCode());</span>
             }
-<span class="fc" id="L77">            int ticketDiscount = tickets.stream()</span>
-<span class="fc" id="L78">                .mapToInt(t -&gt; MonetaryUtil.unitToCents(TicketPriceContainer.from(t, reservation.getVatStatus(), reservation.getVatPercentageOrZero(), purchaseContext.getVatStatus(), discount).getAppliedDiscount(), reservation.getCurrencyCode()))</span>
-<span class="fc" id="L79">                .sum();</span>
-<span class="fc" id="L80">            return MonetaryUtil.centsToUnit(ticketDiscount +</span>
-<span class="fc" id="L81">                    additionalServiceItems.stream().mapToInt(AdditionalServiceItem::getDiscountCts).sum() +</span>
-<span class="fc" id="L82">                    subscriptions.stream().mapToInt(Subscription::getDiscountCts).sum() + subscriptionDiscount, reservation.getCurrencyCode());</span>
+<span class="fc" id="L98">            int ticketDiscount = tickets.stream()</span>
+<span class="fc" id="L99">                    .mapToInt(t -&gt; MonetaryUtil.unitToCents(</span>
+<span class="fc" id="L100">                            TicketPriceContainer.from(</span>
+                                            t,
+<span class="fc" id="L102">                                            reservation.getVatStatus(),</span>
+<span class="fc" id="L103">                                            reservation.getVatPercentageOrZero(),</span>
+<span class="fc" id="L104">                                            purchaseContext.getVatStatus(),</span>
+                                            discount)
+<span class="fc" id="L106">                                    .getAppliedDiscount(),</span>
+<span class="fc" id="L107">                            reservation.getCurrencyCode()))</span>
+<span class="fc" id="L108">                    .sum();</span>
+<span class="fc" id="L109">            return MonetaryUtil.centsToUnit(</span>
+                    ticketDiscount
+<span class="fc" id="L111">                            + additionalServiceItems.stream()</span>
+<span class="fc" id="L112">                                    .mapToInt(AdditionalServiceItem::getDiscountCts)</span>
+<span class="fc" id="L113">                                    .sum()</span>
+<span class="fc" id="L114">                            + subscriptions.stream()</span>
+<span class="fc" id="L115">                                    .mapToInt(Subscription::getDiscountCts)</span>
+<span class="fc" id="L116">                                    .sum()</span>
+                            + subscriptionDiscount,
+<span class="fc" id="L118">                    reservation.getCurrencyCode());</span>
         }
-<span class="fc" id="L84">        return MonetaryUtil.centsToUnit(subscriptionDiscount, reservation.getCurrencyCode());</span>
+<span class="fc" id="L120">        return MonetaryUtil.centsToUnit(subscriptionDiscount, reservation.getCurrencyCode());</span>
     }
 
     @Override
     public String getCurrencyCode() {
-<span class="fc" id="L89">        return purchaseContext.getCurrency();</span>
+<span class="fc" id="L125">        return purchaseContext.getCurrency();</span>
     }
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="fc" id="L94">        return Optional.ofNullable(firstNonNull(reservation.getUsedVatPercent(), purchaseContext.getVat()));</span>
+<span class="fc" id="L130">        return Optional.ofNullable(firstNonNull(reservation.getUsedVatPercent(), purchaseContext.getVat()));</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="fc" id="L99">        return firstNonNull(reservation.getVatStatus(), purchaseContext.getVatStatus());</span>
+<span class="fc" id="L135">        return firstNonNull(reservation.getVatStatus(), purchaseContext.getVatStatus());</span>
     }
 
     @Override
     public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
-<span class="nc" id="L104">        return Optional.ofNullable(discount);</span>
+<span class="nc" id="L140">        return Optional.ofNullable(discount);</span>
     }
 
     @Override
     public BigDecimal getTaxablePrice() {
-<span class="fc" id="L109">        var ticketsTaxablePrice = tickets.stream()</span>
-<span class="fc" id="L110">            .map(t -&gt; TicketPriceContainer.from(t, reservation.getVatStatus(), getVatPercentageOrZero(), purchaseContext.getVatStatus(), discount).getTaxablePrice())</span>
-<span class="fc" id="L111">            .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
-<span class="fc" id="L112">        var additionalServiceTaxablePrice = additionalServiceItems.stream()</span>
-<span class="fc bfc" id="L113" title="All 2 branches covered.">            .map(asi -&gt; AdditionalServiceItemPriceContainer.from(asi, additionalServices.stream().filter(as -&gt; as.id() == asi.getAdditionalServiceId()).findFirst().orElseThrow(), purchaseContext, discount).getTaxablePrice())</span>
-<span class="fc" id="L114">            .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
-<span class="fc" id="L115">        var subscriptionsPrice = subscriptions.stream().map(s -&gt; SubscriptionPriceContainer.from(s, purchaseContext, discount).getTaxablePrice())</span>
-<span class="fc" id="L116">            .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
-<span class="fc" id="L117">        var totalTicketsAndAdditional = ticketsTaxablePrice.add(additionalServiceTaxablePrice).add(subscriptionsPrice);</span>
-<span class="pc bpc" id="L118" title="1 of 4 branches missed.">        if(discount != null &amp;&amp; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
+<span class="fc" id="L145">        var ticketsTaxablePrice = tickets.stream()</span>
+<span class="fc" id="L146">                .map(t -&gt; TicketPriceContainer.from(</span>
+                                t,
+<span class="fc" id="L148">                                reservation.getVatStatus(),</span>
+<span class="fc" id="L149">                                getVatPercentageOrZero(),</span>
+<span class="fc" id="L150">                                purchaseContext.getVatStatus(),</span>
+                                discount)
+<span class="fc" id="L152">                        .getTaxablePrice())</span>
+<span class="fc" id="L153">                .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
+<span class="fc" id="L154">        var additionalServiceTaxablePrice = additionalServiceItems.stream()</span>
+<span class="fc" id="L155">                .map(asi -&gt; AdditionalServiceItemPriceContainer.from(</span>
+                                asi,
+<span class="fc" id="L157">                                additionalServices.stream()</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">                                        .filter(as -&gt; as.id() == asi.getAdditionalServiceId())</span>
+<span class="fc" id="L159">                                        .findFirst()</span>
+<span class="fc" id="L160">                                        .orElseThrow(),</span>
+                                purchaseContext,
+                                discount)
+<span class="fc" id="L163">                        .getTaxablePrice())</span>
+<span class="fc" id="L164">                .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
+<span class="fc" id="L165">        var subscriptionsPrice = subscriptions.stream()</span>
+<span class="fc" id="L166">                .map(s -&gt; SubscriptionPriceContainer.from(s, purchaseContext, discount)</span>
+<span class="fc" id="L167">                        .getTaxablePrice())</span>
+<span class="fc" id="L168">                .reduce(BigDecimal.ZERO, BigDecimal::add);</span>
+<span class="fc" id="L169">        var totalTicketsAndAdditional =</span>
+<span class="fc" id="L170">                ticketsTaxablePrice.add(additionalServiceTaxablePrice).add(subscriptionsPrice);</span>
+<span class="pc bpc" id="L171" title="1 of 4 branches missed.">        if (discount != null &amp;&amp; discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION) {</span>
             // no need to add the discounted price here, since the single items are already taking it into account
-<span class="fc" id="L120">            return totalTicketsAndAdditional;</span>
+<span class="fc" id="L173">            return totalTicketsAndAdditional;</span>
         }
-<span class="fc" id="L122">        return totalTicketsAndAdditional.subtract(getAppliedDiscount());</span>
+<span class="fc" id="L175">        return totalTicketsAndAdditional.subtract(getAppliedDiscount());</span>
     }
 
-    public static ReservationPriceCalculator from(TicketReservation reservation, PromoCodeDiscount discount, List&lt;Ticket&gt; tickets, PurchaseContext purchaseContext, List&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; additionalServiceItemsByAdditionalService,
-                                                  List&lt;Subscription&gt; subscriptions, Optional&lt;Subscription&gt; appliedSubscription) {
-<span class="fc" id="L127">        var additionalServiceItems = additionalServiceItemsByAdditionalService.stream().flatMap(p -&gt; p.getRight().stream()).collect(Collectors.toList());</span>
-<span class="fc" id="L128">        var additionalServices = additionalServiceItemsByAdditionalService.stream().map(Pair::getKey).collect(Collectors.toList());</span>
-<span class="fc" id="L129">        return new ReservationPriceCalculator(reservation, discount, tickets, additionalServiceItems, additionalServices, purchaseContext, subscriptions, appliedSubscription);</span>
+    public static ReservationPriceCalculator from(
+            TicketReservation reservation,
+            PromoCodeDiscount discount,
+            List&lt;Ticket&gt; tickets,
+            PurchaseContext purchaseContext,
+            List&lt;Pair&lt;AdditionalService, List&lt;AdditionalServiceItem&gt;&gt;&gt; additionalServiceItemsByAdditionalService,
+            List&lt;Subscription&gt; subscriptions,
+            Optional&lt;Subscription&gt; appliedSubscription) {
+<span class="fc" id="L186">        var additionalServiceItems = additionalServiceItemsByAdditionalService.stream()</span>
+<span class="fc" id="L187">                .flatMap(p -&gt; p.getRight().stream())</span>
+<span class="fc" id="L188">                .collect(Collectors.toList());</span>
+<span class="fc" id="L189">        var additionalServices = additionalServiceItemsByAdditionalService.stream()</span>
+<span class="fc" id="L190">                .map(Pair::getKey)</span>
+<span class="fc" id="L191">                .collect(Collectors.toList());</span>
+<span class="fc" id="L192">        return new ReservationPriceCalculator(</span>
+                reservation,
+                discount,
+                tickets,
+                additionalServiceItems,
+                additionalServices,
+                purchaseContext,
+                subscriptions,
+                appliedSubscription);
     }
 
     private int getTicketSrcPriceCts(Ticket t) {
-<span class="fc bfc" id="L133" title="All 2 branches covered.">        if(VatStatus.isVatExempt(t.getVatStatus())) {</span>
-<span class="fc" id="L134">            return t.getSrcPriceCts() - Math.abs(t.getVatCts()); // VAT can be negative in some cases</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">        if (VatStatus.isVatExempt(t.getVatStatus())) {</span>
+<span class="fc" id="L205">            return t.getSrcPriceCts() - Math.abs(t.getVatCts()); // VAT can be negative in some cases</span>
         }
-<span class="fc" id="L136">        return t.getSrcPriceCts();</span>
+<span class="fc" id="L207">        return t.getSrcPriceCts();</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

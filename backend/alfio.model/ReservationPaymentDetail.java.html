@@ -18,7 +18,6 @@ package alfio.model;
 
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -34,16 +33,17 @@ public class ReservationPaymentDetail {
     private final String transactionNotes;
     private final String invoiceNumber;
 
-    public ReservationPaymentDetail(@Column(&quot;tr_id&quot;) String id,
-                                    @Column(&quot;tr_first_name&quot;) String firstName,
-                                    @Column(&quot;tr_last_name&quot;) String lastName,
-                                    @Column(&quot;tr_email_address&quot;) String email,
-                                    @Column(&quot;tr_payment_method&quot;) String paymentMethod,
-                                    @Column(&quot;bt_price_cts&quot;) Integer paidAmount,
-                                    @Column(&quot;bt_currency&quot;) String currencyCode,
-                                    @Column(&quot;bt_t_timestamp&quot;) ZonedDateTime transactionTimestamp,
-                                    @Column(&quot;bt_notes&quot;) String transactionNotes,
-<span class="fc" id="L46">                                    @Column(&quot;tr_invoice_number&quot;) String invoiceNumber) {</span>
+    public ReservationPaymentDetail(
+            @Column(&quot;tr_id&quot;) String id,
+            @Column(&quot;tr_first_name&quot;) String firstName,
+            @Column(&quot;tr_last_name&quot;) String lastName,
+            @Column(&quot;tr_email_address&quot;) String email,
+            @Column(&quot;tr_payment_method&quot;) String paymentMethod,
+            @Column(&quot;bt_price_cts&quot;) Integer paidAmount,
+            @Column(&quot;bt_currency&quot;) String currencyCode,
+            @Column(&quot;bt_t_timestamp&quot;) ZonedDateTime transactionTimestamp,
+            @Column(&quot;bt_notes&quot;) String transactionNotes,
+<span class="fc" id="L46">            @Column(&quot;tr_invoice_number&quot;) String invoiceNumber) {</span>
 <span class="fc" id="L47">        this.id = id;</span>
 <span class="fc" id="L48">        this.firstName = firstName;</span>
 <span class="fc" id="L49">        this.lastName = lastName;</span>

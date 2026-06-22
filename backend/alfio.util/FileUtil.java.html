@@ -16,8 +16,9 @@
  */
 package alfio.util;
 
-import alfio.model.BillingDocument;
+import static alfio.util.ExportUtils.markAsNoIndex;
 
+import alfio.model.BillingDocument;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -25,42 +26,46 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
-import static alfio.util.ExportUtils.markAsNoIndex;
-
-<span class="nc" id="L30">public class FileUtil {</span>
-    public static boolean sendPdf(byte[] res, HttpServletResponse response, String eventName, String reservationId, BillingDocument billingDocument) {
-<span class="fc" id="L32">        return Optional.ofNullable(res).map(pdf -&gt; {</span>
-            try {
-<span class="fc" id="L34">                sendHeaders(response, eventName, reservationId, billingDocument);</span>
-<span class="fc" id="L35">                response.getOutputStream().write(pdf);</span>
-<span class="fc" id="L36">                return true;</span>
-<span class="fc" id="L37">            } catch(IOException e) {</span>
-<span class="fc" id="L38">                return false;</span>
-            }
-<span class="fc" id="L40">        }).orElse(false);</span>
+<span class="nc" id="L29">public class FileUtil {</span>
+    public static boolean sendPdf(
+            byte[] res,
+            HttpServletResponse response,
+            String eventName,
+            String reservationId,
+            BillingDocument billingDocument) {
+<span class="fc" id="L36">        return Optional.ofNullable(res)</span>
+<span class="fc" id="L37">                .map(pdf -&gt; {</span>
+                    try {
+<span class="fc" id="L39">                        sendHeaders(response, eventName, reservationId, billingDocument);</span>
+<span class="fc" id="L40">                        response.getOutputStream().write(pdf);</span>
+<span class="fc" id="L41">                        return true;</span>
+<span class="fc" id="L42">                    } catch (IOException e) {</span>
+<span class="fc" id="L43">                        return false;</span>
+                    }
+                })
+<span class="fc" id="L46">                .orElse(false);</span>
     }
 
+    public static void sendHeaders(
+            HttpServletResponse response, String eventName, String reservationId, BillingDocument billingDocument) {
+<span class="fc" id="L51">        response.setHeader(</span>
+                &quot;Content-Disposition&quot;,
+<span class="fc" id="L53">                &quot;attachment; filename=\&quot;&quot; + getBillingDocumentFileName(eventName, reservationId, billingDocument)</span>
+                        + &quot;\&quot;&quot;);
+<span class="fc" id="L55">        response.setContentType(&quot;application/pdf&quot;);</span>
+<span class="fc" id="L56">        markAsNoIndex(response);</span>
+<span class="fc" id="L57">    }</span>
 
-    public static void sendHeaders(HttpServletResponse response, String eventName, String reservationId, BillingDocument billingDocument) {
-<span class="fc" id="L45">        response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + getBillingDocumentFileName(eventName, reservationId, billingDocument) + &quot;\&quot;&quot;);</span>
-<span class="fc" id="L46">        response.setContentType(&quot;application/pdf&quot;);</span>
-<span class="fc" id="L47">        markAsNoIndex(response);</span>
-<span class="fc" id="L48">    }</span>
-
-    public static String getBillingDocumentFileName(String eventShortName, String reservationId, BillingDocument document) {
-<span class="fc bfc" id="L51" title="All 2 branches covered.">        if(document.getType() != BillingDocument.Type.RECEIPT) {</span>
-<span class="fc" id="L52">            Map&lt;String, Object&gt; reservationModel = document.getModel();</span>
-<span class="fc" id="L53">            ZonedDateTime invoiceDate = ZonedDateTime.parse((String) reservationModel.get(&quot;confirmationDate&quot;));</span>
-<span class="fc" id="L54">            String formattedDate = invoiceDate.format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd-HHmmss&quot;));</span>
-<span class="fc" id="L55">            return eventShortName +</span>
-                &quot;-&quot; + formattedDate +
-<span class="fc" id="L57">                &quot;-&quot; + document.getNumber() +</span>
-<span class="fc" id="L58">                &quot;-&quot; + document.getId()+</span>
-                &quot;.pdf&quot;;
+    public static String getBillingDocumentFileName(
+            String eventShortName, String reservationId, BillingDocument document) {
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (document.getType() != BillingDocument.Type.RECEIPT) {</span>
+<span class="fc" id="L62">            Map&lt;String, Object&gt; reservationModel = document.getModel();</span>
+<span class="fc" id="L63">            ZonedDateTime invoiceDate = ZonedDateTime.parse((String) reservationModel.get(&quot;confirmationDate&quot;));</span>
+<span class="fc" id="L64">            String formattedDate = invoiceDate.format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd-HHmmss&quot;));</span>
+<span class="fc" id="L65">            return eventShortName + &quot;-&quot; + formattedDate + &quot;-&quot; + document.getNumber() + &quot;-&quot; + document.getId() + &quot;.pdf&quot;;</span>
         } else {
-<span class="fc" id="L61">            return &quot;receipt-&quot; + eventShortName + &quot;-&quot; + reservationId + &quot;.pdf&quot;;</span>
+<span class="fc" id="L67">            return &quot;receipt-&quot; + eventShortName + &quot;-&quot; + reservationId + &quot;.pdf&quot;;</span>
         }
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -18,11 +18,10 @@ package alfio.model;
 
 import alfio.model.support.Array;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.Getter;
 
 @Getter
 public class DetailedScanData {
@@ -30,45 +29,64 @@ public class DetailedScanData {
     private final Ticket ticket;
     private final SponsorScan sponsorScan;
 
-    public DetailedScanData(@Column(&quot;t_id&quot;) int ticketId,
-                            @Column(&quot;t_uuid&quot;) String ticketUuid,
-                            @Column(&quot;t_public_uuid&quot;) UUID publicUuid,
-                            @Column(&quot;t_creation&quot;) ZonedDateTime ticketCreation,
-                            @Column(&quot;t_category_id&quot;) int ticketCategoryId,
-                            @Column(&quot;t_status&quot;) String ticketStatus,
-                            @Column(&quot;t_event_id&quot;) int ticketEventId,
-
-                            @Column(&quot;t_src_price_cts&quot;) int ticketSrcPriceCts,
-                            @Column(&quot;t_final_price_cts&quot;) int ticketFinalPriceCts,
-                            @Column(&quot;t_vat_cts&quot;) int ticketVatCts,
-                            @Column(&quot;t_discount_cts&quot;) int ticketDiscountCts,
-                            @Column(&quot;t_vat_status&quot;) PriceContainer.VatStatus ticketVatStatus,
-
-                            @Column(&quot;t_tickets_reservation_id&quot;) String ticketsReservationId,
-                            @Column(&quot;t_full_name&quot;) String ticketFullName,
-                            @Column(&quot;t_first_name&quot;) String ticketFirstName,
-                            @Column(&quot;t_last_name&quot;) String ticketLastName,
-                            @Column(&quot;t_email_address&quot;) String ticketEmail,
-                            @Column(&quot;t_locked_assignment&quot;) boolean ticketLockedAssignment,
-                            @Column(&quot;t_user_language&quot;) String ticketUserLanguage,
-                            @Column(&quot;t_ext_reference&quot;) String extReference,
-                            @Column(&quot;t_currency_code&quot;) String currencyCode,
-                            @Column(&quot;t_tags&quot;) @Array List&lt;String&gt; ticketTags,
-                            @Column(&quot;t_subscription_id&quot;) UUID ticketSubscriptionId,
-                            //
-                            @Column(&quot;s_user_id&quot;) int scanUserId,
-                            @Column(&quot;s_creation&quot;) ZonedDateTime scanTimestamp,
-                            @Column(&quot;s_event_id&quot;) int scanEventId,
-                            @Column(&quot;s_ticket_id&quot;) int scanTicketId,
-                            @Column(&quot;s_notes&quot;) String notes,
-                            @Column(&quot;s_lead_status&quot;) SponsorScan.LeadStatus leadStatus,
-<span class="fc" id="L65">                            @Column(&quot;s_operator&quot;) String operator) {</span>
-<span class="fc" id="L66">        this.ticket = new Ticket(ticketId, ticketUuid, publicUuid, ticketCreation, ticketCategoryId,</span>
-            ticketStatus, ticketEventId, ticketsReservationId, ticketFullName, ticketFirstName,
-            ticketLastName, ticketEmail, ticketLockedAssignment, ticketUserLanguage, ticketSrcPriceCts,
-            ticketFinalPriceCts, ticketVatCts, ticketDiscountCts, extReference, currencyCode, ticketTags,
-            ticketSubscriptionId, ticketVatStatus);
-<span class="fc" id="L71">        this.sponsorScan = new SponsorScan(scanUserId, scanTimestamp, scanEventId, scanTicketId, notes, leadStatus, operator);</span>
-<span class="fc" id="L72">    }</span>
+    public DetailedScanData(
+            @Column(&quot;t_id&quot;) int ticketId,
+            @Column(&quot;t_uuid&quot;) String ticketUuid,
+            @Column(&quot;t_public_uuid&quot;) UUID publicUuid,
+            @Column(&quot;t_creation&quot;) ZonedDateTime ticketCreation,
+            @Column(&quot;t_category_id&quot;) int ticketCategoryId,
+            @Column(&quot;t_status&quot;) String ticketStatus,
+            @Column(&quot;t_event_id&quot;) int ticketEventId,
+            @Column(&quot;t_src_price_cts&quot;) int ticketSrcPriceCts,
+            @Column(&quot;t_final_price_cts&quot;) int ticketFinalPriceCts,
+            @Column(&quot;t_vat_cts&quot;) int ticketVatCts,
+            @Column(&quot;t_discount_cts&quot;) int ticketDiscountCts,
+            @Column(&quot;t_vat_status&quot;) PriceContainer.VatStatus ticketVatStatus,
+            @Column(&quot;t_tickets_reservation_id&quot;) String ticketsReservationId,
+            @Column(&quot;t_full_name&quot;) String ticketFullName,
+            @Column(&quot;t_first_name&quot;) String ticketFirstName,
+            @Column(&quot;t_last_name&quot;) String ticketLastName,
+            @Column(&quot;t_email_address&quot;) String ticketEmail,
+            @Column(&quot;t_locked_assignment&quot;) boolean ticketLockedAssignment,
+            @Column(&quot;t_user_language&quot;) String ticketUserLanguage,
+            @Column(&quot;t_ext_reference&quot;) String extReference,
+            @Column(&quot;t_currency_code&quot;) String currencyCode,
+            @Column(&quot;t_tags&quot;) @Array List&lt;String&gt; ticketTags,
+            @Column(&quot;t_subscription_id&quot;) UUID ticketSubscriptionId,
+            //
+            @Column(&quot;s_user_id&quot;) int scanUserId,
+            @Column(&quot;s_creation&quot;) ZonedDateTime scanTimestamp,
+            @Column(&quot;s_event_id&quot;) int scanEventId,
+            @Column(&quot;s_ticket_id&quot;) int scanTicketId,
+            @Column(&quot;s_notes&quot;) String notes,
+            @Column(&quot;s_lead_status&quot;) SponsorScan.LeadStatus leadStatus,
+<span class="fc" id="L63">            @Column(&quot;s_operator&quot;) String operator) {</span>
+<span class="fc" id="L64">        this.ticket = new Ticket(</span>
+                ticketId,
+                ticketUuid,
+                publicUuid,
+                ticketCreation,
+<span class="fc" id="L69">                ticketCategoryId,</span>
+                ticketStatus,
+                ticketEventId,
+                ticketsReservationId,
+                ticketFullName,
+                ticketFirstName,
+                ticketLastName,
+                ticketEmail,
+                ticketLockedAssignment,
+                ticketUserLanguage,
+                ticketSrcPriceCts,
+                ticketFinalPriceCts,
+                ticketVatCts,
+                ticketDiscountCts,
+                extReference,
+                currencyCode,
+                ticketTags,
+                ticketSubscriptionId,
+                ticketVatStatus);
+<span class="fc" id="L88">        this.sponsorScan =</span>
+                new SponsorScan(scanUserId, scanTimestamp, scanEventId, scanTicketId, notes, leadStatus, operator);
+<span class="fc" id="L90">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -17,10 +17,9 @@
 package alfio.repository;
 
 import ch.digitalfondue.npjt.QueryRepository;
+import java.util.Map;
 import org.springframework.jdbc.core.namedparam.EmptySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import java.util.Map;
 
 /**
  * This repository is specific to backoffice/admin operations.
@@ -36,20 +35,27 @@ public interface EventAdminRepository {
      * @return true if the event exists
      */
     default boolean existsBySlug(String slug) {
-<span class="fc" id="L39">        var jdbcTemplate = getJdbcTemplate();</span>
-<span class="fc" id="L40">        boolean rlsEnabled = Boolean.TRUE.equals(jdbcTemplate.queryForObject(&quot;select coalesce(current_setting('alfio.checkRowAccess', true), 'false') = 'true'&quot;, EmptySqlParameterSource.INSTANCE, Boolean.class));</span>
-<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (rlsEnabled) {</span>
-<span class="fc" id="L42">            jdbcTemplate.queryForObject(&quot;select set_config('alfio.checkRowAccess', 'false', true)&quot;, EmptySqlParameterSource.INSTANCE, Boolean.class);</span>
+<span class="fc" id="L38">        var jdbcTemplate = getJdbcTemplate();</span>
+<span class="fc" id="L39">        boolean rlsEnabled = Boolean.TRUE.equals(jdbcTemplate.queryForObject(</span>
+                &quot;select coalesce(current_setting('alfio.checkRowAccess', true), 'false') = 'true'&quot;,
+                EmptySqlParameterSource.INSTANCE,
+                Boolean.class));
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (rlsEnabled) {</span>
+<span class="fc" id="L44">            jdbcTemplate.queryForObject(</span>
+                    &quot;select set_config('alfio.checkRowAccess', 'false', true)&quot;,
+                    EmptySqlParameterSource.INSTANCE,
+                    Boolean.class);
         }
-<span class="fc" id="L44">        boolean exists = Boolean.TRUE.equals(jdbcTemplate.queryForObject(</span>
-            &quot;select exists(select 1 from event where short_name = :slug)&quot;,
-<span class="fc" id="L46">            Map.of(&quot;slug&quot;, slug),</span>
-            Boolean.class));
+<span class="fc" id="L49">        boolean exists = Boolean.TRUE.equals(jdbcTemplate.queryForObject(</span>
+<span class="fc" id="L50">                &quot;select exists(select 1 from event where short_name = :slug)&quot;, Map.of(&quot;slug&quot;, slug), Boolean.class));</span>
 
-<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (rlsEnabled) {</span>
-<span class="fc" id="L50">            jdbcTemplate.queryForObject(&quot;select set_config('alfio.checkRowAccess', 'true', true)&quot;, EmptySqlParameterSource.INSTANCE, Boolean.class);</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (rlsEnabled) {</span>
+<span class="fc" id="L53">            jdbcTemplate.queryForObject(</span>
+                    &quot;select set_config('alfio.checkRowAccess', 'true', true)&quot;,
+                    EmptySqlParameterSource.INSTANCE,
+                    Boolean.class);
         }
-<span class="fc" id="L52">        return exists;</span>
+<span class="fc" id="L58">        return exists;</span>
     }
 
     NamedParameterJdbcTemplate getJdbcTemplate();

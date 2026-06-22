@@ -22,10 +22,9 @@ import alfio.model.support.JSONData;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 
 @Getter
 public class ExtensionCapabilitySummary {
@@ -33,8 +32,9 @@ public class ExtensionCapabilitySummary {
     private final ExtensionCapability capability;
     private final List&lt;ExtensionCapabilityDetails&gt; details;
 
-    public ExtensionCapabilitySummary(@Column(&quot;capability&quot;) @EnumTypeAsString ExtensionCapability capability,
-<span class="fc" id="L37">                                      @Column(&quot;capability_detail&quot;) @JSONData List&lt;ExtensionCapabilityDetails&gt; details) {</span>
+    public ExtensionCapabilitySummary(
+            @Column(&quot;capability&quot;) @EnumTypeAsString ExtensionCapability capability,
+<span class="fc" id="L37">            @Column(&quot;capability_detail&quot;) @JSONData List&lt;ExtensionCapabilityDetails&gt; details) {</span>
 <span class="fc" id="L38">        this.capability = capability;</span>
 <span class="fc" id="L39">        this.details = details;</span>
 <span class="fc" id="L40">    }</span>
@@ -59,9 +59,10 @@ public class ExtensionCapabilitySummary {
         private final String selector;
 
         @JsonCreator
-        public ExtensionCapabilityDetails(@JsonProperty(&quot;label&quot;) String label,
-                                          @JsonProperty(&quot;description&quot;) String description,
-                                          @JsonProperty(&quot;selector&quot;) String selector) {
+        public ExtensionCapabilityDetails(
+                @JsonProperty(&quot;label&quot;) String label,
+                @JsonProperty(&quot;description&quot;) String description,
+                @JsonProperty(&quot;selector&quot;) String selector) {
             this.label = label;
             this.description = description;
             this.selector = selector;
@@ -73,8 +74,8 @@ public class ExtensionCapabilitySummary {
             if (o == null || getClass() != o.getClass()) return false;
             ExtensionCapabilityDetails that = (ExtensionCapabilityDetails) o;
             return label.equals(that.label)
-                &amp;&amp; Objects.equals(description, that.description)
-                &amp;&amp; Objects.equals(selector, that.selector);
+                    &amp;&amp; Objects.equals(description, that.description)
+                    &amp;&amp; Objects.equals(selector, that.selector);
         }
 
         @Override

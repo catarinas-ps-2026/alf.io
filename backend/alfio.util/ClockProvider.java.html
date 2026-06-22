@@ -16,11 +16,10 @@
  */
 package alfio.util;
 
-import org.apache.commons.lang3.Validate;
-
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.Objects;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Provides an application-wide {@link Clock}, which will return the current Instant in the
@@ -31,25 +30,25 @@ public class ClockProvider {
 
     private static ClockHolder HOLDER;
 
-<span class="fc" id="L34">    private ClockProvider(Clock clock) {</span>
-<span class="fc" id="L35">        HOLDER = new ClockHolder(clock);</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L33">    private ClockProvider(Clock clock) {</span>
+<span class="fc" id="L34">        HOLDER = new ClockHolder(clock);</span>
+<span class="fc" id="L35">    }</span>
 
     public static ClockProvider init(Clock clock) {
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        Validate.isTrue(HOLDER == null, &quot;Clock has already been set&quot;);</span>
-<span class="fc" id="L40">        return new ClockProvider(clock);</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        Validate.isTrue(HOLDER == null, &quot;Clock has already been set&quot;);</span>
+<span class="fc" id="L39">        return new ClockProvider(clock);</span>
     }
 
     public static Clock clock() {
-<span class="fc" id="L44">        return Objects.requireNonNull(HOLDER).clock;</span>
+<span class="fc" id="L43">        return Objects.requireNonNull(HOLDER).clock;</span>
     }
 
     public Clock getClock() {
-<span class="fc" id="L48">        return HOLDER.clock;</span>
+<span class="fc" id="L47">        return HOLDER.clock;</span>
     }
 
     public Clock withZone(ZoneId zoneId) {
-<span class="fc" id="L52">        return HOLDER.clock.withZone(zoneId);</span>
+<span class="fc" id="L51">        return HOLDER.clock.withZone(zoneId);</span>
     }
 
     private static class ClockHolder {

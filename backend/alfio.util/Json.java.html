@@ -22,57 +22,54 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.fatboyindustrial.gsonjavatime.Converters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import java.io.IOException;
 
-<span class="fc" id="L32">public class Json {</span>
+<span class="fc" id="L30">public class Json {</span>
 
-<span class="fc" id="L34">    public static final Gson GSON = Converters.registerAll(new GsonBuilder()).create();</span>
-
+<span class="fc" id="L32">    public static final Gson GSON = Converters.registerAll(new GsonBuilder()).create();</span>
 
     public static final ObjectMapper OBJECT_MAPPER;
 
     static {
-<span class="fc" id="L40">        ObjectMapper m = new ObjectMapper();</span>
-<span class="fc" id="L41">        m.registerModule(new JavaTimeModule());</span>
-<span class="fc" id="L42">        m.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);</span>
-<span class="fc" id="L43">        m.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);</span>
-<span class="fc" id="L44">        OBJECT_MAPPER = m;</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L37">        ObjectMapper m = new ObjectMapper();</span>
+<span class="fc" id="L38">        m.registerModule(new JavaTimeModule());</span>
+<span class="fc" id="L39">        m.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);</span>
+<span class="fc" id="L40">        m.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);</span>
+<span class="fc" id="L41">        OBJECT_MAPPER = m;</span>
+<span class="fc" id="L42">    }</span>
 
     public String asJsonString(Object o) {
-<span class="fc" id="L48">        return toJson(o);</span>
+<span class="fc" id="L45">        return toJson(o);</span>
     }
 
     public &lt;T&gt; T fromJsonString(String value, Class&lt;T&gt; valueType) {
-<span class="fc" id="L52">        return fromJson(value, valueType);</span>
+<span class="fc" id="L49">        return fromJson(value, valueType);</span>
     }
 
     public static String toJson(Object o) {
         try {
-<span class="fc" id="L57">            return OBJECT_MAPPER.writeValueAsString(o);</span>
-<span class="nc" id="L58">        } catch(JsonProcessingException e) {</span>
-<span class="nc" id="L59">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L54">            return OBJECT_MAPPER.writeValueAsString(o);</span>
+<span class="nc" id="L55">        } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L56">            throw new IllegalStateException(e);</span>
         }
     }
 
     public static &lt;T&gt; T fromJson(String value, Class&lt;T&gt; valueType) {
         try {
-<span class="fc" id="L65">            return OBJECT_MAPPER.readValue(value, valueType);</span>
-<span class="nc" id="L66">        } catch (IOException e) {</span>
-<span class="nc" id="L67">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L62">            return OBJECT_MAPPER.readValue(value, valueType);</span>
+<span class="nc" id="L63">        } catch (IOException e) {</span>
+<span class="nc" id="L64">            throw new IllegalStateException(e);</span>
         }
     }
 
     public static &lt;T&gt; T fromJson(String value, TypeReference&lt;T&gt; reference) {
         try {
-<span class="fc" id="L73">            return OBJECT_MAPPER.readValue(value, reference);</span>
-<span class="nc" id="L74">        } catch (IOException e) {</span>
-<span class="nc" id="L75">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L70">            return OBJECT_MAPPER.readValue(value, reference);</span>
+<span class="nc" id="L71">        } catch (IOException e) {</span>
+<span class="nc" id="L72">            throw new IllegalStateException(e);</span>
         }
     }
 }

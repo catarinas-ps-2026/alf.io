@@ -14,14 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
  */
-
 package alfio.extension;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.mozilla.javascript.Token;
 import org.mozilla.javascript.ast.*;
 
@@ -34,64 +32,64 @@ import org.mozilla.javascript.ast.*;
  */
 class JSSymbol {
     private final AstNode node;
-<span class="fc" id="L37">    private final ArrayList&lt;JSSymbol&gt; children = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L38">    private final Map&lt;String, JSSymbol&gt; localVars = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L39">    private JSSymbol parent = null;</span>
+<span class="fc" id="L35">    private final ArrayList&lt;JSSymbol&gt; children = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L36">    private final Map&lt;String, JSSymbol&gt; localVars = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L37">    private JSSymbol parent = null;</span>
 
-<span class="fc" id="L41">    public JSSymbol(AstNode node) {</span>
-<span class="fc" id="L42">        this.node = node;</span>
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (node instanceof FunctionNode funcNode) {</span>
-<span class="nc" id="L44">            List&lt;AstNode&gt; args = funcNode.getParams();</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">            if (args != null) {</span>
-<span class="nc bnc" id="L46" title="All 2 branches missed.">                for (AstNode argNode : args) {</span>
-<span class="nc" id="L47">                    addChild(argNode);</span>
-<span class="nc" id="L48">                }</span>
+<span class="fc" id="L39">    public JSSymbol(AstNode node) {</span>
+<span class="fc" id="L40">        this.node = node;</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (node instanceof FunctionNode funcNode) {</span>
+<span class="nc" id="L42">            List&lt;AstNode&gt; args = funcNode.getParams();</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            if (args != null) {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                for (AstNode argNode : args) {</span>
+<span class="nc" id="L45">                    addChild(argNode);</span>
+<span class="nc" id="L46">                }</span>
             }
         }
-<span class="fc" id="L51">    }</span>
+<span class="fc" id="L49">    }</span>
 
     public int getType() {
-<span class="nc" id="L54">        return node.getType();</span>
+<span class="nc" id="L52">        return node.getType();</span>
     }
 
     public void addChild(JSSymbol child) {
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (child.getType() == Token.VAR) {</span>
-            //check if it is already added
-<span class="nc" id="L60">            AstNode childNode = child.getNode();</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">            if (childNode instanceof VariableInitializer initializer) {</span>
-<span class="nc" id="L62">                String varName = ((Name)initializer.getTarget()).getIdentifier();</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">                if (localVars.containsKey(varName)) {</span>
-<span class="nc" id="L64">                    return;</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (child.getType() == Token.VAR) {</span>
+            // check if it is already added
+<span class="nc" id="L58">            AstNode childNode = child.getNode();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            if (childNode instanceof VariableInitializer initializer) {</span>
+<span class="nc" id="L60">                String varName = ((Name) initializer.getTarget()).getIdentifier();</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                if (localVars.containsKey(varName)) {</span>
+<span class="nc" id="L62">                    return;</span>
                 }
-<span class="nc" id="L66">                localVars.put(varName, child);</span>
+<span class="nc" id="L64">                localVars.put(varName, child);</span>
             }
         }
-<span class="nc" id="L69">        children.add(child);</span>
-<span class="nc" id="L70">        child.setParent(this);</span>
-<span class="nc" id="L71">    }</span>
+<span class="nc" id="L67">        children.add(child);</span>
+<span class="nc" id="L68">        child.setParent(this);</span>
+<span class="nc" id="L69">    }</span>
 
-    public void addChild (AstNode node) {
-<span class="nc" id="L74">        addChild(new JSSymbol(node));</span>
-<span class="nc" id="L75">    }</span>
+    public void addChild(AstNode node) {
+<span class="nc" id="L72">        addChild(new JSSymbol(node));</span>
+<span class="nc" id="L73">    }</span>
 
     public ArrayList&lt;JSSymbol&gt; getChildren() {
-<span class="nc" id="L78">        return new ArrayList&lt;&gt;(children);</span>
+<span class="nc" id="L76">        return new ArrayList&lt;&gt;(children);</span>
     }
 
     public AstNode getNode() {
-<span class="nc" id="L82">        return node;</span>
+<span class="nc" id="L80">        return node;</span>
     }
 
-    public boolean childExist (String name) {
-<span class="nc" id="L86">        return localVars.containsKey(name);</span>
+    public boolean childExist(String name) {
+<span class="nc" id="L84">        return localVars.containsKey(name);</span>
     }
 
     public JSSymbol getParent() {
-<span class="nc" id="L90">        return parent;</span>
+<span class="nc" id="L88">        return parent;</span>
     }
 
     public void setParent(JSSymbol parent) {
-<span class="nc" id="L94">        this.parent = parent;</span>
-<span class="nc" id="L95">    }</span>
+<span class="nc" id="L92">        this.parent = parent;</span>
+<span class="nc" id="L93">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

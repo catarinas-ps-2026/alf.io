@@ -16,6 +16,13 @@
  */
 package alfio.manager;
 
+import static alfio.model.EmailMessage.Status.*;
+import static alfio.model.system.ConfigurationKeys.INCLUDE_CHECK_IN_URL_ICAL;
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+import static alfio.util.checkin.TicketCheckInUtil.*;
+import static java.util.Objects.requireNonNullElse;
+import static java.util.Objects.requireNonNullElseGet;
+
 import alfio.controller.support.TemplateProcessor;
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.support.AdditionalServiceHelper;
@@ -37,6 +44,19 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.util.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -51,33 +71,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static alfio.model.EmailMessage.Status.*;
-import static alfio.model.system.ConfigurationKeys.INCLUDE_CHECK_IN_URL_ICAL;
-import static alfio.util.MiscUtils.removeTabsAndNewlines;
-import static alfio.util.checkin.TicketCheckInUtil.*;
-import static java.util.Objects.requireNonNullElse;
-import static java.util.Objects.requireNonNullElseGet;
-
 @Component
 public class NotificationManager {
 
     public static final String SEND_TICKET_CC = &quot;sendTicketCc&quot;;
     private static final String EVENT_ID = &quot;eventId&quot;;
-<span class="fc" id="L80">    private static final Logger log = LoggerFactory.getLogger(NotificationManager.class);</span>
+<span class="fc" id="L79">    private static final Logger log = LoggerFactory.getLogger(NotificationManager.class);</span>
     private final Mailer mailer;
     private final MessageSourceManager messageSourceManager;
     private final EmailMessageRepository emailMessageRepository;
@@ -91,423 +90,644 @@ public class NotificationManager {
 
     private final EnumMap&lt;Mailer.AttachmentIdentifier, Function&lt;Map&lt;String, String&gt;, byte[]&gt;&gt; attachmentTransformer;
 
-    public NotificationManager(Mailer mailer,
-                               MessageSourceManager messageSourceManager,
-                               PlatformTransactionManager transactionManager,
-                               EmailMessageRepository emailMessageRepository,
-                               EventRepository eventRepository,
-                               EventDescriptionRepository eventDescriptionRepository,
-                               OrganizationRepository organizationRepository,
-                               ConfigurationManager configurationManager,
-                               FileUploadManager fileUploadManager,
-                               TemplateManager templateManager,
-                               TicketReservationRepository ticketReservationRepository,
-                               TicketCategoryRepository ticketCategoryRepository,
-                               PassKitManager passKitManager,
-                               TicketRepository ticketRepository,
-                               PurchaseContextFieldRepository purchaseContextFieldRepository,
-                               AdditionalServiceItemRepository additionalServiceItemRepository,
-                               ExtensionManager extensionManager,
-                               ClockProvider clockProvider,
-                               PurchaseContextManager purchaseContextManager,
-                               SubscriptionRepository subscriptionRepository,
-                               AdditionalServiceHelper additionalServiceHelper,
-<span class="fc" id="L115">                               PurchaseContextFieldManager purchaseContextFieldManager) {</span>
+    public NotificationManager(
+            Mailer mailer,
+            MessageSourceManager messageSourceManager,
+            PlatformTransactionManager transactionManager,
+            EmailMessageRepository emailMessageRepository,
+            EventRepository eventRepository,
+            EventDescriptionRepository eventDescriptionRepository,
+            OrganizationRepository organizationRepository,
+            ConfigurationManager configurationManager,
+            FileUploadManager fileUploadManager,
+            TemplateManager templateManager,
+            TicketReservationRepository ticketReservationRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            PassKitManager passKitManager,
+            TicketRepository ticketRepository,
+            PurchaseContextFieldRepository purchaseContextFieldRepository,
+            AdditionalServiceItemRepository additionalServiceItemRepository,
+            ExtensionManager extensionManager,
+            ClockProvider clockProvider,
+            PurchaseContextManager purchaseContextManager,
+            SubscriptionRepository subscriptionRepository,
+            AdditionalServiceHelper additionalServiceHelper,
+<span class="fc" id="L115">            PurchaseContextFieldManager purchaseContextFieldManager) {</span>
 <span class="fc" id="L116">        this.messageSourceManager = messageSourceManager;</span>
 <span class="fc" id="L117">        this.mailer = mailer;</span>
 <span class="fc" id="L118">        this.emailMessageRepository = emailMessageRepository;</span>
 <span class="fc" id="L119">        this.organizationRepository = organizationRepository;</span>
 <span class="fc" id="L120">        this.ticketRepository = ticketRepository;</span>
-<span class="fc" id="L121">        DefaultTransactionDefinition definition = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED);</span>
-<span class="fc" id="L122">        this.tx = new TransactionTemplate(transactionManager, definition);</span>
-<span class="fc" id="L123">        this.configurationManager = configurationManager;</span>
-<span class="fc" id="L124">        GsonBuilder builder = new GsonBuilder();</span>
-<span class="fc" id="L125">        builder.registerTypeAdapter(Mailer.Attachment.class, new AttachmentConverter());</span>
-<span class="fc" id="L126">        this.gson = builder.create();</span>
-<span class="fc" id="L127">        this.clockProvider = clockProvider;</span>
-<span class="fc" id="L128">        this.purchaseContextManager = purchaseContextManager;</span>
-<span class="fc" id="L129">        attachmentTransformer = new EnumMap&lt;&gt;(Mailer.AttachmentIdentifier.class);</span>
-<span class="fc" id="L130">        attachmentTransformer.put(Mailer.AttachmentIdentifier.CALENDAR_ICS, generateICS(eventRepository, eventDescriptionRepository, ticketCategoryRepository, organizationRepository, messageSourceManager, configurationManager));</span>
-<span class="fc" id="L131">        attachmentTransformer.put(Mailer.AttachmentIdentifier.RECEIPT_PDF, receiptOrInvoiceFactory(purchaseContextManager, eventRepository,</span>
-<span class="fc" id="L132">            payload -&gt; TemplateProcessor.buildReceiptPdf(payload.getLeft(), fileUploadManager, payload.getMiddle(), templateManager, payload.getRight(), extensionManager)));</span>
-<span class="fc" id="L133">        attachmentTransformer.put(Mailer.AttachmentIdentifier.INVOICE_PDF, receiptOrInvoiceFactory(purchaseContextManager, eventRepository,</span>
-<span class="fc" id="L134">            payload -&gt; TemplateProcessor.buildInvoicePdf(payload.getLeft(), fileUploadManager, payload.getMiddle(), templateManager, payload.getRight(), extensionManager)));</span>
-<span class="fc" id="L135">        attachmentTransformer.put(Mailer.AttachmentIdentifier.CREDIT_NOTE_PDF, receiptOrInvoiceFactory(purchaseContextManager, eventRepository,</span>
-<span class="nc" id="L136">            payload -&gt; TemplateProcessor.buildCreditNotePdf(payload.getLeft(), fileUploadManager, payload.getMiddle(), templateManager, payload.getRight(), extensionManager)));</span>
-<span class="fc" id="L137">        attachmentTransformer.put(Mailer.AttachmentIdentifier.PASSBOOK, passKitManager::getPass);</span>
-<span class="fc" id="L138">        var retrieveFieldValues = EventUtil.retrieveFieldValues(ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, true);</span>
-<span class="fc" id="L139">        attachmentTransformer.put(Mailer.AttachmentIdentifier.TICKET_PDF, generateTicketPDF(eventRepository, organizationRepository, configurationManager, fileUploadManager, templateManager, ticketReservationRepository, retrieveFieldValues, extensionManager, ticketRepository, subscriptionRepository, additionalServiceHelper));</span>
-<span class="fc" id="L140">        attachmentTransformer.put(Mailer.AttachmentIdentifier.SUBSCRIPTION_PDF, generateSubscriptionPDF(organizationRepository, configurationManager, fileUploadManager, templateManager, ticketReservationRepository, extensionManager, subscriptionRepository, purchaseContextFieldManager));</span>
-<span class="fc" id="L141">    }</span>
+<span class="fc" id="L121">        DefaultTransactionDefinition definition =</span>
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED);
+<span class="fc" id="L123">        this.tx = new TransactionTemplate(transactionManager, definition);</span>
+<span class="fc" id="L124">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L125">        GsonBuilder builder = new GsonBuilder();</span>
+<span class="fc" id="L126">        builder.registerTypeAdapter(Mailer.Attachment.class, new AttachmentConverter());</span>
+<span class="fc" id="L127">        this.gson = builder.create();</span>
+<span class="fc" id="L128">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L129">        this.purchaseContextManager = purchaseContextManager;</span>
+<span class="fc" id="L130">        attachmentTransformer = new EnumMap&lt;&gt;(Mailer.AttachmentIdentifier.class);</span>
+<span class="fc" id="L131">        attachmentTransformer.put(</span>
+                Mailer.AttachmentIdentifier.CALENDAR_ICS,
+<span class="fc" id="L133">                generateICS(</span>
+                        eventRepository,
+                        eventDescriptionRepository,
+                        ticketCategoryRepository,
+                        organizationRepository,
+                        messageSourceManager,
+                        configurationManager));
+<span class="fc" id="L140">        attachmentTransformer.put(</span>
+                Mailer.AttachmentIdentifier.RECEIPT_PDF,
+<span class="fc" id="L142">                receiptOrInvoiceFactory(</span>
+                        purchaseContextManager,
+                        eventRepository,
+<span class="fc" id="L145">                        payload -&gt; TemplateProcessor.buildReceiptPdf(</span>
+<span class="fc" id="L146">                                payload.getLeft(),</span>
+                                fileUploadManager,
+<span class="fc" id="L148">                                payload.getMiddle(),</span>
+                                templateManager,
+<span class="fc" id="L150">                                payload.getRight(),</span>
+                                extensionManager)));
+<span class="fc" id="L152">        attachmentTransformer.put(</span>
+                Mailer.AttachmentIdentifier.INVOICE_PDF,
+<span class="fc" id="L154">                receiptOrInvoiceFactory(</span>
+                        purchaseContextManager,
+                        eventRepository,
+<span class="fc" id="L157">                        payload -&gt; TemplateProcessor.buildInvoicePdf(</span>
+<span class="fc" id="L158">                                payload.getLeft(),</span>
+                                fileUploadManager,
+<span class="fc" id="L160">                                payload.getMiddle(),</span>
+                                templateManager,
+<span class="fc" id="L162">                                payload.getRight(),</span>
+                                extensionManager)));
+<span class="fc" id="L164">        attachmentTransformer.put(</span>
+                Mailer.AttachmentIdentifier.CREDIT_NOTE_PDF,
+<span class="fc" id="L166">                receiptOrInvoiceFactory(</span>
+                        purchaseContextManager,
+                        eventRepository,
+<span class="nc" id="L169">                        payload -&gt; TemplateProcessor.buildCreditNotePdf(</span>
+<span class="nc" id="L170">                                payload.getLeft(),</span>
+                                fileUploadManager,
+<span class="nc" id="L172">                                payload.getMiddle(),</span>
+                                templateManager,
+<span class="nc" id="L174">                                payload.getRight(),</span>
+                                extensionManager)));
+<span class="fc" id="L176">        attachmentTransformer.put(Mailer.AttachmentIdentifier.PASSBOOK, passKitManager::getPass);</span>
+<span class="fc" id="L177">        var retrieveFieldValues = EventUtil.retrieveFieldValues(</span>
+                ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, true);
+<span class="fc" id="L179">        attachmentTransformer.put(</span>
+                Mailer.AttachmentIdentifier.TICKET_PDF,
+<span class="fc" id="L181">                generateTicketPDF(</span>
+                        eventRepository,
+                        organizationRepository,
+                        configurationManager,
+                        fileUploadManager,
+                        templateManager,
+                        ticketReservationRepository,
+                        retrieveFieldValues,
+                        extensionManager,
+                        ticketRepository,
+                        subscriptionRepository,
+                        additionalServiceHelper));
+<span class="fc" id="L193">        attachmentTransformer.put(</span>
+                Mailer.AttachmentIdentifier.SUBSCRIPTION_PDF,
+<span class="fc" id="L195">                generateSubscriptionPDF(</span>
+                        organizationRepository,
+                        configurationManager,
+                        fileUploadManager,
+                        templateManager,
+                        ticketReservationRepository,
+                        extensionManager,
+                        subscriptionRepository,
+                        purchaseContextFieldManager));
+<span class="fc" id="L204">    }</span>
 
-    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; generateTicketPDF(EventRepository eventRepository,
-                                                                           OrganizationRepository organizationRepository,
-                                                                           ConfigurationManager configurationManager,
-                                                                           FileUploadManager fileUploadManager,
-                                                                           TemplateManager templateManager,
-                                                                           TicketReservationRepository ticketReservationRepository,
-                                                                           BiFunction&lt;Ticket, Event, List&lt;FieldConfigurationDescriptionAndValue&gt;&gt; retrieveFieldValues,
-                                                                           ExtensionManager extensionManager,
-                                                                           TicketRepository ticketRepository,
-                                                                           SubscriptionRepository subscriptionRepository,
-                                                                           AdditionalServiceHelper additionalServiceHelper) {
-<span class="fc" id="L154">        return model -&gt; {</span>
-<span class="fc" id="L155">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="fc" id="L156">            Ticket ticket = Json.fromJson(model.get(&quot;ticket&quot;), Ticket.class);</span>
+    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; generateTicketPDF(
+            EventRepository eventRepository,
+            OrganizationRepository organizationRepository,
+            ConfigurationManager configurationManager,
+            FileUploadManager fileUploadManager,
+            TemplateManager templateManager,
+            TicketReservationRepository ticketReservationRepository,
+            BiFunction&lt;Ticket, Event, List&lt;FieldConfigurationDescriptionAndValue&gt;&gt; retrieveFieldValues,
+            ExtensionManager extensionManager,
+            TicketRepository ticketRepository,
+            SubscriptionRepository subscriptionRepository,
+            AdditionalServiceHelper additionalServiceHelper) {
+<span class="fc" id="L218">        return model -&gt; {</span>
+<span class="fc" id="L219">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L220">            Ticket ticket = Json.fromJson(model.get(&quot;ticket&quot;), Ticket.class);</span>
             try {
-<span class="fc" id="L158">                TicketReservation reservation = ticketReservationRepository.findReservationById(ticket.getTicketsReservationId());</span>
-<span class="fc" id="L159">                TicketCategory ticketCategory = Json.fromJson(model.get(&quot;ticketCategory&quot;), TicketCategory.class);</span>
-<span class="fc" id="L160">                Event event = eventRepository.findById(ticket.getEventId());</span>
-<span class="fc" id="L161">                Organization organization = organizationRepository.getById(Integer.valueOf(model.get(&quot;organizationId&quot;), 10));</span>
-<span class="fc" id="L162">                var ticketWithMetadata = TicketWithMetadataAttributes.build(ticket, ticketRepository.getTicketMetadata(ticket.getId()));</span>
-<span class="fc" id="L163">                var locale = LocaleUtil.forLanguageTag(ticket.getUserLanguage());</span>
-<span class="fc" id="L164">                TemplateProcessor.renderPDFTicket(locale, event, reservation,</span>
-                    ticketWithMetadata, ticketCategory, organization, templateManager, fileUploadManager,
-<span class="fc" id="L166">                    configurationManager.getShortReservationID(event, reservation), baos, retrieveFieldValues, extensionManager,</span>
-<span class="fc" id="L167">                    TemplateProcessor.getSubscriptionDetailsModelForTicket(ticket, subscriptionRepository::findDescriptorBySubscriptionId, locale),</span>
-<span class="fc" id="L168">                    additionalServiceHelper.findForTicket(ticket, event));</span>
-<span class="nc" id="L169">            } catch (IOException e) {</span>
-<span class="nc" id="L170">                log.warn(&quot;was not able to generate ticket pdf for ticket with id&quot; + ticket.getId(), e);</span>
-<span class="fc" id="L171">            }</span>
-<span class="fc" id="L172">            return baos.toByteArray();</span>
+<span class="fc" id="L222">                TicketReservation reservation =</span>
+<span class="fc" id="L223">                        ticketReservationRepository.findReservationById(ticket.getTicketsReservationId());</span>
+<span class="fc" id="L224">                TicketCategory ticketCategory = Json.fromJson(model.get(&quot;ticketCategory&quot;), TicketCategory.class);</span>
+<span class="fc" id="L225">                Event event = eventRepository.findById(ticket.getEventId());</span>
+<span class="fc" id="L226">                Organization organization =</span>
+<span class="fc" id="L227">                        organizationRepository.getById(Integer.valueOf(model.get(&quot;organizationId&quot;), 10));</span>
+<span class="fc" id="L228">                var ticketWithMetadata =</span>
+<span class="fc" id="L229">                        TicketWithMetadataAttributes.build(ticket, ticketRepository.getTicketMetadata(ticket.getId()));</span>
+<span class="fc" id="L230">                var locale = LocaleUtil.forLanguageTag(ticket.getUserLanguage());</span>
+<span class="fc" id="L231">                TemplateProcessor.renderPDFTicket(</span>
+                        locale,
+                        event,
+                        reservation,
+                        ticketWithMetadata,
+                        ticketCategory,
+                        organization,
+                        templateManager,
+                        fileUploadManager,
+<span class="fc" id="L240">                        configurationManager.getShortReservationID(event, reservation),</span>
+                        baos,
+                        retrieveFieldValues,
+                        extensionManager,
+<span class="fc" id="L244">                        TemplateProcessor.getSubscriptionDetailsModelForTicket(</span>
+<span class="fc" id="L245">                                ticket, subscriptionRepository::findDescriptorBySubscriptionId, locale),</span>
+<span class="fc" id="L246">                        additionalServiceHelper.findForTicket(ticket, event));</span>
+<span class="nc" id="L247">            } catch (IOException e) {</span>
+<span class="nc" id="L248">                log.warn(&quot;was not able to generate ticket pdf for ticket with id&quot; + ticket.getId(), e);</span>
+<span class="fc" id="L249">            }</span>
+<span class="fc" id="L250">            return baos.toByteArray();</span>
         };
     }
 
-    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; generateICS(EventRepository eventRepository,
-                                                                     EventDescriptionRepository eventDescriptionRepository,
-                                                                     TicketCategoryRepository ticketCategoryRepository,
-                                                                     OrganizationRepository organizationRepository,
-                                                                     MessageSourceManager messageSourceManager,
-                                                                     ConfigurationManager configurationManager) {
+    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; generateICS(
+            EventRepository eventRepository,
+            EventDescriptionRepository eventDescriptionRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            OrganizationRepository organizationRepository,
+            MessageSourceManager messageSourceManager,
+            ConfigurationManager configurationManager) {
 
-<span class="fc" id="L183">        return model -&gt; {</span>
+<span class="fc" id="L262">        return model -&gt; {</span>
             Event event;
             Locale locale;
             Integer categoryId;
-<span class="pc bpc" id="L187" title="1 of 2 branches missed.">            if(model.containsKey(EVENT_ID)) {</span>
-                //legacy branch, now we generate the ics as a reinterpreted ticket
-<span class="nc" id="L189">                event = eventRepository.findById(Integer.valueOf(model.get(EVENT_ID), 10));</span>
-<span class="nc" id="L190">                locale = Json.fromJson(model.get(&quot;locale&quot;), Locale.class);</span>
-<span class="nc" id="L191">                categoryId = null;</span>
+<span class="pc bpc" id="L266" title="1 of 2 branches missed.">            if (model.containsKey(EVENT_ID)) {</span>
+                // legacy branch, now we generate the ics as a reinterpreted ticket
+<span class="nc" id="L268">                event = eventRepository.findById(Integer.valueOf(model.get(EVENT_ID), 10));</span>
+<span class="nc" id="L269">                locale = Json.fromJson(model.get(&quot;locale&quot;), Locale.class);</span>
+<span class="nc" id="L270">                categoryId = null;</span>
             } else {
-<span class="fc" id="L193">                Ticket ticket = Json.fromJson(model.get(&quot;ticket&quot;), Ticket.class);</span>
-<span class="fc" id="L194">                event = eventRepository.findById(ticket.getEventId());</span>
-<span class="fc" id="L195">                locale = LocaleUtil.forLanguageTag(ticket.getUserLanguage());</span>
-<span class="fc" id="L196">                categoryId = ticket.getCategoryId();</span>
+<span class="fc" id="L272">                Ticket ticket = Json.fromJson(model.get(&quot;ticket&quot;), Ticket.class);</span>
+<span class="fc" id="L273">                event = eventRepository.findById(ticket.getEventId());</span>
+<span class="fc" id="L274">                locale = LocaleUtil.forLanguageTag(ticket.getUserLanguage());</span>
+<span class="fc" id="L275">                categoryId = ticket.getCategoryId();</span>
             }
-<span class="fc" id="L198">            Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
-<span class="fc" id="L199">            TicketCategory category = Optional.ofNullable(categoryId).map(ticketCategoryRepository::getById).orElse(null);</span>
-<span class="fc" id="L200">            String description = eventDescriptionRepository.findDescriptionByEventIdTypeAndLocale(event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, locale.getLanguage()).orElse(&quot;&quot;);</span>
-<span class="pc bpc" id="L201" title="1 of 4 branches missed.">            if(model.containsKey(&quot;onlineCheckInUrl&quot;) &amp;&amp; configurationManager.getFor(INCLUDE_CHECK_IN_URL_ICAL, event.getConfigurationLevel()).getValueAsBooleanOrDefault()) { // special case: online event</span>
-<span class="fc" id="L202">                var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
-<span class="fc" id="L203">                description = description +</span>
-                    &quot;\n```\n&quot; + // start &quot;multiline code&quot; marker to preserve formatting
-<span class="fc" id="L205">                    buildOnlineCheckInInformation(messageSource).apply(model, locale) +</span>
-                    &quot;\n```\n&quot;; // end multiline code marker
+<span class="fc" id="L277">            Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L278">            TicketCategory category = Optional.ofNullable(categoryId)</span>
+<span class="fc" id="L279">                    .map(ticketCategoryRepository::getById)</span>
+<span class="fc" id="L280">                    .orElse(null);</span>
+<span class="fc" id="L281">            String description = eventDescriptionRepository</span>
+<span class="fc" id="L282">                    .findDescriptionByEventIdTypeAndLocale(</span>
+<span class="fc" id="L283">                            event.getId(), EventDescription.EventDescriptionType.DESCRIPTION, locale.getLanguage())</span>
+<span class="fc" id="L284">                    .orElse(&quot;&quot;);</span>
+<span class="fc bfc" id="L285" title="All 2 branches covered.">            if (model.containsKey(&quot;onlineCheckInUrl&quot;)</span>
+                    &amp;&amp; configurationManager
+<span class="fc" id="L287">                            .getFor(INCLUDE_CHECK_IN_URL_ICAL, event.getConfigurationLevel())</span>
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">                            .getValueAsBooleanOrDefault()) { // special case: online event</span>
+<span class="fc" id="L289">                var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="fc" id="L290">                description = description + &quot;\n```\n&quot;</span>
+                        + // start &quot;multiline code&quot; marker to preserve formatting
+<span class="fc" id="L292">                        buildOnlineCheckInInformation(messageSource).apply(model, locale)</span>
+                        + &quot;\n```\n&quot;; // end multiline code marker
             }
-<span class="fc" id="L208">            return EventUtil.getIcalForEvent(event, category, description, organization).orElse(null);</span>
+<span class="fc" id="L295">            return EventUtil.getIcalForEvent(event, category, description, organization)</span>
+<span class="fc" id="L296">                    .orElse(null);</span>
         };
     }
 
-    private static BiFunction&lt;Map&lt;String,String&gt;, Locale, String&gt; buildOnlineCheckInInformation(MessageSource messageSource) {
-<span class="fc" id="L213">        return (model, locale) -&gt; {</span>
+    private static BiFunction&lt;Map&lt;String, String&gt;, Locale, String&gt; buildOnlineCheckInInformation(
+            MessageSource messageSource) {
+<span class="fc" id="L302">        return (model, locale) -&gt; {</span>
             String body;
-<span class="pc bpc" id="L215" title="1 of 2 branches missed.">            if(model.containsKey(CUSTOM_CHECK_IN_URL)) {</span>
-<span class="fc" id="L216">                body = requireNonNullElseGet(model.get(CUSTOM_CHECK_IN_URL_TEXT), () -&gt; messageSource.getMessage(&quot;email.event.online.check-in&quot;, null, locale)) +</span>
-                    &quot;\n&quot; +
-<span class="fc" id="L218">                    model.get(ONLINE_CHECK_IN_URL) +</span>
-                    &quot;\n&quot; +
-<span class="fc" id="L220">                    model.getOrDefault(CUSTOM_CHECK_IN_URL_DESCRIPTION, &quot;&quot;) +</span>
-                    &quot;\n&quot;;
+<span class="pc bpc" id="L304" title="1 of 2 branches missed.">            if (model.containsKey(CUSTOM_CHECK_IN_URL)) {</span>
+<span class="fc" id="L305">                body = requireNonNullElseGet(</span>
+<span class="fc" id="L306">                                model.get(CUSTOM_CHECK_IN_URL_TEXT),</span>
+<span class="fc" id="L307">                                () -&gt; messageSource.getMessage(&quot;email.event.online.check-in&quot;, null, locale))</span>
+                        + &quot;\n&quot;
+<span class="fc" id="L309">                        + model.get(ONLINE_CHECK_IN_URL)</span>
+                        + &quot;\n&quot;
+<span class="fc" id="L311">                        + model.getOrDefault(CUSTOM_CHECK_IN_URL_DESCRIPTION, &quot;&quot;)</span>
+                        + &quot;\n&quot;;
             } else {
-<span class="nc" id="L223">                body = messageSource.getMessage(&quot;email.event.online.check-in&quot;, null, locale) + &quot;\n&quot; +</span>
-<span class="nc" id="L224">                    model.get(ONLINE_CHECK_IN_URL) + &quot;\n \n&quot;;</span>
+<span class="nc" id="L314">                body = messageSource.getMessage(&quot;email.event.online.check-in&quot;, null, locale) + &quot;\n&quot;</span>
+<span class="nc" id="L315">                        + model.get(ONLINE_CHECK_IN_URL) + &quot;\n \n&quot;;</span>
             }
-<span class="fc" id="L226">            return &quot;\n******************************************\n&quot; +</span>
-<span class="fc" id="L227">                messageSource.getMessage(&quot;event.location.online&quot;, null, locale) + &quot;\n\n&quot; +</span>
-<span class="fc" id="L228">                messageSource.getMessage(&quot;email.event.online.important-information&quot;, null, locale) + &quot;\n\n&quot; +</span>
-                body +
-                &quot;\n&quot; +
-<span class="fc" id="L231">                MustacheCustomTag.renderToTextCommonmark(model.getOrDefault(&quot;prerequisites&quot;, &quot;&quot;));</span>
+<span class="fc" id="L317">            return &quot;\n******************************************\n&quot;</span>
+<span class="fc" id="L318">                    + messageSource.getMessage(&quot;event.location.online&quot;, null, locale)</span>
+<span class="fc" id="L319">                    + &quot;\n\n&quot; + messageSource.getMessage(&quot;email.event.online.important-information&quot;, null, locale)</span>
+                    + &quot;\n\n&quot; + body
+                    + &quot;\n&quot;
+<span class="fc" id="L322">                    + MustacheCustomTag.renderToTextCommonmark(model.getOrDefault(&quot;prerequisites&quot;, &quot;&quot;));</span>
         };
     }
 
     public String buildOnlineCheckInText(Map&lt;String, String&gt; model, Locale locale, MessageSource messageSource) {
-<span class="nc" id="L236">        return buildOnlineCheckInInformation(messageSource).apply(model, locale);</span>
+<span class="nc" id="L327">        return buildOnlineCheckInInformation(messageSource).apply(model, locale);</span>
     }
 
-    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; receiptOrInvoiceFactory(PurchaseContextManager purchaseContextManager, EventRepository eventRepository, Function&lt;Triple&lt;PurchaseContext, Locale, Map&lt;String, Object&gt;&gt;, Optional&lt;byte[]&gt;&gt; pdfGenerator) {
-<span class="fc" id="L240">        return model -&gt; {</span>
-<span class="fc" id="L241">            String reservationId = model.get(&quot;reservationId&quot;);</span>
+    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; receiptOrInvoiceFactory(
+            PurchaseContextManager purchaseContextManager,
+            EventRepository eventRepository,
+            Function&lt;Triple&lt;PurchaseContext, Locale, Map&lt;String, Object&gt;&gt;, Optional&lt;byte[]&gt;&gt; pdfGenerator) {
+<span class="fc" id="L334">        return model -&gt; {</span>
+<span class="fc" id="L335">            String reservationId = model.get(&quot;reservationId&quot;);</span>
             PurchaseContext purchaseContext;
-<span class="fc" id="L243">            Map&lt;String, Object&gt; reservationEmailModel = Json.fromJson(model.get(&quot;reservationEmailModel&quot;), new TypeReference&lt;&gt;() {});</span>
-<span class="pc bpc" id="L244" title="1 of 2 branches missed.">            if (reservationEmailModel.get(&quot;purchaseContext&quot;) != null) {</span>
+<span class="fc" id="L337">            Map&lt;String, Object&gt; reservationEmailModel =</span>
+<span class="fc" id="L338">                    Json.fromJson(model.get(&quot;reservationEmailModel&quot;), new TypeReference&lt;&gt;() {});</span>
+<span class="pc bpc" id="L339" title="1 of 2 branches missed.">            if (reservationEmailModel.get(&quot;purchaseContext&quot;) != null) {</span>
                 @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L246">                var purchaseContextModel = (Map&lt;String, String&gt;) reservationEmailModel.get(&quot;purchaseContext&quot;);</span>
+<span class="fc" id="L341">                var purchaseContextModel = (Map&lt;String, String&gt;) reservationEmailModel.get(&quot;purchaseContext&quot;);</span>
                 // FIXME hack
-<span class="pc bpc" id="L248" title="1 of 2 branches missed.">                var purchaseContextType = model.get(EVENT_ID) != null ? PurchaseContextType.event : PurchaseContextType.subscription;</span>
-<span class="fc" id="L249">                purchaseContext = purchaseContextManager.findBy(purchaseContextType, purchaseContextModel.get(&quot;publicIdentifier&quot;)).orElseThrow();</span>
-<span class="fc" id="L250">            } else {</span>
-<span class="nc" id="L251">                purchaseContext = eventRepository.findById(Integer.valueOf(model.get(EVENT_ID), 10));</span>
+                var purchaseContextType =
+<span class="pc bpc" id="L344" title="1 of 2 branches missed.">                        model.get(EVENT_ID) != null ? PurchaseContextType.event : PurchaseContextType.subscription;</span>
+<span class="fc" id="L345">                purchaseContext = purchaseContextManager</span>
+<span class="fc" id="L346">                        .findBy(purchaseContextType, purchaseContextModel.get(&quot;publicIdentifier&quot;))</span>
+<span class="fc" id="L347">                        .orElseThrow();</span>
+<span class="fc" id="L348">            } else {</span>
+<span class="nc" id="L349">                purchaseContext = eventRepository.findById(Integer.valueOf(model.get(EVENT_ID), 10));</span>
             }
-<span class="fc" id="L253">            Locale language = Json.fromJson(model.get(&quot;language&quot;), Locale.class);</span>
+<span class="fc" id="L351">            Locale language = Json.fromJson(model.get(&quot;language&quot;), Locale.class);</span>
 
-<span class="fc" id="L255">            Optional&lt;byte[]&gt; receipt = pdfGenerator.apply(Triple.of(purchaseContext, language, reservationEmailModel));</span>
-            //FIXME hack: reservationEmailModel should be a minimal and typed container
-<span class="fc" id="L257">            reservationEmailModel.put(&quot;event&quot;, purchaseContext);</span>
+<span class="fc" id="L353">            Optional&lt;byte[]&gt; receipt = pdfGenerator.apply(Triple.of(purchaseContext, language, reservationEmailModel));</span>
+            // FIXME hack: reservationEmailModel should be a minimal and typed container
+<span class="fc" id="L355">            reservationEmailModel.put(&quot;event&quot;, purchaseContext);</span>
 
-<span class="pc bpc" id="L259" title="1 of 2 branches missed.">            if(receipt.isEmpty()) {</span>
-<span class="nc" id="L260">                log.warn(&quot;was not able to generate the receipt for reservation id &quot; + reservationId + &quot; for locale &quot; + language);</span>
+<span class="pc bpc" id="L357" title="1 of 2 branches missed.">            if (receipt.isEmpty()) {</span>
+<span class="nc" id="L358">                log.warn(&quot;was not able to generate the receipt for reservation id &quot; + reservationId + &quot; for locale &quot;</span>
+                        + language);
             }
-<span class="fc" id="L262">            return receipt.orElse(null);</span>
+<span class="fc" id="L361">            return receipt.orElse(null);</span>
         };
     }
 
-    public void sendTicketByEmail(Ticket ticket,
-                                  Event event,
-                                  Locale locale,
-                                  PartialTicketTextGenerator textBuilder,
-                                  TicketReservation reservation,
-                                  TicketCategory ticketCategory,
-                                  Supplier&lt;Map&lt;String, List&lt;String&gt;&gt;&gt; ticketAdditionalInfoSupplier) {
+    public void sendTicketByEmail(
+            Ticket ticket,
+            Event event,
+            Locale locale,
+            PartialTicketTextGenerator textBuilder,
+            TicketReservation reservation,
+            TicketCategory ticketCategory,
+            Supplier&lt;Map&lt;String, List&lt;String&gt;&gt;&gt; ticketAdditionalInfoSupplier) {
 
-<span class="fc" id="L274">        Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="fc" id="L374">        Organization organization = organizationRepository.getById(event.getOrganizationId());</span>
 
-<span class="fc" id="L276">        boolean htmlEmailEnabled = configurationManager.getFor(ConfigurationKeys.ENABLE_HTML_EMAILS, event.getConfigurationLevel())</span>
-<span class="fc" id="L277">            .getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L376">        boolean htmlEmailEnabled = configurationManager</span>
+<span class="fc" id="L377">                .getFor(ConfigurationKeys.ENABLE_HTML_EMAILS, event.getConfigurationLevel())</span>
+<span class="fc" id="L378">                .getValueAsBooleanOrDefault();</span>
         // pre-generate template in order to reuse model
-<span class="fc" id="L279">        var renderedTemplate = textBuilder.generate(ticket);</span>
+<span class="fc" id="L380">        var renderedTemplate = textBuilder.generate(ticket);</span>
 
-<span class="fc" id="L281">        List&lt;Mailer.Attachment&gt; attachments = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L282" title="All 2 branches covered.">        if(EventUtil.isAccessOnline(ticketCategory, event)) { // generate only calendar invitation</span>
-<span class="fc" id="L283">            var attachmentModel = new HashMap&lt;String, String&gt;();</span>
+<span class="fc" id="L382">        List&lt;Mailer.Attachment&gt; attachments = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L383" title="All 2 branches covered.">        if (EventUtil.isAccessOnline(ticketCategory, event)) { // generate only calendar invitation</span>
+<span class="fc" id="L384">            var attachmentModel = new HashMap&lt;String, String&gt;();</span>
             // attachment model expects non-string properties to be JSON, so we convert them
-<span class="fc" id="L285">            renderedTemplate.getSrcModel().forEach((k, v) -&gt; {</span>
-<span class="fc bfc" id="L286" title="All 2 branches covered.">                if(v instanceof String string) {</span>
-<span class="fc" id="L287">                    attachmentModel.put(k, string);</span>
+<span class="fc" id="L386">            renderedTemplate.getSrcModel().forEach((k, v) -&gt; {</span>
+<span class="fc bfc" id="L387" title="All 2 branches covered.">                if (v instanceof String string) {</span>
+<span class="fc" id="L388">                    attachmentModel.put(k, string);</span>
                 } else {
-<span class="fc" id="L289">                    attachmentModel.put(k, Json.toJson(v));</span>
+<span class="fc" id="L390">                    attachmentModel.put(k, Json.toJson(v));</span>
                 }
-<span class="fc" id="L291">            });</span>
-<span class="fc" id="L292">            attachments.add(CustomMessageManager.generateCalendarAttachmentForOnlineEvent(attachmentModel));</span>
-<span class="fc" id="L293">        } else {</span>
-<span class="fc" id="L294">            attachments.add(CustomMessageManager.generateTicketAttachment(ticket, reservation, ticketCategory, organization, htmlEmailEnabled));</span>
+<span class="fc" id="L392">            });</span>
+<span class="fc" id="L393">            attachments.add(CustomMessageManager.generateCalendarAttachmentForOnlineEvent(attachmentModel));</span>
+<span class="fc" id="L394">        } else {</span>
+<span class="fc" id="L395">            attachments.add(CustomMessageManager.generateTicketAttachment(</span>
+                    ticket, reservation, ticketCategory, organization, htmlEmailEnabled));
         }
 
-<span class="fc" id="L297">        String displayName = event.getDisplayName();</span>
-<span class="fc" id="L298">        String subject = messageSourceManager.getMessageSourceFor(event).getMessage(&quot;ticket-email-subject&quot;, new Object[]{displayName}, locale);</span>
-<span class="fc" id="L299">        String encodedAttachments = encodeAttachments(attachments.toArray(new Mailer.Attachment[0]));</span>
-<span class="fc" id="L300">        String checksum = calculateChecksum(ticket.getEmail(), encodedAttachments, subject, renderedTemplate);</span>
-<span class="fc" id="L301">        String recipient = ticket.getEmail();</span>
-<span class="fc" id="L302">        String cc = getCCForTicket(ticket);</span>
+<span class="fc" id="L399">        String displayName = event.getDisplayName();</span>
+<span class="fc" id="L400">        String subject = messageSourceManager</span>
+<span class="fc" id="L401">                .getMessageSourceFor(event)</span>
+<span class="fc" id="L402">                .getMessage(&quot;ticket-email-subject&quot;, new Object[] {displayName}, locale);</span>
+<span class="fc" id="L403">        String encodedAttachments = encodeAttachments(attachments.toArray(new Mailer.Attachment[0]));</span>
+<span class="fc" id="L404">        String checksum = calculateChecksum(ticket.getEmail(), encodedAttachments, subject, renderedTemplate);</span>
+<span class="fc" id="L405">        String recipient = ticket.getEmail();</span>
+<span class="fc" id="L406">        String cc = getCCForTicket(ticket);</span>
 
-<span class="fc" id="L304">        tx.execute(status -&gt; {</span>
-<span class="fc" id="L305">            emailMessageRepository.findIdByEventIdAndChecksum(event.getId(), checksum).ifPresentOrElse(</span>
-                // see issue #967
-<span class="fc" id="L307">                id -&gt; emailMessageRepository.updateStatusToWaitingWithHtml(id, renderedTemplate.getHtmlPart()),</span>
-<span class="fc" id="L308">                () -&gt; emailMessageRepository.insert(event.getId(), null, reservation.getId(), recipient, cc, subject, renderedTemplate.getTextPart(), renderedTemplate.getHtmlPart(), encodedAttachments, checksum, ZonedDateTime.now(clockProvider.getClock()), event.getOrganizationId())</span>
-            );
-<span class="fc" id="L310">            return null;</span>
+<span class="fc" id="L408">        tx.execute(status -&gt; {</span>
+<span class="fc" id="L409">            emailMessageRepository</span>
+<span class="fc" id="L410">                    .findIdByEventIdAndChecksum(event.getId(), checksum)</span>
+<span class="fc" id="L411">                    .ifPresentOrElse(</span>
+                            // see issue #967
+<span class="fc" id="L413">                            id -&gt; emailMessageRepository.updateStatusToWaitingWithHtml(</span>
+<span class="fc" id="L414">                                    id, renderedTemplate.getHtmlPart()),</span>
+<span class="fc" id="L415">                            () -&gt; emailMessageRepository.insert(</span>
+<span class="fc" id="L416">                                    event.getId(),</span>
+                                    null,
+<span class="fc" id="L418">                                    reservation.getId(),</span>
+                                    recipient,
+                                    cc,
+                                    subject,
+<span class="fc" id="L422">                                    renderedTemplate.getTextPart(),</span>
+<span class="fc" id="L423">                                    renderedTemplate.getHtmlPart(),</span>
+                                    encodedAttachments,
+                                    checksum,
+<span class="fc" id="L426">                                    ZonedDateTime.now(clockProvider.getClock()),</span>
+<span class="fc" id="L427">                                    event.getOrganizationId()));</span>
+<span class="fc" id="L428">            return null;</span>
         });
-<span class="fc" id="L312">    }</span>
+<span class="fc" id="L430">    }</span>
 
     private String getCCForTicket(Ticket ticket) {
-<span class="fc" id="L315">        var metadata = ticketRepository.getTicketMetadata(ticket.getId());</span>
-<span class="pc bpc" id="L316" title="1 of 2 branches missed.">        if (metadata != null) {</span>
-<span class="fc" id="L317">            var key = metadata.getMetadataForKey(TicketMetadataContainer.GENERAL);</span>
-<span class="fc bfc" id="L318" title="All 2 branches covered.">            if (key.isEmpty()) {</span>
-<span class="fc" id="L319">                return null;</span>
+<span class="fc" id="L433">        var metadata = ticketRepository.getTicketMetadata(ticket.getId());</span>
+<span class="pc bpc" id="L434" title="1 of 2 branches missed.">        if (metadata != null) {</span>
+<span class="fc" id="L435">            var key = metadata.getMetadataForKey(TicketMetadataContainer.GENERAL);</span>
+<span class="fc bfc" id="L436" title="All 2 branches covered.">            if (key.isEmpty()) {</span>
+<span class="fc" id="L437">                return null;</span>
             }
-<span class="fc" id="L321">            return key.get().getAttributes().get(SEND_TICKET_CC);</span>
+<span class="fc" id="L439">            return key.get().getAttributes().get(SEND_TICKET_CC);</span>
         }
-<span class="nc" id="L323">        return null;</span>
+<span class="nc" id="L441">        return null;</span>
     }
 
-    public void sendSimpleEmail(PurchaseContext purchaseContext, String reservationId, String recipient, List&lt;String&gt; cc, String subject, TemplateGenerator textBuilder) {
-<span class="fc" id="L327">        sendSimpleEmail(purchaseContext, reservationId, recipient, cc, subject, textBuilder, Collections.emptyList());</span>
-<span class="fc" id="L328">    }</span>
+    public void sendSimpleEmail(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            String recipient,
+            List&lt;String&gt; cc,
+            String subject,
+            TemplateGenerator textBuilder) {
+<span class="fc" id="L451">        sendSimpleEmail(purchaseContext, reservationId, recipient, cc, subject, textBuilder, Collections.emptyList());</span>
+<span class="fc" id="L452">    }</span>
 
     public List&lt;String&gt; getCCForEventOrganizer(PurchaseContext purchaseContext) {
-<span class="fc" id="L331">        var systemNotificationCC = configurationManager.getFor(ConfigurationKeys.MAIL_SYSTEM_NOTIFICATION_CC, purchaseContext.getConfigurationLevel()).getValueOrDefault(&quot;&quot;);</span>
-<span class="fc" id="L332">        return Stream.of(StringUtils.split(systemNotificationCC, ','))</span>
-<span class="fc" id="L333">            .filter(Objects::nonNull)</span>
-<span class="fc" id="L334">            .map(String::trim)</span>
-<span class="fc" id="L335">            .filter(StringUtils::isNotBlank)</span>
-<span class="fc" id="L336">            .collect(Collectors.toList());</span>
+<span class="fc" id="L455">        var systemNotificationCC = configurationManager</span>
+<span class="fc" id="L456">                .getFor(ConfigurationKeys.MAIL_SYSTEM_NOTIFICATION_CC, purchaseContext.getConfigurationLevel())</span>
+<span class="fc" id="L457">                .getValueOrDefault(&quot;&quot;);</span>
+<span class="fc" id="L458">        return Stream.of(StringUtils.split(systemNotificationCC, ','))</span>
+<span class="fc" id="L459">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L460">                .map(String::trim)</span>
+<span class="fc" id="L461">                .filter(StringUtils::isNotBlank)</span>
+<span class="fc" id="L462">                .collect(Collectors.toList());</span>
     }
 
-    public void sendSimpleEmail(PurchaseContext event, String reservationId, String recipient, String subject, TemplateGenerator textBuilder) {
-<span class="fc" id="L340">        sendSimpleEmail(event, reservationId, recipient, Collections.emptyList(), subject, textBuilder);</span>
-<span class="fc" id="L341">    }</span>
+    public void sendSimpleEmail(
+            PurchaseContext event,
+            String reservationId,
+            String recipient,
+            String subject,
+            TemplateGenerator textBuilder) {
+<span class="fc" id="L471">        sendSimpleEmail(event, reservationId, recipient, Collections.emptyList(), subject, textBuilder);</span>
+<span class="fc" id="L472">    }</span>
 
-    public void sendSimpleEmail(PurchaseContext purchaseContext, String reservationId, String recipient, String subject, TemplateGenerator textBuilder, List&lt;Mailer.Attachment&gt; attachments) {
-<span class="fc" id="L344">        sendSimpleEmail(purchaseContext, reservationId, recipient, Collections.emptyList(), subject, textBuilder, attachments);</span>
-<span class="fc" id="L345">    }</span>
+    public void sendSimpleEmail(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            String recipient,
+            String subject,
+            TemplateGenerator textBuilder,
+            List&lt;Mailer.Attachment&gt; attachments) {
+<span class="fc" id="L481">        sendSimpleEmail(</span>
+<span class="fc" id="L482">                purchaseContext, reservationId, recipient, Collections.emptyList(), subject, textBuilder, attachments);</span>
+<span class="fc" id="L483">    }</span>
 
-    public void sendSimpleEmail(PurchaseContext purchaseContext, String reservationId, String recipient, List&lt;String&gt; cc, String subject, TemplateGenerator textBuilder, List&lt;Mailer.Attachment&gt; attachments) {
+    public void sendSimpleEmail(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            String recipient,
+            List&lt;String&gt; cc,
+            String subject,
+            TemplateGenerator textBuilder,
+            List&lt;Mailer.Attachment&gt; attachments) {
 
-<span class="pc bpc" id="L349" title="1 of 2 branches missed.">        if (recipient == null) {</span>
-<span class="nc" id="L350">            log.warn(&quot;No recipient provided, mail for reservation id {} with subject {} will be ignored&quot;, removeTabsAndNewlines(reservationId), removeTabsAndNewlines(subject));</span>
-<span class="nc" id="L351">            return;</span>
+<span class="pc bpc" id="L494" title="1 of 2 branches missed.">        if (recipient == null) {</span>
+<span class="nc" id="L495">            log.warn(</span>
+                    &quot;No recipient provided, mail for reservation id {} with subject {} will be ignored&quot;,
+<span class="nc" id="L497">                    removeTabsAndNewlines(reservationId),</span>
+<span class="nc" id="L498">                    removeTabsAndNewlines(subject));</span>
+<span class="nc" id="L499">            return;</span>
         }
 
-<span class="fc bfc" id="L354" title="All 2 branches covered.">        String encodedAttachments = attachments.isEmpty() ? null : encodeAttachments(attachments.toArray(new Mailer.Attachment[0]));</span>
-<span class="fc" id="L355">        String encodedCC = Json.toJson(cc);</span>
+        String encodedAttachments =
+<span class="fc bfc" id="L503" title="All 2 branches covered.">                attachments.isEmpty() ? null : encodeAttachments(attachments.toArray(new Mailer.Attachment[0]));</span>
+<span class="fc" id="L504">        String encodedCC = Json.toJson(cc);</span>
 
-<span class="fc" id="L357">        var renderedTemplate = textBuilder.generate();</span>
-<span class="fc" id="L358">        String checksum = calculateChecksum(recipient, encodedAttachments, subject, renderedTemplate);</span>
-        //in order to minimize the database size, it is worth checking if there is already another message in the table
-<span class="fc" id="L360">        Optional&lt;Integer&gt; existing = emailMessageRepository.findIdByPurchaseContextAndChecksum(purchaseContext, checksum);</span>
+<span class="fc" id="L506">        var renderedTemplate = textBuilder.generate();</span>
+<span class="fc" id="L507">        String checksum = calculateChecksum(recipient, encodedAttachments, subject, renderedTemplate);</span>
+        // in order to minimize the database size, it is worth checking if there is already another message in the table
+<span class="fc" id="L509">        Optional&lt;Integer&gt; existing =</span>
+<span class="fc" id="L510">                emailMessageRepository.findIdByPurchaseContextAndChecksum(purchaseContext, checksum);</span>
 
-<span class="fc" id="L362">        existing.ifPresentOrElse(id -&gt;</span>
-            //see issue #967
-<span class="fc" id="L364">            emailMessageRepository.updateStatusToWaitingWithHtml(id, renderedTemplate.getHtmlPart())</span>
-            ,
-            () -&gt; {
-<span class="fc" id="L367">                var pair = getEventIdSubscriptionId(purchaseContext);</span>
-<span class="fc" id="L368">                emailMessageRepository.insert(pair.getLeft(), pair.getRight(), reservationId, recipient, encodedCC, subject, renderedTemplate.getTextPart(), renderedTemplate.getHtmlPart(), encodedAttachments, checksum, ZonedDateTime.now(clockProvider.getClock()), purchaseContext.getOrganizationId());</span>
-<span class="fc" id="L369">            });</span>
-<span class="fc" id="L370">    }</span>
+<span class="fc" id="L512">        existing.ifPresentOrElse(</span>
+                id -&gt;
+                        // see issue #967
+<span class="fc" id="L515">                        emailMessageRepository.updateStatusToWaitingWithHtml(id, renderedTemplate.getHtmlPart()),</span>
+                () -&gt; {
+<span class="fc" id="L517">                    var pair = getEventIdSubscriptionId(purchaseContext);</span>
+<span class="fc" id="L518">                    emailMessageRepository.insert(</span>
+<span class="fc" id="L519">                            pair.getLeft(),</span>
+<span class="fc" id="L520">                            pair.getRight(),</span>
+                            reservationId,
+                            recipient,
+                            encodedCC,
+                            subject,
+<span class="fc" id="L525">                            renderedTemplate.getTextPart(),</span>
+<span class="fc" id="L526">                            renderedTemplate.getHtmlPart(),</span>
+                            encodedAttachments,
+                            checksum,
+<span class="fc" id="L529">                            ZonedDateTime.now(clockProvider.getClock()),</span>
+<span class="fc" id="L530">                            purchaseContext.getOrganizationId());</span>
+<span class="fc" id="L531">                });</span>
+<span class="fc" id="L532">    }</span>
 
     private static Pair&lt;Integer, UUID&gt; getEventIdSubscriptionId(PurchaseContext purchaseContext) {
-<span class="fc bfc" id="L373" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="fc" id="L374">            return Pair.of(((Event)purchaseContext).getId(), null);</span>
+<span class="fc bfc" id="L535" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L536">            return Pair.of(((Event) purchaseContext).getId(), null);</span>
         } else {
-<span class="fc" id="L376">            return Pair.of(null, ((SubscriptionDescriptor) purchaseContext).getId());</span>
+<span class="fc" id="L538">            return Pair.of(null, ((SubscriptionDescriptor) purchaseContext).getId());</span>
         }
     }
 
-    public Pair&lt;Integer, List&lt;LightweightMailMessage&gt;&gt; loadAllMessagesForPurchaseContext(PurchaseContext purchaseContext, Integer page, String search) {
-<span class="fc" id="L381">        final int pageSize = 50;</span>
-<span class="pc bpc" id="L382" title="1 of 2 branches missed.">        int offset = page == null ? 0 : page * pageSize;</span>
-<span class="fc" id="L383">        String toSearch = StringUtils.trimToNull(search);</span>
-<span class="pc bpc" id="L384" title="1 of 2 branches missed.">        toSearch = toSearch == null ? null : (&quot;%&quot; + toSearch + &quot;%&quot;);</span>
-<span class="pc bpc" id="L385" title="1 of 2 branches missed.">        if(purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="fc" id="L386">            int eventId = ((Event) purchaseContext).getId();</span>
-<span class="fc" id="L387">            return Pair.of(emailMessageRepository.countFindByEventId(eventId, toSearch), emailMessageRepository.findByEventId(eventId, offset, pageSize, toSearch));</span>
+    public Pair&lt;Integer, List&lt;LightweightMailMessage&gt;&gt; loadAllMessagesForPurchaseContext(
+            PurchaseContext purchaseContext, Integer page, String search) {
+<span class="fc" id="L544">        final int pageSize = 50;</span>
+<span class="pc bpc" id="L545" title="1 of 2 branches missed.">        int offset = page == null ? 0 : page * pageSize;</span>
+<span class="fc" id="L546">        String toSearch = StringUtils.trimToNull(search);</span>
+<span class="pc bpc" id="L547" title="1 of 2 branches missed.">        toSearch = toSearch == null ? null : (&quot;%&quot; + toSearch + &quot;%&quot;);</span>
+<span class="pc bpc" id="L548" title="1 of 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="fc" id="L549">            int eventId = ((Event) purchaseContext).getId();</span>
+<span class="fc" id="L550">            return Pair.of(</span>
+<span class="fc" id="L551">                    emailMessageRepository.countFindByEventId(eventId, toSearch),</span>
+<span class="fc" id="L552">                    emailMessageRepository.findByEventId(eventId, offset, pageSize, toSearch));</span>
         } else {
-<span class="nc" id="L389">            var subscriptionDescriptorId = ((SubscriptionDescriptor)purchaseContext).getId();</span>
-<span class="nc" id="L390">            return Pair.of(emailMessageRepository.countFindBySubscriptionDescriptorId(subscriptionDescriptorId, toSearch), emailMessageRepository.findBySubscriptionDescriptorId(subscriptionDescriptorId, offset, pageSize, toSearch));</span>
+<span class="nc" id="L554">            var subscriptionDescriptorId = ((SubscriptionDescriptor) purchaseContext).getId();</span>
+<span class="nc" id="L555">            return Pair.of(</span>
+<span class="nc" id="L556">                    emailMessageRepository.countFindBySubscriptionDescriptorId(subscriptionDescriptorId, toSearch),</span>
+<span class="nc" id="L557">                    emailMessageRepository.findBySubscriptionDescriptorId(</span>
+                            subscriptionDescriptorId, offset, pageSize, toSearch));
         }
     }
 
-    public List&lt;LightweightMailMessage&gt; loadAllMessagesForReservationId(PurchaseContext purchaseContext, String reservationId) {
-<span class="fc" id="L395">        return emailMessageRepository.findByPurchaseContextAndReservationId(purchaseContext, reservationId);</span>
+    public List&lt;LightweightMailMessage&gt; loadAllMessagesForReservationId(
+            PurchaseContext purchaseContext, String reservationId) {
+<span class="fc" id="L564">        return emailMessageRepository.findByPurchaseContextAndReservationId(purchaseContext, reservationId);</span>
     }
 
-    public Optional&lt;LightweightMailMessage&gt; loadSingleMessageForPurchaseContext(PurchaseContext purchaseContext, int messageId) {
-<span class="nc bnc" id="L399" title="All 2 branches missed.">        if(purchaseContext.ofType(PurchaseContextType.event)) {</span>
-<span class="nc" id="L400">            return emailMessageRepository.findByEventIdAndMessageId(((Event)purchaseContext).getId(), messageId);</span>
+    public Optional&lt;LightweightMailMessage&gt; loadSingleMessageForPurchaseContext(
+            PurchaseContext purchaseContext, int messageId) {
+<span class="nc bnc" id="L569" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="nc" id="L570">            return emailMessageRepository.findByEventIdAndMessageId(((Event) purchaseContext).getId(), messageId);</span>
         } else {
-<span class="nc" id="L402">            return emailMessageRepository.findBySubscriptionDescriptorIdAndMessageId(((SubscriptionDescriptor)purchaseContext).getId(), messageId);</span>
+<span class="nc" id="L572">            return emailMessageRepository.findBySubscriptionDescriptorIdAndMessageId(</span>
+<span class="nc" id="L573">                    ((SubscriptionDescriptor) purchaseContext).getId(), messageId);</span>
         }
     }
 
     @Transactional
     public int sendWaitingMessages() {
-<span class="fc" id="L408">        emailMessageRepository.setToRetryOldInProcess(ZonedDateTime.now(clockProvider.getClock()).minusHours(1));</span>
-<span class="fc" id="L409">        return emailMessageRepository.loadAllWaitingForProcessing().stream()</span>
-<span class="fc" id="L410">            .collect(Collectors.groupingBy(NotificationManager::purchaseContextCacheKey))</span>
-<span class="fc" id="L411">            .entrySet().stream()</span>
-<span class="fc" id="L412">            .flatMapToInt(entry -&gt; {</span>
-<span class="fc" id="L413">                var splitKey = entry.getKey().split(&quot;//&quot;);</span>
-<span class="fc" id="L414">                PurchaseContext purchaseContext = purchaseContextManager.findById(PurchaseContextType.from(splitKey[0]), splitKey[1]).orElseThrow();</span>
-                // TODO we can try to send emails in batches, if the provider supports it.
-<span class="fc" id="L416">                return entry.getValue().stream().mapToInt(message -&gt; processMessage(message, purchaseContext));</span>
-<span class="fc" id="L417">            }).sum();</span>
+<span class="fc" id="L579">        emailMessageRepository.setToRetryOldInProcess(</span>
+<span class="fc" id="L580">                ZonedDateTime.now(clockProvider.getClock()).minusHours(1));</span>
+<span class="fc" id="L581">        return emailMessageRepository.loadAllWaitingForProcessing().stream()</span>
+<span class="fc" id="L582">                .collect(Collectors.groupingBy(NotificationManager::purchaseContextCacheKey))</span>
+<span class="fc" id="L583">                .entrySet()</span>
+<span class="fc" id="L584">                .stream()</span>
+<span class="fc" id="L585">                .flatMapToInt(entry -&gt; {</span>
+<span class="fc" id="L586">                    var splitKey = entry.getKey().split(&quot;//&quot;);</span>
+<span class="fc" id="L587">                    PurchaseContext purchaseContext = purchaseContextManager</span>
+<span class="fc" id="L588">                            .findById(PurchaseContextType.from(splitKey[0]), splitKey[1])</span>
+<span class="fc" id="L589">                            .orElseThrow();</span>
+                    // TODO we can try to send emails in batches, if the provider supports it.
+<span class="fc" id="L591">                    return entry.getValue().stream().mapToInt(message -&gt; processMessage(message, purchaseContext));</span>
+                })
+<span class="fc" id="L593">                .sum();</span>
     }
 
     private int processMessage(EmailMessage message, PurchaseContext purchaseContext) {
-<span class="fc" id="L421">        int messageId = message.getId();</span>
-<span class="fc" id="L422">        ConfigurationLevel configurationLevel = ConfigurationLevel.purchaseContext(purchaseContext);</span>
-<span class="pc bpc" id="L423" title="1 of 2 branches missed.">        if(message.getAttempts() &gt;= configurationManager.getFor(ConfigurationKeys.MAIL_ATTEMPTS_COUNT, configurationLevel).getValueAsIntOrDefault(10)) {</span>
-<span class="nc" id="L424">            tx.execute(status -&gt; emailMessageRepository.updateStatusAndAttempts(messageId, ERROR.name(), message.getAttempts(), Arrays.asList(IN_PROCESS.name(), WAITING.name(), RETRY.name())));</span>
-<span class="nc" id="L425">            log.warn(&quot;Message with id {} will be discarded&quot;, messageId);</span>
-<span class="nc" id="L426">            return 0;</span>
+<span class="fc" id="L597">        int messageId = message.getId();</span>
+<span class="fc" id="L598">        ConfigurationLevel configurationLevel = ConfigurationLevel.purchaseContext(purchaseContext);</span>
+<span class="fc" id="L599">        if (message.getAttempts()</span>
+                &gt;= configurationManager
+<span class="fc" id="L601">                        .getFor(ConfigurationKeys.MAIL_ATTEMPTS_COUNT, configurationLevel)</span>
+<span class="pc bpc" id="L602" title="1 of 2 branches missed.">                        .getValueAsIntOrDefault(10)) {</span>
+<span class="nc" id="L603">            tx.execute(status -&gt; emailMessageRepository.updateStatusAndAttempts(</span>
+                    messageId,
+<span class="nc" id="L605">                    ERROR.name(),</span>
+<span class="nc" id="L606">                    message.getAttempts(),</span>
+<span class="nc" id="L607">                    Arrays.asList(IN_PROCESS.name(), WAITING.name(), RETRY.name())));</span>
+<span class="nc" id="L608">            log.warn(&quot;Message with id {} will be discarded&quot;, messageId);</span>
+<span class="nc" id="L609">            return 0;</span>
         }
 
         try {
-<span class="fc" id="L430">            int result = Optional.ofNullable(tx.execute(status -&gt; emailMessageRepository.updateStatus(messageId, message.getChecksum(), IN_PROCESS.name(), Arrays.asList(WAITING.name(), RETRY.name())))).orElse(0);</span>
-<span class="pc bpc" id="L431" title="1 of 2 branches missed.">            if(result &gt; 0) {</span>
-<span class="fc" id="L432">                return Optional.ofNullable(tx.execute(status -&gt; {</span>
-<span class="fc" id="L433">                    sendMessage(purchaseContext, message);</span>
-<span class="fc" id="L434">                    return 1;</span>
-<span class="fc" id="L435">                })).orElse(0);</span>
+<span class="fc" id="L613">            int result = Optional.ofNullable(tx.execute(status -&gt; emailMessageRepository.updateStatus(</span>
+                            messageId,
+<span class="fc" id="L615">                            message.getChecksum(),</span>
+<span class="fc" id="L616">                            IN_PROCESS.name(),</span>
+<span class="fc" id="L617">                            Arrays.asList(WAITING.name(), RETRY.name()))))</span>
+<span class="fc" id="L618">                    .orElse(0);</span>
+<span class="pc bpc" id="L619" title="1 of 2 branches missed.">            if (result &gt; 0) {</span>
+<span class="fc" id="L620">                return Optional.ofNullable(tx.execute(status -&gt; {</span>
+<span class="fc" id="L621">                            sendMessage(purchaseContext, message);</span>
+<span class="fc" id="L622">                            return 1;</span>
+                        }))
+<span class="fc" id="L624">                        .orElse(0);</span>
             } else {
-<span class="nc" id="L437">                log.debug(&quot;no messages have been updated on DB for the following criteria: id: {}, checksum: {}&quot;, messageId, message.getChecksum());</span>
+<span class="nc" id="L626">                log.debug(</span>
+                        &quot;no messages have been updated on DB for the following criteria: id: {}, checksum: {}&quot;,
+<span class="nc" id="L628">                        messageId,</span>
+<span class="nc" id="L629">                        message.getChecksum());</span>
             }
-<span class="nc" id="L439">        } catch(Exception e) {</span>
-<span class="nc" id="L440">            tx.execute(status -&gt; emailMessageRepository.updateStatusAndAttempts(message.getId(), RETRY.name(), ZonedDateTime.now(clockProvider.getClock()).plusMinutes(message.getAttempts() + 1L), message.getAttempts() + 1, Arrays.asList(IN_PROCESS.name(), WAITING.name(), RETRY.name())));</span>
-<span class="nc" id="L441">            log.warn(&quot;could not send message: &quot;,e);</span>
-<span class="nc" id="L442">        }</span>
-<span class="nc" id="L443">        return 0;</span>
+<span class="nc" id="L631">        } catch (Exception e) {</span>
+<span class="nc" id="L632">            tx.execute(status -&gt; emailMessageRepository.updateStatusAndAttempts(</span>
+<span class="nc" id="L633">                    message.getId(),</span>
+<span class="nc" id="L634">                    RETRY.name(),</span>
+<span class="nc" id="L635">                    ZonedDateTime.now(clockProvider.getClock()).plusMinutes(message.getAttempts() + 1L),</span>
+<span class="nc" id="L636">                    message.getAttempts() + 1,</span>
+<span class="nc" id="L637">                    Arrays.asList(IN_PROCESS.name(), WAITING.name(), RETRY.name())));</span>
+<span class="nc" id="L638">            log.warn(&quot;could not send message: &quot;, e);</span>
+<span class="nc" id="L639">        }</span>
+<span class="nc" id="L640">        return 0;</span>
     }
 
     private void sendMessage(PurchaseContext purchaseContext, EmailMessage message) {
         // FIXME save the locale of the message, so that we can retrieve its title
-<span class="fc" id="L448">        mailer.send(purchaseContext, purchaseContext.getDisplayName(), message.getRecipient(), message.getCc(), message.getSubject(), message.getMessage(), Optional.ofNullable(message.getHtmlMessage()), decodeAttachments(message.getAttachments()));</span>
-<span class="fc" id="L449">        emailMessageRepository.updateStatusToSent(message.getId(), message.getChecksum(), ZonedDateTime.now(clockProvider.getClock()), Collections.singletonList(IN_PROCESS.name()));</span>
-<span class="fc" id="L450">    }</span>
+<span class="fc" id="L645">        mailer.send(</span>
+                purchaseContext,
+<span class="fc" id="L647">                purchaseContext.getDisplayName(),</span>
+<span class="fc" id="L648">                message.getRecipient(),</span>
+<span class="fc" id="L649">                message.getCc(),</span>
+<span class="fc" id="L650">                message.getSubject(),</span>
+<span class="fc" id="L651">                message.getMessage(),</span>
+<span class="fc" id="L652">                Optional.ofNullable(message.getHtmlMessage()),</span>
+<span class="fc" id="L653">                decodeAttachments(message.getAttachments()));</span>
+<span class="fc" id="L654">        emailMessageRepository.updateStatusToSent(</span>
+<span class="fc" id="L655">                message.getId(),</span>
+<span class="fc" id="L656">                message.getChecksum(),</span>
+<span class="fc" id="L657">                ZonedDateTime.now(clockProvider.getClock()),</span>
+<span class="fc" id="L658">                Collections.singletonList(IN_PROCESS.name()));</span>
+<span class="fc" id="L659">    }</span>
 
     private String encodeAttachments(Mailer.Attachment... files) {
-<span class="fc" id="L453">        return gson.toJson(files);</span>
+<span class="fc" id="L662">        return gson.toJson(files);</span>
     }
 
     private Mailer.Attachment[] decodeAttachments(String input) {
-<span class="fc bfc" id="L457" title="All 2 branches covered.">        if(StringUtils.isBlank(input)) {</span>
-<span class="fc" id="L458">            return new Mailer.Attachment[0];</span>
+<span class="fc bfc" id="L666" title="All 2 branches covered.">        if (StringUtils.isBlank(input)) {</span>
+<span class="fc" id="L667">            return new Mailer.Attachment[0];</span>
         }
-<span class="fc" id="L460">        Mailer.Attachment[] attachments = gson.fromJson(input, Mailer.Attachment[].class);</span>
+<span class="fc" id="L669">        Mailer.Attachment[] attachments = gson.fromJson(input, Mailer.Attachment[].class);</span>
 
-<span class="fc" id="L462">        Set&lt;Mailer.AttachmentIdentifier&gt; alreadyPresents = Arrays.stream(attachments).map(Mailer.Attachment::getIdentifier).filter(Objects::nonNull).collect(Collectors.toSet());</span>
+<span class="fc" id="L671">        Set&lt;Mailer.AttachmentIdentifier&gt; alreadyPresents = Arrays.stream(attachments)</span>
+<span class="fc" id="L672">                .map(Mailer.Attachment::getIdentifier)</span>
+<span class="fc" id="L673">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L674">                .collect(Collectors.toSet());</span>
         //
-<span class="fc" id="L464">        List&lt;Mailer.Attachment&gt; toReinterpret = Arrays.stream(attachments)</span>
-<span class="pc bpc" id="L465" title="1 of 4 branches missed.">            .filter(attachment -&gt; attachment.getIdentifier() != null &amp;&amp; !attachment.getIdentifier().reinterpretAs().isEmpty())</span>
-<span class="fc" id="L466">            .collect(Collectors.toList());</span>
+<span class="fc" id="L676">        List&lt;Mailer.Attachment&gt; toReinterpret = Arrays.stream(attachments)</span>
+<span class="pc bpc" id="L677" title="1 of 2 branches missed.">                .filter(attachment -&gt; attachment.getIdentifier() != null</span>
+<span class="fc bfc" id="L678" title="All 2 branches covered.">                        &amp;&amp; !attachment.getIdentifier().reinterpretAs().isEmpty())</span>
+<span class="fc" id="L679">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L468">        List&lt;Mailer.Attachment&gt; generated = Arrays.stream(attachments)</span>
-<span class="fc" id="L469">            .map(attachment -&gt; this.transformAttachment(attachment, attachment.getIdentifier()))</span>
-<span class="fc" id="L470">            .filter(Objects::nonNull)</span>
-<span class="fc" id="L471">            .collect(Collectors.toList());</span>
+<span class="fc" id="L681">        List&lt;Mailer.Attachment&gt; generated = Arrays.stream(attachments)</span>
+<span class="fc" id="L682">                .map(attachment -&gt; this.transformAttachment(attachment, attachment.getIdentifier()))</span>
+<span class="fc" id="L683">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L684">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L473">        List&lt;Mailer.Attachment&gt; reinterpreted = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L474">        toReinterpret.forEach(attachment -&gt;</span>
-<span class="fc" id="L475">            attachment.getIdentifier().reinterpretAs().stream()</span>
-<span class="pc bpc" id="L476" title="1 of 2 branches missed.">                .filter(identifier -&gt; !alreadyPresents.contains(identifier))</span>
-<span class="fc" id="L477">                .forEach(identifier -&gt; reinterpreted.add(this.transformAttachment(attachment, identifier))</span>
-            )
-        );
+<span class="fc" id="L686">        List&lt;Mailer.Attachment&gt; reinterpreted = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L687">        toReinterpret.forEach(attachment -&gt; attachment.getIdentifier().reinterpretAs().stream()</span>
+<span class="pc bpc" id="L688" title="1 of 2 branches missed.">                .filter(identifier -&gt; !alreadyPresents.contains(identifier))</span>
+<span class="fc" id="L689">                .forEach(identifier -&gt; reinterpreted.add(this.transformAttachment(attachment, identifier))));</span>
 
-<span class="fc" id="L481">        generated.addAll(reinterpreted.stream().filter(Objects::nonNull).collect(Collectors.toList()));</span>
-<span class="fc" id="L482">        return generated.toArray(new Mailer.Attachment[0]);</span>
+<span class="fc" id="L691">        generated.addAll(reinterpreted.stream().filter(Objects::nonNull).collect(Collectors.toList()));</span>
+<span class="fc" id="L692">        return generated.toArray(new Mailer.Attachment[0]);</span>
     }
 
-    private Mailer.Attachment transformAttachment(Mailer.Attachment attachment, Mailer.AttachmentIdentifier identifier) {
-<span class="pc bpc" id="L486" title="1 of 2 branches missed.">        if(identifier != null) {</span>
-<span class="fc" id="L487">            byte[] result = attachmentTransformer.get(identifier).apply(attachment.getModel());</span>
-<span class="fc bfc" id="L488" title="All 2 branches covered.">            return result == null ? null : new Mailer.Attachment(identifier.fileName(attachment.getFilename()), result, identifier.contentType(attachment.getContentType()), null, null);</span>
+    private Mailer.Attachment transformAttachment(
+            Mailer.Attachment attachment, Mailer.AttachmentIdentifier identifier) {
+<span class="pc bpc" id="L697" title="1 of 2 branches missed.">        if (identifier != null) {</span>
+<span class="fc" id="L698">            byte[] result = attachmentTransformer.get(identifier).apply(attachment.getModel());</span>
+<span class="fc bfc" id="L699" title="All 2 branches covered.">            return result == null</span>
+<span class="fc" id="L700">                    ? null</span>
+<span class="fc" id="L701">                    : new Mailer.Attachment(</span>
+<span class="fc" id="L702">                            identifier.fileName(attachment.getFilename()),</span>
+                            result,
+<span class="fc" id="L704">                            identifier.contentType(attachment.getContentType()),</span>
+                            null,
+                            null);
         } else {
-<span class="nc" id="L490">            return attachment;</span>
+<span class="nc" id="L708">            return attachment;</span>
         }
     }
 
-    private static String calculateChecksum(String recipient, String attachments, String subject, RenderedTemplate renderedTemplate)  {
+    private static String calculateChecksum(
+            String recipient, String attachments, String subject, RenderedTemplate renderedTemplate) {
         try {
-<span class="fc" id="L496">            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
-<span class="fc" id="L497">            digest.update(recipient.getBytes(StandardCharsets.UTF_8));</span>
-<span class="fc" id="L498">            digest.update(subject.getBytes(StandardCharsets.UTF_8));</span>
-<span class="fc" id="L499">            Optional.ofNullable(attachments).ifPresent(v -&gt; digest.update(v.getBytes(StandardCharsets.UTF_8)));</span>
-<span class="fc" id="L500">            digest.update(renderedTemplate.getTextPart().getBytes(StandardCharsets.UTF_8));</span>
-<span class="fc bfc" id="L501" title="All 2 branches covered.">            if(renderedTemplate.isMultipart()) {</span>
-<span class="fc" id="L502">                digest.update(renderedTemplate.getHtmlPart().getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L715">            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc" id="L716">            digest.update(recipient.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L717">            digest.update(subject.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L718">            Optional.ofNullable(attachments).ifPresent(v -&gt; digest.update(v.getBytes(StandardCharsets.UTF_8)));</span>
+<span class="fc" id="L719">            digest.update(renderedTemplate.getTextPart().getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc bfc" id="L720" title="All 2 branches covered.">            if (renderedTemplate.isMultipart()) {</span>
+<span class="fc" id="L721">                digest.update(renderedTemplate.getHtmlPart().getBytes(StandardCharsets.UTF_8));</span>
             }
-<span class="fc" id="L504">            return new String(Hex.encode(digest.digest()));</span>
-<span class="nc" id="L505">        } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L506">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L723">            return new String(Hex.encode(digest.digest()));</span>
+<span class="nc" id="L724">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L725">            throw new IllegalStateException(e);</span>
         }
     }
 
-    private static final class AttachmentConverter implements JsonSerializer&lt;Mailer.Attachment&gt;, JsonDeserializer&lt;Mailer.Attachment&gt; {
+    private static final class AttachmentConverter
+            implements JsonSerializer&lt;Mailer.Attachment&gt;, JsonDeserializer&lt;Mailer.Attachment&gt; {
 
         private static final String SOURCE = &quot;source&quot;;
         private static final String IDENTIFIER = &quot;identifier&quot;;
@@ -517,9 +737,12 @@ public class NotificationManager {
         public JsonElement serialize(Mailer.Attachment src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
             obj.addProperty(&quot;filename&quot;, src.getFilename());
-            obj.addProperty(SOURCE, src.getSource() != null ? Base64.getEncoder().encodeToString(src.getSource()) : null);
+            obj.addProperty(
+                    SOURCE, src.getSource() != null ? Base64.getEncoder().encodeToString(src.getSource()) : null);
             obj.addProperty(&quot;contentType&quot;, src.getContentType());
-            obj.addProperty(IDENTIFIER, src.getIdentifier() != null ? src.getIdentifier().name() : null);
+            obj.addProperty(
+                    IDENTIFIER,
+                    src.getIdentifier() != null ? src.getIdentifier().name() : null);
             obj.addProperty(MODEL, src.getModel() != null ? Json.toJson(src.getModel()) : null);
             return obj;
         }
@@ -528,53 +751,65 @@ public class NotificationManager {
         public Mailer.Attachment deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
             JsonObject jsonObject = json.getAsJsonObject();
             String filename = jsonObject.getAsJsonPrimitive(&quot;filename&quot;).getAsString();
-            byte[] source =  jsonObject.has(SOURCE) ? Base64.getDecoder().decode(jsonObject.getAsJsonPrimitive(SOURCE).getAsString()) : null;
+            byte[] source = jsonObject.has(SOURCE)
+                    ? Base64.getDecoder()
+                            .decode(jsonObject.getAsJsonPrimitive(SOURCE).getAsString())
+                    : null;
             String contentType = jsonObject.getAsJsonPrimitive(&quot;contentType&quot;).getAsString();
-            Mailer.AttachmentIdentifier identifier =  jsonObject.has(IDENTIFIER) ? Mailer.AttachmentIdentifier.valueOf(jsonObject.getAsJsonPrimitive(IDENTIFIER).getAsString()) : null;
-            Map&lt;String, String&gt; model = jsonObject.has(MODEL)  ? Json.fromJson(jsonObject.getAsJsonPrimitive(MODEL).getAsString(), new TypeReference&lt;&gt;() {}) : null;
+            Mailer.AttachmentIdentifier identifier = jsonObject.has(IDENTIFIER)
+                    ? Mailer.AttachmentIdentifier.valueOf(
+                            jsonObject.getAsJsonPrimitive(IDENTIFIER).getAsString())
+                    : null;
+            Map&lt;String, String&gt; model = jsonObject.has(MODEL)
+                    ? Json.fromJson(jsonObject.getAsJsonPrimitive(MODEL).getAsString(), new TypeReference&lt;&gt;() {})
+                    : null;
             return new Mailer.Attachment(filename, source, contentType, model, identifier);
         }
     }
 
-    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; generateSubscriptionPDF(OrganizationRepository organizationRepository,
-                                                                                 ConfigurationManager configurationManager,
-                                                                                 FileUploadManager fileUploadManager,
-                                                                                 TemplateManager templateManager,
-                                                                                 TicketReservationRepository ticketReservationRepository,
-                                                                                 ExtensionManager extensionManager,
-                                                                                 SubscriptionRepository subscriptionRepository,
-                                                                                 PurchaseContextFieldManager purchaseContextFieldManager) {
-<span class="fc" id="L547">        return model -&gt; {</span>
-<span class="nc" id="L548">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="nc" id="L549">            var subscriptionId = UUID.fromString(model.get(&quot;subscriptionId&quot;));</span>
-<span class="nc" id="L550">            var subscription = subscriptionRepository.findSubscriptionById(subscriptionId);</span>
+    private static Function&lt;Map&lt;String, String&gt;, byte[]&gt; generateSubscriptionPDF(
+            OrganizationRepository organizationRepository,
+            ConfigurationManager configurationManager,
+            FileUploadManager fileUploadManager,
+            TemplateManager templateManager,
+            TicketReservationRepository ticketReservationRepository,
+            ExtensionManager extensionManager,
+            SubscriptionRepository subscriptionRepository,
+            PurchaseContextFieldManager purchaseContextFieldManager) {
+<span class="fc" id="L779">        return model -&gt; {</span>
+<span class="nc" id="L780">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L781">            var subscriptionId = UUID.fromString(model.get(&quot;subscriptionId&quot;));</span>
+<span class="nc" id="L782">            var subscription = subscriptionRepository.findSubscriptionById(subscriptionId);</span>
             try {
-<span class="nc" id="L552">                var subscriptionDescriptor = subscriptionRepository.findDescriptorBySubscriptionId(subscriptionId);</span>
-<span class="nc" id="L553">                var reservation = ticketReservationRepository.findReservationById(subscription.getReservationId());</span>
-<span class="nc" id="L554">                Organization organization = organizationRepository.getById(subscriptionDescriptor.getOrganizationId());</span>
-<span class="nc" id="L555">                var metadata = Objects.requireNonNullElseGet(subscriptionRepository.getSubscriptionMetadata(subscription.getId()), SubscriptionMetadata::empty);</span>
-<span class="nc" id="L556">                TemplateProcessor.renderSubscriptionPDF(subscription,</span>
-<span class="nc" id="L557">                    LocaleUtil.forLanguageTag(reservation.getUserLanguage()),</span>
-                    subscriptionDescriptor,
-                    reservation,
-                    metadata,
-                    organization,
-                    templateManager,
-                    fileUploadManager,
-<span class="nc" id="L564">                    configurationManager.getShortReservationID(subscriptionDescriptor, reservation),</span>
-                    baos,
-                    extensionManager,
-                    purchaseContextFieldManager);
-<span class="nc" id="L568">            } catch (IOException e) {</span>
-<span class="nc" id="L569">                log.warn(&quot;was not able to generate subscription pdf for &quot; + subscription.getId(), e);</span>
-<span class="nc" id="L570">            }</span>
-<span class="nc" id="L571">            return baos.toByteArray();</span>
+<span class="nc" id="L784">                var subscriptionDescriptor = subscriptionRepository.findDescriptorBySubscriptionId(subscriptionId);</span>
+<span class="nc" id="L785">                var reservation = ticketReservationRepository.findReservationById(subscription.getReservationId());</span>
+<span class="nc" id="L786">                Organization organization = organizationRepository.getById(subscriptionDescriptor.getOrganizationId());</span>
+<span class="nc" id="L787">                var metadata = Objects.requireNonNullElseGet(</span>
+<span class="nc" id="L788">                        subscriptionRepository.getSubscriptionMetadata(subscription.getId()),</span>
+                        SubscriptionMetadata::empty);
+<span class="nc" id="L790">                TemplateProcessor.renderSubscriptionPDF(</span>
+                        subscription,
+<span class="nc" id="L792">                        LocaleUtil.forLanguageTag(reservation.getUserLanguage()),</span>
+                        subscriptionDescriptor,
+                        reservation,
+                        metadata,
+                        organization,
+                        templateManager,
+                        fileUploadManager,
+<span class="nc" id="L799">                        configurationManager.getShortReservationID(subscriptionDescriptor, reservation),</span>
+                        baos,
+                        extensionManager,
+                        purchaseContextFieldManager);
+<span class="nc" id="L803">            } catch (IOException e) {</span>
+<span class="nc" id="L804">                log.warn(&quot;was not able to generate subscription pdf for &quot; + subscription.getId(), e);</span>
+<span class="nc" id="L805">            }</span>
+<span class="nc" id="L806">            return baos.toByteArray();</span>
         };
     }
 
     private static String purchaseContextCacheKey(EmailMessage message) {
-<span class="fc" id="L576">        return message.getPurchaseContextType() + &quot;//&quot;</span>
-<span class="fc" id="L577">            + requireNonNullElse(message.getEventId(), message.getSubscriptionDescriptorId());</span>
+<span class="fc" id="L811">        return message.getPurchaseContextType() + &quot;//&quot;</span>
+<span class="fc" id="L812">                + requireNonNullElse(message.getEventId(), message.getSubscriptionDescriptorId());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

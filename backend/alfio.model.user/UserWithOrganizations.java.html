@@ -17,29 +17,29 @@
 package alfio.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.experimental.Delegate;
-
 import java.beans.ConstructorProperties;
 import java.util.List;
-
+import lombok.experimental.Delegate;
 
 public class UserWithOrganizations {
     @Delegate
     @JsonIgnore
     private final User user;
+
     private final List&lt;Organization&gt; memberOf;
     private final List&lt;Role&gt; roles;
 
     @ConstructorProperties({&quot;user&quot;, &quot;memberOf&quot;, &quot;roles&quot;})
-<span class="nc" id="L34">    public UserWithOrganizations(User user, List&lt;Organization&gt; memberOf, List&lt;Role&gt; roles) {</span>
-<span class="nc" id="L35">        this.user = user;</span>
-<span class="nc" id="L36">        this.memberOf = memberOf;</span>
-<span class="nc" id="L37">        this.roles = roles;</span>
-<span class="nc" id="L38">    }</span>
+<span class="nc" id="L33">    public UserWithOrganizations(User user, List&lt;Organization&gt; memberOf, List&lt;Role&gt; roles) {</span>
+<span class="nc" id="L34">        this.user = user;</span>
+<span class="nc" id="L35">        this.memberOf = memberOf;</span>
+<span class="nc" id="L36">        this.roles = roles;</span>
+<span class="nc" id="L37">    }</span>
 
     public List&lt;Organization&gt; getMemberOf() {
-<span class="nc" id="L41">        return memberOf;</span>
+<span class="nc" id="L40">        return memberOf;</span>
     }
+
     public List&lt;Role&gt; getRoles() {
 <span class="nc" id="L44">        return roles;</span>
     }

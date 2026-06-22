@@ -14,16 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
  */
-
 package alfio.extension;
+
+import static java.util.Objects.requireNonNullElse;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
-
-import static java.util.Objects.requireNonNullElse;
+import lombok.Getter;
 
 @Getter
 public class ExtensionMetadata {
@@ -37,23 +35,24 @@ public class ExtensionMetadata {
     private final List&lt;CapabilityDetail&gt; capabilityDetails;
 
     @JsonCreator
-    public ExtensionMetadata(@JsonProperty(&quot;id&quot;) String id,
-                             @JsonProperty(&quot;displayName&quot;) String displayName,
-                             @JsonProperty(&quot;version&quot;) Integer version,
-                             @JsonProperty(&quot;async&quot;) boolean async,
-                             @JsonProperty(&quot;events&quot;) List&lt;String&gt; events,
-                             @JsonProperty(&quot;parameters&quot;) Parameters parameters,
-                             @JsonProperty(&quot;capabilities&quot;) List&lt;String&gt; capabilities,
-<span class="fc" id="L47">                             @JsonProperty(&quot;capabilityDetails&quot;) List&lt;CapabilityDetail&gt; capabilityDetails) {</span>
-<span class="fc" id="L48">        this.id = id;</span>
-<span class="fc" id="L49">        this.displayName = displayName;</span>
-<span class="fc" id="L50">        this.version = version;</span>
-<span class="fc" id="L51">        this.async = async;</span>
-<span class="fc" id="L52">        this.events = requireNonNullElse(events, List.of());</span>
-<span class="fc" id="L53">        this.parameters = parameters;</span>
-<span class="fc" id="L54">        this.capabilities = requireNonNullElse(capabilities, List.of());</span>
-<span class="fc" id="L55">        this.capabilityDetails = requireNonNullElse(capabilityDetails, List.of());</span>
-<span class="fc" id="L56">    }</span>
+    public ExtensionMetadata(
+            @JsonProperty(&quot;id&quot;) String id,
+            @JsonProperty(&quot;displayName&quot;) String displayName,
+            @JsonProperty(&quot;version&quot;) Integer version,
+            @JsonProperty(&quot;async&quot;) boolean async,
+            @JsonProperty(&quot;events&quot;) List&lt;String&gt; events,
+            @JsonProperty(&quot;parameters&quot;) Parameters parameters,
+            @JsonProperty(&quot;capabilities&quot;) List&lt;String&gt; capabilities,
+<span class="fc" id="L46">            @JsonProperty(&quot;capabilityDetails&quot;) List&lt;CapabilityDetail&gt; capabilityDetails) {</span>
+<span class="fc" id="L47">        this.id = id;</span>
+<span class="fc" id="L48">        this.displayName = displayName;</span>
+<span class="fc" id="L49">        this.version = version;</span>
+<span class="fc" id="L50">        this.async = async;</span>
+<span class="fc" id="L51">        this.events = requireNonNullElse(events, List.of());</span>
+<span class="fc" id="L52">        this.parameters = parameters;</span>
+<span class="fc" id="L53">        this.capabilities = requireNonNullElse(capabilities, List.of());</span>
+<span class="fc" id="L54">        this.capabilityDetails = requireNonNullElse(capabilityDetails, List.of());</span>
+<span class="fc" id="L55">    }</span>
 
     @Getter
     public static class Parameters {
@@ -61,13 +60,13 @@ public class ExtensionMetadata {
         private final List&lt;String&gt; configurationLevels;
 
         @JsonCreator
-        public Parameters(@JsonProperty(&quot;fields&quot;) List&lt;Field&gt; fields,
-                          @JsonProperty(&quot;configurationLevels&quot;) List&lt;String&gt; configurationLevels) {
+        public Parameters(
+                @JsonProperty(&quot;fields&quot;) List&lt;Field&gt; fields,
+                @JsonProperty(&quot;configurationLevels&quot;) List&lt;String&gt; configurationLevels) {
             this.fields = fields;
             this.configurationLevels = configurationLevels;
         }
     }
-
 
     @Getter
     public static class Field {
@@ -77,10 +76,11 @@ public class ExtensionMetadata {
         private final boolean required;
 
         @JsonCreator
-        public Field(@JsonProperty(&quot;name&quot;) String name,
-                     @JsonProperty(&quot;description&quot;) String description,
-                     @JsonProperty(&quot;type&quot;) String type,
-                     @JsonProperty(&quot;required&quot;) boolean required) {
+        public Field(
+                @JsonProperty(&quot;name&quot;) String name,
+                @JsonProperty(&quot;description&quot;) String description,
+                @JsonProperty(&quot;type&quot;) String type,
+                @JsonProperty(&quot;required&quot;) boolean required) {
             this.name = name;
             this.description = description;
             this.type = type;
@@ -96,10 +96,11 @@ public class ExtensionMetadata {
         private final String selector;
 
         @JsonCreator
-        public CapabilityDetail(@JsonProperty(&quot;key&quot;) String key,
-                                @JsonProperty(&quot;label&quot;) String label,
-                                @JsonProperty(&quot;description&quot;) String description,
-                                @JsonProperty(&quot;selector&quot;) String selector) {
+        public CapabilityDetail(
+                @JsonProperty(&quot;key&quot;) String key,
+                @JsonProperty(&quot;label&quot;) String label,
+                @JsonProperty(&quot;description&quot;) String description,
+                @JsonProperty(&quot;selector&quot;) String selector) {
             this.key = key;
             this.label = label;
             this.description = description;

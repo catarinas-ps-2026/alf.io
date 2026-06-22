@@ -20,50 +20,53 @@ import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-
 import java.util.Collections;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class PurchaseContextFieldDescription {
 
-<span class="fc" id="L31">    public static final PurchaseContextFieldDescription MISSING_FIELD = new PurchaseContextFieldDescription(-1, &quot;&quot;, &quot;{\&quot;label\&quot; : \&quot;MISSING_DESCRIPTION\&quot;}&quot;, &quot;&quot;);</span>
+<span class="fc" id="L30">    public static final PurchaseContextFieldDescription MISSING_FIELD =</span>
+            new PurchaseContextFieldDescription(-1, &quot;&quot;, &quot;{\&quot;label\&quot; : \&quot;MISSING_DESCRIPTION\&quot;}&quot;, &quot;&quot;);
 
     private final long fieldConfigurationId;
     private final String locale;
     private final Map&lt;String, Object&gt; description;
     private final String fieldName;
 
-    public PurchaseContextFieldDescription(@Column(&quot;field_configuration_id_fk&quot;) long fieldConfigurationId,
-                                           @Column(&quot;field_locale&quot;) String locale,
-                                           @Column(&quot;description&quot;) String description,
-<span class="fc" id="L41">                                           @Column(&quot;field_name&quot;) String fieldName) {</span>
-<span class="fc" id="L42">        this.locale = locale;</span>
-<span class="fc" id="L43">        this.fieldConfigurationId = fieldConfigurationId;</span>
-<span class="fc" id="L44">        this.description = Json.GSON.fromJson(description, new TypeToken&lt;Map&lt;String, Object&gt;&gt;(){}.getType());</span>
-<span class="fc" id="L45">        this.fieldName = fieldName;</span>
-<span class="fc" id="L46">    }</span>
+    public PurchaseContextFieldDescription(
+            @Column(&quot;field_configuration_id_fk&quot;) long fieldConfigurationId,
+            @Column(&quot;field_locale&quot;) String locale,
+            @Column(&quot;description&quot;) String description,
+<span class="fc" id="L42">            @Column(&quot;field_name&quot;) String fieldName) {</span>
+<span class="fc" id="L43">        this.locale = locale;</span>
+<span class="fc" id="L44">        this.fieldConfigurationId = fieldConfigurationId;</span>
+<span class="fc" id="L45">        this.description = Json.GSON.fromJson(description, new TypeToken&lt;Map&lt;String, Object&gt;&gt;() {}.getType());</span>
+<span class="fc" id="L46">        this.fieldName = fieldName;</span>
+<span class="fc" id="L47">    }</span>
 
     @JsonIgnore
     public String getLabelDescription() {
-<span class="fc" id="L50">        return description.get(&quot;label&quot;).toString();</span>
+<span class="fc" id="L51">        return description.get(&quot;label&quot;).toString();</span>
     }
 
     @JsonIgnore
     public boolean isPlaceholderDescriptionDefined() {
-<span class="fc" id="L55">        return description.containsKey(&quot;placeholder&quot;);</span>
+<span class="fc" id="L56">        return description.containsKey(&quot;placeholder&quot;);</span>
     }
 
     @JsonIgnore
     public String getPlaceholderDescription() {
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        return isPlaceholderDescriptionDefined() ? description.get(&quot;placeholder&quot;).toString() : null;</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        return isPlaceholderDescriptionDefined()</span>
+<span class="fc" id="L62">                ? description.get(&quot;placeholder&quot;).toString()</span>
+<span class="nc" id="L63">                : null;</span>
     }
 
     @JsonIgnore
     @SuppressWarnings(&quot;unchecked&quot;)
     public Map&lt;String, String&gt; getRestrictedValuesDescription() {
-<span class="fc" id="L66">        return (Map&lt;String, String&gt;) description.getOrDefault(&quot;restrictedValues&quot;, Collections.emptyMap());</span>
+<span class="fc" id="L69">        return (Map&lt;String, String&gt;) description.getOrDefault(&quot;restrictedValues&quot;, Collections.emptyMap());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

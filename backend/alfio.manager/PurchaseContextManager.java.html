@@ -22,6 +22,8 @@ import alfio.model.TicketReservation;
 import alfio.repository.EventRepository;
 import alfio.repository.SubscriptionRepository;
 import alfio.repository.TicketReservationRepository;
+import java.util.Optional;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -29,77 +31,83 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
-
 @Transactional(readOnly = true)
 @Component
 public class PurchaseContextManager {
 
-<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(PurchaseContextManager.class);</span>
+<span class="fc" id="L38">    private static final Logger log = LoggerFactory.getLogger(PurchaseContextManager.class);</span>
     private final EventRepository eventRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final TicketReservationRepository ticketReservationRepository;
 
-    public PurchaseContextManager(EventRepository eventRepository,
-                                  SubscriptionRepository subscriptionRepository,
-<span class="fc" id="L46">                                  TicketReservationRepository ticketReservationRepository) {</span>
+    public PurchaseContextManager(
+            EventRepository eventRepository,
+            SubscriptionRepository subscriptionRepository,
+<span class="fc" id="L46">            TicketReservationRepository ticketReservationRepository) {</span>
 <span class="fc" id="L47">        this.eventRepository = eventRepository;</span>
 <span class="fc" id="L48">        this.subscriptionRepository = subscriptionRepository;</span>
 <span class="fc" id="L49">        this.ticketReservationRepository = ticketReservationRepository;</span>
 <span class="fc" id="L50">    }</span>
 
-    public Optional&lt;? extends PurchaseContext&gt; findBy(PurchaseContext.PurchaseContextType purchaseContextType, String publicIdentifier) {
-<span class="pc bpc" id="L53" title="1 of 3 branches missed.">        return switch (purchaseContextType) {</span>
-<span class="fc" id="L54">            case event -&gt; eventRepository.findOptionalByShortName(publicIdentifier);</span>
-<span class="fc" id="L55">            case subscription -&gt; subscriptionRepository.findOne(UUID.fromString(publicIdentifier));</span>
-<span class="nc" id="L56">            default -&gt; throw new IllegalStateException(&quot;not a covered type &quot; + purchaseContextType);</span>
+    public Optional&lt;? extends PurchaseContext&gt; findBy(
+            PurchaseContext.PurchaseContextType purchaseContextType, String publicIdentifier) {
+<span class="pc bpc" id="L54" title="1 of 3 branches missed.">        return switch (purchaseContextType) {</span>
+<span class="fc" id="L55">            case event -&gt; eventRepository.findOptionalByShortName(publicIdentifier);</span>
+<span class="fc" id="L56">            case subscription -&gt; subscriptionRepository.findOne(UUID.fromString(publicIdentifier));</span>
+<span class="nc" id="L57">            default -&gt; throw new IllegalStateException(&quot;not a covered type &quot; + purchaseContextType);</span>
         };
     }
 
-    Optional&lt;? extends PurchaseContext&gt; findById(PurchaseContext.PurchaseContextType purchaseContextType, String idAsString) {
-<span class="pc bpc" id="L61" title="2 of 3 branches missed.">        return switch (purchaseContextType) {</span>
-<span class="fc" id="L62">            case event -&gt; eventRepository.findOptionalById(Integer.parseInt(idAsString));</span>
-<span class="nc" id="L63">            case subscription -&gt; subscriptionRepository.findOne(UUID.fromString(idAsString));</span>
-<span class="nc" id="L64">            default -&gt; throw new IllegalStateException(&quot;not a covered type &quot; + purchaseContextType);</span>
+    Optional&lt;? extends PurchaseContext&gt; findById(
+            PurchaseContext.PurchaseContextType purchaseContextType, String idAsString) {
+<span class="pc bpc" id="L63" title="2 of 3 branches missed.">        return switch (purchaseContextType) {</span>
+<span class="fc" id="L64">            case event -&gt; eventRepository.findOptionalById(Integer.parseInt(idAsString));</span>
+<span class="nc" id="L65">            case subscription -&gt; subscriptionRepository.findOne(UUID.fromString(idAsString));</span>
+<span class="nc" id="L66">            default -&gt; throw new IllegalStateException(&quot;not a covered type &quot; + purchaseContextType);</span>
         };
     }
 
     public Optional&lt;PurchaseContext&gt; findByReservationId(String reservationId) {
-<span class="fc" id="L69">        return ticketReservationRepository.findEventIdFor(reservationId).map(eventRepository::findById)</span>
-<span class="fc" id="L70">            .map(PurchaseContext.class::cast)</span>
-<span class="fc" id="L71">            .or(() -&gt; subscriptionRepository.findDescriptorByReservationId(reservationId));</span>
+<span class="fc" id="L71">        return ticketReservationRepository</span>
+<span class="fc" id="L72">                .findEventIdFor(reservationId)</span>
+<span class="fc" id="L73">                .map(eventRepository::findById)</span>
+<span class="fc" id="L74">                .map(PurchaseContext.class::cast)</span>
+<span class="fc" id="L75">                .or(() -&gt; subscriptionRepository.findDescriptorByReservationId(reservationId));</span>
     }
 
     public Optional&lt;ConfigurationLevel&gt; detectConfigurationLevel(String eventShortName, String subscriptionId) {
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (StringUtils.isAllEmpty(eventShortName, subscriptionId)) {</span>
-<span class="nc" id="L76">            return Optional.empty();</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (StringUtils.isAllEmpty(eventShortName, subscriptionId)) {</span>
+<span class="nc" id="L80">            return Optional.empty();</span>
         }
 
         try {
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">            if (StringUtils.isNotEmpty(eventShortName)) {</span>
-<span class="fc" id="L81">                return eventRepository.findOptionalEventAndOrganizationIdByShortName(eventShortName)</span>
-<span class="fc" id="L82">                    .map(ConfigurationLevel::event);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">            if (StringUtils.isNotEmpty(eventShortName)) {</span>
+<span class="fc" id="L85">                return eventRepository</span>
+<span class="fc" id="L86">                        .findOptionalEventAndOrganizationIdByShortName(eventShortName)</span>
+<span class="fc" id="L87">                        .map(ConfigurationLevel::event);</span>
             }
 
-<span class="nc" id="L85">            return subscriptionRepository.findOrganizationIdForSubscription(UUID.fromString(subscriptionId))</span>
-<span class="nc" id="L86">                .map(ConfigurationLevel::organization);</span>
-<span class="nc" id="L87">        } catch (Exception ex) {</span>
-<span class="nc" id="L88">            log.warn(&quot;error while loading ConfigurationLevel&quot;, ex);</span>
-<span class="nc" id="L89">            return Optional.empty();</span>
+<span class="nc" id="L90">            return subscriptionRepository</span>
+<span class="nc" id="L91">                    .findOrganizationIdForSubscription(UUID.fromString(subscriptionId))</span>
+<span class="nc" id="L92">                    .map(ConfigurationLevel::organization);</span>
+<span class="nc" id="L93">        } catch (Exception ex) {</span>
+<span class="nc" id="L94">            log.warn(&quot;error while loading ConfigurationLevel&quot;, ex);</span>
+<span class="nc" id="L95">            return Optional.empty();</span>
         }
     }
 
     public Optional&lt;Pair&lt;PurchaseContext, TicketReservation&gt;&gt; getReservationWithPurchaseContext(String reservationId) {
-<span class="fc" id="L94">        return findByReservationId(reservationId)</span>
-<span class="fc" id="L95">            .map(event -&gt; Pair.of(event, ticketReservationRepository.findReservationById(reservationId)));</span>
+<span class="fc" id="L100">        return findByReservationId(reservationId)</span>
+<span class="fc" id="L101">                .map(event -&gt; Pair.of(event, ticketReservationRepository.findReservationById(reservationId)));</span>
     }
 
     public int getOrganizationId(PurchaseContext.PurchaseContextType purchaseContextType, String publicIdentifier) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
-<span class="nc" id="L100">            return eventRepository.findOrganizationIdByShortName(publicIdentifier);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="nc" id="L106">            return eventRepository.findOrganizationIdByShortName(publicIdentifier);</span>
         } else {
-<span class="nc" id="L102">            return subscriptionRepository.findOrganizationIdForDescriptor(UUID.fromString(publicIdentifier)).orElseThrow();</span>
+<span class="nc" id="L108">            return subscriptionRepository</span>
+<span class="nc" id="L109">                    .findOrganizationIdForDescriptor(UUID.fromString(publicIdentifier))</span>
+<span class="nc" id="L110">                    .orElseThrow();</span>
         }
     }
 }

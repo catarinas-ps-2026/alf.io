@@ -18,18 +18,18 @@ package alfio.controller.decorator;
 
 import alfio.model.*;
 import alfio.util.MonetaryUtil;
-import lombok.experimental.Delegate;
-import org.apache.commons.lang3.StringUtils;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import lombok.experimental.Delegate;
+import org.apache.commons.lang3.StringUtils;
 
 public class SaleableTicketCategory implements PriceContainer {
 
     @Delegate
     private final TicketCategory ticketCategory;
+
     private final ZonedDateTime now;
     private final ZoneId zoneId;
     private final Event event;
@@ -40,114 +40,118 @@ public class SaleableTicketCategory implements PriceContainer {
     private final boolean hasPendingTickets;
     private final PromoCodeDiscount promoCodeDiscount;
 
-    public SaleableTicketCategory(TicketCategory ticketCategory,
-                                  ZonedDateTime now,
-                                  Event event,
-                                  CategoryAvailability categoryAvailability,
-                                  int maxTickets,
-<span class="fc" id="L48">                                  PromoCodeDiscount promoCodeDiscount) {</span>
-<span class="fc" id="L49">        this.ticketCategory = ticketCategory;</span>
-<span class="fc" id="L50">        this.now = now;</span>
-<span class="fc" id="L51">        this.zoneId = event.getZoneId();</span>
-<span class="fc" id="L52">        this.event = event;</span>
-<span class="fc" id="L53">        this.inSale = isCurrentlyInSale(now, ticketCategory, event.getZoneId());</span>
-<span class="pc bpc" id="L54" title="1 of 4 branches missed.">        this.soldOut = inSale &amp;&amp; categoryAvailability.availableTickets() == 0;</span>
-<span class="fc" id="L55">        this.availableTickets = categoryAvailability.availableTickets();</span>
-<span class="fc" id="L56">        this.maxTickets = maxTickets;</span>
-<span class="fc" id="L57">        this.hasPendingTickets = categoryAvailability.hasPendingTickets();</span>
-<span class="fc" id="L58">        this.promoCodeDiscount = promoCodeDiscount;</span>
-<span class="fc" id="L59">    }</span>
+    public SaleableTicketCategory(
+            TicketCategory ticketCategory,
+            ZonedDateTime now,
+            Event event,
+            CategoryAvailability categoryAvailability,
+            int maxTickets,
+<span class="fc" id="L49">            PromoCodeDiscount promoCodeDiscount) {</span>
+<span class="fc" id="L50">        this.ticketCategory = ticketCategory;</span>
+<span class="fc" id="L51">        this.now = now;</span>
+<span class="fc" id="L52">        this.zoneId = event.getZoneId();</span>
+<span class="fc" id="L53">        this.event = event;</span>
+<span class="fc" id="L54">        this.inSale = isCurrentlyInSale(now, ticketCategory, event.getZoneId());</span>
+<span class="pc bpc" id="L55" title="1 of 4 branches missed.">        this.soldOut = inSale &amp;&amp; categoryAvailability.availableTickets() == 0;</span>
+<span class="fc" id="L56">        this.availableTickets = categoryAvailability.availableTickets();</span>
+<span class="fc" id="L57">        this.maxTickets = maxTickets;</span>
+<span class="fc" id="L58">        this.hasPendingTickets = categoryAvailability.hasPendingTickets();</span>
+<span class="fc" id="L59">        this.promoCodeDiscount = promoCodeDiscount;</span>
+<span class="fc" id="L60">    }</span>
 
     private static boolean isCurrentlyInSale(ZonedDateTime now, TicketCategory tc, ZoneId zoneId) {
-<span class="pc bpc" id="L62" title="1 of 4 branches missed.">        return tc.getInception(zoneId).isBefore(now) &amp;&amp; tc.getExpiration(zoneId).isAfter(now);</span>
+<span class="pc bpc" id="L63" title="1 of 4 branches missed.">        return tc.getInception(zoneId).isBefore(now) &amp;&amp; tc.getExpiration(zoneId).isAfter(now);</span>
     }
 
     public boolean getSaleable() {
-<span class="pc bpc" id="L66" title="1 of 4 branches missed.">        return inSale &amp;&amp; !soldOut;</span>
+<span class="pc bpc" id="L67" title="1 of 4 branches missed.">        return inSale &amp;&amp; !soldOut;</span>
     }
 
     public boolean getSaleableAndLimitNotReached() {
-<span class="pc bpc" id="L70" title="1 of 6 branches missed.">        return getSaleable() &amp;&amp; (promoCodeDiscount == null || maxTickets &gt; 0);</span>
+<span class="pc bpc" id="L71" title="1 of 6 branches missed.">        return getSaleable() &amp;&amp; (promoCodeDiscount == null || maxTickets &gt; 0);</span>
     }
 
     public boolean getExpired() {
-<span class="fc" id="L74">        return getExpiration(zoneId).isBefore(now);</span>
+<span class="fc" id="L75">        return getExpiration(zoneId).isBefore(now);</span>
     }
 
     public boolean getSaleInFuture() {
-<span class="fc" id="L78">        return getInception(zoneId).isAfter(now);</span>
+<span class="fc" id="L79">        return getInception(zoneId).isAfter(now);</span>
     }
-    
-    //jmustache
+
+    // jmustache
     public boolean getAccessRestricted() {
-<span class="fc" id="L83">        return isAccessRestricted();</span>
+<span class="fc" id="L84">        return isAccessRestricted();</span>
     }
 
     public boolean getSouldOutOrLimitReached() {
-<span class="pc bpc" id="L87" title="2 of 6 branches missed.">        return soldOut || (promoCodeDiscount != null &amp;&amp; maxTickets == 0);</span>
+<span class="pc bpc" id="L88" title="2 of 6 branches missed.">        return soldOut || (promoCodeDiscount != null &amp;&amp; maxTickets == 0);</span>
     }
 
     public ZonedDateTime getZonedExpiration() {
-<span class="fc" id="L91">        return getExpiration(zoneId);</span>
+<span class="fc" id="L92">        return getExpiration(zoneId);</span>
     }
 
     public ZonedDateTime getZonedInception() {
-<span class="fc" id="L95">        return getInception(zoneId);</span>
+<span class="fc" id="L96">        return getInception(zoneId);</span>
     }
 
     @Override
     public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
-<span class="fc" id="L100">        return Optional.ofNullable(promoCodeDiscount);</span>
+<span class="fc" id="L101">        return Optional.ofNullable(promoCodeDiscount);</span>
     }
 
     @Override
     public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
-<span class="fc" id="L105">        return Optional.ofNullable(event.getVat());</span>
+<span class="fc" id="L106">        return Optional.ofNullable(event.getVat());</span>
     }
 
     @Override
     public VatStatus getVatStatus() {
-<span class="fc" id="L110">        return event.getVatStatus();</span>
+<span class="fc" id="L111">        return event.getVatStatus();</span>
     }
 
     public String getFormattedFinalPrice() {
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(getCurrencyCode())) {</span>
-<span class="fc" id="L115">            return MonetaryUtil.formatUnit(getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()), getCurrencyCode());</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(getCurrencyCode())) {</span>
+<span class="fc" id="L116">            return MonetaryUtil.formatUnit(</span>
+<span class="fc" id="L117">                    getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()),</span>
+<span class="fc" id="L118">                    getCurrencyCode());</span>
         }
-<span class="nc" id="L117">        return &quot;&quot;;</span>
+<span class="nc" id="L120">        return &quot;&quot;;</span>
     }
 
     public int getMaxTicketsAfterConfiguration() {
-<span class="fc" id="L121">        return maxTickets;</span>
+<span class="fc" id="L124">        return maxTickets;</span>
     }
 
     public int getAvailableTickets() {
-<span class="fc" id="L125">        return availableTickets;</span>
+<span class="fc" id="L128">        return availableTickets;</span>
     }
 
     public boolean hasPendingTickets() {
-<span class="fc" id="L129">        return hasPendingTickets;</span>
+<span class="fc" id="L132">        return hasPendingTickets;</span>
     }
 
     public String getDiscountedPrice() {
-<span class="fc" id="L133">        return MonetaryUtil.formatUnit(getFinalPriceToDisplay(getFinalPrice(), getVAT(), getVatStatus()), getCurrencyCode());</span>
+<span class="fc" id="L136">        return MonetaryUtil.formatUnit(</span>
+<span class="fc" id="L137">                getFinalPriceToDisplay(getFinalPrice(), getVAT(), getVatStatus()), getCurrencyCode());</span>
     }
 
     public boolean getSupportsDiscount() {
-<span class="pc bpc" id="L137" title="1 of 4 branches missed.">        return getPromoCodeDiscount() != null &amp;&amp; getSaleable();</span>
+<span class="pc bpc" id="L141" title="1 of 4 branches missed.">        return getPromoCodeDiscount() != null &amp;&amp; getSaleable();</span>
     }
 
     public PromoCodeDiscount getPromoCodeDiscount() {
-<span class="fc bfc" id="L141" title="All 4 branches covered.">        return (promoCodeDiscount == null || promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT) ? promoCodeDiscount : null;</span>
+<span class="fc bfc" id="L145" title="All 4 branches covered.">        return (promoCodeDiscount == null || promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT)</span>
+<span class="fc" id="L146">                ? promoCodeDiscount</span>
+<span class="fc" id="L147">                : null;</span>
     }
 
     static BigDecimal getFinalPriceToDisplay(BigDecimal price, BigDecimal vat, VatStatus vatStatus) {
-<span class="fc bfc" id="L145" title="All 2 branches covered.">        if(vatStatus == VatStatus.NOT_INCLUDED) {</span>
-<span class="fc" id="L146">            return price.subtract(vat);</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">        if (vatStatus == VatStatus.NOT_INCLUDED) {</span>
+<span class="fc" id="L152">            return price.subtract(vat);</span>
         }
-<span class="fc" id="L148">        return price;</span>
+<span class="fc" id="L154">        return price;</span>
     }
-
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

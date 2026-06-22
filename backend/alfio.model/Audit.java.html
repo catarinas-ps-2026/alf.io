@@ -19,17 +19,19 @@ package alfio.model;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class Audit {
 
     public enum EntityType {
-        EVENT, TICKET, RESERVATION, SUBSCRIPTION
+        EVENT,
+        TICKET,
+        RESERVATION,
+        SUBSCRIPTION
     }
 
     public enum EventType {
@@ -79,7 +81,8 @@ public class Audit {
         AUTOMATIC_PAYMENT_CONFIRMATION_FAILED,
         DYNAMIC_DISCOUNT_CODE_CREATED,
         SUBSCRIPTION_ACQUIRED,
-        UPDATE_TICKET_METADATA, WARNING_IGNORED
+        UPDATE_TICKET_METADATA,
+        WARNING_IGNORED
     }
 
     private final String reservationId;
@@ -93,22 +96,29 @@ public class Audit {
     private final String lastName;
     private final String email;
 
-
-    public Audit(@Column(&quot;reservation_id&quot;) String reservationId, @Column(&quot;event_type&quot;) EventType eventType,
-                 @Column(&quot;event_time&quot;) Date eventTime, @Column(&quot;entity_type&quot;) EntityType entityType,
-                 @Column(&quot;entity_id&quot;) String entityId, @Column(&quot;modifications&quot;) String modifications,
-                 @Column(&quot;username&quot;) String username, @Column(&quot;first_name&quot;) String firstName,
-<span class="nc" id="L101">                 @Column(&quot;last_name&quot;) String lastName, @Column(&quot;email_address&quot;) String email) {</span>
-<span class="nc" id="L102">        this.reservationId = reservationId;</span>
-<span class="nc" id="L103">        this.eventType = eventType;</span>
-<span class="nc" id="L104">        this.eventTime = eventTime;</span>
-<span class="nc" id="L105">        this.entityType = entityType;</span>
-<span class="nc" id="L106">        this.entityId = entityId;</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">        this.modifications = modifications == null ? null : Json.fromJson(modifications, new TypeReference&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt;() {});</span>
-<span class="nc" id="L108">        this.username = username;</span>
-<span class="nc" id="L109">        this.firstName = firstName;</span>
-<span class="nc" id="L110">        this.lastName = lastName;</span>
-<span class="nc" id="L111">        this.email = email;</span>
-<span class="nc" id="L112">    }</span>
+    public Audit(
+            @Column(&quot;reservation_id&quot;) String reservationId,
+            @Column(&quot;event_type&quot;) EventType eventType,
+            @Column(&quot;event_time&quot;) Date eventTime,
+            @Column(&quot;entity_type&quot;) EntityType entityType,
+            @Column(&quot;entity_id&quot;) String entityId,
+            @Column(&quot;modifications&quot;) String modifications,
+            @Column(&quot;username&quot;) String username,
+            @Column(&quot;first_name&quot;) String firstName,
+            @Column(&quot;last_name&quot;) String lastName,
+<span class="nc" id="L109">            @Column(&quot;email_address&quot;) String email) {</span>
+<span class="nc" id="L110">        this.reservationId = reservationId;</span>
+<span class="nc" id="L111">        this.eventType = eventType;</span>
+<span class="nc" id="L112">        this.eventTime = eventTime;</span>
+<span class="nc" id="L113">        this.entityType = entityType;</span>
+<span class="nc" id="L114">        this.entityId = entityId;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        this.modifications = modifications == null</span>
+<span class="nc" id="L116">                ? null</span>
+<span class="nc" id="L117">                : Json.fromJson(modifications, new TypeReference&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt;() {});</span>
+<span class="nc" id="L118">        this.username = username;</span>
+<span class="nc" id="L119">        this.firstName = firstName;</span>
+<span class="nc" id="L120">        this.lastName = lastName;</span>
+<span class="nc" id="L121">        this.email = email;</span>
+<span class="nc" id="L122">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

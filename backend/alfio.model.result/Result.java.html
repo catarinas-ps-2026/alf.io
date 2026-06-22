@@ -17,17 +17,16 @@
 package alfio.model.result;
 
 import alfio.model.result.ValidationResult.ErrorDescriptor;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.validation.ObjectError;
-
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.validation.ObjectError;
 
 @AllArgsConstructor
 @Getter
@@ -38,62 +37,66 @@ public class Result&lt;T&gt; {
     private final List&lt;ErrorCode&gt; errors;
 
     public static &lt;T&gt; Result&lt;T&gt; success(T data) {
-<span class="fc" id="L41">        return new Result&lt;&gt;(ResultStatus.OK, data, Collections.emptyList());</span>
+<span class="fc" id="L40">        return new Result&lt;&gt;(ResultStatus.OK, data, Collections.emptyList());</span>
     }
 
     public static &lt;T&gt; Result&lt;T&gt; validationError(List&lt;ObjectError&gt; errors) {
-<span class="nc" id="L45">        return new Result&lt;&gt;(ResultStatus.VALIDATION_ERROR, null, errors.stream().map(ErrorDescriptor::fromObjectError).collect(Collectors.toList()));</span>
+<span class="nc" id="L44">        return new Result&lt;&gt;(</span>
+                ResultStatus.VALIDATION_ERROR,
+                null,
+<span class="nc" id="L47">                errors.stream().map(ErrorDescriptor::fromObjectError).collect(Collectors.toList()));</span>
     }
 
     public static &lt;T&gt; Result&lt;T&gt; error(List&lt;ErrorCode&gt; errorDescriptors) {
-<span class="fc" id="L49">        return new Result&lt;&gt;(ResultStatus.ERROR, null, errorDescriptors);</span>
+<span class="fc" id="L51">        return new Result&lt;&gt;(ResultStatus.ERROR, null, errorDescriptors);</span>
     }
 
     public static &lt;T&gt; Result&lt;T&gt; error(ErrorCode errorDescriptor) {
-<span class="fc" id="L53">        return error(Collections.singletonList(errorDescriptor));</span>
+<span class="fc" id="L55">        return error(Collections.singletonList(errorDescriptor));</span>
     }
 
     public boolean isSuccess() {
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        return status == ResultStatus.OK;</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        return status == ResultStatus.OK;</span>
     }
 
     public void ifSuccess(Consumer&lt;T&gt; consumer) {
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if(isSuccess()) {</span>
-<span class="fc" id="L62">            consumer.accept(data);</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (isSuccess()) {</span>
+<span class="fc" id="L64">            consumer.accept(data);</span>
         }
-<span class="fc" id="L64">    }</span>
+<span class="fc" id="L66">    }</span>
 
     public &lt;K&gt; Result&lt;K&gt; map(Function&lt;T, K&gt; mapper) {
-<span class="fc bfc" id="L67" title="All 2 branches covered.">        if(isSuccess()) {</span>
-<span class="fc" id="L68">            return Result.success(mapper.apply(data));</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (isSuccess()) {</span>
+<span class="fc" id="L70">            return Result.success(mapper.apply(data));</span>
         }
-<span class="fc" id="L70">        return Result.error(this.errors);</span>
+<span class="fc" id="L72">        return Result.error(this.errors);</span>
     }
 
     public &lt;K&gt; Result&lt;K&gt; flatMap(Function&lt;T, Result&lt;K&gt;&gt; mapper) {
-<span class="fc bfc" id="L74" title="All 2 branches covered.">        if(isSuccess()) {</span>
-<span class="fc" id="L75">            return Objects.requireNonNull(mapper.apply(data), &quot;this method does not allow null values&quot;);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (isSuccess()) {</span>
+<span class="fc" id="L77">            return Objects.requireNonNull(mapper.apply(data), &quot;this method does not allow null values&quot;);</span>
         }
-<span class="fc" id="L77">        return Result.error(this.errors);</span>
+<span class="fc" id="L79">        return Result.error(this.errors);</span>
     }
 
     public ErrorCode getFirstErrorOrNull() {
-<span class="pc bpc" id="L81" title="2 of 4 branches missed.">        if(isSuccess() || CollectionUtils.size(errors) == 0) {</span>
-<span class="nc" id="L82">            return null;</span>
+<span class="pc bpc" id="L83" title="2 of 4 branches missed.">        if (isSuccess() || CollectionUtils.size(errors) == 0) {</span>
+<span class="nc" id="L84">            return null;</span>
         }
-<span class="fc" id="L84">        return errors.get(0);</span>
+<span class="fc" id="L86">        return errors.get(0);</span>
     }
 
     public String getFormattedErrors() {
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        if(isSuccess()) {</span>
-<span class="nc" id="L89">            return null;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (isSuccess()) {</span>
+<span class="nc" id="L91">            return null;</span>
         }
-<span class="nc" id="L91">        return getErrors().stream().map(ErrorCode::getDescription)</span>
-<span class="nc" id="L92">            .collect(Collectors.joining(&quot;\n&quot;));</span>
+<span class="nc" id="L93">        return getErrors().stream().map(ErrorCode::getDescription).collect(Collectors.joining(&quot;\n&quot;));</span>
     }
 
     public enum ResultStatus {
-        OK, VALIDATION_ERROR, ERROR
+        OK,
+        VALIDATION_ERROR,
+        ERROR
     }
 
     public static final class Builder&lt;T&gt; {
@@ -106,28 +109,27 @@ public class Result&lt;T&gt; {
 
         public Result&lt;T&gt; build(Supplier&lt;T&gt; valueSupplier) {
             Optional&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; validationError = performValidation();
-            return validationError.map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))
-                .orElseGet(() -&gt; Result.success(valueSupplier.get()));
+            return validationError
+                    .map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))
+                    .orElseGet(() -&gt; Result.success(valueSupplier.get()));
         }
 
         public Result&lt;T&gt; buildAndEvaluate(Supplier&lt;Result&lt;T&gt;&gt; resultSupplier) {
-            return performValidation().map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))
-                .orElseGet(resultSupplier);
+            return performValidation()
+                    .map(p -&gt; Result.&lt;T&gt;error(Collections.singletonList(p.getRight())))
+                    .orElseGet(resultSupplier);
         }
 
         private Optional&lt;Pair&lt;ConditionValidator, ErrorCode&gt;&gt; performValidation() {
-            return this.validators.stream()
-                .filter(p -&gt; !p.getLeft().isValid())
-                .findFirst();
+            return this.validators.stream().filter(p -&gt; !p.getLeft().isValid()).findFirst();
         }
-
     }
 
     public static &lt;T&gt; Result&lt;T&gt; fromNullable(T nullable, ErrorCode justInCase) {
-<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if(nullable == null) {</span>
-<span class="nc" id="L128">            return Result.error(justInCase);</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (nullable == null) {</span>
+<span class="nc" id="L130">            return Result.error(justInCase);</span>
         }
-<span class="fc" id="L130">        return Result.success(nullable);</span>
+<span class="fc" id="L132">        return Result.success(nullable);</span>
     }
 
     @FunctionalInterface

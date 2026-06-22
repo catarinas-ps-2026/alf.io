@@ -17,12 +17,11 @@
 package alfio.model.poll;
 
 import alfio.util.MonetaryUtil;
-import lombok.AllArgsConstructor;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class PollStatistics {
@@ -31,45 +30,43 @@ public class PollStatistics {
     private final List&lt;PollOptionStatistics&gt; countByOption;
 
     public int getTotalVotes() {
-<span class="fc" id="L34">        return totalVotes;</span>
+<span class="fc" id="L33">        return totalVotes;</span>
     }
 
     public int getAllowedParticipants() {
-<span class="fc" id="L38">        return allowedParticipants;</span>
+<span class="fc" id="L37">        return allowedParticipants;</span>
     }
 
     public String getParticipationPercentage() {
-<span class="fc" id="L42">        return getVotesPercentage(new BigDecimal(this.allowedParticipants), totalVotes);</span>
+<span class="fc" id="L41">        return getVotesPercentage(new BigDecimal(this.allowedParticipants), totalVotes);</span>
     }
 
     public List&lt;StatisticDetail&gt; getOptionStatistics() {
-<span class="fc" id="L46">        BigDecimal totalVotes = new BigDecimal(this.totalVotes);</span>
-<span class="fc" id="L47">        return countByOption.stream()</span>
-<span class="fc" id="L48">            .map(o -&gt; {</span>
-<span class="fc" id="L49">                var percentage = getVotesPercentage(totalVotes, o.getVotes());</span>
-<span class="fc" id="L50">                return new StatisticDetail(o.getVotes(), o.getOptionId(), percentage);</span>
-            })
-<span class="fc" id="L52">            .collect(Collectors.toList());</span>
+<span class="fc" id="L45">        BigDecimal totalVotes = new BigDecimal(this.totalVotes);</span>
+<span class="fc" id="L46">        return countByOption.stream()</span>
+<span class="fc" id="L47">                .map(o -&gt; {</span>
+<span class="fc" id="L48">                    var percentage = getVotesPercentage(totalVotes, o.getVotes());</span>
+<span class="fc" id="L49">                    return new StatisticDetail(o.getVotes(), o.getOptionId(), percentage);</span>
+                })
+<span class="fc" id="L51">                .collect(Collectors.toList());</span>
     }
 
     private static String getVotesPercentage(BigDecimal totalVotes, int votes) {
-<span class="fc bfc" id="L56" title="All 2 branches covered.">        if(votes == 0) {</span>
-<span class="fc" id="L57">            return &quot;0&quot;;</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (votes == 0) {</span>
+<span class="fc" id="L56">            return &quot;0&quot;;</span>
         }
-<span class="fc" id="L59">        return new BigDecimal(votes)</span>
-<span class="fc" id="L60">            .setScale(3, RoundingMode.HALF_UP)</span>
-<span class="fc" id="L61">            .divide(totalVotes, RoundingMode.HALF_UP)</span>
-<span class="fc" id="L62">            .multiply(MonetaryUtil.HUNDRED)</span>
-<span class="fc" id="L63">            .setScale(2, RoundingMode.HALF_UP)</span>
-<span class="fc" id="L64">            .toPlainString();</span>
+<span class="fc" id="L58">        return new BigDecimal(votes)</span>
+<span class="fc" id="L59">                .setScale(3, RoundingMode.HALF_UP)</span>
+<span class="fc" id="L60">                .divide(totalVotes, RoundingMode.HALF_UP)</span>
+<span class="fc" id="L61">                .multiply(MonetaryUtil.HUNDRED)</span>
+<span class="fc" id="L62">                .setScale(2, RoundingMode.HALF_UP)</span>
+<span class="fc" id="L63">                .toPlainString();</span>
     }
-
 
     public static class StatisticDetail {
         private final int votes;
         private final long optionId;
         private final String percentage;
-
 
         public StatisticDetail(int votes, long optionId, String percentage) {
             this.votes = votes;
@@ -89,6 +86,5 @@ public class PollStatistics {
             return percentage;
         }
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

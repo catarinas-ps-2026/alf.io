@@ -18,11 +18,10 @@ package alfio.extension;
 
 import alfio.util.Json;
 import com.google.gson.JsonSyntaxException;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
@@ -32,13 +31,14 @@ public class SimpleHttpClientResponse {
     private final Map&lt;String, List&lt;String&gt;&gt; headers;
     private final String body;
 
-
     public Object getJsonBody() {
-<span class="fc" id="L37">        return tryParse(body, Object.class);</span>
+<span class="fc" id="L35">        return tryParse(body, Object.class);</span>
     }
 
     public String getHeader(String name) {
-<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        return headers.containsKey(name) ? headers.get(name).stream().findFirst().orElse(null) : null;</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        return headers.containsKey(name)</span>
+<span class="fc" id="L40">                ? headers.get(name).stream().findFirst().orElse(null)</span>
+<span class="nc" id="L41">                : null;</span>
     }
 
     public &lt;T&gt; T getJsonBody(Class&lt;T&gt; clazz) {

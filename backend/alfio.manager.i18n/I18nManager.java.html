@@ -18,12 +18,11 @@ package alfio.manager.i18n;
 
 import alfio.model.ContentLanguage;
 import alfio.repository.EventRepository;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional(readOnly = true)
@@ -31,26 +30,26 @@ public class I18nManager {
 
     private final EventRepository eventRepository;
 
-<span class="fc" id="L34">    public I18nManager(EventRepository eventRepository) {</span>
-<span class="fc" id="L35">        this.eventRepository = eventRepository;</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L33">    public I18nManager(EventRepository eventRepository) {</span>
+<span class="fc" id="L34">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L35">    }</span>
 
     public List&lt;ContentLanguage&gt; getAvailableLanguages() {
-<span class="fc" id="L39">        return ContentLanguage.ALL_LANGUAGES;</span>
+<span class="fc" id="L38">        return ContentLanguage.ALL_LANGUAGES;</span>
     }
 
     public List&lt;ContentLanguage&gt; getEventLanguages(String eventName) {
-<span class="nc" id="L43">        return eventRepository.findLocalesByShortName(eventName)</span>
-<span class="nc" id="L44">            .map(this::getEventLanguages)</span>
-<span class="nc" id="L45">            .orElse(Collections.emptyList());</span>
+<span class="nc" id="L42">        return eventRepository</span>
+<span class="nc" id="L43">                .findLocalesByShortName(eventName)</span>
+<span class="nc" id="L44">                .map(this::getEventLanguages)</span>
+<span class="nc" id="L45">                .orElse(Collections.emptyList());</span>
     }
 
     public List&lt;ContentLanguage&gt; getEventLanguages(int eventLocales) {
 <span class="fc" id="L49">        List&lt;ContentLanguage&gt; system = getAvailableLanguages();</span>
-<span class="fc" id="L50">        return ContentLanguage.findAllFor(eventLocales)</span>
-<span class="fc" id="L51">            .stream()</span>
-<span class="fc" id="L52">            .filter(system::contains)</span>
-<span class="fc" id="L53">            .collect(Collectors.toList());</span>
+<span class="fc" id="L50">        return ContentLanguage.findAllFor(eventLocales).stream()</span>
+<span class="fc" id="L51">                .filter(system::contains)</span>
+<span class="fc" id="L52">                .collect(Collectors.toList());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

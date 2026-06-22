@@ -16,63 +16,61 @@
  */
 package alfio.model.transaction;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-<span class="fc" id="L32">public class PaymentMethodDeserializer extends JsonDeserializer&lt;PaymentMethod&gt; {</span>
-<span class="fc" id="L33">    private static final Logger log = LoggerFactory.getLogger(PaymentMethodDeserializer.class);</span>
+<span class="fc" id="L30">public class PaymentMethodDeserializer extends JsonDeserializer&lt;PaymentMethod&gt; {</span>
+<span class="fc" id="L31">    private static final Logger log = LoggerFactory.getLogger(PaymentMethodDeserializer.class);</span>
 
     @Override
     public PaymentMethod deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-<span class="fc" id="L37">        JsonNode node = parser.getCodec().readTree(parser);</span>
+<span class="fc" id="L35">        JsonNode node = parser.getCodec().readTree(parser);</span>
 
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (node == null) {</span>
-<span class="nc" id="L40">            log.warn(&quot;PaymentMethodDeserializer(): Passed node is NULL&quot;);</span>
-<span class="nc" id="L41">            return null;</span>
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (node == null) {</span>
+<span class="nc" id="L38">            log.warn(&quot;PaymentMethodDeserializer(): Passed node is NULL&quot;);</span>
+<span class="nc" id="L39">            return null;</span>
         }
 
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        if(node.isTextual()) {</span>
-<span class="fc" id="L45">            String name = node.asText();</span>
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">            for(StaticPaymentMethods paymentMethod : StaticPaymentMethods.values()) {</span>
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">                if(paymentMethod.name().equals(name)) {</span>
-<span class="fc" id="L48">                    return paymentMethod;</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (node.isTextual()) {</span>
+<span class="fc" id="L43">            String name = node.asText();</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">            for (StaticPaymentMethods paymentMethod : StaticPaymentMethods.values()) {</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">                if (paymentMethod.name().equals(name)) {</span>
+<span class="fc" id="L46">                    return paymentMethod;</span>
                 }
             }
         }
 
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if(node.isObject()) {</span>
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">            String paymentMethodId = node.get(&quot;paymentMethodId&quot;).isNull() ? null</span>
-<span class="fc" id="L55">                                    : node.get(&quot;paymentMethodId&quot;).asText();</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        if (node.isObject()) {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            String paymentMethodId = node.get(&quot;paymentMethodId&quot;).isNull()</span>
+<span class="nc" id="L53">                    ? null</span>
+<span class="fc" id="L54">                    : node.get(&quot;paymentMethodId&quot;).asText();</span>
 
-<span class="fc" id="L57">            JsonNode localizationsNode = node.get(&quot;localizations&quot;);</span>
-<span class="fc" id="L58">            ObjectMapper mapper = (ObjectMapper) parser.getCodec();</span>
+<span class="fc" id="L56">            JsonNode localizationsNode = node.get(&quot;localizations&quot;);</span>
+<span class="fc" id="L57">            ObjectMapper mapper = (ObjectMapper) parser.getCodec();</span>
 
-<span class="fc" id="L60">            var localizations = mapper.readValue(</span>
-<span class="fc" id="L61">                localizationsNode.toString(),</span>
-                new TypeReference&lt;Map&lt;String, UserDefinedOfflinePaymentMethod.Localization&gt;&gt;() {}
-            );
+<span class="fc" id="L59">            var localizations = mapper.readValue(</span>
+<span class="fc" id="L60">                    localizationsNode.toString(),</span>
+                    new TypeReference&lt;Map&lt;String, UserDefinedOfflinePaymentMethod.Localization&gt;&gt;() {});
 
-<span class="fc" id="L65">            var paymentMethod = new UserDefinedOfflinePaymentMethod(paymentMethodId, localizations);</span>
+<span class="fc" id="L63">            var paymentMethod = new UserDefinedOfflinePaymentMethod(paymentMethodId, localizations);</span>
 
-<span class="fc" id="L67">            JsonNode deletedNode = node.get(&quot;deleted&quot;);</span>
-<span class="pc bpc" id="L68" title="1 of 4 branches missed.">            if(deletedNode != null &amp;&amp; deletedNode.asBoolean()) {</span>
-<span class="fc" id="L69">                paymentMethod.setDeleted();</span>
+<span class="fc" id="L65">            JsonNode deletedNode = node.get(&quot;deleted&quot;);</span>
+<span class="pc bpc" id="L66" title="1 of 4 branches missed.">            if (deletedNode != null &amp;&amp; deletedNode.asBoolean()) {</span>
+<span class="fc" id="L67">                paymentMethod.setDeleted();</span>
             }
 
-<span class="fc" id="L72">            return paymentMethod;</span>
+<span class="fc" id="L70">            return paymentMethod;</span>
         }
 
-<span class="nc" id="L75">        return null;</span>
+<span class="nc" id="L73">        return null;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

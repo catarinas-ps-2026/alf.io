@@ -25,47 +25,48 @@ import java.util.*;
 
 public class WorkingDaysAdjusters {
 
-<span class="fc" id="L28">    private static final Set&lt;DayOfWeek&gt; MON_FRI = EnumSet.complementOf(EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY));</span>
-<span class="fc" id="L29">    private static final List&lt;HoursRange&gt; ALL_DAY = Collections.singletonList(new HoursRange(LocalTime.of(8, 0, 0), LocalTime.of(20, 0, 0)));</span>
+<span class="fc" id="L28">    private static final Set&lt;DayOfWeek&gt; MON_FRI =</span>
+<span class="fc" id="L29">            EnumSet.complementOf(EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY));</span>
+<span class="fc" id="L30">    private static final List&lt;HoursRange&gt; ALL_DAY =</span>
+<span class="fc" id="L31">            Collections.singletonList(new HoursRange(LocalTime.of(8, 0, 0), LocalTime.of(20, 0, 0)));</span>
 
-    private WorkingDaysAdjusters() {
-    }
+    private WorkingDaysAdjusters() {}
 
     public static TemporalAdjuster defaultWorkingDays() {
-<span class="fc" id="L35">        return temporal -&gt; adjust(temporal, MON_FRI, ALL_DAY);</span>
+<span class="fc" id="L36">        return temporal -&gt; adjust(temporal, MON_FRI, ALL_DAY);</span>
     }
 
     public static Temporal addDays(Temporal start, int days) {
         // adjust start to make sure it is on a working day
-<span class="fc" id="L40">        var end = start;</span>
-<span class="fc bfc" id="L41" title="All 2 branches covered.">        for(int i = 0; i &lt; days; i++) {</span>
-<span class="fc" id="L42">            end = adjust(end.plus(1, ChronoUnit.DAYS), MON_FRI, ALL_DAY);</span>
+<span class="fc" id="L41">        var end = start;</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        for (int i = 0; i &lt; days; i++) {</span>
+<span class="fc" id="L43">            end = adjust(end.plus(1, ChronoUnit.DAYS), MON_FRI, ALL_DAY);</span>
         }
-<span class="fc" id="L44">        return end;</span>
+<span class="fc" id="L45">        return end;</span>
     }
 
     private static Temporal adjust(Temporal in, Set&lt;DayOfWeek&gt; dayOfWeeks, List&lt;HoursRange&gt; hoursRanges) {
-<span class="fc" id="L48">        DayOfWeek dayOfWeek = DayOfWeek.from(in);</span>
-<span class="fc" id="L49">        LocalTime localTime = LocalTime.from(in);</span>
-<span class="fc" id="L50">        boolean dayInRange = dayOfWeeks.contains(dayOfWeek);</span>
-<span class="fc" id="L51">        boolean hourInRange = hoursRanges.stream().anyMatch(hr -&gt; hr.includes(localTime));</span>
-<span class="fc bfc" id="L52" title="All 4 branches covered.">        if(dayInRange &amp;&amp; hourInRange) {</span>
-<span class="fc" id="L53">            return in;</span>
+<span class="fc" id="L49">        DayOfWeek dayOfWeek = DayOfWeek.from(in);</span>
+<span class="fc" id="L50">        LocalTime localTime = LocalTime.from(in);</span>
+<span class="fc" id="L51">        boolean dayInRange = dayOfWeeks.contains(dayOfWeek);</span>
+<span class="fc" id="L52">        boolean hourInRange = hoursRanges.stream().anyMatch(hr -&gt; hr.includes(localTime));</span>
+<span class="fc bfc" id="L53" title="All 4 branches covered.">        if (dayInRange &amp;&amp; hourInRange) {</span>
+<span class="fc" id="L54">            return in;</span>
         }
-<span class="fc" id="L55">        Temporal result = in;</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">        if(!dayInRange) {</span>
+<span class="fc" id="L56">        Temporal result = in;</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (!dayInRange) {</span>
             do {
-<span class="fc" id="L58">                result = result.plus(1, ChronoUnit.DAYS);</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">            } while(!dayOfWeeks.contains(DayOfWeek.from(result)));</span>
+<span class="fc" id="L59">                result = result.plus(1, ChronoUnit.DAYS);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">            } while (!dayOfWeeks.contains(DayOfWeek.from(result)));</span>
         }
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        if(!hourInRange) {</span>
-<span class="fc" id="L62">            OptionalInt distance = hoursRanges.stream()</span>
-<span class="fc" id="L63">                    .mapToInt(hr -&gt; hr.getDistanceInHours(localTime))</span>
-<span class="fc" id="L64">                    .sorted()</span>
-<span class="fc" id="L65">                    .findFirst();</span>
-<span class="fc" id="L66">            result = result.plus(distance.orElseThrow(IllegalStateException::new), ChronoUnit.HOURS);</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        if (!hourInRange) {</span>
+<span class="fc" id="L63">            OptionalInt distance = hoursRanges.stream()</span>
+<span class="fc" id="L64">                    .mapToInt(hr -&gt; hr.getDistanceInHours(localTime))</span>
+<span class="fc" id="L65">                    .sorted()</span>
+<span class="fc" id="L66">                    .findFirst();</span>
+<span class="fc" id="L67">            result = result.plus(distance.orElseThrow(IllegalStateException::new), ChronoUnit.HOURS);</span>
         }
-<span class="fc" id="L68">        return result;</span>
+<span class="fc" id="L69">        return result;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

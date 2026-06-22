@@ -16,15 +16,13 @@
  */
 package alfio.model;
 
-
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class UploadedResource {
@@ -37,21 +35,22 @@ public class UploadedResource {
     private final Date creationTime;
     private final Map&lt;String, String&gt; attributes;
 
-    public UploadedResource(@Column(&quot;name&quot;) String name,
-                            @Column(&quot;organization_id_fk&quot;) Integer organizationId,
-                            @Column(&quot;event_id_fk&quot;) Integer eventId,
-                            @Column(&quot;content_type&quot;) String contentType,
-                            @Column(&quot;content_size&quot;) int contentSize,
-                            @Column(&quot;creation_time&quot;) Date creationTime,
-<span class="fc" id="L46">                            @Column(&quot;attributes&quot;) String attributes) {</span>
-<span class="fc" id="L47">        this.name = name;</span>
-<span class="fc" id="L48">        this.organizationId = organizationId;</span>
-<span class="fc" id="L49">        this.eventId = eventId;</span>
-<span class="fc" id="L50">        this.contentType = contentType;</span>
-<span class="fc" id="L51">        this.contentSize = contentSize;</span>
-<span class="fc" id="L52">        this.creationTime = creationTime;</span>
-<span class="fc" id="L53">        Map&lt;String, String&gt; parsed = Json.GSON.fromJson(attributes, new TypeToken&lt;Map&lt;String, String&gt;&gt;() {}.getType());</span>
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        this.attributes = parsed != null ? parsed : Collections.emptyMap();</span>
-<span class="fc" id="L55">    }</span>
+    public UploadedResource(
+            @Column(&quot;name&quot;) String name,
+            @Column(&quot;organization_id_fk&quot;) Integer organizationId,
+            @Column(&quot;event_id_fk&quot;) Integer eventId,
+            @Column(&quot;content_type&quot;) String contentType,
+            @Column(&quot;content_size&quot;) int contentSize,
+            @Column(&quot;creation_time&quot;) Date creationTime,
+<span class="fc" id="L45">            @Column(&quot;attributes&quot;) String attributes) {</span>
+<span class="fc" id="L46">        this.name = name;</span>
+<span class="fc" id="L47">        this.organizationId = organizationId;</span>
+<span class="fc" id="L48">        this.eventId = eventId;</span>
+<span class="fc" id="L49">        this.contentType = contentType;</span>
+<span class="fc" id="L50">        this.contentSize = contentSize;</span>
+<span class="fc" id="L51">        this.creationTime = creationTime;</span>
+<span class="fc" id="L52">        Map&lt;String, String&gt; parsed = Json.GSON.fromJson(attributes, new TypeToken&lt;Map&lt;String, String&gt;&gt;() {}.getType());</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        this.attributes = parsed != null ? parsed : Collections.emptyMap();</span>
+<span class="fc" id="L54">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -25,6 +25,7 @@ import alfio.model.system.ConfigurationKeys;
 import alfio.repository.EventRepository;
 import alfio.repository.SpecialPriceRepository;
 import alfio.repository.TicketCategoryRepository;
+import java.security.SecureRandom;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.text.RandomStringGenerator;
 import org.slf4j.Logger;
@@ -32,8 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.security.SecureRandom;
 
 /**
  * Class SpecialPriceTokenGenerator.
@@ -44,29 +43,30 @@ import java.security.SecureRandom;
 @Transactional
 public class SpecialPriceTokenGenerator {
 
-<span class="fc" id="L47">    private static final Logger log = LoggerFactory.getLogger(SpecialPriceTokenGenerator.class);</span>
-<span class="fc" id="L48">    private static final SecureRandom RANDOM = new SecureRandom();</span>
-<span class="fc" id="L49">    private static final char[] ADMITTED_CHARACTERS = new char[]{</span>
-            'A', 'B', 'C', 'D', 'E', 'F',
-            'G', 'H', 'J', 'K', 'M', 'N',
-            'P', 'Q', 'R', 'S', 'T', 'W',
-            'X', 'Y', 'Z', '2', '3', '4',
-            '5', '6', '7', '8', '9'
+<span class="fc" id="L46">    private static final Logger log = LoggerFactory.getLogger(SpecialPriceTokenGenerator.class);</span>
+<span class="fc" id="L47">    private static final SecureRandom RANDOM = new SecureRandom();</span>
+<span class="fc" id="L48">    private static final char[] ADMITTED_CHARACTERS = new char[] {</span>
+        'A', 'B', 'C', 'D', 'E', 'F',
+        'G', 'H', 'J', 'K', 'M', 'N',
+        'P', 'Q', 'R', 'S', 'T', 'W',
+        'X', 'Y', 'Z', '2', '3', '4',
+        '5', '6', '7', '8', '9'
     };
-<span class="fc" id="L56">    private static final RandomStringGenerator RANDOM_STRING_GENERATOR = new RandomStringGenerator.Builder()</span>
-<span class="fc" id="L57">        .selectFrom(ADMITTED_CHARACTERS)</span>
-<span class="fc" id="L58">        .usingRandom(RANDOM::nextInt)</span>
-<span class="fc" id="L59">        .get();</span>
+<span class="fc" id="L55">    private static final RandomStringGenerator RANDOM_STRING_GENERATOR = new RandomStringGenerator.Builder()</span>
+<span class="fc" id="L56">            .selectFrom(ADMITTED_CHARACTERS)</span>
+<span class="fc" id="L57">            .usingRandom(RANDOM::nextInt)</span>
+<span class="fc" id="L58">            .get();</span>
 
     private final SpecialPriceRepository specialPriceRepository;
     private final TicketCategoryRepository ticketCategoryRepository;
     private final EventRepository eventRepository;
     private final ConfigurationManager configurationManager;
 
-    public SpecialPriceTokenGenerator(ConfigurationManager configurationManager,
-                                      SpecialPriceRepository specialPriceRepository,
-                                      TicketCategoryRepository ticketCategoryRepository,
-<span class="fc" id="L69">                                      EventRepository eventRepository) {</span>
+    public SpecialPriceTokenGenerator(
+            ConfigurationManager configurationManager,
+            SpecialPriceRepository specialPriceRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+<span class="fc" id="L69">            EventRepository eventRepository) {</span>
 <span class="fc" id="L70">        this.specialPriceRepository = specialPriceRepository;</span>
 <span class="fc" id="L71">        this.configurationManager = configurationManager;</span>
 <span class="fc" id="L72">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
@@ -88,35 +88,39 @@ public class SpecialPriceTokenGenerator {
 
     private void generateCode(SpecialPrice.SpecialPriceTicketCategoryId specialPrice) {
 
-<span class="fc" id="L91">        TicketCategory ticketCategory = ticketCategoryRepository.getByIdAndActive(specialPrice.getTicketCategoryId()).orElseThrow(IllegalStateException::new);</span>
-<span class="fc" id="L92">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(ticketCategory.getEventId());</span>
-<span class="fc" id="L93">        int maxLength = configurationManager.getFor(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH, ConfigurationLevel.ticketCategory(event, ticketCategory.getId())).getValueAsIntOrDefault(6);</span>
+<span class="fc" id="L91">        TicketCategory ticketCategory = ticketCategoryRepository</span>
+<span class="fc" id="L92">                .getByIdAndActive(specialPrice.getTicketCategoryId())</span>
+<span class="fc" id="L93">                .orElseThrow(IllegalStateException::new);</span>
+<span class="fc" id="L94">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(ticketCategory.getEventId());</span>
+<span class="fc" id="L95">        int maxLength = configurationManager</span>
+<span class="fc" id="L96">                .getFor(</span>
+                        ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH,
+<span class="fc" id="L98">                        ConfigurationLevel.ticketCategory(event, ticketCategory.getId()))</span>
+<span class="fc" id="L99">                .getValueAsIntOrDefault(6);</span>
 
         while (true) {
             try {
-<span class="fc" id="L97">                log.trace(&quot;generate code for special price with id {}&quot;, specialPrice.getId());</span>
-<span class="fc" id="L98">                specialPriceRepository.updateCode(nextValidCode(maxLength), specialPrice.getId());</span>
-<span class="fc" id="L99">                log.trace(&quot;done.&quot;);</span>
-<span class="fc" id="L100">                return;</span>
-<span class="fc" id="L101">            } catch (DataAccessException e) {</span>
-<span class="fc" id="L102">                log.warn(&quot;got a duplicate. Retrying...&quot;, e);</span>
-<span class="fc" id="L103">            }</span>
+<span class="fc" id="L103">                log.trace(&quot;generate code for special price with id {}&quot;, specialPrice.getId());</span>
+<span class="fc" id="L104">                specialPriceRepository.updateCode(nextValidCode(maxLength), specialPrice.getId());</span>
+<span class="fc" id="L105">                log.trace(&quot;done.&quot;);</span>
+<span class="fc" id="L106">                return;</span>
+<span class="fc" id="L107">            } catch (DataAccessException e) {</span>
+<span class="fc" id="L108">                log.warn(&quot;got a duplicate. Retrying...&quot;, e);</span>
+<span class="fc" id="L109">            }</span>
         }
     }
 
     private String nextValidCode(int maxLength) {
         while (true) {
-<span class="fc" id="L109">            String code = generateRandomCode(maxLength);</span>
-<span class="fc bfc" id="L110" title="All 2 branches covered.">            if (specialPriceRepository.countByCode(code) == 0) {</span>
-<span class="fc" id="L111">                return code;</span>
+<span class="fc" id="L115">            String code = generateRandomCode(maxLength);</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">            if (specialPriceRepository.countByCode(code) == 0) {</span>
+<span class="fc" id="L117">                return code;</span>
             }
-<span class="fc" id="L113">        }</span>
+<span class="fc" id="L119">        }</span>
     }
 
     private String generateRandomCode(int maxLength) {
-<span class="fc" id="L117">        return RANDOM_STRING_GENERATOR.generate(maxLength);</span>
+<span class="fc" id="L123">        return RANDOM_STRING_GENERATOR.generate(maxLength);</span>
     }
-
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

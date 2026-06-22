@@ -16,12 +16,13 @@
  */
 package alfio.manager.support.reservation;
 
+import static alfio.model.Audit.EntityType.TICKET;
+
 import alfio.model.Audit;
 import alfio.model.Ticket;
 import alfio.model.metadata.TicketMetadataContainer;
 import alfio.repository.AuditingRepository;
 import alfio.util.ObjectDiffUtil;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -29,48 +30,68 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static alfio.model.Audit.EntityType.TICKET;
-
 public class ReservationAuditingHelper {
 
     private final AuditingRepository auditingRepository;
 
-<span class="fc" id="L38">    public ReservationAuditingHelper(AuditingRepository auditingRepository) {</span>
-<span class="fc" id="L39">        this.auditingRepository = auditingRepository;</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L37">    public ReservationAuditingHelper(AuditingRepository auditingRepository) {</span>
+<span class="fc" id="L38">        this.auditingRepository = auditingRepository;</span>
+<span class="fc" id="L39">    }</span>
 
-    public void auditUpdateMetadata(String reservationId,
-                                     int ticketId,
-                                     int eventId,
-                                     TicketMetadataContainer newMetadata,
-                                     TicketMetadataContainer oldMetadata) {
-<span class="fc" id="L47">        List&lt;Map&lt;String, Object&gt;&gt; changes = ObjectDiffUtil.diff(oldMetadata, newMetadata, TicketMetadataContainer.class).stream()</span>
-<span class="fc" id="L48">            .map(this::processChange)</span>
-<span class="fc" id="L49">            .collect(Collectors.toList());</span>
+    public void auditUpdateMetadata(
+            String reservationId,
+            int ticketId,
+            int eventId,
+            TicketMetadataContainer newMetadata,
+            TicketMetadataContainer oldMetadata) {
+<span class="fc" id="L47">        List&lt;Map&lt;String, Object&gt;&gt; changes =</span>
+<span class="fc" id="L48">                ObjectDiffUtil.diff(oldMetadata, newMetadata, TicketMetadataContainer.class).stream()</span>
+<span class="fc" id="L49">                        .map(this::processChange)</span>
+<span class="fc" id="L50">                        .collect(Collectors.toList());</span>
 
-<span class="fc" id="L51">        auditingRepository.insert(reservationId, null, eventId, Audit.EventType.UPDATE_TICKET_METADATA, new Date(),</span>
-<span class="fc" id="L52">            TICKET, Integer.toString(ticketId), changes);</span>
-<span class="fc" id="L53">    }</span>
+<span class="fc" id="L52">        auditingRepository.insert(</span>
+                reservationId,
+                null,
+<span class="fc" id="L55">                eventId,</span>
+                Audit.EventType.UPDATE_TICKET_METADATA,
+                new Date(),
+                TICKET,
+<span class="fc" id="L59">                Integer.toString(ticketId),</span>
+                changes);
+<span class="fc" id="L61">    }</span>
 
-    public void auditUpdateTicket(Ticket preUpdateTicket, Map&lt;String, List&lt;String&gt;&gt; preUpdateTicketFields, Ticket postUpdateTicket, Map&lt;String, List&lt;String&gt;&gt; postUpdateTicketFields, int eventId) {
-<span class="fc" id="L56">        List&lt;ObjectDiffUtil.Change&gt; diffTicket = ObjectDiffUtil.diff(preUpdateTicket, postUpdateTicket);</span>
-<span class="fc" id="L57">        List&lt;ObjectDiffUtil.Change&gt; diffTicketFields = ObjectDiffUtil.diff(preUpdateTicketFields, postUpdateTicketFields);</span>
+    public void auditUpdateTicket(
+            Ticket preUpdateTicket,
+            Map&lt;String, List&lt;String&gt;&gt; preUpdateTicketFields,
+            Ticket postUpdateTicket,
+            Map&lt;String, List&lt;String&gt;&gt; postUpdateTicketFields,
+            int eventId) {
+<span class="fc" id="L69">        List&lt;ObjectDiffUtil.Change&gt; diffTicket = ObjectDiffUtil.diff(preUpdateTicket, postUpdateTicket);</span>
+<span class="fc" id="L70">        List&lt;ObjectDiffUtil.Change&gt; diffTicketFields =</span>
+<span class="fc" id="L71">                ObjectDiffUtil.diff(preUpdateTicketFields, postUpdateTicketFields);</span>
 
-<span class="fc" id="L59">        List&lt;Map&lt;String, Object&gt;&gt; changes = Stream.concat(diffTicket.stream(), diffTicketFields.stream())</span>
-<span class="fc" id="L60">            .map(this::processChange)</span>
-<span class="fc" id="L61">            .collect(Collectors.toList());</span>
+<span class="fc" id="L73">        List&lt;Map&lt;String, Object&gt;&gt; changes = Stream.concat(diffTicket.stream(), diffTicketFields.stream())</span>
+<span class="fc" id="L74">                .map(this::processChange)</span>
+<span class="fc" id="L75">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L63">        auditingRepository.insert(preUpdateTicket.getTicketsReservationId(), null, eventId,</span>
-<span class="fc" id="L64">            Audit.EventType.UPDATE_TICKET, new Date(), TICKET, Integer.toString(preUpdateTicket.getId()), changes);</span>
-<span class="fc" id="L65">    }</span>
+<span class="fc" id="L77">        auditingRepository.insert(</span>
+<span class="fc" id="L78">                preUpdateTicket.getTicketsReservationId(),</span>
+                null,
+<span class="fc" id="L80">                eventId,</span>
+                Audit.EventType.UPDATE_TICKET,
+                new Date(),
+                TICKET,
+<span class="fc" id="L84">                Integer.toString(preUpdateTicket.getId()),</span>
+                changes);
+<span class="fc" id="L86">    }</span>
 
     private HashMap&lt;String, Object&gt; processChange(ObjectDiffUtil.Change change) {
-<span class="fc" id="L68">        var v = new HashMap&lt;String, Object&gt;();</span>
-<span class="fc" id="L69">        v.put(&quot;propertyName&quot;, change.getPropertyName());</span>
-<span class="fc" id="L70">        v.put(&quot;state&quot;, change.getState());</span>
-<span class="fc" id="L71">        v.put(&quot;oldValue&quot;, change.getOldValue());</span>
-<span class="fc" id="L72">        v.put(&quot;newValue&quot;, change.getNewValue());</span>
-<span class="fc" id="L73">        return v;</span>
+<span class="fc" id="L89">        var v = new HashMap&lt;String, Object&gt;();</span>
+<span class="fc" id="L90">        v.put(&quot;propertyName&quot;, change.getPropertyName());</span>
+<span class="fc" id="L91">        v.put(&quot;state&quot;, change.getState());</span>
+<span class="fc" id="L92">        v.put(&quot;oldValue&quot;, change.getOldValue());</span>
+<span class="fc" id="L93">        v.put(&quot;newValue&quot;, change.getNewValue());</span>
+<span class="fc" id="L94">        return v;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

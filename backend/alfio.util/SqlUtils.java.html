@@ -16,34 +16,32 @@
  */
 package alfio.util;
 
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
+import java.util.Optional;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
 import org.springframework.jdbc.UncategorizedSQLException;
 
-import java.sql.Timestamp;
-import java.time.ZonedDateTime;
-import java.util.Optional;
-
 public class SqlUtils {
 
-    private SqlUtils() {
-
-    }
+    private SqlUtils() {}
 
     public static Optional&lt;ServerErrorMessage&gt; findServerError(UncategorizedSQLException exception) {
-<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (var throwable : exception.getSQLException()) {</span>
-<span class="pc bpc" id="L35" title="1 of 4 branches missed.">            if(throwable instanceof PSQLException lException &amp;&amp; lException.getServerErrorMessage() != null) {</span>
-<span class="fc" id="L36">                return Optional.ofNullable(lException.getServerErrorMessage());</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        for (var throwable : exception.getSQLException()) {</span>
+<span class="pc bpc" id="L32" title="1 of 4 branches missed.">            if (throwable instanceof PSQLException lException &amp;&amp; lException.getServerErrorMessage() != null) {</span>
+<span class="fc" id="L33">                return Optional.ofNullable(lException.getServerErrorMessage());</span>
             }
-<span class="fc" id="L38">        }</span>
-<span class="fc" id="L39">        return Optional.empty();</span>
+<span class="fc" id="L35">        }</span>
+<span class="fc" id="L36">        return Optional.empty();</span>
     }
 
     public static ZonedDateTime timestampToZoneDateTime(Timestamp timestamp) {
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (timestamp == null) {</span>
-<span class="fc" id="L44">            return null;</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (timestamp == null) {</span>
+<span class="fc" id="L41">            return null;</span>
         }
-<span class="fc" id="L46">        return ZonedDateTime.ofInstant(timestamp.toInstant(), ClockProvider.clock().getZone());</span>
+<span class="fc" id="L43">        return ZonedDateTime.ofInstant(</span>
+<span class="fc" id="L44">                timestamp.toInstant(), ClockProvider.clock().getZone());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

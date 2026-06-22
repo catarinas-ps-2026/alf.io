@@ -19,17 +19,16 @@ package alfio.model.system.command;
 import alfio.model.Event;
 import alfio.model.Ticket;
 import alfio.model.metadata.TicketMetadataContainer;
-
 import java.util.Objects;
 
 /**
  * Signals that access for the ticket must be invalidated on external systems
  */
-<span class="fc" id="L28">public record InvalidateAccess(Ticket ticket, TicketMetadataContainer ticketMetadataContainer, Event event) {</span>
+<span class="fc" id="L27">public record InvalidateAccess(Ticket ticket, TicketMetadataContainer ticketMetadataContainer, Event event) {</span>
 
     @Override
     public TicketMetadataContainer ticketMetadataContainer() {
-<span class="nc" id="L32">        return Objects.requireNonNullElseGet(ticketMetadataContainer, TicketMetadataContainer::empty);</span>
+<span class="nc" id="L31">        return Objects.requireNonNullElseGet(ticketMetadataContainer, TicketMetadataContainer::empty);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

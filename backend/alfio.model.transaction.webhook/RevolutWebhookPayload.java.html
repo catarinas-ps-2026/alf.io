@@ -20,7 +20,6 @@ import alfio.model.transaction.TransactionWebhookPayload;
 import alfio.model.transaction.provider.RevolutTransactionDescriptor;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.time.ZonedDateTime;
 
 public class RevolutWebhookPayload implements TransactionWebhookPayload {
@@ -31,42 +30,42 @@ public class RevolutWebhookPayload implements TransactionWebhookPayload {
     private String reservationId;
 
     @JsonCreator
-    public RevolutWebhookPayload(@JsonProperty(&quot;event&quot;) String type,
-                                 @JsonProperty(&quot;timestamp&quot;) ZonedDateTime timestamp,
-<span class="nc" id="L36">                                 @JsonProperty(&quot;data&quot;) RevolutTransactionDescriptor payload) {</span>
+    public RevolutWebhookPayload(
+            @JsonProperty(&quot;event&quot;) String type,
+            @JsonProperty(&quot;timestamp&quot;) ZonedDateTime timestamp,
+<span class="nc" id="L36">            @JsonProperty(&quot;data&quot;) RevolutTransactionDescriptor payload) {</span>
 <span class="nc" id="L37">        this.type = type;</span>
 <span class="nc" id="L38">        this.timestamp = timestamp;</span>
 <span class="nc" id="L39">        this.payload = payload;</span>
 <span class="nc" id="L40">    }</span>
 
-
     @Override
     public RevolutTransactionDescriptor getPayload() {
-<span class="nc" id="L45">        return payload;</span>
+<span class="nc" id="L44">        return payload;</span>
     }
 
     @Override
     public String getType() {
-<span class="nc" id="L50">        return type;</span>
+<span class="nc" id="L49">        return type;</span>
     }
 
     @Override
     public String getReservationId() {
-<span class="nc" id="L55">        return reservationId;</span>
+<span class="nc" id="L54">        return reservationId;</span>
     }
 
     @Override
     public Status getStatus() {
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        return payload.getState().equals(&quot;completed&quot;) ? Status.SUCCESS : Status.FAILURE;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        return payload.getState().equals(&quot;completed&quot;) ? Status.SUCCESS : Status.FAILURE;</span>
     }
 
     public ZonedDateTime getTimestamp() {
-<span class="nc" id="L64">        return timestamp;</span>
+<span class="nc" id="L63">        return timestamp;</span>
     }
 
     public RevolutWebhookPayload attachToReservation(String reservationId) {
-<span class="nc" id="L68">        this.reservationId = reservationId;</span>
-<span class="nc" id="L69">        return this;</span>
+<span class="nc" id="L67">        this.reservationId = reservationId;</span>
+<span class="nc" id="L68">        return this;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

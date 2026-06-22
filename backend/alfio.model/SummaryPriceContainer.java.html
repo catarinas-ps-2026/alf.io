@@ -17,7 +17,6 @@
 package alfio.model;
 
 import alfio.util.MonetaryUtil;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -26,11 +25,12 @@ public interface SummaryPriceContainer extends PriceContainer {
     Integer getFinalPriceCts();
 
     static int getSummaryPriceBeforeVatCts(List&lt;? extends PriceContainer&gt; elements) {
-<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        var currencyCode = !elements.isEmpty() ? elements.get(0).getCurrencyCode() : null;</span>
-<span class="fc" id="L30">        return elements.stream().map(PriceContainer::getNetPrice)</span>
-<span class="fc" id="L31">            .reduce(BigDecimal::add)</span>
-<span class="fc" id="L32">            .map(p -&gt; MonetaryUtil.unitToCents(p, currencyCode))</span>
-<span class="fc" id="L33">            .orElse(0);</span>
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        var currencyCode = !elements.isEmpty() ? elements.get(0).getCurrencyCode() : null;</span>
+<span class="fc" id="L29">        return elements.stream()</span>
+<span class="fc" id="L30">                .map(PriceContainer::getNetPrice)</span>
+<span class="fc" id="L31">                .reduce(BigDecimal::add)</span>
+<span class="fc" id="L32">                .map(p -&gt; MonetaryUtil.unitToCents(p, currencyCode))</span>
+<span class="fc" id="L33">                .orElse(0);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

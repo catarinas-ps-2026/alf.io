@@ -20,7 +20,6 @@ import alfio.model.support.ReservationInfo;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.util.List;
 
 public class ReservationsByEvent {
@@ -30,10 +29,11 @@ public class ReservationsByEvent {
     private final String displayName;
     private final List&lt;ReservationInfo&gt; reservations;
 
-    public ReservationsByEvent(@Column(&quot;event_id&quot;) int eventId,
-                               @Column(&quot;event_short_name&quot;) String eventShortName,
-                               @Column(&quot;event_display_name&quot;) String displayName,
-<span class="fc" id="L36">                               @Column(&quot;reservations&quot;) String reservations) {</span>
+    public ReservationsByEvent(
+            @Column(&quot;event_id&quot;) int eventId,
+            @Column(&quot;event_short_name&quot;) String eventShortName,
+            @Column(&quot;event_display_name&quot;) String displayName,
+<span class="fc" id="L36">            @Column(&quot;reservations&quot;) String reservations) {</span>
 <span class="fc" id="L37">        this.eventId = eventId;</span>
 <span class="fc" id="L38">        this.eventShortName = eventShortName;</span>
 <span class="fc" id="L39">        this.displayName = displayName;</span>

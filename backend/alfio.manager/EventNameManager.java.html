@@ -17,6 +17,13 @@
 package alfio.manager;
 
 import alfio.repository.EventAdminRepository;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -25,27 +32,19 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 @Component
 @AllArgsConstructor
 @Transactional(readOnly = true)
 public class EventNameManager {
 
-<span class="fc" id="L41">    private static final Pattern NUMBER_MATCHER = Pattern.compile(&quot;^\\d+$&quot;);</span>
+<span class="fc" id="L40">    private static final Pattern NUMBER_MATCHER = Pattern.compile(&quot;^\\d+$&quot;);</span>
     private static final String SPACES_AND_PUNCTUATION = &quot;[\\s\\p{Punct}]&quot;;
     private static final String FIND_EVIL_CHARACTERS = &quot;[^\\sA-Z\\-a-z0-9]&quot;;
-<span class="fc" id="L44">    private static final SecureRandom RANDOM = new SecureRandom();</span>
-<span class="fc" id="L45">    private static final RandomStringGenerator RANDOM_STRING_GENERATOR = new RandomStringGenerator.Builder()</span>
-<span class="fc" id="L46">        .withinRange(new char[] {'a', 'z'}, new char[] {'A', 'Z'} , new char[] { '0', '9'})</span>
-<span class="fc" id="L47">        .usingRandom(RANDOM::nextInt)</span>
-<span class="fc" id="L48">        .get();</span>
+<span class="fc" id="L43">    private static final SecureRandom RANDOM = new SecureRandom();</span>
+<span class="fc" id="L44">    private static final RandomStringGenerator RANDOM_STRING_GENERATOR = new RandomStringGenerator.Builder()</span>
+<span class="fc" id="L45">            .withinRange(new char[] {'a', 'z'}, new char[] {'A', 'Z'}, new char[] {'0', '9'})</span>
+<span class="fc" id="L46">            .usingRandom(RANDOM::nextInt)</span>
+<span class="fc" id="L47">            .get();</span>
     private final EventAdminRepository eventAdminRepository;
 
     /**
@@ -62,51 +61,53 @@ public class EventNameManager {
      * @return
      */
     public String generateShortName(String displayName) {
-<span class="fc" id="L65">        Validate.isTrue(StringUtils.isNotBlank(displayName));</span>
-<span class="fc" id="L66">        String cleanDisplayName = StringUtils.stripAccents(StringUtils.normalizeSpace(displayName)).toLowerCase(Locale.ENGLISH).replaceAll(FIND_EVIL_CHARACTERS, &quot;-&quot;);</span>
-<span class="pc bpc" id="L67" title="1 of 4 branches missed.">        if(!StringUtils.containsWhitespace(cleanDisplayName) &amp;&amp; isUnique(cleanDisplayName)) {</span>
-<span class="fc" id="L68">            return cleanDisplayName;</span>
+<span class="fc" id="L64">        Validate.isTrue(StringUtils.isNotBlank(displayName));</span>
+<span class="fc" id="L65">        String cleanDisplayName = StringUtils.stripAccents(StringUtils.normalizeSpace(displayName))</span>
+<span class="fc" id="L66">                .toLowerCase(Locale.ENGLISH)</span>
+<span class="fc" id="L67">                .replaceAll(FIND_EVIL_CHARACTERS, &quot;-&quot;);</span>
+<span class="pc bpc" id="L68" title="1 of 4 branches missed.">        if (!StringUtils.containsWhitespace(cleanDisplayName) &amp;&amp; isUnique(cleanDisplayName)) {</span>
+<span class="fc" id="L69">            return cleanDisplayName;</span>
         }
-<span class="fc" id="L70">        Optional&lt;String&gt; dashedName = getDashedName(cleanDisplayName);</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        if(dashedName.isPresent()) {</span>
-<span class="fc" id="L72">            return dashedName.get();</span>
+<span class="fc" id="L71">        Optional&lt;String&gt; dashedName = getDashedName(cleanDisplayName);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (dashedName.isPresent()) {</span>
+<span class="fc" id="L73">            return dashedName.get();</span>
         }
-<span class="fc" id="L74">        Optional&lt;String&gt; croppedName = getCroppedName(cleanDisplayName);</span>
-<span class="fc" id="L75">        return croppedName.orElseGet(this::generateRandomName);</span>
+<span class="fc" id="L75">        Optional&lt;String&gt; croppedName = getCroppedName(cleanDisplayName);</span>
+<span class="fc" id="L76">        return croppedName.orElseGet(this::generateRandomName);</span>
     }
 
     private String generateRandomName() {
-<span class="fc" id="L79">        return IntStream.range(0, 5)</span>
-<span class="fc" id="L80">                .mapToObj(i -&gt; RANDOM_STRING_GENERATOR.generate(15))</span>
-<span class="fc" id="L81">                .filter(this::isUnique)</span>
-<span class="fc" id="L82">                .limit(1)</span>
-<span class="fc" id="L83">                .findFirst()</span>
-<span class="fc" id="L84">                .orElse(&quot;&quot;);</span>
+<span class="fc" id="L80">        return IntStream.range(0, 5)</span>
+<span class="fc" id="L81">                .mapToObj(i -&gt; RANDOM_STRING_GENERATOR.generate(15))</span>
+<span class="fc" id="L82">                .filter(this::isUnique)</span>
+<span class="fc" id="L83">                .limit(1)</span>
+<span class="fc" id="L84">                .findFirst()</span>
+<span class="fc" id="L85">                .orElse(&quot;&quot;);</span>
     }
 
     private Optional&lt;String&gt; getCroppedName(String cleanDisplayName) {
-<span class="fc" id="L88">        String candidate = Arrays.stream(cleanDisplayName.split(SPACES_AND_PUNCTUATION))</span>
-<span class="fc" id="L89">                .map(w -&gt; Pair.of(NUMBER_MATCHER.matcher(w).matches(), w))</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">                .map(p -&gt; Boolean.TRUE.equals(p.getKey()) ? p.getValue() : StringUtils.left(p.getValue(), 1))</span>
-<span class="fc" id="L91">                .collect(Collectors.joining());</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        if(isUnique(candidate)) {</span>
-<span class="fc" id="L93">            return Optional.of(candidate);</span>
+<span class="fc" id="L89">        String candidate = Arrays.stream(cleanDisplayName.split(SPACES_AND_PUNCTUATION))</span>
+<span class="fc" id="L90">                .map(w -&gt; Pair.of(NUMBER_MATCHER.matcher(w).matches(), w))</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">                .map(p -&gt; Boolean.TRUE.equals(p.getKey()) ? p.getValue() : StringUtils.left(p.getValue(), 1))</span>
+<span class="fc" id="L92">                .collect(Collectors.joining());</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (isUnique(candidate)) {</span>
+<span class="fc" id="L94">            return Optional.of(candidate);</span>
         }
-<span class="fc" id="L95">        return Optional.empty();</span>
+<span class="fc" id="L96">        return Optional.empty();</span>
     }
 
     private Optional&lt;String&gt; getDashedName(String cleanDisplayName) {
-<span class="fc bfc" id="L99" title="All 2 branches covered.">        if(cleanDisplayName.length() &lt; 15) {</span>
-<span class="fc" id="L100">            String candidate = cleanDisplayName.replaceAll(SPACES_AND_PUNCTUATION, &quot;-&quot;);</span>
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">            if(isUnique(candidate)) {</span>
-<span class="fc" id="L102">                return Optional.of(candidate);</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (cleanDisplayName.length() &lt; 15) {</span>
+<span class="fc" id="L101">            String candidate = cleanDisplayName.replaceAll(SPACES_AND_PUNCTUATION, &quot;-&quot;);</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            if (isUnique(candidate)) {</span>
+<span class="fc" id="L103">                return Optional.of(candidate);</span>
             }
         }
-<span class="fc" id="L105">        return Optional.empty();</span>
+<span class="fc" id="L106">        return Optional.empty();</span>
     }
 
     public boolean isUnique(String shortName) {
-<span class="fc bfc" id="L109" title="All 2 branches covered.">        return !eventAdminRepository.existsBySlug(shortName);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        return !eventAdminRepository.existsBySlug(shortName);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

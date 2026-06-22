@@ -18,7 +18,6 @@ package alfio.model.subscription;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,18 +28,18 @@ public class LinkSubscriptionsToEventRequest {
     private final List&lt;Integer&gt; categories;
 
     @JsonCreator
-    public LinkSubscriptionsToEventRequest(@JsonProperty(&quot;descriptorId&quot;) UUID descriptorId,
-<span class="fc" id="L33">                                           @JsonProperty(&quot;categories&quot;) List&lt;Integer&gt; categories) {</span>
-<span class="fc" id="L34">        this.descriptorId = descriptorId;</span>
-<span class="fc" id="L35">        this.categories = categories;</span>
-<span class="fc" id="L36">    }</span>
+    public LinkSubscriptionsToEventRequest(
+<span class="fc" id="L32">            @JsonProperty(&quot;descriptorId&quot;) UUID descriptorId, @JsonProperty(&quot;categories&quot;) List&lt;Integer&gt; categories) {</span>
+<span class="fc" id="L33">        this.descriptorId = descriptorId;</span>
+<span class="fc" id="L34">        this.categories = categories;</span>
+<span class="fc" id="L35">    }</span>
 
     public UUID getDescriptorId() {
-<span class="fc" id="L39">        return descriptorId;</span>
+<span class="fc" id="L38">        return descriptorId;</span>
     }
 
     public List&lt;Integer&gt; getCategories() {
-<span class="fc" id="L43">        return Objects.requireNonNullElse(categories, List.of());</span>
+<span class="fc" id="L42">        return Objects.requireNonNullElse(categories, List.of());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

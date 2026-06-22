@@ -19,20 +19,18 @@ package alfio.model.poll;
 import alfio.model.support.Array;
 import alfio.model.support.JSONData;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-
 import java.util.List;
 import java.util.Map;
 
-
-<span class="fc" id="L27">public record Poll(@Column(&quot;id&quot;) long id,</span>
-                   @Column(&quot;status&quot;) PollStatus status,
-                   @Column(&quot;title&quot;) @JSONData Map&lt;String, String&gt; title,
-                   @Column(&quot;description&quot;) @JSONData Map&lt;String, String&gt; description,
-                   @Column(&quot;allowed_tags&quot;) @Array List&lt;String&gt; allowedTags,
-                   @Column(&quot;poll_order&quot;) int order,
-                   @Column(&quot;event_id_fk&quot;) int eventId,
-                   @Column(&quot;organization_id_fk&quot;) int organizationId) {
-
+<span class="fc" id="L25">public record Poll(</span>
+        @Column(&quot;id&quot;) long id,
+        @Column(&quot;status&quot;) PollStatus status,
+        @Column(&quot;title&quot;) @JSONData Map&lt;String, String&gt; title,
+        @Column(&quot;description&quot;) @JSONData Map&lt;String, String&gt; description,
+        @Column(&quot;allowed_tags&quot;) @Array List&lt;String&gt; allowedTags,
+        @Column(&quot;poll_order&quot;) int order,
+        @Column(&quot;event_id_fk&quot;) int eventId,
+        @Column(&quot;organization_id_fk&quot;) int organizationId) {
 
     public enum PollStatus {
         DRAFT,

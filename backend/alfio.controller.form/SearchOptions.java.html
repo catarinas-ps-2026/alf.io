@@ -16,42 +16,41 @@
  */
 package alfio.controller.form;
 
+import java.util.List;
+import java.util.UUID;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.UUID;
-
 @Data
 public class SearchOptions {
-<span class="fc" id="L30">    private static final Logger log = LoggerFactory.getLogger(SearchOptions.class);</span>
+<span class="fc" id="L29">    private static final Logger log = LoggerFactory.getLogger(SearchOptions.class);</span>
     private String subscription;
     private Integer organizer;
     private String organizerSlug;
     private List&lt;String&gt; tags;
 
     public static SearchOptions empty() {
-<span class="fc" id="L37">        return new SearchOptions();</span>
+<span class="fc" id="L36">        return new SearchOptions();</span>
     }
 
     public boolean isEmpty() {
-<span class="nc bnc" id="L41" title="All 4 branches missed.">        return StringUtils.isEmpty(subscription)</span>
-<span class="nc bnc" id="L42" title="All 4 branches missed.">            &amp;&amp; (organizer == null || organizer == 0 || StringUtils.isEmpty(organizerSlug))</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">            &amp;&amp; CollectionUtils.isEmpty(tags);</span>
+<span class="nc bnc" id="L40" title="All 4 branches missed.">        return StringUtils.isEmpty(subscription)</span>
+<span class="nc bnc" id="L41" title="All 4 branches missed.">                &amp;&amp; (organizer == null || organizer == 0 || StringUtils.isEmpty(organizerSlug))</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">                &amp;&amp; CollectionUtils.isEmpty(tags);</span>
     }
 
     public UUID getSubscriptionCodeUUIDOrNull() {
         try {
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">            if(StringUtils.isEmpty(subscription)) {</span>
-<span class="fc" id="L49">                return null;</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">            if (StringUtils.isEmpty(subscription)) {</span>
+<span class="fc" id="L48">                return null;</span>
             }
-<span class="nc" id="L51">            return UUID.fromString(subscription);</span>
-<span class="nc" id="L52">        } catch (Exception e) {</span>
-<span class="nc" id="L53">            log.warn(&quot;invalid UUID received: {}&quot;, subscription);</span>
-<span class="nc" id="L54">            return null;</span>
+<span class="nc" id="L50">            return UUID.fromString(subscription);</span>
+<span class="nc" id="L51">        } catch (Exception e) {</span>
+<span class="nc" id="L52">            log.warn(&quot;invalid UUID received: {}&quot;, subscription);</span>
+<span class="nc" id="L53">            return null;</span>
         }
     }
 }

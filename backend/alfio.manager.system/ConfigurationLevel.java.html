@@ -20,65 +20,66 @@ import alfio.model.EventAndOrganizationId;
 import alfio.model.PurchaseContext;
 import alfio.model.subscription.SubscriptionDescriptor;
 import alfio.model.system.ConfigurationPathLevel;
-
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
 
 public interface ConfigurationLevel {
 
+    ConfigurationPathLevel getPathLevel(); // waiting for pattern matching...
 
-    ConfigurationPathLevel getPathLevel(); //waiting for pattern matching...
     default OptionalInt getOrganizationId() {
-<span class="fc" id="L33">        return OptionalInt.empty();</span>
+<span class="fc" id="L32">        return OptionalInt.empty();</span>
     }
 
     default OptionalInt getEventId() {
-<span class="nc" id="L37">        return OptionalInt.empty();</span>
+<span class="nc" id="L36">        return OptionalInt.empty();</span>
     }
 
     default Optional&lt;UUID&gt; getSubscriptionDescriptorId() {
-<span class="nc" id="L41">        return Optional.empty();</span>
+<span class="nc" id="L40">        return Optional.empty();</span>
     }
 
     default OptionalInt getTicketCategoryId() {
-<span class="nc" id="L45">        return OptionalInt.empty();</span>
+<span class="nc" id="L44">        return OptionalInt.empty();</span>
     }
 
     default boolean isSystem() {
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        return getPathLevel() == ConfigurationPathLevel.SYSTEM;</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        return getPathLevel() == ConfigurationPathLevel.SYSTEM;</span>
     }
 
     static ConfigurationLevel external() {
-<span class="fc" id="L53">        return new ConfigurationLevels.ExternalLevel();</span>
+<span class="fc" id="L52">        return new ConfigurationLevels.ExternalLevel();</span>
     }
 
     static ConfigurationLevel system() {
-<span class="fc" id="L57">        return new ConfigurationLevels.SystemLevel();</span>
+<span class="fc" id="L56">        return new ConfigurationLevels.SystemLevel();</span>
     }
 
     static ConfigurationLevel event(EventAndOrganizationId eventAndOrganizationId) {
-<span class="fc" id="L61">        return new ConfigurationLevels.EventLevel(eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId());</span>
+<span class="fc" id="L60">        return new ConfigurationLevels.EventLevel(</span>
+<span class="fc" id="L61">                eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId());</span>
     }
 
     static ConfigurationLevel subscriptionDescriptor(SubscriptionDescriptor subscriptionDescriptor) {
-<span class="fc" id="L65">        return new ConfigurationLevels.SubscriptionDescriptorLevel(subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId());</span>
+<span class="fc" id="L65">        return new ConfigurationLevels.SubscriptionDescriptorLevel(</span>
+<span class="fc" id="L66">                subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId());</span>
     }
 
     static ConfigurationLevel purchaseContext(PurchaseContext purchaseContext) {
-<span class="fc bfc" id="L69" title="All 2 branches covered.">        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
-<span class="fc" id="L70">            return event(purchaseContext.event().orElseThrow());</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {</span>
+<span class="fc" id="L71">            return event(purchaseContext.event().orElseThrow());</span>
         }
-<span class="fc" id="L72">        return subscriptionDescriptor((SubscriptionDescriptor) purchaseContext);</span>
+<span class="fc" id="L73">        return subscriptionDescriptor((SubscriptionDescriptor) purchaseContext);</span>
     }
 
     static ConfigurationLevel organization(int organizationId) {
-<span class="fc" id="L76">        return new ConfigurationLevels.OrganizationLevel(organizationId);</span>
+<span class="fc" id="L77">        return new ConfigurationLevels.OrganizationLevel(organizationId);</span>
     }
 
     static ConfigurationLevel ticketCategory(EventAndOrganizationId eventAndOrganizationId, int ticketCategoryId) {
-<span class="fc" id="L80">        return new ConfigurationLevels.CategoryLevel(eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId(), ticketCategoryId);</span>
+<span class="fc" id="L81">        return new ConfigurationLevels.CategoryLevel(</span>
+<span class="fc" id="L82">                eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId(), ticketCategoryId);</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

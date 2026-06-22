@@ -29,27 +29,28 @@ public class AdditionalServiceFieldValue {
     private final String name;
     private final String value;
 
-    public AdditionalServiceFieldValue(@Column(&quot;additional_service_item_id_fk&quot;) int additionalServiceItemId,
-                                       @Column(&quot;additional_service_id_fk&quot;) int additionalServiceId,
-                                       @Column(&quot;field_configuration_id_fk&quot;) long fieldConfigurationId,
-                                       @Column(&quot;field_name&quot;) String name,
-                                       @Column(&quot;field_value&quot;) String value,
-<span class="fc" id="L37">                                       @Column(&quot;ticket_id_fk&quot;) int ticketId) {</span>
-<span class="fc" id="L38">        this.additionalServiceItemId = additionalServiceItemId;</span>
-<span class="fc" id="L39">        this.additionalServiceId = additionalServiceId;</span>
-<span class="fc" id="L40">        this.fieldConfigurationId = fieldConfigurationId;</span>
-<span class="fc" id="L41">        this.ticketId = ticketId;</span>
-<span class="fc" id="L42">        this.name = name;</span>
-<span class="fc" id="L43">        this.value = value;</span>
-<span class="fc" id="L44">    }</span>
+    public AdditionalServiceFieldValue(
+            @Column(&quot;additional_service_item_id_fk&quot;) int additionalServiceItemId,
+            @Column(&quot;additional_service_id_fk&quot;) int additionalServiceId,
+            @Column(&quot;field_configuration_id_fk&quot;) long fieldConfigurationId,
+            @Column(&quot;field_name&quot;) String name,
+            @Column(&quot;field_value&quot;) String value,
+<span class="fc" id="L38">            @Column(&quot;ticket_id_fk&quot;) int ticketId) {</span>
+<span class="fc" id="L39">        this.additionalServiceItemId = additionalServiceItemId;</span>
+<span class="fc" id="L40">        this.additionalServiceId = additionalServiceId;</span>
+<span class="fc" id="L41">        this.fieldConfigurationId = fieldConfigurationId;</span>
+<span class="fc" id="L42">        this.ticketId = ticketId;</span>
+<span class="fc" id="L43">        this.name = name;</span>
+<span class="fc" id="L44">        this.value = value;</span>
+<span class="fc" id="L45">    }</span>
 
     // add getters for backwards compatibility
     public String getFieldName() {
-<span class="nc" id="L48">        return name;</span>
+<span class="nc" id="L49">        return name;</span>
     }
 
     public String getFieldValue() {
-<span class="nc" id="L52">        return value;</span>
+<span class="nc" id="L53">        return value;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

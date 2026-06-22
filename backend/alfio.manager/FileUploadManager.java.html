@@ -19,6 +19,12 @@ package alfio.manager;
 import alfio.model.FileBlobMetadata;
 import alfio.model.modification.UploadBase64FileModification;
 import alfio.repository.FileUploadRepository;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -31,25 +37,19 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-
 @Component
 public class FileUploadManager {
 
     static final int IMAGE_THUMB_MAX_WIDTH_PX = 450;
     static final int IMAGE_THUMB_MAX_HEIGHT_PX = 300;
-<span class="fc" id="L46">    private static final Logger log = LoggerFactory.getLogger(FileUploadManager.class);</span>
+<span class="fc" id="L45">    private static final Logger log = LoggerFactory.getLogger(FileUploadManager.class);</span>
 
     private static final String FILE_SECTION = &quot;file-upload-manager&quot;;
     /**
      * Maximum allowed file size is 400kb
      */
     private static final int MAXIMUM_ALLOWED_SIZE = 1024 * 400;
+
 <span class="fc" id="L53">    private static final MimeType IMAGE_TYPE = MimeType.valueOf(&quot;image/*&quot;);</span>
     private final FileUploadRepository repository;
     private final FileBlobCacheManager fileBlobCacheManager;
@@ -75,7 +75,7 @@ public class FileUploadManager {
 <span class="fc" id="L75">        Assert.isTrue(IS_HEX.matcher(id).matches(), &quot;id must be an hex value&quot;);</span>
 <span class="fc" id="L76">        try (var fis = ensureFilePresence(id)) {</span>
 <span class="fc" id="L77">            fis.transferTo(out);</span>
-<span class="nc" id="L78">        } catch(EOFException ex){</span>
+<span class="nc" id="L78">        } catch (EOFException ex) {</span>
             // this happens when the browser closes the stream on its end.
 <span class="nc" id="L80">            log.trace(&quot;got EOFException&quot;, ex);</span>
 <span class="nc" id="L81">        } catch (IOException e) {</span>
@@ -133,35 +133,40 @@ public class FileUploadManager {
             // resize only if the image is bigger than the target size on either side
 <span class="pc bpc" id="L134" title="1 of 4 branches missed.">            if (image.getWidth() &gt; IMAGE_THUMB_MAX_WIDTH_PX || image.getHeight() &gt; IMAGE_THUMB_MAX_HEIGHT_PX) {</span>
 <span class="fc" id="L135">                UploadBase64FileModification resized = new UploadBase64FileModification();</span>
-<span class="fc" id="L136">                BufferedImage thumbImg = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.AUTOMATIC, IMAGE_THUMB_MAX_WIDTH_PX, IMAGE_THUMB_MAX_HEIGHT_PX);</span>
-<span class="fc" id="L137">                try (final var baos = new ByteArrayOutputStream()) {</span>
-<span class="fc" id="L138">                    ImageIO.write(thumbImg, mimeType.getSubtype(), baos);</span>
-<span class="fc" id="L139">                    resized.setFile(baos.toByteArray());</span>
+<span class="fc" id="L136">                BufferedImage thumbImg = Scalr.resize(</span>
+                        image,
+                        Scalr.Method.ULTRA_QUALITY,
+                        Scalr.Mode.AUTOMATIC,
+                        IMAGE_THUMB_MAX_WIDTH_PX,
+                        IMAGE_THUMB_MAX_HEIGHT_PX);
+<span class="fc" id="L142">                try (final var baos = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L143">                    ImageIO.write(thumbImg, mimeType.getSubtype(), baos);</span>
+<span class="fc" id="L144">                    resized.setFile(baos.toByteArray());</span>
                 }
-<span class="fc" id="L141">                resized.setAttributes(upload.getAttributes());</span>
-<span class="fc" id="L142">                resized.setName(upload.getName());</span>
-<span class="fc" id="L143">                resized.setType(upload.getType());</span>
-<span class="fc" id="L144">                return resized;</span>
+<span class="fc" id="L146">                resized.setAttributes(upload.getAttributes());</span>
+<span class="fc" id="L147">                resized.setName(upload.getName());</span>
+<span class="fc" id="L148">                resized.setType(upload.getType());</span>
+<span class="fc" id="L149">                return resized;</span>
             }
-<span class="fc" id="L146">            return upload;</span>
-<span class="nc" id="L147">        } catch (IOException ex) {</span>
-<span class="nc" id="L148">            throw new IllegalStateException(ex);</span>
+<span class="fc" id="L151">            return upload;</span>
+<span class="nc" id="L152">        } catch (IOException ex) {</span>
+<span class="nc" id="L153">            throw new IllegalStateException(ex);</span>
         }
     }
 
     private Map&lt;String, String&gt; getAttributes(UploadBase64FileModification file) {
-<span class="fc bfc" id="L153" title="All 2 branches covered.">        if (!StringUtils.startsWith(file.getType(), &quot;image/&quot;)) {</span>
-<span class="fc" id="L154">            return Collections.emptyMap();</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">        if (!StringUtils.startsWith(file.getType(), &quot;image/&quot;)) {</span>
+<span class="fc" id="L159">            return Collections.emptyMap();</span>
         }
         try {
-<span class="fc" id="L157">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getFile()));</span>
-<span class="fc" id="L158">            Map&lt;String, String&gt; attributes = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L159">            attributes.put(FileBlobMetadata.ATTR_IMG_WIDTH, String.valueOf(image.getWidth()));</span>
-<span class="fc" id="L160">            attributes.put(FileBlobMetadata.ATTR_IMG_HEIGHT, String.valueOf(image.getHeight()));</span>
-<span class="fc" id="L161">            return attributes;</span>
-<span class="nc" id="L162">        } catch (IOException e) {</span>
-<span class="nc" id="L163">            log.error(&quot;error while processing image: &quot;, e);</span>
-<span class="nc" id="L164">            return Collections.emptyMap();</span>
+<span class="fc" id="L162">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getFile()));</span>
+<span class="fc" id="L163">            Map&lt;String, String&gt; attributes = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L164">            attributes.put(FileBlobMetadata.ATTR_IMG_WIDTH, String.valueOf(image.getWidth()));</span>
+<span class="fc" id="L165">            attributes.put(FileBlobMetadata.ATTR_IMG_HEIGHT, String.valueOf(image.getHeight()));</span>
+<span class="fc" id="L166">            return attributes;</span>
+<span class="nc" id="L167">        } catch (IOException e) {</span>
+<span class="nc" id="L168">            log.error(&quot;error while processing image: &quot;, e);</span>
+<span class="nc" id="L169">            return Collections.emptyMap();</span>
         }
     }
 }

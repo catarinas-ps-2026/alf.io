@@ -17,32 +17,31 @@
 package alfio.extension.support;
 
 import alfio.extension.exception.OutOfBoundariesException;
+import java.util.Map;
 import org.mozilla.javascript.NativeJavaMap;
 import org.mozilla.javascript.Scriptable;
-
-import java.util.Map;
 
 public class SandboxNativeJavaMap extends NativeJavaMap {
 
     private final Map&lt;?, ?&gt; map;
 
     public SandboxNativeJavaMap(Scriptable scope, Object map) {
-<span class="fc" id="L30">        super(scope, map);</span>
-<span class="fc" id="L31">        this.map = (Map&lt;?, ?&gt;) map;</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L29">        super(scope, map);</span>
+<span class="fc" id="L30">        this.map = (Map&lt;?, ?&gt;) map;</span>
+<span class="fc" id="L31">    }</span>
 
     @Override
     public Object get(String name, Scriptable start) {
-<span class="pc bpc" id="L36" title="1 of 4 branches missed.">        if (name.equals(&quot;getClass&quot;) &amp;&amp; !map.containsKey(name)){</span>
-<span class="fc" id="L37">            throw new OutOfBoundariesException(&quot;Out of boundaries class use.&quot;);</span>
+<span class="pc bpc" id="L35" title="1 of 4 branches missed.">        if (name.equals(&quot;getClass&quot;) &amp;&amp; !map.containsKey(name)) {</span>
+<span class="fc" id="L36">            throw new OutOfBoundariesException(&quot;Out of boundaries class use.&quot;);</span>
         }
 
-<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (map.get(name) == null) {</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (map.get(name) == null) {</span>
             // prevent NPE on Rhino when map has an explicit null value for a given key
-<span class="nc" id="L42">            return null;</span>
+<span class="nc" id="L41">            return null;</span>
         }
 
-<span class="fc" id="L45">        return super.get(name, start);</span>
+<span class="fc" id="L44">        return super.get(name, start);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

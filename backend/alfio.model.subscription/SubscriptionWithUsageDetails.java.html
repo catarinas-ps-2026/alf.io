@@ -17,10 +17,9 @@
 package alfio.model.subscription;
 
 import alfio.model.TicketReservationWithEventIdentifier;
-import lombok.Getter;
-
 import java.beans.ConstructorProperties;
 import java.util.List;
+import lombok.Getter;
 
 @Getter
 public class SubscriptionWithUsageDetails {
@@ -29,10 +28,13 @@ public class SubscriptionWithUsageDetails {
     private final List&lt;TicketReservationWithEventIdentifier&gt; reservations;
 
     @ConstructorProperties({&quot;subscription&quot;, &quot;usageDetails&quot;, &quot;reservations&quot;})
-<span class="fc" id="L32">    public SubscriptionWithUsageDetails(Subscription subscription, UsageDetails usageDetails, List&lt;TicketReservationWithEventIdentifier&gt; reservations) {</span>
-<span class="fc" id="L33">        this.subscription = subscription;</span>
-<span class="fc" id="L34">        this.usageDetails = usageDetails;</span>
-<span class="fc" id="L35">        this.reservations = reservations;</span>
-<span class="fc" id="L36">    }</span>
+    public SubscriptionWithUsageDetails(
+            Subscription subscription,
+            UsageDetails usageDetails,
+<span class="fc" id="L34">            List&lt;TicketReservationWithEventIdentifier&gt; reservations) {</span>
+<span class="fc" id="L35">        this.subscription = subscription;</span>
+<span class="fc" id="L36">        this.usageDetails = usageDetails;</span>
+<span class="fc" id="L37">        this.reservations = reservations;</span>
+<span class="fc" id="L38">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

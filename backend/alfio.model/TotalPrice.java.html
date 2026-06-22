@@ -29,20 +29,21 @@ public class TotalPrice {
     private final String currencyCode;
 
     @JsonCreator
-    public TotalPrice(@JsonProperty(&quot;priceWithVAT&quot;) int priceWithVAT,
-                      @JsonProperty(&quot;vat&quot;) int VAT,
-                      @JsonProperty(&quot;discount&quot;) int discount,
-                      @JsonProperty(&quot;discountAppliedCount&quot;) int discountAppliedCount,
-<span class="fc" id="L36">                      @JsonProperty(&quot;currencyCode&quot;) String currencyCode) {</span>
-<span class="fc" id="L37">        this.priceWithVAT = priceWithVAT;</span>
-<span class="fc" id="L38">        this.VAT = VAT;</span>
-<span class="fc" id="L39">        this.discount = discount;</span>
-<span class="fc" id="L40">        this.discountAppliedCount = discountAppliedCount;</span>
-<span class="fc" id="L41">        this.currencyCode = currencyCode;</span>
-<span class="fc" id="L42">    }</span>
+    public TotalPrice(
+            @JsonProperty(&quot;priceWithVAT&quot;) int priceWithVAT,
+            @JsonProperty(&quot;vat&quot;) int VAT,
+            @JsonProperty(&quot;discount&quot;) int discount,
+            @JsonProperty(&quot;discountAppliedCount&quot;) int discountAppliedCount,
+<span class="fc" id="L37">            @JsonProperty(&quot;currencyCode&quot;) String currencyCode) {</span>
+<span class="fc" id="L38">        this.priceWithVAT = priceWithVAT;</span>
+<span class="fc" id="L39">        this.VAT = VAT;</span>
+<span class="fc" id="L40">        this.discount = discount;</span>
+<span class="fc" id="L41">        this.discountAppliedCount = discountAppliedCount;</span>
+<span class="fc" id="L42">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L43">    }</span>
 
     public boolean requiresPayment() {
-<span class="fc bfc" id="L45" title="All 2 branches covered.">        return this.priceWithVAT &gt; 0;</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        return this.priceWithVAT &gt; 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

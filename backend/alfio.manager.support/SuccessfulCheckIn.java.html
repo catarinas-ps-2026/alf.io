@@ -16,22 +16,22 @@
  */
 package alfio.manager.support;
 
+import static alfio.manager.support.CheckInStatus.SUCCESS;
+
 import alfio.model.FieldValueAndDescription;
 import alfio.model.TicketWithCategory;
-
 import java.util.List;
-
-import static alfio.manager.support.CheckInStatus.SUCCESS;
 
 public class SuccessfulCheckIn extends TicketAndCheckInResult {
     private final List&lt;AdditionalServiceInfo&gt; additionalServices;
     private final List&lt;FieldValueAndDescription&gt; fieldsToDisplay;
     private final String boxColor;
 
-    public SuccessfulCheckIn(TicketWithCategory ticket,
-                             List&lt;AdditionalServiceInfo&gt; additionalServices,
-                             List&lt;FieldValueAndDescription&gt; fieldsToDisplay,
-                             String boxColor) {
+    public SuccessfulCheckIn(
+            TicketWithCategory ticket,
+            List&lt;AdditionalServiceInfo&gt; additionalServices,
+            List&lt;FieldValueAndDescription&gt; fieldsToDisplay,
+            String boxColor) {
 <span class="fc" id="L35">        super(ticket, new DefaultCheckInResult(SUCCESS, &quot;success&quot;));</span>
 <span class="fc" id="L36">        this.additionalServices = additionalServices;</span>
 <span class="fc" id="L37">        this.boxColor = boxColor;</span>

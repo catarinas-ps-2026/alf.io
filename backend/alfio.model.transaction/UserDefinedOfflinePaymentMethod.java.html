@@ -16,13 +16,11 @@
  */
 package alfio.model.transaction;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
 
 /**
@@ -44,47 +42,43 @@ public class UserDefinedOfflinePaymentMethod implements UserDefinedPaymentMethod
 
     @JsonCreator
     public UserDefinedOfflinePaymentMethod(
-        @JsonProperty(&quot;paymentMethodId&quot;) String paymentMethodId,
-        @JsonProperty(&quot;localizations&quot;) Map&lt;String, Localization&gt; localizations
-<span class="fc" id="L49">    ) {</span>
-<span class="fc bfc" id="L50" title="All 2 branches covered.">        this.paymentMethodId = paymentMethodId == null ? UUID.randomUUID().toString() : paymentMethodId;</span>
-<span class="fc" id="L51">        this.localizations = localizations;</span>
-<span class="fc" id="L52">    }</span>
+            @JsonProperty(&quot;paymentMethodId&quot;) String paymentMethodId,
+<span class="fc" id="L46">            @JsonProperty(&quot;localizations&quot;) Map&lt;String, Localization&gt; localizations) {</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        this.paymentMethodId = paymentMethodId == null ? UUID.randomUUID().toString() : paymentMethodId;</span>
+<span class="fc" id="L48">        this.localizations = localizations;</span>
+<span class="fc" id="L49">    }</span>
 
     @Override
     public String name() {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        if(this.localizations.containsKey(&quot;en&quot;)) {</span>
-<span class="nc" id="L57">            return this.localizations.get(&quot;en&quot;).paymentName();</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (this.localizations.containsKey(&quot;en&quot;)) {</span>
+<span class="nc" id="L54">            return this.localizations.get(&quot;en&quot;).paymentName();</span>
         }
 
-<span class="nc" id="L60">        return this.localizations</span>
-<span class="nc" id="L61">            .values()</span>
-<span class="nc" id="L62">            .stream()</span>
-<span class="nc" id="L63">            .map(locale -&gt; locale.paymentName())</span>
-<span class="nc" id="L64">            .sorted()</span>
-<span class="nc" id="L65">            .findFirst()</span>
-<span class="nc" id="L66">            .orElseThrow();</span>
+<span class="nc" id="L57">        return this.localizations.values().stream()</span>
+<span class="nc" id="L58">                .map(locale -&gt; locale.paymentName())</span>
+<span class="nc" id="L59">                .sorted()</span>
+<span class="nc" id="L60">                .findFirst()</span>
+<span class="nc" id="L61">                .orElseThrow();</span>
     }
 
     public Localization getLocaleByKey(String key) {
-<span class="fc" id="L70">        return localizations.get(key);</span>
+<span class="fc" id="L65">        return localizations.get(key);</span>
     }
 
     public boolean isDeleted() {
-<span class="fc" id="L74">        return deleted;</span>
+<span class="fc" id="L69">        return deleted;</span>
     }
 
     public void setDeleted() {
-<span class="fc" id="L78">        deleted = true;</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L73">        deleted = true;</span>
+<span class="fc" id="L74">    }</span>
 
     public record Localization(String paymentName, String paymentDescription, String paymentInstructions) {
         @JsonCreator
         public Localization(
-            @JsonProperty(&quot;paymentName&quot;) String paymentName,
-            @JsonProperty(&quot;paymentDescription&quot;) String paymentDescription,
-            @JsonProperty(&quot;paymentInstructions&quot;) String paymentInstructions
-        ) {
+                @JsonProperty(&quot;paymentName&quot;) String paymentName,
+                @JsonProperty(&quot;paymentDescription&quot;) String paymentDescription,
+                @JsonProperty(&quot;paymentInstructions&quot;) String paymentInstructions) {
             this.paymentName = paymentName;
             this.paymentDescription = paymentDescription;
             this.paymentInstructions = paymentInstructions;

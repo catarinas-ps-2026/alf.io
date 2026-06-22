@@ -23,7 +23,8 @@ import lombok.Getter;
 public class AdditionalServiceText {
 
     public enum TextType {
-        TITLE, DESCRIPTION
+        TITLE,
+        DESCRIPTION
     }
 
     private final int id;
@@ -32,17 +33,17 @@ public class AdditionalServiceText {
     private final TextType type;
     private final String value;
 
-    public AdditionalServiceText(@Column(&quot;id&quot;) int id,
-                                 @Column(&quot;additional_service_id_fk&quot;) Integer additionalServiceId,
-                                 @Column(&quot;locale&quot;) String locale,
-                                 @Column(&quot;type&quot;) TextType type,
-<span class="fc" id="L39">                                 @Column(&quot;value&quot;) String value) {</span>
-<span class="fc" id="L40">        this.id = id;</span>
-<span class="fc" id="L41">        this.additionalServiceId = additionalServiceId;</span>
-<span class="fc" id="L42">        this.locale = locale;</span>
-<span class="fc" id="L43">        this.type = type;</span>
-<span class="fc" id="L44">        this.value = value;</span>
-<span class="fc" id="L45">    }</span>
-
+    public AdditionalServiceText(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;additional_service_id_fk&quot;) Integer additionalServiceId,
+            @Column(&quot;locale&quot;) String locale,
+            @Column(&quot;type&quot;) TextType type,
+<span class="fc" id="L41">            @Column(&quot;value&quot;) String value) {</span>
+<span class="fc" id="L42">        this.id = id;</span>
+<span class="fc" id="L43">        this.additionalServiceId = additionalServiceId;</span>
+<span class="fc" id="L44">        this.locale = locale;</span>
+<span class="fc" id="L45">        this.type = type;</span>
+<span class="fc" id="L46">        this.value = value;</span>
+<span class="fc" id="L47">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

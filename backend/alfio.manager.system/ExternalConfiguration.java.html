@@ -16,6 +16,10 @@
  */
 package alfio.manager.system;
 
+import static java.util.Objects.requireNonNullElse;
+import static java.util.stream.Collectors.*;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import alfio.config.Initializer;
 import alfio.manager.support.extension.ExtensionCapability;
 import alfio.manager.support.extension.ExtensionEvent;
@@ -25,6 +29,9 @@ import alfio.model.ExtensionSupport;
 import alfio.model.system.Configuration;
 import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.model.system.ConfigurationPathLevel;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,36 +42,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNullElse;
-import static java.util.stream.Collectors.*;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 @Component
-@Profile(&quot;!&quot;+ Initializer.PROFILE_INTEGRATION_TEST)
+@Profile(&quot;!&quot; + Initializer.PROFILE_INTEGRATION_TEST)
 @ConfigurationProperties(&quot;alfio.override.system&quot;)
 @Getter
 @Setter
-<span class="fc" id="L51">public class ExternalConfiguration {</span>
+<span class="fc" id="L50">public class ExternalConfiguration {</span>
     private static final String EXTERNAL_EXTENSION_PATH = &quot;::EXTERNAL::&quot;;
     private static final int EXTERNAL_CONFIGURATION_ID = Integer.MIN_VALUE;
-<span class="fc" id="L54">    private Map&lt;String, String&gt; settings = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L55">    private List&lt;ExtensionOverride&gt; extensions = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L53">    private Map&lt;String, String&gt; settings = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L54">    private List&lt;ExtensionOverride&gt; extensions = new ArrayList&lt;&gt;();</span>
 
     public List&lt;Configuration&gt; load(String key) {
-<span class="fc" id="L58">        return getSingle(key).map(List::of).orElse(List.of());</span>
+<span class="fc" id="L57">        return getSingle(key).map(List::of).orElse(List.of());</span>
     }
 
     public Optional&lt;Configuration&gt; getSingle(String key) {
-<span class="fc" id="L62">        return Optional.ofNullable(settings.get(key))</span>
-<span class="fc" id="L63">            .or(() -&gt; settings.entrySet().stream()</span>
-<span class="fc" id="L64">                .filter(e -&gt; normalize(e.getKey()).equals(normalize(key)))</span>
-<span class="fc" id="L65">                .map(Map.Entry::getValue)</span>
-<span class="fc" id="L66">                .findFirst())</span>
-<span class="fc" id="L67">            .map(value -&gt; new Configuration(EXTERNAL_CONFIGURATION_ID, key, value, ConfigurationPathLevel.EXTERNAL));</span>
+<span class="fc" id="L61">        return Optional.ofNullable(settings.get(key))</span>
+<span class="fc" id="L62">                .or(() -&gt; settings.entrySet().stream()</span>
+<span class="fc" id="L63">                        .filter(e -&gt; normalize(e.getKey()).equals(normalize(key)))</span>
+<span class="fc" id="L64">                        .map(Map.Entry::getValue)</span>
+<span class="fc" id="L65">                        .findFirst())</span>
+<span class="fc" id="L66">                .map(value -&gt;</span>
+<span class="fc" id="L67">                        new Configuration(EXTERNAL_CONFIGURATION_ID, key, value, ConfigurationPathLevel.EXTERNAL));</span>
     }
 
     private static String normalize(String s) {
@@ -73,55 +73,71 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
     public List&lt;ConfigurationKeyValuePathLevel&gt; getAll(Collection&lt;String&gt; keys) {
 <span class="fc" id="L75">        return keys.stream()</span>
-<span class="fc" id="L76">            .map(this::getSingle)</span>
-<span class="fc" id="L77">            .flatMap(Optional::stream)</span>
-<span class="fc" id="L78">            .map(c -&gt; new ConfigurationKeyValuePathLevel(c.getKey(), c.getValue(), c.getConfigurationPathLevel()))</span>
-<span class="fc" id="L79">            .collect(Collectors.toList());</span>
+<span class="fc" id="L76">                .map(this::getSingle)</span>
+<span class="fc" id="L77">                .flatMap(Optional::stream)</span>
+<span class="fc" id="L78">                .map(c -&gt; new ConfigurationKeyValuePathLevel(c.getKey(), c.getValue(), c.getConfigurationPathLevel()))</span>
+<span class="fc" id="L79">                .collect(Collectors.toList());</span>
     }
 
     public Optional&lt;String&gt; getScript(String path, String name) {
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if(EXTERNAL_EXTENSION_PATH.equals(path)) {</span>
-<span class="nc bnc" id="L84" title="All 4 branches missed.">            return extensions.stream().filter(e -&gt; e.isValid() &amp;&amp; e.id.equals(name))</span>
-<span class="nc" id="L85">                .map(ExtensionOverride::getContent)</span>
-<span class="nc" id="L86">                .findFirst();</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (EXTERNAL_EXTENSION_PATH.equals(path)) {</span>
+<span class="nc" id="L84">            return extensions.stream()</span>
+<span class="nc bnc" id="L85" title="All 4 branches missed.">                    .filter(e -&gt; e.isValid() &amp;&amp; e.id.equals(name))</span>
+<span class="nc" id="L86">                    .map(ExtensionOverride::getContent)</span>
+<span class="nc" id="L87">                    .findFirst();</span>
         }
-<span class="fc" id="L88">        return Optional.empty();</span>
+<span class="fc" id="L89">        return Optional.empty();</span>
     }
 
     public List&lt;ExtensionSupport.ScriptPathNameHash&gt; getAllExtensionsFor(String event, boolean async) {
-<span class="fc" id="L92">        return extensions.stream()</span>
-<span class="pc bnc" id="L93" title="All 6 branches missed.">            .filter(e -&gt; e.async == async &amp;&amp; e.isValid() &amp;&amp; e.getEvents().contains(event))</span>
-<span class="pc" id="L94">            .map(e -&gt; new ExtensionSupport.ScriptPathNameHash(EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))</span>
-<span class="fc" id="L95">            .collect(Collectors.toList());</span>
+<span class="fc" id="L93">        return extensions.stream()</span>
+<span class="pc bnc" id="L94" title="All 6 branches missed.">                .filter(e -&gt; e.async == async &amp;&amp; e.isValid() &amp;&amp; e.getEvents().contains(event))</span>
+<span class="pc" id="L95">                .map(e -&gt; new ExtensionSupport.ScriptPathNameHash(</span>
+<span class="nc" id="L96">                        EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))</span>
+<span class="fc" id="L97">                .collect(Collectors.toList());</span>
     }
 
     public List&lt;ExtensionSupport.ScriptPathNameHash&gt; getAllExtensionsForCapability(ExtensionCapability capability) {
-<span class="fc" id="L99">        var eventsAsString = capability.getCompatibleEvents().stream()</span>
-<span class="fc" id="L100">            .map(ExtensionEvent::name).collect(Collectors.toList());</span>
-<span class="fc" id="L101">        return extensions.stream()</span>
-<span class="pc bnc" id="L102" title="All 6 branches missed.">            .filter(e -&gt; e.isValid() &amp;&amp; CollectionUtils.containsAny(e.events, eventsAsString) &amp;&amp; e.getCapabilities().contains(capability.name()))</span>
-<span class="pc" id="L103">            .map(e -&gt; new ExtensionSupport.ScriptPathNameHash(EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))</span>
-<span class="fc" id="L104">            .collect(Collectors.toList());</span>
+<span class="fc" id="L101">        var eventsAsString = capability.getCompatibleEvents().stream()</span>
+<span class="fc" id="L102">                .map(ExtensionEvent::name)</span>
+<span class="fc" id="L103">                .collect(Collectors.toList());</span>
+<span class="fc" id="L104">        return extensions.stream()</span>
+<span class="pc bnc" id="L105" title="All 2 branches missed.">                .filter(e -&gt; e.isValid()</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                        &amp;&amp; CollectionUtils.containsAny(e.events, eventsAsString)</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                        &amp;&amp; e.getCapabilities().contains(capability.name()))</span>
+<span class="pc" id="L108">                .map(e -&gt; new ExtensionSupport.ScriptPathNameHash(</span>
+<span class="nc" id="L109">                        EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))</span>
+<span class="fc" id="L110">                .collect(Collectors.toList());</span>
     }
 
     public Set&lt;ExtensionCapabilitySummary&gt; getSupportedCapabilities(Set&lt;ExtensionCapability&gt; requested) {
-<span class="fc" id="L108">        return extensions.stream()</span>
-<span class="pc" id="L109">            .map(e -&gt; Pair.of(e, e.getCapabilityDetails().stream().filter(cd -&gt; requested.contains(cd.key)).collect(Collectors.toList())))</span>
-<span class="pc bnc" id="L110" title="All 2 branches missed.">            .filter(p -&gt; !p.getRight().isEmpty())</span>
-<span class="fc" id="L111">            .flatMap(p -&gt; {</span>
-<span class="nc" id="L112">                Map&lt;ExtensionCapability, List&lt;ExtensionCapabilityDetails&gt;&gt; byCapability = p.getRight().stream()</span>
-<span class="nc" id="L113">                    .collect(groupingBy(ExtensionCapabilityDetailsOverride::getKey, mapping(cd -&gt; new ExtensionCapabilityDetails(cd.label, cd.description, cd.selector), toList())));</span>
-<span class="nc" id="L114">                return byCapability.entrySet().stream()</span>
-<span class="nc" id="L115">                    .map(e -&gt; new ExtensionCapabilitySummary(e.getKey(), e.getValue()));</span>
-<span class="fc" id="L116">            }).collect(Collectors.toSet());</span>
+<span class="fc" id="L114">        return extensions.stream()</span>
+<span class="pc" id="L115">                .map(e -&gt; Pair.of(</span>
+                        e,
+<span class="nc" id="L117">                        e.getCapabilityDetails().stream()</span>
+<span class="nc" id="L118">                                .filter(cd -&gt; requested.contains(cd.key))</span>
+<span class="nc" id="L119">                                .collect(Collectors.toList())))</span>
+<span class="pc bnc" id="L120" title="All 2 branches missed.">                .filter(p -&gt; !p.getRight().isEmpty())</span>
+<span class="fc" id="L121">                .flatMap(p -&gt; {</span>
+<span class="nc" id="L122">                    Map&lt;ExtensionCapability, List&lt;ExtensionCapabilityDetails&gt;&gt; byCapability = p.getRight().stream()</span>
+<span class="nc" id="L123">                            .collect(groupingBy(</span>
+                                    ExtensionCapabilityDetailsOverride::getKey,
+<span class="nc" id="L125">                                    mapping(</span>
+<span class="nc" id="L126">                                            cd -&gt; new ExtensionCapabilityDetails(cd.label, cd.description, cd.selector),</span>
+<span class="nc" id="L127">                                            toList())));</span>
+<span class="nc" id="L128">                    return byCapability.entrySet().stream()</span>
+<span class="nc" id="L129">                            .map(e -&gt; new ExtensionCapabilitySummary(e.getKey(), e.getValue()));</span>
+                })
+<span class="fc" id="L131">                .collect(Collectors.toSet());</span>
     }
 
     public Map&lt;String, String&gt; getParametersForExtension(String id) {
-<span class="nc" id="L120">        return extensions.stream().filter(ExtensionOverride::isValid)</span>
-<span class="nc" id="L121">            .filter(extensionOverride -&gt; extensionOverride.id.equals(id))</span>
-<span class="nc" id="L122">            .map(ExtensionOverride::getParams)</span>
-<span class="nc" id="L123">            .findFirst()</span>
-<span class="nc" id="L124">            .orElse(Map.of());</span>
+<span class="nc" id="L135">        return extensions.stream()</span>
+<span class="nc" id="L136">                .filter(ExtensionOverride::isValid)</span>
+<span class="nc" id="L137">                .filter(extensionOverride -&gt; extensionOverride.id.equals(id))</span>
+<span class="nc" id="L138">                .map(ExtensionOverride::getParams)</span>
+<span class="nc" id="L139">                .findFirst()</span>
+<span class="nc" id="L140">                .orElse(Map.of());</span>
     }
 
     @Data
@@ -135,9 +151,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
         private List&lt;ExtensionCapabilityDetailsOverride&gt; capabilityDetails;
 
         boolean isValid() {
-            return isNotBlank(id)
-                &amp;&amp; isNotBlank(file)
-                &amp;&amp; events != null &amp;&amp; !events.isEmpty();
+            return isNotBlank(id) &amp;&amp; isNotBlank(file) &amp;&amp; events != null &amp;&amp; !events.isEmpty();
         }
 
         Map&lt;String, String&gt; getParams() {
@@ -145,16 +159,14 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
         }
 
         String getContent() {
-            if(&quot;base64&quot;.equals(type) &amp;&amp; isNotBlank(file)) {
+            if (&quot;base64&quot;.equals(type) &amp;&amp; isNotBlank(file)) {
                 return new String(Base64.getDecoder().decode(file), StandardCharsets.UTF_8);
             }
             return file;
         }
 
         Set&lt;String&gt; getCapabilities() {
-            return getCapabilityDetails().stream()
-                .map(ec -&gt; ec.key.name())
-                .collect(Collectors.toSet());
+            return getCapabilityDetails().stream().map(ec -&gt; ec.key.name()).collect(Collectors.toSet());
         }
 
         List&lt;ExtensionCapabilityDetailsOverride&gt; getCapabilityDetails() {
@@ -171,9 +183,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
     }
 
     public static boolean isExternalPath(String path) {
-<span class="fc" id="L174">        return EXTERNAL_EXTENSION_PATH.equals(path);</span>
+<span class="fc" id="L186">        return EXTERNAL_EXTENSION_PATH.equals(path);</span>
     }
-
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

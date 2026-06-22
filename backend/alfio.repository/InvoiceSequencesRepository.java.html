@@ -25,24 +25,26 @@ import ch.digitalfondue.npjt.QueryRepository;
 @QueryRepository
 public interface InvoiceSequencesRepository {
 
-    @Query(&quot;select invoice_sequence from invoice_sequences where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE for update&quot;)
-    int lockSequenceForUpdate(@Bind(&quot;orgId&quot;) int orgId, @Bind(&quot;documentType&quot;) @EnumTypeAsString BillingDocument.Type billingDocumentType);
+    @Query(
+            &quot;select invoice_sequence from invoice_sequences where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE for update&quot;)
+    int lockSequenceForUpdate(
+            @Bind(&quot;orgId&quot;) int orgId, @Bind(&quot;documentType&quot;) @EnumTypeAsString BillingDocument.Type billingDocumentType);
 
     default int lockSequenceForUpdate(@Bind(&quot;orgId&quot;) int orgId) {
-<span class="fc" id="L32">        return lockSequenceForUpdate(orgId, BillingDocument.Type.INVOICE);</span>
+<span class="fc" id="L34">        return lockSequenceForUpdate(orgId, BillingDocument.Type.INVOICE);</span>
     }
 
-    @Query(&quot;update invoice_sequences set invoice_sequence = invoice_sequence + 1 where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE&quot;)
-    int incrementSequenceFor(@Bind(&quot;orgId&quot;) int orgId, @Bind(&quot;documentType&quot;) @EnumTypeAsString BillingDocument.Type billingDocumentType);
-
+    @Query(
+            &quot;update invoice_sequences set invoice_sequence = invoice_sequence + 1 where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE&quot;)
+    int incrementSequenceFor(
+            @Bind(&quot;orgId&quot;) int orgId, @Bind(&quot;documentType&quot;) @EnumTypeAsString BillingDocument.Type billingDocumentType);
 
     default int incrementSequenceFor(@Bind(&quot;orgId&quot;) int orgId) {
-<span class="fc" id="L40">        return incrementSequenceFor(orgId, BillingDocument.Type.INVOICE);</span>
+<span class="fc" id="L43">        return incrementSequenceFor(orgId, BillingDocument.Type.INVOICE);</span>
     }
 
-
-
-    @Query(&quot;&quot;&quot;
+    @Query(
+            &quot;&quot;&quot;
         insert into invoice_sequences(organization_id_fk, invoice_sequence, document_type) values\
          (:orgId, 1, 'INVOICE'),\
          (:orgId, 1, 'CREDIT_NOTE')\

@@ -16,19 +16,19 @@
  */
 package alfio.model.result;
 
-import lombok.Getter;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import lombok.Getter;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
 @Getter
 public final class ValidationResult {
 
-<span class="fc" id="L31">    private static final ValidationResult SUCCESS = new ValidationResult(Collections.emptyList(), Collections.emptyList());</span>
+<span class="fc" id="L30">    private static final ValidationResult SUCCESS =</span>
+<span class="fc" id="L31">            new ValidationResult(Collections.emptyList(), Collections.emptyList());</span>
 
     private final List&lt;ErrorDescriptor&gt; errorDescriptors;
     private final int errorCount;
@@ -65,14 +65,14 @@ public final class ValidationResult {
     }
 
     public ValidationResult ifSuccess(Operation operation) {
-<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if(errorCount == 0) {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (errorCount == 0) {</span>
 <span class="fc" id="L69">            operation.doIt();</span>
         }
 <span class="fc" id="L71">        return this;</span>
     }
 
     public ValidationResult or(ValidationResult second) {
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if(!isSuccess()) {</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (!isSuccess()) {</span>
 <span class="nc" id="L76">            List&lt;ErrorDescriptor&gt; joined = new ArrayList&lt;&gt;();</span>
 <span class="nc" id="L77">            joined.addAll(errorDescriptors);</span>
 <span class="nc" id="L78">            joined.addAll(second.getErrorDescriptors());</span>
@@ -131,12 +131,11 @@ public final class ValidationResult {
 
         @Override
         public String toString() {
-            return &quot;ValidationResult.ErrorDescriptor(&quot; +
-                &quot;fieldName=&quot; + fieldName +
-                &quot;, message=&quot; + message +
-                &quot;, code=&quot; + code +
-                &quot;, arguments=&quot; + Arrays.toString(arguments) +
-                ')';
+            return &quot;ValidationResult.ErrorDescriptor(&quot; + &quot;fieldName=&quot;
+                    + fieldName + &quot;, message=&quot;
+                    + message + &quot;, code=&quot;
+                    + code + &quot;, arguments=&quot;
+                    + Arrays.toString(arguments) + ')';
         }
 
         public static ErrorDescriptor fromFieldError(FieldError fieldError) {
@@ -144,7 +143,8 @@ public final class ValidationResult {
         }
 
         public static ErrorDescriptor fromObjectError(ObjectError objectError) {
-            return new ErrorDescriptor(&quot;&quot;, objectError.getObjectName(), objectError.getCode(), objectError.getArguments());
+            return new ErrorDescriptor(
+                    &quot;&quot;, objectError.getObjectName(), objectError.getCode(), objectError.getArguments());
         }
     }
 
@@ -153,5 +153,4 @@ public final class ValidationResult {
         void doIt();
     }
 }
-
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

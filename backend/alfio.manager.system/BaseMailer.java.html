@@ -16,50 +16,51 @@
  */
 package alfio.manager.system;
 
+import static java.util.Objects.requireNonNull;
+
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.system.ConfigurationKeys;
 import alfio.repository.user.OrganizationRepository;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.apache.commons.lang3.StringUtils;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static java.util.Objects.requireNonNull;
+import org.apache.commons.lang3.StringUtils;
 
 abstract class BaseMailer implements Mailer {
 
     static final String MISSING_CONFIG_MESSAGE = &quot;config cannot be null&quot;;
     private final OrganizationRepository organizationRepository;
-<span class="fc" id="L36">    private static final Cache&lt;Integer, String&gt; ORG_ADDRESS_CACHE = Caffeine.newBuilder()</span>
-<span class="fc" id="L37">        .expireAfterWrite(Duration.ofMinutes(1L))</span>
-<span class="fc" id="L38">        .build();</span>
+<span class="fc" id="L35">    private static final Cache&lt;Integer, String&gt; ORG_ADDRESS_CACHE =</span>
+<span class="fc" id="L36">            Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(1L)).build();</span>
 
-<span class="fc" id="L40">    BaseMailer(OrganizationRepository organizationRepository) {</span>
-<span class="fc" id="L41">        this.organizationRepository = organizationRepository;</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L38">    BaseMailer(OrganizationRepository organizationRepository) {</span>
+<span class="fc" id="L39">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L40">    }</span>
 
-    void setReplyToIfPresent(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; conf,
-                             int organizationId,
-                             Consumer&lt;String&gt; replyToSetter) {
-<span class="fc" id="L47">        var replyToConfig = requireNonNull(requireNonNull(conf, MISSING_CONFIG_MESSAGE).get(ConfigurationKeys.MAIL_REPLY_TO), &quot;MAIL_REPLY_TO is required&quot;)</span>
-<span class="fc" id="L48">            .getValueOrDefault(&quot;&quot;);</span>
-<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (StringUtils.isNotBlank(replyToConfig)) {</span>
-<span class="fc" id="L50">            replyToSetter.accept(replyToConfig);</span>
-<span class="fc bfc" id="L51" title="All 2 branches covered.">        } else if(requireNonNull(conf.get(ConfigurationKeys.MAIL_SET_ORG_REPLY_TO), &quot;MAIL_SET_ORG_REPLY_TO is required&quot;).getValueAsBooleanOrDefault()) {</span>
-<span class="fc" id="L52">            var address = ORG_ADDRESS_CACHE.get(organizationId, id -&gt; {</span>
-<span class="fc" id="L53">                var organization = organizationRepository.getContactById(organizationId);</span>
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">                if (StringUtils.isNotBlank(organization.getEmail())) {</span>
-<span class="fc" id="L55">                    return organization.getEmail();</span>
+    void setReplyToIfPresent(
+            Map&lt;ConfigurationKeys, MaybeConfiguration&gt; conf, int organizationId, Consumer&lt;String&gt; replyToSetter) {
+<span class="fc" id="L44">        var replyToConfig = requireNonNull(</span>
+<span class="fc" id="L45">                        requireNonNull(conf, MISSING_CONFIG_MESSAGE).get(ConfigurationKeys.MAIL_REPLY_TO),</span>
+                        &quot;MAIL_REPLY_TO is required&quot;)
+<span class="fc" id="L47">                .getValueOrDefault(&quot;&quot;);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (StringUtils.isNotBlank(replyToConfig)) {</span>
+<span class="fc" id="L49">            replyToSetter.accept(replyToConfig);</span>
+<span class="fc" id="L50">        } else if (requireNonNull(</span>
+<span class="fc" id="L51">                        conf.get(ConfigurationKeys.MAIL_SET_ORG_REPLY_TO), &quot;MAIL_SET_ORG_REPLY_TO is required&quot;)</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">                .getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L53">            var address = ORG_ADDRESS_CACHE.get(organizationId, id -&gt; {</span>
+<span class="fc" id="L54">                var organization = organizationRepository.getContactById(organizationId);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">                if (StringUtils.isNotBlank(organization.getEmail())) {</span>
+<span class="fc" id="L56">                    return organization.getEmail();</span>
                 }
-<span class="nc" id="L57">                return null;</span>
+<span class="nc" id="L58">                return null;</span>
             });
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            if (StringUtils.isNotBlank(address)) {</span>
-<span class="fc" id="L60">                replyToSetter.accept(address);</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">            if (StringUtils.isNotBlank(address)) {</span>
+<span class="fc" id="L61">                replyToSetter.accept(address);</span>
             }
         }
-<span class="fc" id="L63">    }</span>
+<span class="fc" id="L64">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

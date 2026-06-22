@@ -17,7 +17,6 @@
 package alfio.model;
 
 import alfio.util.ClockProvider;
-
 import java.time.Clock;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -27,11 +26,11 @@ public interface TimeZoneInfo {
     ZoneId getZoneId();
 
     default ZonedDateTime now(ClockProvider clockProvider) {
-<span class="fc" id="L30">        return ZonedDateTime.now(clockProvider.withZone(getZoneId()));</span>
+<span class="fc" id="L29">        return ZonedDateTime.now(clockProvider.withZone(getZoneId()));</span>
     }
 
     default ZonedDateTime now(Clock clock) {
-<span class="fc" id="L34">        return ZonedDateTime.now(clock.withZone(getZoneId()));</span>
+<span class="fc" id="L33">        return ZonedDateTime.now(clock.withZone(getZoneId()));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
