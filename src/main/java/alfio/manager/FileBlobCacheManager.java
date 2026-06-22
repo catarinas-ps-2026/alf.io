@@ -16,12 +16,6 @@
  */
 package alfio.manager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,13 +23,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 @Component
 public class FileBlobCacheManager {
 
     private static final Logger log = LoggerFactory.getLogger(FileBlobCacheManager.class);
     private final String cacheDir;
-
 
     public FileBlobCacheManager(Environment environment) {
         this.cacheDir = environment.getProperty("alfio.cache-dir", System.getProperty("java.io.tmpdir"));
@@ -48,7 +46,9 @@ public class FileBlobCacheManager {
     private void checkPath(Path resourcePath, String section) {
         var parentPath = getBlobDir(section).normalize();
         var childPath = resourcePath.normalize();
-        Assert.isTrue(childPath.startsWith(parentPath), () -> "Resource path " + childPath + "must be inside the blob path " + parentPath);
+        Assert.isTrue(
+                childPath.startsWith(parentPath),
+                () -> "Resource path " + childPath + "must be inside the blob path " + parentPath);
     }
 
     public boolean fileExists(String section, String id) {

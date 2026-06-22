@@ -37,9 +37,7 @@ describe('DownloadTicketComponent', () => {
         TestBed.configureTestingModule({
             declarations: [DownloadTicketComponent],
             imports: [NgbModule, TranslateModule.forRoot()],
-            providers: [
-                { provide: NgbActiveModal, useValue: mockActiveModal },
-            ],
+            providers: [{ provide: NgbActiveModal, useValue: mockActiveModal }],
         });
 
         fixture = TestBed.createComponent(DownloadTicketComponent);
@@ -64,13 +62,18 @@ describe('DownloadTicketComponent', () => {
 
         it('should accept walletConfiguration input', () => {
             component.walletConfiguration = mockWalletConfiguration;
-            expect(component.walletConfiguration).toEqual(mockWalletConfiguration);
+            expect(component.walletConfiguration).toEqual(
+                mockWalletConfiguration,
+            );
         });
     });
 
     describe('gWalletEnabled', () => {
         it('should return true when walletConfiguration is set and gWalletEnabled is true', () => {
-            component.walletConfiguration = { gWalletEnabled: true, passEnabled: false };
+            component.walletConfiguration = {
+                gWalletEnabled: true,
+                passEnabled: false,
+            };
             expect(component.gWalletEnabled).toBe(true);
         });
 
@@ -80,7 +83,10 @@ describe('DownloadTicketComponent', () => {
         });
 
         it('should return false when gWalletEnabled is false', () => {
-            component.walletConfiguration = { gWalletEnabled: false, passEnabled: true };
+            component.walletConfiguration = {
+                gWalletEnabled: false,
+                passEnabled: true,
+            };
             expect(component.gWalletEnabled).toBe(false);
         });
 
@@ -92,7 +98,10 @@ describe('DownloadTicketComponent', () => {
 
     describe('passEnabled', () => {
         it('should return true when walletConfiguration is set and passEnabled is true', () => {
-            component.walletConfiguration = { gWalletEnabled: false, passEnabled: true };
+            component.walletConfiguration = {
+                gWalletEnabled: false,
+                passEnabled: true,
+            };
             expect(component.passEnabled).toBe(true);
         });
 
@@ -102,7 +111,10 @@ describe('DownloadTicketComponent', () => {
         });
 
         it('should return false when passEnabled is false', () => {
-            component.walletConfiguration = { gWalletEnabled: true, passEnabled: false };
+            component.walletConfiguration = {
+                gWalletEnabled: true,
+                passEnabled: false,
+            };
             expect(component.passEnabled).toBe(false);
         });
 

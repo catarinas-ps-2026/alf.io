@@ -17,17 +17,16 @@
 package alfio.config.authentication.support;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.Locale;
 
 public class RequestTypeMatchers {
 
-    private RequestTypeMatchers() {
-    }
+    private RequestTypeMatchers() {}
 
     public static boolean isTokenAuthentication(HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
-        return (authorization != null && authorization.toLowerCase(Locale.ENGLISH).startsWith("apikey "))
-            || request.getRequestURI().startsWith(AuthenticationConstants.ADMIN_PUBLIC_API);
+        return (authorization != null
+                        && authorization.toLowerCase(Locale.ENGLISH).startsWith("apikey "))
+                || request.getRequestURI().startsWith(AuthenticationConstants.ADMIN_PUBLIC_API);
     }
 }

@@ -21,14 +21,13 @@ import alfio.manager.TicketReservationManager;
 import alfio.manager.payment.saferpay.PaymentPageInitializeRequestBuilder;
 import alfio.model.transaction.PaymentContext;
 import alfio.model.transaction.PaymentProxy;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -38,19 +37,29 @@ public class SaferpayPaymentWebhookController {
 
     @GetMapping(PaymentPageInitializeRequestBuilder.WEBHOOK_URL_TEMPLATE)
     ResponseEntity<String> handleTransactionNotification(@PathVariable String reservationId) {
-        return purchaseContextManager.findByReservationId(reservationId)
+        return purchaseContextManager
+                .findByReservationId(reservationId)
                 .map(purchaseContext -> {
-                    var result = ticketReservationManager.processTransactionWebhook("", null, PaymentProxy.SAFERPAY,
-                        Map.of("purchaseContextType", purchaseContext.getType().getUrlComponent(),
-                            "purchaseContextIdentifier", purchaseContext.getPublicIdentifier(),
-                            "reservationId", reservationId), new PaymentContext(purchaseContext, reservationId));
-                    if(result.isSuccessful()) {
+                    var result = ticketReservationManager.processTransactionWebhook(
+                            "",
+                            null,
+                            PaymentProxy.SAFERPAY,
+                            Map.of(
+                                    "purchaseContextType",
+                                    purchaseContext.getType().getUrlComponent(),
+                                    "purchaseContextIdentifier",
+                                    purchaseContext.getPublicIdentifier(),
+                                    "reservationId",
+                                    reservationId),
+                            new PaymentContext(purchaseContext, reservationId));
+                    if (result.isSuccessful()) {
                         return ResponseEntity.ok("OK");
-                    } else if(result.isError()) {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.getReason());
+                    } else if (result.isError()) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(result.getReason());
                     }
                     return ResponseEntity.ok(result.getReason());
                 })
-            .orElseGet(() -> ResponseEntity.badRequest().body("NOK"));
+                .orElseGet(() -> ResponseEntity.badRequest().body("NOK"));
     }
 }

@@ -16,20 +16,19 @@
  */
 package alfio.controller.api.pass;
 
+import static alfio.util.ExportUtils.markAsNoIndex;
+
 import alfio.manager.PassKitManager;
 import alfio.model.EventAndOrganizationId;
 import alfio.model.Ticket;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.util.Optional;
-
-import static alfio.util.ExportUtils.markAsNoIndex;
 
 /**
  * https://developer.apple.com/library/archive/documentation/PassKit/Reference/PassKit_WebService/WebService.html
@@ -45,15 +44,17 @@ public class PassKitApiController {
         this.passKitManager = passKitManager;
     }
 
-
     @GetMapping("/version/passes/{passTypeIdentifier}/{serialNumber}")
-    public void getLatestVersion(@PathVariable String eventName,
-                                 @PathVariable String passTypeIdentifier,
-                                 @PathVariable String serialNumber,
-                                 @RequestHeader("Authorization") String authorization,
-                                 HttpServletResponse response) throws IOException {
-        Optional<Pair<EventAndOrganizationId, Ticket>> validationResult = passKitManager.validateToken(eventName, passTypeIdentifier, serialNumber, authorization);
-        if(validationResult.isEmpty()) {
+    public void getLatestVersion(
+            @PathVariable String eventName,
+            @PathVariable String passTypeIdentifier,
+            @PathVariable String serialNumber,
+            @RequestHeader("Authorization") String authorization,
+            HttpServletResponse response)
+            throws IOException {
+        Optional<Pair<EventAndOrganizationId, Ticket>> validationResult =
+                passKitManager.validateToken(eventName, passTypeIdentifier, serialNumber, authorization);
+        if (validationResult.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         } else {
             Pair<EventAndOrganizationId, Ticket> pair = validationResult.get();
@@ -62,9 +63,9 @@ public class PassKitApiController {
     }
 
     @GetMapping("/version/passes/{ticketUuid}")
-    public void downloadPassForTicket(@PathVariable String eventName,
-                                      @PathVariable String ticketUuid,
-                                      HttpServletResponse response) throws IOException {
+    public void downloadPassForTicket(
+            @PathVariable String eventName, @PathVariable String ticketUuid, HttpServletResponse response)
+            throws IOException {
         var ticketAndEventData = passKitManager.retrieveTicketDetails(eventName, ticketUuid);
         if (ticketAndEventData.isPresent()) {
             var pair = ticketAndEventData.get();
@@ -74,14 +75,19 @@ public class PassKitApiController {
         }
     }
 
-    private void writePassResponse(HttpServletResponse response,
-                                   EventAndOrganizationId eventAndOrganizationId,
-                                   Ticket ticket,
-                                   boolean addFilename) throws IOException {
+    private void writePassResponse(
+            HttpServletResponse response,
+            EventAndOrganizationId eventAndOrganizationId,
+            Ticket ticket,
+            boolean addFilename)
+            throws IOException {
         try (var os = response.getOutputStream()) {
             response.setContentType("application/vnd.apple.pkpass");
             if (addFilename) {
-                response.setHeader("Content-Disposition", "attachment; filename=Passbook-"+ticket.getPublicUuid().toString().substring(0, 8)+".pkpass");
+                response.setHeader(
+                        "Content-Disposition",
+                        "attachment; filename=Passbook-"
+                                + ticket.getPublicUuid().toString().substring(0, 8) + ".pkpass");
                 markAsNoIndex(response);
             }
             passKitManager.writePass(ticket, eventAndOrganizationId, os);
@@ -90,7 +96,6 @@ public class PassKitApiController {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
-
 
     // not (yet) implemented APIs. These are no-op for now.
 
@@ -117,5 +122,4 @@ public class PassKitApiController {
         log.trace("log called. Returning 200");
         return ResponseEntity.ok().build();
     }
-
 }

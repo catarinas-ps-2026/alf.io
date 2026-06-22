@@ -16,6 +16,8 @@
  */
 package alfio.model.subscription;
 
+import static java.util.Objects.requireNonNullElseGet;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.model.ContentLanguage;
 import alfio.model.Event;
@@ -30,9 +32,6 @@ import alfio.util.MonetaryUtil;
 import alfio.util.MustacheCustomTag;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.ZoneId;
@@ -41,18 +40,21 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNullElseGet;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 public class SubscriptionDescriptor implements PurchaseContext {
 
     public enum SubscriptionUsageType {
-        ONCE_PER_EVENT, UNLIMITED
+        ONCE_PER_EVENT,
+        UNLIMITED
     }
 
     public enum SubscriptionTimeUnit {
-        DAYS(ChronoUnit.DAYS), MONTHS(ChronoUnit.MONTHS), YEARS(ChronoUnit.YEARS);
+        DAYS(ChronoUnit.DAYS),
+        MONTHS(ChronoUnit.MONTHS),
+        YEARS(ChronoUnit.YEARS);
 
         private final TemporalUnit temporalUnit;
 
@@ -66,7 +68,9 @@ public class SubscriptionDescriptor implements PurchaseContext {
     }
 
     public enum SubscriptionValidityType {
-        STANDARD, CUSTOM, NOT_SET
+        STANDARD,
+        CUSTOM,
+        NOT_SET
     }
 
     private final UUID id;
@@ -99,35 +103,34 @@ public class SubscriptionDescriptor implements PurchaseContext {
     private final String timeZone;
     private final boolean supportsTicketsGeneration;
 
-    public SubscriptionDescriptor(@Column("id") UUID id,
-                                  @Column("title") @JSONData Map<String, String> title,
-                                  @Column("description") @JSONData Map<String, String> description,
-                                  @Column("max_available") int maxAvailable,
-                                  @Column("creation_ts") ZonedDateTime creation,
-                                  @Column("on_sale_from") ZonedDateTime onSaleFrom,
-                                  @Column("on_sale_to") ZonedDateTime onSaleTo,
-                                  @Column("price_cts") int price,
-                                  @Column("vat") BigDecimal vat,
-                                  @Column("vat_status") VatStatus vatStatus,
-                                  @Column("currency") String currency,
-                                  @Column("is_public") boolean isPublic,
-                                  @Column("organization_id_fk") int organizationId,
-
-                                  @Column("max_entries") int maxEntries,
-                                  @Column("validity_type") SubscriptionValidityType validityType,
-                                  @Column("validity_time_unit") SubscriptionTimeUnit validityTimeUnit,
-                                  @Column("validity_units") Integer validityUnits,
-                                  @Column("validity_from") ZonedDateTime validityFrom,
-                                  @Column("validity_to") ZonedDateTime validityTo,
-                                  @Column("usage_type") SubscriptionUsageType usageType,
-
-                                  @Column("terms_conditions_url") String termsAndConditionsUrl,
-                                  @Column("privacy_policy_url") String privacyPolicyUrl,
-                                  @Column("file_blob_id_fk") String fileBlobId,
-                                  @Column("allowed_payment_proxies") @Array List<String> paymentProxies,
-                                  @Column("private_key") String privateKey,
-                                  @Column("time_zone") String timeZone,
-                                  @Column("supports_tickets_generation") Boolean supportsTicketsGeneration) {
+    public SubscriptionDescriptor(
+            @Column("id") UUID id,
+            @Column("title") @JSONData Map<String, String> title,
+            @Column("description") @JSONData Map<String, String> description,
+            @Column("max_available") int maxAvailable,
+            @Column("creation_ts") ZonedDateTime creation,
+            @Column("on_sale_from") ZonedDateTime onSaleFrom,
+            @Column("on_sale_to") ZonedDateTime onSaleTo,
+            @Column("price_cts") int price,
+            @Column("vat") BigDecimal vat,
+            @Column("vat_status") VatStatus vatStatus,
+            @Column("currency") String currency,
+            @Column("is_public") boolean isPublic,
+            @Column("organization_id_fk") int organizationId,
+            @Column("max_entries") int maxEntries,
+            @Column("validity_type") SubscriptionValidityType validityType,
+            @Column("validity_time_unit") SubscriptionTimeUnit validityTimeUnit,
+            @Column("validity_units") Integer validityUnits,
+            @Column("validity_from") ZonedDateTime validityFrom,
+            @Column("validity_to") ZonedDateTime validityTo,
+            @Column("usage_type") SubscriptionUsageType usageType,
+            @Column("terms_conditions_url") String termsAndConditionsUrl,
+            @Column("privacy_policy_url") String privacyPolicyUrl,
+            @Column("file_blob_id_fk") String fileBlobId,
+            @Column("allowed_payment_proxies") @Array List<String> paymentProxies,
+            @Column("private_key") String privateKey,
+            @Column("time_zone") String timeZone,
+            @Column("supports_tickets_generation") Boolean supportsTicketsGeneration) {
         var zoneId = ZoneId.of(timeZone);
         this.id = id;
         this.title = title;
@@ -165,8 +168,8 @@ public class SubscriptionDescriptor implements PurchaseContext {
     public List<ContentLanguage> getContentLanguages() {
         var languages = title.keySet();
         return ContentLanguage.ALL_LANGUAGES.stream()
-            .filter(l -> languages.contains(l.getLanguage()))
-            .collect(Collectors.toList());
+                .filter(l -> languages.contains(l.getLanguage()))
+                .collect(Collectors.toList());
     }
 
     @JsonIgnore
@@ -204,7 +207,7 @@ public class SubscriptionDescriptor implements PurchaseContext {
 
     @Override
     public String getDisplayName() {
-        return title.keySet().stream().findFirst().map(title::get).orElse("Subscription"); //FIXME
+        return title.keySet().stream().findFirst().map(title::get).orElse("Subscription"); // FIXME
     }
 
     @JsonIgnore
@@ -221,7 +224,9 @@ public class SubscriptionDescriptor implements PurchaseContext {
 
     @Override
     public ZonedDateTime getBegin() {
-        return validityFrom != null ? validityFrom : ZonedDateTime.now(ClockProvider.clock()).plusMonths(2);
+        return validityFrom != null
+                ? validityFrom
+                : ZonedDateTime.now(ClockProvider.clock()).plusMonths(2);
     }
 
     @JsonIgnore
@@ -250,17 +255,16 @@ public class SubscriptionDescriptor implements PurchaseContext {
     public boolean withinSalePeriod(Clock clock) {
         var now = now(clock);
         return requireNonNullElseGet(onSaleFrom, () -> now.minusHours(1)).isBefore(now)
-            && requireNonNullElseGet(onSaleTo, () -> now.plusHours(1)).isAfter(now);
+                && requireNonNullElseGet(onSaleTo, () -> now.plusHours(1)).isAfter(now);
     }
 
     private Map<String, String> renderTextCommonMark(Map<String, String> original) {
         return original.entrySet().stream()
-            .map(entry -> Map.entry(entry.getKey(), MustacheCustomTag.renderToTextCommonmark(entry.getValue())))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .map(entry -> Map.entry(entry.getKey(), MustacheCustomTag.renderToTextCommonmark(entry.getValue())))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public String getFormattedPrice() {
         return MonetaryUtil.formatCents(price, currency);
     }
-
 }

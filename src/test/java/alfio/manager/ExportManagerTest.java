@@ -16,16 +16,15 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.user.UserManager;
 import alfio.model.ReservationsByEvent;
 import alfio.model.user.Organization;
 import alfio.repository.ExportRepository;
 import alfio.util.ClockProvider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import java.security.Principal;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -33,17 +32,19 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class ExportManagerTest {
 
     @Mock
     private ExportRepository exportRepository;
+
     @Mock
     private ClockProvider clockProvider;
+
     @Mock
     private UserManager userManager;
 
@@ -53,9 +54,7 @@ public class ExportManagerTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         Clock fixedClock = Clock.fixed(
-                ZonedDateTime.of(2026, 6, 4, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant(),
-                ZoneId.of("UTC")
-        );
+                ZonedDateTime.of(2026, 6, 4, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant(), ZoneId.of("UTC"));
         when(clockProvider.getClock()).thenReturn(fixedClock);
 
         manager = new ExportManager(exportRepository, clockProvider, userManager);
@@ -93,17 +92,19 @@ public class ExportManagerTest {
         when(userManager.findUserOrganizations("test-user")).thenReturn(Collections.singletonList(org));
 
         List<ReservationsByEvent> expectedList = Collections.singletonList(mock(ReservationsByEvent.class));
-        
+
         ZoneId zoneId = ZoneId.of("UTC");
         ZonedDateTime zonedFrom = from.atStartOfDay().atZone(zoneId);
         ZonedDateTime zonedTo = to.plusDays(1).atStartOfDay().minusSeconds(1).atZone(zoneId);
 
-        when(exportRepository.allReservationsForInterval(eq(zonedFrom), eq(zonedTo), eq(Collections.singletonList(100))))
+        when(exportRepository.allReservationsForInterval(
+                        eq(zonedFrom), eq(zonedTo), eq(Collections.singletonList(100))))
                 .thenReturn(expectedList);
 
         List<ReservationsByEvent> actualList = manager.reservationsForInterval(from, to, principal);
 
         assertEquals(expectedList, actualList);
-        verify(exportRepository).allReservationsForInterval(eq(zonedFrom), eq(zonedTo), eq(Collections.singletonList(100)));
+        verify(exportRepository)
+                .allReservationsForInterval(eq(zonedFrom), eq(zonedTo), eq(Collections.singletonList(100)));
     }
 }

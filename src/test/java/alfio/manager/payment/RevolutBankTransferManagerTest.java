@@ -16,6 +16,12 @@
  */
 package alfio.manager.payment;
 
+import static alfio.model.system.ConfigurationKeys.REVOLUT_MANUAL_REVIEW;
+import static alfio.test.util.TestUtil.clockProvider;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.Event;
@@ -26,21 +32,14 @@ import alfio.model.transaction.PaymentContext;
 import alfio.model.transaction.Transaction;
 import alfio.model.transaction.provider.RevolutTransactionDescriptor;
 import alfio.repository.TransactionRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.net.http.HttpClient;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static alfio.model.system.ConfigurationKeys.REVOLUT_MANUAL_REVIEW;
-import static alfio.test.util.TestUtil.clockProvider;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class RevolutBankTransferManagerTest {
 
@@ -68,7 +67,8 @@ class RevolutBankTransferManagerTest {
         when(transaction.getId()).thenReturn(TRANSACTION_ID);
         when(transaction.getCurrency()).thenReturn("CHF");
         when(transaction.getStatus()).thenReturn(Transaction.Status.PENDING);
-        when(transaction.getTimestamp()).thenReturn(ZonedDateTime.now(clockProvider().getClock()));
+        when(transaction.getTimestamp())
+                .thenReturn(ZonedDateTime.now(clockProvider().getClock()));
         when(first.getTransaction()).thenReturn(transaction);
 
         second = mock(TicketReservationWithTransaction.class);
@@ -83,15 +83,24 @@ class RevolutBankTransferManagerTest {
         BankTransferManager bankTransferManager = mock(BankTransferManager.class);
         configurationManager = mock(ConfigurationManager.class);
         transactionRepository = mock(TransactionRepository.class);
-        revolutBankTransferManager = new RevolutBankTransferManager(bankTransferManager, configurationManager, transactionRepository, HttpClient.newHttpClient(), clockProvider());
+        revolutBankTransferManager = new RevolutBankTransferManager(
+                bankTransferManager,
+                configurationManager,
+                transactionRepository,
+                HttpClient.newHttpClient(),
+                clockProvider());
         event = mock(Event.class);
 
-        when(configurationManager.getShortReservationID(eq(event), eq(firstReservation))).thenReturn(FIRST_UUID.substring(0,8));
-        when(configurationManager.getShortReservationID(eq(event), eq(secondReservation))).thenReturn(SECOND_UUID.substring(0,8));
-        when(configurationManager.getShortReservationID(eq(event), eq(thirdReservation))).thenReturn(THIRD_UUID.substring(0,8));
+        when(configurationManager.getShortReservationID(eq(event), eq(firstReservation)))
+                .thenReturn(FIRST_UUID.substring(0, 8));
+        when(configurationManager.getShortReservationID(eq(event), eq(secondReservation)))
+                .thenReturn(SECOND_UUID.substring(0, 8));
+        when(configurationManager.getShortReservationID(eq(event), eq(thirdReservation)))
+                .thenReturn(THIRD_UUID.substring(0, 8));
         var maybeConfiguration = mock(ConfigurationManager.MaybeConfiguration.class);
         when(maybeConfiguration.getValueAsIntOrDefault(anyInt())).thenReturn(8);
-        when(configurationManager.getFor(any(ConfigurationKeys.class), any(ConfigurationLevel.class))).thenReturn(maybeConfiguration);
+        when(configurationManager.getFor(any(ConfigurationKeys.class), any(ConfigurationLevel.class)))
+                .thenReturn(maybeConfiguration);
     }
 
     @Test
@@ -112,7 +121,8 @@ class RevolutBankTransferManagerTest {
         when(transactionRepository.lockLatestForUpdate(eq(FIRST_UUID))).thenReturn(Optional.of(transaction));
         var pendingReservations = List.of(first, second, third);
         var single = mock(RevolutTransactionDescriptor.class);
-        when(single.getReference()).thenReturn("Very long description "+FIRST_UUID.substring(0,8)+ "... to be continued...");
+        when(single.getReference())
+                .thenReturn("Very long description " + FIRST_UUID.substring(0, 8) + "... to be continued...");
         when(single.getTransactionBalance()).thenReturn(BigDecimal.ONE);
         String paymentId = UUID.randomUUID().toString();
         when(single.getId()).thenReturn(paymentId);
@@ -120,22 +130,25 @@ class RevolutBankTransferManagerTest {
         when(leg.getAmount()).thenReturn(BigDecimal.ONE);
         when(leg.getCurrency()).thenReturn("CHF");
         when(single.getLegs()).thenReturn(List.of(leg));
-        var result = revolutBankTransferManager.matchTransactions(pendingReservations, List.of(single), paymentContext, !automaticConfirmation);
+        var result = revolutBankTransferManager.matchTransactions(
+                pendingReservations, List.of(single), paymentContext, !automaticConfirmation);
         assertTrue(result.isSuccess());
         assertEquals(1, result.getData().size());
         assertEquals(FIRST_UUID, result.getData().get(0));
-        verify(transactionRepository).update(
-            eq(TRANSACTION_ID),
-            eq(paymentId),
-            isNull(),
-            any(),
-            eq(0L),
-            eq(0L),
-            eq(automaticConfirmation ? Transaction.Status.OFFLINE_MATCHING_PAYMENT_FOUND : Transaction.Status.OFFLINE_PENDING_REVIEW),
-            any()
-        );
+        verify(transactionRepository)
+                .update(
+                        eq(TRANSACTION_ID),
+                        eq(paymentId),
+                        isNull(),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(
+                                automaticConfirmation
+                                        ? Transaction.Status.OFFLINE_MATCHING_PAYMENT_FOUND
+                                        : Transaction.Status.OFFLINE_PENDING_REVIEW),
+                        any());
     }
-
 
     @Test
     void noMatches() {
@@ -146,7 +159,8 @@ class RevolutBankTransferManagerTest {
         var leg = mock(RevolutTransactionDescriptor.TransactionLeg.class);
         when(leg.getAmount()).thenReturn(BigDecimal.ONE);
         when(single.getLegs()).thenReturn(List.of(leg));
-        var result = revolutBankTransferManager.matchTransactions(pendingReservations, List.of(single), new PaymentContext(event), true);
+        var result = revolutBankTransferManager.matchTransactions(
+                pendingReservations, List.of(single), new PaymentContext(event), true);
         assertTrue(result.isSuccess());
         assertEquals(0, result.getData().size());
     }

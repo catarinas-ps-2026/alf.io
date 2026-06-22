@@ -16,6 +16,10 @@
  */
 package alfio.job.executor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.BillingDocumentManager;
 import alfio.manager.NotificationManager;
 import alfio.manager.TicketReservationManager;
@@ -28,15 +32,10 @@ import alfio.model.system.AdminJobSchedule;
 import alfio.model.user.Organization;
 import alfio.repository.EventRepository;
 import alfio.repository.user.OrganizationRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class BillingDocumentJobExecutorTest {
 
@@ -54,7 +53,12 @@ class BillingDocumentJobExecutorTest {
         eventRepository = mock(EventRepository.class);
         notificationManager = mock(NotificationManager.class);
         organizationRepository = mock(OrganizationRepository.class);
-        executor = new BillingDocumentJobExecutor(billingDocumentManager, ticketReservationManager, eventRepository, notificationManager, organizationRepository);
+        executor = new BillingDocumentJobExecutor(
+                billingDocumentManager,
+                ticketReservationManager,
+                eventRepository,
+                notificationManager,
+                organizationRepository);
     }
 
     @Test
@@ -63,7 +67,8 @@ class BillingDocumentJobExecutorTest {
         when(event.getOrganizationId()).thenReturn(12);
         when(event.getDisplayName()).thenReturn("My Event");
         when(eventRepository.findById(42)).thenReturn(event);
-        when(organizationRepository.getById(12)).thenReturn(new Organization(12, "org", "desc", "billing@example.org", null, "org"));
+        when(organizationRepository.getById(12))
+                .thenReturn(new Organization(12, "org", "desc", "billing@example.org", null, "org"));
 
         var firstDocument = mock(BillingDocument.class);
         when(firstDocument.getReservationId()).thenReturn("reservation-1");
@@ -78,14 +83,19 @@ class BillingDocumentJobExecutorTest {
         var secondSummary = mock(OrderSummary.class);
         when(ticketReservationManager.findById("reservation-1")).thenReturn(Optional.of(firstReservation));
         when(ticketReservationManager.findById("reservation-2")).thenReturn(Optional.of(secondReservation));
-        when(ticketReservationManager.orderSummaryForReservation(firstReservation, event)).thenReturn(firstSummary);
-        when(ticketReservationManager.orderSummaryForReservation(secondReservation, event)).thenReturn(secondSummary);
+        when(ticketReservationManager.orderSummaryForReservation(firstReservation, event))
+                .thenReturn(firstSummary);
+        when(ticketReservationManager.orderSummaryForReservation(secondReservation, event))
+                .thenReturn(secondSummary);
 
-        assertEquals("generated", executor.process(schedule(Map.of("eventId", 42, "username", "admin", "ids", "10, 20"))));
+        assertEquals(
+                "generated", executor.process(schedule(Map.of("eventId", 42, "username", "admin", "ids", "10, 20"))));
 
         verify(billingDocumentManager).createBillingDocument(event, firstReservation, "admin", firstSummary);
         verify(billingDocumentManager).createBillingDocument(event, secondReservation, "admin", secondSummary);
-        verify(notificationManager).sendSimpleEmail(eq(event), isNull(), eq("billing@example.org"), eq("Invoice Regeneration complete"), any());
+        verify(notificationManager)
+                .sendSimpleEmail(
+                        eq(event), isNull(), eq("billing@example.org"), eq("Invoice Regeneration complete"), any());
     }
 
     @Test
@@ -94,13 +104,22 @@ class BillingDocumentJobExecutorTest {
         when(eventRepository.findById(42)).thenReturn(event);
         when(billingDocumentManager.getDocumentById(10L)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> executor.process(schedule(Map.of("eventId", 42, "username", "admin", "ids", "10"))));
+        assertThrows(
+                RuntimeException.class,
+                () -> executor.process(schedule(Map.of("eventId", 42, "username", "admin", "ids", "10"))));
 
         verify(billingDocumentManager, never()).createBillingDocument(any(), any(), any(), any());
         verifyNoInteractions(notificationManager, organizationRepository);
     }
 
     private static AdminJobSchedule schedule(Map<String, Object> metadata) {
-        return new AdminJobSchedule(1L, AdminJobExecutor.JobName.REGENERATE_INVOICES.name(), null, AdminJobSchedule.Status.SCHEDULED, null, metadata, 0);
+        return new AdminJobSchedule(
+                1L,
+                AdminJobExecutor.JobName.REGENERATE_INVOICES.name(),
+                null,
+                AdminJobSchedule.Status.SCHEDULED,
+                null,
+                metadata,
+                0);
     }
 }

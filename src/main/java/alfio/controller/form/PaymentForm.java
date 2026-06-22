@@ -21,14 +21,13 @@ import alfio.model.TotalPrice;
 import alfio.model.transaction.PaymentMethod;
 import alfio.model.transaction.PaymentProxy;
 import alfio.util.ErrorsCode;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.validation.BindingResult;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.validation.BindingResult;
 
 @Data
 public class PaymentForm implements Serializable {
@@ -41,7 +40,6 @@ public class PaymentForm implements Serializable {
     private String hmac;
     private String captcha;
 
-
     public void validate(BindingResult bindingResult, PurchaseContext purchaseContext, TotalPrice reservationCost) {
         List<PaymentProxy> allowedProxies = purchaseContext.getAllowedPaymentProxies();
 
@@ -52,8 +50,10 @@ public class PaymentForm implements Serializable {
             bindingResult.reject(ErrorsCode.STEP_2_MISSING_PAYMENT_METHOD);
         }
 
-        if (Objects.isNull(termAndConditionsAccepted) || !termAndConditionsAccepted
-            || (StringUtils.isNotEmpty(purchaseContext.getPrivacyPolicyUrl()) && (Objects.isNull(privacyPolicyAccepted) || !privacyPolicyAccepted))) {
+        if (Objects.isNull(termAndConditionsAccepted)
+                || !termAndConditionsAccepted
+                || (StringUtils.isNotEmpty(purchaseContext.getPrivacyPolicyUrl())
+                        && (Objects.isNull(privacyPolicyAccepted) || !privacyPolicyAccepted))) {
             bindingResult.reject(ErrorsCode.STEP_2_TERMS_NOT_ACCEPTED);
         }
     }

@@ -16,13 +16,9 @@
  */
 package alfio.manager;
 
-import alfio.model.modification.UploadBase64FileModification;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.Objects.requireNonNull;
 
+import alfio.model.modification.UploadBase64FileModification;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -30,9 +26,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
 import java.util.regex.Pattern;
-
-import static java.util.Objects.requireNonNull;
-
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileDownloadManager {
 
@@ -44,7 +42,9 @@ public class FileDownloadManager {
     }
 
     public DownloadedFile downloadFile(String url) {
-        HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(requireNonNull(StringUtils.trimToNull(url)))).GET().build();
+        HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(requireNonNull(StringUtils.trimToNull(url))))
+                .GET()
+                .build();
         HttpResponse<byte[]> response;
         try {
             response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofByteArray());
@@ -56,15 +56,14 @@ public class FileDownloadManager {
             logWarning(exception);
             return null;
         }
-        if(callSuccessful(response)) {
+        if (callSuccessful(response)) {
             String[] parts = Pattern.compile("/").split(url);
             String name = parts[parts.length - 1];
-            if(Objects.nonNull(response.body())) {
+            if (Objects.nonNull(response.body())) {
                 return new DownloadedFile(
                         response.body(),
                         name,
-                        response.headers().firstValue("Content-Type").orElse("application/octet-stream")
-                    );
+                        response.headers().firstValue("Content-Type").orElse("application/octet-stream"));
             } else {
                 return null;
             }
@@ -97,5 +96,4 @@ public class FileDownloadManager {
             return uf;
         }
     }
-
 }

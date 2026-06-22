@@ -16,10 +16,17 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
 import alfio.model.modification.SubscriptionDescriptorModification;
 import alfio.model.subscription.SubscriptionDescriptor;
 import alfio.repository.EventRepository;
 import alfio.repository.SubscriptionRepository;
+import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -27,22 +34,17 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import java.math.BigDecimal;
-import java.time.ZoneId;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
-
 public class SubscriptionManagerTest {
 
     @Mock
     private SubscriptionRepository subscriptionRepository;
+
     @Mock
     private EventRepository eventRepository;
+
     @Mock
     private NamedParameterJdbcTemplate jdbcTemplate;
+
     @Mock
     private Environment environment;
 
@@ -51,12 +53,7 @@ public class SubscriptionManagerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        manager = new SubscriptionManager(
-                subscriptionRepository,
-                eventRepository,
-                jdbcTemplate,
-                environment
-        );
+        manager = new SubscriptionManager(subscriptionRepository, eventRepository, jdbcTemplate, environment);
     }
 
     @Test
@@ -99,11 +96,33 @@ public class SubscriptionManagerTest {
         when(modification.getSupportsTicketsGeneration()).thenReturn(true);
 
         when(subscriptionRepository.createSubscriptionDescriptor(
-                any(UUID.class), anyMap(), anyMap(), anyInt(), any(), any(), anyInt(),
-                any(BigDecimal.class), any(), anyString(), anyBoolean(), anyInt(), anyInt(), any(), any(),
-                any(), any(), any(), any(), anyString(), anyString(), any(), anyList(), anyString(),
-                anyString(), anyBoolean()
-        )).thenReturn(1);
+                        any(UUID.class),
+                        anyMap(),
+                        anyMap(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        any(BigDecimal.class),
+                        any(),
+                        anyString(),
+                        anyBoolean(),
+                        anyInt(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyString(),
+                        anyString(),
+                        any(),
+                        anyList(),
+                        anyString(),
+                        anyString(),
+                        anyBoolean()))
+                .thenReturn(1);
 
         Optional<UUID> result = manager.createSubscriptionDescriptor(modification);
 
@@ -120,13 +139,35 @@ public class SubscriptionManagerTest {
         when(modification.getIsPublic()).thenReturn(true);
         when(modification.getOrganizationId()).thenReturn(1);
         when(modification.getTimeZone()).thenReturn(ZoneId.of("UTC"));
-        
+
         when(subscriptionRepository.createSubscriptionDescriptor(
-                any(UUID.class), anyMap(), anyMap(), anyInt(), any(), any(), anyInt(),
-                any(BigDecimal.class), any(), any(), anyBoolean(), anyInt(), anyInt(), any(), any(),
-                any(), any(), any(), any(), any(), any(), any(), any(), any(),
-                any(), anyBoolean()
-        )).thenReturn(0);
+                        any(UUID.class),
+                        anyMap(),
+                        anyMap(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        any(BigDecimal.class),
+                        any(),
+                        any(),
+                        anyBoolean(),
+                        anyInt(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyBoolean()))
+                .thenReturn(0);
 
         Optional<UUID> result = manager.createSubscriptionDescriptor(modification);
 

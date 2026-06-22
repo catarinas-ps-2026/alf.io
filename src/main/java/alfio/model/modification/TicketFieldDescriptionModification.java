@@ -16,11 +16,9 @@
  */
 package alfio.model.modification;
 
-
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Map;
 
 @Getter
 @Setter

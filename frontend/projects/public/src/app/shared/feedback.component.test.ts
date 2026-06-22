@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { FeedbackService } from './feedback/feedback.service';

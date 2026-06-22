@@ -16,25 +16,22 @@
  */
 package alfio.controller.api.support;
 
+import static alfio.model.system.ConfigurationKeys.SECURITY_CSP_REPORT_ENABLED;
+import static alfio.model.system.ConfigurationKeys.SECURITY_CSP_REPORT_URI;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static alfio.model.system.ConfigurationKeys.SECURITY_CSP_REPORT_ENABLED;
-import static alfio.model.system.ConfigurationKeys.SECURITY_CSP_REPORT_URI;
-
-
 @RestController
 public class CspReportApiController {
-
 
     private static final Logger log = LoggerFactory.getLogger(CspReportApiController.class);
     private final ConfigurationManager configurationManager;
@@ -46,7 +43,8 @@ public class CspReportApiController {
     @PostMapping("/report-csp-violation")
     public boolean logCspViolation(HttpServletRequest request) throws IOException {
 
-        var conf = configurationManager.getFor(Set.of(SECURITY_CSP_REPORT_ENABLED, SECURITY_CSP_REPORT_URI), ConfigurationLevel.system());
+        var conf = configurationManager.getFor(
+                Set.of(SECURITY_CSP_REPORT_ENABLED, SECURITY_CSP_REPORT_URI), ConfigurationLevel.system());
 
         boolean enabledReport = conf.get(SECURITY_CSP_REPORT_ENABLED).getValueAsBooleanOrDefault();
 

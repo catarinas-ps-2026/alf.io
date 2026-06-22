@@ -16,6 +16,10 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.PurchaseContext;
 import alfio.model.VatDetail;
@@ -26,18 +30,17 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
-
 public class SameCountryValidatorTest {
 
     @Mock
     private ConfigurationManager configurationManager;
+
     @Mock
     private ExtensionManager extensionManager;
+
     @Mock
     private PurchaseContext purchaseContext;
+
     @Mock
     private EuVatChecker checker;
 
@@ -49,16 +52,15 @@ public class SameCountryValidatorTest {
     @Test
     public void testVatCheckingDisabled() {
         try (MockedStatic<EuVatChecker> euVatCheckerMockedStatic = mockStatic(EuVatChecker.class)) {
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.organizerCountry(any(), any())).thenReturn("IT");
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.validationEnabled(any(), any())).thenReturn(false);
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.organizerCountry(any(), any()))
+                    .thenReturn("IT");
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.validationEnabled(any(), any()))
+                    .thenReturn(false);
 
             SameCountryValidator validator = new SameCountryValidator(
-                    configurationManager,
-                    extensionManager,
-                    purchaseContext,
-                    "reservation-123",
-                    checker
-            );
+                    configurationManager, extensionManager, purchaseContext, "reservation-123", checker);
 
             assertFalse(validator.test("12345"));
         }
@@ -67,20 +69,21 @@ public class SameCountryValidatorTest {
     @Test
     public void testVatValidStrict() {
         try (MockedStatic<EuVatChecker> euVatCheckerMockedStatic = mockStatic(EuVatChecker.class)) {
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.organizerCountry(any(), any())).thenReturn("IT");
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.validationEnabled(any(), any())).thenReturn(true);
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.organizerCountry(any(), any()))
+                    .thenReturn("IT");
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.validationEnabled(any(), any()))
+                    .thenReturn(true);
 
             EUVatCheckResponse mockResponse = mock(EUVatCheckResponse.class);
             when(mockResponse.isValid()).thenReturn(true);
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.validateEUVat(eq("12345"), eq("IT"), any())).thenReturn(mockResponse);
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.validateEUVat(eq("12345"), eq("IT"), any()))
+                    .thenReturn(mockResponse);
 
             SameCountryValidator validator = new SameCountryValidator(
-                    configurationManager,
-                    extensionManager,
-                    purchaseContext,
-                    "reservation-123",
-                    checker
-            );
+                    configurationManager, extensionManager, purchaseContext, "reservation-123", checker);
 
             assertTrue(validator.test("12345"));
             verify(checker).logSuccessfulValidation(any(VatDetail.class), eq("reservation-123"), eq(purchaseContext));
@@ -90,22 +93,24 @@ public class SameCountryValidatorTest {
     @Test
     public void testVatInvalidButExtensionSucceeds() {
         try (MockedStatic<EuVatChecker> euVatCheckerMockedStatic = mockStatic(EuVatChecker.class)) {
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.organizerCountry(any(), any())).thenReturn("IT");
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.validationEnabled(any(), any())).thenReturn(true);
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.organizerCountry(any(), any()))
+                    .thenReturn("IT");
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.validationEnabled(any(), any()))
+                    .thenReturn(true);
 
             EUVatCheckResponse mockResponse = mock(EUVatCheckResponse.class);
             when(mockResponse.isValid()).thenReturn(false);
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.validateEUVat(eq("12345"), eq("IT"), any())).thenReturn(mockResponse);
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.validateEUVat(eq("12345"), eq("IT"), any()))
+                    .thenReturn(mockResponse);
 
-            when(extensionManager.handleTaxIdValidation(purchaseContext, "12345", "IT")).thenReturn(true);
+            when(extensionManager.handleTaxIdValidation(purchaseContext, "12345", "IT"))
+                    .thenReturn(true);
 
             SameCountryValidator validator = new SameCountryValidator(
-                    configurationManager,
-                    extensionManager,
-                    purchaseContext,
-                    "reservation-123",
-                    checker
-            );
+                    configurationManager, extensionManager, purchaseContext, "reservation-123", checker);
 
             assertTrue(validator.test("12345"));
             verify(checker).logSuccessfulValidation(any(VatDetail.class), eq("reservation-123"), eq(purchaseContext));
@@ -115,22 +120,24 @@ public class SameCountryValidatorTest {
     @Test
     public void testVatInvalidAndExtensionFails() {
         try (MockedStatic<EuVatChecker> euVatCheckerMockedStatic = mockStatic(EuVatChecker.class)) {
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.organizerCountry(any(), any())).thenReturn("IT");
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.validationEnabled(any(), any())).thenReturn(true);
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.organizerCountry(any(), any()))
+                    .thenReturn("IT");
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.validationEnabled(any(), any()))
+                    .thenReturn(true);
 
             EUVatCheckResponse mockResponse = mock(EUVatCheckResponse.class);
             when(mockResponse.isValid()).thenReturn(false);
-            euVatCheckerMockedStatic.when(() -> EuVatChecker.validateEUVat(eq("12345"), eq("IT"), any())).thenReturn(mockResponse);
+            euVatCheckerMockedStatic
+                    .when(() -> EuVatChecker.validateEUVat(eq("12345"), eq("IT"), any()))
+                    .thenReturn(mockResponse);
 
-            when(extensionManager.handleTaxIdValidation(purchaseContext, "12345", "IT")).thenReturn(false);
+            when(extensionManager.handleTaxIdValidation(purchaseContext, "12345", "IT"))
+                    .thenReturn(false);
 
             SameCountryValidator validator = new SameCountryValidator(
-                    configurationManager,
-                    extensionManager,
-                    purchaseContext,
-                    "reservation-123",
-                    checker
-            );
+                    configurationManager, extensionManager, purchaseContext, "reservation-123", checker);
 
             assertFalse(validator.test("12345"));
             verify(checker, never()).logSuccessfulValidation(any(), any(), any());

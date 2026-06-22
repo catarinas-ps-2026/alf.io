@@ -33,7 +33,9 @@ describe('event.ts', () => {
             event.free = false;
             event.availableTicketsCount = 100;
             event.canApplySubscriptions = true;
-            event.offlinePaymentConfiguration = { showOnlyBasicInstructions: true };
+            event.offlinePaymentConfiguration = {
+                showOnlyBasicInstructions: true,
+            };
 
             expect(event.shortName).toBe('test-event');
             expect(event.title.en).toBe('Test Event');
@@ -42,7 +44,9 @@ describe('event.ts', () => {
             expect(event.free).toBe(false);
             expect(event.availableTicketsCount).toBe(100);
             expect(event.canApplySubscriptions).toBe(true);
-            expect(event.offlinePaymentConfiguration.showOnlyBasicInstructions).toBe(true);
+            expect(
+                event.offlinePaymentConfiguration.showOnlyBasicInstructions,
+            ).toBe(true);
         });
     });
 
@@ -128,16 +132,28 @@ describe('event.ts', () => {
                 },
             };
             expect(customPayment.paymentMethodId).toBe('CUSTOM_OFFLINE');
-            expect(customPayment.localizations.en.paymentName).toBe('Custom Payment');
+            expect(customPayment.localizations.en.paymentName).toBe(
+                'Custom Payment',
+            );
         });
     });
 
     describe('StaticPaymentMethodNames type', () => {
         it('should accept all static payment method names', () => {
             const methods: StaticPaymentMethodNames[] = [
-                'CREDIT_CARD', 'PAYPAL', 'IDEAL', 'BANK_TRANSFER', 'ON_SITE',
-                'APPLE_PAY', 'BANCONTACT', 'ING_HOME_PAY', 'BELFIUS',
-                'PRZELEWY_24', 'KBC', 'ETRANSFER', 'NONE',
+                'CREDIT_CARD',
+                'PAYPAL',
+                'IDEAL',
+                'BANK_TRANSFER',
+                'ON_SITE',
+                'APPLE_PAY',
+                'BANCONTACT',
+                'ING_HOME_PAY',
+                'BELFIUS',
+                'PRZELEWY_24',
+                'KBC',
+                'ETRANSFER',
+                'NONE',
             ];
             methods.forEach((method) => {
                 expect(method).toBeDefined();
@@ -148,7 +164,13 @@ describe('event.ts', () => {
     describe('PaymentProxy type', () => {
         it('should accept all payment proxy values', () => {
             const proxies: PaymentProxy[] = [
-                'STRIPE', 'ON_SITE', 'OFFLINE', 'PAYPAL', 'MOLLIE', 'SAFERPAY', 'CUSTOM_OFFLINE',
+                'STRIPE',
+                'ON_SITE',
+                'OFFLINE',
+                'PAYPAL',
+                'MOLLIE',
+                'SAFERPAY',
+                'CUSTOM_OFFLINE',
             ];
             proxies.forEach((proxy) => {
                 expect(proxy).toBeDefined();
@@ -171,13 +193,25 @@ describe('event.ts', () => {
     describe('staticPaymentMethodDetails', () => {
         it('should have entries for all static payment methods', () => {
             const methods: StaticPaymentMethodNames[] = [
-                'CREDIT_CARD', 'PAYPAL', 'IDEAL', 'BANK_TRANSFER', 'ON_SITE',
-                'APPLE_PAY', 'BANCONTACT', 'ING_HOME_PAY', 'BELFIUS',
-                'PRZELEWY_24', 'KBC', 'ETRANSFER', 'NONE',
+                'CREDIT_CARD',
+                'PAYPAL',
+                'IDEAL',
+                'BANK_TRANSFER',
+                'ON_SITE',
+                'APPLE_PAY',
+                'BANCONTACT',
+                'ING_HOME_PAY',
+                'BELFIUS',
+                'PRZELEWY_24',
+                'KBC',
+                'ETRANSFER',
+                'NONE',
             ];
             methods.forEach((method) => {
                 expect(staticPaymentMethodDetails[method]).toBeDefined();
-                expect(staticPaymentMethodDetails[method].labelKey).toBeDefined();
+                expect(
+                    staticPaymentMethodDetails[method].labelKey,
+                ).toBeDefined();
                 expect(staticPaymentMethodDetails[method].icon).toBeDefined();
             });
         });

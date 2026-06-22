@@ -16,10 +16,29 @@
  */
 package alfio.e2e;
 
+import static java.util.Map.entry;
+import static java.util.Objects.requireNonNull;
+import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
+
 import alfio.config.Initializer;
 import alfio.test.util.TestUtil;
 import alfio.util.ClockProvider;
 import alfio.util.HttpUtils;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.*;
@@ -40,26 +59,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import static java.util.Map.entry;
-import static java.util.Objects.requireNonNull;
-import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
-
 /**
  * For testing with browserstack you need to set the following ENV Variables:
  * ALFIO_RUN_E2E: true
@@ -72,8 +71,10 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElemen
  * E2E_BROWSER: chrome
  *
  */
-@ContextConfiguration(classes = { NormalFlowE2ETest.E2EConfiguration.class })
-@ActiveProfiles(value = {Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST, "e2e"})
+@ContextConfiguration(classes = {NormalFlowE2ETest.E2EConfiguration.class})
+@ActiveProfiles(
+        value = {Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST, "e2e"
+        })
 @EnabledIfEnvironmentVariable(named = "ALFIO_RUN_E2E", matches = "true")
 @SpringBootTest
 class NormalFlowE2ETest {
@@ -84,7 +85,8 @@ class NormalFlowE2ETest {
 
     static {
         try (var jsonStream = NormalFlowE2ETest.class.getResourceAsStream("/e2e/create-event-for-e2e.json")) {
-            JSON_BODY = String.join("\n", IOUtils.readLines(new InputStreamReader(requireNonNull(jsonStream), StandardCharsets.UTF_8)));
+            JSON_BODY = String.join(
+                    "\n", IOUtils.readLines(new InputStreamReader(requireNonNull(jsonStream), StandardCharsets.UTF_8)));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -99,8 +101,7 @@ class NormalFlowE2ETest {
     private final ClockProvider clockProvider;
 
     @Autowired
-    public NormalFlowE2ETest(List<BrowserWebDriver> webDrivers,
-                             Environment environment) {
+    public NormalFlowE2ETest(List<BrowserWebDriver> webDrivers, Environment environment) {
         this.webDrivers = webDrivers;
         this.environment = environment;
         this.clockProvider = TestUtil.clockProvider();
@@ -113,22 +114,23 @@ class NormalFlowE2ETest {
 
         slug = UUID.randomUUID().toString();
         var now = LocalDateTime.now(clockProvider.getClock());
-        var requestBody = JSON_BODY.replace("--CATEGORY_START_SELLING--", now.minusDays(1).toString())
-            .replace("--SLUG--", slug)
-            .replace("--EVENT_START_DATE--", now.plusDays(2).toString())
-            .replace("--EVENT_END_DATE--", now.plusDays(2).plusHours(2).toString());
+        var requestBody = JSON_BODY
+                .replace("--CATEGORY_START_SELLING--", now.minusDays(1).toString())
+                .replace("--SLUG--", slug)
+                .replace("--EVENT_START_DATE--", now.plusDays(2).toString())
+                .replace("--EVENT_END_DATE--", now.plusDays(2).plusHours(2).toString());
         // create temporary event
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(serverBaseUrl + "/api/v1/admin/event/create"))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "ApiKey " + serverApiKey)
-            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-            .build();
+                .uri(URI.create(serverBaseUrl + "/api/v1/admin/event/create"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "ApiKey " + serverApiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
         var response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
-        if(!HttpUtils.callSuccessful(response)) {
-            throw new IllegalStateException(response.statusCode() + ": "+response.body());
+        if (!HttpUtils.callSuccessful(response)) {
+            throw new IllegalStateException(response.statusCode() + ": " + response.body());
         }
-        eventUrl = serverBaseUrl + "/event/"+slug;
+        eventUrl = serverBaseUrl + "/event/" + slug;
     }
 
     @AfterEach
@@ -136,13 +138,13 @@ class NormalFlowE2ETest {
         var serverBaseUrl = environment.getRequiredProperty("e2e.server.url");
         var serverApiKey = environment.getRequiredProperty("e2e.server.apikey");
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(serverBaseUrl + "/api/v1/admin/event/"+slug))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "ApiKey " + serverApiKey)
-            .DELETE()
-            .build();
+                .uri(URI.create(serverBaseUrl + "/api/v1/admin/event/" + slug))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "ApiKey " + serverApiKey)
+                .DELETE()
+                .build();
         var response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
-        if(!HttpUtils.callSuccessful(response)) {
+        if (!HttpUtils.callSuccessful(response)) {
             throw new IllegalStateException(response.body());
         }
     }
@@ -154,22 +156,23 @@ class NormalFlowE2ETest {
     @Test
     @Timeout(value = 15L, unit = TimeUnit.MINUTES)
     void testFlow() throws InterruptedException {
-        for(var browserWebDriver : webDrivers) {
+        for (var browserWebDriver : webDrivers) {
             var driver = browserWebDriver.driver;
             try {
                 driver.navigate().to(eventUrl);
                 WebDriverWait wait = new WebDriverWait(driver, Duration.of(30, ChronoUnit.SECONDS));
                 wait.until(presenceOfElementLocated(By.cssSelector("div.markdown-content")));
                 page1TicketSelection(browserWebDriver);
-                //wait until page is loaded
+                // wait until page is loaded
                 wait.until(presenceOfElementLocated(By.cssSelector("h2[translate='reservation-page.your-details']")));
                 //
                 page2ContactDetails(browserWebDriver, wait);
-                //wait until page is loaded
+                // wait until page is loaded
                 wait.until(presenceOfElementLocated(By.cssSelector("h2[translate='reservation-page.title']")));
                 //
                 page3Payment(browserWebDriver, wait);
-                WebElement fourthPageElem = new WebDriverWait(driver, Duration.of(30, ChronoUnit.SECONDS)).until(presenceOfElementLocated(By.cssSelector("div.attendees-data")));
+                WebElement fourthPageElem = new WebDriverWait(driver, Duration.of(30, ChronoUnit.SECONDS))
+                        .until(presenceOfElementLocated(By.cssSelector("div.attendees-data")));
                 Assertions.assertNotNull(fourthPageElem);
             } finally {
                 driver.quit();
@@ -184,7 +187,6 @@ class NormalFlowE2ETest {
         //
         // click continue button, submit form
         browserWebDriver.driver.findElement(By.id("show-event-continue")).sendKeys(Keys.RETURN);
-
     }
 
     private static WebElement scrollTo(WebDriver driver, WebElement element) {
@@ -201,7 +203,7 @@ class NormalFlowE2ETest {
         driver.findElement(By.id("email")).sendKeys(environment.getProperty("e2e.email", "noreply@example.org"));
 
         var invoiceRequested = driver.findElements(By.cssSelector("label[for=invoiceRequested]"));
-        if(CollectionUtils.isNotEmpty(invoiceRequested)) {
+        if (CollectionUtils.isNotEmpty(invoiceRequested)) {
             // select "I need an invoice for this reservation"
             selectElement(invoiceRequested.get(0), browserWebDriver);
         }
@@ -211,29 +213,38 @@ class NormalFlowE2ETest {
         driver.findElement(By.id("billingAddressZip")).sendKeys("8000");
         driver.findElement(By.id("billingAddressCity")).sendKeys("Zürich");
 
-
         Actions actions = new Actions(driver);
         actions.moveToElement(driver.findElement(By.cssSelector("ng-select[formcontrolname='vatCountryCode']")));
         clickWithJs(driver, driver.findElement(By.cssSelector("ng-select[formcontrolname='vatCountryCode']")));
 
-        driver.findElement(By.cssSelector("ng-select[formcontrolname='vatCountryCode'] input[id=vatCountry]")).sendKeys("switzerland");
-        wait.until(presenceOfElementLocated(By.cssSelector("ng-select[formcontrolname='vatCountryCode'] ng-dropdown-panel div[role=option]")));
-        selectElement(driver.findElement(By.cssSelector("ng-select[formcontrolname='vatCountryCode'] ng-dropdown-panel div[role=option]")), browserWebDriver, Keys.TAB);
+        driver.findElement(By.cssSelector("ng-select[formcontrolname='vatCountryCode'] input[id=vatCountry]"))
+                .sendKeys("switzerland");
+        wait.until(presenceOfElementLocated(
+                By.cssSelector("ng-select[formcontrolname='vatCountryCode'] ng-dropdown-panel div[role=option]")));
+        selectElement(
+                driver.findElement(By.cssSelector(
+                        "ng-select[formcontrolname='vatCountryCode'] ng-dropdown-panel div[role=option]")),
+                browserWebDriver,
+                Keys.TAB);
 
-        Assertions.assertTrue(driver.findElement(By.cssSelector("ng-select[formcontrolname='vatCountryCode'] div.ng-value")).getText().contains("(CH)"));
+        Assertions.assertTrue(
+                driver.findElement(By.cssSelector("ng-select[formcontrolname='vatCountryCode'] div.ng-value"))
+                        .getText()
+                        .contains("(CH)"));
 
         // insert data for attendee:
         // first&last name + email are already filled
-        //we set the value only for the mandatory elements
-        driver.findElements(By.cssSelector("app-additional-field label")).stream().filter(e -> e.getText().endsWith("*")).forEach(e -> {
-            driver.findElement(By.id(e.getAttribute("for"))).sendKeys("A");
-        });
-
+        // we set the value only for the mandatory elements
+        driver.findElements(By.cssSelector("app-additional-field label")).stream()
+                .filter(e -> e.getText().endsWith("*"))
+                .forEach(e -> {
+                    driver.findElement(By.id(e.getAttribute("for"))).sendKeys("A");
+                });
 
         // submit
-        driver.findElement(By.cssSelector("button[type=submit][translate='reservation-page.continue']")).sendKeys(Keys.RETURN);
+        driver.findElement(By.cssSelector("button[type=submit][translate='reservation-page.continue']"))
+                .sendKeys(Keys.RETURN);
     }
-
 
     private void page3Payment(BrowserWebDriver browserWebDriver, WebDriverWait wait) throws InterruptedException {
         var driver = browserWebDriver.driver;
@@ -243,21 +254,25 @@ class NormalFlowE2ETest {
         driver.switchTo().frame(By.cssSelector("#card-element iframe").findElement(driver));
         wait.until(presenceOfElementLocated(By.name("cardnumber")));
         var cardNumberElement = driver.findElement(By.name("cardnumber"));
-        sendSlowInput(cardNumberElement, browserWebDriver, "4000000400000008".chars().mapToObj(Character::toString).toArray(String[]::new));
-        sendSlowInput(driver.findElement(By.name("exp-date")),browserWebDriver, "12", "30");
+        sendSlowInput(
+                cardNumberElement,
+                browserWebDriver,
+                "4000000400000008".chars().mapToObj(Character::toString).toArray(String[]::new));
+        sendSlowInput(driver.findElement(By.name("exp-date")), browserWebDriver, "12", "30");
         driver.findElement(By.name("cvc")).sendKeys("123");
-        //driver.findElement(By.name("postal")).sendKeys("65000");
+        // driver.findElement(By.name("postal")).sendKeys("65000");
         driver.switchTo().defaultContent();
         driver.findElements(By.id("privacy-policy-label")).forEach(e -> selectElement(e, browserWebDriver));
         selectElement(driver.findElement(By.id("terms-conditions-label")), browserWebDriver);
 
-        //submit
+        // submit
         driver.findElement(By.cssSelector(".btn-success")).sendKeys(Keys.RETURN);
     }
 
-
-    private void sendSlowInput(WebElement element, BrowserWebDriver browserWebDriver, CharSequence... strings) throws InterruptedException {
-        if(browserWebDriver.browser == BrowserWebDriver.Browser.SAFARI || browserWebDriver.browser == BrowserWebDriver.Browser.IE) {
+    private void sendSlowInput(WebElement element, BrowserWebDriver browserWebDriver, CharSequence... strings)
+            throws InterruptedException {
+        if (browserWebDriver.browser == BrowserWebDriver.Browser.SAFARI
+                || browserWebDriver.browser == BrowserWebDriver.Browser.IE) {
             for (var str : strings) {
                 element.sendKeys(str);
                 Thread.sleep(50L);
@@ -273,7 +288,7 @@ class NormalFlowE2ETest {
     }
 
     private void selectElement(WebElement element, BrowserWebDriver driver, Keys keyToSend) {
-        if(driver.browser == BrowserWebDriver.Browser.SAFARI) {
+        if (driver.browser == BrowserWebDriver.Browser.SAFARI) {
             element.sendKeys(keyToSend);
         } else {
             // click with js...
@@ -284,55 +299,57 @@ class NormalFlowE2ETest {
     @Configuration(proxyBeanMethods = false)
     static class E2EConfiguration {
 
-        private static WebDriver buildRemoteDriver(URL url,
-                                                   String os,
-                                                   String osVersion,
-                                                   String browser,
-                                                   String browserVersion,
-                                                   String profileName) {
+        private static WebDriver buildRemoteDriver(
+                URL url, String os, String osVersion, String browser, String browserVersion, String profileName) {
             DesiredCapabilities caps = new DesiredCapabilities();
             caps.setCapability("browserName", browser);
-            caps.setCapability("bstack:options", Map.ofEntries(
-                entry("os", os),
-                entry("osVersion", osVersion),
-                entry("browserVersion", browserVersion),
-                entry("buildName", profileName),
-                entry("consoleLogs", "errors"),
-                entry("networkLogs", "true"),
-                entry("seleniumVersion", "4.16.1"),
-                entry("idleTimeout", "180")
-            ));
+            caps.setCapability(
+                    "bstack:options",
+                    Map.ofEntries(
+                            entry("os", os),
+                            entry("osVersion", osVersion),
+                            entry("browserVersion", browserVersion),
+                            entry("buildName", profileName),
+                            entry("consoleLogs", "errors"),
+                            entry("networkLogs", "true"),
+                            entry("seleniumVersion", "4.16.1"),
+                            entry("idleTimeout", "180")));
             return new RemoteWebDriver(url, caps);
         }
 
         @Bean
         String browserStackUrl(Environment env) {
-            if(CI_RUN) {
+            if (CI_RUN) {
                 return "https://"
-                    + env.getRequiredProperty("browserstack.username")
-                    + ":"
-                    + env.getRequiredProperty("browserstack.access.key")
-                    + "@hub-cloud.browserstack.com/wd/hub";
+                        + env.getRequiredProperty("browserstack.username")
+                        + ":"
+                        + env.getRequiredProperty("browserstack.access.key")
+                        + "@hub-cloud.browserstack.com/wd/hub";
             }
             return null;
         }
 
-
         private BrowserWebDriver build(String browser, URL url, String githubBuildNumber) {
             return switch (browser) {
-                case "chrome" ->
-                        new BrowserWebDriver(BrowserWebDriver.Browser.CHROME, buildRemoteDriver(url, "Windows", "10", "Chrome", "latest", "testFlowChrome" + githubBuildNumber));
-                case "firefox" ->
-                        new BrowserWebDriver(BrowserWebDriver.Browser.FIREFOX, buildRemoteDriver(url, "Windows", "10", "Firefox", "latest", "testFlowFirefox" + githubBuildNumber));
-                case "safari" ->
-                        new BrowserWebDriver(BrowserWebDriver.Browser.SAFARI, buildRemoteDriver(url, "OS X", "Big Sur", "Safari", "14.1", "testFlowSafari" + githubBuildNumber));
+                case "chrome" -> new BrowserWebDriver(
+                        BrowserWebDriver.Browser.CHROME,
+                        buildRemoteDriver(
+                                url, "Windows", "10", "Chrome", "latest", "testFlowChrome" + githubBuildNumber));
+                case "firefox" -> new BrowserWebDriver(
+                        BrowserWebDriver.Browser.FIREFOX,
+                        buildRemoteDriver(
+                                url, "Windows", "10", "Firefox", "latest", "testFlowFirefox" + githubBuildNumber));
+                case "safari" -> new BrowserWebDriver(
+                        BrowserWebDriver.Browser.SAFARI,
+                        buildRemoteDriver(
+                                url, "OS X", "Big Sur", "Safari", "14.1", "testFlowSafari" + githubBuildNumber));
                 default -> throw new IllegalStateException("unknown browser" + browser);
             };
         }
 
         @Bean
         List<BrowserWebDriver> webDrivers(Environment env, String browserStackUrl) throws Exception {
-            if(CI_RUN) {
+            if (CI_RUN) {
                 var browser = env.getRequiredProperty("e2e.browser");
                 LOGGER.info("e2e profile detected, CI profile detected. Running full suite on BrowserStack");
                 var url = new URL(browserStackUrl);
@@ -347,8 +364,12 @@ class NormalFlowE2ETest {
 
     static class BrowserWebDriver {
         private enum Browser {
-            IE, CHROME, FIREFOX, SAFARI
+            IE,
+            CHROME,
+            FIREFOX,
+            SAFARI
         }
+
         private final Browser browser;
         private final WebDriver driver;
 

@@ -16,11 +16,15 @@
  */
 package alfio.controller.api.admin;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.modification.support.LocationDescriptor;
 import alfio.model.system.ConfigurationKeys;
 import com.moodysalem.TimezoneMapper;
+import java.time.ZoneId;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -28,11 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.ZoneId;
-import java.util.*;
-
-import static alfio.model.system.ConfigurationKeys.*;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -49,7 +48,7 @@ public class LocationApiController {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String unhandledException(Exception e) {
-       log.error("Exception in location api", e);
+        log.error("Exception in location api", e);
         return e.getMessage();
     }
 
@@ -66,12 +65,10 @@ public class LocationApiController {
         return getTimezones().contains(tzId) ? tzId : null;
     }
 
-
-
     @GetMapping("/location/static-map-image")
     public String getMapImage(
-        @RequestParam(name = "lat", required = false) String lat,
-        @RequestParam(name = "lng", required = false) String lng) {
+            @RequestParam(name = "lat", required = false) String lat,
+            @RequestParam(name = "lng", required = false) String lng) {
         return LocationDescriptor.getMapUrl(lat, lng, getGeoConf());
     }
 
@@ -85,7 +82,7 @@ public class LocationApiController {
         var geoInfoConfiguration = getGeoConf();
         ConfigurationKeys.GeoInfoProvider provider = LocationDescriptor.getProvider(geoInfoConfiguration);
         Map<ConfigurationKeys, String> apiKeys = new EnumMap<>(ConfigurationKeys.class);
-        geoInfoConfiguration.forEach((k,v) -> v.getValue().ifPresent(value -> apiKeys.put(k, value)));
+        geoInfoConfiguration.forEach((k, v) -> v.getValue().ifPresent(value -> apiKeys.put(k, value)));
         return new ProviderAndKeys(provider, apiKeys);
     }
 

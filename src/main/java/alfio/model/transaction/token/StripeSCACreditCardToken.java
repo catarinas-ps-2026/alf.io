@@ -28,8 +28,10 @@ public class StripeSCACreditCardToken implements TransactionInitializationToken 
 
     @JsonIgnore
     private final String paymentIntentId;
+
     @JsonIgnore
     private final String chargeId;
+
     private final String clientSecret;
 
     @Override

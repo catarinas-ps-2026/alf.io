@@ -16,6 +16,11 @@
  */
 package alfio.controller.api.v1;
 
+import static alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT;
+import static alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType.UNLIMITED;
+import static java.util.Objects.requireNonNull;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -41,23 +46,17 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import static alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT;
-import static alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType.UNLIMITED;
-import static java.util.Objects.requireNonNull;
-import static org.junit.jupiter.api.Assertions.*;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -66,16 +65,22 @@ class SubscriptionApiV1IntegrationTest {
 
     @Autowired
     UserManager userManager;
+
     @Autowired
     OrganizationRepository organizationRepository;
+
     @Autowired
     ConfigurationRepository configurationRepository;
+
     @Autowired
     SubscriptionApiV1Controller controller;
+
     @Autowired
     EventApiV1Controller eventController;
+
     @Autowired
     ClockProvider clockProvider;
+
     @Autowired
     SubscriptionRepository subscriptionRepository;
 
@@ -91,10 +96,19 @@ class SubscriptionApiV1IntegrationTest {
         var organizationName = UUID.randomUUID().toString();
         this.username = UUID.randomUUID().toString();
 
-        var organizationModification = new OrganizationModification(null, organizationName, "email@example.com", "org", null, null);
+        var organizationModification =
+                new OrganizationModification(null, organizationName, "email@example.com", "org", null, null);
         userManager.createOrganization(organizationModification, null);
         var organization = organizationRepository.findByName(organizationName).orElseThrow();
-        userManager.insertUser(organization.getId(), username, "test", "test", "test@example.com", Role.API_CONSUMER, User.Type.INTERNAL, null);
+        userManager.insertUser(
+                organization.getId(),
+                username,
+                "test",
+                "test",
+                "test@example.com",
+                Role.API_CONSUMER,
+                User.Type.INTERNAL,
+                null);
 
         this.principal = Mockito.mock(Principal.class);
         Mockito.when(principal.getName()).thenReturn(username);
@@ -127,19 +141,22 @@ class SubscriptionApiV1IntegrationTest {
     void deactivate() {
         var result = controller.deactivate(subscriptionDescriptor.getId(), principal);
         assertTrue(result.getStatusCode().is2xxSuccessful());
-        assertTrue(subscriptionRepository.findOne(subscriptionDescriptor.getId()).isEmpty());
+        assertTrue(
+                subscriptionRepository.findOne(subscriptionDescriptor.getId()).isEmpty());
     }
 
     @Test
     void updateLinkedEvents() {
-        var eventCreateResponse = eventController.create(EventApiV1IntegrationTest.creationRequest("short-name"), principal);
+        var eventCreateResponse =
+                eventController.create(EventApiV1IntegrationTest.creationRequest("short-name"), principal);
         assertNotNull(eventCreateResponse.getBody());
         var eventSlug = eventCreateResponse.getBody();
         var descriptorId = subscriptionDescriptor.getId();
         var response = controller.getLinkedEvents(descriptorId, principal);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertTrue(requireNonNull(response.getBody()).isEmpty());
-        controller.updateLinkedEvents(descriptorId, List.of(new LinkEventsToSubscriptionRequest(eventSlug, List.of())), principal);
+        controller.updateLinkedEvents(
+                descriptorId, List.of(new LinkEventsToSubscriptionRequest(eventSlug, List.of())), principal);
         response = controller.getLinkedEvents(descriptorId, principal);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         var body = response.getBody();
@@ -150,48 +167,45 @@ class SubscriptionApiV1IntegrationTest {
         assertTrue(linkedEvent.getEnabledCategories().isEmpty());
     }
 
-
-
-    private SubscriptionDescriptorModificationRequest modificationRequest(SubscriptionUsageType usageType,
-                                                                          boolean isPublic) {
+    private SubscriptionDescriptorModificationRequest modificationRequest(
+            SubscriptionUsageType usageType, boolean isPublic) {
         return modificationRequest(usageType, isPublic, clockProvider);
     }
 
-    static SubscriptionDescriptorModificationRequest modificationRequest(SubscriptionUsageType usageType,
-                                                                         boolean isPublic,
-                                                                         ClockProvider clockProvider) {
+    static SubscriptionDescriptorModificationRequest modificationRequest(
+            SubscriptionUsageType usageType, boolean isPublic, ClockProvider clockProvider) {
         return modificationRequest(usageType, isPublic, clockProvider, List.of());
     }
-    static SubscriptionDescriptorModificationRequest modificationRequest(SubscriptionUsageType usageType,
-                                                                         boolean isPublic,
-                                                                         ClockProvider clockProvider,
-                                                                         List<AdditionalInfoRequest> additionalInfoRequest) {
+
+    static SubscriptionDescriptorModificationRequest modificationRequest(
+            SubscriptionUsageType usageType,
+            boolean isPublic,
+            ClockProvider clockProvider,
+            List<AdditionalInfoRequest> additionalInfoRequest) {
         return new SubscriptionDescriptorModificationRequest(
-            usageType,
-            SubscriptionDescriptorModificationRequest.TERM_STANDARD,
-            new StandardPeriodTerm(SubscriptionDescriptor.SubscriptionTimeUnit.MONTHS, 1),
-            List.of(new DescriptionRequest("en", "this is the title")),
-            List.of(new DescriptionRequest("en", "this is the description")),
-            null,
-            LocalDateTime.now(clockProvider.getClock()),
-            LocalDateTime.now(clockProvider.getClock()).plusMonths(5),
-            new BigDecimal("10.00"),
-            new BigDecimal("7.7"),
-            PriceContainer.VatStatus.INCLUDED,
-            "CHF",
-            isPublic,
-            "https://alf.io/img/tutorials/check-in-app/003.png",
-            "https://alf.io",
-            "https://alf.io",
-            "Europe/Zurich",
-            false,
-            List.of(PaymentProxy.STRIPE),
-            additionalInfoRequest
-        );
+                usageType,
+                SubscriptionDescriptorModificationRequest.TERM_STANDARD,
+                new StandardPeriodTerm(SubscriptionDescriptor.SubscriptionTimeUnit.MONTHS, 1),
+                List.of(new DescriptionRequest("en", "this is the title")),
+                List.of(new DescriptionRequest("en", "this is the description")),
+                null,
+                LocalDateTime.now(clockProvider.getClock()),
+                LocalDateTime.now(clockProvider.getClock()).plusMonths(5),
+                new BigDecimal("10.00"),
+                new BigDecimal("7.7"),
+                PriceContainer.VatStatus.INCLUDED,
+                "CHF",
+                isPublic,
+                "https://alf.io/img/tutorials/check-in-app/003.png",
+                "https://alf.io",
+                "https://alf.io",
+                "Europe/Zurich",
+                false,
+                List.of(PaymentProxy.STRIPE),
+                additionalInfoRequest);
     }
 
     private SubscriptionDescriptorModificationRequest creationRequest() {
         return modificationRequest(ONCE_PER_EVENT, true);
     }
-
 }

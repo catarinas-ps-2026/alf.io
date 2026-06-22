@@ -16,21 +16,18 @@
  */
 package alfio.util;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.model.*;
 import alfio.model.modification.DateTimeModification;
 import alfio.model.modification.EventModification;
 import alfio.model.modification.TicketCategoryModification;
 import alfio.model.result.ValidationResult;
 import alfio.test.util.TestUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.validation.Errors;
-import org.springframework.validation.MapBindingResult;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,12 +37,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.validation.Errors;
+import org.springframework.validation.MapBindingResult;
 
 class ValidatorTest {
 
@@ -56,17 +55,23 @@ class ValidatorTest {
 
     static {
         var clock = TestUtil.clockProvider().getClock();
-        VALID_EXPIRATION = DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).plusHours(1L));
-        VALID_INCEPTION = DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).minusDays(1L));
-        EVENT_BEGIN = DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).plusHours(2L));
-        EVENT_END = DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).plusHours(3L));
+        VALID_EXPIRATION =
+                DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).plusHours(1L));
+        VALID_INCEPTION =
+                DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).minusDays(1L));
+        EVENT_BEGIN =
+                DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).plusHours(2L));
+        EVENT_END =
+                DateTimeModification.fromZonedDateTime(ZonedDateTime.now(clock).plusHours(3L));
     }
 
     private EventModification eventModification;
     private Errors errors;
     private TicketCategoryModification ticketCategoryModification;
-    private final EventModification.AdditionalServiceText title = new EventModification.AdditionalServiceText(0, "it", "titolo", AdditionalServiceText.TextType.TITLE);
-    private final EventModification.AdditionalServiceText description = new EventModification.AdditionalServiceText(0, "it", "descrizione", AdditionalServiceText.TextType.DESCRIPTION);
+    private final EventModification.AdditionalServiceText title =
+            new EventModification.AdditionalServiceText(0, "it", "titolo", AdditionalServiceText.TextType.TITLE);
+    private final EventModification.AdditionalServiceText description = new EventModification.AdditionalServiceText(
+            0, "it", "descrizione", AdditionalServiceText.TextType.DESCRIPTION);
 
     @BeforeEach
     void init() {
@@ -111,21 +116,74 @@ class ValidatorTest {
     @Test
     void failedCategoryDescriptionValidation() {
         when(ticketCategoryModification.getDescription()).thenReturn(Map.of("it", "12345", "en", "1234"));
-        Validator.validateCategory(ticketCategoryModification, errors,"", eventModification, 4);
+        Validator.validateCategory(ticketCategoryModification, errors, "", eventModification, 4);
         assertTrue(errors.hasFieldErrors("description"));
     }
 
     @Test
     void testValidationSuccess() {
-        EventModification.AdditionalService valid1 = new EventModification.AdditionalService(0, BigDecimal.ZERO, false, 0, -1, 1, VALID_INCEPTION, VALID_EXPIRATION, null, AdditionalService.VatType.NONE, Collections.emptyList(), singletonList(title), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
-        EventModification.AdditionalService valid2 = new EventModification.AdditionalService(0, BigDecimal.ONE, true, 1, 100, 1, VALID_INCEPTION, VALID_EXPIRATION, BigDecimal.TEN, AdditionalService.VatType.INHERITED, Collections.emptyList(), singletonList(title), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
-        assertTrue(Stream.of(valid1, valid2).map(as -> Validator.validateAdditionalService(as, errors)).allMatch(ValidationResult::isSuccess));
+        EventModification.AdditionalService valid1 = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ZERO,
+                false,
+                0,
+                -1,
+                1,
+                VALID_INCEPTION,
+                VALID_EXPIRATION,
+                null,
+                AdditionalService.VatType.NONE,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
+        EventModification.AdditionalService valid2 = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ONE,
+                true,
+                1,
+                100,
+                1,
+                VALID_INCEPTION,
+                VALID_EXPIRATION,
+                BigDecimal.TEN,
+                AdditionalService.VatType.INHERITED,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
+        assertTrue(Stream.of(valid1, valid2)
+                .map(as -> Validator.validateAdditionalService(as, errors))
+                .allMatch(ValidationResult::isSuccess));
         assertFalse(errors.hasFieldErrors());
     }
 
     @Test
     void testValidationErrorExpirationBeforeInception() {
-        EventModification.AdditionalService invalid = new EventModification.AdditionalService(0, BigDecimal.ZERO, false, 0, -1, 1, VALID_EXPIRATION, VALID_INCEPTION, null, AdditionalService.VatType.NONE, Collections.emptyList(), singletonList(title), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
+        EventModification.AdditionalService invalid = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ZERO,
+                false,
+                0,
+                -1,
+                1,
+                VALID_EXPIRATION,
+                VALID_INCEPTION,
+                null,
+                AdditionalService.VatType.NONE,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
         assertFalse(Validator.validateAdditionalService(invalid, errors).isSuccess());
         assertTrue(errors.hasFieldErrors());
         assertEquals(2, errors.getErrorCount());
@@ -135,7 +193,24 @@ class ValidatorTest {
 
     @Test
     void testValidationErrorInceptionNull() {
-        EventModification.AdditionalService invalid = new EventModification.AdditionalService(0, BigDecimal.ONE, true, 1, 100, 1, null, VALID_EXPIRATION, BigDecimal.TEN, AdditionalService.VatType.INHERITED, Collections.emptyList(), singletonList(title), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
+        EventModification.AdditionalService invalid = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ONE,
+                true,
+                1,
+                100,
+                1,
+                null,
+                VALID_EXPIRATION,
+                BigDecimal.TEN,
+                AdditionalService.VatType.INHERITED,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
         assertFalse(Validator.validateAdditionalService(invalid, errors).isSuccess());
         assertTrue(errors.hasFieldErrors());
         assertEquals(2, errors.getErrorCount());
@@ -145,7 +220,24 @@ class ValidatorTest {
 
     @Test
     void testValidationExpirationNull() {
-        EventModification.AdditionalService invalid = new EventModification.AdditionalService(0, BigDecimal.ONE, true, 1, 100, 1, VALID_INCEPTION, null, BigDecimal.TEN, AdditionalService.VatType.INHERITED, Collections.emptyList(), singletonList(title), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
+        EventModification.AdditionalService invalid = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ONE,
+                true,
+                1,
+                100,
+                1,
+                VALID_INCEPTION,
+                null,
+                BigDecimal.TEN,
+                AdditionalService.VatType.INHERITED,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
         assertFalse(Validator.validateAdditionalService(invalid, errors).isSuccess());
         assertTrue(errors.hasFieldErrors());
         assertEquals(2, errors.getErrorCount());
@@ -155,7 +247,24 @@ class ValidatorTest {
 
     @Test
     void testValidationInceptionExpirationNull() {
-        EventModification.AdditionalService invalid = new EventModification.AdditionalService(0, BigDecimal.ONE, true, 1, 100, 1, null, null, BigDecimal.TEN, AdditionalService.VatType.INHERITED, Collections.emptyList(), singletonList(title), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
+        EventModification.AdditionalService invalid = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ONE,
+                true,
+                1,
+                100,
+                1,
+                null,
+                null,
+                BigDecimal.TEN,
+                AdditionalService.VatType.INHERITED,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
         assertFalse(Validator.validateAdditionalService(invalid, errors).isSuccess());
         assertTrue(errors.hasFieldErrors());
         assertEquals(2, errors.getErrorCount());
@@ -165,8 +274,42 @@ class ValidatorTest {
 
     @Test
     void testValidationFailedDescriptionsDontMatchTitles() {
-        EventModification.AdditionalService invalid = new EventModification.AdditionalService(0, BigDecimal.ZERO, false, 0, -1, 1, VALID_INCEPTION, VALID_EXPIRATION, null, AdditionalService.VatType.NONE, Collections.emptyList(), emptyList(), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
-        EventModification.AdditionalService valid = new EventModification.AdditionalService(0, BigDecimal.ONE, true, 1, 100, 1, VALID_INCEPTION, VALID_EXPIRATION, BigDecimal.TEN, AdditionalService.VatType.INHERITED, Collections.emptyList(), singletonList(title), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
+        EventModification.AdditionalService invalid = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ZERO,
+                false,
+                0,
+                -1,
+                1,
+                VALID_INCEPTION,
+                VALID_EXPIRATION,
+                null,
+                AdditionalService.VatType.NONE,
+                Collections.emptyList(),
+                emptyList(),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
+        EventModification.AdditionalService valid = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ONE,
+                true,
+                1,
+                100,
+                1,
+                VALID_INCEPTION,
+                VALID_EXPIRATION,
+                BigDecimal.TEN,
+                AdditionalService.VatType.INHERITED,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
         assertTrue(Validator.validateAdditionalService(valid, errors).isSuccess());
         assertFalse(Validator.validateAdditionalService(invalid, errors).isSuccess());
         assertTrue(errors.hasFieldErrors());
@@ -177,8 +320,43 @@ class ValidatorTest {
 
     @Test
     void testValidationFailedDescription() {
-        EventModification.AdditionalService invalid1 = new EventModification.AdditionalService(0, BigDecimal.ZERO, false, 0, -1, 1, VALID_INCEPTION, VALID_EXPIRATION, null, AdditionalService.VatType.NONE, Collections.emptyList(), emptyList(), singletonList(description), AdditionalService.AdditionalServiceType.DONATION, null, null, null);//English is required here
-        EventModification.AdditionalService invalid2 = new EventModification.AdditionalService(0, BigDecimal.ONE, true, 1, 100, 1, VALID_INCEPTION, VALID_EXPIRATION, BigDecimal.TEN, AdditionalService.VatType.INHERITED, Collections.emptyList(), singletonList(title), singletonList(new EventModification.AdditionalServiceText(0, "en", "", AdditionalServiceText.TextType.DESCRIPTION)), AdditionalService.AdditionalServiceType.DONATION, null, null, null);
+        EventModification.AdditionalService invalid1 = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ZERO,
+                false,
+                0,
+                -1,
+                1,
+                VALID_INCEPTION,
+                VALID_EXPIRATION,
+                null,
+                AdditionalService.VatType.NONE,
+                Collections.emptyList(),
+                emptyList(),
+                singletonList(description),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null); // English is required here
+        EventModification.AdditionalService invalid2 = new EventModification.AdditionalService(
+                0,
+                BigDecimal.ONE,
+                true,
+                1,
+                100,
+                1,
+                VALID_INCEPTION,
+                VALID_EXPIRATION,
+                BigDecimal.TEN,
+                AdditionalService.VatType.INHERITED,
+                Collections.emptyList(),
+                singletonList(title),
+                singletonList(new EventModification.AdditionalServiceText(
+                        0, "en", "", AdditionalServiceText.TextType.DESCRIPTION)),
+                AdditionalService.AdditionalServiceType.DONATION,
+                null,
+                null,
+                null);
         assertFalse(Validator.validateAdditionalService(invalid1, errors).isSuccess());
         assertTrue(errors.hasFieldErrors());
         assertNotNull(errors.getFieldError("title"));
@@ -201,44 +379,44 @@ class ValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "test@example.org",
-        "test@sub.example.org",
-        "test_test-test@sub.sub.example-example.org",
-        "test@example.เน็ต.ไทย"
-    })
+    @ValueSource(
+            strings = {
+                "test@example.org",
+                "test@sub.example.org",
+                "test_test-test@sub.sub.example-example.org",
+                "test@example.เน็ต.ไทย"
+            })
     void validCanonicalEmails(String address) {
         assertTrue(Validator.isCanonicalMailAddress(address));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "test@example.o",
-        "test@example.org.",
-        "test@example.org<",
-        "test@localhost",
-        "test_test-test@sub.sub.o"
-    })
+    @ValueSource(
+            strings = {
+                "test@example.o",
+                "test@example.org.",
+                "test@example.org<",
+                "test@localhost",
+                "test_test-test@sub.sub.o"
+            })
     void invalidCanonicalEmails(String address) {
         assertFalse(Validator.isCanonicalMailAddress(address));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "test@example.org",
-        "test@localhost",
-        "test_test-test@sub.sub.example-example.org",
-        "test@example.เน็ต.ไทย"
-    })
+    @ValueSource(
+            strings = {
+                "test@example.org",
+                "test@localhost",
+                "test_test-test@sub.sub.example-example.org",
+                "test@example.เน็ต.ไทย"
+            })
     void validEmails(String address) {
         assertTrue(Validator.isEmailValid(address));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "test.example.org",
-        "test_test-test"
-    })
+    @ValueSource(strings = {"test.example.org", "test_test-test"})
     void invalidEmails(String address) {
         assertFalse(Validator.isEmailValid(address));
     }
@@ -293,7 +471,8 @@ class ValidatorTest {
         var ticketFieldConfiguration = mock(PurchaseContextFieldConfiguration.class);
         when(ticketFieldConfiguration.getMaxLength()).thenReturn(maxAge);
 
-        Validator.validateMaxAge(birthDateAsString, "fieldName", "error", ticketFieldConfiguration, errors, () -> today);
+        Validator.validateMaxAge(
+                birthDateAsString, "fieldName", "error", ticketFieldConfiguration, errors, () -> today);
         assertFalse(errors.hasFieldErrors());
 
         var date = LocalDate.parse(birthDateAsString).minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
@@ -311,7 +490,8 @@ class ValidatorTest {
 
         var now = LocalDate.now(ClockProvider.clock());
         // valid because date is yesterday
-        Validator.validateDateInThePast(now.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE), "date", validationResult);
+        Validator.validateDateInThePast(
+                now.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE), "date", validationResult);
         assertFalse(validationResult.hasErrors());
 
         // not valid because date is today
@@ -341,31 +521,40 @@ class ValidatorTest {
         "2025-03-13T08:00:00,2025-03-13T18:00:00,2025-03-13T08:00:00,2025-03-13T18:00:01,false,FAILED_END",
         "2025-03-13T08:00:00,2025-03-13T18:00:00,2025-03-13T08:00:00,2025-03-13T18:00:01,true,FAILED_END",
     })
-    void rangeValidation(String eventBegin, String eventEnd, String initialDate, String finalDate, String strict, String expectedResult) {
+    void rangeValidation(
+            String eventBegin,
+            String eventEnd,
+            String initialDate,
+            String finalDate,
+            String strict,
+            String expectedResult) {
         var parsedEventBegin = LocalDateTime.parse(eventBegin, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         var parsedEventEnd = LocalDateTime.parse(eventEnd, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        assertEquals(Validator.RangeValidationResultType.valueOf(expectedResult), Validator.checkDateRange(safeParse(initialDate), safeParse(finalDate), parsedEventBegin, parsedEventEnd, Boolean.parseBoolean(strict)));
+        assertEquals(
+                Validator.RangeValidationResultType.valueOf(expectedResult),
+                Validator.checkDateRange(
+                        safeParse(initialDate),
+                        safeParse(finalDate),
+                        parsedEventBegin,
+                        parsedEventEnd,
+                        Boolean.parseBoolean(strict)));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "ftp://my-server",
-        "chrome-extension://blabla"
-    })
+    @ValueSource(strings = {"ftp://my-server", "chrome-extension://blabla"})
     void urlValidationFailed(String url) {
         var errorMap = new HashMap<String, String>();
         var errors = new MapBindingResult(errorMap, "test");
         Validator.validateUrl(url, errors, "propertyKey", "errorCode");
         assertTrue(errors.hasErrors());
         assertNotNull(errors.getFieldError("propertyKey"));
-        assertEquals("errorCode", Objects.requireNonNull(errors.getFieldError("propertyKey")).getCode());
+        assertEquals(
+                "errorCode",
+                Objects.requireNonNull(errors.getFieldError("propertyKey")).getCode());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "http://my-server",
-        "https://my-server"
-    })
+    @ValueSource(strings = {"http://my-server", "https://my-server"})
     void urlValidationSuccessful(String url) {
         var errorMap = new HashMap<String, String>();
         var errors = new MapBindingResult(errorMap, "test");
@@ -378,7 +567,9 @@ class ValidatorTest {
             if (StringUtils.isEmpty(dateTime)) {
                 return null;
             }
-            return new DateTimeModification(LocalDate.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            return new DateTimeModification(
+                    LocalDate.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                    LocalTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         };
     }
 }

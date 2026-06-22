@@ -20,10 +20,6 @@ import alfio.manager.user.UserManager;
 import alfio.model.modification.OrganizationModification;
 import alfio.model.user.Role;
 import alfio.model.user.User;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.filter.GenericFilterBean;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -31,6 +27,9 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.UUID;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.filter.GenericFilterBean;
 
 // generate a user if it does not exist, to be used by the demo profile
 public class UserCreatorBeforeLoginFilter extends GenericFilterBean {
@@ -43,18 +42,32 @@ public class UserCreatorBeforeLoginFilter extends GenericFilterBean {
         this.requestMatcher = new AntPathRequestMatcher(loginProcessingUrl, "POST");
     }
 
-
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
 
-        //ensure organization/user
-        if (requestMatcher.matches(req) && req.getParameter("username") != null && req.getParameter("password") != null) {
+        // ensure organization/user
+        if (requestMatcher.matches(req)
+                && req.getParameter("username") != null
+                && req.getParameter("password") != null) {
             String username = req.getParameter("username");
             if (!userManager.usernameExists(username)) {
-                var organizationModification = new OrganizationModification(null, UUID.randomUUID().toString(), username, username, null, null);
+                var organizationModification = new OrganizationModification(
+                        null, UUID.randomUUID().toString(), username, username, null, null);
                 int orgId = userManager.createOrganization(organizationModification, null);
-                userManager.insertUser(orgId, username, "", "", username, Role.OWNER, User.Type.DEMO, req.getParameter("password"), null, null, null);
+                userManager.insertUser(
+                        orgId,
+                        username,
+                        "",
+                        "",
+                        username,
+                        Role.OWNER,
+                        User.Type.DEMO,
+                        req.getParameter("password"),
+                        null,
+                        null,
+                        null);
             }
         }
 

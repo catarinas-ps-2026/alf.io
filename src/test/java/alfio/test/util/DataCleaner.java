@@ -16,9 +16,16 @@
  */
 package alfio.test.util;
 
+import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import alfio.config.authentication.support.APITokenAuthentication;
 import alfio.manager.OrganizationDeleter;
 import alfio.util.RefreshableDataSource;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -28,14 +35,6 @@ import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DataCleaner implements AfterEachCallback, BeforeEachCallback {
 
@@ -50,7 +49,10 @@ public class DataCleaner implements AfterEachCallback, BeforeEachCallback {
             var jdbc = applicationContext.getBean(NamedParameterJdbcTemplate.class);
             try {
                 // delete configuration
-                assertTrue(jdbc.update("delete from configuration where c_key not in (:keys)", Map.of("keys", initialConfiguration)) >= 0);
+                assertTrue(jdbc.update(
+                                "delete from configuration where c_key not in (:keys)",
+                                Map.of("keys", initialConfiguration))
+                        >= 0);
                 assertTrue(jdbc.update("delete from configuration_organization", Map.of()) >= 0);
                 assertTrue(jdbc.update("delete from configuration_event", Map.of()) >= 0);
                 assertTrue(jdbc.update("delete from extension_event", Map.of()) >= 0);
@@ -62,8 +64,12 @@ public class DataCleaner implements AfterEachCallback, BeforeEachCallback {
                 // delete organization
                 var organizationDeleter = applicationContext.getBean(OrganizationDeleter.class);
                 jdbc.queryForList("select id from organization", Map.of(), Integer.class)
-                    .forEach(orgId -> organizationDeleter.deleteOrganization(orgId, new APITokenAuthentication("TEST", "", List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT)))));
-                assertTrue(jdbc.queryForList("select id from organization", Map.of(), Integer.class).isEmpty());
+                        .forEach(orgId -> organizationDeleter.deleteOrganization(
+                                orgId,
+                                new APITokenAuthentication(
+                                        "TEST", "", List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT)))));
+                assertTrue(jdbc.queryForList("select id from organization", Map.of(), Integer.class)
+                        .isEmpty());
                 jdbc.update("delete from user_profile", Map.of());
                 jdbc.update("delete from ba_user", Map.of());
             } catch (UncategorizedSQLException e) {
@@ -84,7 +90,7 @@ public class DataCleaner implements AfterEachCallback, BeforeEachCallback {
     private boolean hasDataSource(ExtensionContext extensionContext) {
         var applicationContext = SpringExtension.getApplicationContext(extensionContext);
         return applicationContext.getBeanNamesForType(RefreshableDataSource.class).length > 0
-            && applicationContext.getBeanNamesForType(NamedParameterJdbcTemplate.class).length > 0;
+                && applicationContext.getBeanNamesForType(NamedParameterJdbcTemplate.class).length > 0;
     }
 
     private RefreshableDataSource getDataSource(ExtensionContext extensionContext) {

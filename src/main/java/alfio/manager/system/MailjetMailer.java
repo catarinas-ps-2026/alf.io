@@ -16,14 +16,12 @@
  */
 package alfio.manager.system;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.model.Configurable;
 import alfio.repository.user.OrganizationRepository;
 import alfio.util.HttpUtils;
 import alfio.util.Json;
-import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -31,41 +29,58 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static alfio.model.system.ConfigurationKeys.*;
-
-class MailjetMailer extends BaseMailer  {
+class MailjetMailer extends BaseMailer {
 
     private static final Logger log = LoggerFactory.getLogger(MailjetMailer.class);
     private final HttpClient client;
     private final ConfigurationManager configurationManager;
 
-    MailjetMailer(HttpClient httpClient,
-                         ConfigurationManager configurationManager,
-                         OrganizationRepository organizationRepository) {
+    MailjetMailer(
+            HttpClient httpClient,
+            ConfigurationManager configurationManager,
+            OrganizationRepository organizationRepository) {
         super(organizationRepository);
         this.client = httpClient;
         this.configurationManager = configurationManager;
     }
 
     @Override
-    public void send(Configurable configurable, String fromName, String to, List<String> cc, String subject, String text, Optional<String> html, Attachment... attachment) {
+    public void send(
+            Configurable configurable,
+            String fromName,
+            String to,
+            List<String> cc,
+            String subject,
+            String text,
+            Optional<String> html,
+            Attachment... attachment) {
 
         var conf = configurationManager.getFor(
-            EnumSet.of(MAILJET_APIKEY_PUBLIC, MAILJET_APIKEY_PRIVATE, MAILJET_FROM, MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO), configurable.getConfigurationLevel());
-
+                EnumSet.of(
+                        MAILJET_APIKEY_PUBLIC,
+                        MAILJET_APIKEY_PRIVATE,
+                        MAILJET_FROM,
+                        MAIL_REPLY_TO,
+                        MAIL_SET_ORG_REPLY_TO),
+                configurable.getConfigurationLevel());
 
         String apiKeyPublic = conf.get(MAILJET_APIKEY_PUBLIC).getRequiredValue();
         String apiKeyPrivate = conf.get(MAILJET_APIKEY_PRIVATE).getRequiredValue();
         String fromEmail = conf.get(MAILJET_FROM).getRequiredValue();
 
-        //https://dev.mailjet.com/guides/?shell#sending-with-attached-files
+        // https://dev.mailjet.com/guides/?shell#sending-with-attached-files
         Map<String, Object> mailPayload = new HashMap<>();
 
         List<Map<String, String>> recipients = new ArrayList<>();
         recipients.add(Collections.singletonMap("Email", to));
-        if(cc != null && !cc.isEmpty()) {
-            recipients.addAll(cc.stream().map(email -> Collections.singletonMap("Email", email)).toList());
+        if (cc != null && !cc.isEmpty()) {
+            recipients.addAll(cc.stream()
+                    .map(email -> Collections.singletonMap("Email", email))
+                    .toList());
         }
 
         mailPayload.put("FromEmail", fromEmail);
@@ -75,24 +90,29 @@ class MailjetMailer extends BaseMailer  {
         html.ifPresent(h -> mailPayload.put("Html-part", h));
         mailPayload.put("Recipients", recipients);
 
-        setReplyToIfPresent(conf, configurable.getOrganizationId(),
-            address -> mailPayload.put("Headers", Collections.singletonMap("Reply-To", address)));
+        setReplyToIfPresent(
+                conf,
+                configurable.getOrganizationId(),
+                address -> mailPayload.put("Headers", Collections.singletonMap("Reply-To", address)));
 
-        if(attachment != null && attachment.length > 0) {
-            mailPayload.put("Attachments", Arrays.stream(attachment).map(MailjetMailer::fromAttachment).collect(Collectors.toList()));
+        if (attachment != null && attachment.length > 0) {
+            mailPayload.put(
+                    "Attachments",
+                    Arrays.stream(attachment).map(MailjetMailer::fromAttachment).collect(Collectors.toList()));
         }
 
         HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.mailjet.com/v3/send"))
-            .header(HttpUtils.AUTHORIZATION, HttpUtils.basicAuth(apiKeyPublic, apiKeyPrivate))
-            .header(HttpUtils.CONTENT_TYPE, HttpUtils.APPLICATION_JSON)
-            .POST(HttpRequest.BodyPublishers.ofString(Json.GSON.toJson(mailPayload)))
-            .build();
+                .header(HttpUtils.AUTHORIZATION, HttpUtils.basicAuth(apiKeyPublic, apiKeyPrivate))
+                .header(HttpUtils.CONTENT_TYPE, HttpUtils.APPLICATION_JSON)
+                .POST(HttpRequest.BodyPublishers.ofString(Json.GSON.toJson(mailPayload)))
+                .build();
 
         try {
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-            if(!HttpUtils.callSuccessful(response)) {
+            if (!HttpUtils.callSuccessful(response)) {
                 log.warn("sending email was not successful:" + response);
-                throw new IllegalStateException("Attempt to send a message failed. Result is: "+response.statusCode());
+                throw new IllegalStateException(
+                        "Attempt to send a message failed. Result is: " + response.statusCode());
             }
         } catch (IOException e) {
             log.warn("error while sending email", e);
@@ -101,8 +121,6 @@ class MailjetMailer extends BaseMailer  {
             log.warn("error while sending email", e);
         }
     }
-
-
 
     private static Map<String, String> fromAttachment(Attachment a) {
         Map<String, String> m = new HashMap<>();

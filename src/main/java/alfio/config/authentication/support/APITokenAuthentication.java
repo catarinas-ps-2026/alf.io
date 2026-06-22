@@ -16,18 +16,17 @@
  */
 package alfio.config.authentication.support;
 
+import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Collection;
 
 public class APITokenAuthentication extends AbstractAuthenticationToken {
 
     private final Object principal;
     private final Object credentials;
 
-
-    public APITokenAuthentication(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+    public APITokenAuthentication(
+            Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.credentials = credentials;
         this.principal = principal;

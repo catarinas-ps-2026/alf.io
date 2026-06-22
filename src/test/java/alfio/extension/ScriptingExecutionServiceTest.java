@@ -16,13 +16,11 @@
  */
 package alfio.extension;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.extension.exception.*;
 import alfio.repository.system.AdminJobQueueRepository;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
@@ -34,9 +32,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class ScriptingExecutionServiceTest {
 
@@ -46,7 +45,8 @@ public class ScriptingExecutionServiceTest {
     @BeforeAll
     public static void init() {
         Supplier<Executor> executorSupplier = () -> Runnable::run;
-        scriptingExecutionService = new ScriptingExecutionService(Mockito.mock(HttpClient.class), Mockito.mock(AdminJobQueueRepository.class), executorSupplier);
+        scriptingExecutionService = new ScriptingExecutionService(
+                Mockito.mock(HttpClient.class), Mockito.mock(AdminJobQueueRepository.class), executorSupplier);
     }
     /**
      *
@@ -56,9 +56,10 @@ public class ScriptingExecutionServiceTest {
      */
     private String getScriptContent(String file) throws IOException {
         String concatenation;
-        try(var input = getClass().getResourceAsStream("/rhino-scripts/" + file)) {
-            List<String> extensionStream = IOUtils.readLines(new InputStreamReader(Objects.requireNonNull(input), StandardCharsets.UTF_8));
-            concatenation = String.join("\n", extensionStream)+"\n;executeScript(extensionEvent)";
+        try (var input = getClass().getResourceAsStream("/rhino-scripts/" + file)) {
+            List<String> extensionStream =
+                    IOUtils.readLines(new InputStreamReader(Objects.requireNonNull(input), StandardCharsets.UTF_8));
+            concatenation = String.join("\n", extensionStream) + "\n;executeScript(extensionEvent)";
         }
         return concatenation;
     }
@@ -66,7 +67,8 @@ public class ScriptingExecutionServiceTest {
     @Test
     void testBaseScriptExecution() throws IOException {
         String concatenation = getScriptContent("base.js");
-        scriptingExecutionService.executeScript("name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
+        scriptingExecutionService.executeScript(
+                "name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
         verify(extensionLogger).logInfo("test");
     }
 
@@ -75,7 +77,8 @@ public class ScriptingExecutionServiceTest {
         assertTimeoutPreemptively(Duration.ofSeconds(16L), () -> {
             try {
                 String concatenation = getScriptContent("timeout.js");
-                scriptingExecutionService.executeScript("name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
+                scriptingExecutionService.executeScript(
+                        "name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
                 fail();
             } catch (Exception e) {
                 assertTrue(e.getCause() instanceof ExecutionTimeoutException);
@@ -87,7 +90,8 @@ public class ScriptingExecutionServiceTest {
     void testOutOfBoundariesReflection() throws Exception {
         try {
             String concatenation = getScriptContent("boundariesReflection.js");
-            scriptingExecutionService.executeScript("name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
+            scriptingExecutionService.executeScript(
+                    "name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
         } catch (OutOfBoundariesException ex) {
             verify(extensionLogger, never()).logInfo("test");
         }
@@ -97,7 +101,8 @@ public class ScriptingExecutionServiceTest {
     void testOutOfBoundariesExit() throws Exception {
         try {
             String concatenation = getScriptContent("boundariesExit.js");
-            scriptingExecutionService.executeScript("name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
+            scriptingExecutionService.executeScript(
+                    "name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
         } catch (InvalidScriptException ex) {
             verify(extensionLogger).logError(startsWith("Syntax error while executing script:"));
         }
@@ -107,8 +112,9 @@ public class ScriptingExecutionServiceTest {
     void extensionThrowsError() throws Exception {
         try {
             String concatenation = getScriptContent("runtimeError.js");
-            scriptingExecutionService.executeScript("name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
-        } catch(ScriptRuntimeException ex) {
+            scriptingExecutionService.executeScript(
+                    "name", concatenation, Map.of("extensionEvent", "test"), Void.class, extensionLogger);
+        } catch (ScriptRuntimeException ex) {
             verify(extensionLogger).logError(startsWith("Error:"));
         }
     }
@@ -117,7 +123,8 @@ public class ScriptingExecutionServiceTest {
     void getMessageFromException() {
         var ex = mock(RuntimeException.class);
         when(ex.getCause()).thenReturn(mock(ConnectException.class));
-        assertEquals(ScriptingExecutionService.CONNECT_EXCEPTION_MESSAGE, scriptingExecutionService.getErrorMessage(ex));
+        assertEquals(
+                ScriptingExecutionService.CONNECT_EXCEPTION_MESSAGE, scriptingExecutionService.getErrorMessage(ex));
         var nested = mock(RuntimeException.class);
         var root = mock(RuntimeException.class);
         when(nested.getCause()).thenReturn(root);

@@ -16,6 +16,9 @@
  */
 package alfio.manager.i18n;
 
+import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
+import static alfio.test.util.IntegrationTestUtil.initEvent;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
@@ -35,28 +38,22 @@ import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
 import alfio.util.Json;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
-import static alfio.test.util.IntegrationTestUtil.initEvent;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class MessageSourceManagerIntegrationTest extends BaseIntegrationTest {
-
 
     @Autowired
     private MessageSourceManager messageSourceManager;
@@ -84,24 +81,42 @@ class MessageSourceManagerIntegrationTest extends BaseIntegrationTest {
     public void ensureConfiguration() {
 
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-        List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                Map.of("en", "desc"), BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = List.of(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                Map.of("en", "desc"),
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
 
         event = eventAndUser.getKey();
     }
-
 
     @Test
     public void testRootOverride() {
 
         assertEquals("VAT", messageSourceManager.getRootMessageSource().getMessage("common.vat", null, Locale.ENGLISH));
 
-        configurationRepository.insert("TRANSLATION_OVERRIDE", json.asJsonString(Map.of("en", Map.of("common.vat", "GST"))), "");
+        configurationRepository.insert(
+                "TRANSLATION_OVERRIDE", json.asJsonString(Map.of("en", Map.of("common.vat", "GST"))), "");
 
         assertEquals("GST", messageSourceManager.getRootMessageSource().getMessage("common.vat", null, Locale.ENGLISH));
     }
@@ -109,18 +124,34 @@ class MessageSourceManagerIntegrationTest extends BaseIntegrationTest {
     @Test
     public void testEventOverride() {
         ensureConfiguration();
-        assertEquals("VAT", messageSourceManager.getMessageSourceFor(event).getMessage("common.vat", null, Locale.ENGLISH));
+        assertEquals(
+                "VAT", messageSourceManager.getMessageSourceFor(event).getMessage("common.vat", null, Locale.ENGLISH));
 
-        configurationRepository.insert("TRANSLATION_OVERRIDE", json.asJsonString(Map.of("en", Map.of("common.vat", "SYSTEM.vat"))), "");
-        assertEquals("SYSTEM.vat", messageSourceManager.getMessageSourceFor(event).getMessage("common.vat", null, Locale.ENGLISH));
+        configurationRepository.insert(
+                "TRANSLATION_OVERRIDE", json.asJsonString(Map.of("en", Map.of("common.vat", "SYSTEM.vat"))), "");
+        assertEquals(
+                "SYSTEM.vat",
+                messageSourceManager.getMessageSourceFor(event).getMessage("common.vat", null, Locale.ENGLISH));
 
-        configurationRepository.insertOrganizationLevel(event.getOrganizationId(), "TRANSLATION_OVERRIDE", json.asJsonString(Map.of("en", Map.of("common.vat", "ORG.vat {0}"))), "");
-        assertEquals("ORG.vat 42", messageSourceManager.getMessageSourceFor(event).getMessage("common.vat", new String[] {"42"}, Locale.ENGLISH));
+        configurationRepository.insertOrganizationLevel(
+                event.getOrganizationId(),
+                "TRANSLATION_OVERRIDE",
+                json.asJsonString(Map.of("en", Map.of("common.vat", "ORG.vat {0}"))),
+                "");
+        assertEquals(
+                "ORG.vat 42",
+                messageSourceManager
+                        .getMessageSourceFor(event)
+                        .getMessage("common.vat", new String[] {"42"}, Locale.ENGLISH));
 
-
-        configurationRepository.insertEventLevel(event.getOrganizationId(), event.getId(),"TRANSLATION_OVERRIDE", json.asJsonString(Map.of("en", Map.of("common.vat", "EVENT.vat"))), "");
-        assertEquals("EVENT.vat", messageSourceManager.getMessageSourceFor(event).getMessage("common.vat", null, Locale.ENGLISH));
+        configurationRepository.insertEventLevel(
+                event.getOrganizationId(),
+                event.getId(),
+                "TRANSLATION_OVERRIDE",
+                json.asJsonString(Map.of("en", Map.of("common.vat", "EVENT.vat"))),
+                "");
+        assertEquals(
+                "EVENT.vat",
+                messageSourceManager.getMessageSourceFor(event).getMessage("common.vat", null, Locale.ENGLISH));
     }
-
-
 }

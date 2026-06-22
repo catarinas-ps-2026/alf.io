@@ -16,6 +16,7 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
 
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
@@ -24,20 +25,16 @@ import alfio.model.FileBlobMetadata;
 import alfio.model.modification.UploadBase64FileModification;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.BaseIntegrationTest;
-import org.apache.commons.lang3.time.DateUtils;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -47,7 +44,7 @@ class FileUploadManagerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     FileUploadManager fileUploadManager;
 
-    private static final byte[] FILE = {1,2,3,4};
+    private static final byte[] FILE = {1, 2, 3, 4};
 
     @Test
     void testInsert() {
@@ -73,7 +70,6 @@ class FileUploadManagerIntegrationTest extends BaseIntegrationTest {
         fileUploadManager.cleanupUnreferencedBlobFiles(DateUtils.addDays(new Date(), 1));
         assertFalse(fileUploadManager.findMetadata(id).isPresent());
     }
-
 
     @Test
     void testInsertImage() {
@@ -113,7 +109,9 @@ class FileUploadManagerIntegrationTest extends BaseIntegrationTest {
 
             assertTrue(metadata.isPresent());
 
-            assertEquals(String.valueOf(FileUploadManager.IMAGE_THUMB_MAX_WIDTH_PX), metadata.get().getAttributes().get("width"));
+            assertEquals(
+                    String.valueOf(FileUploadManager.IMAGE_THUMB_MAX_WIDTH_PX),
+                    metadata.get().getAttributes().get("width"));
             assertEquals("261", metadata.get().getAttributes().get("height"));
 
             fileUploadManager.cleanupUnreferencedBlobFiles(DateUtils.addDays(new Date(), 1));

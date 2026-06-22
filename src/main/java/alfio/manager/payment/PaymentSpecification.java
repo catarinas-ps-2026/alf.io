@@ -21,9 +21,8 @@ import alfio.model.transaction.PaymentContext;
 import alfio.model.transaction.PaymentMethod;
 import alfio.model.transaction.PaymentToken;
 import alfio.util.LocaleUtil;
-import lombok.Getter;
-
 import java.util.Locale;
+import lombok.Getter;
 
 @Getter
 public class PaymentSpecification {
@@ -46,24 +45,25 @@ public class PaymentSpecification {
     private final boolean tcAccepted;
     private final boolean privacyAccepted;
 
-    public PaymentSpecification( String reservationId,
-                                 PaymentToken gatewayToken,
-                                 PaymentMethod selectedPaymentMethod,
-                                 int priceWithVAT,
-                                 PurchaseContext purchaseContext,
-                                 String email,
-                                 CustomerName customerName,
-                                 String billingAddress,
-                                 String customerReference,
-                                 Locale locale,
-                                 boolean invoiceRequested,
-                                 boolean postponeAssignment,
-                                 OrderSummary orderSummary,
-                                 String vatCountryCode,
-                                 String vatNr,
-                                 PriceContainer.VatStatus vatStatus,
-                                 boolean tcAccepted,
-                                 boolean privacyAccepted) {
+    public PaymentSpecification(
+            String reservationId,
+            PaymentToken gatewayToken,
+            PaymentMethod selectedPaymentMethod,
+            int priceWithVAT,
+            PurchaseContext purchaseContext,
+            String email,
+            CustomerName customerName,
+            String billingAddress,
+            String customerReference,
+            Locale locale,
+            boolean invoiceRequested,
+            boolean postponeAssignment,
+            OrderSummary orderSummary,
+            String vatCountryCode,
+            String vatNr,
+            PriceContainer.VatStatus vatStatus,
+            boolean tcAccepted,
+            boolean privacyAccepted) {
         this.reservationId = reservationId;
         this.gatewayToken = gatewayToken;
         this.selectedPaymentMethod = selectedPaymentMethod;
@@ -84,23 +84,64 @@ public class PaymentSpecification {
         this.privacyAccepted = privacyAccepted;
     }
 
-    public PaymentSpecification(TicketReservation reservation,
-                                            TotalPrice totalPrice,
-                                            PurchaseContext purchaseContext,
-                                            PaymentToken gatewayToken,
-                                            PaymentMethod selectedPaymentMethod,
-                                            OrderSummary orderSummary,
-                                            boolean tcAccepted,
-                                            boolean privacyAccepted) {
-        this(reservation.getId(), gatewayToken, selectedPaymentMethod, totalPrice.getPriceWithVAT(),
-                purchaseContext, reservation.getEmail(), new CustomerName(reservation.getFullName(), reservation.getFirstName(), reservation.getLastName(), true),
-            reservation.getBillingAddress(), reservation.getCustomerReference(), LocaleUtil.forLanguageTag(reservation.getUserLanguage()), reservation.isInvoiceRequested(),
-            !reservation.isDirectAssignmentRequested(), orderSummary, reservation.getVatCountryCode(),
-            reservation.getVatNr(), reservation.getVatStatus(), tcAccepted, privacyAccepted);
+    public PaymentSpecification(
+            TicketReservation reservation,
+            TotalPrice totalPrice,
+            PurchaseContext purchaseContext,
+            PaymentToken gatewayToken,
+            PaymentMethod selectedPaymentMethod,
+            OrderSummary orderSummary,
+            boolean tcAccepted,
+            boolean privacyAccepted) {
+        this(
+                reservation.getId(),
+                gatewayToken,
+                selectedPaymentMethod,
+                totalPrice.getPriceWithVAT(),
+                purchaseContext,
+                reservation.getEmail(),
+                new CustomerName(
+                        reservation.getFullName(), reservation.getFirstName(), reservation.getLastName(), true),
+                reservation.getBillingAddress(),
+                reservation.getCustomerReference(),
+                LocaleUtil.forLanguageTag(reservation.getUserLanguage()),
+                reservation.isInvoiceRequested(),
+                !reservation.isDirectAssignmentRequested(),
+                orderSummary,
+                reservation.getVatCountryCode(),
+                reservation.getVatNr(),
+                reservation.getVatStatus(),
+                tcAccepted,
+                privacyAccepted);
     }
 
-    PaymentSpecification(String reservationId, PaymentToken gatewayToken, PaymentMethod selectedPaymentMethod, int priceWithVAT, PurchaseContext purchaseContext, String email, CustomerName customerName ) {
-        this(reservationId, gatewayToken, selectedPaymentMethod, priceWithVAT, purchaseContext, email, customerName, null, null, null, false, false, null, null, null, null, false, false);
+    PaymentSpecification(
+            String reservationId,
+            PaymentToken gatewayToken,
+            PaymentMethod selectedPaymentMethod,
+            int priceWithVAT,
+            PurchaseContext purchaseContext,
+            String email,
+            CustomerName customerName) {
+        this(
+                reservationId,
+                gatewayToken,
+                selectedPaymentMethod,
+                priceWithVAT,
+                purchaseContext,
+                email,
+                customerName,
+                null,
+                null,
+                null,
+                false,
+                false,
+                null,
+                null,
+                null,
+                null,
+                false,
+                false);
     }
 
     public String getCurrencyCode() {
@@ -110,5 +151,4 @@ public class PaymentSpecification {
     public PaymentContext getPaymentContext() {
         return new PaymentContext(purchaseContext);
     }
-
 }

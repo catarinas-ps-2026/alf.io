@@ -16,18 +16,16 @@
  */
 package alfio.model.transaction;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PaymentMethodDeserializer extends JsonDeserializer<PaymentMethod> {
     private static final Logger log = LoggerFactory.getLogger(PaymentMethodDeserializer.class);
@@ -41,31 +39,31 @@ public class PaymentMethodDeserializer extends JsonDeserializer<PaymentMethod> {
             return null;
         }
 
-        if(node.isTextual()) {
+        if (node.isTextual()) {
             String name = node.asText();
-            for(StaticPaymentMethods paymentMethod : StaticPaymentMethods.values()) {
-                if(paymentMethod.name().equals(name)) {
+            for (StaticPaymentMethods paymentMethod : StaticPaymentMethods.values()) {
+                if (paymentMethod.name().equals(name)) {
                     return paymentMethod;
                 }
             }
         }
 
-        if(node.isObject()) {
-            String paymentMethodId = node.get("paymentMethodId").isNull() ? null
-                                    : node.get("paymentMethodId").asText();
+        if (node.isObject()) {
+            String paymentMethodId = node.get("paymentMethodId").isNull()
+                    ? null
+                    : node.get("paymentMethodId").asText();
 
             JsonNode localizationsNode = node.get("localizations");
             ObjectMapper mapper = (ObjectMapper) parser.getCodec();
 
             var localizations = mapper.readValue(
-                localizationsNode.toString(),
-                new TypeReference<Map<String, UserDefinedOfflinePaymentMethod.Localization>>() {}
-            );
+                    localizationsNode.toString(),
+                    new TypeReference<Map<String, UserDefinedOfflinePaymentMethod.Localization>>() {});
 
             var paymentMethod = new UserDefinedOfflinePaymentMethod(paymentMethodId, localizations);
 
             JsonNode deletedNode = node.get("deleted");
-            if(deletedNode != null && deletedNode.asBoolean()) {
+            if (deletedNode != null && deletedNode.asBoolean()) {
                 paymentMethod.setDeleted();
             }
 

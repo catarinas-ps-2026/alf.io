@@ -19,9 +19,6 @@ package alfio.controller.api.v2.model;
 import alfio.model.PurchaseContext;
 import alfio.model.ReservationWithPurchaseContext;
 import alfio.util.LocaleUtil;
-import lombok.Getter;
-import org.apache.commons.lang3.Validate;
-
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -29,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import org.apache.commons.lang3.Validate;
 
 @Getter
 public class PurchaseContextWithReservations {
@@ -40,8 +39,23 @@ public class PurchaseContextWithReservations {
     private final boolean sameDay;
     private final List<ReservationHeader> reservations;
 
-    @ConstructorProperties({"title", "publicIdentifier", "type", "formattedStartDate", "formattedEndDate", "sameDay", "reservations"})
-    public PurchaseContextWithReservations(Map<String, String> title, String publicIdentifier, PurchaseContext.PurchaseContextType type, Map<String, String> formattedStartDate, Map<String, String> formattedEndDate, boolean sameDay, List<ReservationHeader> reservations) {
+    @ConstructorProperties({
+        "title",
+        "publicIdentifier",
+        "type",
+        "formattedStartDate",
+        "formattedEndDate",
+        "sameDay",
+        "reservations"
+    })
+    public PurchaseContextWithReservations(
+            Map<String, String> title,
+            String publicIdentifier,
+            PurchaseContext.PurchaseContextType type,
+            Map<String, String> formattedStartDate,
+            Map<String, String> formattedEndDate,
+            boolean sameDay,
+            List<ReservationHeader> reservations) {
         this.title = title;
         this.publicIdentifier = publicIdentifier;
         this.type = type;
@@ -51,24 +65,25 @@ public class PurchaseContextWithReservations {
         this.reservations = reservations;
     }
 
-    public static PurchaseContextWithReservations from(List<ReservationWithPurchaseContext> reservations,
-                                                       Map<Locale, String> datePatternsMap) {
+    public static PurchaseContextWithReservations from(
+            List<ReservationWithPurchaseContext> reservations, Map<Locale, String> datePatternsMap) {
         Validate.isTrue(!reservations.isEmpty(), "Cannot build PurchaseContextWithReservation out of an empty list");
         var first = reservations.get(0);
-        return new PurchaseContextWithReservations(first.getPurchaseContextTitle(),
-            first.getPurchaseContextPublicIdentifier(),
-            first.getPurchaseContextType(),
-            LocaleUtil.formatDate(first.getPurchaseContextStartDate(), datePatternsMap),
-            LocaleUtil.formatDate(first.getPurchaseContextEndDate(), datePatternsMap),
-            isSameDay(first.getPurchaseContextStartDate(), first.getPurchaseContextEndDate()),
-            reservations.stream().map(r -> ReservationHeader.from(r, datePatternsMap)).collect(Collectors.toList())
-        );
+        return new PurchaseContextWithReservations(
+                first.getPurchaseContextTitle(),
+                first.getPurchaseContextPublicIdentifier(),
+                first.getPurchaseContextType(),
+                LocaleUtil.formatDate(first.getPurchaseContextStartDate(), datePatternsMap),
+                LocaleUtil.formatDate(first.getPurchaseContextEndDate(), datePatternsMap),
+                isSameDay(first.getPurchaseContextStartDate(), first.getPurchaseContextEndDate()),
+                reservations.stream()
+                        .map(r -> ReservationHeader.from(r, datePatternsMap))
+                        .collect(Collectors.toList()));
     }
 
     private static boolean isSameDay(ZonedDateTime startDate, ZonedDateTime endDate) {
         return startDate != null
-            && endDate != null
-            && startDate.truncatedTo(ChronoUnit.DAYS).equals(endDate.truncatedTo(ChronoUnit.DAYS));
+                && endDate != null
+                && startDate.truncatedTo(ChronoUnit.DAYS).equals(endDate.truncatedTo(ChronoUnit.DAYS));
     }
-
 }

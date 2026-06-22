@@ -18,10 +18,9 @@ package alfio.model;
 
 import alfio.model.support.JSONData;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.util.Objects;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class TicketReservationAdditionalInfo {
@@ -39,18 +38,20 @@ public class TicketReservationAdditionalInfo {
     private final Boolean addCompanyBillingDetails;
     private final TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo;
 
-    public TicketReservationAdditionalInfo(@Column("billing_address_company") String billingAddressCompany,
-                                           @Column("billing_address_line1") String billingAddressLine1,
-                                           @Column("billing_address_line2") String billingAddressLine2,
-                                           @Column("billing_address_zip") String billingAddressZip,
-                                           @Column("billing_address_city") String billingAddressCity,
-                                           @Column("billing_address_state") String billingAddressState,
-                                           @Column("validated_for_overview") Boolean validated,
-                                           @Column("skip_vat_nr") Boolean skipVatNr,
-                                           @Column("add_company_billing_details") Boolean addCompanyBillingDetails,
-                                           @Column("invoicing_additional_information") @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInformation,
-                                           @Column("vat_country") String vatCountry,
-                                           @Column("vat_nr") String vatNr) {
+    public TicketReservationAdditionalInfo(
+            @Column("billing_address_company") String billingAddressCompany,
+            @Column("billing_address_line1") String billingAddressLine1,
+            @Column("billing_address_line2") String billingAddressLine2,
+            @Column("billing_address_zip") String billingAddressZip,
+            @Column("billing_address_city") String billingAddressCity,
+            @Column("billing_address_state") String billingAddressState,
+            @Column("validated_for_overview") Boolean validated,
+            @Column("skip_vat_nr") Boolean skipVatNr,
+            @Column("add_company_billing_details") Boolean addCompanyBillingDetails,
+            @Column("invoicing_additional_information") @JSONData
+                    TicketReservationInvoicingAdditionalInfo invoicingAdditionalInformation,
+            @Column("vat_country") String vatCountry,
+            @Column("vat_nr") String vatNr) {
         this.billingAddressCompany = billingAddressCompany;
         this.billingAddressLine1 = billingAddressLine1;
         this.billingAddressLine2 = billingAddressLine2;
@@ -60,11 +61,11 @@ public class TicketReservationAdditionalInfo {
         this.addCompanyBillingDetails = addCompanyBillingDetails;
         this.validated = validated;
         this.skipVatNr = skipVatNr;
-        this.invoicingAdditionalInfo = Objects.requireNonNullElseGet(invoicingAdditionalInformation, () -> new TicketReservationInvoicingAdditionalInfo(null));
+        this.invoicingAdditionalInfo = Objects.requireNonNullElseGet(
+                invoicingAdditionalInformation, () -> new TicketReservationInvoicingAdditionalInfo(null));
         this.billingAddressCountry = vatCountry;
         this.vatNr = vatNr;
     }
-
 
     public boolean hasBeenValidated() {
         return Optional.ofNullable(validated).orElse(false);
@@ -75,14 +76,15 @@ public class TicketReservationAdditionalInfo {
     }
 
     public BillingDetails getBillingDetails() {
-        return new BillingDetails(billingAddressCompany,
-            billingAddressLine1,
-            billingAddressLine2,
-            billingAddressZip,
-            billingAddressCity,
-            billingAddressState,
-            billingAddressCountry,
-            vatNr,
-            invoicingAdditionalInfo);
+        return new BillingDetails(
+                billingAddressCompany,
+                billingAddressLine1,
+                billingAddressLine2,
+                billingAddressZip,
+                billingAddressCity,
+                billingAddressState,
+                billingAddressCountry,
+                vatNr,
+                invoicingAdditionalInfo);
     }
 }

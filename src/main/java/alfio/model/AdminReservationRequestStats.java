@@ -29,13 +29,13 @@ public class AdminReservationRequestStats {
     private final int countPending;
     private final int countError;
 
-
-    public AdminReservationRequestStats(@Column("request_id") String requestId,
-                                        @Column("user_id") long userId,
-                                        @Column("event_id") long eventId,
-                                        @Column("count_success") int countSuccess,
-                                        @Column("count_pending") int countPending,
-                                        @Column("count_error") int countError) {
+    public AdminReservationRequestStats(
+            @Column("request_id") String requestId,
+            @Column("user_id") long userId,
+            @Column("event_id") long eventId,
+            @Column("count_success") int countSuccess,
+            @Column("count_pending") int countPending,
+            @Column("count_error") int countError) {
         this.requestId = requestId;
         this.userId = userId;
         this.eventId = eventId;

@@ -16,21 +16,20 @@
  */
 package alfio.controller.support;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.manager.FileUploadManager;
 import alfio.model.Event;
 import alfio.model.FileBlobMetadata;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TemplateProcessorTest {
 
@@ -39,16 +38,16 @@ public class TemplateProcessorTest {
     @Test
     public void resultingImageMustBeUnder300x150() {
         Stream.generate(() -> Pair.of(String.valueOf(random.nextInt(10_000)), String.valueOf(random.nextInt(100_000))))
-            .limit(1000)
-            .forEach(this::assertDimensionsUnder300x150);
+                .limit(1000)
+                .forEach(this::assertDimensionsUnder300x150);
     }
-
 
     @Test
     public void testCoverityFindingDivisionByZero() {
         assertDimensionsUnder300x150(Pair.of("0", "1500"));
         assertDimensionsUnder300x150(Pair.of("1500", "0"));
     }
+
     private void assertDimensionsUnder300x150(Pair<String, String> p) {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(FileBlobMetadata.ATTR_IMG_WIDTH, p.getLeft());

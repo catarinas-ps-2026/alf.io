@@ -16,6 +16,9 @@
  */
 package alfio.config.authentication.support;
 
+import static alfio.manager.payment.MollieConnectManager.MOLLIE_CONNECT_REDIRECT_PATH;
+import static alfio.manager.payment.StripeConnectManager.STRIPE_CONNECT_REDIRECT_PATH;
+
 import alfio.manager.payment.MollieConnectManager;
 import alfio.manager.payment.OAuthPaymentProviderConnector;
 import alfio.manager.payment.StripeConnectManager;
@@ -29,6 +32,9 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +47,6 @@ import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.support.SessionFlashMapManager;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
-
-import static alfio.manager.payment.MollieConnectManager.MOLLIE_CONNECT_REDIRECT_PATH;
-import static alfio.manager.payment.StripeConnectManager.STRIPE_CONNECT_REDIRECT_PATH;
 
 public class PaymentProviderConnectFilter extends GenericFilterBean {
 
@@ -65,24 +64,25 @@ public class PaymentProviderConnectFilter extends GenericFilterBean {
     private final StripeConnectManager stripeConnectManager;
     private final MollieConnectManager mollieConnectManager;
 
-    public PaymentProviderConnectFilter(TemplateManager templateManager,
-                                        UserManager userManager,
-                                        StripeConnectManager stripeConnectManager,
-                                        MollieConnectManager mollieConnectManager) {
+    public PaymentProviderConnectFilter(
+            TemplateManager templateManager,
+            UserManager userManager,
+            StripeConnectManager stripeConnectManager,
+            MollieConnectManager mollieConnectManager) {
         this.templateManager = templateManager;
         this.userManager = userManager;
         this.stripeConnectManager = stripeConnectManager;
         this.mollieConnectManager = mollieConnectManager;
         this.requestMatcher = new AntPathRequestMatcher("/admin/configuration/payment/{provider}/connect/{orgId}");
         this.authorizeRequestMatcher = RequestMatchers.anyOf(
-            new AntPathRequestMatcher(STRIPE_CONNECT_REDIRECT_PATH),
-            new AntPathRequestMatcher(MOLLIE_CONNECT_REDIRECT_PATH)
-        );
+                new AntPathRequestMatcher(STRIPE_CONNECT_REDIRECT_PATH),
+                new AntPathRequestMatcher(MOLLIE_CONNECT_REDIRECT_PATH));
         this.flashMapManager = new SessionFlashMapManager();
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+            throws IOException, ServletException {
         var request = (HttpServletRequest) req;
         var response = (HttpServletResponse) res;
         var matcher = requestMatcher.matcher(request);
@@ -92,15 +92,14 @@ public class PaymentProviderConnectFilter extends GenericFilterBean {
             var stateParams = getStateParams(request);
             var session = request.getSession(false);
             if (stateParams.isValid() && session == null) {
-                var redirectPath = request.getRequestURI() + "?" + request.getQueryString()+"&p=true";
+                var redirectPath = request.getRequestURI() + "?" + request.getQueryString() + "&p=true";
                 log.trace("Session is null. Request URI is: {}", redirectPath);
                 response.setContentType("text/html");
                 response.setStatus(HttpServletResponse.SC_OK);
                 templateManager.renderHtml(
-                    new ClassPathResource("/alfio/templates/openid-redirect.ms"),
-                    Map.of("redirectPath", redirectPath),
-                    response.getWriter()
-                );
+                        new ClassPathResource("/alfio/templates/openid-redirect.ms"),
+                        Map.of("redirectPath", redirectPath),
+                        response.getWriter());
                 response.flushBuffer();
                 return;
             } else if (session == null) {
@@ -121,16 +120,19 @@ public class PaymentProviderConnectFilter extends GenericFilterBean {
         return new StateParams(state, code, errorCode, errorDescription, processed);
     }
 
-
-    private void handleConnectResponse(HttpServletRequest request,
-                                       HttpServletResponse response,
-                                       HttpSession session,
-                                       StateParams stateParams) throws IOException {
+    private void handleConnectResponse(
+            HttpServletRequest request, HttpServletResponse response, HttpSession session, StateParams stateParams)
+            throws IOException {
         try {
             boolean isMollie = request.getRequestURI().equals(MOLLIE_CONNECT_REDIRECT_PATH);
             var provider = isMollie ? MOLLIE : "stripe";
             var orgId = (Integer) session.getAttribute(provider + CONNECT_ORG);
-            if (orgId == null || !userManager.isOwnerOfOrganization(SecurityContextHolder.getContext().getAuthentication().getName(), orgId)) {
+            if (orgId == null
+                    || !userManager.isOwnerOfOrganization(
+                            SecurityContextHolder.getContext()
+                                    .getAuthentication()
+                                    .getName(),
+                            orgId)) {
                 response.sendRedirect(ADMIN);
             } else {
                 var flashMap = new FlashMap();
@@ -138,12 +140,13 @@ public class PaymentProviderConnectFilter extends GenericFilterBean {
                 String persistedState = (String) session.getAttribute(provider + CONNECT_STATE_PREFIX + orgId);
                 session.removeAttribute(provider + CONNECT_STATE_PREFIX + orgId);
                 boolean stateVerified = Objects.equals(persistedState, stateParams.state);
-                if(stateVerified && stateParams.code != null) {
-                    AccessTokenResponseDetails connectResult = getConnector(provider).storeConnectedAccountId(stateParams.code, orgId);
-                    if(connectResult.isSuccess()) {
-                        response.sendRedirect("/admin/#/configuration/organization/"+orgId);
+                if (stateVerified && stateParams.code != null) {
+                    AccessTokenResponseDetails connectResult =
+                            getConnector(provider).storeConnectedAccountId(stateParams.code, orgId);
+                    if (connectResult.isSuccess()) {
+                        response.sendRedirect("/admin/#/configuration/organization/" + orgId);
                     }
-                } else if(stateVerified && StringUtils.isNotEmpty(stateParams.errorCode)) {
+                } else if (stateVerified && StringUtils.isNotEmpty(stateParams.errorCode)) {
                     log.warn("error from {}. {}={}", provider, stateParams.errorCode, stateParams.errorDescription);
                     flashMap.put(ERROR_MESSAGE, Objects.toString(stateParams.errorDescription, stateParams.errorCode));
                     flashMapManager.saveOutputFlashMap(flashMap, request, response);
@@ -163,16 +166,19 @@ public class PaymentProviderConnectFilter extends GenericFilterBean {
         }
     }
 
-    private void initializeConnect(RequestMatcher.MatchResult matcher, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void initializeConnect(
+            RequestMatcher.MatchResult matcher, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         var variables = matcher.getVariables();
         int orgId = Integer.parseInt(variables.get("orgId"));
         String provider = variables.get("provider");
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (("stripe".equals(provider) || MOLLIE.equals(provider)) && userManager.isOwnerOfOrganization(username, orgId)) {
+        if (("stripe".equals(provider) || MOLLIE.equals(provider))
+                && userManager.isOwnerOfOrganization(username, orgId)) {
             var session = Objects.requireNonNull(request.getSession(false));
             var connectURL = getConnector(provider).getConnectURL(orgId);
-            session.setAttribute(provider+CONNECT_STATE_PREFIX +orgId, connectURL.getState());
-            session.setAttribute(provider+CONNECT_ORG, orgId);
+            session.setAttribute(provider + CONNECT_STATE_PREFIX + orgId, connectURL.getState());
+            session.setAttribute(provider + CONNECT_ORG, orgId);
             response.sendRedirect(connectURL.getAuthorizationUrl());
         } else {
             response.sendRedirect(ADMIN);
@@ -183,11 +189,7 @@ public class PaymentProviderConnectFilter extends GenericFilterBean {
         return MOLLIE.equals(providerAsString) ? mollieConnectManager : stripeConnectManager;
     }
 
-    record StateParams(String state,
-                       String code,
-                       String errorCode,
-                       String errorDescription,
-                       String processed) {
+    record StateParams(String state, String code, String errorCode, String errorDescription, String processed) {
         boolean isValid() {
             return processed == null && ((state != null && code != null) || errorCode != null);
         }

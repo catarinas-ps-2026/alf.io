@@ -19,5 +19,4 @@ package alfio.model.transaction;
 /**
  * Marker interface for Payment Capabilities
  */
-public interface Capability {
-}
+public interface Capability {}

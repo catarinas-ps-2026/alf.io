@@ -20,7 +20,6 @@ import alfio.model.transaction.TransactionWebhookPayload;
 import alfio.model.transaction.provider.RevolutTransactionDescriptor;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.time.ZonedDateTime;
 
 public class RevolutWebhookPayload implements TransactionWebhookPayload {
@@ -31,14 +30,14 @@ public class RevolutWebhookPayload implements TransactionWebhookPayload {
     private String reservationId;
 
     @JsonCreator
-    public RevolutWebhookPayload(@JsonProperty("event") String type,
-                                 @JsonProperty("timestamp") ZonedDateTime timestamp,
-                                 @JsonProperty("data") RevolutTransactionDescriptor payload) {
+    public RevolutWebhookPayload(
+            @JsonProperty("event") String type,
+            @JsonProperty("timestamp") ZonedDateTime timestamp,
+            @JsonProperty("data") RevolutTransactionDescriptor payload) {
         this.type = type;
         this.timestamp = timestamp;
         this.payload = payload;
     }
-
 
     @Override
     public RevolutTransactionDescriptor getPayload() {

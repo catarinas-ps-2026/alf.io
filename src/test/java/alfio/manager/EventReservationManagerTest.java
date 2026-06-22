@@ -16,12 +16,18 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.model.AdditionalServiceItem;
 import alfio.model.Event;
 import alfio.model.PurchaseContext;
 import alfio.model.ReservationIdAndEventId;
 import alfio.model.system.command.CleanupReservations;
 import alfio.repository.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -29,33 +35,35 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
 public class EventReservationManagerTest {
 
     @Mock
     private SpecialPriceRepository specialPriceRepository;
+
     @Mock
     private GroupManager groupManager;
+
     @Mock
     private TicketRepository ticketRepository;
+
     @Mock
     private AdditionalServiceItemRepository additionalServiceItemRepository;
+
     @Mock
     private AdditionalServiceManager additionalServiceManager;
+
     @Mock
     private TicketReservationRepository ticketReservationRepository;
+
     @Mock
     private EventRepository eventRepository;
+
     @Mock
     private ExtensionManager extensionManager;
+
     @Mock
     private BillingDocumentRepository billingDocumentRepository;
+
     @Mock
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -74,8 +82,7 @@ public class EventReservationManagerTest {
                 eventRepository,
                 extensionManager,
                 billingDocumentRepository,
-                jdbcTemplate
-        );
+                jdbcTemplate);
     }
 
     @Test
@@ -88,7 +95,12 @@ public class EventReservationManagerTest {
 
         manager.cleanupReservations(cleanup);
 
-        verifyNoInteractions(specialPriceRepository, ticketRepository, groupManager, additionalServiceItemRepository, additionalServiceManager);
+        verifyNoInteractions(
+                specialPriceRepository,
+                ticketRepository,
+                groupManager,
+                additionalServiceItemRepository,
+                additionalServiceManager);
     }
 
     @Test
@@ -101,7 +113,7 @@ public class EventReservationManagerTest {
         CleanupReservations cleanup = new CleanupReservations(event, reservationIds, true, false, false);
 
         when(ticketRepository.findTicketIdsInReservation("res1")).thenReturn(Arrays.asList(1, 2));
-        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[]{1, 1});
+        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[] {1, 1});
 
         manager.cleanupReservations(cleanup);
 
@@ -110,7 +122,8 @@ public class EventReservationManagerTest {
         verify(groupManager).deleteWhitelistedTicketsForReservation("res1");
         verify(additionalServiceItemRepository).deleteAdditionalServiceItemsByReservationId(100, "res1");
         verify(additionalServiceItemRepository).revertAdditionalServiceItemsByReservationId(100, "res1");
-        verify(additionalServiceManager).updateStatusForReservationId(100, "res1", AdditionalServiceItem.AdditionalServiceItemStatus.EXPIRED);
+        verify(additionalServiceManager)
+                .updateStatusForReservationId(100, "res1", AdditionalServiceItem.AdditionalServiceItemStatus.EXPIRED);
         verify(extensionManager).handleReservationsExpired(event, reservationIds);
     }
 
@@ -122,14 +135,15 @@ public class EventReservationManagerTest {
         ReservationIdAndEventId resEvent = mock(ReservationIdAndEventId.class);
         when(resEvent.getEventId()).thenReturn(100);
         when(resEvent.getId()).thenReturn("res1");
-        when(ticketReservationRepository.getReservationIdAndEventId(reservationIds)).thenReturn(Collections.singletonList(resEvent));
+        when(ticketReservationRepository.getReservationIdAndEventId(reservationIds))
+                .thenReturn(Collections.singletonList(resEvent));
 
         Event event = mock(Event.class);
         when(event.getId()).thenReturn(100);
         when(eventRepository.findById(100)).thenReturn(event);
 
         when(ticketRepository.findTicketIdsInReservation("res1")).thenReturn(Arrays.asList(1));
-        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[] {1});
 
         manager.cleanupReservations(cleanup);
 
@@ -137,7 +151,8 @@ public class EventReservationManagerTest {
         verify(ticketRepository).resetCategoryIdForUnboundedCategories(reservationIds);
         verify(groupManager).deleteWhitelistedTicketsForReservation("res1");
         verify(additionalServiceItemRepository).deleteAdditionalServiceItemsByReservationId(100, "res1");
-        verify(additionalServiceManager).updateStatusForReservationId(100, "res1", AdditionalServiceItem.AdditionalServiceItemStatus.EXPIRED);
+        verify(additionalServiceManager)
+                .updateStatusForReservationId(100, "res1", AdditionalServiceItem.AdditionalServiceItemStatus.EXPIRED);
         verify(extensionManager).handleReservationsExpired(event, reservationIds);
         verify(billingDocumentRepository).deleteForReservations(reservationIds, 100);
     }
@@ -152,8 +167,10 @@ public class EventReservationManagerTest {
         CleanupReservations cleanup = new CleanupReservations(event, reservationIds, false, false, false);
 
         when(ticketRepository.findTicketIdsInReservation("res1")).thenReturn(Collections.emptyList());
-        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[]{});
-        when(additionalServiceManager.updateStatusForReservationId(100, "res1", AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED)).thenReturn(0);
+        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[] {});
+        when(additionalServiceManager.updateStatusForReservationId(
+                        100, "res1", AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED))
+                .thenReturn(0);
 
         assertThrows(IllegalArgumentException.class, () -> manager.cleanupReservations(cleanup));
     }

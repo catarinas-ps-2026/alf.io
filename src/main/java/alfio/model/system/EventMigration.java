@@ -17,15 +17,16 @@
 package alfio.model.system;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class EventMigration {
 
     public enum Status {
-        WAITING, PENDING, COMPLETE
+        WAITING,
+        PENDING,
+        COMPLETE
     }
 
     private final int id;
@@ -34,11 +35,12 @@ public class EventMigration {
     private final ZonedDateTime buildTimestamp;
     private final Status status;
 
-    public EventMigration(@Column("id") int id,
-                          @Column("event_id") int eventId,
-                          @Column("current_version") String currentVersion,
-                          @Column("build_ts") ZonedDateTime buildTimestamp,
-                          @Column("status") String status) {
+    public EventMigration(
+            @Column("id") int id,
+            @Column("event_id") int eventId,
+            @Column("current_version") String currentVersion,
+            @Column("build_ts") ZonedDateTime buildTimestamp,
+            @Column("status") String status) {
         this.id = id;
         this.eventId = eventId;
         this.currentVersion = currentVersion;

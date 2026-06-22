@@ -26,7 +26,11 @@ public class FormattedEventDates {
     public final Map<String, String> endTime;
 
     @ConstructorProperties({"beginDate", "beginTime", "endDate", "endTime"})
-    public FormattedEventDates(Map<String, String> beginDate, Map<String, String> beginTime, Map<String, String> endDate, Map<String, String> endTime) {
+    public FormattedEventDates(
+            Map<String, String> beginDate,
+            Map<String, String> beginTime,
+            Map<String, String> endDate,
+            Map<String, String> endTime) {
         this.beginDate = beginDate;
         this.beginTime = beginTime;
         this.endDate = endDate;

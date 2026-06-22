@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { OfflinePaymentProxyComponent } from './offline-payment-proxy.component';
@@ -93,12 +97,16 @@ describe('OfflinePaymentProxyComponent', () => {
     describe('ngOnChanges', () => {
         it('should emit paymentProvider when matchProxyAndMethod and method changes', () => {
             const emittedProviders: any[] = [];
-            component.paymentProvider.subscribe((p) => emittedProviders.push(p));
+            component.paymentProvider.subscribe((p) =>
+                emittedProviders.push(p),
+            );
 
             component.method = 'BANK_TRANSFER';
             component.proxy = 'OFFLINE';
 
-            component.ngOnChanges({ method: { currentValue: 'BANK_TRANSFER' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'BANK_TRANSFER' },
+            } as any);
 
             expect(emittedProviders.length).toBe(1);
             expect(emittedProviders[0]).toBeDefined();
@@ -112,7 +120,9 @@ describe('OfflinePaymentProxyComponent', () => {
             component.method = 'CREDIT_CARD';
             component.proxy = 'STRIPE';
 
-            component.ngOnChanges({ method: { currentValue: 'CREDIT_CARD' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'CREDIT_CARD' },
+            } as any);
 
             expect(emitCount).toBe(0);
         });
@@ -128,7 +138,9 @@ describe('OfflinePaymentProxyComponent', () => {
             component.handleRecaptchaResponse('recaptcha-token-123');
 
             expect(mockFormGroup.get).toHaveBeenCalledWith('captcha');
-            expect(captchaControl.setValue).toHaveBeenCalledWith('recaptcha-token-123');
+            expect(captchaControl.setValue).toHaveBeenCalledWith(
+                'recaptcha-token-123',
+            );
         });
 
         it('should handle empty recaptcha value', () => {

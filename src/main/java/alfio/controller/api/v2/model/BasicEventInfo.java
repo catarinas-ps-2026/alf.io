@@ -17,11 +17,10 @@
 package alfio.controller.api.v2.model;
 
 import alfio.model.Event.EventFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
@@ -37,7 +36,7 @@ public class BasicEventInfo implements DateValidity {
     private final DatesWithTimeZoneOffset datesWithOffset;
     private final boolean sameDay;
     private final Map<String, String> formattedBeginDate; // day, month, year
-    private final Map<String, String> formattedBeginTime; //the hour/minute component
+    private final Map<String, String> formattedBeginTime; // the hour/minute component
     private final Map<String, String> formattedEndDate;
     private final Map<String, String> formattedEndTime;
     private final List<Language> contentLanguages;

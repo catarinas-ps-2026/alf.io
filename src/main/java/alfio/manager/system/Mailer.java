@@ -18,38 +18,44 @@ package alfio.manager.system;
 
 import alfio.config.Initializer;
 import alfio.model.Configurable;
+import java.util.*;
 import lombok.Data;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
-
-import java.util.*;
 
 public interface Mailer {
 
     String SKIP_PASSBOOK = "skipPassbook";
 
-    void send(Configurable configurable, String fromName, String to, List<String> cc, String subject, String text, Optional<String> html, Attachment... attachment);
+    void send(
+            Configurable configurable,
+            String fromName,
+            String to,
+            List<String> cc,
+            String subject,
+            String text,
+            Optional<String> html,
+            Attachment... attachment);
 
     @Data
     class Attachment {
         private final String filename;
-        //can be null if model and identifier are specified
+        // can be null if model and identifier are specified
         private final byte[] source;
         private final String contentType;
 
-        //for dynamically generated attachment
+        // for dynamically generated attachment
         private final Map<String, String> model;
         private final AttachmentIdentifier identifier;
     }
 
     default String decorateSubjectIfDemo(String subject, Environment environment) {
-        if(environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {
+        if (environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {
             return "THIS IS A TEST: " + subject;
         } else {
             return subject;
         }
     }
-
 
     enum AttachmentIdentifier {
         TICKET_PDF {
@@ -57,7 +63,8 @@ public interface Mailer {
             public List<AttachmentIdentifier> reinterpretAs() {
                 return Arrays.asList(PASSBOOK, CALENDAR_ICS);
             }
-        }, CALENDAR_ICS {
+        },
+        CALENDAR_ICS {
             @Override
             public String fileName(String fileName) {
                 return "calendar.ics";
@@ -67,7 +74,11 @@ public interface Mailer {
             public String contentType(String contentType) {
                 return "text/calendar";
             }
-        }, INVOICE_PDF, RECEIPT_PDF, CREDIT_NOTE_PDF, PASSBOOK {
+        },
+        INVOICE_PDF,
+        RECEIPT_PDF,
+        CREDIT_NOTE_PDF,
+        PASSBOOK {
             @Override
             public String fileName(String fileName) {
                 return "Passbook.pkpass";
@@ -77,7 +88,8 @@ public interface Mailer {
             public String contentType(String contentType) {
                 return "application/vnd.apple.pkpass";
             }
-        }, SUBSCRIPTION_PDF;
+        },
+        SUBSCRIPTION_PDF;
 
         public List<AttachmentIdentifier> reinterpretAs() {
             return Collections.emptyList();

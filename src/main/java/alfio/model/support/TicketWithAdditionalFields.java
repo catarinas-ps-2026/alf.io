@@ -18,26 +18,25 @@ package alfio.model.support;
 
 import alfio.model.FieldConfigurationDescriptionAndValue;
 import alfio.model.Ticket;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class TicketWithAdditionalFields {
     private final Ticket ticket;
     private final List<FieldConfigurationDescriptionAndValue> additionalFieldsDescriptionsAndValues;
 
-    public TicketWithAdditionalFields(Ticket ticket,
-                                      List<FieldConfigurationDescriptionAndValue> additionalFieldsDescriptionsAndValues) {
+    public TicketWithAdditionalFields(
+            Ticket ticket, List<FieldConfigurationDescriptionAndValue> additionalFieldsDescriptionsAndValues) {
         this.ticket = ticket;
         this.additionalFieldsDescriptionsAndValues = additionalFieldsDescriptionsAndValues;
     }
 
     public Map<String, String> getAdditionalFields() {
         return additionalFieldsDescriptionsAndValues.stream()
-            .map(af -> Pair.of(af.getLabelDescription(), af.getValueDescription()))
-            .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .map(af -> Pair.of(af.getLabelDescription(), af.getValueDescription()))
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
     public String getUuid() {

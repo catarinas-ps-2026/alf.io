@@ -24,13 +24,15 @@ class JsonTest {
 
     @Test
     void checkDeserializationForSingleConstructor() {
-        var res = Json.fromJson("""
+        var res = Json.fromJson(
+                """
         {
             "payerId": "bla",
             "paymentId": "blabla",
             "hmac": "blablabla"
         }
-        """, PayPalToken.class);
+        """,
+                PayPalToken.class);
         Assertions.assertEquals("bla", res.getPayerId());
         Assertions.assertEquals("blabla", res.getPaymentId());
         Assertions.assertEquals("blablabla", res.getHmac());

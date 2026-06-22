@@ -16,6 +16,8 @@
  */
 package alfio.manager.payment;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.ExtensionManager;
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
@@ -30,17 +32,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.builder.api.DefaultApi20;
 import com.github.scribejava.core.oauth.OAuth20Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import static alfio.model.system.ConfigurationKeys.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 @Component
 public class StripeConnectManager implements OAuthPaymentProviderConnector {
@@ -51,35 +50,48 @@ public class StripeConnectManager implements OAuthPaymentProviderConnector {
     private final ConfigurationManager configurationManager;
     private final BaseStripeManager baseStripeManager;
 
-    public StripeConnectManager(ExtensionManager extensionManager,
-                                ConfigurationManager configurationManager,
-                                ConfigurationRepository configurationRepository,
-                                TicketRepository ticketRepository,
-                                Environment environment) {
+    public StripeConnectManager(
+            ExtensionManager extensionManager,
+            ConfigurationManager configurationManager,
+            ConfigurationRepository configurationRepository,
+            TicketRepository ticketRepository,
+            Environment environment) {
         this.extensionManager = extensionManager;
         this.configurationManager = configurationManager;
-        this.baseStripeManager = new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, environment);
+        this.baseStripeManager =
+                new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, environment);
     }
 
     @Override
     public AuthorizationRequestDetails getConnectURL(int organizationId) {
-        var options = configurationManager.getFor(Set.of(STRIPE_CONNECT_CLIENT_ID, STRIPE_CONNECT_CALLBACK, BASE_URL), ConfigurationLevel.organization(organizationId));
+        var options = configurationManager.getFor(
+                Set.of(STRIPE_CONNECT_CLIENT_ID, STRIPE_CONNECT_CALLBACK, BASE_URL),
+                ConfigurationLevel.organization(organizationId));
         String clientId = options.get(STRIPE_CONNECT_CLIENT_ID).getRequiredValue();
-        String callbackURL = options.get(STRIPE_CONNECT_CALLBACK).getValueOrDefault(options.get(BASE_URL).getRequiredValue() + STRIPE_CONNECT_REDIRECT_PATH);
-        String state = extensionManager.generateOAuth2StateParam(organizationId).orElse(UUID.randomUUID().toString());
-        return new AuthorizationRequestDetails(new StripeConnectApi()
-            .getAuthorizationUrl("code", clientId, callbackURL, "read_write", state, Collections.emptyMap()), state);
+        String callbackURL = options.get(STRIPE_CONNECT_CALLBACK)
+                .getValueOrDefault(options.get(BASE_URL).getRequiredValue() + STRIPE_CONNECT_REDIRECT_PATH);
+        String state = extensionManager
+                .generateOAuth2StateParam(organizationId)
+                .orElse(UUID.randomUUID().toString());
+        return new AuthorizationRequestDetails(
+                new StripeConnectApi()
+                        .getAuthorizationUrl(
+                                "code", clientId, callbackURL, "read_write", state, Collections.emptyMap()),
+                state);
     }
 
     @Override
     public AccessTokenResponseDetails storeConnectedAccountId(String code, int organizationId) {
         try {
             String clientSecret = baseStripeManager.getSystemSecretKey();
-            OAuth20Service service = new ServiceBuilder(clientSecret).apiSecret(clientSecret).build(new StripeConnectApi());
-            Map<String, String> token = Json.fromJson(service.getAccessToken(code).getRawResponse(), new TypeReference<>() {});
+            OAuth20Service service =
+                    new ServiceBuilder(clientSecret).apiSecret(clientSecret).build(new StripeConnectApi());
+            Map<String, String> token =
+                    Json.fromJson(service.getAccessToken(code).getRawResponse(), new TypeReference<>() {});
             String accountId = token.get("stripe_user_id");
-            if(accountId != null) {
-                configurationManager.saveConfig(Configuration.from(organizationId, ConfigurationKeys.STRIPE_CONNECTED_ID), accountId);
+            if (accountId != null) {
+                configurationManager.saveConfig(
+                        Configuration.from(organizationId, ConfigurationKeys.STRIPE_CONNECTED_ID), accountId);
             }
             return new AccessTokenResponseDetails(accountId, null, token.get("error_message"), accountId != null);
         } catch (InterruptedException e) {

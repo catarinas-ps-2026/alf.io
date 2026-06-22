@@ -21,7 +21,6 @@ import alfio.model.modification.AttendeeResources;
 public class AttendeeResourcesContainer {
     private final AttendeeResources attendeeResources;
 
-
     public AttendeeResourcesContainer(AttendeeResources attendeeResources) {
         this.attendeeResources = attendeeResources;
     }

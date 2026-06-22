@@ -16,26 +16,28 @@
  */
 package alfio.model;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import org.junit.jupiter.api.Test;
 
 class ContentLanguageTest {
 
     @Test
     void validateContentLanguages() {
         var sortedContentLanguages = ContentLanguage.ALL_LANGUAGES.stream()
-            .sorted(Comparator.comparing(ContentLanguage::value))
-            .collect(Collectors.toList());
+                .sorted(Comparator.comparing(ContentLanguage::value))
+                .collect(Collectors.toList());
 
-        for(int i = 1; i < sortedContentLanguages.size(); i++) {
+        for (int i = 1; i < sortedContentLanguages.size(); i++) {
             var current = sortedContentLanguages.get(i);
             var previous = sortedContentLanguages.get(i - 1);
-            assertNotEquals(current.value(), previous.value(), "error: " + previous.getDisplayLanguage() +" ("+previous.getLanguage()+")"+ " and " + current.getDisplayLanguage() +" ("+current.getLanguage()+ ") have the same value");
+            assertNotEquals(
+                    current.value(),
+                    previous.value(),
+                    "error: " + previous.getDisplayLanguage() + " (" + previous.getLanguage() + ")" + " and "
+                            + current.getDisplayLanguage() + " (" + current.getLanguage() + ") have the same value");
         }
     }
-
 }

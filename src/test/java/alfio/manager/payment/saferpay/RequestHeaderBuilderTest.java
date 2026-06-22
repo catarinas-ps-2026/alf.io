@@ -16,17 +16,16 @@
  */
 package alfio.manager.payment.saferpay;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonWriter;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.io.StringWriter;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Request Header")
 class RequestHeaderBuilderTest {
@@ -51,7 +50,7 @@ class RequestHeaderBuilderTest {
         var requestHeader = json.get("RequestHeader").getAsJsonObject();
         assertEquals("customerId", requestHeader.get("CustomerId").getAsString());
         assertEquals("requestId", requestHeader.get("RequestId").getAsString());
-        if(expectRetry) {
+        if (expectRetry) {
             assertEquals("1", requestHeader.get("RetryIndicator").getAsString());
         } else {
             assertNull(requestHeader.get("RetryIndicator"));

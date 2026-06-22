@@ -17,17 +17,16 @@
 package alfio.model.result;
 
 import alfio.model.result.ValidationResult.ErrorDescriptor;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.validation.ObjectError;
-
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.validation.ObjectError;
 
 @AllArgsConstructor
 @Getter
@@ -42,7 +41,10 @@ public class Result<T> {
     }
 
     public static <T> Result<T> validationError(List<ObjectError> errors) {
-        return new Result<>(ResultStatus.VALIDATION_ERROR, null, errors.stream().map(ErrorDescriptor::fromObjectError).collect(Collectors.toList()));
+        return new Result<>(
+                ResultStatus.VALIDATION_ERROR,
+                null,
+                errors.stream().map(ErrorDescriptor::fromObjectError).collect(Collectors.toList()));
     }
 
     public static <T> Result<T> error(List<ErrorCode> errorDescriptors) {
@@ -58,42 +60,43 @@ public class Result<T> {
     }
 
     public void ifSuccess(Consumer<T> consumer) {
-        if(isSuccess()) {
+        if (isSuccess()) {
             consumer.accept(data);
         }
     }
 
     public <K> Result<K> map(Function<T, K> mapper) {
-        if(isSuccess()) {
+        if (isSuccess()) {
             return Result.success(mapper.apply(data));
         }
         return Result.error(this.errors);
     }
 
     public <K> Result<K> flatMap(Function<T, Result<K>> mapper) {
-        if(isSuccess()) {
+        if (isSuccess()) {
             return Objects.requireNonNull(mapper.apply(data), "this method does not allow null values");
         }
         return Result.error(this.errors);
     }
 
     public ErrorCode getFirstErrorOrNull() {
-        if(isSuccess() || CollectionUtils.size(errors) == 0) {
+        if (isSuccess() || CollectionUtils.size(errors) == 0) {
             return null;
         }
         return errors.get(0);
     }
 
     public String getFormattedErrors() {
-        if(isSuccess()) {
+        if (isSuccess()) {
             return null;
         }
-        return getErrors().stream().map(ErrorCode::getDescription)
-            .collect(Collectors.joining("\n"));
+        return getErrors().stream().map(ErrorCode::getDescription).collect(Collectors.joining("\n"));
     }
 
     public enum ResultStatus {
-        OK, VALIDATION_ERROR, ERROR
+        OK,
+        VALIDATION_ERROR,
+        ERROR
     }
 
     public static final class Builder<T> {
@@ -106,25 +109,24 @@ public class Result<T> {
 
         public Result<T> build(Supplier<T> valueSupplier) {
             Optional<Pair<ConditionValidator, ErrorCode>> validationError = performValidation();
-            return validationError.map(p -> Result.<T>error(Collections.singletonList(p.getRight())))
-                .orElseGet(() -> Result.success(valueSupplier.get()));
+            return validationError
+                    .map(p -> Result.<T>error(Collections.singletonList(p.getRight())))
+                    .orElseGet(() -> Result.success(valueSupplier.get()));
         }
 
         public Result<T> buildAndEvaluate(Supplier<Result<T>> resultSupplier) {
-            return performValidation().map(p -> Result.<T>error(Collections.singletonList(p.getRight())))
-                .orElseGet(resultSupplier);
+            return performValidation()
+                    .map(p -> Result.<T>error(Collections.singletonList(p.getRight())))
+                    .orElseGet(resultSupplier);
         }
 
         private Optional<Pair<ConditionValidator, ErrorCode>> performValidation() {
-            return this.validators.stream()
-                .filter(p -> !p.getLeft().isValid())
-                .findFirst();
+            return this.validators.stream().filter(p -> !p.getLeft().isValid()).findFirst();
         }
-
     }
 
     public static <T> Result<T> fromNullable(T nullable, ErrorCode justInCase) {
-        if(nullable == null) {
+        if (nullable == null) {
             return Result.error(justInCase);
         }
         return Result.success(nullable);

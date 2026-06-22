@@ -16,25 +16,24 @@
  */
 package alfio.manager;
 
+import static alfio.test.util.TestUtil.clockProvider;
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.model.Event;
 import alfio.model.Ticket;
 import alfio.model.TicketCategory;
 import alfio.repository.SubscriptionRepository;
 import alfio.repository.TicketRepository;
 import alfio.util.ClockProvider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
-
-import static alfio.test.util.TestUtil.clockProvider;
-import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("EventManager: handle Ticket modifications")
 public class EventManagerHandleTicketModificationTest {
@@ -47,7 +46,6 @@ public class EventManagerHandleTicketModificationTest {
     private int originalCategoryId = 20;
     private int updatedCategoryId = 30;
 
-
     @BeforeEach
     void init() {
         event = mock(Event.class);
@@ -56,8 +54,32 @@ public class EventManagerHandleTicketModificationTest {
         ticketRepository = mock(TicketRepository.class);
 
         when(event.getId()).thenReturn(eventId);
-        when(event.now(any(ClockProvider.class))).thenReturn(ZonedDateTime.now(clockProvider().getClock().withZone(ZoneId.systemDefault())));
-        eventManager = new EventManager(null, null, null, null, null, ticketRepository, null, null, null, null, null, null, null, null, null, null, null, null, null, null, clockProvider(), mock(SubscriptionRepository.class), null);
+        when(event.now(any(ClockProvider.class)))
+                .thenReturn(ZonedDateTime.now(clockProvider().getClock().withZone(ZoneId.systemDefault())));
+        eventManager = new EventManager(
+                null,
+                null,
+                null,
+                null,
+                null,
+                ticketRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                clockProvider(),
+                mock(SubscriptionRepository.class),
+                null);
         when(original.getId()).thenReturn(originalCategoryId);
         when(updated.getId()).thenReturn(updatedCategoryId);
         when(original.getSrcPriceCts()).thenReturn(1000);
@@ -72,7 +94,9 @@ public class EventManagerHandleTicketModificationTest {
     @Test
     void throwExceptionIfAlreadySold() {
         when(ticketRepository.lockTicketsToInvalidate(eventId, 30, 2)).thenReturn(singletonList(1));
-        assertThrows(IllegalStateException.class, () -> eventManager.handleTicketNumberModification(event, updated, -2, false));
+        assertThrows(
+                IllegalStateException.class,
+                () -> eventManager.handleTicketNumberModification(event, updated, -2, false));
         verify(ticketRepository, never()).invalidateTickets(anyList());
     }
 
@@ -80,7 +104,8 @@ public class EventManagerHandleTicketModificationTest {
     @DisplayName("invalidate exceeding tickets")
     void invalidateExceedingTickets() {
         final List<Integer> ids = Arrays.asList(1, 2);
-        when(ticketRepository.lockTicketsToInvalidate(eventId, updatedCategoryId, 2)).thenReturn(ids);
+        when(ticketRepository.lockTicketsToInvalidate(eventId, updatedCategoryId, 2))
+                .thenReturn(ids);
         eventManager.handleTicketNumberModification(event, updated, -2, false);
         verify(ticketRepository, times(1)).invalidateTickets(ids);
     }
@@ -96,7 +121,11 @@ public class EventManagerHandleTicketModificationTest {
     @Test
     @DisplayName("insert a new Ticket if the difference is 1")
     void insertTicketIfDifference1() {
-        when(ticketRepository.selectNotAllocatedTicketsForUpdate(eq(eventId), eq(1), eq(Arrays.asList(Ticket.TicketStatus.FREE.name(), Ticket.TicketStatus.RELEASED.name())))).thenReturn(singletonList(1));
+        when(ticketRepository.selectNotAllocatedTicketsForUpdate(
+                        eq(eventId),
+                        eq(1),
+                        eq(Arrays.asList(Ticket.TicketStatus.FREE.name(), Ticket.TicketStatus.RELEASED.name()))))
+                .thenReturn(singletonList(1));
         eventManager.handleTicketNumberModification(event, updated, 1, false);
         verify(ticketRepository, never()).invalidateTickets(anyList());
         verify(ticketRepository, times(1)).bulkTicketUpdate(any(), any());
@@ -109,7 +138,8 @@ public class EventManagerHandleTicketModificationTest {
         when(updated.getSrcPriceCts()).thenReturn(10);
         eventManager.handlePriceChange(event, original, updated);
         verify(ticketRepository, never()).selectTicketInCategoryForUpdate(anyInt(), anyInt(), anyInt(), any());
-        verify(ticketRepository, never()).updateTicketPrice(anyInt(), anyInt(), anyInt(), eq(0), eq(0), eq(0), anyString());
+        verify(ticketRepository, never())
+                .updateTicketPrice(anyInt(), anyInt(), anyInt(), eq(0), eq(0), eq(0), anyString());
     }
 
     @Test
@@ -119,9 +149,12 @@ public class EventManagerHandleTicketModificationTest {
         when(updated.getSrcPriceCts()).thenReturn(11);
         when(updated.getMaxTickets()).thenReturn(2);
         when(updated.getId()).thenReturn(20);
-        when(ticketRepository.selectTicketInCategoryForUpdate(eq(eventId), eq(originalCategoryId), eq(2), eq(singletonList(Ticket.TicketStatus.FREE.name())))).thenReturn(singletonList(1));
+        when(ticketRepository.selectTicketInCategoryForUpdate(
+                        eq(eventId), eq(originalCategoryId), eq(2), eq(singletonList(Ticket.TicketStatus.FREE.name()))))
+                .thenReturn(singletonList(1));
         assertThrows(IllegalStateException.class, () -> eventManager.handlePriceChange(event, original, updated));
-        verify(ticketRepository, never()).updateTicketPrice(anyInt(), anyInt(), anyInt(), eq(0), eq(0), eq(0), anyString());
+        verify(ticketRepository, never())
+                .updateTicketPrice(anyInt(), anyInt(), anyInt(), eq(0), eq(0), eq(0), anyString());
     }
 
     @Test
@@ -132,9 +165,10 @@ public class EventManagerHandleTicketModificationTest {
         when(updated.getSrcPriceCts()).thenReturn(11);
         when(updated.getMaxTickets()).thenReturn(2);
         when(updated.getId()).thenReturn(updatedCategoryId);
-        when(ticketRepository.selectTicketInCategoryForUpdate(eq(eventId), eq(updatedCategoryId), eq(2), eq(singletonList(Ticket.TicketStatus.FREE.name())))).thenReturn(Arrays.asList(1, 2));
+        when(ticketRepository.selectTicketInCategoryForUpdate(
+                        eq(eventId), eq(updatedCategoryId), eq(2), eq(singletonList(Ticket.TicketStatus.FREE.name()))))
+                .thenReturn(Arrays.asList(1, 2));
         eventManager.handlePriceChange(event, original, updated);
         verify(ticketRepository, times(1)).updateTicketPrice(updatedCategoryId, eventId, 11, 0, 0, 0, "CHF");
     }
-
 }

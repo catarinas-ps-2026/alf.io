@@ -23,7 +23,8 @@ import lombok.Getter;
 public class AdditionalServiceDescription {
 
     public enum AdditionalServiceDescriptionType {
-        TITLE, DESCRIPTION
+        TITLE,
+        DESCRIPTION
     }
 
     private final Integer additionalServiceId;
@@ -31,14 +32,14 @@ public class AdditionalServiceDescription {
     private final AdditionalServiceDescriptionType type;
     private final String value;
 
-    public AdditionalServiceDescription(@Column("additional_service_id_fk") Integer additionalServiceId,
-                                        @Column("locale") String locale,
-                                        @Column("type") AdditionalServiceDescriptionType type,
-                                        @Column("value") String value) {
+    public AdditionalServiceDescription(
+            @Column("additional_service_id_fk") Integer additionalServiceId,
+            @Column("locale") String locale,
+            @Column("type") AdditionalServiceDescriptionType type,
+            @Column("value") String value) {
         this.additionalServiceId = additionalServiceId;
         this.locale = locale;
         this.type = type;
         this.value = value;
     }
-
 }

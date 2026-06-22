@@ -16,22 +16,23 @@
  */
 package alfio.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class PinGeneratorTest2 {
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "0cea7af7-899d-4de4-9ba1-414469b7d69c",
-        "c09644d4-3694-4183-ba85-77a7a5f77829",
-        "00000000-0000-0000-0000-000000000000",
-        "ffffffff-3694-4183-ba85-77a7a5f77829",
-        "ffffffff-ffff-4183-ba85-77a7a5f77829",
-        "ffffffff-ffff-ffff-ffff-ffffffffffff"
-    })
+    @ValueSource(
+            strings = {
+                "0cea7af7-899d-4de4-9ba1-414469b7d69c",
+                "c09644d4-3694-4183-ba85-77a7a5f77829",
+                "00000000-0000-0000-0000-000000000000",
+                "ffffffff-3694-4183-ba85-77a7a5f77829",
+                "ffffffff-ffff-4183-ba85-77a7a5f77829",
+                "ffffffff-ffff-ffff-ffff-ffffffffffff"
+            })
     void uuidToPinAndBack(String uuid) {
         for (int pinLength = 1; pinLength < 32; pinLength++) {
             uuid = uuid.replace("-", "");
@@ -43,25 +44,13 @@ public class PinGeneratorTest2 {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "AAAAAA",
-        "aaaaaa",
-        "CEURQ3",
-        "U96U6T",
-        "4TM34T"
-    })
+    @ValueSource(strings = {"AAAAAA", "aaaaaa", "CEURQ3", "U96U6T", "4TM34T"})
     void successfulPinValidation(String pin) {
         assertTrue(PinGenerator.isPinValid(pin));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "AAAAA",
-        " AAAAA",
-        "aaaaa ",
-        "CEURZ3",
-        "000000"
-    })
+    @ValueSource(strings = {"AAAAA", " AAAAA", "aaaaa ", "CEURZ3", "000000"})
     void failedPinValidation(String pin) {
         assertFalse(PinGenerator.isPinValid(pin));
     }

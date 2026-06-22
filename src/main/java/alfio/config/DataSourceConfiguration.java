@@ -41,6 +41,18 @@ import ch.digitalfondue.npjt.EnableNpjt;
 import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
 import ch.digitalfondue.npjt.mapper.ParameterConverter;
 import com.zaxxer.hikari.HikariDataSource;
+import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.function.Supplier;
+import javax.sql.DataSource;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
@@ -62,19 +74,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.sql.DataSource;
-import java.net.http.HttpClient;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.function.Supplier;
-
 @Configuration(proxyBeanMethods = false)
 @EnableTransactionManagement
 @EnableScheduling
@@ -84,21 +83,22 @@ import java.util.function.Supplier;
 public class DataSourceConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(DataSourceConfiguration.class);
-    private static final Set<PlatformProvider> PLATFORM_PROVIDERS = EnumSet.complementOf(EnumSet.of(PlatformProvider.DEFAULT));
+    private static final Set<PlatformProvider> PLATFORM_PROVIDERS =
+            EnumSet.complementOf(EnumSet.of(PlatformProvider.DEFAULT));
 
     @Bean
-    @Profile({"!"+Initializer.PROFILE_INTEGRATION_TEST, "travis"})
+    @Profile({"!" + Initializer.PROFILE_INTEGRATION_TEST, "travis"})
     public PlatformProvider getCloudProvider(Environment environment) {
         return PLATFORM_PROVIDERS.stream()
-                                 .filter(p -> p.isHosting(environment))
-                                 .findFirst()
-                                 .orElse(PlatformProvider.DEFAULT);
+                .filter(p -> p.isHosting(environment))
+                .findFirst()
+                .orElse(PlatformProvider.DEFAULT);
     }
 
     @Bean
-    @Profile({"!"+Initializer.PROFILE_INTEGRATION_TEST, "travis"})
+    @Profile({"!" + Initializer.PROFILE_INTEGRATION_TEST, "travis"})
     public DataSource getDataSource(Environment env, PlatformProvider platform) {
-        if(platform == PlatformProvider.CLOUD_FOUNDRY || platform == PlatformProvider.DRY_RUN) {
+        if (platform == PlatformProvider.CLOUD_FOUNDRY || platform == PlatformProvider.DRY_RUN) {
             return new FakeCFDataSource();
         } else {
             HikariDataSource dataSource = new HikariDataSource();
@@ -110,16 +110,21 @@ public class DataSourceConfiguration {
             dataSource.setMinimumIdle(platform.getMinIdle(env));
             dataSource.setConnectionTimeout(1000L);
 
-            log.debug("Connection pool properties: max active {}, initial size {}", dataSource.getMaximumPoolSize(), dataSource.getMinimumIdle());
+            log.debug(
+                    "Connection pool properties: max active {}, initial size {}",
+                    dataSource.getMaximumPoolSize(),
+                    dataSource.getMinimumIdle());
 
             // check
             boolean isSuperAdmin = Boolean.TRUE.equals(new NamedParameterJdbcTemplate(dataSource)
-                .queryForObject("select usesuper from pg_user where usename = CURRENT_USER",
-                    EmptySqlParameterSource.INSTANCE,
-                    Boolean.class));
+                    .queryForObject(
+                            "select usesuper from pg_user where usename = CURRENT_USER",
+                            EmptySqlParameterSource.INSTANCE,
+                            Boolean.class));
 
             if (isSuperAdmin) {
-                log.warn("You're accessing the database using a superuser. This is highly discouraged since it will disable the row security policy checks.");
+                log.warn(
+                        "You're accessing the database using a superuser. This is highly discouraged since it will disable the row security policy checks.");
             }
 
             //
@@ -138,7 +143,8 @@ public class DataSourceConfiguration {
         }
 
         @Override
-        protected void prepareTransactionalConnection(Connection con, TransactionDefinition definition) throws SQLException {
+        protected void prepareTransactionalConnection(Connection con, TransactionDefinition definition)
+                throws SQLException {
             super.prepareTransactionalConnection(con, definition);
             RoleAndOrganizationsTransactionPreparer.prepareTransactionalConnection(con);
         }
@@ -151,16 +157,20 @@ public class DataSourceConfiguration {
 
     @Bean
     public List<ColumnMapperFactory> getAdditionalColumnMappers() {
-        return Arrays.asList(new JSONColumnMapper.Factory(), new ArrayColumnMapper.Factory(), new EnumTypeColumnMapper.Factory());
+        return Arrays.asList(
+                new JSONColumnMapper.Factory(), new ArrayColumnMapper.Factory(), new EnumTypeColumnMapper.Factory());
     }
 
     @Bean
     public List<ParameterConverter> getAdditionalParameterConverters() {
-        return Arrays.asList(new JSONColumnMapper.Converter(), new ArrayColumnMapper.Converter(), new EnumTypeColumnMapper.Converter());
+        return Arrays.asList(
+                new JSONColumnMapper.Converter(),
+                new ArrayColumnMapper.Converter(),
+                new EnumTypeColumnMapper.Converter());
     }
 
     @Bean
-    @Profile("!"+Initializer.PROFILE_INTEGRATION_TEST)
+    @Profile("!" + Initializer.PROFILE_INTEGRATION_TEST)
     public Supplier<Executor> getNewSingleThreadExecutorSupplier() {
         return Executors::newSingleThreadExecutor;
     }
@@ -172,26 +182,29 @@ public class DataSourceConfiguration {
         String tableName = configuration.getTable();
         if (!dryRun) {
             var jdbcTemplate = new JdbcTemplate(dataSource);
-            var matches = jdbcTemplate.queryForObject("select count(*) from information_schema.tables where table_name = 'schema_version'", Integer.class);
+            var matches = jdbcTemplate.queryForObject(
+                    "select count(*) from information_schema.tables where table_name = 'schema_version'",
+                    Integer.class);
             tableName = matches != null && matches > 0 ? "schema_version" : configuration.getTable();
         }
-        configuration.table(tableName)
-            .dataSource(dataSource)
-            .validateOnMigrate(false)
-            .target(MigrationVersion.LATEST)
-            .outOfOrder(true)
-            .locations("alfio/db/PGSQL/");
+        configuration
+                .table(tableName)
+                .dataSource(dataSource)
+                .validateOnMigrate(false)
+                .target(MigrationVersion.LATEST)
+                .outOfOrder(true)
+                .locations("alfio/db/PGSQL/");
         Flyway migration = new Flyway(configuration);
         if (!dryRun) {
             migration.migrate();
         }
         return migration;
     }
-    
+
     @Bean
     public PasswordEncoder getPasswordEncoder() {
-         return new BCryptPasswordEncoder();
-     }
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public MessageSourceManager messageSourceManager(ConfigurationRepository configurationRepository) {
@@ -199,8 +212,8 @@ public class DataSourceConfiguration {
         var source = new CustomResourceBundleMessageSource();
         source.setBasenames("alfio.i18n.public", "alfio.i18n.admin");
         source.setDefaultEncoding(StandardCharsets.UTF_8.displayName());
-        //since we have all the english translations in the default file, we don't need
-        //the fallback to the system locale.
+        // since we have all the english translations in the default file, we don't need
+        // the fallback to the system locale.
         source.setFallbackToSystemLocale(false);
         source.setAlwaysUseMessageFormat(true);
 
@@ -213,25 +226,27 @@ public class DataSourceConfiguration {
     }
 
     @Bean
-    public TemplateManager getTemplateManager(MessageSourceManager messageSourceManager,
-                                              UploadedResourceManager uploadedResourceManager,
-                                              ConfigurationManager configurationManager,
-                                              PurchaseContextFieldManager purchaseContextFieldManager) {
-        return new TemplateManager(messageSourceManager, uploadedResourceManager, configurationManager, purchaseContextFieldManager);
+    public TemplateManager getTemplateManager(
+            MessageSourceManager messageSourceManager,
+            UploadedResourceManager uploadedResourceManager,
+            ConfigurationManager configurationManager,
+            PurchaseContextFieldManager purchaseContextFieldManager) {
+        return new TemplateManager(
+                messageSourceManager, uploadedResourceManager, configurationManager, purchaseContextFieldManager);
     }
 
     @Bean
     public HttpClient getHttpClient() {
         return HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_1_1)
-            .executor(Executors.newCachedThreadPool(new BasicThreadFactory.Builder()
-                .namingPattern("httpClient-thread-%d")
-                .build()))
-            .build();
+                .version(HttpClient.Version.HTTP_1_1)
+                .executor(Executors.newCachedThreadPool(new BasicThreadFactory.Builder()
+                        .namingPattern("httpClient-thread-%d")
+                        .build()))
+                .build();
     }
 
     @Bean
-    @Profile("!"+Initializer.PROFILE_INTEGRATION_TEST)
+    @Profile("!" + Initializer.PROFILE_INTEGRATION_TEST)
     public FileDownloadManager fileDownloadManager(HttpClient httpClient) {
         return new FileDownloadManager(httpClient);
     }
@@ -239,34 +254,44 @@ public class DataSourceConfiguration {
     @Bean
     @DependsOn("migrator")
     @Profile("!" + Initializer.PROFILE_DISABLE_JOBS)
-    public Jobs jobs(AdminReservationRequestManager adminReservationRequestManager,
-                     FileUploadManager fileUploadManager,
-                     NotificationManager notificationManager,
-                     SpecialPriceTokenGenerator specialPriceTokenGenerator,
-                     WaitingQueueSubscriptionProcessor waitingQueueSubscriptionProcessor,
-                     TicketReservationManager ticketReservationManager,
-                     AdminJobManager adminJobManager
-                     ) {
-        return new Jobs(adminReservationRequestManager, fileUploadManager,
-            notificationManager, specialPriceTokenGenerator, ticketReservationManager,
-            waitingQueueSubscriptionProcessor,
-            adminJobManager);
+    public Jobs jobs(
+            AdminReservationRequestManager adminReservationRequestManager,
+            FileUploadManager fileUploadManager,
+            NotificationManager notificationManager,
+            SpecialPriceTokenGenerator specialPriceTokenGenerator,
+            WaitingQueueSubscriptionProcessor waitingQueueSubscriptionProcessor,
+            TicketReservationManager ticketReservationManager,
+            AdminJobManager adminJobManager) {
+        return new Jobs(
+                adminReservationRequestManager,
+                fileUploadManager,
+                notificationManager,
+                specialPriceTokenGenerator,
+                ticketReservationManager,
+                waitingQueueSubscriptionProcessor,
+                adminJobManager);
     }
 
     @Bean
-    AdminJobManager adminJobManager(AdminJobQueueRepository adminJobQueueRepository,
-                                    PlatformTransactionManager transactionManager,
-                                    ClockProvider clockProvider,
-                                    ReservationJobExecutor reservationJobExecutor,
-                                    BillingDocumentJobExecutor billingDocumentJobExecutor,
-                                    AssignTicketToSubscriberJobExecutor assignTicketToSubscriberJobExecutor,
-                                    RetryFailedExtensionJobExecutor retryFailedExtensionJobExecutor,
-                                    RetryFailedReservationConfirmationExecutor retryFailedReservationConfirmationExecutor) {
+    AdminJobManager adminJobManager(
+            AdminJobQueueRepository adminJobQueueRepository,
+            PlatformTransactionManager transactionManager,
+            ClockProvider clockProvider,
+            ReservationJobExecutor reservationJobExecutor,
+            BillingDocumentJobExecutor billingDocumentJobExecutor,
+            AssignTicketToSubscriberJobExecutor assignTicketToSubscriberJobExecutor,
+            RetryFailedExtensionJobExecutor retryFailedExtensionJobExecutor,
+            RetryFailedReservationConfirmationExecutor retryFailedReservationConfirmationExecutor) {
         return new AdminJobManager(
-            List.of(reservationJobExecutor, billingDocumentJobExecutor, assignTicketToSubscriberJobExecutor, retryFailedExtensionJobExecutor, retryFailedReservationConfirmationExecutor),
-            adminJobQueueRepository,
-            transactionManager,
-            clockProvider);
+                List.of(
+                        reservationJobExecutor,
+                        billingDocumentJobExecutor,
+                        assignTicketToSubscriberJobExecutor,
+                        retryFailedExtensionJobExecutor,
+                        retryFailedReservationConfirmationExecutor),
+                adminJobQueueRepository,
+                transactionManager,
+                clockProvider);
     }
 
     @Bean
@@ -275,29 +300,37 @@ public class DataSourceConfiguration {
     }
 
     @Bean
-    BillingDocumentJobExecutor billingDocumentJobExecutor(BillingDocumentManager billingDocumentManager,
-                                                          TicketReservationManager ticketReservationManager,
-                                                          EventRepository eventRepository,
-                                                          NotificationManager notificationManager,
-                                                          OrganizationRepository organizationRepository) {
-        return new BillingDocumentJobExecutor(billingDocumentManager, ticketReservationManager, eventRepository, notificationManager, organizationRepository);
+    BillingDocumentJobExecutor billingDocumentJobExecutor(
+            BillingDocumentManager billingDocumentManager,
+            TicketReservationManager ticketReservationManager,
+            EventRepository eventRepository,
+            NotificationManager notificationManager,
+            OrganizationRepository organizationRepository) {
+        return new BillingDocumentJobExecutor(
+                billingDocumentManager,
+                ticketReservationManager,
+                eventRepository,
+                notificationManager,
+                organizationRepository);
     }
 
     @Bean
-    AssignTicketToSubscriberJobExecutor assignTicketToSubscriberJobExecutor(AdminReservationRequestManager requestManager,
-                                                                            ConfigurationManager configurationManager,
-                                                                            SubscriptionRepository subscriptionRepository,
-                                                                            EventRepository eventRepository,
-                                                                            ClockProvider clockProvider,
-                                                                            TicketCategoryRepository ticketCategoryRepository,
-                                                                            PurchaseContextFieldRepository purchaseContextFieldRepository) {
-        return new AssignTicketToSubscriberJobExecutor(requestManager,
-            configurationManager,
-            subscriptionRepository,
-            eventRepository,
-            clockProvider,
-            ticketCategoryRepository,
-            purchaseContextFieldRepository);
+    AssignTicketToSubscriberJobExecutor assignTicketToSubscriberJobExecutor(
+            AdminReservationRequestManager requestManager,
+            ConfigurationManager configurationManager,
+            SubscriptionRepository subscriptionRepository,
+            EventRepository eventRepository,
+            ClockProvider clockProvider,
+            TicketCategoryRepository ticketCategoryRepository,
+            PurchaseContextFieldRepository purchaseContextFieldRepository) {
+        return new AssignTicketToSubscriberJobExecutor(
+                requestManager,
+                configurationManager,
+                subscriptionRepository,
+                eventRepository,
+                clockProvider,
+                ticketCategoryRepository,
+                purchaseContextFieldRepository);
     }
 
     @Bean
@@ -306,21 +339,29 @@ public class DataSourceConfiguration {
     }
 
     @Bean
-    RetryFailedReservationConfirmationExecutor retryFailedReservationConfirmationExecutor(ReservationFinalizer reservationFinalizer, Json json) {
+    RetryFailedReservationConfirmationExecutor retryFailedReservationConfirmationExecutor(
+            ReservationFinalizer reservationFinalizer, Json json) {
         return new RetryFailedReservationConfirmationExecutor(reservationFinalizer, json);
     }
 
     @Bean
     @Profile(Initializer.PROFILE_DEMO)
-    DemoModeDataManager demoModeDataManager(UserRepository userRepository,
-                                            UserOrganizationRepository userOrganizationRepository,
-                                            OrganizationRepository organizationRepository,
-                                            EventDeleterRepository eventDeleterRepository,
-                                            EventRepository eventRepository,
-                                            ConfigurationManager configurationManager,
-                                            OrganizationDeleterRepository organizationDeleterRepository) {
-        return new DemoModeDataManager(userRepository, userOrganizationRepository, organizationRepository,
-            eventDeleterRepository, eventRepository, configurationManager, organizationDeleterRepository);
+    DemoModeDataManager demoModeDataManager(
+            UserRepository userRepository,
+            UserOrganizationRepository userOrganizationRepository,
+            OrganizationRepository organizationRepository,
+            EventDeleterRepository eventDeleterRepository,
+            EventRepository eventRepository,
+            ConfigurationManager configurationManager,
+            OrganizationDeleterRepository organizationDeleterRepository) {
+        return new DemoModeDataManager(
+                userRepository,
+                userOrganizationRepository,
+                organizationRepository,
+                eventDeleterRepository,
+                eventRepository,
+                configurationManager,
+                organizationDeleterRepository);
     }
 
     /**
@@ -336,6 +377,5 @@ public class DataSourceConfiguration {
         public Connection getConnection(String username, String password) {
             return null;
         }
-
     }
 }

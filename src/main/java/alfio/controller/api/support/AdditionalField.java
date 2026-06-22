@@ -17,11 +17,10 @@
 package alfio.controller.api.support;
 
 import alfio.model.PurchaseContextFieldConfiguration;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
@@ -38,21 +37,23 @@ public class AdditionalField {
     private final boolean beforeStandardFields;
     private final Map<String, Description> description;
 
-    public static AdditionalField fromFieldConfiguration(PurchaseContextFieldConfiguration tfc,
-                                                         String value,
-                                                         List<Field> fields,
-                                                         boolean isBeforeStandardFields,
-                                                         Map<String, Description> description) {
-        return new AdditionalField(tfc.getName(),
-            value,
-            tfc.getType(),
-            tfc.isRequired(),
-            tfc.isEditable(),
-            tfc.getMinLength(),
-            tfc.getMaxLength(),
-            tfc.getRestrictedValues(),
-            fields,
-            isBeforeStandardFields,
-            description);
+    public static AdditionalField fromFieldConfiguration(
+            PurchaseContextFieldConfiguration tfc,
+            String value,
+            List<Field> fields,
+            boolean isBeforeStandardFields,
+            Map<String, Description> description) {
+        return new AdditionalField(
+                tfc.getName(),
+                value,
+                tfc.getType(),
+                tfc.isRequired(),
+                tfc.isEditable(),
+                tfc.getMinLength(),
+                tfc.getMaxLength(),
+                tfc.getRestrictedValues(),
+                fields,
+                isBeforeStandardFields,
+                description);
     }
 }

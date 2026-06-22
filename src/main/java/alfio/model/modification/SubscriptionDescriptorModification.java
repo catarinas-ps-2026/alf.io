@@ -16,6 +16,10 @@
  */
 package alfio.model.modification;
 
+import static java.util.Objects.requireNonNullElse;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.length;
+
 import alfio.model.PriceContainer.VatStatus;
 import alfio.model.result.ErrorCode;
 import alfio.model.result.Result;
@@ -26,18 +30,13 @@ import alfio.model.subscription.SubscriptionDescriptor.SubscriptionValidityType;
 import alfio.model.transaction.PaymentProxy;
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static java.util.Objects.requireNonNullElse;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.length;
+import lombok.Getter;
 
 @Getter
 public class SubscriptionDescriptorModification {
@@ -69,31 +68,32 @@ public class SubscriptionDescriptorModification {
     private final ZoneId timeZone;
     private final Boolean supportsTicketsGeneration;
 
-    public SubscriptionDescriptorModification(@JsonProperty("id") UUID id,
-                                              @JsonProperty("title") Map<String, String> title,
-                                              @JsonProperty("description") Map<String, String> description,
-                                              @JsonProperty("maxAvailable") Integer maxAvailable,
-                                              @JsonProperty("onSaleFrom") ZonedDateTime onSaleFrom,
-                                              @JsonProperty("onSaleTo") ZonedDateTime onSaleTo,
-                                              @JsonProperty("price") BigDecimal price,
-                                              @JsonProperty("vat") BigDecimal vat,
-                                              @JsonProperty("vatStatus") VatStatus vatStatus,
-                                              @JsonProperty("currency") String currency,
-                                              @JsonProperty("isPublic") Boolean isPublic,
-                                              @JsonProperty("organizationId") int organizationId,
-                                              @JsonProperty("maxEntries") Integer maxEntries,
-                                              @JsonProperty("validityType") SubscriptionValidityType validityType,
-                                              @JsonProperty("validityTimeUnit") SubscriptionTimeUnit validityTimeUnit,
-                                              @JsonProperty("validityUnits") Integer validityUnits,
-                                              @JsonProperty("validityFrom") ZonedDateTime validityFrom,
-                                              @JsonProperty("validityTo") ZonedDateTime validityTo,
-                                              @JsonProperty("usageType") SubscriptionUsageType usageType,
-                                              @JsonProperty("termsAndConditionsUrl") String termsAndConditionsUrl,
-                                              @JsonProperty("privacyPolicyUrl") String privacyPolicyUrl,
-                                              @JsonProperty("fileBlobId") String fileBlobId,
-                                              @JsonProperty("paymentProxies") List<PaymentProxy> paymentProxies,
-                                              @JsonProperty("timeZone") ZoneId timeZone,
-                                              @JsonProperty("supportsTicketsGeneration") Boolean supportsTicketsGeneration) {
+    public SubscriptionDescriptorModification(
+            @JsonProperty("id") UUID id,
+            @JsonProperty("title") Map<String, String> title,
+            @JsonProperty("description") Map<String, String> description,
+            @JsonProperty("maxAvailable") Integer maxAvailable,
+            @JsonProperty("onSaleFrom") ZonedDateTime onSaleFrom,
+            @JsonProperty("onSaleTo") ZonedDateTime onSaleTo,
+            @JsonProperty("price") BigDecimal price,
+            @JsonProperty("vat") BigDecimal vat,
+            @JsonProperty("vatStatus") VatStatus vatStatus,
+            @JsonProperty("currency") String currency,
+            @JsonProperty("isPublic") Boolean isPublic,
+            @JsonProperty("organizationId") int organizationId,
+            @JsonProperty("maxEntries") Integer maxEntries,
+            @JsonProperty("validityType") SubscriptionValidityType validityType,
+            @JsonProperty("validityTimeUnit") SubscriptionTimeUnit validityTimeUnit,
+            @JsonProperty("validityUnits") Integer validityUnits,
+            @JsonProperty("validityFrom") ZonedDateTime validityFrom,
+            @JsonProperty("validityTo") ZonedDateTime validityTo,
+            @JsonProperty("usageType") SubscriptionUsageType usageType,
+            @JsonProperty("termsAndConditionsUrl") String termsAndConditionsUrl,
+            @JsonProperty("privacyPolicyUrl") String privacyPolicyUrl,
+            @JsonProperty("fileBlobId") String fileBlobId,
+            @JsonProperty("paymentProxies") List<PaymentProxy> paymentProxies,
+            @JsonProperty("timeZone") ZoneId timeZone,
+            @JsonProperty("supportsTicketsGeneration") Boolean supportsTicketsGeneration) {
         this.id = id;
         this.title = requireNonNullElse(title, Map.of());
         this.description = requireNonNullElse(description, Map.of());
@@ -147,49 +147,61 @@ public class SubscriptionDescriptorModification {
 
     public static SubscriptionDescriptorModification fromModel(SubscriptionDescriptor subscriptionDescriptor) {
         return new SubscriptionDescriptorModification(
-            subscriptionDescriptor.getId(),
-            subscriptionDescriptor.getTitle(),
-            subscriptionDescriptor.getDescription(),
-            subscriptionDescriptor.getMaxAvailable(),
-            subscriptionDescriptor.getOnSaleFrom(),
-            subscriptionDescriptor.getOnSaleTo(),
-            MonetaryUtil.centsToUnit(subscriptionDescriptor.getPrice(), subscriptionDescriptor.getCurrency()),
-            subscriptionDescriptor.getVat(),
-            subscriptionDescriptor.getVatStatus(),
-            subscriptionDescriptor.getCurrency(),
-            subscriptionDescriptor.isPublic(),
-            subscriptionDescriptor.getOrganizationId(),
-            subscriptionDescriptor.getMaxEntries(),
-            subscriptionDescriptor.getValidityType(),
-            subscriptionDescriptor.getValidityTimeUnit(),
-            subscriptionDescriptor.getValidityUnits(),
-            subscriptionDescriptor.getValidityFrom(),
-            subscriptionDescriptor.getValidityTo(),
-            subscriptionDescriptor.getUsageType(),
-            subscriptionDescriptor.getTermsAndConditionsUrl(),
-            subscriptionDescriptor.getPrivacyPolicyUrl(),
-            subscriptionDescriptor.getFileBlobId(),
-            subscriptionDescriptor.getPaymentProxies(),
-            subscriptionDescriptor.getZoneId(),
-            subscriptionDescriptor.isSupportsTicketsGeneration());
+                subscriptionDescriptor.getId(),
+                subscriptionDescriptor.getTitle(),
+                subscriptionDescriptor.getDescription(),
+                subscriptionDescriptor.getMaxAvailable(),
+                subscriptionDescriptor.getOnSaleFrom(),
+                subscriptionDescriptor.getOnSaleTo(),
+                MonetaryUtil.centsToUnit(subscriptionDescriptor.getPrice(), subscriptionDescriptor.getCurrency()),
+                subscriptionDescriptor.getVat(),
+                subscriptionDescriptor.getVatStatus(),
+                subscriptionDescriptor.getCurrency(),
+                subscriptionDescriptor.isPublic(),
+                subscriptionDescriptor.getOrganizationId(),
+                subscriptionDescriptor.getMaxEntries(),
+                subscriptionDescriptor.getValidityType(),
+                subscriptionDescriptor.getValidityTimeUnit(),
+                subscriptionDescriptor.getValidityUnits(),
+                subscriptionDescriptor.getValidityFrom(),
+                subscriptionDescriptor.getValidityTo(),
+                subscriptionDescriptor.getUsageType(),
+                subscriptionDescriptor.getTermsAndConditionsUrl(),
+                subscriptionDescriptor.getPrivacyPolicyUrl(),
+                subscriptionDescriptor.getFileBlobId(),
+                subscriptionDescriptor.getPaymentProxies(),
+                subscriptionDescriptor.getZoneId(),
+                subscriptionDescriptor.isSupportsTicketsGeneration());
     }
 
     public static Result<SubscriptionDescriptorModification> validate(SubscriptionDescriptorModification input) {
         return new Result.Builder<SubscriptionDescriptorModification>()
-            .checkPrecondition(() -> !input.title.isEmpty(), ErrorCode.custom("title", "Title is mandatory"))
-            .checkPrecondition(() -> !input.description.isEmpty(), ErrorCode.custom("description", "Description is mandatory"))
-            .checkPrecondition(() -> input.title.keySet().equals(input.description.keySet()), ErrorCode.custom("locale-mismatch", "Mismatch between supported translations"))
-            .checkPrecondition(() -> isNotBlank(input.termsAndConditionsUrl), ErrorCode.custom("terms", "Terms and Conditions are mandatory"))
-            .checkPrecondition(() -> isNotBlank(input.fileBlobId), ErrorCode.custom("logo", "Logo is required"))
-            .checkPrecondition(() -> isNotBlank(input.currency) && length(input.currency) == 3, ErrorCode.custom("currency", "Currency Code is required"))
-            .checkPrecondition(() -> input.vatStatus != null, ErrorCode.custom("taxPolicy", "Tax Policy is required"))
-            .checkPrecondition(() -> input.vat != null, ErrorCode.custom("taxes", "Tax percentage is required"))
-            .checkPrecondition(() -> input.onSaleFrom != null, ErrorCode.custom("onSaleFrom", "'On Sale From' is required"))
-            .checkPrecondition(() -> input.timeZone != null, ErrorCode.custom("timeZone", "Time Zone is required"))
-            .checkPrecondition(() -> !input.paymentProxies.isEmpty(), ErrorCode.custom("paymentMethods", "At least one Payment Method is required"))
-            .checkPrecondition(() -> input.price != null, ErrorCode.custom("price", "Price is mandatory"))
-            .checkPrecondition(() -> input.usageType != null, ErrorCode.custom("usageType", "UsageType is mandatory"))
-            .checkPrecondition(() -> isNotBlank(input.fileBlobId), ErrorCode.custom("logo", "Logo is required"))
-            .build(() -> input);
+                .checkPrecondition(() -> !input.title.isEmpty(), ErrorCode.custom("title", "Title is mandatory"))
+                .checkPrecondition(
+                        () -> !input.description.isEmpty(), ErrorCode.custom("description", "Description is mandatory"))
+                .checkPrecondition(
+                        () -> input.title.keySet().equals(input.description.keySet()),
+                        ErrorCode.custom("locale-mismatch", "Mismatch between supported translations"))
+                .checkPrecondition(
+                        () -> isNotBlank(input.termsAndConditionsUrl),
+                        ErrorCode.custom("terms", "Terms and Conditions are mandatory"))
+                .checkPrecondition(() -> isNotBlank(input.fileBlobId), ErrorCode.custom("logo", "Logo is required"))
+                .checkPrecondition(
+                        () -> isNotBlank(input.currency) && length(input.currency) == 3,
+                        ErrorCode.custom("currency", "Currency Code is required"))
+                .checkPrecondition(
+                        () -> input.vatStatus != null, ErrorCode.custom("taxPolicy", "Tax Policy is required"))
+                .checkPrecondition(() -> input.vat != null, ErrorCode.custom("taxes", "Tax percentage is required"))
+                .checkPrecondition(
+                        () -> input.onSaleFrom != null, ErrorCode.custom("onSaleFrom", "'On Sale From' is required"))
+                .checkPrecondition(() -> input.timeZone != null, ErrorCode.custom("timeZone", "Time Zone is required"))
+                .checkPrecondition(
+                        () -> !input.paymentProxies.isEmpty(),
+                        ErrorCode.custom("paymentMethods", "At least one Payment Method is required"))
+                .checkPrecondition(() -> input.price != null, ErrorCode.custom("price", "Price is mandatory"))
+                .checkPrecondition(
+                        () -> input.usageType != null, ErrorCode.custom("usageType", "UsageType is mandatory"))
+                .checkPrecondition(() -> isNotBlank(input.fileBlobId), ErrorCode.custom("logo", "Logo is required"))
+                .build(() -> input);
     }
 }

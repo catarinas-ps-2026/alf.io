@@ -16,6 +16,8 @@
  */
 package alfio.util;
 
+import static alfio.util.MustacheCustomTag.*;
+
 import alfio.manager.PurchaseContextFieldManager;
 import alfio.manager.UploadedResourceManager;
 import alfio.manager.i18n.MessageSourceManager;
@@ -28,15 +30,6 @@ import alfio.model.system.ConfigurationKeys;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Mustache.Compiler;
 import com.samskivert.mustache.Template;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.web.servlet.ModelAndView;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
@@ -46,8 +39,14 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static alfio.util.MustacheCustomTag.*;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * For hiding the ugliness :)
@@ -61,7 +60,8 @@ public class TemplateManager {
     private static final Logger log = LoggerFactory.getLogger(TemplateManager.class);
 
     public enum TemplateOutput {
-        TEXT, HTML
+        TEXT,
+        HTML
     }
 
     private final MessageSourceManager messageSourceManager;
@@ -70,69 +70,113 @@ public class TemplateManager {
     private final ConfigurationManager configurationManager;
     private final PurchaseContextFieldManager purchaseContextFieldManager;
 
-
-    public TemplateManager(MessageSourceManager messageSourceManager,
-                           UploadedResourceManager uploadedResourceManager,
-                           ConfigurationManager configurationManager,
-                           PurchaseContextFieldManager purchaseContextFieldManager) {
+    public TemplateManager(
+            MessageSourceManager messageSourceManager,
+            UploadedResourceManager uploadedResourceManager,
+            ConfigurationManager configurationManager,
+            PurchaseContextFieldManager purchaseContextFieldManager) {
         this.messageSourceManager = messageSourceManager;
         this.uploadedResourceManager = uploadedResourceManager;
         this.configurationManager = configurationManager;
         this.purchaseContextFieldManager = purchaseContextFieldManager;
 
         this.compilers = new EnumMap<>(TemplateOutput.class);
-        this.compilers.put(TemplateOutput.TEXT, Mustache.compiler()
-            .escapeHTML(false)
-            .standardsMode(false)
-            .defaultValue("")
-            .nullValue("")
-            .withFormatter(TemplateManager::dateFormatter));
-        this.compilers.put(TemplateOutput.HTML, Mustache.compiler()
-            .escapeHTML(true)
-            .standardsMode(false)
-            .defaultValue("")
-            .nullValue("")
-            .withFormatter(TemplateManager::dateFormatter));
+        this.compilers.put(
+                TemplateOutput.TEXT,
+                Mustache.compiler()
+                        .escapeHTML(false)
+                        .standardsMode(false)
+                        .defaultValue("")
+                        .nullValue("")
+                        .withFormatter(TemplateManager::dateFormatter));
+        this.compilers.put(
+                TemplateOutput.HTML,
+                Mustache.compiler()
+                        .escapeHTML(true)
+                        .standardsMode(false)
+                        .defaultValue("")
+                        .nullValue("")
+                        .withFormatter(TemplateManager::dateFormatter));
     }
 
     private static String dateFormatter(Object o) {
-        if(o instanceof ZonedDateTime time) {
+        if (o instanceof ZonedDateTime time) {
             return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(time);
         }
         return String.valueOf(o);
     }
 
-    
-    private RenderedTemplate renderMultipartTemplate(PurchaseContext purchaseContext, TemplateResource templateResource, Map<String, Object> model, Locale locale) {
-    	var enrichedModel = modelEnricher(model, purchaseContext, locale);
-        var options = configurationManager.getFor(EnumSet.of(ConfigurationKeys.MAIL_FOOTER, ConfigurationKeys.ENABLE_HTML_EMAILS), purchaseContext.getConfigurationLevel());
+    private RenderedTemplate renderMultipartTemplate(
+            PurchaseContext purchaseContext,
+            TemplateResource templateResource,
+            Map<String, Object> model,
+            Locale locale) {
+        var enrichedModel = modelEnricher(model, purchaseContext, locale);
+        var options = configurationManager.getFor(
+                EnumSet.of(ConfigurationKeys.MAIL_FOOTER, ConfigurationKeys.ENABLE_HTML_EMAILS),
+                purchaseContext.getConfigurationLevel());
         var mailFooter = options.get(ConfigurationKeys.MAIL_FOOTER);
         enrichedModel.put("hasMailFooter", mailFooter.isPresent());
         enrichedModel.put(MAIL_FOOTER, mailFooter.getValueOrNull());
-    	var isMultipart = templateResource.isMultipart();
-    	
-        var textRender = render(new ClassPathResource(templateResource.classPath()), enrichedModel, locale, purchaseContext, isMultipart ? TemplateOutput.TEXT : templateResource.getTemplateOutput());
-        
+        var isMultipart = templateResource.isMultipart();
+
+        var textRender = render(
+                new ClassPathResource(templateResource.classPath()),
+                enrichedModel,
+                locale,
+                purchaseContext,
+                isMultipart ? TemplateOutput.TEXT : templateResource.getTemplateOutput());
+
         boolean htmlEnabled = options.get(ConfigurationKeys.ENABLE_HTML_EMAILS).getValueAsBooleanOrDefault();
 
         String htmlRender = null;
 
-        if(isMultipart && htmlEnabled) {
-            htmlRender = render(new ClassPathResource(templateResource.htmlClassPath()), enrichedModel, locale, purchaseContext, TemplateOutput.HTML);
+        if (isMultipart && htmlEnabled) {
+            htmlRender = render(
+                    new ClassPathResource(templateResource.htmlClassPath()),
+                    enrichedModel,
+                    locale,
+                    purchaseContext,
+                    TemplateOutput.HTML);
         }
 
-    	return RenderedTemplate.multipart(textRender, htmlRender, model);
+        return RenderedTemplate.multipart(textRender, htmlRender, model);
     }
 
-    public RenderedTemplate renderTemplate(PurchaseContext purchaseContext, TemplateResource templateResource, Map<String, Object> model, Locale locale) {
+    public RenderedTemplate renderTemplate(
+            PurchaseContext purchaseContext,
+            TemplateResource templateResource,
+            Map<String, Object> model,
+            Locale locale) {
         Map<String, Object> updatedModel = modelEnricher(model, purchaseContext, locale);
-        return uploadedResourceManager.findCascading(purchaseContext.getOrganizationId(), purchaseContext.event().map(Event::getId).orElse(null), templateResource.getSavedName(locale))
-            .map(resource -> RenderedTemplate.plaintext(render(new ByteArrayResource(templateResource.replaceTokens(resource)), updatedModel, locale, purchaseContext, templateResource.getTemplateOutput()), model))
-            .orElseGet(() -> renderMultipartTemplate(purchaseContext, templateResource, updatedModel, locale));
+        return uploadedResourceManager
+                .findCascading(
+                        purchaseContext.getOrganizationId(),
+                        purchaseContext.event().map(Event::getId).orElse(null),
+                        templateResource.getSavedName(locale))
+                .map(resource -> RenderedTemplate.plaintext(
+                        render(
+                                new ByteArrayResource(templateResource.replaceTokens(resource)),
+                                updatedModel,
+                                locale,
+                                purchaseContext,
+                                templateResource.getTemplateOutput()),
+                        model))
+                .orElseGet(() -> renderMultipartTemplate(purchaseContext, templateResource, updatedModel, locale));
     }
 
-    public String renderString(PurchaseContext purchaseContext, String template, Map<String, Object> model, Locale locale, TemplateOutput templateOutput) {
-        return render(new ByteArrayResource(template.getBytes(StandardCharsets.UTF_8)), modelEnricher(model, purchaseContext, locale), locale, purchaseContext, templateOutput);
+    public String renderString(
+            PurchaseContext purchaseContext,
+            String template,
+            Map<String, Object> model,
+            Locale locale,
+            TemplateOutput templateOutput) {
+        return render(
+                new ByteArrayResource(template.getBytes(StandardCharsets.UTF_8)),
+                modelEnricher(model, purchaseContext, locale),
+                locale,
+                purchaseContext,
+                templateOutput);
     }
 
     public void renderHtml(Resource resource, Map<String, Object> model, OutputStream os) {
@@ -151,43 +195,71 @@ public class TemplateManager {
         compile(resource, TemplateOutput.TEXT).execute(model, out);
     }
 
-    private Map<String, Object> modelEnricher(Map<String, Object> model, PurchaseContext purchaseContext, Locale locale) {
+    private Map<String, Object> modelEnricher(
+            Map<String, Object> model, PurchaseContext purchaseContext, Locale locale) {
         Map<String, Object> toEnrich = new HashMap<>(model);
-        if(!toEnrich.containsKey("purchaseContext")) {
+        if (!toEnrich.containsKey("purchaseContext")) {
             // this is necessary to support older model format
             toEnrich.put("purchaseContext", purchaseContext);
         }
-        toEnrich.put(VAT_TRANSLATION_TEMPLATE_KEY, messageSourceManager.getMessageSourceFor(purchaseContext).getMessage("common.vat", null, locale));
+        toEnrich.put(
+                VAT_TRANSLATION_TEMPLATE_KEY,
+                messageSourceManager.getMessageSourceFor(purchaseContext).getMessage("common.vat", null, locale));
         return toEnrich;
     }
 
-    private String render(Resource resource, Map<String, Object> model, Locale locale, PurchaseContext purchaseContext, TemplateOutput templateOutput) {
+    private String render(
+            Resource resource,
+            Map<String, Object> model,
+            Locale locale,
+            PurchaseContext purchaseContext,
+            TemplateOutput templateOutput) {
         try {
             var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);
-            var configuration = configurationManager.getFor(EnumSet.of(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL, ConfigurationKeys.ENABLE_WALLET, ConfigurationKeys.ENABLE_PASS), ConfigurationLevel.purchaseContext(purchaseContext));
-            boolean usePartnerCode = Objects.requireNonNull(configuration.get(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL))
-                .getValueAsBooleanOrDefault();
+            var configuration = configurationManager.getFor(
+                    EnumSet.of(
+                            ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL,
+                            ConfigurationKeys.ENABLE_WALLET,
+                            ConfigurationKeys.ENABLE_PASS),
+                    ConfigurationLevel.purchaseContext(purchaseContext));
+            boolean usePartnerCode = Objects.requireNonNull(
+                            configuration.get(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL))
+                    .getValueAsBooleanOrDefault();
             Supplier<Map<String, String>> descriptionSupplier =
-                () -> purchaseContextFieldManager.findDescriptions(purchaseContext).stream()
-                    .filter(d -> d.getLocale().equals(locale.getLanguage()))
-                    .collect(Collectors.toMap(PurchaseContextFieldDescription::getFieldName, d -> String.valueOf(d.getDescription().getOrDefault("label", d.getFieldName()))));
+                    () -> purchaseContextFieldManager.findDescriptions(purchaseContext).stream()
+                            .filter(d -> d.getLocale().equals(locale.getLanguage()))
+                            .collect(Collectors.toMap(
+                                    PurchaseContextFieldDescription::getFieldName,
+                                    d -> String.valueOf(d.getDescription().getOrDefault("label", d.getFieldName()))));
             ModelAndView mv = new ModelAndView();
             mv.getModelMap().addAllAttributes(model);
             mv.addObject("format-date", MustacheCustomTag.FORMAT_DATE);
             mv.addObject("country-name", COUNTRY_NAME);
             mv.addObject("render-markdown", RENDER_MARKDOWN);
             mv.addObject("additional-field-value", ADDITIONAL_FIELD_VALUE.apply(model.get(ADDITIONAL_FIELDS_KEY)));
-            mv.addObject("print-additional-fields", MustacheCustomTag.PRINT_ADDITIONAL_FIELDS.apply(model.get(ADDITIONAL_FIELDS_KEY), descriptionSupplier));
+            mv.addObject(
+                    "print-additional-fields",
+                    MustacheCustomTag.PRINT_ADDITIONAL_FIELDS.apply(
+                            model.get(ADDITIONAL_FIELDS_KEY), descriptionSupplier));
             mv.addObject("metadata-value", ADDITIONAL_FIELD_VALUE.apply(model.get(METADATA_ATTRIBUTES_KEY)));
             mv.addObject("i18n", new CustomLocalizationMessageInterceptor(locale, messageSource).createTranslator());
-            mv.addObject("discountCodeDescription", messageSource.getMessage("show-event.promo-code-type." + (usePartnerCode ? "partner" : "promotional"), null, locale));
-            mv.addObject("subscriptionDescription", MustacheCustomTag.subscriptionDescriptionGenerator(messageSource, model, locale));
+            mv.addObject(
+                    "discountCodeDescription",
+                    messageSource.getMessage(
+                            "show-event.promo-code-type." + (usePartnerCode ? "partner" : "promotional"),
+                            null,
+                            locale));
+            mv.addObject(
+                    "subscriptionDescription",
+                    MustacheCustomTag.subscriptionDescriptionGenerator(messageSource, model, locale));
             var updatedModel = mv.getModel();
             updatedModel.putIfAbsent("custom-header-text", "");
             updatedModel.putIfAbsent("custom-body-text", "");
             updatedModel.putIfAbsent("custom-footer-text", "");
-            boolean googleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_WALLET).getValueAsBooleanOrDefault();
-            boolean appleWalletEnabled = configuration.get(ConfigurationKeys.ENABLE_PASS).getValueAsBooleanOrDefault();
+            boolean googleWalletEnabled =
+                    configuration.get(ConfigurationKeys.ENABLE_WALLET).getValueAsBooleanOrDefault();
+            boolean appleWalletEnabled =
+                    configuration.get(ConfigurationKeys.ENABLE_PASS).getValueAsBooleanOrDefault();
             updatedModel.putIfAbsent("googleWalletEnabled", googleWalletEnabled);
             updatedModel.putIfAbsent("appleWalletEnabled", appleWalletEnabled);
             updatedModel.putIfAbsent("walletEnabled", googleWalletEnabled || appleWalletEnabled);
@@ -279,7 +351,8 @@ public class TemplateManager {
                     return Pair.of(OPEN_TAG, startTagIdx + START_TAG.length());
                 }
             }
-        }, OPEN_TAG {
+        },
+        OPEN_TAG {
             @Override
             public Pair<ParserState, Integer> next(String template, int idx, AST ast) {
                 int startTagIdx = template.indexOf(START_TAG, idx);
@@ -300,7 +373,8 @@ public class TemplateManager {
                     throw new IllegalStateException("should not be reached");
                 }
             }
-        }, CLOSE_TAG {
+        },
+        CLOSE_TAG {
             @Override
             public Pair<ParserState, Integer> next(String template, int idx, AST ast) {
 
@@ -309,7 +383,8 @@ public class TemplateManager {
                 //
                 return Pair.of(OPEN_TAG, idx + END_TAG.length());
             }
-        }, END {
+        },
+        END {
             @Override
             public Pair<ParserState, Integer> next(String template, int idx, AST ast) {
 
@@ -417,5 +492,4 @@ public class TemplateManager {
 
         return sb.toString();
     }
-
 }

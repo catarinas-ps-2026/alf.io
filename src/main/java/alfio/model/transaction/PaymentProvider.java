@@ -18,7 +18,6 @@ package alfio.model.transaction;
 
 import alfio.manager.payment.PaymentSpecification;
 import alfio.manager.support.PaymentResult;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +25,8 @@ import java.util.UUID;
 
 public interface PaymentProvider {
 
-    Set<? extends PaymentMethod> getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest);
+    Set<? extends PaymentMethod> getSupportedPaymentMethods(
+            PaymentContext paymentContext, TransactionRequest transactionRequest);
 
     PaymentProxy getPaymentProxy();
 
@@ -46,7 +46,7 @@ public interface PaymentProvider {
 
     default PaymentResult getTokenAndPay(PaymentSpecification spec) {
         PaymentResult tokenResult = getToken(spec);
-        if(tokenResult.isInitialized()) {
+        if (tokenResult.isInitialized()) {
             return doPayment(spec);
         }
         return tokenResult;

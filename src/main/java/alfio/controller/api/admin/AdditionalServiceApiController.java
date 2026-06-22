@@ -16,6 +16,8 @@
  */
 package alfio.controller.api.admin;
 
+import static java.util.Objects.requireNonNullElse;
+
 import alfio.controller.api.support.AdditionalItemSwapRequest;
 import alfio.manager.AccessService;
 import alfio.manager.AdditionalServiceManager;
@@ -31,16 +33,6 @@ import alfio.util.ExportUtils;
 import alfio.util.MonetaryUtil;
 import alfio.util.Validator;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -50,8 +42,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import static java.util.Objects.requireNonNullElse;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -63,13 +62,16 @@ public class AdditionalServiceApiController {
     private final AdditionalServiceManager additionalServiceManager;
     private final AccessService accessService;
 
-    public AdditionalServiceApiController(EventManager eventManager, EventRepository eventRepository, AdditionalServiceManager additionalServiceManager, AccessService accessService) {
+    public AdditionalServiceApiController(
+            EventManager eventManager,
+            EventRepository eventRepository,
+            AdditionalServiceManager additionalServiceManager,
+            AccessService accessService) {
         this.eventManager = eventManager;
         this.eventRepository = eventRepository;
         this.additionalServiceManager = additionalServiceManager;
         this.accessService = accessService;
     }
-
 
     @ExceptionHandler({IllegalArgumentException.class})
     public ResponseEntity<String> handleBadRequest(Exception e) {
@@ -86,76 +88,96 @@ public class AdditionalServiceApiController {
     @GetMapping("/event/{eventId}/additional-services")
     public List<EventModification.AdditionalService> loadAll(@PathVariable int eventId, Principal principal) {
         accessService.checkEventOwnership(principal, eventId);
-        return eventRepository.findOptionalById(eventId)
-            .map(event -> additionalServiceManager.loadAllForEvent(eventId)
-                            .stream()
-                            .map(as -> EventModification.AdditionalService.from(as)//.withAdditionalFields() TODO to be implemented
-                                            .withText(additionalServiceManager.findAllTextByAdditionalServiceId(as.id()))
-                                            .withZoneId(event.getZoneId())
-                                            .withPriceContainer(buildPriceContainer(event, as)).build())
-                            .toList())
-            .orElse(Collections.emptyList());
+        return eventRepository
+                .findOptionalById(eventId)
+                .map(event -> additionalServiceManager.loadAllForEvent(eventId).stream()
+                        .map(as -> EventModification.AdditionalService.from(
+                                        as) // .withAdditionalFields() TODO to be implemented
+                                .withText(additionalServiceManager.findAllTextByAdditionalServiceId(as.id()))
+                                .withZoneId(event.getZoneId())
+                                .withPriceContainer(buildPriceContainer(event, as))
+                                .build())
+                        .toList())
+                .orElse(Collections.emptyList());
     }
 
     @GetMapping("/event/{eventId}/additional-services/count")
-    public Map<Integer, Map<AdditionalServiceItem.AdditionalServiceItemStatus, Integer>> countUse(@PathVariable int eventId, Principal principal) {
+    public Map<Integer, Map<AdditionalServiceItem.AdditionalServiceItemStatus, Integer>> countUse(
+            @PathVariable int eventId, Principal principal) {
         accessService.checkEventOwnership(principal, eventId);
         return additionalServiceManager.countUsageForEvent(eventId);
     }
 
-    @PostMapping(
-        "/event/{eventId}/additional-services/swap-position"
-    )
-    public void swapPosition(@PathVariable int eventId,
-                             @RequestBody AdditionalItemSwapRequest request,
-                             Principal principal) {
+    @PostMapping("/event/{eventId}/additional-services/swap-position")
+    public void swapPosition(
+            @PathVariable int eventId, @RequestBody AdditionalItemSwapRequest request, Principal principal) {
         accessService.checkEventOwnership(principal, eventId);
         additionalServiceManager.swapAdditionalServicesPosition(eventId, request.id1(), request.id2());
     }
 
     @PutMapping("/event/{eventId}/additional-services/{additionalServiceId}")
     @Transactional
-    public ResponseEntity<EventModification.AdditionalService> update(@PathVariable int eventId, @PathVariable int additionalServiceId, @RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult, Principal principal) {
+    public ResponseEntity<EventModification.AdditionalService> update(
+            @PathVariable int eventId,
+            @PathVariable int additionalServiceId,
+            @RequestBody EventModification.AdditionalService additionalService,
+            BindingResult bindingResult,
+            Principal principal) {
         //
         accessService.checkEventOwnership(principal, eventId);
         Optional<AdditionalService> optional = additionalServiceManager.getOptionalById(additionalServiceId, eventId);
-        Assert.isTrue(optional.isPresent(), "No additional service with id " + additionalServiceId + " present in eventId " + eventId);
+        Assert.isTrue(
+                optional.isPresent(),
+                "No additional service with id " + additionalServiceId + " present in eventId " + eventId);
         var existing = optional.get();
-        Assert.isTrue(existing.availableQuantity() == -1 || additionalService.getAvailableQuantity() > 0, "Missing available quantity");
+        Assert.isTrue(
+                existing.availableQuantity() == -1 || additionalService.getAvailableQuantity() > 0,
+                "Missing available quantity");
         //
         ValidationResult validationResult = Validator.validateAdditionalService(additionalService, bindingResult);
         Validate.isTrue(validationResult.isSuccess(), "validation failed");
         Validate.isTrue(additionalServiceId == additionalService.getId(), "wrong input");
-        return eventRepository.findOptionalById(eventId)
-            .map(event -> {
-                int result = additionalServiceManager.update(additionalServiceId, event, additionalService);
-                Validate.isTrue(result <= 1, "too many records updated");
-                Stream.concat(additionalService.getTitle().stream(), additionalService.getDescription().stream()).
-                    forEach(t -> {
-                        if(t.getId() != null) {
-                            additionalServiceManager.updateText(t.getId(), t.getLocale(), t.getType(), t.getValue(), additionalServiceId);
-                        } else {
-                            additionalServiceManager.insertText(additionalService.getId(), t.getLocale(), t.getType(), t.getValue());
-                        }
-                    });
-                return ResponseEntity.ok(additionalService);
-            }).orElseThrow(IllegalArgumentException::new);
+        return eventRepository
+                .findOptionalById(eventId)
+                .map(event -> {
+                    int result = additionalServiceManager.update(additionalServiceId, event, additionalService);
+                    Validate.isTrue(result <= 1, "too many records updated");
+                    Stream.concat(additionalService.getTitle().stream(), additionalService.getDescription().stream())
+                            .forEach(t -> {
+                                if (t.getId() != null) {
+                                    additionalServiceManager.updateText(
+                                            t.getId(), t.getLocale(), t.getType(), t.getValue(), additionalServiceId);
+                                } else {
+                                    additionalServiceManager.insertText(
+                                            additionalService.getId(), t.getLocale(), t.getType(), t.getValue());
+                                }
+                            });
+                    return ResponseEntity.ok(additionalService);
+                })
+                .orElseThrow(IllegalArgumentException::new);
     }
 
     @PostMapping(value = "/event/{eventId}/additional-services")
     @Transactional
-    public ResponseEntity<EventModification.AdditionalService> insert(@PathVariable int eventId, @RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult, Principal principal) {
+    public ResponseEntity<EventModification.AdditionalService> insert(
+            @PathVariable int eventId,
+            @RequestBody EventModification.AdditionalService additionalService,
+            BindingResult bindingResult,
+            Principal principal) {
         accessService.checkEventOwnership(principal, eventId);
         ValidationResult validationResult = Validator.validateAdditionalService(additionalService, bindingResult);
         Validate.isTrue(validationResult.isSuccess(), "validation failed");
-        return eventRepository.findOptionalById(eventId)
-            .map(event -> ResponseEntity.ok(additionalServiceManager.insertAdditionalService(event, additionalService)))
-            .orElseThrow(IllegalArgumentException::new);
+        return eventRepository
+                .findOptionalById(eventId)
+                .map(event ->
+                        ResponseEntity.ok(additionalServiceManager.insertAdditionalService(event, additionalService)))
+                .orElseThrow(IllegalArgumentException::new);
     }
 
     @DeleteMapping("/event/{eventId}/additional-services/{additionalServiceId}")
     @Transactional
-    public ResponseEntity<String> remove(@PathVariable int eventId, @PathVariable int additionalServiceId, Principal principal) {
+    public ResponseEntity<String> remove(
+            @PathVariable int eventId, @PathVariable int additionalServiceId, Principal principal) {
         accessService.checkAdditionalServiceOwnership(principal, eventId, additionalServiceId);
         log.debug("{} is deleting additional service #{}", principal.getName(), additionalServiceId);
         additionalServiceManager.deleteAdditionalService(additionalServiceId, eventId);
@@ -163,54 +185,60 @@ public class AdditionalServiceApiController {
     }
 
     @GetMapping("/events/{eventName}/additional-services/{type}/export")
-    public void exportAdditionalServices(@PathVariable String eventName,
-                                         @PathVariable("type") AdditionalService.AdditionalServiceType additionalServiceType,
-                                         HttpServletResponse response,
-                                         Principal principal) throws IOException {
+    public void exportAdditionalServices(
+            @PathVariable String eventName,
+            @PathVariable("type") AdditionalService.AdditionalServiceType additionalServiceType,
+            HttpServletResponse response,
+            Principal principal)
+            throws IOException {
         accessService.checkEventOwnership(principal, eventName);
-        var event = eventManager.getOptionalByName(eventName, principal.getName()).orElseThrow();
+        var event =
+                eventManager.getOptionalByName(eventName, principal.getName()).orElseThrow();
         var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         var header = List.of(
-            "ID",
-            "Name",
-            "Creation",
-            "Last Update",
-            "Status",
-            "Reservation ID",
-            "Reservation First name",
-            "Reservation Last name",
-            "Reservation Email address",
-            "Paid Amount",
-            "Currency",
-            "VAT",
-            "Discount"
-        );
+                "ID",
+                "Name",
+                "Creation",
+                "Last Update",
+                "Status",
+                "Reservation ID",
+                "Reservation First name",
+                "Reservation Last name",
+                "Reservation Email address",
+                "Paid Amount",
+                "Currency",
+                "VAT",
+                "Discount");
         var locale = event.getContentLanguages().get(0).getLanguage();
         var rows = additionalServiceManager.exportItemsForEvent(additionalServiceType, event.getId(), locale).stream()
-            .map(item -> new String[] {
-                item.getUuid(),
-                item.getAdditionalServiceTitle(),
-                item.getUtcCreation().withZoneSameInstant(event.getZoneId()).format(formatter),
-                requireNonNullElse(item.getUtcLastModified(), item.getUtcCreation()).withZoneSameInstant(event.getZoneId()).format(formatter),
-                item.getAdditionalServiceItemStatus().name(),
-                item.getTicketsReservationUuid(),
-                item.getFirstName(),
-                item.getLastName(),
-                item.getEmailAddress(),
-                MonetaryUtil.formatCents(item.getFinalPriceCts(), item.getCurrencyCode()),
-                item.getCurrencyCode(),
-                MonetaryUtil.formatCents(item.getVatCts(), item.getCurrencyCode()),
-                MonetaryUtil.formatCents(item.getDiscountCts(), item.getCurrencyCode())
-            });
-        ExportUtils.exportExcel(event.getShortName() + "-" + additionalServiceType.name() + ".xlsx",
-            additionalServiceType.name(),
-            header.toArray(String[]::new),
-            rows,
-            response);
+                .map(item -> new String[] {
+                    item.getUuid(),
+                    item.getAdditionalServiceTitle(),
+                    item.getUtcCreation().withZoneSameInstant(event.getZoneId()).format(formatter),
+                    requireNonNullElse(item.getUtcLastModified(), item.getUtcCreation())
+                            .withZoneSameInstant(event.getZoneId())
+                            .format(formatter),
+                    item.getAdditionalServiceItemStatus().name(),
+                    item.getTicketsReservationUuid(),
+                    item.getFirstName(),
+                    item.getLastName(),
+                    item.getEmailAddress(),
+                    MonetaryUtil.formatCents(item.getFinalPriceCts(), item.getCurrencyCode()),
+                    item.getCurrencyCode(),
+                    MonetaryUtil.formatCents(item.getVatCts(), item.getCurrencyCode()),
+                    MonetaryUtil.formatCents(item.getDiscountCts(), item.getCurrencyCode())
+                });
+        ExportUtils.exportExcel(
+                event.getShortName() + "-" + additionalServiceType.name() + ".xlsx",
+                additionalServiceType.name(),
+                header.toArray(String[]::new),
+                rows,
+                response);
     }
 
     @PostMapping("/additional-services/validate")
-    public ValidationResult checkAdditionalService(@RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult) {
+    public ValidationResult checkAdditionalService(
+            @RequestBody EventModification.AdditionalService additionalService, BindingResult bindingResult) {
         return Validator.validateAdditionalService(additionalService, bindingResult);
     }
 

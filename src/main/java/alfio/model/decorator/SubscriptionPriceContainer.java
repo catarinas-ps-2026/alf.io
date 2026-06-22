@@ -20,12 +20,10 @@ import alfio.model.PriceContainer;
 import alfio.model.PromoCodeDiscount;
 import alfio.model.PurchaseContext;
 import alfio.model.subscription.Subscription;
-
 import java.math.BigDecimal;
 import java.util.Optional;
 
 public class SubscriptionPriceContainer implements PriceContainer {
-
 
     private final Subscription subscription;
     private final PurchaseContext purchaseContext;

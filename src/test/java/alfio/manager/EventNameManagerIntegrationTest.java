@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -32,6 +35,12 @@ import alfio.repository.user.UserRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,35 +50,32 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
-class EventNameManagerIntegrationTest  extends BaseIntegrationTest {
+class EventNameManagerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private ClockProvider clockProvider;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
     @Autowired
     private EventNameManager eventNameManager;
 
@@ -80,16 +86,38 @@ class EventNameManagerIntegrationTest  extends BaseIntegrationTest {
     void setUp() {
 
         // ensure that the current user is not a superuser
-        assertEquals(Boolean.FALSE, jdbcTemplate.queryForObject("select usesuper from pg_user where usename = CURRENT_USER",
-                EmptySqlParameterSource.INSTANCE,
-                Boolean.class));
+        assertEquals(
+                Boolean.FALSE,
+                jdbcTemplate.queryForObject(
+                        "select usesuper from pg_user where usename = CURRENT_USER",
+                        EmptySqlParameterSource.INSTANCE,
+                        Boolean.class));
 
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        var eventAndUsername = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(clockProvider.getClock()), LocalTime.now(clockProvider.getClock())),
+                new DateTimeModification(
+                        LocalDate.now(clockProvider.getClock()), LocalTime.now(clockProvider.getClock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        var eventAndUsername =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         event = eventAndUsername.getKey();
         String username = UUID.randomUUID().toString();
         userRepository.create(username, "password", "", "", "", true, User.Type.INTERNAL, null, "");
@@ -98,15 +126,35 @@ class EventNameManagerIntegrationTest  extends BaseIntegrationTest {
 
     @Test
     void testValidSlug() {
-        assertEquals(Boolean.TRUE, jdbcTemplate.queryForObject("select set_config('alfio.checkRowAccess', 'true', true)", EmptySqlParameterSource.INSTANCE, Boolean.class));
-        assertEquals(String.valueOf(secondOrgId), jdbcTemplate.queryForObject("select set_config('alfio.currentUserOrgs', :orgs, true)", new MapSqlParameterSource("orgs", String.valueOf(secondOrgId)), String.class));
+        assertEquals(
+                Boolean.TRUE,
+                jdbcTemplate.queryForObject(
+                        "select set_config('alfio.checkRowAccess', 'true', true)",
+                        EmptySqlParameterSource.INSTANCE,
+                        Boolean.class));
+        assertEquals(
+                String.valueOf(secondOrgId),
+                jdbcTemplate.queryForObject(
+                        "select set_config('alfio.currentUserOrgs', :orgs, true)",
+                        new MapSqlParameterSource("orgs", String.valueOf(secondOrgId)),
+                        String.class));
         assertTrue(eventNameManager.isUnique(event.getShortName() + "1"));
     }
 
     @Test
     void testAlreadyUsedSlug() {
-        assertEquals(Boolean.TRUE, jdbcTemplate.queryForObject("select set_config('alfio.checkRowAccess', 'true', true)", EmptySqlParameterSource.INSTANCE, Boolean.class));
-        assertEquals(String.valueOf(secondOrgId), jdbcTemplate.queryForObject("select set_config('alfio.currentUserOrgs', :orgs, true)", new MapSqlParameterSource("orgs", String.valueOf(secondOrgId)), String.class));
+        assertEquals(
+                Boolean.TRUE,
+                jdbcTemplate.queryForObject(
+                        "select set_config('alfio.checkRowAccess', 'true', true)",
+                        EmptySqlParameterSource.INSTANCE,
+                        Boolean.class));
+        assertEquals(
+                String.valueOf(secondOrgId),
+                jdbcTemplate.queryForObject(
+                        "select set_config('alfio.currentUserOrgs', :orgs, true)",
+                        new MapSqlParameterSource("orgs", String.valueOf(secondOrgId)),
+                        String.class));
         assertFalse(eventNameManager.isUnique(event.getShortName()));
     }
 }

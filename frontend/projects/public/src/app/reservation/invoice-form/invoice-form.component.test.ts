@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of, Subject } from 'rxjs';
@@ -70,9 +74,7 @@ describe('InvoiceFormComponent', () => {
             declarations: [InvoiceFormComponent],
             imports: [ReactiveFormsModule, TranslateModule.forRoot()],
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
-            providers: [
-                { provide: I18nService, useValue: mockI18nService },
-            ],
+            providers: [{ provide: I18nService, useValue: mockI18nService }],
         });
 
         const translate = TestBed.inject(TranslateService);
@@ -122,49 +124,77 @@ describe('InvoiceFormComponent', () => {
         it('should update Italy fields on reference type change', () => {
             component.ngOnInit();
 
-            component.form.get('italyEInvoicingReferenceType').setValue('ADDRESSEE_CODE');
-            component.form.get('italyEInvoicingReferencePEC').setValue('test@pec.it');
+            component.form
+                .get('italyEInvoicingReferenceType')
+                .setValue('ADDRESSEE_CODE');
+            component.form
+                .get('italyEInvoicingReferencePEC')
+                .setValue('test@pec.it');
 
             component.ngOnInit();
 
-            expect(component.form.get('italyEInvoicingReferencePEC').value).toBeNull();
+            expect(
+                component.form.get('italyEInvoicingReferencePEC').value,
+            ).toBeNull();
         });
     });
 
     describe('updateItalyEInvoicingFields', () => {
         it('should clear PEC when addressee code is selected', () => {
-            component.form.get('italyEInvoicingReferencePEC').setValue('test@pec.it');
-            component.form.get('italyEInvoicingReferenceType').setValue('ADDRESSEE_CODE');
+            component.form
+                .get('italyEInvoicingReferencePEC')
+                .setValue('test@pec.it');
+            component.form
+                .get('italyEInvoicingReferenceType')
+                .setValue('ADDRESSEE_CODE');
 
             component.updateItalyEInvoicingFields();
 
-            expect(component.form.get('italyEInvoicingReferencePEC').value).toBeNull();
+            expect(
+                component.form.get('italyEInvoicingReferencePEC').value,
+            ).toBeNull();
         });
 
         it('should clear addressee code when PEC is selected', () => {
-            component.form.get('italyEInvoicingReferenceAddresseeCode').setValue('ABC123');
+            component.form
+                .get('italyEInvoicingReferenceAddresseeCode')
+                .setValue('ABC123');
             component.form.get('italyEInvoicingReferenceType').setValue('PEC');
 
             component.updateItalyEInvoicingFields();
 
-            expect(component.form.get('italyEInvoicingReferenceAddresseeCode').value).toBeNull();
+            expect(
+                component.form.get('italyEInvoicingReferenceAddresseeCode')
+                    .value,
+            ).toBeNull();
         });
 
         it('should clear both when NONE is selected', () => {
-            component.form.get('italyEInvoicingReferencePEC').setValue('test@pec.it');
-            component.form.get('italyEInvoicingReferenceAddresseeCode').setValue('ABC123');
+            component.form
+                .get('italyEInvoicingReferencePEC')
+                .setValue('test@pec.it');
+            component.form
+                .get('italyEInvoicingReferenceAddresseeCode')
+                .setValue('ABC123');
             component.form.get('italyEInvoicingReferenceType').setValue('NONE');
 
             component.updateItalyEInvoicingFields();
 
-            expect(component.form.get('italyEInvoicingReferencePEC').value).toBeNull();
-            expect(component.form.get('italyEInvoicingReferenceAddresseeCode').value).toBeNull();
+            expect(
+                component.form.get('italyEInvoicingReferencePEC').value,
+            ).toBeNull();
+            expect(
+                component.form.get('italyEInvoicingReferenceAddresseeCode')
+                    .value,
+            ).toBeNull();
         });
     });
 
     describe('addresseeCodeSelected', () => {
         it('should return true when addressee code is selected', () => {
-            component.form.get('italyEInvoicingReferenceType').setValue('ADDRESSEE_CODE');
+            component.form
+                .get('italyEInvoicingReferenceType')
+                .setValue('ADDRESSEE_CODE');
             expect(component.addresseeCodeSelected).toBe(true);
         });
 
@@ -181,7 +211,9 @@ describe('InvoiceFormComponent', () => {
         });
 
         it('should return false when other type is selected', () => {
-            component.form.get('italyEInvoicingReferenceType').setValue('ADDRESSEE_CODE');
+            component.form
+                .get('italyEInvoicingReferenceType')
+                .setValue('ADDRESSEE_CODE');
             expect(component.pecSelected).toBe(false);
         });
     });
@@ -237,7 +269,10 @@ describe('InvoiceFormComponent', () => {
 
         it('should return false when Italy e-invoicing is not enabled', () => {
             component.purchaseContext = undefined;
-            component.invoicingConfiguration = { ...mockInvoicingConfiguration, enabledItalyEInvoicing: false };
+            component.invoicingConfiguration = {
+                ...mockInvoicingConfiguration,
+                enabledItalyEInvoicing: false,
+            };
             component.form.get('vatCountryCode').setValue('IT');
             expect(component.italyEInvoicingFormDisplayed).toBe(false);
         });
@@ -280,7 +315,10 @@ describe('InvoiceFormComponent', () => {
     describe('ngOnDestroy', () => {
         it('should unsubscribe from langChange', () => {
             component.ngOnInit();
-            const unsubscribeSpy = vi.spyOn(component.langChangeSub, 'unsubscribe');
+            const unsubscribeSpy = vi.spyOn(
+                component.langChangeSub,
+                'unsubscribe',
+            );
             component.ngOnDestroy();
             expect(unsubscribeSpy).toHaveBeenCalled();
         });

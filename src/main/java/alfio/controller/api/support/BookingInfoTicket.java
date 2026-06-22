@@ -37,21 +37,22 @@ public class BookingInfoTicket {
     private final Map<String, String> formattedOnlineCheckInDate;
     private final boolean onlineEventStarted;
 
-    public BookingInfoTicket(String uuid,
-                             String firstName,
-                             String lastName,
-                             String email,
-                             String fullName,
-                             String userLanguage,
-                             boolean assigned,
-                             boolean locked,
-                             boolean acquired,
-                             boolean cancellationEnabled,
-                             boolean sendMailEnabled,
-                             boolean downloadEnabled,
-                             List<AdditionalField> ticketFieldConfiguration,
-                             Map<String, String> formattedOnlineCheckInDate,
-                             boolean onlineEventStarted) {
+    public BookingInfoTicket(
+            String uuid,
+            String firstName,
+            String lastName,
+            String email,
+            String fullName,
+            String userLanguage,
+            boolean assigned,
+            boolean locked,
+            boolean acquired,
+            boolean cancellationEnabled,
+            boolean sendMailEnabled,
+            boolean downloadEnabled,
+            List<AdditionalField> ticketFieldConfiguration,
+            Map<String, String> formattedOnlineCheckInDate,
+            boolean onlineEventStarted) {
         this.uuid = uuid;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -110,11 +111,15 @@ public class BookingInfoTicket {
     }
 
     public List<AdditionalField> getTicketFieldConfigurationBeforeStandard() {
-        return ticketFieldConfiguration.stream().filter(AdditionalField::isBeforeStandardFields).collect(Collectors.toList());
+        return ticketFieldConfiguration.stream()
+                .filter(AdditionalField::isBeforeStandardFields)
+                .collect(Collectors.toList());
     }
 
     public List<AdditionalField> getTicketFieldConfigurationAfterStandard() {
-        return ticketFieldConfiguration.stream().filter(tv -> !tv.isBeforeStandardFields()).collect(Collectors.toList());
+        return ticketFieldConfiguration.stream()
+                .filter(tv -> !tv.isBeforeStandardFields())
+                .collect(Collectors.toList());
     }
 
     public Map<String, String> getFormattedOnlineCheckInDate() {

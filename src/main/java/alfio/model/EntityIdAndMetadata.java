@@ -26,8 +26,7 @@ public class EntityIdAndMetadata {
     private final Integer id;
     private final AlfioMetadata metadata;
 
-    public EntityIdAndMetadata(@Column("id") Integer id,
-                               @Column("metadata") @JSONData AlfioMetadata metadata) {
+    public EntityIdAndMetadata(@Column("id") Integer id, @Column("metadata") @JSONData AlfioMetadata metadata) {
         this.id = id;
         this.metadata = metadata;
     }

@@ -16,18 +16,17 @@
  */
 package alfio.config.authentication.support;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import static alfio.config.authentication.support.RequestTypeMatchers.isTokenAuthentication;
 
 import jakarta.servlet.http.HttpServletRequest;
-
-import static alfio.config.authentication.support.RequestTypeMatchers.isTokenAuthentication;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 public class APIKeyAuthFilter extends AbstractPreAuthenticatedProcessingFilter {
 
     @Override
     protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-        if(!isTokenAuthentication(request) || StringUtils.isBlank(request.getHeader("Authorization"))) {
+        if (!isTokenAuthentication(request) || StringUtils.isBlank(request.getHeader("Authorization"))) {
             return null;
         }
         return StringUtils.trim(request.getHeader("Authorization").substring("apikey ".length()));

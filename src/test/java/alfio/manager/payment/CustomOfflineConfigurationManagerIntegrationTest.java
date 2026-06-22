@@ -16,26 +16,9 @@
  */
 package alfio.manager.payment;
 
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
@@ -63,10 +46,24 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.ClockProvider;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -76,20 +73,28 @@ class CustomOfflineConfigurationManagerIntegrationTest {
 
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private TicketCategoryRepository ticketCategoryRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private ClockProvider clockProvider;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private ObjectMapper objectMapper;
+
     @Autowired
     private CustomOfflineConfigurationManager customOfflineConfigurationManager;
 
@@ -102,26 +107,66 @@ class CustomOfflineConfigurationManagerIntegrationTest {
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
 
         List<TicketCategoryModification> categories = Arrays.asList(
-            new TicketCategoryModification(null, DEFAULT_CATEGORY_NAME, TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.ONE, true, "", true, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
+                new TicketCategoryModification(
+                        null,
+                        DEFAULT_CATEGORY_NAME,
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        "hidden",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        2,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.ONE,
+                        true,
+                        "",
+                        true,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
         Pair<Event, String> eventAndUser = initEvent(
-            categories,
-            organizationRepository,
-            userManager,
-            eventManager,
-            eventRepository,
-            null,
-            EventFormat.ONLINE,
-            VatStatus.INCLUDED,
-            List.of(PaymentProxy.CUSTOM_OFFLINE)
-        );
+                categories,
+                organizationRepository,
+                userManager,
+                eventManager,
+                eventRepository,
+                null,
+                EventFormat.ONLINE,
+                VatStatus.INCLUDED,
+                List.of(PaymentProxy.CUSTOM_OFFLINE));
         event = eventAndUser.getLeft();
 
         organization = organizationRepository.getById(event.getOrganizationId());
@@ -132,69 +177,62 @@ class CustomOfflineConfigurationManagerIntegrationTest {
     }
 
     @Test
-    void canSetDeniedPaymentMethodsWhenKeyAlreadyExists() throws JsonProcessingException, CustomOfflinePaymentMethodDoesNotExistException {
+    void canSetDeniedPaymentMethodsWhenKeyAlreadyExists()
+            throws JsonProcessingException, CustomOfflinePaymentMethodDoesNotExistException {
         final var paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
-                "15146df3-2436-4d2e-90b9-0d6cb273e291",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant Canadian bank transfer",
-                        "### Send the full invoiced amount to `payments@org.com`."
-                    )
-                )
-            ),
-            new UserDefinedOfflinePaymentMethod(
-                "853fdf8d-9489-46d1-89ce-6266e18fb4db",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Cash App",
-                        "Instant money transfer through the Cash App IOS/Android app",
-                        "### Send the full invoiced amount to user `org1payments`."
-                    )
-                )
-            )
-        );
+                new UserDefinedOfflinePaymentMethod(
+                        "15146df3-2436-4d2e-90b9-0d6cb273e291",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Interac E-Transfer",
+                                        "Instant Canadian bank transfer",
+                                        "### Send the full invoiced amount to `payments@org.com`."))),
+                new UserDefinedOfflinePaymentMethod(
+                        "853fdf8d-9489-46d1-89ce-6266e18fb4db",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Cash App",
+                                        "Instant money transfer through the Cash App IOS/Android app",
+                                        "### Send the full invoiced amount to user `org1payments`."))));
 
         String paymentMethodsJson = objectMapper.writeValueAsString(paymentMethods);
         configurationRepository.insertOrganizationLevel(
-            organization.getId(),
-            ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(),
-            paymentMethodsJson,
-            ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.getDescription()
-        );
+                organization.getId(),
+                ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(),
+                paymentMethodsJson,
+                ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.getDescription());
 
         var categories = ticketCategoryRepository.findAllTicketCategories(event.getId());
 
         customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(
-            event,
-            categories.get(0),
-            List.of(paymentMethods.get(0))
-        );
+                event, categories.get(0), List.of(paymentMethods.get(0)));
 
-        var deniedJson = configurationRepository.findByKeyAtCategoryLevel(
-            event.getId(),
-            event.getOrganizationId(),
-            categories.get(0).getId(),
-            ConfigurationKeys.DENIED_CUSTOM_PAYMENTS.name()
-        ).get().getValue();
+        var deniedJson = configurationRepository
+                .findByKeyAtCategoryLevel(
+                        event.getId(),
+                        event.getOrganizationId(),
+                        categories.get(0).getId(),
+                        ConfigurationKeys.DENIED_CUSTOM_PAYMENTS.name())
+                .get()
+                .getValue();
 
         var deniedItems = objectMapper.readValue(deniedJson, new TypeReference<List<String>>() {});
         assertEquals(1, deniedItems.size());
         assertEquals(paymentMethods.get(0).getPaymentMethodId(), deniedItems.get(0));
 
         customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(
-            event,
-            categories.get(0),
-            List.of(paymentMethods.get(1))
-        );
+                event, categories.get(0), List.of(paymentMethods.get(1)));
 
-        deniedJson = configurationRepository.findByKeyAtCategoryLevel(
-            event.getId(),
-            event.getOrganizationId(),
-            categories.get(0).getId(),
-            ConfigurationKeys.DENIED_CUSTOM_PAYMENTS.name()
-        ).get().getValue();
+        deniedJson = configurationRepository
+                .findByKeyAtCategoryLevel(
+                        event.getId(),
+                        event.getOrganizationId(),
+                        categories.get(0).getId(),
+                        ConfigurationKeys.DENIED_CUSTOM_PAYMENTS.name())
+                .get()
+                .getValue();
 
         deniedItems = objectMapper.readValue(deniedJson, new TypeReference<List<String>>() {});
         assertEquals(1, deniedItems.size());
@@ -203,90 +241,73 @@ class CustomOfflineConfigurationManagerIntegrationTest {
 
     @Test
     void cannotAddDeniedMethodsWhichDoNotExist() {
-        final var paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
+        final var paymentMethods = List.of(new UserDefinedOfflinePaymentMethod(
                 "15146df3-2436-4d2e-90b9-0d6cb273e291",
                 Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant Canadian bank transfer",
-                        "### Send the full invoiced amount to `payments@org.com`."
-                    )
-                )
-            )
-        );
+                        "en",
+                        new UserDefinedOfflinePaymentMethod.Localization(
+                                "Interac E-Transfer",
+                                "Instant Canadian bank transfer",
+                                "### Send the full invoiced amount to `payments@org.com`."))));
         // Not inserting into DB
 
         var categories = ticketCategoryRepository.findAllTicketCategories(event.getId());
 
         assertThrows(
-            CustomOfflinePaymentMethodDoesNotExistException.class,
-            () -> customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(
-                event,
-                categories.get(0),
-                List.of(paymentMethods.get(0))
-            )
-        );
+                CustomOfflinePaymentMethodDoesNotExistException.class,
+                () -> customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(
+                        event, categories.get(0), List.of(paymentMethods.get(0))));
     }
 
     @Test
-    void canSetAllowedEventPaymentMethodsWhenKeyAlreadyExists() throws JsonProcessingException, CustomOfflinePaymentMethodDoesNotExistException {
+    void canSetAllowedEventPaymentMethodsWhenKeyAlreadyExists()
+            throws JsonProcessingException, CustomOfflinePaymentMethodDoesNotExistException {
         final var paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
-                "15146df3-2436-4d2e-90b9-0d6cb273e291",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant Canadian bank transfer",
-                        "### Send the full invoiced amount to `payments@org.com`."
-                    )
-                )
-            ),
-            new UserDefinedOfflinePaymentMethod(
-                "853fdf8d-9489-46d1-89ce-6266e18fb4db",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Cash App",
-                        "Instant money transfer through the Cash App IOS/Android app",
-                        "### Send the full invoiced amount to user `org1payments`."
-                    )
-                )
-            )
-        );
+                new UserDefinedOfflinePaymentMethod(
+                        "15146df3-2436-4d2e-90b9-0d6cb273e291",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Interac E-Transfer",
+                                        "Instant Canadian bank transfer",
+                                        "### Send the full invoiced amount to `payments@org.com`."))),
+                new UserDefinedOfflinePaymentMethod(
+                        "853fdf8d-9489-46d1-89ce-6266e18fb4db",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Cash App",
+                                        "Instant money transfer through the Cash App IOS/Android app",
+                                        "### Send the full invoiced amount to user `org1payments`."))));
 
         String paymentMethodsJson = objectMapper.writeValueAsString(paymentMethods);
         configurationRepository.insertOrganizationLevel(
-            organization.getId(),
-            ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(),
-            paymentMethodsJson,
-            ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.getDescription()
-        );
+                organization.getId(),
+                ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(),
+                paymentMethodsJson,
+                ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.getDescription());
 
         customOfflineConfigurationManager.setAllowedCustomOfflinePaymentMethodsForEvent(
-            event,
-            List.of(paymentMethods.get(0).getPaymentMethodId())
-        );
+                event, List.of(paymentMethods.get(0).getPaymentMethodId()));
 
-        var allowedMethodsJson = configurationRepository.findByKeyAtEventLevel(
-            event.getId(),
-            event.getOrganizationId(),
-            ConfigurationKeys.SELECTED_CUSTOM_PAYMENTS.name()
-        ).get().getValue();
+        var allowedMethodsJson = configurationRepository
+                .findByKeyAtEventLevel(
+                        event.getId(), event.getOrganizationId(), ConfigurationKeys.SELECTED_CUSTOM_PAYMENTS.name())
+                .get()
+                .getValue();
 
         var allowedMethods = objectMapper.readValue(allowedMethodsJson, new TypeReference<List<String>>() {});
         assertEquals(1, allowedMethods.size());
         assertEquals(paymentMethods.get(0).getPaymentMethodId(), allowedMethods.get(0));
 
         customOfflineConfigurationManager.setAllowedCustomOfflinePaymentMethodsForEvent(
-            event,
-            List.of(paymentMethods.get(1).getPaymentMethodId())
-        );
+                event, List.of(paymentMethods.get(1).getPaymentMethodId()));
 
-        allowedMethodsJson = configurationRepository.findByKeyAtEventLevel(
-            event.getId(),
-            event.getOrganizationId(),
-            ConfigurationKeys.SELECTED_CUSTOM_PAYMENTS.name()
-        ).get().getValue();
+        allowedMethodsJson = configurationRepository
+                .findByKeyAtEventLevel(
+                        event.getId(), event.getOrganizationId(), ConfigurationKeys.SELECTED_CUSTOM_PAYMENTS.name())
+                .get()
+                .getValue();
 
         allowedMethods = objectMapper.readValue(allowedMethodsJson, new TypeReference<List<String>>() {});
         assertEquals(1, allowedMethods.size());
@@ -294,55 +315,49 @@ class CustomOfflineConfigurationManagerIntegrationTest {
     }
 
     @Test
-    void cannotUpdateDeletedPaymentMethod() throws JsonProcessingException, CustomOfflinePaymentMethodDoesNotExistException {
+    void cannotUpdateDeletedPaymentMethod()
+            throws JsonProcessingException, CustomOfflinePaymentMethodDoesNotExistException {
         final var paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
-                "15146df3-2436-4d2e-90b9-0d6cb273e291",
-                new HashMap<>() {{
-                    put("en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant Canadian bank transfer",
-                        "### Send the full invoiced amount to `payments@org.com`."
-                    ));
-                }}
-            ),
-            new UserDefinedOfflinePaymentMethod(
-                "853fdf8d-9489-46d1-89ce-6266e18fb4db",
-                new HashMap<>() {{
-                    put("en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Cash App",
-                        "Instant money transfer through the Cash App IOS/Android app",
-                        "### Send the full invoiced amount to user `org1payments`."
-                    ));
-                }}
-            )
-        );
+                new UserDefinedOfflinePaymentMethod("15146df3-2436-4d2e-90b9-0d6cb273e291", new HashMap<>() {
+                    {
+                        put(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Interac E-Transfer",
+                                        "Instant Canadian bank transfer",
+                                        "### Send the full invoiced amount to `payments@org.com`."));
+                    }
+                }),
+                new UserDefinedOfflinePaymentMethod("853fdf8d-9489-46d1-89ce-6266e18fb4db", new HashMap<>() {
+                    {
+                        put(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Cash App",
+                                        "Instant money transfer through the Cash App IOS/Android app",
+                                        "### Send the full invoiced amount to user `org1payments`."));
+                    }
+                }));
         paymentMethods.get(0).setDeleted();
 
         String paymentMethodsJson = objectMapper.writeValueAsString(paymentMethods);
         configurationRepository.insertOrganizationLevel(
-            organization.getId(),
-            ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(),
-            paymentMethodsJson,
-            ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.getDescription()
-        );
+                organization.getId(),
+                ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(),
+                paymentMethodsJson,
+                ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.getDescription());
 
         var updated = paymentMethods.get(0);
         var originalLocalization = updated.getLocaleByKey("en");
         var updatedLocalization = new UserDefinedOfflinePaymentMethod.Localization(
-            "Interac E-Transfer 2",
-            originalLocalization.paymentDescription(),
-            originalLocalization.paymentInstructions()
-        );
+                "Interac E-Transfer 2",
+                originalLocalization.paymentDescription(),
+                originalLocalization.paymentInstructions());
         updated.getLocalizations().put("en", updatedLocalization);
 
-        assertThrows(
-            CustomOfflinePaymentMethodDoesNotExistException.class,
-            () -> {
-                customOfflineConfigurationManager.updateOrganizationCustomOfflinePaymentMethod(
-                    organization.getId(), updated
-                );
-            }
-        );
+        assertThrows(CustomOfflinePaymentMethodDoesNotExistException.class, () -> {
+            customOfflineConfigurationManager.updateOrganizationCustomOfflinePaymentMethod(
+                    organization.getId(), updated);
+        });
     }
 }

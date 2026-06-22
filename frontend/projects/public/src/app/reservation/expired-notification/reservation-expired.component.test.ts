@@ -18,9 +18,7 @@ describe('ReservationExpiredComponent', () => {
         TestBed.configureTestingModule({
             declarations: [ReservationExpiredComponent],
             imports: [NgbModule, TranslateModule.forRoot()],
-            providers: [
-                { provide: NgbActiveModal, useValue: mockActiveModal },
-            ],
+            providers: [{ provide: NgbActiveModal, useValue: mockActiveModal }],
         });
 
         fixture = TestBed.createComponent(ReservationExpiredComponent);

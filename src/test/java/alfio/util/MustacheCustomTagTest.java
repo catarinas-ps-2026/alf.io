@@ -16,18 +16,17 @@
  */
 package alfio.util;
 
-import com.samskivert.mustache.Template;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import static alfio.util.MustacheCustomTag.ADDITIONAL_FIELD_VALUE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
+import com.samskivert.mustache.Template;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Locale;
-
-import static alfio.util.MustacheCustomTag.ADDITIONAL_FIELD_VALUE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class MustacheCustomTagTest {
 
@@ -58,42 +57,63 @@ public class MustacheCustomTagTest {
     @Test
     public void additionalFieldValue() throws IOException {
         when(fragment.execute()).thenReturn("[existing]");
-        ADDITIONAL_FIELD_VALUE.apply(Collections.singletonMap("existing", "existing value")).execute(fragment, out);
+        ADDITIONAL_FIELD_VALUE
+                .apply(Collections.singletonMap("existing", "existing value"))
+                .execute(fragment, out);
         verify(out).write("existing value");
     }
 
     @Test
     public void additionalFieldValuePrefix() throws IOException {
         when(fragment.execute()).thenReturn("[prefix!][existing]");
-        ADDITIONAL_FIELD_VALUE.apply(Collections.singletonMap("existing", "existing value")).execute(fragment, out);
+        ADDITIONAL_FIELD_VALUE
+                .apply(Collections.singletonMap("existing", "existing value"))
+                .execute(fragment, out);
         verify(out).write("prefix! existing value");
     }
 
     @Test
     public void additionalFieldValueSuffix() throws IOException {
         when(fragment.execute()).thenReturn("[prefix!][existing][suffix-]");
-        ADDITIONAL_FIELD_VALUE.apply(Collections.singletonMap("existing", "existing value")).execute(fragment, out);
+        ADDITIONAL_FIELD_VALUE
+                .apply(Collections.singletonMap("existing", "existing value"))
+                .execute(fragment, out);
         verify(out).write("prefix! existing value suffix-");
     }
 
     @Test
     public void testHtmlMarkDown() {
-        //by default we escape all html
-        assertEquals("<p>escape &lt;a href=&quot;http://test&quot;&gt;bla&lt;/a&gt; escape</p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("escape <a href=\"http://test\">bla</a> escape"));
+        // by default we escape all html
+        assertEquals(
+                "<p>escape &lt;a href=&quot;http://test&quot;&gt;bla&lt;/a&gt; escape</p>\n",
+                MustacheCustomTag.renderToHtmlCommonmarkEscaped("escape <a href=\"http://test\">bla</a> escape"));
 
-        //for relative link we don't add target="_blank"
-        assertEquals("<p>link <a href=\"/test\">bla</a> link</p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("link [bla](/test) link"));
+        // for relative link we don't add target="_blank"
+        assertEquals(
+                "<p>link <a href=\"/test\">bla</a> link</p>\n",
+                MustacheCustomTag.renderToHtmlCommonmarkEscaped("link [bla](/test) link"));
 
-        //for absolute link we add target="_blank"
-        assertEquals("<p>link <a href=\"http://test\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">bla</a> link</p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("link [bla](http://test) link"));
+        // for absolute link we add target="_blank"
+        assertEquals(
+                "<p>link <a href=\"http://test\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">bla</a> link</p>\n",
+                MustacheCustomTag.renderToHtmlCommonmarkEscaped("link [bla](http://test) link"));
     }
 
     @Test
     public void acceptOnlyHttpOrHttpsProtocols() {
-        assertEquals("<p><a href=\"http://google.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">google</a></p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](http://google.com)"));
-        assertEquals("<p><a href=\"https://google.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">google</a></p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](https://google.com)"));
-        assertEquals("<p><a>google</a></p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](any:google.com)"));
-        assertEquals("<p><a>google</a></p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](other:google.com)"));
-        assertEquals("<p><a>google</a></p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](protocols:/google.com)"));
+        assertEquals(
+                "<p><a href=\"http://google.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">google</a></p>\n",
+                MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](http://google.com)"));
+        assertEquals(
+                "<p><a href=\"https://google.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">google</a></p>\n",
+                MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](https://google.com)"));
+        assertEquals(
+                "<p><a>google</a></p>\n", MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](any:google.com)"));
+        assertEquals(
+                "<p><a>google</a></p>\n",
+                MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](other:google.com)"));
+        assertEquals(
+                "<p><a>google</a></p>\n",
+                MustacheCustomTag.renderToHtmlCommonmarkEscaped("[google](protocols:/google.com)"));
     }
 }

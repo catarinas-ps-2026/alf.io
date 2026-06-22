@@ -14,14 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.mozilla.javascript.Token;
 import org.mozilla.javascript.ast.*;
 
@@ -56,10 +54,10 @@ class JSSymbol {
 
     public void addChild(JSSymbol child) {
         if (child.getType() == Token.VAR) {
-            //check if it is already added
+            // check if it is already added
             AstNode childNode = child.getNode();
             if (childNode instanceof VariableInitializer initializer) {
-                String varName = ((Name)initializer.getTarget()).getIdentifier();
+                String varName = ((Name) initializer.getTarget()).getIdentifier();
                 if (localVars.containsKey(varName)) {
                     return;
                 }
@@ -70,7 +68,7 @@ class JSSymbol {
         child.setParent(this);
     }
 
-    public void addChild (AstNode node) {
+    public void addChild(AstNode node) {
         addChild(new JSSymbol(node));
     }
 
@@ -82,7 +80,7 @@ class JSSymbol {
         return node;
     }
 
-    public boolean childExist (String name) {
+    public boolean childExist(String name) {
         return localVars.containsKey(name);
     }
 

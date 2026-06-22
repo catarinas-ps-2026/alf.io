@@ -19,23 +19,21 @@ package alfio.model;
 import alfio.model.modification.StatisticsContainer;
 import alfio.model.transaction.PaymentProxy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.commons.lang3.builder.CompareToBuilder;
-
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
+import org.apache.commons.lang3.builder.CompareToBuilder;
 
 public class EventStatistic implements StatisticsContainer, Comparable<EventStatistic> {
 
     public static final DateTimeFormatter JSON_DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
-
 
     @JsonIgnore
     private final Event event;
 
     @JsonIgnore
     private final EventStatisticView eventStatisticView;
+
     @JsonIgnore
     private final boolean statisticsEnabled;
 
@@ -50,7 +48,8 @@ public class EventStatistic implements StatisticsContainer, Comparable<EventStat
     }
 
     public boolean isWarningNeeded() {
-        return !isExpired() && (eventStatisticView.isContainsOrphanTickets() || eventStatisticView.isContainsStuckReservations());
+        return !isExpired()
+                && (eventStatisticView.isContainsOrphanTickets() || eventStatisticView.isContainsStuckReservations());
     }
 
     public int getAvailableSeats() {
@@ -128,7 +127,9 @@ public class EventStatistic implements StatisticsContainer, Comparable<EventStat
         return event.getFileBlobId();
     }
 
-    public boolean isVisibleForCurrentUser() { return eventStatisticView.isLiveData(); }
+    public boolean isVisibleForCurrentUser() {
+        return eventStatisticView.isLiveData();
+    }
 
     public boolean isDisplayStatistics() {
         return isVisibleForCurrentUser() && statisticsEnabled;
@@ -137,6 +138,10 @@ public class EventStatistic implements StatisticsContainer, Comparable<EventStat
     @Override
     public int compareTo(EventStatistic o) {
         CompareToBuilder builder = new CompareToBuilder();
-        return builder.append(isExpired(), o.isExpired()).append(event.getBegin().withZoneSameInstant(ZoneId.systemDefault()), o.event.getBegin().withZoneSameInstant(ZoneId.systemDefault())).build();
+        return builder.append(isExpired(), o.isExpired())
+                .append(
+                        event.getBegin().withZoneSameInstant(ZoneId.systemDefault()),
+                        o.event.getBegin().withZoneSameInstant(ZoneId.systemDefault()))
+                .build();
     }
 }

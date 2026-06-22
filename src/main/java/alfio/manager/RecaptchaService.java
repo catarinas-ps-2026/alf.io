@@ -20,16 +20,15 @@ import alfio.manager.system.ConfigurationManager;
 import alfio.model.system.ConfigurationKeys;
 import alfio.util.HttpUtils;
 import alfio.util.Json;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.stereotype.Component;
-
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
@@ -38,24 +37,29 @@ public class RecaptchaService {
     private final HttpClient client;
     private final ConfigurationManager configurationManager;
 
-
     public boolean checkRecaptcha(String recaptchaResponse, HttpServletRequest req) {
-        return configurationManager.getForSystem(ConfigurationKeys.RECAPTCHA_SECRET).getValue()
-            .map(secret -> recaptchaRequest(client, secret, ObjectUtils.firstNonNull(recaptchaResponse, req.getParameter("g-recaptcha-response"))))
-            .orElse(true);
+        return configurationManager
+                .getForSystem(ConfigurationKeys.RECAPTCHA_SECRET)
+                .getValue()
+                .map(secret -> recaptchaRequest(
+                        client,
+                        secret,
+                        ObjectUtils.firstNonNull(recaptchaResponse, req.getParameter("g-recaptcha-response"))))
+                .orElse(true);
     }
 
     private static boolean recaptchaRequest(HttpClient client, String secret, String response) {
-        if(response == null) {
+        if (response == null) {
             return false;
         }
 
         try {
             var params = Map.of("secret", secret, "response", response);
-            HttpResponse<String> httpResponse = HttpUtils.postForm(client, "https://www.google.com/recaptcha/api/siteverify", params);
+            HttpResponse<String> httpResponse =
+                    HttpUtils.postForm(client, "https://www.google.com/recaptcha/api/siteverify", params);
             String body = httpResponse.body();
             return body != null && Json.fromJson(body, RecatpchaResponse.class).success;
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;
         } catch (IOException e) {

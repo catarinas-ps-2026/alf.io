@@ -24,8 +24,7 @@ public class UserIdAndOrganizationId {
     private final int userId;
     private final int organizationId;
 
-    public UserIdAndOrganizationId(@Column("user_id") int userId,
-                                   @Column("organization_id") int organizationId) {
+    public UserIdAndOrganizationId(@Column("user_id") int userId, @Column("organization_id") int organizationId) {
         this.userId = userId;
         this.organizationId = organizationId;
     }

@@ -18,12 +18,11 @@ package alfio.controller.form;
 
 import alfio.model.modification.AdditionalServiceReservationModification;
 import alfio.model.modification.TicketReservationModification;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
+import lombok.Data;
 
-//step 1 : choose tickets
+// step 1 : choose tickets
 @Data
 public class ReservationForm implements Serializable, ReservationCreate<TicketReservationModification> {
 

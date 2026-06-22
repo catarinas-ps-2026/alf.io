@@ -16,19 +16,18 @@
  */
 package alfio.job;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.*;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.manager.system.AdminJobManager;
+import java.util.Date;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-
-import java.util.Date;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class JobsTest {
 
@@ -50,8 +49,14 @@ class JobsTest {
         ticketReservationManager = mock(TicketReservationManager.class);
         waitingQueueSubscriptionProcessor = mock(WaitingQueueSubscriptionProcessor.class);
         adminJobManager = mock(AdminJobManager.class);
-        jobs = new Jobs(adminReservationRequestManager, fileUploadManager, notificationManager, specialPriceTokenGenerator,
-            ticketReservationManager, waitingQueueSubscriptionProcessor, adminJobManager);
+        jobs = new Jobs(
+                adminReservationRequestManager,
+                fileUploadManager,
+                notificationManager,
+                specialPriceTokenGenerator,
+                ticketReservationManager,
+                waitingQueueSubscriptionProcessor,
+                adminJobManager);
     }
 
     @Test

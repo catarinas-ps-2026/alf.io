@@ -18,13 +18,6 @@ package alfio.model;
 
 import alfio.util.Json;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Delegate;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Triple;
-
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,86 +26,93 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Delegate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 
 @AllArgsConstructor
 public class FieldConfigurationDescriptionAndValue {
 
     @Delegate
     private final PurchaseContextFieldConfiguration purchaseContextFieldConfiguration;
+
     @Delegate
     private final PurchaseContextFieldDescription purchaseContextFieldDescription;
+
     private final int count;
     private final String value;
 
-    private static final List<String> TEXT_FIELD_TYPES = List.of(
-        "input:text",
-        "input:tel",
-        "textarea",
-        "vat:eu",
-        "dateOfBirth"
-    );
+    private static final List<String> TEXT_FIELD_TYPES =
+            List.of("input:text", "input:tel", "textarea", "vat:eu", "dateOfBirth");
     private static final Pattern CHECKBOX_VALUES_PATTERN = Pattern.compile("\"(.*?)\",?");
 
     public String getTranslatedValue() {
-        if(StringUtils.isBlank(value)) {
+        if (StringUtils.isBlank(value)) {
             return value;
         }
-        if(isSelectField()) {
-            return purchaseContextFieldDescription.getRestrictedValuesDescription().getOrDefault(value, "MISSING_DESCRIPTION");
+        if (isSelectField()) {
+            return purchaseContextFieldDescription
+                    .getRestrictedValuesDescription()
+                    .getOrDefault(value, "MISSING_DESCRIPTION");
         }
         return value;
     }
 
     public List<Triple<String, String, Boolean>> getTranslatedRestrictedValue() {
         Map<String, String> description = purchaseContextFieldDescription.getRestrictedValuesDescription();
-        return purchaseContextFieldConfiguration.getRestrictedValues()
-            .stream()
-            .map(val -> Triple.of(val, description.getOrDefault(val, "MISSING_DESCRIPTION"), isFieldValueEnabled(purchaseContextFieldConfiguration, val)))
-            .collect(Collectors.toList());
+        return purchaseContextFieldConfiguration.getRestrictedValues().stream()
+                .map(val -> Triple.of(
+                        val,
+                        description.getOrDefault(val, "MISSING_DESCRIPTION"),
+                        isFieldValueEnabled(purchaseContextFieldConfiguration, val)))
+                .collect(Collectors.toList());
     }
 
     public List<TicketFieldValue> getFields() {
-        if(count == 1) {
+        if (count == 1) {
             return Collections.singletonList(new TicketFieldValue(0, 1, value, isAcceptingValues()));
         }
-        List<String> values = StringUtils.isBlank(value) ? Collections.emptyList() : Json.fromJson(value, new TypeReference<>() {});
+        List<String> values =
+                StringUtils.isBlank(value) ? Collections.emptyList() : Json.fromJson(value, new TypeReference<>() {});
         return IntStream.range(0, count)
-            .mapToObj(i -> new TicketFieldValue(i, i+1, i < values.size() ? values.get(i) : "", isAcceptingValues()))
-            .collect(Collectors.toList());
-
+                .mapToObj(i ->
+                        new TicketFieldValue(i, i + 1, i < values.size() ? values.get(i) : "", isAcceptingValues()))
+                .collect(Collectors.toList());
     }
 
     private boolean isText() {
         return purchaseContextFieldConfiguration.isTextField()
-            || TEXT_FIELD_TYPES.contains(purchaseContextFieldConfiguration.getType());
+                || TEXT_FIELD_TYPES.contains(purchaseContextFieldConfiguration.getType());
     }
 
     public String getValueDescription() {
-        if(isText() || isCountryField()) {
+        if (isText() || isCountryField()) {
             return value;
-        } else if(isCheckboxField()) {
+        } else if (isCheckboxField()) {
             var matches = new ArrayList<String>();
             var matcher = CHECKBOX_VALUES_PATTERN.matcher(value);
-            while(matcher.find()) {
+            while (matcher.find()) {
                 matches.add(matcher.group(1));
             }
             var restrictedValues = getTranslatedRestrictedValue();
             return matches.stream()
-                .map(v -> findValueDescription(restrictedValues, v))
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.joining(", "));
+                    .map(v -> findValueDescription(restrictedValues, v))
+                    .filter(StringUtils::isNotBlank)
+                    .collect(Collectors.joining(", "));
         } else {
             return findValueDescription(getTranslatedRestrictedValue(), value);
         }
     }
 
-    private String findValueDescription(List<Triple<String, String, Boolean>> translateRestrictedValues,
-                                        String value) {
+    private String findValueDescription(List<Triple<String, String, Boolean>> translateRestrictedValues, String value) {
         return translateRestrictedValues.stream()
-            .filter(t -> StringUtils.equals(t.getLeft(), value))
-            .map(Triple::getMiddle)
-            .findFirst()
-            .orElse("");
+                .filter(t -> StringUtils.equals(t.getLeft(), value))
+                .map(Triple::getMiddle)
+                .findFirst()
+                .orElse("");
     }
 
     public String getValue() {
@@ -127,12 +127,12 @@ public class FieldConfigurationDescriptionAndValue {
         return isBeforeStandardFields(purchaseContextFieldConfiguration);
     }
 
-    private static boolean isFieldValueEnabled(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration, String value) {
+    private static boolean isFieldValueEnabled(
+            PurchaseContextFieldConfiguration purchaseContextFieldConfiguration, String value) {
         return !purchaseContextFieldConfiguration.isSelectField()
-            || CollectionUtils.isEmpty(purchaseContextFieldConfiguration.getDisabledValues())
-            || !purchaseContextFieldConfiguration.getDisabledValues().contains(value);
+                || CollectionUtils.isEmpty(purchaseContextFieldConfiguration.getDisabledValues())
+                || !purchaseContextFieldConfiguration.getDisabledValues().contains(value);
     }
-
 
     @Getter
     public static class TicketFieldValue {
@@ -153,5 +153,4 @@ public class FieldConfigurationDescriptionAndValue {
     public static boolean isBeforeStandardFields(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration) {
         return purchaseContextFieldConfiguration.getOrder() < 0;
     }
-
 }

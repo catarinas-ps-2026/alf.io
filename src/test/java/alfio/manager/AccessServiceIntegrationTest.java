@@ -16,6 +16,8 @@
  */
 package alfio.manager;
 
+import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -32,6 +34,9 @@ import alfio.model.user.User;
 import alfio.repository.user.AuthorityRepository;
 import alfio.repository.user.UserRepository;
 import alfio.test.util.AlfioIntegrationTest;
+import java.security.Principal;
+import java.util.List;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,20 +53,22 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
-import javax.sql.DataSource;
-import java.security.Principal;
-import java.util.List;
-
-import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
-
 @AlfioIntegrationTest
-@ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, AccessServiceIntegrationTest.AdHocMvcConfiguration.class, WebSecurityConfig.class, AccessServiceIntegrationTest.CustomContextConfiguration.class})
+@ContextConfiguration(
+        classes = {
+            DataSourceConfiguration.class,
+            TestConfiguration.class,
+            AccessServiceIntegrationTest.AdHocMvcConfiguration.class,
+            WebSecurityConfig.class,
+            AccessServiceIntegrationTest.CustomContextConfiguration.class
+        })
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class AccessServiceIntegrationTest {
 
     static class AdHocMvcConfiguration {
         @Bean
-        public SpringSessionBackedSessionRegistry<?> sessionRegistry(FindByIndexNameSessionRepository<?> sessionRepository) {
+        public SpringSessionBackedSessionRegistry<?> sessionRegistry(
+                FindByIndexNameSessionRepository<?> sessionRepository) {
             return new SpringSessionBackedSessionRegistry<>(sessionRepository);
         }
 
@@ -71,18 +78,29 @@ class AccessServiceIntegrationTest {
         }
     }
 
-
     static class CustomContextConfiguration extends FormBasedWebSecurity {
-        public CustomContextConfiguration(Environment environment,
-                                          UserManager userManager,
-                                          RecaptchaService recaptchaService,
-                                          ConfigurationManager configurationManager,
-                                          CsrfTokenRepository csrfTokenRepository,
-                                          DataSource dataSource,
-                                          PasswordEncoder passwordEncoder,
-                                          SpringSessionBackedSessionRegistry<?> sessionRegistry,
-                                          OpenIdUserSynchronizer openIdUserSynchronizer) {
-            super(environment, userManager, recaptchaService, configurationManager, csrfTokenRepository, dataSource, passwordEncoder, sessionRegistry, openIdUserSynchronizer, null, null);
+        public CustomContextConfiguration(
+                Environment environment,
+                UserManager userManager,
+                RecaptchaService recaptchaService,
+                ConfigurationManager configurationManager,
+                CsrfTokenRepository csrfTokenRepository,
+                DataSource dataSource,
+                PasswordEncoder passwordEncoder,
+                SpringSessionBackedSessionRegistry<?> sessionRegistry,
+                OpenIdUserSynchronizer openIdUserSynchronizer) {
+            super(
+                    environment,
+                    userManager,
+                    recaptchaService,
+                    configurationManager,
+                    csrfTokenRepository,
+                    dataSource,
+                    passwordEncoder,
+                    sessionRegistry,
+                    openIdUserSynchronizer,
+                    null,
+                    null);
         }
 
         @Bean
@@ -109,7 +127,6 @@ class AccessServiceIntegrationTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-
     private Principal getFromUsernameAndPassword(String username, String password) {
         var token = new UsernamePasswordAuthenticationToken(username, password);
         return authenticationManager.authenticate(token);
@@ -117,16 +134,28 @@ class AccessServiceIntegrationTest {
 
     @Test
     void checkAccessForOrgOwner() {
-        var org1Id = userManager.createOrganization(new OrganizationModification(null, "org1", "email", "desc", null, null), null);
-        var org2Id = userManager.createOrganization(new OrganizationModification(null, "org2", "email", "desc", null, null), null);
-        var userOrg1 = userManager.insertUser(org1Id, "userForOrg1", "test", "test", "test@example.com", Role.OWNER, User.Type.INTERNAL, null);
-        var userOrg2 = userManager.insertUser(org2Id, "userForOrg2", "test", "test", "test@example.com", Role.OWNER, User.Type.INTERNAL, null);
+        var org1Id = userManager.createOrganization(
+                new OrganizationModification(null, "org1", "email", "desc", null, null), null);
+        var org2Id = userManager.createOrganization(
+                new OrganizationModification(null, "org2", "email", "desc", null, null), null);
+        var userOrg1 = userManager.insertUser(
+                org1Id, "userForOrg1", "test", "test", "test@example.com", Role.OWNER, User.Type.INTERNAL, null);
+        var userOrg2 = userManager.insertUser(
+                org2Id, "userForOrg2", "test", "test", "test@example.com", Role.OWNER, User.Type.INTERNAL, null);
 
         // admin
-        userRepository.create(UserManager.ADMIN_USERNAME, passwordEncoder.encode("abcd"), "The", "Administrator", "admin@localhost", true, User.Type.INTERNAL, null, null);
+        userRepository.create(
+                UserManager.ADMIN_USERNAME,
+                passwordEncoder.encode("abcd"),
+                "The",
+                "Administrator",
+                "admin@localhost",
+                true,
+                User.Type.INTERNAL,
+                null,
+                null);
         authorityRepository.create(UserManager.ADMIN_USERNAME, Role.ADMIN.getRoleName());
         //
-
 
         var principalAdmin = getFromUsernameAndPassword("admin", "abcd");
         var principalUserOrg1 = getFromUsernameAndPassword(userOrg1.getUsername(), userOrg1.getPassword());
@@ -137,22 +166,28 @@ class AccessServiceIntegrationTest {
         Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(null, org2Id));
 
         // System api key can access both orgs
-        Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(new APITokenAuthentication("TEST", "", List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT))), org1Id));
-        Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(new APITokenAuthentication("TEST", "", List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT))), org2Id));
+        Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(
+                new APITokenAuthentication(
+                        "TEST", "", List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT))),
+                org1Id));
+        Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(
+                new APITokenAuthentication(
+                        "TEST", "", List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT))),
+                org2Id));
 
         // Admin can access both orgs
         Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(principalAdmin, org1Id));
         Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(principalAdmin, org2Id));
 
-
         // user org 1 can access
         Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(principalUserOrg1, org1Id));
         // user org 2 cannot access
-        Assertions.assertThrows(AccessDeniedException.class, () -> accessService.checkOrganizationOwnership(principalUserOrg2, org1Id));
+        Assertions.assertThrows(
+                AccessDeniedException.class, () -> accessService.checkOrganizationOwnership(principalUserOrg2, org1Id));
 
         // vice versa
         Assertions.assertDoesNotThrow(() -> accessService.checkOrganizationOwnership(principalUserOrg2, org2Id));
-        Assertions.assertThrows(AccessDeniedException.class, () -> accessService.checkOrganizationOwnership(principalUserOrg1, org2Id));
-
+        Assertions.assertThrows(
+                AccessDeniedException.class, () -> accessService.checkOrganizationOwnership(principalUserOrg1, org2Id));
     }
 }

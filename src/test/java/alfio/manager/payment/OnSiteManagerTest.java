@@ -16,16 +16,6 @@
  */
 package alfio.manager.payment;
 
-import alfio.manager.system.ConfigurationLevel;
-import alfio.manager.system.ConfigurationManager;
-import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
-import alfio.model.Event;
-import alfio.model.transaction.PaymentContext;
-import alfio.model.transaction.StaticPaymentMethods;
-import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
-
 import static alfio.model.system.ConfigurationKeys.ON_SITE_ENABLED;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,6 +23,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import alfio.manager.system.ConfigurationLevel;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
+import alfio.model.Event;
+import alfio.model.transaction.PaymentContext;
+import alfio.model.transaction.StaticPaymentMethods;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 
 class OnSiteManagerTest {
 
@@ -44,7 +43,8 @@ class OnSiteManagerTest {
         when(event.getConfigurationLevel()).thenReturn(cl);
         when(event.event()).thenReturn(Optional.of(event));
         var configuration = mock(MaybeConfiguration.class);
-        when(configurationManager.getFor(eq(ON_SITE_ENABLED), any(ConfigurationLevel.class))).thenReturn(configuration);
+        when(configurationManager.getFor(eq(ON_SITE_ENABLED), any(ConfigurationLevel.class)))
+                .thenReturn(configuration);
         when(configuration.getValueAsBooleanOrDefault()).thenReturn(true);
         var onSiteManager = new OnSiteManager(configurationManager, null);
         when(event.isOnline()).thenReturn(true);

@@ -16,6 +16,13 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
+import static alfio.controller.api.v2.user.reservation.StripeReservationFlowIntegrationTest.WEBHOOK_SECRET;
+import static alfio.test.util.IntegrationTestUtil.*;
+import static alfio.util.HttpUtils.APPLICATION_JSON;
+import static alfio.util.HttpUtils.APPLICATION_JSON_UTF8;
+import static java.util.Objects.requireNonNull;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -45,6 +52,16 @@ import alfio.repository.system.AdminJobQueueRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import com.stripe.net.Webhook;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,24 +74,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.validation.BeanPropertyBindingResult;
 
-import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static alfio.controller.api.v2.user.reservation.StripeReservationFlowIntegrationTest.WEBHOOK_SECRET;
-import static alfio.test.util.IntegrationTestUtil.*;
-import static alfio.util.HttpUtils.APPLICATION_JSON;
-import static alfio.util.HttpUtils.APPLICATION_JSON_UTF8;
-import static java.util.Objects.requireNonNull;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -82,14 +81,19 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
 
     private static final String TICKET_METADATA = "ticketMetadata";
     private static final String INVOICE_NUMBER_GENERATOR = "invoiceNumberGenerator";
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private AdminJobQueueRepository adminJobQueueRepository;
+
     @Autowired
     private AdminJobManager adminJobManager;
+
     @Autowired
     private StripePaymentWebhookController stripePaymentWebhookController;
 
@@ -103,17 +107,60 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
 
     private ReservationFlowContext createContext(boolean invoiceExtensionFailure) {
         List<TicketCategoryModification> categories = Arrays.asList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.ONE, true, "", true, URL_CODE_HIDDEN, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
-        return new CustomReservationFlowContext(eventAndUser.getLeft(), owner(eventAndUser.getRight()), invoiceExtensionFailure);
+                new TicketCategoryModification(
+                        null,
+                        "default",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        "hidden",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        2,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.ONE,
+                        true,
+                        "",
+                        true,
+                        URL_CODE_HIDDEN,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        return new CustomReservationFlowContext(
+                eventAndUser.getLeft(), owner(eventAndUser.getRight()), invoiceExtensionFailure);
     }
 
     @Test
@@ -125,7 +172,8 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
 
     @Test
     void metadataFailure() throws Exception {
-        insertOrUpdateExtension("/retry-reservation/success-invoice-number-generator.js", INVOICE_NUMBER_GENERATOR, false);
+        insertOrUpdateExtension(
+                "/retry-reservation/success-invoice-number-generator.js", INVOICE_NUMBER_GENERATOR, false);
         insertOrUpdateExtension("/retry-reservation/fail-ticket-metadata.js", TICKET_METADATA, false);
         super.testBasicFlow(() -> createContext(false));
     }
@@ -138,7 +186,7 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
         // check that the IndexController is redirecting properly
         var shortName = context.event.getShortName();
         var redirect = indexController.redirectEventToReservation(shortName, reservationId, null);
-        assertEquals("redirect:/event/"+shortName+"/reservation/"+reservationId+"/success", redirect);
+        assertEquals("redirect:/event/" + shortName + "/reservation/" + reservationId + "/success", redirect);
 
         var reservation = ticketReservationRepository.findReservationById(reservationId);
         if (ctx.invoiceExtensionFailure) {
@@ -148,17 +196,20 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
             assertEquals("ABCD", reservation.getInvoiceNumber());
         }
         // transaction must be present
-        var tStatus = reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
+        var tStatus =
+                reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
         assertEquals(HttpStatus.OK, tStatus.getStatusCode());
         assertTrue(requireNonNull(tStatus.getBody()).isSuccess());
         // check that the confirmation has been rescheduled
         var now = ZonedDateTime.now(clockProvider.getClock()).plusSeconds(3);
-        var schedules = adminJobQueueRepository.loadPendingSchedules(Set.of(AdminJobExecutor.JobName.RETRY_RESERVATION_CONFIRMATION.name()), now);
+        var schedules = adminJobQueueRepository.loadPendingSchedules(
+                Set.of(AdminJobExecutor.JobName.RETRY_RESERVATION_CONFIRMATION.name()), now);
         assertEquals(1, schedules.size());
 
         // fix the error, then trigger reschedule
         if (ctx.invoiceExtensionFailure) {
-            insertOrUpdateExtension("/retry-reservation/success-invoice-number-generator.js", INVOICE_NUMBER_GENERATOR, true);
+            insertOrUpdateExtension(
+                    "/retry-reservation/success-invoice-number-generator.js", INVOICE_NUMBER_GENERATOR, true);
         } else {
             insertOrUpdateExtension("/retry-reservation/success-ticket-metadata.js", TICKET_METADATA, true);
         }
@@ -166,19 +217,17 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
         checkStatus(reservationId, HttpStatus.OK, true, TicketReservation.TicketReservationStatus.COMPLETE, context);
         reservation = ticketReservationRepository.findReservationById(reservationId);
         assertEquals("ABCD", reservation.getInvoiceNumber());
-        ticketRepository.findTicketsInReservation(reservationId)
-            .forEach(t -> {
-                var metadata = ticketRepository.getTicketMetadata(t.getId()).getMetadataForKey(TicketMetadataContainer.GENERAL);
-                assertTrue(metadata.isPresent());
-                assertEquals(t.getUuid(), metadata.get().getAttributes().get("uuid"));
-            });
+        ticketRepository.findTicketsInReservation(reservationId).forEach(t -> {
+            var metadata =
+                    ticketRepository.getTicketMetadata(t.getId()).getMetadataForKey(TicketMetadataContainer.GENERAL);
+            assertTrue(metadata.isPresent());
+            assertEquals(t.getUuid(), metadata.get().getAttributes().get("uuid"));
+        });
     }
 
     @Override
-    protected void performAndValidatePayment(ReservationFlowContext context,
-                                             String reservationId,
-                                             int promoCodeId,
-                                             Runnable cleanupExtensionLog) {
+    protected void performAndValidatePayment(
+            ReservationFlowContext context, String reservationId, int promoCodeId, Runnable cleanupExtensionLog) {
         ReservationInfo reservation;
         var paymentForm = new PaymentForm();
 
@@ -187,25 +236,35 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
         paymentForm.setPaymentProxy(PaymentProxy.STRIPE);
         paymentForm.setSelectedPaymentMethod(StaticPaymentMethods.CREDIT_CARD);
 
-        var tStatus = reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
+        var tStatus =
+                reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
         assertEquals(HttpStatus.NOT_FOUND, tStatus.getStatusCode());
 
         // init payment
-        var initPaymentRes = reservationApiV2Controller.initTransaction(reservationId, StaticPaymentMethods.CREDIT_CARD.name(), new LinkedMultiValueMap<>());
+        var initPaymentRes = reservationApiV2Controller.initTransaction(
+                reservationId, StaticPaymentMethods.CREDIT_CARD.name(), new LinkedMultiValueMap<>());
         assertEquals(HttpStatus.OK, initPaymentRes.getStatusCode());
 
-        tStatus = reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
+        tStatus =
+                reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
         assertEquals(HttpStatus.OK, tStatus.getStatusCode());
 
         var resInfoResponse = reservationApiV2Controller.getReservationInfo(reservationId, null);
-        assertEquals(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT, Objects.requireNonNull(resInfoResponse.getBody()).getStatus());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT,
+                Objects.requireNonNull(resInfoResponse.getBody()).getStatus());
 
         //
         var promoCodeUsage = promoCodeRequestManager.retrieveDetailedUsage(promoCodeId, context.event.getId());
         assertTrue(promoCodeUsage.isEmpty());
 
-        var handleRes = reservationApiV2Controller.confirmOverview(reservationId, "en", paymentForm, new BeanPropertyBindingResult(paymentForm, "paymentForm"),
-            new MockHttpServletRequest(), context.getPublicUser());
+        var handleRes = reservationApiV2Controller.confirmOverview(
+                reservationId,
+                "en",
+                paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(),
+                context.getPublicUser());
 
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, handleRes.getStatusCode());
 
@@ -215,12 +274,15 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
         // status must be FINALIZING
         checkStatus(reservationId, HttpStatus.OK, true, TicketReservation.TicketReservationStatus.FINALIZING, context);
 
-        tStatus = reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
+        tStatus =
+                reservationApiV2Controller.getTransactionStatus(reservationId, StaticPaymentMethods.CREDIT_CARD.name());
         assertEquals(HttpStatus.OK, tStatus.getStatusCode());
         assertNotNull(tStatus.getBody());
         assertTrue(tStatus.getBody().isSuccess());
 
-        reservation = reservationApiV2Controller.getReservationInfo(reservationId, context.getPublicUser()).getBody();
+        reservation = reservationApiV2Controller
+                .getReservationInfo(reservationId, context.getPublicUser())
+                .getBody();
         assertNotNull(reservation);
         checkOrderSummary(reservation, context);
     }
@@ -231,14 +293,18 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
             assertNotNull(resource);
             var timestamp = String.valueOf(Webhook.Util.getTimeNow());
             var payload = Files.readString(Path.of(resource.toURI())).replaceAll("RESERVATION_ID", reservationId);
-            var signedHeader = "t=" + timestamp + ",v1=" +Webhook.Util.computeHmacSha256(WEBHOOK_SECRET, timestamp + "." + payload);
+            var signedHeader = "t=" + timestamp + ",v1="
+                    + Webhook.Util.computeHmacSha256(WEBHOOK_SECRET, timestamp + "." + payload);
             var httpRequest = new MockHttpServletRequest();
             httpRequest.setContent(payload.getBytes(StandardCharsets.UTF_8));
             httpRequest.setContentType(APPLICATION_JSON);
             var response = stripePaymentWebhookController.receivePaymentConfirmation(signedHeader, httpRequest);
             assertNotNull(response);
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals(APPLICATION_JSON_UTF8, Objects.requireNonNull(response.getHeaders().getContentType()).toString());
+            assertEquals(
+                    APPLICATION_JSON_UTF8,
+                    Objects.requireNonNull(response.getHeaders().getContentType())
+                            .toString());
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
@@ -262,8 +328,10 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
     }
 
     private void insertOrUpdateExtension(String filePath, String name, boolean update) {
-        try (var extensionInputStream = requireNonNull(RetryConfirmationFlowIntegrationTest.class.getResourceAsStream(filePath))) {
-            List<String> extensionStream = IOUtils.readLines(new InputStreamReader(extensionInputStream, StandardCharsets.UTF_8));
+        try (var extensionInputStream =
+                requireNonNull(RetryConfirmationFlowIntegrationTest.class.getResourceAsStream(filePath))) {
+            List<String> extensionStream =
+                    IOUtils.readLines(new InputStreamReader(extensionInputStream, StandardCharsets.UTF_8));
             String concatenation = String.join("\n", extensionStream);
             String previousPath = update ? "-" : null;
             String previousName = update ? name : null;
@@ -275,9 +343,10 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
 
     @Override
     protected Stream<String> getExtensionEventsToRegister() {
-        return EnumSet.complementOf(EnumSet.of(ExtensionEvent.INVOICE_GENERATION, ExtensionEvent.TICKET_ASSIGNED_GENERATE_METADATA))
-            .stream()
-            .map(ee -> "'"+ee.name()+"'");
+        return EnumSet.complementOf(
+                        EnumSet.of(ExtensionEvent.INVOICE_GENERATION, ExtensionEvent.TICKET_ASSIGNED_GENERATE_METADATA))
+                .stream()
+                .map(ee -> "'" + ee.name() + "'");
     }
 
     @Override
@@ -292,6 +361,7 @@ class RetryConfirmationFlowIntegrationTest extends BaseReservationFlowTest {
     static class CustomReservationFlowContext extends ReservationFlowContext {
 
         private final boolean invoiceExtensionFailure;
+
         CustomReservationFlowContext(Event event, String userId, boolean invoiceExtensionFailure) {
             super(event, userId);
             this.invoiceExtensionFailure = invoiceExtensionFailure;

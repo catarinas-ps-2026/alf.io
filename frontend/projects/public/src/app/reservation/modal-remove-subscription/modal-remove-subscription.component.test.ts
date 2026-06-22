@@ -18,9 +18,7 @@ describe('ModalRemoveSubscriptionComponent', () => {
         TestBed.configureTestingModule({
             declarations: [ModalRemoveSubscriptionComponent],
             imports: [NgbModule, TranslateModule.forRoot()],
-            providers: [
-                { provide: NgbActiveModal, useValue: mockActiveModal },
-            ],
+            providers: [{ provide: NgbActiveModal, useValue: mockActiveModal }],
         });
 
         fixture = TestBed.createComponent(ModalRemoveSubscriptionComponent);

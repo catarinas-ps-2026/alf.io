@@ -21,10 +21,9 @@ import alfio.model.TicketCategory.TicketCheckInStrategy;
 import alfio.model.metadata.AlfioMetadata;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class TicketCategoryModification {
@@ -54,70 +53,73 @@ public class TicketCategoryModification {
     private final boolean skipWaitingList;
 
     @JsonCreator
-    public TicketCategoryModification(@JsonProperty("id") Integer id,
-                                      @JsonProperty("name") String name,
-                                      @JsonProperty("ticketAccessType") TicketCategory.TicketAccessType ticketAccessType,
-                                      @JsonProperty("maxTickets") int maxTickets,
-                                      @JsonProperty("inception") DateTimeModification inception,
-                                      @JsonProperty("expiration") DateTimeModification expiration,
-                                      @JsonProperty("description") Map<String, String> description,
-                                      @JsonProperty("price") BigDecimal price,
-                                      @JsonProperty("tokenGenerationRequested") boolean tokenGenerationRequested,
-                                      @JsonProperty("dateString") String dateString,
-                                      @JsonProperty("bounded") boolean bounded,
-                                      @JsonProperty("code") String code,
-                                      @JsonProperty("validCheckInFrom") DateTimeModification validCheckInFrom,
-                                      @JsonProperty("validCheckInTo") DateTimeModification validCheckInTo,
-                                      @JsonProperty("ticketValidityStart") DateTimeModification ticketValidityStart,
-                                      @JsonProperty("ticketValidityEnd") DateTimeModification ticketValidityEnd,
-                                      @JsonProperty("ordinal") Integer ordinal,
-                                      @JsonProperty("ticketCheckInStrategy") TicketCheckInStrategy ticketCheckInStrategy,
-                                      @JsonProperty("badgeColor") String badgeColor,
-                                      @JsonProperty("metadata") AlfioMetadata metadata) {
-        this(id,
-            name,
-            ticketAccessType,
-            maxTickets,
-            inception,
-            expiration,
-            description,
-            price,
-            tokenGenerationRequested,
-            dateString,
-            bounded,
-            code,
-            validCheckInFrom,
-            validCheckInTo,
-            ticketValidityStart,
-            ticketValidityEnd,
-            ordinal,
-            ticketCheckInStrategy,
-            badgeColor,
-            metadata,
-            false);
+    public TicketCategoryModification(
+            @JsonProperty("id") Integer id,
+            @JsonProperty("name") String name,
+            @JsonProperty("ticketAccessType") TicketCategory.TicketAccessType ticketAccessType,
+            @JsonProperty("maxTickets") int maxTickets,
+            @JsonProperty("inception") DateTimeModification inception,
+            @JsonProperty("expiration") DateTimeModification expiration,
+            @JsonProperty("description") Map<String, String> description,
+            @JsonProperty("price") BigDecimal price,
+            @JsonProperty("tokenGenerationRequested") boolean tokenGenerationRequested,
+            @JsonProperty("dateString") String dateString,
+            @JsonProperty("bounded") boolean bounded,
+            @JsonProperty("code") String code,
+            @JsonProperty("validCheckInFrom") DateTimeModification validCheckInFrom,
+            @JsonProperty("validCheckInTo") DateTimeModification validCheckInTo,
+            @JsonProperty("ticketValidityStart") DateTimeModification ticketValidityStart,
+            @JsonProperty("ticketValidityEnd") DateTimeModification ticketValidityEnd,
+            @JsonProperty("ordinal") Integer ordinal,
+            @JsonProperty("ticketCheckInStrategy") TicketCheckInStrategy ticketCheckInStrategy,
+            @JsonProperty("badgeColor") String badgeColor,
+            @JsonProperty("metadata") AlfioMetadata metadata) {
+        this(
+                id,
+                name,
+                ticketAccessType,
+                maxTickets,
+                inception,
+                expiration,
+                description,
+                price,
+                tokenGenerationRequested,
+                dateString,
+                bounded,
+                code,
+                validCheckInFrom,
+                validCheckInTo,
+                ticketValidityStart,
+                ticketValidityEnd,
+                ordinal,
+                ticketCheckInStrategy,
+                badgeColor,
+                metadata,
+                false);
     }
 
-    public TicketCategoryModification(Integer id,
-                                      String name,
-                                      TicketCategory.TicketAccessType ticketAccessType,
-                                      int maxTickets,
-                                      DateTimeModification inception,
-                                      DateTimeModification expiration,
-                                      Map<String, String> description,
-                                      BigDecimal price,
-                                      boolean tokenGenerationRequested,
-                                      String dateString,
-                                      boolean bounded,
-                                      String code,
-                                      DateTimeModification validCheckInFrom,
-                                      DateTimeModification validCheckInTo,
-                                      DateTimeModification ticketValidityStart,
-                                      DateTimeModification ticketValidityEnd,
-                                      Integer ordinal,
-                                      TicketCheckInStrategy ticketCheckInStrategy,
-                                      String badgeColor,
-                                      AlfioMetadata metadata,
-                                      Boolean skipWaitingList) {
+    public TicketCategoryModification(
+            Integer id,
+            String name,
+            TicketCategory.TicketAccessType ticketAccessType,
+            int maxTickets,
+            DateTimeModification inception,
+            DateTimeModification expiration,
+            Map<String, String> description,
+            BigDecimal price,
+            boolean tokenGenerationRequested,
+            String dateString,
+            boolean bounded,
+            String code,
+            DateTimeModification validCheckInFrom,
+            DateTimeModification validCheckInTo,
+            DateTimeModification ticketValidityStart,
+            DateTimeModification ticketValidityEnd,
+            Integer ordinal,
+            TicketCheckInStrategy ticketCheckInStrategy,
+            String badgeColor,
+            AlfioMetadata metadata,
+            Boolean skipWaitingList) {
         this.id = id;
         this.name = name;
         this.ticketAccessType = ticketAccessType;
@@ -140,5 +142,4 @@ public class TicketCategoryModification {
         this.metadata = metadata;
         this.skipWaitingList = Boolean.TRUE.equals(skipWaitingList);
     }
-
 }

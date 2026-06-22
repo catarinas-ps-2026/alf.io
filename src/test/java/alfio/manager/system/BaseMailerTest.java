@@ -16,23 +16,22 @@
  */
 package alfio.manager.system;
 
-import alfio.model.Configurable;
-import alfio.model.user.Organization;
-import alfio.repository.user.OrganizationRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static alfio.manager.testSupport.MaybeConfigurationBuilder.existing;
 import static alfio.manager.testSupport.MaybeConfigurationBuilder.missing;
 import static alfio.model.system.ConfigurationKeys.MAIL_REPLY_TO;
 import static alfio.model.system.ConfigurationKeys.MAIL_SET_ORG_REPLY_TO;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+import alfio.model.Configurable;
+import alfio.model.user.Organization;
+import alfio.repository.user.OrganizationRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class BaseMailerTest {
 
@@ -52,9 +51,8 @@ class BaseMailerTest {
     @Test
     void setReplyToOrgEmailWhenEnabled() {
         var config = Map.of(
-            MAIL_REPLY_TO, missing(MAIL_REPLY_TO),
-            MAIL_SET_ORG_REPLY_TO, existing(MAIL_SET_ORG_REPLY_TO, "true")
-        );
+                MAIL_REPLY_TO, missing(MAIL_REPLY_TO),
+                MAIL_SET_ORG_REPLY_TO, existing(MAIL_SET_ORG_REPLY_TO, "true"));
         int orgId = 1;
         when(organizationRepository.getContactById(orgId)).thenReturn(organization);
         var consumer = new AtomicReference<String>();
@@ -72,9 +70,8 @@ class BaseMailerTest {
     void doNotSetOrgEmailWhenReplyToIsAlreadySet() {
         String customEmail = "org2@example.org";
         var config = Map.of(
-            MAIL_REPLY_TO, existing(MAIL_REPLY_TO, customEmail),
-            MAIL_SET_ORG_REPLY_TO, existing(MAIL_SET_ORG_REPLY_TO, "true")
-        );
+                MAIL_REPLY_TO, existing(MAIL_REPLY_TO, customEmail),
+                MAIL_SET_ORG_REPLY_TO, existing(MAIL_SET_ORG_REPLY_TO, "true"));
         int orgId = 2;
         when(organizationRepository.getContactById(orgId)).thenReturn(organization);
         var consumer = new AtomicReference<String>();
@@ -87,9 +84,8 @@ class BaseMailerTest {
     void doNotSetOrgEmailWhenNotEnabled() {
         int orgId = 3;
         var config = Map.of(
-            MAIL_REPLY_TO, missing(MAIL_REPLY_TO),
-            MAIL_SET_ORG_REPLY_TO, missing(MAIL_SET_ORG_REPLY_TO)
-        );
+                MAIL_REPLY_TO, missing(MAIL_REPLY_TO),
+                MAIL_SET_ORG_REPLY_TO, missing(MAIL_SET_ORG_REPLY_TO));
         when(organizationRepository.getContactById(orgId)).thenReturn(organization);
         var consumer = new AtomicReference<String>();
         baseMailer.setReplyToIfPresent(config, orgId, consumer::set);
@@ -100,23 +96,21 @@ class BaseMailerTest {
     @Test
     void configurationIsRequired() {
         // NPE when conf map is null
-        var exception = assertThrows(NullPointerException.class, () -> baseMailer.setReplyToIfPresent(null, -1, b -> {}));
+        var exception =
+                assertThrows(NullPointerException.class, () -> baseMailer.setReplyToIfPresent(null, -1, b -> {}));
         assertEquals(BaseMailer.MISSING_CONFIG_MESSAGE, exception.getMessage());
 
-        var missingOrgReplyTo = Map.of(
-            MAIL_REPLY_TO, missing(MAIL_REPLY_TO)
-        );
+        var missingOrgReplyTo = Map.of(MAIL_REPLY_TO, missing(MAIL_REPLY_TO));
         // NPE when MAIL_SET_ORG_REPLY_TO is missing
-        exception = assertThrows(NullPointerException.class, () -> baseMailer.setReplyToIfPresent(missingOrgReplyTo, -1, b -> {}));
+        exception = assertThrows(
+                NullPointerException.class, () -> baseMailer.setReplyToIfPresent(missingOrgReplyTo, -1, b -> {}));
         assertTrue(exception.getMessage().startsWith(MAIL_SET_ORG_REPLY_TO.name()));
 
-        var missingReplyTo = Map.of(
-            MAIL_SET_ORG_REPLY_TO, missing(MAIL_SET_ORG_REPLY_TO)
-        );
+        var missingReplyTo = Map.of(MAIL_SET_ORG_REPLY_TO, missing(MAIL_SET_ORG_REPLY_TO));
         // NPE when MAIL_REPLY_TO is missing
-        exception = assertThrows(NullPointerException.class, () -> baseMailer.setReplyToIfPresent(missingReplyTo, -1, b -> {}));
+        exception = assertThrows(
+                NullPointerException.class, () -> baseMailer.setReplyToIfPresent(missingReplyTo, -1, b -> {}));
         assertTrue(exception.getMessage().startsWith(MAIL_REPLY_TO.name()));
-
     }
 
     private static class BaseMailerMock extends BaseMailer {
@@ -125,7 +119,15 @@ class BaseMailerTest {
         }
 
         @Override
-        public void send(Configurable configurable, String fromName, String to, List<String> cc, String subject, String text, Optional<String> html, Attachment... attachment) {
+        public void send(
+                Configurable configurable,
+                String fromName,
+                String to,
+                List<String> cc,
+                String subject,
+                String text,
+                Optional<String> html,
+                Attachment... attachment) {
             throw new IllegalStateException("no can do");
         }
     }

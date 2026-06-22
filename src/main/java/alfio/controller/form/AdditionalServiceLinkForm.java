@@ -27,7 +27,6 @@ public class AdditionalServiceLinkForm implements Serializable, AdditionalFields
     private String ticketUUID;
     private Map<String, List<String>> additional = new HashMap<>();
 
-
     public boolean isValid() {
         return additional != null && additionalServiceItemId != null && ticketUUID != null;
     }

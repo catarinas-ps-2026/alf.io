@@ -141,5 +141,5 @@ export const mockAdditionalService: AdditionalServiceWithData = {
     ticketUUID: 'ticket-123',
     ticketFieldConfiguration: [],
     count: 1,
-    price: 10.00,
+    price: 10.0,
 };

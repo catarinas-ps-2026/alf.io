@@ -19,21 +19,24 @@ package alfio.model;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.apache.commons.lang3.builder.CompareToBuilder;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
+import lombok.Getter;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 
 @Getter
 public class TicketCategory {
 
-    public static final Comparator<TicketCategory> COMPARATOR = (tc1, tc2) -> new CompareToBuilder().append(tc1.utcInception, tc2.utcInception).append(tc1.utcExpiration, tc2.utcExpiration).toComparison();
+    public static final Comparator<TicketCategory> COMPARATOR = (tc1, tc2) -> new CompareToBuilder()
+            .append(tc1.utcInception, tc2.utcInception)
+            .append(tc1.utcExpiration, tc2.utcExpiration)
+            .toComparison();
 
     public enum Status {
-        ACTIVE, NOT_ACTIVE
+        ACTIVE,
+        NOT_ACTIVE
     }
 
     /**
@@ -95,26 +98,27 @@ public class TicketCategory {
     private final TicketCheckInStrategy ticketCheckInStrategy;
     private final TicketAccessType ticketAccessType;
 
-
-    public TicketCategory(@JsonProperty("id") @Column("id") int id,
-                          @JsonProperty("utcInception") @Column("inception") ZonedDateTime utcInception,
-                          @JsonProperty("utcExpiration") @Column("expiration") ZonedDateTime utcExpiration,
-                          @JsonProperty("maxTickets") @Column("max_tickets") int maxTickets,
-                          @JsonProperty("name") @Column("name") String name,
-                          @JsonProperty("accessRestricted") @Column("access_restricted") boolean accessRestricted,
-                          @JsonProperty("status") @Column("tc_status") Status status,
-                          @JsonProperty("eventId") @Column("event_id") int eventId,
-                          @JsonProperty("bounded") @Column("bounded") boolean bounded,
-                          @JsonProperty("srcPriceCts") @Column("src_price_cts") int srcPriceCts,
-                          @JsonProperty("code") @Column("category_code") String code,
-                          @JsonProperty("validCheckInFrom") @Column("valid_checkin_from") ZonedDateTime validCheckInFrom,
-                          @JsonProperty("validCheckInTo") @Column("valid_checkin_to") ZonedDateTime validCheckInTo,
-                          @JsonProperty("ticketValidityStart") @Column("ticket_validity_start") ZonedDateTime ticketValidityStart,
-                          @JsonProperty("ticketValidityEnd") @Column("ticket_validity_end") ZonedDateTime ticketValidityEnd,
-                          @JsonProperty("currencyCode") @Column("currency_code") String currencyCode,
-                          @JsonProperty("ordinal") @Column("ordinal") Integer ordinal,
-                          @JsonProperty("ticketCheckInStrategy") @Column("ticket_checkin_strategy") TicketCheckInStrategy ticketCheckInStrategy,
-                          @JsonProperty("ticketAccessType") @Column("ticket_access_type") TicketAccessType ticketAccessType) {
+    public TicketCategory(
+            @JsonProperty("id") @Column("id") int id,
+            @JsonProperty("utcInception") @Column("inception") ZonedDateTime utcInception,
+            @JsonProperty("utcExpiration") @Column("expiration") ZonedDateTime utcExpiration,
+            @JsonProperty("maxTickets") @Column("max_tickets") int maxTickets,
+            @JsonProperty("name") @Column("name") String name,
+            @JsonProperty("accessRestricted") @Column("access_restricted") boolean accessRestricted,
+            @JsonProperty("status") @Column("tc_status") Status status,
+            @JsonProperty("eventId") @Column("event_id") int eventId,
+            @JsonProperty("bounded") @Column("bounded") boolean bounded,
+            @JsonProperty("srcPriceCts") @Column("src_price_cts") int srcPriceCts,
+            @JsonProperty("code") @Column("category_code") String code,
+            @JsonProperty("validCheckInFrom") @Column("valid_checkin_from") ZonedDateTime validCheckInFrom,
+            @JsonProperty("validCheckInTo") @Column("valid_checkin_to") ZonedDateTime validCheckInTo,
+            @JsonProperty("ticketValidityStart") @Column("ticket_validity_start") ZonedDateTime ticketValidityStart,
+            @JsonProperty("ticketValidityEnd") @Column("ticket_validity_end") ZonedDateTime ticketValidityEnd,
+            @JsonProperty("currencyCode") @Column("currency_code") String currencyCode,
+            @JsonProperty("ordinal") @Column("ordinal") Integer ordinal,
+            @JsonProperty("ticketCheckInStrategy") @Column("ticket_checkin_strategy")
+                    TicketCheckInStrategy ticketCheckInStrategy,
+            @JsonProperty("ticketAccessType") @Column("ticket_access_type") TicketAccessType ticketAccessType) {
         this.id = id;
         this.utcInception = utcInception;
         this.utcExpiration = utcExpiration;
@@ -139,7 +143,7 @@ public class TicketCategory {
     public BigDecimal getPrice() {
         return MonetaryUtil.centsToUnit(srcPriceCts, currencyCode);
     }
-    
+
     public boolean getFree() {
         return srcPriceCts == 0;
     }
@@ -171,6 +175,7 @@ public class TicketCategory {
     public boolean hasValidCheckIn(ZonedDateTime now, ZoneId eventZoneId) {
         // check from boundary -> from cannot be after now
         // check to boundary -> to cannot be before now
-        return (validCheckInFrom == null || !getValidCheckInFrom(eventZoneId).isAfter(now)) && (validCheckInTo == null || !getValidCheckInTo(eventZoneId).isBefore(now));
+        return (validCheckInFrom == null || !getValidCheckInFrom(eventZoneId).isAfter(now))
+                && (validCheckInTo == null || !getValidCheckInTo(eventZoneId).isBefore(now));
     }
 }

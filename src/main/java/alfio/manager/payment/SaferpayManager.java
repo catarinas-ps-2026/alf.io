@@ -16,6 +16,11 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.payment.PaymentManagerUtils.invalidateExistingTransactions;
+import static alfio.model.TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT;
+import static alfio.model.system.ConfigurationKeys.*;
+import static java.util.Base64.getEncoder;
+
 import alfio.manager.payment.saferpay.*;
 import alfio.manager.support.PaymentResult;
 import alfio.manager.support.PaymentWebhookResult;
@@ -36,6 +41,13 @@ import alfio.util.ClockProvider;
 import alfio.util.HttpUtils;
 import alfio.util.MonetaryUtil;
 import com.google.gson.JsonParser;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.experimental.Delegate;
 import org.apache.commons.lang3.Validate;
@@ -44,19 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
-import java.util.*;
-
-import static alfio.manager.payment.PaymentManagerUtils.invalidateExistingTransactions;
-import static alfio.model.TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT;
-import static alfio.model.system.ConfigurationKeys.*;
-import static java.util.Base64.getEncoder;
 
 @Component
 @Transactional
@@ -78,7 +77,8 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
     private final ClockProvider clockProvider;
 
     @Override
-    public Set<? extends PaymentMethod> getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
+    public Set<? extends PaymentMethod> getSupportedPaymentMethods(
+            PaymentContext paymentContext, TransactionRequest transactionRequest) {
         return EnumSet.of(StaticPaymentMethods.CREDIT_CARD);
     }
 
@@ -89,8 +89,7 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
 
     @Override
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-        return paymentMethod == StaticPaymentMethods.CREDIT_CARD
-            && isActive(context);
+        return paymentMethod == StaticPaymentMethods.CREDIT_CARD && isActive(context);
     }
 
     @Override
@@ -105,11 +104,15 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
 
     @Override
     public boolean isActive(PaymentContext paymentContext) {
-        var configurationMap = configurationManager.getFor(EnumSet.of(SAFERPAY_ENABLED, SAFERPAY_API_USERNAME, SAFERPAY_API_PASSWORD, SAFERPAY_CUSTOMER_ID, SAFERPAY_TERMINAL_ID), paymentContext.getConfigurationLevel());
-        return configurationMap
-            .values()
-            .stream()
-            .allMatch(ConfigurationManager.MaybeConfiguration::isPresent);
+        var configurationMap = configurationManager.getFor(
+                EnumSet.of(
+                        SAFERPAY_ENABLED,
+                        SAFERPAY_API_USERNAME,
+                        SAFERPAY_API_PASSWORD,
+                        SAFERPAY_CUSTOMER_ID,
+                        SAFERPAY_TERMINAL_ID),
+                paymentContext.getConfigurationLevel());
+        return configurationMap.values().stream().allMatch(ConfigurationManager.MaybeConfiguration::isPresent);
     }
 
     @Override
@@ -119,37 +122,54 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
         var reservationId = spec.getReservationId();
         var reservation = ticketReservationRepository.findReservationById(reservationId);
         final int items;
-        if(spec.getPurchaseContext().getType() == PurchaseContext.PurchaseContextType.event) {
+        if (spec.getPurchaseContext().getType() == PurchaseContext.PurchaseContextType.event) {
             items = ticketRepository.countTicketsInReservation(spec.getReservationId());
         } else {
             items = 1;
         }
         int retryCount = 0;
-        var existingTransaction = transactionRepository.loadOptionalByStatusAndPaymentProxyForUpdate(reservationId, Transaction.Status.PENDING, PaymentProxy.SAFERPAY);
-        if(existingTransaction.isPresent()) {
+        var existingTransaction = transactionRepository.loadOptionalByStatusAndPaymentProxyForUpdate(
+                reservationId, Transaction.Status.PENDING, PaymentProxy.SAFERPAY);
+        if (existingTransaction.isPresent()) {
             var transaction = existingTransaction.get();
             var processResult = internalProcessWebhook(transaction, spec.getPaymentContext());
-            if(processResult.getType() == PaymentWebhookResult.Type.SUCCESSFUL) {
+            if (processResult.getType() == PaymentWebhookResult.Type.SUCCESSFUL) {
                 return PaymentResult.successful(processResult.getPaymentToken().getToken());
             } else {
                 retryCount = Integer.parseInt(transaction.getMetadata().getOrDefault(RETRY_COUNT, "0")) + 1;
             }
         }
 
-        var description = purchaseContext.ofType(PurchaseContext.PurchaseContextType.event) ? "ticket(s) for event" : "x subscription";
-        var paymentDescription = String.format("%s - %d %s %s", configurationManager.getShortReservationID(purchaseContext, reservation), items, description, purchaseContext.getDisplayName());
-
+        var description = purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)
+                ? "ticket(s) for event"
+                : "x subscription";
+        var paymentDescription = String.format(
+                "%s - %d %s %s",
+                configurationManager.getShortReservationID(purchaseContext, reservation),
+                items,
+                description,
+                purchaseContext.getDisplayName());
 
         try {
-            var requestBody = new PaymentPageInitializeRequestBuilder(configuration.get(BASE_URL).getRequiredValue(), spec)
-                .addAuthentication(configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), reservationId, configuration.get(SAFERPAY_TERMINAL_ID).getRequiredValue())
-                .addOrderInformation(reservationId, Integer.toString(spec.getPriceWithVAT()), spec.getCurrencyCode(), paymentDescription, retryCount)
-                .build();
+            var requestBody = new PaymentPageInitializeRequestBuilder(
+                            configuration.get(BASE_URL).getRequiredValue(), spec)
+                    .addAuthentication(
+                            configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(),
+                            reservationId,
+                            configuration.get(SAFERPAY_TERMINAL_ID).getRequiredValue())
+                    .addOrderInformation(
+                            reservationId,
+                            Integer.toString(spec.getPriceWithVAT()),
+                            spec.getCurrencyCode(),
+                            paymentDescription,
+                            retryCount)
+                    .build();
             var request = buildRequest(configuration, "/Payment/v1/PaymentPage/Initialize", requestBody);
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if(!HttpUtils.callSuccessful(response)) {
+            if (!HttpUtils.callSuccessful(response)) {
                 LOGGER.warn("Create session failed with status {}, body {}", response.statusCode(), response.body());
-                throw new IllegalStateException("session creation was not successful (HTTP "+response.statusCode()+")");
+                throw new IllegalStateException(
+                        "session creation was not successful (HTTP " + response.statusCode() + ")");
             }
             LOGGER.debug("received successful response {}", response.body());
             return PaymentResult.redirect(processPaymentInitializationResponse(response, spec, retryCount));
@@ -164,20 +184,21 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
     }
 
     private String authorizationHeader(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration) {
-        var credentials = configuration.get(SAFERPAY_API_USERNAME).getRequiredValue() + ":" + configuration.get(SAFERPAY_API_PASSWORD).getRequiredValue();
+        var credentials = configuration.get(SAFERPAY_API_USERNAME).getRequiredValue() + ":"
+                + configuration.get(SAFERPAY_API_PASSWORD).getRequiredValue();
         return getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    public Optional<TransactionWebhookPayload> parseTransactionPayload(String body,
-                                                                       String signature,
-                                                                       Map<String, String> additionalInfo,
-                                                                       PaymentContext paymentContext) {
-        return Optional.of(new EmptyWebhookPayload(additionalInfo.get("reservationId"), TransactionWebhookPayload.Status.SUCCESS));
+    public Optional<TransactionWebhookPayload> parseTransactionPayload(
+            String body, String signature, Map<String, String> additionalInfo, PaymentContext paymentContext) {
+        return Optional.of(
+                new EmptyWebhookPayload(additionalInfo.get("reservationId"), TransactionWebhookPayload.Status.SUCCESS));
     }
 
     @Override
-    public PaymentWebhookResult processWebhook(TransactionWebhookPayload payload, Transaction transaction, PaymentContext paymentContext) {
+    public PaymentWebhookResult processWebhook(
+            TransactionWebhookPayload payload, Transaction transaction, PaymentContext paymentContext) {
         // assert that the payment has been actually confirmed
         return internalProcessWebhook(transaction, paymentContext);
     }
@@ -185,27 +206,38 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
     PaymentWebhookResult internalProcessWebhook(Transaction transaction, PaymentContext paymentContext) {
         int retryCount = Integer.parseInt(transaction.getMetadata().getOrDefault(RETRY_COUNT, "0"));
         var configuration = loadConfiguration(paymentContext.getPurchaseContext());
-        var paymentStatus = retrievePaymentStatus(configuration, transaction.getPaymentId(), transaction.getReservationId(), retryCount);
-        if(paymentStatus.isEmpty()) {
+        var paymentStatus = retrievePaymentStatus(
+                configuration, transaction.getPaymentId(), transaction.getReservationId(), retryCount);
+        if (paymentStatus.isEmpty()) {
             LOGGER.debug("Invalidating transaction with ID {}", transaction.getId());
             transactionRepository.invalidateById(transaction.getId());
-            ticketReservationRepository.updateValidity(transaction.getReservationId(), DateUtils.addMinutes(new Date(), configuration.get(RESERVATION_TIMEOUT).getValueAsIntOrDefault(25)));
+            ticketReservationRepository.updateValidity(
+                    transaction.getReservationId(),
+                    DateUtils.addMinutes(
+                            new Date(), configuration.get(RESERVATION_TIMEOUT).getValueAsIntOrDefault(25)));
             return PaymentWebhookResult.cancelled();
         }
 
-        if(paymentStatus.isSuccessful()) {
-            transactionRepository.update(transaction.getId(), paymentStatus.transactionId,
-                paymentStatus.captureId, paymentStatus.timestamp, transaction.getPlatformFee(),
-                transaction.getGatewayFee(), Transaction.Status.COMPLETE, transaction.getMetadata());
+        if (paymentStatus.isSuccessful()) {
+            transactionRepository.update(
+                    transaction.getId(),
+                    paymentStatus.transactionId,
+                    paymentStatus.captureId,
+                    paymentStatus.timestamp,
+                    transaction.getPlatformFee(),
+                    transaction.getGatewayFee(),
+                    Transaction.Status.COMPLETE,
+                    transaction.getMetadata());
             return PaymentWebhookResult.successful(new SaferpayToken(paymentStatus.captureId));
-        } else if(paymentStatus.isInitialized()) {
+        } else if (paymentStatus.isInitialized()) {
             return PaymentWebhookResult.processStarted(new SaferpayToken(transaction.getPaymentId()));
         }
         return PaymentWebhookResult.pending();
     }
 
     @Override
-    public PaymentWebhookResult forceTransactionCheck(TicketReservation reservation, Transaction transaction, PaymentContext paymentContext) {
+    public PaymentWebhookResult forceTransactionCheck(
+            TicketReservation reservation, Transaction transaction, PaymentContext paymentContext) {
         return internalProcessWebhook(transaction, paymentContext);
     }
 
@@ -218,22 +250,28 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
     public Optional<PaymentInformation> getInfo(Transaction transaction, PurchaseContext purchaseContext) {
         var configuration = loadConfiguration(purchaseContext);
 
-
         try {
             var requestBody = new TransactionInquireRequestBuilder(transaction.getTransactionId(), 0)
-                .addAuthentication(configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), transaction.getReservationId())
-                .build();
+                    .addAuthentication(
+                            configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), transaction.getReservationId())
+                    .build();
             var request = buildRequest(configuration, "/Payment/v1/Transaction/Inquire", requestBody);
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if(!HttpUtils.callSuccessful(response)) {
-                LOGGER.warn("Cannot retrieve transaction info. Status {}, body {}", response.statusCode(), response.body());
+            if (!HttpUtils.callSuccessful(response)) {
+                LOGGER.warn(
+                        "Cannot retrieve transaction info. Status {}, body {}", response.statusCode(), response.body());
                 return Optional.empty();
             }
             LOGGER.debug("received successful response {}", response.body());
             var responseBody = JsonParser.parseString(response.body()).getAsJsonObject();
-            var amount = responseBody.get(TRANSACTION).getAsJsonObject().get("Amount").getAsJsonObject();
+            var amount = responseBody
+                    .get(TRANSACTION)
+                    .getAsJsonObject()
+                    .get("Amount")
+                    .getAsJsonObject();
             var centsAsString = amount.get("Value").getAsString();
-            var formattedAmount = MonetaryUtil.formatCents(Integer.parseInt(centsAsString), amount.get("CurrencyCode").getAsString());
+            var formattedAmount = MonetaryUtil.formatCents(
+                    Integer.parseInt(centsAsString), amount.get("CurrencyCode").getAsString());
             return Optional.of(new PaymentInformation(formattedAmount, null, null, null));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -244,23 +282,34 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
         return Optional.empty();
     }
 
-    //@Override
+    // @Override
     public boolean refund(Transaction transaction, PurchaseContext purchaseContext, Integer amount) {
         var configuration = loadConfiguration(purchaseContext);
         try {
             var requestBody = new TransactionRefundBuilder(transaction.getPaymentId(), 0)
-                .addAuthentication(configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), transaction.getReservationId())
-                .build(Integer.toString(amount), transaction.getCurrency());
+                    .addAuthentication(
+                            configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), transaction.getReservationId())
+                    .build(Integer.toString(amount), transaction.getCurrency());
             var request = buildRequest(configuration, "/Payment/v1/Transaction/Refund", requestBody);
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if(!HttpUtils.callSuccessful(response)) {
+            if (!HttpUtils.callSuccessful(response)) {
                 LOGGER.warn("Cannot refund transaction. Status {}, body {}", response.statusCode(), response.body());
                 return false;
             }
-            var transactionResponse = JsonParser.parseString(response.body()).getAsJsonObject().get(TRANSACTION).getAsJsonObject();
-            Validate.isTrue("REFUND".equals(transactionResponse.get("Type").getAsString()), "Unexpected transaction type");
-            if("AUTHORIZED".equals(transactionResponse.get(STATUS).getAsString())) {
-                return confirmTransaction(configuration, transactionResponse.get("Id").getAsString(), null, UUID.randomUUID().toString(), 0).isSuccessful();
+            var transactionResponse = JsonParser.parseString(response.body())
+                    .getAsJsonObject()
+                    .get(TRANSACTION)
+                    .getAsJsonObject();
+            Validate.isTrue(
+                    "REFUND".equals(transactionResponse.get("Type").getAsString()), "Unexpected transaction type");
+            if ("AUTHORIZED".equals(transactionResponse.get(STATUS).getAsString())) {
+                return confirmTransaction(
+                                configuration,
+                                transactionResponse.get("Id").getAsString(),
+                                null,
+                                UUID.randomUUID().toString(),
+                                0)
+                        .isSuccessful();
             }
             LOGGER.debug("received successful response {}", response.body());
             return true;
@@ -268,21 +317,22 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
             Thread.currentThread().interrupt();
             LOGGER.warn("Refund request interrupted", e);
             return false;
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("unexpected error while trying to refund transaction {}", transaction.getTransactionId(), ex);
             return false;
         }
     }
 
-    private PaymentStatus retrievePaymentStatus(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
-                                                String token,
-                                                String reservationId,
-                                                int retryCount) {
+    private PaymentStatus retrievePaymentStatus(
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
+            String token,
+            String reservationId,
+            int retryCount) {
 
         try {
             var requestBody = new PaymentPageAssertRequestBuilder(token, retryCount)
-                .addAuthentication(configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), reservationId)
-                .build();
+                    .addAuthentication(configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), reservationId)
+                    .build();
             var request = buildRequest(configuration, "/Payment/v1/PaymentPage/Assert", requestBody);
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (HttpUtils.callSuccessful(response)) {
@@ -293,8 +343,10 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
                 switch (paymentStatus) {
                     case "CAPTURED":
                         var captureId = transaction.get("CaptureId").getAsString();
-                        var timestamp = ZonedDateTime.parse(transaction.get("Date").getAsString());
-                        return new PaymentStatus(PaymentResult.successful(captureId), transactionId, captureId, timestamp);
+                        var timestamp =
+                                ZonedDateTime.parse(transaction.get("Date").getAsString());
+                        return new PaymentStatus(
+                                PaymentResult.successful(captureId), transactionId, captureId, timestamp);
                     case "AUTHORIZED":
                         return confirmTransaction(configuration, transactionId, token, reservationId, retryCount);
                     case "PENDING":
@@ -304,12 +356,12 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
                 }
             }
             int statusCode = response.statusCode();
-            if(statusCode > 499) {
+            if (statusCode > 499) {
                 // temporary error
                 throw new IllegalStateException("Internal server error");
             }
             return PaymentStatus.EMPTY;
-        } catch(IllegalStateException e) {
+        } catch (IllegalStateException e) {
             throw e;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -319,21 +371,23 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
         }
     }
 
-    private PaymentStatus confirmTransaction(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
-                                             String transactionId,
-                                             String token,
-                                             String requestId,
-                                             int retryCount) {
+    private PaymentStatus confirmTransaction(
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
+            String transactionId,
+            String token,
+            String requestId,
+            int retryCount) {
         try {
             var requestBody = new TransactionCaptureRequestBuilder(transactionId, retryCount)
-                .addAuthentication(configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), requestId)
-                .build();
+                    .addAuthentication(configuration.get(SAFERPAY_CUSTOMER_ID).getRequiredValue(), requestId)
+                    .build();
             var request = buildRequest(configuration, "/Payment/v1/Transaction/Capture", requestBody);
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (HttpUtils.callSuccessful(response)) {
                 var responseBody = JsonParser.parseString(response.body()).getAsJsonObject();
                 var paymentStatus = responseBody.get(STATUS).getAsString();
-                Validate.isTrue(paymentStatus.equals("CAPTURED"), "Expected CAPTURED Payment Status, got %s", paymentStatus);
+                Validate.isTrue(
+                        paymentStatus.equals("CAPTURED"), "Expected CAPTURED Payment Status, got %s", paymentStatus);
                 var captureId = responseBody.get("CaptureId").getAsString();
                 var timestamp = ZonedDateTime.parse(responseBody.get("Date").getAsString());
                 return new PaymentStatus(PaymentResult.successful(captureId), transactionId, captureId, timestamp);
@@ -349,24 +403,38 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
         return new PaymentStatus(PaymentResult.initialized(token), token, null, null);
     }
 
-    private HttpRequest buildRequest(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
-                                     String api,
-                                     String requestBody) {
-        var endpoint = configuration.get(SAFERPAY_LIVE_MODE).getValueAsBooleanOrDefault() ? LIVE_ENDPOINT : TEST_ENDPOINT;
+    private HttpRequest buildRequest(
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
+            String api,
+            String requestBody) {
+        var endpoint =
+                configuration.get(SAFERPAY_LIVE_MODE).getValueAsBooleanOrDefault() ? LIVE_ENDPOINT : TEST_ENDPOINT;
         return HttpRequest.newBuilder()
-            .uri(URI.create(endpoint + api))
-            .header("Authorization", "Basic " + authorizationHeader(configuration))
-            .header("Content-Type", "application/json; charset=utf-8")
-            .header("Accept", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-            .build();
+                .uri(URI.create(endpoint + api))
+                .header("Authorization", "Basic " + authorizationHeader(configuration))
+                .header("Content-Type", "application/json; charset=utf-8")
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
     }
 
-    private Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> loadConfiguration(PurchaseContext purchaseContext) {
-        return configurationManager.getFor(EnumSet.of(SAFERPAY_ENABLED, SAFERPAY_API_USERNAME, SAFERPAY_API_PASSWORD, SAFERPAY_CUSTOMER_ID, SAFERPAY_TERMINAL_ID, SAFERPAY_LIVE_MODE, BASE_URL, RESERVATION_TIMEOUT), purchaseContext.getConfigurationLevel());
+    private Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> loadConfiguration(
+            PurchaseContext purchaseContext) {
+        return configurationManager.getFor(
+                EnumSet.of(
+                        SAFERPAY_ENABLED,
+                        SAFERPAY_API_USERNAME,
+                        SAFERPAY_API_PASSWORD,
+                        SAFERPAY_CUSTOMER_ID,
+                        SAFERPAY_TERMINAL_ID,
+                        SAFERPAY_LIVE_MODE,
+                        BASE_URL,
+                        RESERVATION_TIMEOUT),
+                purchaseContext.getConfigurationLevel());
     }
 
-    private String processPaymentInitializationResponse(HttpResponse<String> response, PaymentSpecification spec, int retryCount) {
+    private String processPaymentInitializationResponse(
+            HttpResponse<String> response, PaymentSpecification spec, int retryCount) {
         var reservationId = spec.getReservationId();
 
         var responseBody = JsonParser.parseString(response.body()).getAsJsonObject();
@@ -376,10 +444,20 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
         ticketReservationRepository.updateReservationStatus(reservationId, EXTERNAL_PROCESSING_PAYMENT.toString());
         ticketReservationRepository.updateValidity(reservationId, Date.from(expiration.toInstant()));
         invalidateExistingTransactions(reservationId, transactionRepository);
-        transactionRepository.insert(paymentToken, paymentToken,
-            reservationId, ZonedDateTime.now(clockProvider.withZone(spec.getPurchaseContext().getZoneId())),
-            spec.getPriceWithVAT(), spec.getPurchaseContext().getCurrency(), "Saferpay Payment",
-            PaymentProxy.SAFERPAY.name(), 0L,0L, Transaction.Status.PENDING, Map.of(RETRY_COUNT, String.valueOf(retryCount)));
+        transactionRepository.insert(
+                paymentToken,
+                paymentToken,
+                reservationId,
+                ZonedDateTime.now(
+                        clockProvider.withZone(spec.getPurchaseContext().getZoneId())),
+                spec.getPriceWithVAT(),
+                spec.getPurchaseContext().getCurrency(),
+                "Saferpay Payment",
+                PaymentProxy.SAFERPAY.name(),
+                0L,
+                0L,
+                Transaction.Status.PENDING,
+                Map.of(RETRY_COUNT, String.valueOf(retryCount)));
 
         return responseBody.get("RedirectUrl").getAsString();
     }
@@ -390,14 +468,13 @@ public class SaferpayManager implements PaymentProvider, /*RefundRequest,*/ Paym
 
         @Delegate
         private final PaymentResult paymentResult;
+
         private final String transactionId;
         private final String captureId;
         private final ZonedDateTime timestamp;
-
 
         private boolean isEmpty() {
             return paymentResult == null;
         }
     }
-
 }

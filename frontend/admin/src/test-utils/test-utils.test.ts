@@ -146,7 +146,11 @@ describe('test-utils/mocks', () => {
     });
 
     it('mockFetchResponse creates response with custom options', async () => {
-        mockFetchResponse({ ok: false, status: 404, json: { error: 'not found' } });
+        mockFetchResponse({
+            ok: false,
+            status: 404,
+            json: { error: 'not found' },
+        });
 
         const result = await fetch('/api/test');
         expect(result.ok).toBe(false);

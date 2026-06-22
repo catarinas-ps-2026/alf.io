@@ -22,36 +22,41 @@ import alfio.model.TicketReservation;
 import alfio.model.transaction.Transaction;
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.experimental.Delegate;
-import org.apache.commons.lang3.builder.CompareToBuilder;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.function.Function;
+import lombok.Getter;
+import lombok.experimental.Delegate;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 
 @Getter
 public class TicketWithStatistic implements Comparable<TicketWithStatistic>, PriceContainer {
     @Delegate
     @JsonIgnore
     private final Ticket ticket;
+
     private final TicketReservation ticketReservation;
+
     @JsonIgnore
     private final ZoneId zoneId;
+
     @JsonIgnore
     private final Optional<Transaction> tx;
+
     private final String promoCodeOrToken;
+
     @JsonIgnore
     private final Function<ZonedDateTime, LocalDateTime> dateMapper;
 
-    public TicketWithStatistic(Ticket ticket,
-                               TicketReservation ticketReservation,
-                               ZoneId zoneId,
-                               Optional<Transaction> tx,
-                               String promoCodeOrToken) {
+    public TicketWithStatistic(
+            Ticket ticket,
+            TicketReservation ticketReservation,
+            ZoneId zoneId,
+            Optional<Transaction> tx,
+            String promoCodeOrToken) {
         this.ticket = ticket;
         this.ticketReservation = ticketReservation;
         this.zoneId = zoneId;
@@ -81,7 +86,9 @@ public class TicketWithStatistic implements Comparable<TicketWithStatistic>, Pri
     }
 
     public LocalDateTime getTimestamp() {
-        return Optional.ofNullable(ticketReservation.getConfirmationTimestamp()).map(dateMapper).orElse(null);
+        return Optional.ofNullable(ticketReservation.getConfirmationTimestamp())
+                .map(dateMapper)
+                .orElse(null);
     }
 
     @Override

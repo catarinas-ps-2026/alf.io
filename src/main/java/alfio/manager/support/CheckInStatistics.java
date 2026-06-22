@@ -17,9 +17,8 @@
 package alfio.manager.support;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.util.Date;
+import lombok.Getter;
 
 @Getter
 public class CheckInStatistics {
@@ -27,11 +26,10 @@ public class CheckInStatistics {
     private final int checkedIn;
     private final long lastUpdate;
 
-
-
-    public CheckInStatistics(@Column("total_attendees") Integer totalAttendees,
-                             @Column("checked_in") Integer checkedIn,
-                             @Column("last_update") Date lastUpdate) {
+    public CheckInStatistics(
+            @Column("total_attendees") Integer totalAttendees,
+            @Column("checked_in") Integer checkedIn,
+            @Column("last_update") Date lastUpdate) {
         this.totalAttendees = totalAttendees;
         this.checkedIn = checkedIn;
         this.lastUpdate = lastUpdate.getTime();

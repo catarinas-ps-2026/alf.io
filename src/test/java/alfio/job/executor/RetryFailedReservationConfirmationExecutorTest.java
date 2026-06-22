@@ -16,17 +16,16 @@
  */
 package alfio.job.executor;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.ReservationFinalizer;
 import alfio.manager.support.RetryFinalizeReservation;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.model.system.AdminJobSchedule;
 import alfio.util.Json;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 class RetryFailedReservationConfirmationExecutorTest {
 
@@ -35,11 +34,18 @@ class RetryFailedReservationConfirmationExecutorTest {
         var reservationFinalizer = mock(ReservationFinalizer.class);
         var json = mock(Json.class);
         var retryFinalizeReservation = mock(RetryFinalizeReservation.class);
-        when(json.fromJsonString("{\"reservationId\":\"abc\"}", RetryFinalizeReservation.class)).thenReturn(retryFinalizeReservation);
+        when(json.fromJsonString("{\"reservationId\":\"abc\"}", RetryFinalizeReservation.class))
+                .thenReturn(retryFinalizeReservation);
         var executor = new RetryFailedReservationConfirmationExecutor(reservationFinalizer, json);
 
-        assertNull(executor.process(new AdminJobSchedule(1L, AdminJobExecutor.JobName.RETRY_RESERVATION_CONFIRMATION.name(), null,
-            AdminJobSchedule.Status.SCHEDULED, null, Map.of("payload", "{\"reservationId\":\"abc\"}"), 0)));
+        assertNull(executor.process(new AdminJobSchedule(
+                1L,
+                AdminJobExecutor.JobName.RETRY_RESERVATION_CONFIRMATION.name(),
+                null,
+                AdminJobSchedule.Status.SCHEDULED,
+                null,
+                Map.of("payload", "{\"reservationId\":\"abc\"}"),
+                0)));
 
         verify(json).fromJsonString("{\"reservationId\":\"abc\"}", RetryFinalizeReservation.class);
         verify(reservationFinalizer).retryFinalizeReservation(retryFinalizeReservation);

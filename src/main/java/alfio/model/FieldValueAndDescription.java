@@ -17,25 +17,26 @@
 package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.experimental.Delegate;
-
 import java.util.UUID;
+import lombok.experimental.Delegate;
 
 public class FieldValueAndDescription {
     @Delegate
     private final PurchaseContextFieldValue purchaseContextFieldValue;
+
     private final String description;
 
-
-    public FieldValueAndDescription(@Column("ticket_id_fk") Integer ticketId,
-                                    @Column("subscription_id_fk") UUID subscriptionId,
-                                    @Column("additional_service_item_id_fk") Integer additionalServiceItemId,
-                                    @Column("field_configuration_id_fk") long fieldConfigurationId,
-                                    @Column("field_name") String name,
-                                    @Column("field_value") String value,
-                                    @Column("context") PurchaseContextFieldConfiguration.Context context,
-                                    @Column("description") String description) {
-        purchaseContextFieldValue = new PurchaseContextFieldValue(ticketId, subscriptionId, additionalServiceItemId, fieldConfigurationId, name, value, context);
+    public FieldValueAndDescription(
+            @Column("ticket_id_fk") Integer ticketId,
+            @Column("subscription_id_fk") UUID subscriptionId,
+            @Column("additional_service_item_id_fk") Integer additionalServiceItemId,
+            @Column("field_configuration_id_fk") long fieldConfigurationId,
+            @Column("field_name") String name,
+            @Column("field_value") String value,
+            @Column("context") PurchaseContextFieldConfiguration.Context context,
+            @Column("description") String description) {
+        purchaseContextFieldValue = new PurchaseContextFieldValue(
+                ticketId, subscriptionId, additionalServiceItemId, fieldConfigurationId, name, value, context);
         this.description = description;
     }
 

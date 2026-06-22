@@ -16,6 +16,8 @@
  */
 package alfio.manager;
 
+import static org.mockito.Mockito.*;
+
 import alfio.manager.support.reservation.ReservationCostCalculator;
 import alfio.model.AdditionalService;
 import alfio.model.Event;
@@ -25,6 +27,8 @@ import alfio.repository.AdditionalServiceRepository;
 import alfio.repository.AdditionalServiceTextRepository;
 import alfio.repository.PurchaseContextFieldRepository;
 import alfio.repository.TicketRepository;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,11 +36,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-
-import static org.mockito.Mockito.*;
 
 public class AdditionalServiceManagerTest {
     private static final String EVENT_CURRENCY = "CAD";
@@ -67,11 +66,7 @@ public class AdditionalServiceManagerTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-        "-1",
-        "1",
-        "5"
-    })
+    @CsvSource({"-1", "1", "5"})
     public void testNonFixedPriceCommited(int availQuantity) {
         final PromoCodeDiscount DISCOUNT = null;
         final String RESERVATION_ID = "7ddadb25-18e8-4c72-9727-11f0bdfdb698";
@@ -81,30 +76,24 @@ public class AdditionalServiceManagerTest {
 
         when(additionalService.availableQuantity()).thenReturn(availQuantity);
         when(additionalService.fixPrice()).thenReturn(IS_FIXED_PRICE);
-        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(any(), any(SqlParameterSource[].class))).thenReturn(new int[] {1});
 
         final ArrayList<Integer> FREE_SERVICE_ITEMS = new ArrayList<>();
         FREE_SERVICE_ITEMS.add(1);
-        when(additionalServiceItemRepository.lockExistingItems(anyInt(), anyInt())).thenReturn(FREE_SERVICE_ITEMS);
+        when(additionalServiceItemRepository.lockExistingItems(anyInt(), anyInt()))
+                .thenReturn(FREE_SERVICE_ITEMS);
 
         AdditionalServiceManager additionalServiceManager = new AdditionalServiceManager(
-            additionalServiceRepository,
-            additionalServiceTextRepository,
-            additionalServiceItemRepository,
-            jdbcTemplate,
-            ticketRepository,
-            purchaseContextFieldRepository,
-            reservationCostCalculator
-        );
+                additionalServiceRepository,
+                additionalServiceTextRepository,
+                additionalServiceItemRepository,
+                jdbcTemplate,
+                ticketRepository,
+                purchaseContextFieldRepository,
+                reservationCostCalculator);
 
         additionalServiceManager.bookAdditionalServiceItems(
-            REQUESTED_QUANTITY,
-            AMOUNT,
-            additionalService,
-            event,
-            DISCOUNT,
-            RESERVATION_ID
-        );
+                REQUESTED_QUANTITY, AMOUNT, additionalService, event, DISCOUNT, RESERVATION_ID);
 
         ArgumentCaptor<String> templateCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<SqlParameterSource[]> paramsCaptor = ArgumentCaptor.forClass(SqlParameterSource[].class);
@@ -114,9 +103,15 @@ public class AdditionalServiceManagerTest {
         SqlParameterSource[] paramList = paramsCaptor.getValue();
         var srcPriceVal = paramList[0].getValue("srcPriceCts");
 
-        Assertions.assertEquals(paramList.length, REQUESTED_QUANTITY, "Number of Sql parameter sets should match number of services requested to book");
+        Assertions.assertEquals(
+                paramList.length,
+                REQUESTED_QUANTITY,
+                "Number of Sql parameter sets should match number of services requested to book");
 
         // Price is inserted into DB as fixed-point integer (E.g, 3.74 -> 374)
-        Assertions.assertEquals(srcPriceVal, AMOUNT.multiply(new BigDecimal("100")).intValue(), "Value of input amount should match commited srcPriceCts");
+        Assertions.assertEquals(
+                srcPriceVal,
+                AMOUNT.multiply(new BigDecimal("100")).intValue(),
+                "Value of input amount should match commited srcPriceCts");
     }
 }

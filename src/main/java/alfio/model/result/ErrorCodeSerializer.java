@@ -19,7 +19,6 @@ package alfio.model.result;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-
 import java.io.IOException;
 
 class ErrorCodeSerializer extends JsonSerializer<ErrorCode> {
@@ -29,7 +28,7 @@ class ErrorCodeSerializer extends JsonSerializer<ErrorCode> {
         gen.writeStringField("fieldName", value.getLocation());
         gen.writeStringField("code", value.getCode());
         gen.writeStringField("description", value.getDescription());
-        if(value.getArguments() != null) {
+        if (value.getArguments() != null) {
             gen.writeArrayFieldStart("arguments");
             for (Object arg : value.getArguments()) {
                 gen.writeObject(arg);

@@ -16,6 +16,11 @@
  */
 package alfio.manager;
 
+import static alfio.model.system.ConfigurationKeys.ENABLE_PRE_REGISTRATION;
+import static alfio.model.system.ConfigurationKeys.WAITING_QUEUE_RESERVATION_TIMEOUT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.Event;
@@ -31,24 +36,18 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.TestUtil;
 import alfio.util.ClockProvider;
 import alfio.util.TemplateManager;
-import org.apache.commons.lang3.tuple.Triple;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.context.MessageSource;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static alfio.model.system.ConfigurationKeys.ENABLE_PRE_REGISTRATION;
-import static alfio.model.system.ConfigurationKeys.WAITING_QUEUE_RESERVATION_TIMEOUT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import org.apache.commons.lang3.tuple.Triple;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.MessageSource;
 
 @DisplayName("Waiting List Manager")
 public class WaitingQueueManagerTest {
@@ -70,7 +69,6 @@ public class WaitingQueueManagerTest {
     private final String reservationId = "reservation-id";
     private final int eventId = 1;
 
-
     @BeforeEach
     void setUp() {
         waitingQueueRepository = mock(WaitingQueueRepository.class);
@@ -88,7 +86,19 @@ public class WaitingQueueManagerTest {
         event = mock(Event.class);
         when(event.getId()).thenReturn(eventId);
         when(event.now(any(ClockProvider.class))).thenCallRealMethod();
-        manager = new WaitingQueueManager(waitingQueueRepository, ticketRepository, ticketCategoryRepository, configurationManager, eventStatisticsManager, notificationManager, templateManager, messageSourceManager, organizationRepository, eventRepository, extensionManager, TestUtil.clockProvider());
+        manager = new WaitingQueueManager(
+                waitingQueueRepository,
+                ticketRepository,
+                ticketCategoryRepository,
+                configurationManager,
+                eventStatisticsManager,
+                notificationManager,
+                templateManager,
+                messageSourceManager,
+                organizationRepository,
+                eventRepository,
+                extensionManager,
+                TestUtil.clockProvider());
         when(messageSourceManager.getMessageSourceFor(any())).thenReturn(messageSource);
         when(messageSourceManager.getRootMessageSource()).thenReturn(messageSource);
     }
@@ -102,7 +112,9 @@ public class WaitingQueueManagerTest {
     @DisplayName("handle a reservation confirmation")
     void handleReservationConfirmation() {
         manager.fireReservationConfirmed(reservationId);
-        verify(waitingQueueRepository).updateStatusByReservationId(eq(reservationId), eq(WaitingQueueSubscription.Status.ACQUIRED.toString()));
+        verify(waitingQueueRepository)
+                .updateStatusByReservationId(
+                        eq(reservationId), eq(WaitingQueueSubscription.Status.ACQUIRED.toString()));
     }
 
     @Test
@@ -151,12 +163,18 @@ public class WaitingQueueManagerTest {
         when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
         when(waitingQueueRepository.countWaitingPeople(eq(eventId))).thenReturn(1);
         when(ticketRepository.countWaiting(eq(eventId))).thenReturn(0);
-        when(configurationManager.getFor(eq(ENABLE_PRE_REGISTRATION), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(ENABLE_PRE_REGISTRATION, new ConfigurationKeyValuePathLevel(null, "true", null)));
-        when(configurationManager.getFor(eq(WAITING_QUEUE_RESERVATION_TIMEOUT), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(WAITING_QUEUE_RESERVATION_TIMEOUT));
-        when(ticketRepository.selectWaitingTicketsForUpdate(eventId, Ticket.TicketStatus.PRE_RESERVED.name(), 1)).thenReturn(Collections.singletonList(ticket));
-        when(waitingQueueRepository.loadAllWaitingForUpdate(eventId)).thenReturn(Collections.singletonList(subscription));
+        when(configurationManager.getFor(eq(ENABLE_PRE_REGISTRATION), any()))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(
+                        ENABLE_PRE_REGISTRATION, new ConfigurationKeyValuePathLevel(null, "true", null)));
+        when(configurationManager.getFor(eq(WAITING_QUEUE_RESERVATION_TIMEOUT), any()))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(WAITING_QUEUE_RESERVATION_TIMEOUT));
+        when(ticketRepository.selectWaitingTicketsForUpdate(eventId, Ticket.TicketStatus.PRE_RESERVED.name(), 1))
+                .thenReturn(Collections.singletonList(ticket));
+        when(waitingQueueRepository.loadAllWaitingForUpdate(eventId))
+                .thenReturn(Collections.singletonList(subscription));
         when(waitingQueueRepository.loadWaiting(eventId, 1)).thenReturn(Collections.singletonList(subscription));
-        Stream<Triple<WaitingQueueSubscription, TicketReservationWithOptionalCodeModification, ZonedDateTime>> stream = manager.distributeSeats(event);
+        Stream<Triple<WaitingQueueSubscription, TicketReservationWithOptionalCodeModification, ZonedDateTime>> stream =
+                manager.distributeSeats(event);
         assertEquals(1L, stream.count());
         verify(waitingQueueRepository).loadAllWaitingForUpdate(eq(eventId));
         verify(waitingQueueRepository).loadWaiting(eq(eventId), eq(1));

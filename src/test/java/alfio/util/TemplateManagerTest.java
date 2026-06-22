@@ -16,19 +16,18 @@
  */
 package alfio.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.support.StaticMessageSource;
 
-import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class TemplateManagerTest {
 
     private static final StaticMessageSource messageSource = new StaticMessageSource();
+
     static {
         messageSource.addMessage("locale", Locale.ENGLISH, "en");
         messageSource.addMessage("middle", Locale.ENGLISH, "middle-en");
@@ -62,39 +61,56 @@ class TemplateManagerTest {
 
     @Test
     void parseMixedI18N() {
-        assertEquals("before middle-en after", TemplateManager.translate("before {{#i18n}}middle{{/i18n}} after", Locale.ENGLISH, messageSource));
+        assertEquals(
+                "before middle-en after",
+                TemplateManager.translate("before {{#i18n}}middle{{/i18n}} after", Locale.ENGLISH, messageSource));
     }
 
     @Test
     void parseMultipleMixedI18N() {
-        assertEquals("before1middle-1-resolvedafter1before2middle-2-resolvedafter2", TemplateManager.translate("before1{{#i18n}}middle1{{/i18n}}after1before2{{#i18n}}middle2{{/i18n}}after2", Locale.ENGLISH, messageSource));
+        assertEquals(
+                "before1middle-1-resolvedafter1before2middle-2-resolvedafter2",
+                TemplateManager.translate(
+                        "before1{{#i18n}}middle1{{/i18n}}after1before2{{#i18n}}middle2{{/i18n}}after2",
+                        Locale.ENGLISH,
+                        messageSource));
     }
 
     @Test
     void parseNestedI18N() {
-        assertEquals("nested-resolved", TemplateManager.translate("{{#i18n}}{{#i18n}}nested{{/i18n}}{{/i18n}}", Locale.ENGLISH, messageSource));
+        assertEquals(
+                "nested-resolved",
+                TemplateManager.translate("{{#i18n}}{{#i18n}}nested{{/i18n}}{{/i18n}}", Locale.ENGLISH, messageSource));
     }
 
     @Test
     void parseNested2I18N() {
-        assertEquals("0complete-resolved3", TemplateManager.translate("0{{#i18n}}1{{#i18n}}a{{/i18n}}-middle-{{#i18n}}b{{/i18n}}2{{/i18n}}3", Locale.ENGLISH, messageSource));
+        assertEquals(
+                "0complete-resolved3",
+                TemplateManager.translate(
+                        "0{{#i18n}}1{{#i18n}}a{{/i18n}}-middle-{{#i18n}}b{{/i18n}}2{{/i18n}}3",
+                        Locale.ENGLISH,
+                        messageSource));
     }
 
     @Test
     void simpleParams() {
-        assertEquals("3-2-1", TemplateManager.translate("{{#i18n}}parameter [1] [2] [3]{{/i18n}}", Locale.ENGLISH, messageSource));
+        assertEquals(
+                "3-2-1",
+                TemplateManager.translate("{{#i18n}}parameter [1] [2] [3]{{/i18n}}", Locale.ENGLISH, messageSource));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "{{#i18n}}parameter[1][2][3]{{/i18n}}",
-        "{{#i18n}} parameter[1][2][3]{{/i18n}}",
-        "{{#i18n}}parameter [1][2][3]{{/i18n}}",
-        "{{#i18n}}parameter [1] [2][3]{{/i18n}}",
-        "{{#i18n}}parameter [1] [2] [3]{{/i18n}}",
-        "{{#i18n}}parameter [1] [2] [3] {{/i18n}}",
-        "{{#i18n}} parameter [1] [2] [3] {{/i18n}}",
-    })
+    @ValueSource(
+            strings = {
+                "{{#i18n}}parameter[1][2][3]{{/i18n}}",
+                "{{#i18n}} parameter[1][2][3]{{/i18n}}",
+                "{{#i18n}}parameter [1][2][3]{{/i18n}}",
+                "{{#i18n}}parameter [1] [2][3]{{/i18n}}",
+                "{{#i18n}}parameter [1] [2] [3]{{/i18n}}",
+                "{{#i18n}}parameter [1] [2] [3] {{/i18n}}",
+                "{{#i18n}} parameter [1] [2] [3] {{/i18n}}",
+            })
     void simpleParams(String input) {
         assertEquals("3-2-1", TemplateManager.translate(input, Locale.ENGLISH, messageSource));
     }

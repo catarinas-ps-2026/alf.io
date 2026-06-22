@@ -16,6 +16,11 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -29,24 +34,18 @@ import alfio.model.modification.DateTimeModification;
 import alfio.model.modification.TicketCategoryModification;
 import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -55,6 +54,7 @@ class DiscountedReservationFlowIntegrationTest extends BaseReservationFlowTest {
 
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
 
@@ -62,17 +62,60 @@ class DiscountedReservationFlowIntegrationTest extends BaseReservationFlowTest {
     void discountedInPersonEvent() throws Exception {
         super.testBasicFlow(() -> {
             List<TicketCategoryModification> categories = Arrays.asList(
-                new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                    DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-                new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                    DESCRIPTION, BigDecimal.ONE, true, "", true, URL_CODE_HIDDEN, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-            );
-            Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
-            return new ReservationFlowContext(eventAndUser.getLeft(), owner(eventAndUser.getRight()), null, null, null, null, true, true);
+                    new TicketCategoryModification(
+                            null,
+                            "default",
+                            TicketCategory.TicketAccessType.INHERIT,
+                            AVAILABLE_SEATS,
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            DESCRIPTION,
+                            BigDecimal.TEN,
+                            false,
+                            "",
+                            false,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            null,
+                            null,
+                            AlfioMetadata.empty()),
+                    new TicketCategoryModification(
+                            null,
+                            "hidden",
+                            TicketCategory.TicketAccessType.INHERIT,
+                            2,
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            DESCRIPTION,
+                            BigDecimal.ONE,
+                            true,
+                            "",
+                            true,
+                            URL_CODE_HIDDEN,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            null,
+                            null,
+                            AlfioMetadata.empty()));
+            Pair<Event, String> eventAndUser =
+                    initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+            return new ReservationFlowContext(
+                    eventAndUser.getLeft(), owner(eventAndUser.getRight()), null, null, null, null, true, true);
         });
     }
 
@@ -93,9 +136,11 @@ class DiscountedReservationFlowIntegrationTest extends BaseReservationFlowTest {
         assertEquals(1000, reservation.getSrcPriceCts());
         assertEquals(9, reservation.getVatCts());
         assertEquals(100, reservation.getDiscountCts());
-        assertEquals(1, eventApiController.getPendingPayments(eventName, principal).size());
+        assertEquals(
+                1, eventApiController.getPendingPayments(eventName, principal).size());
         assertEquals("OK", eventApiController.confirmPayment(eventName, reservationIdentifier, null, principal));
-        assertEquals(0, eventApiController.getPendingPayments(eventName, principal).size());
+        assertEquals(
+                0, eventApiController.getPendingPayments(eventName, principal).size());
         assertEquals(900, eventRepository.getGrossIncome(context.event.getId()));
     }
 

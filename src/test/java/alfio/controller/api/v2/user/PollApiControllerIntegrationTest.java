@@ -16,6 +16,9 @@
  */
 package alfio.controller.api.v2.user;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -41,6 +44,10 @@ import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
 import alfio.util.PinGenerator;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
@@ -53,14 +60,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -69,26 +68,37 @@ class PollApiControllerIntegrationTest {
 
     @Autowired
     private PollApiController pollApiController;
+
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private PollRepository pollRepository;
+
     @Autowired
     private TicketCategoryRepository ticketCategoryRepository;
+
     @Autowired
     private TicketReservationManager ticketReservationManager;
+
     @Autowired
     private TicketRepository ticketRepository;
+
     @Autowired
     private EventDeleterRepository eventDeleterRepository;
+
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -99,39 +109,72 @@ class PollApiControllerIntegrationTest {
     private Long secondOptionId;
     private String username;
 
-
     @BeforeEach
     void init() {
         LOGGER.info("init");
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-        List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.ZERO, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = List.of(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.ZERO,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         username = eventAndUser.getRight();
         event = eventAndUser.getKey();
-        var rowCountAndKey = pollRepository.insert(Map.of("en", "test poll"), null, List.of(), 0, event.getId(), event.getOrganizationId());
+        var rowCountAndKey = pollRepository.insert(
+                Map.of("en", "test poll"), null, List.of(), 0, event.getId(), event.getOrganizationId());
         pollId = rowCountAndKey.getKey();
         LOGGER.info("pollId {}", pollId);
         TicketReservationModification tr = new TicketReservationModification();
         tr.setAmount(1);
-        TicketCategory category = ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
+        TicketCategory category =
+                ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
         tr.setTicketCategoryId(category.getId());
-        TicketReservationWithOptionalCodeModification mod = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
-        var reservationId = ticketReservationManager.createTicketReservation(event, Collections.singletonList(mod), Collections.emptyList(), DateUtils.addDays(new Date(), 1), Optional.empty(), Locale.ENGLISH, false, null);
+        TicketReservationWithOptionalCodeModification mod =
+                new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
+        var reservationId = ticketReservationManager.createTicketReservation(
+                event,
+                Collections.singletonList(mod),
+                Collections.emptyList(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
         ticketRepository.updateTicketsStatusWithReservationId(reservationId, Ticket.TicketStatus.ACQUIRED.name());
         pollRepository.updateStatus(Poll.PollStatus.DRAFT, pollId, event.getId());
-        firstOptionId = pollRepository.insertOption(pollId, Map.of("en", "first"), null, event.getOrganizationId()).getKey();
-        secondOptionId = pollRepository.insertOption(pollId, Map.of("en", "second"), null, event.getOrganizationId()).getKey();
+        firstOptionId = pollRepository
+                .insertOption(pollId, Map.of("en", "first"), null, event.getOrganizationId())
+                .getKey();
+        secondOptionId = pollRepository
+                .insertOption(pollId, Map.of("en", "second"), null, event.getOrganizationId())
+                .getKey();
         ticket = ticketRepository.findFirstTicketInReservation(reservationId).orElseThrow();
     }
 
     @AfterEach
     void deleteAll() {
-        BaseIntegrationTest.testTransferEventToAnotherOrg(event.getId(), event.getOrganizationId(), username, jdbcTemplate);
+        BaseIntegrationTest.testTransferEventToAnotherOrg(
+                event.getId(), event.getOrganizationId(), username, jdbcTemplate);
         eventDeleterRepository.deleteAllForEvent(event.getId());
     }
 
@@ -162,7 +205,8 @@ class PollApiControllerIntegrationTest {
         var response = pollApiController.getAll(event.getShortName(), PinGenerator.uuidToPin(ticket.getUuid()));
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().isSuccess()); // pin has been successfully validated, therefore we get an empty list
+        assertTrue(
+                response.getBody().isSuccess()); // pin has been successfully validated, therefore we get an empty list
         assertEquals(0, response.getBody().getErrorCount());
         assertNotNull(response.getBody().getValue());
         assertTrue(response.getBody().getValue().isEmpty());
@@ -188,7 +232,8 @@ class PollApiControllerIntegrationTest {
     void getSingle() {
         updateVisibility(Poll.PollStatus.OPEN);
 
-        var response = pollApiController.getSingle(event.getShortName(), pollId, PinGenerator.uuidToPin(ticket.getUuid()));
+        var response =
+                pollApiController.getSingle(event.getShortName(), pollId, PinGenerator.uuidToPin(ticket.getUuid()));
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
@@ -243,6 +288,4 @@ class PollApiControllerIntegrationTest {
         assertEquals(1, pollRepository.updateStatus(status, pollId, event.getId()));
         assertEquals(1, ticketRepository.updateTicketStatusWithUUID(ticket.getUuid(), ticketStatus.name()));
     }
-
-
 }

@@ -19,24 +19,24 @@ package alfio.model.decorator;
 import alfio.model.PromoCodeDiscount;
 import alfio.model.SummaryPriceContainer;
 import alfio.model.Ticket;
-import lombok.experimental.Delegate;
-import org.apache.commons.lang3.ObjectUtils;
-
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.util.Optional;
-
+import lombok.experimental.Delegate;
+import org.apache.commons.lang3.ObjectUtils;
 
 public class TicketPriceContainer implements SummaryPriceContainer {
 
     @Delegate(excludes = OverridePriceContainer.class)
     private final Ticket ticket;
+
     private final PromoCodeDiscount promoCodeDiscount;
     private final BigDecimal vatPercentage;
     private final VatStatus vatStatus;
 
     @ConstructorProperties({"ticket", "promoCodeDiscount", "vatPercentage", "vatStatus"})
-    private TicketPriceContainer(Ticket ticket, PromoCodeDiscount promoCodeDiscount, BigDecimal vatPercentage, VatStatus vatStatus) {
+    private TicketPriceContainer(
+            Ticket ticket, PromoCodeDiscount promoCodeDiscount, BigDecimal vatPercentage, VatStatus vatStatus) {
         this.ticket = ticket;
         this.promoCodeDiscount = promoCodeDiscount;
         this.vatPercentage = vatPercentage;
@@ -46,7 +46,10 @@ public class TicketPriceContainer implements SummaryPriceContainer {
     @Override
     public Optional<PromoCodeDiscount> getDiscount() {
         return Optional.ofNullable(promoCodeDiscount)
-            .filter(discount -> discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION && (discount.getCategories().isEmpty() || discount.getCategories().contains(getCategoryId())));
+                .filter(discount ->
+                        discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION
+                                && (discount.getCategories().isEmpty()
+                                        || discount.getCategories().contains(getCategoryId())));
     }
 
     @Override
@@ -60,22 +63,27 @@ public class TicketPriceContainer implements SummaryPriceContainer {
     }
 
     public int getSummarySrcPriceCts() {
-        if(VatStatus.isVatExempt(getVatStatus())) {
+        if (VatStatus.isVatExempt(getVatStatus())) {
             return getFinalPriceCts();
         }
         return getSrcPriceCts();
     }
 
-    public static TicketPriceContainer from(Ticket t, VatStatus reservationVatStatus, BigDecimal vat, VatStatus eventVatStatus, PromoCodeDiscount discount) {
+    public static TicketPriceContainer from(
+            Ticket t,
+            VatStatus reservationVatStatus,
+            BigDecimal vat,
+            VatStatus eventVatStatus,
+            PromoCodeDiscount discount) {
         VatStatus vatStatus = ObjectUtils.firstNonNull(t.getVatStatus(), reservationVatStatus, eventVatStatus);
         return new TicketPriceContainer(t, discount, vat, vatStatus);
     }
 
     @Override
     public BigDecimal getTaxablePrice() {
-        if(vatStatus != VatStatus.INCLUDED_EXEMPT
-            && vatStatus != VatStatus.NOT_INCLUDED_EXEMPT
-            && vatStatus != VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {
+        if (vatStatus != VatStatus.INCLUDED_EXEMPT
+                && vatStatus != VatStatus.NOT_INCLUDED_EXEMPT
+                && vatStatus != VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {
             return SummaryPriceContainer.super.getTaxablePrice();
         }
         return BigDecimal.ZERO;
@@ -88,7 +96,9 @@ public class TicketPriceContainer implements SummaryPriceContainer {
 
     private interface OverridePriceContainer {
         VatStatus getVatStatus();
+
         int getVatCts();
+
         int getFinalPriceCts();
     }
 }

@@ -18,13 +18,12 @@ package alfio.manager.system;
 
 import alfio.config.Initializer;
 import alfio.util.ClockProvider;
+import java.time.ZonedDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.time.ZonedDateTime;
 
 @Component
 @Profile("!" + Initializer.PROFILE_DISABLE_JOBS)
@@ -34,8 +33,7 @@ public class AdminJobManagerScheduler {
     private final AdminJobManager adminJobManager;
     private final ClockProvider clockProvider;
 
-    public AdminJobManagerScheduler(AdminJobManager adminJobManager,
-                                    ClockProvider clockProvider) {
+    public AdminJobManagerScheduler(AdminJobManager adminJobManager, ClockProvider clockProvider) {
         this.adminJobManager = adminJobManager;
         this.clockProvider = clockProvider;
     }

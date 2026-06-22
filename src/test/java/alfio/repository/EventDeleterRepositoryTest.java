@@ -14,25 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.repository;
+
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class EventDeleterRepositoryTest {
 
-    private final EventDeleterRepository eventDeleterRepository = mock(EventDeleterRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+    private final EventDeleterRepository eventDeleterRepository =
+            mock(EventDeleterRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 
     @Test
     void testDeleteAllForEvent() {
         int eventId = 123;
         eventDeleterRepository.deleteAllForEvent(eventId);
-        
+
         verify(eventDeleterRepository).deletePolls(eventId);
         verify(eventDeleterRepository).deleteWaitingQueue(eventId);
         verify(eventDeleterRepository).deleteWhitelistedTickets(eventId);

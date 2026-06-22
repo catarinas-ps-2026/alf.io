@@ -16,37 +16,41 @@
  */
 package alfio.model;
 
+import static java.time.temporal.ChronoField.OFFSET_SECONDS;
+
 import alfio.model.transaction.PaymentProxy;
 import alfio.util.ClockProvider;
 import alfio.util.EventUtil;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.flywaydb.core.api.MigrationVersion;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.time.temporal.ChronoField.OFFSET_SECONDS;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.flywaydb.core.api.MigrationVersion;
 
 @Getter
-public class Event extends EventAndOrganizationId implements EventHiddenFieldContainer, EventCheckInInfo, PurchaseContext {
+public class Event extends EventAndOrganizationId
+        implements EventHiddenFieldContainer, EventCheckInInfo, PurchaseContext {
 
     private static final String VERSION_FOR_FIRST_AND_LAST_NAME = "15.1.8.8";
 
     public enum Status {
-        DRAFT, PUBLIC, DISABLED
+        DRAFT,
+        PUBLIC,
+        DISABLED
     }
 
     public enum EventFormat {
-        IN_PERSON, ONLINE, HYBRID
+        IN_PERSON,
+        ONLINE,
+        HYBRID
     }
 
     private final EventFormat format;
@@ -70,6 +74,7 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
 
     @JsonIgnore
     private final String privateKey;
+
     private final ZoneId timeZone;
     private final int locales;
 
@@ -78,34 +83,33 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     private final String version;
     private final Status status;
 
-
-
-    public Event(@Column("id") int id,
-                 @Column("format") EventFormat format,
-                 @Column("short_name") String shortName,
-                 @Column("display_name") String displayName,
-                 @Column("location") String location,
-                 @Column("latitude") String latitude,
-                 @Column("longitude") String longitude,
-                 @Column("start_ts") ZonedDateTime begin,
-                 @Column("end_ts") ZonedDateTime end,
-                 @Column("time_zone") String timeZone,
-                 @Column("website_url") String websiteUrl,
-                 @Column("external_url") String externalUrl,
-                 @Column("file_blob_id") String fileBlobId,
-                 @Column("website_t_c_url") String termsAndConditionsUrl,
-                 @Column("website_p_p_url") String privacyPolicyUrl,
-                 @Column("image_url") String imageUrl,
-                 @Column("currency") String currency,
-                 @Column("vat") BigDecimal vat,
-                 @Column("allowed_payment_proxies") String allowedPaymentProxies,
-                 @Column("private_key") String privateKey,
-                 @Column("org_id") int organizationId,
-                 @Column("locales") int locales,
-                 @Column("src_price_cts") int srcPriceInCents,
-                 @Column("vat_status") PriceContainer.VatStatus vatStatus,
-                 @Column("version") String version,
-                 @Column("status") Status status) {
+    public Event(
+            @Column("id") int id,
+            @Column("format") EventFormat format,
+            @Column("short_name") String shortName,
+            @Column("display_name") String displayName,
+            @Column("location") String location,
+            @Column("latitude") String latitude,
+            @Column("longitude") String longitude,
+            @Column("start_ts") ZonedDateTime begin,
+            @Column("end_ts") ZonedDateTime end,
+            @Column("time_zone") String timeZone,
+            @Column("website_url") String websiteUrl,
+            @Column("external_url") String externalUrl,
+            @Column("file_blob_id") String fileBlobId,
+            @Column("website_t_c_url") String termsAndConditionsUrl,
+            @Column("website_p_p_url") String privacyPolicyUrl,
+            @Column("image_url") String imageUrl,
+            @Column("currency") String currency,
+            @Column("vat") BigDecimal vat,
+            @Column("allowed_payment_proxies") String allowedPaymentProxies,
+            @Column("private_key") String privateKey,
+            @Column("org_id") int organizationId,
+            @Column("locales") int locales,
+            @Column("src_price_cts") int srcPriceInCents,
+            @Column("vat_status") PriceContainer.VatStatus vatStatus,
+            @Column("version") String version,
+            @Column("status") Status status) {
 
         super(id, organizationId);
         this.format = format;
@@ -132,7 +136,8 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
         this.privateKey = privateKey;
 
         this.locales = locales;
-        this.allowedPaymentProxies = Arrays.stream(Optional.ofNullable(allowedPaymentProxies).orElse("").split(","))
+        this.allowedPaymentProxies = Arrays.stream(
+                        Optional.ofNullable(allowedPaymentProxies).orElse("").split(","))
                 .filter(StringUtils::isNotBlank)
                 .map(PaymentProxy::valueOf)
                 .toList();
@@ -149,14 +154,13 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
 
     static Map<String, String> buildTitle(String displayName, int locales) {
         return ContentLanguage.findAllFor(locales).stream()
-            .collect(Collectors.toMap(cl -> cl.locale().getLanguage(), cl -> displayName));
+                .collect(Collectors.toMap(cl -> cl.locale().getLanguage(), cl -> displayName));
     }
 
     public BigDecimal getRegularPrice() {
         return MonetaryUtil.centsToUnit(srcPriceCts, currency);
     }
-    
-    
+
     public boolean getSameDay() {
         return begin.truncatedTo(ChronoUnit.DAYS).equals(end.truncatedTo(ChronoUnit.DAYS));
     }
@@ -166,7 +170,7 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     public String getPrivateKey() {
         return privateKey;
     }
-    
+
     @Override
     @JsonIgnore
     public Pair<String, String> getLatLong() {
@@ -211,7 +215,7 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     public boolean getFree() {
         return isFreeOfCharge();
     }
-    
+
     public boolean getImageIsPresent() {
         return StringUtils.isNotBlank(imageUrl) || StringUtils.isNotBlank(fileBlobId);
     }
@@ -226,7 +230,9 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     }
 
     public PaymentProxy getFirstPaymentMethod() {
-        return allowedPaymentProxies.isEmpty() ? null : allowedPaymentProxies.get(0);//it is guaranteed that this list is not null. 
+        return allowedPaymentProxies.isEmpty()
+                ? null
+                : allowedPaymentProxies.get(0); // it is guaranteed that this list is not null.
     }
 
     public boolean supportsPaymentMethod(PaymentProxy paymentProxy) {
@@ -240,10 +246,10 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     public boolean isOnline() {
         return format == EventFormat.ONLINE;
     }
-    
+
     // mustache
     public boolean getOnline() {
-    	return isOnline();
+        return isOnline();
     }
 
     public boolean getUseFirstAndLastName() {
@@ -271,7 +277,9 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
 
     private static boolean mustUseFirstAndLastName(Event event) {
         return event.getVersion() != null
-            && MigrationVersion.fromVersion(event.getVersion()).compareTo(MigrationVersion.fromVersion(VERSION_FOR_FIRST_AND_LAST_NAME)) >= 0;
+                && MigrationVersion.fromVersion(event.getVersion())
+                                .compareTo(MigrationVersion.fromVersion(VERSION_FOR_FIRST_AND_LAST_NAME))
+                        >= 0;
     }
 
     public boolean expired() {
@@ -279,7 +287,10 @@ public class Event extends EventAndOrganizationId implements EventHiddenFieldCon
     }
 
     public boolean expiredSince(int days) {
-        return ZonedDateTime.now(ClockProvider.clock().withZone(getZoneId())).truncatedTo(ChronoUnit.DAYS).minusDays(days).isAfter(getEnd().truncatedTo(ChronoUnit.DAYS));
+        return ZonedDateTime.now(ClockProvider.clock().withZone(getZoneId()))
+                .truncatedTo(ChronoUnit.DAYS)
+                .minusDays(days)
+                .isAfter(getEnd().truncatedTo(ChronoUnit.DAYS));
     }
 
     public String getPrivacyPolicyLinkOrNull() {

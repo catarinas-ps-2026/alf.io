@@ -32,16 +32,6 @@ import alfio.util.TemplateManager;
 import alfio.util.TemplateResource;
 import com.samskivert.mustache.MustacheException;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +44,15 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -73,24 +72,27 @@ public class ResourceController {
     private final SubscriptionManager subscriptionManager;
     private final AccessService accessService;
 
-
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleSyntaxError(Exception ex) {
         log.warn("Exception in resource controller", ex);
         Optional<String> cause = Optional.ofNullable(ex.getCause())
-            .filter(e -> e instanceof MustacheException || e instanceof TemplateProcessor.TemplateAccessException)
-            .map(Throwable::getMessage);
+                .filter(e -> e instanceof MustacheException || e instanceof TemplateProcessor.TemplateAccessException)
+                .map(Throwable::getMessage);
         return cause.orElse("Something went wrong. Please check the syntax and retry");
     }
 
     @GetMapping("/overridable-template")
     public List<TemplateResource> getOverridableTemplates() {
-        return Stream.of(TemplateResource.values()).filter(TemplateResource::overridable).toList();
+        return Stream.of(TemplateResource.values())
+                .filter(TemplateResource::overridable)
+                .toList();
     }
 
     @GetMapping("/overridable-template/{name}/{locale}")
-    public void getTemplate(@PathVariable TemplateResource name, @PathVariable String locale, HttpServletResponse response) throws IOException {
+    public void getTemplate(
+            @PathVariable TemplateResource name, @PathVariable String locale, HttpServletResponse response)
+            throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try (InputStream is = new ClassPathResource(name.classPath()).getInputStream()) {
             is.transferTo(os);
@@ -99,44 +101,57 @@ public class ResourceController {
         String template = os.toString(StandardCharsets.UTF_8);
 
         response.setContentType(MediaType.TEXT_PLAIN_VALUE);
-        response.getWriter().print(TemplateManager.translate(template, loc, messageSourceManager.getRootMessageSource()));
+        response.getWriter()
+                .print(TemplateManager.translate(template, loc, messageSourceManager.getRootMessageSource()));
     }
 
     @PostMapping("/overridable-template/{name}/{locale}/preview")
-    public void previewTemplate(@PathVariable TemplateResource name, @PathVariable String locale,
-                                @RequestParam(required = false, value = "organizationId") Integer organizationId,
-                                @RequestParam(required = false, value = "eventId") Integer eventId,
-                                @RequestParam(required = false, value = "subscriptionDescriptorId") UUID subscriptionDescriptorId,
-                                @RequestBody UploadBase64FileModification template,
-                                Principal principal,
-                                HttpServletResponse response) throws IOException {
-
+    public void previewTemplate(
+            @PathVariable TemplateResource name,
+            @PathVariable String locale,
+            @RequestParam(required = false, value = "organizationId") Integer organizationId,
+            @RequestParam(required = false, value = "eventId") Integer eventId,
+            @RequestParam(required = false, value = "subscriptionDescriptorId") UUID subscriptionDescriptorId,
+            @RequestBody UploadBase64FileModification template,
+            Principal principal,
+            HttpServletResponse response)
+            throws IOException {
 
         Locale loc = LocaleUtil.forLanguageTag(locale);
 
         if (organizationId != null) {
-            PurchaseContext purchaseContext = getPurchaseContext(organizationId, eventId, subscriptionDescriptorId, principal, name);
+            PurchaseContext purchaseContext =
+                    getPurchaseContext(organizationId, eventId, subscriptionDescriptorId, principal, name);
             if (eventId != null || subscriptionDescriptorId != null) {
-                accessService.checkPurchaseContextOwnership(principal, organizationId, eventId, subscriptionDescriptorId);
+                accessService.checkPurchaseContextOwnership(
+                        principal, organizationId, eventId, subscriptionDescriptorId);
             } else {
                 accessService.checkOrganizationOwnership(principal, organizationId);
             }
             Organization organization = organizationRepository.getById(organizationId);
-            Optional<TemplateResource.ImageData> image = TemplateProcessor.extractImageModel(purchaseContext, fileUploadManager);
+            Optional<TemplateResource.ImageData> image =
+                    TemplateProcessor.extractImageModel(purchaseContext, fileUploadManager);
             Map<String, Object> model = name.prepareSampleModel(organization, purchaseContext, image);
-            String renderedTemplate = templateManager.renderString(purchaseContext, new String(name.replaceTokens(template.getFile())), model, loc, name.getTemplateOutput());
-            if(MediaType.TEXT_PLAIN_VALUE.equals(name.getRenderedContentType()) || TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE.equals(name.getRenderedContentType())) {
-                response.addHeader("Content-Disposition", "attachment; filename="+name.name()+".txt");
+            String renderedTemplate = templateManager.renderString(
+                    purchaseContext,
+                    new String(name.replaceTokens(template.getFile())),
+                    model,
+                    loc,
+                    name.getTemplateOutput());
+            if (MediaType.TEXT_PLAIN_VALUE.equals(name.getRenderedContentType())
+                    || TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE.equals(name.getRenderedContentType())) {
+                response.addHeader("Content-Disposition", "attachment; filename=" + name.name() + ".txt");
                 response.setContentType(MediaType.TEXT_PLAIN_VALUE);
                 response.setCharacterEncoding("UTF-8");
-                try(OutputStream os = response.getOutputStream()) {
-                    StreamUtils.copy(renderedTemplate,StandardCharsets.UTF_8, os);
+                try (OutputStream os = response.getOutputStream()) {
+                    StreamUtils.copy(renderedTemplate, StandardCharsets.UTF_8, os);
                 }
             } else if (MediaType.APPLICATION_PDF_VALUE.equals(name.getRenderedContentType())) {
                 try (OutputStream os = response.getOutputStream()) {
                     response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-                    response.addHeader("Content-Disposition", "attachment; filename="+name.name()+".pdf");
-                    TemplateProcessor.renderToPdf(renderedTemplate, os, extensionManager, purchaseContext, fileUploadManager);
+                    response.addHeader("Content-Disposition", "attachment; filename=" + name.name() + ".pdf");
+                    TemplateProcessor.renderToPdf(
+                            renderedTemplate, os, extensionManager, purchaseContext, fileUploadManager);
                 }
             } else {
                 throw new IllegalStateException("cannot enter here!");
@@ -144,61 +159,68 @@ public class ResourceController {
         }
     }
 
-    private PurchaseContext getPurchaseContext(int organizationId,
-                                               Integer eventId,
-                                               UUID subscriptionDescriptorId,
-                                               Principal principal,
-                                               TemplateResource templateResource) {
+    private PurchaseContext getPurchaseContext(
+            int organizationId,
+            Integer eventId,
+            UUID subscriptionDescriptorId,
+            Principal principal,
+            TemplateResource templateResource) {
         if (templateResource.getPurchaseContextType() == PurchaseContext.PurchaseContextType.event) {
             return getEvent(organizationId, eventId, principal);
         }
         return getSubscriptionDescriptor(organizationId, subscriptionDescriptorId, principal);
     }
 
-    private SubscriptionDescriptor getSubscriptionDescriptor(int organizationId, UUID subscriptionDescriptorId, Principal principal) {
+    private SubscriptionDescriptor getSubscriptionDescriptor(
+            int organizationId, UUID subscriptionDescriptorId, Principal principal) {
         if (subscriptionDescriptorId != null) {
-            return subscriptionManager.getSubscriptionById(subscriptionDescriptorId).orElseThrow();
+            return subscriptionManager
+                    .getSubscriptionById(subscriptionDescriptorId)
+                    .orElseThrow();
         }
 
         Function<String, Map<String, String>> contentProducer = prefix -> ContentLanguage.ALL_LANGUAGES.stream()
-            .map(cl -> Map.entry(cl.getLanguage(), cl.getDisplayLanguage() + " " + prefix))
-            .reduce(new HashMap<String, String>(), (map, entry) -> {
-                map.put(entry.getKey(), entry.getValue());
-                return map;
-            }, (map1, map2) -> {
-                map1.putAll(map2);
-                return map1;
-            });
+                .map(cl -> Map.entry(cl.getLanguage(), cl.getDisplayLanguage() + " " + prefix))
+                .reduce(
+                        new HashMap<String, String>(),
+                        (map, entry) -> {
+                            map.put(entry.getKey(), entry.getValue());
+                            return map;
+                        },
+                        (map1, map2) -> {
+                            map1.putAll(map2);
+                            return map1;
+                        });
         checkAccess(organizationId, principal);
         var zoneId = ZoneId.of(TIMEZONE);
-        return new SubscriptionDescriptor(UUID.randomUUID(),
-            contentProducer.apply("title"),
-            contentProducer.apply("description"),
-            -1,
-            ZonedDateTime.now(clockProvider.withZone(zoneId)),
-            ZonedDateTime.now(clockProvider.withZone(zoneId)),
-            ZonedDateTime.now(clockProvider.withZone(zoneId)).plusDays(1),
-            100,
-            new BigDecimal("7.7"),
-            PriceContainer.VatStatus.INCLUDED,
-            "CHF",
-            true,
-            organizationId,
-            1,
-            SubscriptionDescriptor.SubscriptionValidityType.NOT_SET,
-            null,
-            -1,
-            ZonedDateTime.now(clockProvider.withZone(zoneId)),
-            ZonedDateTime.now(clockProvider.withZone(zoneId)).plusDays(1),
-            SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT,
-            "https://alf.io",
-            "https://alf.io",
-            null,
-            List.of(PaymentProxy.STRIPE.name()),
-            "42",
-            TIMEZONE,
-            true
-        );
+        return new SubscriptionDescriptor(
+                UUID.randomUUID(),
+                contentProducer.apply("title"),
+                contentProducer.apply("description"),
+                -1,
+                ZonedDateTime.now(clockProvider.withZone(zoneId)),
+                ZonedDateTime.now(clockProvider.withZone(zoneId)),
+                ZonedDateTime.now(clockProvider.withZone(zoneId)).plusDays(1),
+                100,
+                new BigDecimal("7.7"),
+                PriceContainer.VatStatus.INCLUDED,
+                "CHF",
+                true,
+                organizationId,
+                1,
+                SubscriptionDescriptor.SubscriptionValidityType.NOT_SET,
+                null,
+                -1,
+                ZonedDateTime.now(clockProvider.withZone(zoneId)),
+                ZonedDateTime.now(clockProvider.withZone(zoneId)).plusDays(1),
+                SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT,
+                "https://alf.io",
+                "https://alf.io",
+                null,
+                List.of(PaymentProxy.STRIPE.name()),
+                "42",
+                TIMEZONE,
+                true);
     }
 
     private Event getEvent(Integer organizationId, Integer eventId, Principal principal) {
@@ -209,16 +231,38 @@ public class ResourceController {
         } else {
             checkAccess(organizationId, principal);
             var zoneId = ZoneId.of(TIMEZONE);
-            event = new Event(-1, Event.EventFormat.IN_PERSON, "TEST", "TEST", "TEST", "0", "0", ZonedDateTime.now(clockProvider.withZone(zoneId)),
-                ZonedDateTime.now(clockProvider.withZone(zoneId)), TIMEZONE, "http://localhost", "http://localhost", null,
-                "http://localhost", null, null, "CHF", BigDecimal.TEN, null, "42", organizationId,
-                ContentLanguage.ALL_LANGUAGES_IDENTIFIER, 0, PriceContainer.VatStatus.NONE, "1", Event.Status.PUBLIC);
+            event = new Event(
+                    -1,
+                    Event.EventFormat.IN_PERSON,
+                    "TEST",
+                    "TEST",
+                    "TEST",
+                    "0",
+                    "0",
+                    ZonedDateTime.now(clockProvider.withZone(zoneId)),
+                    ZonedDateTime.now(clockProvider.withZone(zoneId)),
+                    TIMEZONE,
+                    "http://localhost",
+                    "http://localhost",
+                    null,
+                    "http://localhost",
+                    null,
+                    null,
+                    "CHF",
+                    BigDecimal.TEN,
+                    null,
+                    "42",
+                    organizationId,
+                    ContentLanguage.ALL_LANGUAGES_IDENTIFIER,
+                    0,
+                    PriceContainer.VatStatus.NONE,
+                    "1",
+                    Event.Status.PUBLIC);
         }
         return event;
     }
 
-
-    //------------------
+    // ------------------
 
     @GetMapping("/resource")
     public List<UploadedResource> findAll(Principal principal) {
@@ -233,13 +277,13 @@ public class ResourceController {
     }
 
     @GetMapping("/resource-event/{organizationId}/{eventId}")
-    public List<UploadedResource> findAllForEvent(@PathVariable int organizationId, @PathVariable int eventId, Principal principal) {
+    public List<UploadedResource> findAllForEvent(
+            @PathVariable int organizationId, @PathVariable int eventId, Principal principal) {
         checkAccess(organizationId, eventId, principal);
         return uploadedResourceManager.findAll(organizationId, eventId);
     }
 
-
-    //------------------
+    // ------------------
 
     @GetMapping("/resource/{name}/metadata")
     public ResponseEntity<UploadedResource> getMetadata(@PathVariable String name, Principal principal) {
@@ -252,7 +296,8 @@ public class ResourceController {
     }
 
     @GetMapping("/resource-organization/{organizationId}/{name}/metadata")
-    public ResponseEntity<UploadedResource> getMetadata(@PathVariable int organizationId, @PathVariable String name, Principal principal) {
+    public ResponseEntity<UploadedResource> getMetadata(
+            @PathVariable int organizationId, @PathVariable String name, Principal principal) {
         checkAccess(organizationId, principal);
         if (uploadedResourceManager.hasResource(organizationId, name)) {
             return new ResponseEntity<>(uploadedResourceManager.get(organizationId, name), HttpStatus.OK);
@@ -262,7 +307,11 @@ public class ResourceController {
     }
 
     @GetMapping("/resource-event/{organizationId}/{eventId}/{name}/metadata")
-    public ResponseEntity<UploadedResource> getMetadata(@PathVariable int organizationId, @PathVariable int eventId, @PathVariable String name, Principal principal) {
+    public ResponseEntity<UploadedResource> getMetadata(
+            @PathVariable int organizationId,
+            @PathVariable int eventId,
+            @PathVariable String name,
+            Principal principal) {
         checkAccess(organizationId, eventId, principal);
         if (uploadedResourceManager.hasResource(organizationId, eventId, name)) {
             return new ResponseEntity<>(uploadedResourceManager.get(organizationId, eventId, name), HttpStatus.OK);
@@ -271,7 +320,7 @@ public class ResourceController {
         }
     }
 
-    //------------------
+    // ------------------
 
     @PostMapping("/resource")
     public void uploadFile(@RequestBody UploadBase64FileModification upload, Principal principal) {
@@ -280,20 +329,28 @@ public class ResourceController {
     }
 
     @PostMapping("/resource-organization/{organizationId}")
-    public void uploadFile(@PathVariable int organizationId, @RequestBody UploadBase64FileModification upload, Principal principal) {
+    public void uploadFile(
+            @PathVariable int organizationId, @RequestBody UploadBase64FileModification upload, Principal principal) {
         checkAccess(organizationId, principal);
         uploadedResourceManager.saveResource(organizationId, upload).orElseThrow(IllegalArgumentException::new);
     }
 
     @PostMapping("/resource-event/{organizationId}/{eventId}")
-    public void uploadFile(@PathVariable int organizationId, @PathVariable int eventId, @RequestBody UploadBase64FileModification upload, Principal principal) {
+    public void uploadFile(
+            @PathVariable int organizationId,
+            @PathVariable int eventId,
+            @RequestBody UploadBase64FileModification upload,
+            Principal principal) {
         checkAccess(organizationId, eventId, principal);
-        uploadedResourceManager.saveResource(organizationId, eventId, upload).orElseThrow(IllegalArgumentException::new);
+        uploadedResourceManager
+                .saveResource(organizationId, eventId, upload)
+                .orElseThrow(IllegalArgumentException::new);
     }
 
-    //------------------
+    // ------------------
     @GetMapping("/resource/{name:.*}")
-    public void outputContent(@PathVariable String name, Principal principal, HttpServletResponse response) throws IOException {
+    public void outputContent(@PathVariable String name, Principal principal, HttpServletResponse response)
+            throws IOException {
         checkAccess(principal);
         if (!uploadedResourceManager.hasResource(name)) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -308,7 +365,12 @@ public class ResourceController {
     }
 
     @GetMapping("/resource-organization/{organizationId}/{name:.*}")
-    public void outputContent(@PathVariable int organizationId, @PathVariable String name, Principal principal, HttpServletResponse response) throws IOException {
+    public void outputContent(
+            @PathVariable int organizationId,
+            @PathVariable String name,
+            Principal principal,
+            HttpServletResponse response)
+            throws IOException {
         checkAccess(organizationId, principal);
         if (!uploadedResourceManager.hasResource(organizationId, name)) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -323,7 +385,13 @@ public class ResourceController {
     }
 
     @GetMapping("/resource-event/{organizationId}/{eventId}/{name:.*}")
-    public void outputContent(@PathVariable int organizationId, @PathVariable int eventId, @PathVariable String name, Principal principal, HttpServletResponse response) throws IOException {
+    public void outputContent(
+            @PathVariable int organizationId,
+            @PathVariable int eventId,
+            @PathVariable String name,
+            Principal principal,
+            HttpServletResponse response)
+            throws IOException {
         checkAccess(organizationId, eventId, principal);
         if (!uploadedResourceManager.hasResource(organizationId, eventId, name)) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -337,7 +405,7 @@ public class ResourceController {
         }
     }
 
-    //------------------
+    // ------------------
 
     @DeleteMapping("/resource/{name:.*}")
     public void delete(@PathVariable String name, Principal principal) {
@@ -352,12 +420,16 @@ public class ResourceController {
     }
 
     @DeleteMapping("/resource-event/{organizationId}/{eventId}/{name:.*}")
-    public void delete(@PathVariable int organizationId, @PathVariable int eventId, @PathVariable String name, Principal principal) {
+    public void delete(
+            @PathVariable int organizationId,
+            @PathVariable int eventId,
+            @PathVariable String name,
+            Principal principal) {
         checkAccess(organizationId, eventId, principal);
         uploadedResourceManager.deleteResource(organizationId, eventId, name);
     }
 
-    //------------------
+    // ------------------
 
     private void checkAccess(Principal principal) {
         accessService.ensureAdmin(principal);

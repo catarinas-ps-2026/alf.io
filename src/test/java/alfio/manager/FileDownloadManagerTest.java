@@ -16,10 +16,8 @@
  */
 package alfio.manager;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -27,10 +25,10 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class FileDownloadManagerTest {
 
@@ -53,10 +51,7 @@ public class FileDownloadManagerTest {
         when(mockResponse.statusCode()).thenReturn(200);
         when(mockResponse.body()).thenReturn(body);
 
-        HttpHeaders mockHeaders = HttpHeaders.of(
-                Map.of("Content-Type", List.of("image/png")),
-                (s1, s2) -> true
-        );
+        HttpHeaders mockHeaders = HttpHeaders.of(Map.of("Content-Type", List.of("image/png")), (s1, s2) -> true);
         when(mockResponse.headers()).thenReturn(mockHeaders);
 
         when(httpClient.<byte[]>send(any(), any())).thenReturn(mockResponse);

@@ -21,35 +21,38 @@ import alfio.model.PromoCodeDiscount;
 import alfio.util.ClockProvider;
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.experimental.Delegate;
-import org.apache.commons.lang3.StringUtils;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import lombok.experimental.Delegate;
+import org.apache.commons.lang3.StringUtils;
 
 public class PromoCodeDiscountWithFormattedTimeAndAmount {
 
     @JsonIgnore
     @Delegate
     private final PromoCodeDiscount promo;
+
     @JsonIgnore
     private final ZoneId eventZoneId;
+
     private final String eventCurrency;
 
-    public PromoCodeDiscountWithFormattedTimeAndAmount(PromoCodeDiscount promo, ZoneId eventZoneId, String eventCurrency) {
+    public PromoCodeDiscountWithFormattedTimeAndAmount(
+            PromoCodeDiscount promo, ZoneId eventZoneId, String eventCurrency) {
         this.promo = promo;
         this.eventZoneId = eventZoneId;
         this.eventCurrency = eventCurrency;
     }
 
     public boolean isCurrentlyValid() {
-        return isCurrentlyValid(eventZoneId, ZonedDateTime.now(ClockProvider.clock().withZone(eventZoneId)));
+        return isCurrentlyValid(
+                eventZoneId, ZonedDateTime.now(ClockProvider.clock().withZone(eventZoneId)));
     }
-    
+
     public boolean isExpired() {
         return isExpired(eventZoneId, ZonedDateTime.now(ClockProvider.clock().withZone(eventZoneId)));
     }
-    
+
     public String getFormattedStart() {
         return getUtcStart().withZoneSameInstant(eventZoneId).format(EventStatistic.JSON_DATE_FORMATTER);
     }
@@ -60,7 +63,7 @@ public class PromoCodeDiscountWithFormattedTimeAndAmount {
 
     public String getFormattedDiscountAmount() {
         var currency = StringUtils.firstNonEmpty(eventCurrency, promo.getCurrencyCode());
-        if(promo.getFixedAmount() && StringUtils.isNotBlank(currency)) {
+        if (promo.getFixedAmount() && StringUtils.isNotBlank(currency)) {
             return MonetaryUtil.formatCents(promo.getDiscountAmount(), currency);
         }
         return null;

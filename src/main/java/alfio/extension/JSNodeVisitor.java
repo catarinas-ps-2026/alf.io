@@ -14,14 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
 
 import alfio.extension.exception.ScriptNotValidException;
+import java.util.ArrayList;
 import org.mozilla.javascript.Token;
 import org.mozilla.javascript.ast.*;
-
-import java.util.ArrayList;
 
 /**
  *
@@ -52,16 +50,16 @@ class JSNodeVisitor implements NodeVisitor {
         // we will track variables and functions, function calls, loops,
         // with statement, labeled statement, level of function calls
         if (nodeType != Token.FUNCTION
-            && nodeType != Token.WITH
-            && nodeType != Token.LABEL
-            && nodeType != Token.VAR
-            && nodeType != Token.NAME
-            && nodeType != Token.WHILE
-            && nodeType != Token.DO
-            && nodeType != Token.OBJECTLIT
-            && nodeType != Token.CALL
-            && nodeType != Token.GETPROP
-            && nodeType != Token.EXPR_VOID) {
+                && nodeType != Token.WITH
+                && nodeType != Token.LABEL
+                && nodeType != Token.VAR
+                && nodeType != Token.NAME
+                && nodeType != Token.WHILE
+                && nodeType != Token.DO
+                && nodeType != Token.OBJECTLIT
+                && nodeType != Token.CALL
+                && nodeType != Token.GETPROP
+                && nodeType != Token.EXPR_VOID) {
             return;
         }
         if (node.getType() == Token.VAR && !(node instanceof VariableInitializer)) {
@@ -81,9 +79,11 @@ class JSNodeVisitor implements NodeVisitor {
                         Name parentName = functionNode.getFunctionName();
                         String id = parentName.getIdentifier();
                         // when the function name is found, check if it was called from somewhere else
-                        // if this function is called from another place and it contains another function call, throw an exception
+                        // if this function is called from another place and it contains another function call, throw an
+                        // exception
                         if (functionCalls.contains(id)) {
-                            throw new ScriptNotValidException("Script not valid. Cannot call nested functions: "+name.getIdentifier());
+                            throw new ScriptNotValidException(
+                                    "Script not valid. Cannot call nested functions: " + name.getIdentifier());
                         }
                         break;
                     }
@@ -92,13 +92,16 @@ class JSNodeVisitor implements NodeVisitor {
             }
         }
         if (node instanceof WhileLoop
-            || node instanceof DoLoop
-            || node instanceof WithStatement
-            || node instanceof LabeledStatement
-            || (node instanceof PropertyGet get && get.getRight().getString().equals("System"))
-            || (node instanceof PropertyGet propertyGet && propertyGet.getRight().getString().equals("getClass"))
-            || (node instanceof Name && node.getString().equals("newInstance"))) {
-            throw new ScriptNotValidException("""
+                || node instanceof DoLoop
+                || node instanceof WithStatement
+                || node instanceof LabeledStatement
+                || (node instanceof PropertyGet get
+                        && get.getRight().getString().equals("System"))
+                || (node instanceof PropertyGet propertyGet
+                        && propertyGet.getRight().getString().equals("getClass"))
+                || (node instanceof Name && node.getString().equals("newInstance"))) {
+            throw new ScriptNotValidException(
+                    """
                 Script not valid. One or more of the following components have been detected:\s
                 - while() Loop
                 - with() Statement

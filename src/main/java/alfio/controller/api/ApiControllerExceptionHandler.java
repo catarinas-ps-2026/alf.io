@@ -18,6 +18,7 @@ package alfio.controller.api;
 
 import alfio.controller.api.v2.user.support.ReservationAccessDenied;
 import alfio.manager.support.AccessDeniedException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -28,13 +29,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-@ControllerAdvice(basePackages = {
-    "alfio.controller.api.admin",
-    "alfio.controller.api.support",
-    "alfio.controller.api.v1",
-    "alfio.controller.api.v2"})
+@ControllerAdvice(
+        basePackages = {
+            "alfio.controller.api.admin",
+            "alfio.controller.api.support",
+            "alfio.controller.api.v1",
+            "alfio.controller.api.v2"
+        })
 public class ApiControllerExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ApiControllerExceptionHandler.class);
@@ -78,5 +79,4 @@ public class ApiControllerExceptionHandler {
         log.trace("intercepted AccessDeniedException", accessDeniedException);
         return "Access to resource has been denied";
     }
-
 }

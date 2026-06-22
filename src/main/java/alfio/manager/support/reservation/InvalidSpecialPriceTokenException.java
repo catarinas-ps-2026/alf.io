@@ -16,6 +16,4 @@
  */
 package alfio.manager.support.reservation;
 
-public class InvalidSpecialPriceTokenException extends RuntimeException {
-
-}
+public class InvalidSpecialPriceTokenException extends RuntimeException {}

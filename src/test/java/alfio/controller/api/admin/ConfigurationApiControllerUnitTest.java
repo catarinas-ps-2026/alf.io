@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.admin;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.AccessService;
 import alfio.manager.BillingDocumentManager;
 import alfio.manager.EventManager;
@@ -31,20 +35,15 @@ import alfio.model.system.Configuration;
 import alfio.model.system.ConfigurationKeys;
 import alfio.repository.EventRepository;
 import alfio.util.ClockProvider;
+import java.security.Principal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.security.Principal;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 class ConfigurationApiControllerUnitTest {
 
@@ -74,16 +73,15 @@ class ConfigurationApiControllerUnitTest {
         customOfflineConfigurationManager = mock(CustomOfflineConfigurationManager.class);
 
         controller = new ConfigurationApiController(
-            configurationManager,
-            billingDocumentManager,
-            adminJobManager,
-            eventRepository,
-            eventManager,
-            clockProvider,
-            userManager,
-            accessService,
-            customOfflineConfigurationManager
-        );
+                configurationManager,
+                billingDocumentManager,
+                adminJobManager,
+                eventRepository,
+                eventManager,
+                clockProvider,
+                userManager,
+                accessService,
+                customOfflineConfigurationManager);
 
         principal = mock(Principal.class);
         when(principal.getName()).thenReturn("admin");
@@ -92,7 +90,8 @@ class ConfigurationApiControllerUnitTest {
     @Test
     void loadConfiguration_checksAdminAndLoadsSystemConfiguration() {
         Map<ConfigurationKeys.SettingCategory, List<Configuration>> expected = Map.of();
-        when(configurationManager.loadAllSystemConfigurationIncludingMissing("admin")).thenReturn(expected);
+        when(configurationManager.loadAllSystemConfigurationIncludingMissing("admin"))
+                .thenReturn(expected);
 
         Map<ConfigurationKeys.SettingCategory, List<Configuration>> result = controller.loadConfiguration(principal);
 
@@ -125,9 +124,8 @@ class ConfigurationApiControllerUnitTest {
     void updateConfiguration_bulk_updatesSystemConfigs() {
         ConfigurationModification mod1 = new ConfigurationModification(1, "BASE_URL", "https://example.com");
 
-        Map<ConfigurationKeys.SettingCategory, List<ConfigurationModification>> input = Map.of(
-            ConfigurationKeys.SettingCategory.GENERAL, List.of(mod1)
-        );
+        Map<ConfigurationKeys.SettingCategory, List<ConfigurationModification>> input =
+                Map.of(ConfigurationKeys.SettingCategory.GENERAL, List.of(mod1));
 
         boolean result = controller.updateConfiguration(input, principal);
 
@@ -142,7 +140,8 @@ class ConfigurationApiControllerUnitTest {
         Map<ConfigurationKeys.SettingCategory, List<Configuration>> expected = Map.of();
         when(configurationManager.loadOrganizationConfig(orgId, "admin")).thenReturn(expected);
 
-        Map<ConfigurationKeys.SettingCategory, List<Configuration>> result = controller.loadOrganizationConfiguration(orgId, principal);
+        Map<ConfigurationKeys.SettingCategory, List<Configuration>> result =
+                controller.loadOrganizationConfiguration(orgId, principal);
 
         verify(accessService).checkOrganizationOwnership(principal, orgId);
         verify(configurationManager).loadOrganizationConfig(orgId, "admin");
@@ -154,9 +153,8 @@ class ConfigurationApiControllerUnitTest {
         int orgId = 42;
         ConfigurationModification mod = new ConfigurationModification(1, "VAT_NR", "CHE-123");
 
-        Map<ConfigurationKeys.SettingCategory, List<ConfigurationModification>> input = Map.of(
-            ConfigurationKeys.SettingCategory.GENERAL, List.of(mod)
-        );
+        Map<ConfigurationKeys.SettingCategory, List<ConfigurationModification>> input =
+                Map.of(ConfigurationKeys.SettingCategory.GENERAL, List.of(mod));
 
         boolean result = controller.updateOrganizationConfiguration(orgId, input, principal);
 
@@ -171,7 +169,8 @@ class ConfigurationApiControllerUnitTest {
         Map<ConfigurationKeys.SettingCategory, List<Configuration>> expected = Map.of();
         when(configurationManager.loadEventConfig(eventId, "admin")).thenReturn(expected);
 
-        Map<ConfigurationKeys.SettingCategory, List<Configuration>> result = controller.loadEventConfiguration(eventId, principal);
+        Map<ConfigurationKeys.SettingCategory, List<Configuration>> result =
+                controller.loadEventConfiguration(eventId, principal);
 
         verify(accessService).checkEventOwnership(principal, eventId);
         verify(configurationManager).loadEventConfig(eventId, "admin");
@@ -223,7 +222,8 @@ class ConfigurationApiControllerUnitTest {
     void getSingleConfigForOrganization_configNull_returnsNoContent() {
         int orgId = 42;
         String key = "SOME_KEY";
-        when(configurationManager.getSingleConfigForOrganization(orgId, key, "admin")).thenReturn(null);
+        when(configurationManager.getSingleConfigForOrganization(orgId, key, "admin"))
+                .thenReturn(null);
 
         ResponseEntity<String> response = controller.getSingleConfigForOrganization(orgId, key, principal);
 
@@ -235,7 +235,8 @@ class ConfigurationApiControllerUnitTest {
     void getSingleConfigForOrganization_configExists_returnsValue() {
         int orgId = 42;
         String key = "SOME_KEY";
-        when(configurationManager.getSingleConfigForOrganization(orgId, key, "admin")).thenReturn("value");
+        when(configurationManager.getSingleConfigForOrganization(orgId, key, "admin"))
+                .thenReturn("value");
 
         ResponseEntity<String> response = controller.getSingleConfigForOrganization(orgId, key, principal);
 
@@ -295,7 +296,8 @@ class ConfigurationApiControllerUnitTest {
     void loadEUCountries_returnsLocalizedCountries() {
         ConfigurationManager.MaybeConfiguration config = mock(ConfigurationManager.MaybeConfiguration.class);
         when(config.getRequiredValue()).thenReturn("IT,FR,DE");
-        when(configurationManager.getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST)).thenReturn(config);
+        when(configurationManager.getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST))
+                .thenReturn(config);
 
         List<Pair<String, String>> countries = controller.loadEUCountries();
 
@@ -312,11 +314,12 @@ class ConfigurationApiControllerUnitTest {
         when(baseUrlConfig.getRequiredValue()).thenReturn("http://localhost");
 
         Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> settings = Map.of(
-            ConfigurationKeys.DESCRIPTION_MAXLENGTH, maxLengthConfig,
-            ConfigurationKeys.BASE_URL, baseUrlConfig
-        );
-        when(configurationManager.getFor(eq(EnumSet.of(ConfigurationKeys.DESCRIPTION_MAXLENGTH, ConfigurationKeys.BASE_URL)), any(ConfigurationLevel.class)))
-            .thenReturn(settings);
+                ConfigurationKeys.DESCRIPTION_MAXLENGTH, maxLengthConfig,
+                ConfigurationKeys.BASE_URL, baseUrlConfig);
+        when(configurationManager.getFor(
+                        eq(EnumSet.of(ConfigurationKeys.DESCRIPTION_MAXLENGTH, ConfigurationKeys.BASE_URL)),
+                        any(ConfigurationLevel.class)))
+                .thenReturn(settings);
 
         ConfigurationApiController.InstanceSettings result = controller.loadInstanceSettings();
 
@@ -327,9 +330,11 @@ class ConfigurationApiControllerUnitTest {
     @Test
     void loadPlatformModeStatus_notConnected_returnsPlatformStatus() {
         int orgId = 42;
-        ConfigurationManager.MaybeConfiguration platformModeConfig = mock(ConfigurationManager.MaybeConfiguration.class);
+        ConfigurationManager.MaybeConfiguration platformModeConfig =
+                mock(ConfigurationManager.MaybeConfiguration.class);
         when(platformModeConfig.getValueAsBooleanOrDefault()).thenReturn(true);
-        when(configurationManager.getForSystem(ConfigurationKeys.PLATFORM_MODE_ENABLED)).thenReturn(platformModeConfig);
+        when(configurationManager.getForSystem(ConfigurationKeys.PLATFORM_MODE_ENABLED))
+                .thenReturn(platformModeConfig);
 
         ConfigurationManager.MaybeConfiguration stripeConfig = mock(ConfigurationManager.MaybeConfiguration.class);
         when(stripeConfig.isPresent()).thenReturn(false);
@@ -338,11 +343,13 @@ class ConfigurationApiControllerUnitTest {
         when(mollieConfig.isPresent()).thenReturn(false);
 
         Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> options = Map.of(
-            ConfigurationKeys.STRIPE_CONNECTED_ID, stripeConfig,
-            ConfigurationKeys.MOLLIE_CONNECT_REFRESH_TOKEN, mollieConfig
-        );
-        when(configurationManager.getFor(eq(List.of(ConfigurationKeys.STRIPE_CONNECTED_ID, ConfigurationKeys.MOLLIE_CONNECT_REFRESH_TOKEN)), any(ConfigurationLevel.class)))
-            .thenReturn(options);
+                ConfigurationKeys.STRIPE_CONNECTED_ID, stripeConfig,
+                ConfigurationKeys.MOLLIE_CONNECT_REFRESH_TOKEN, mollieConfig);
+        when(configurationManager.getFor(
+                        eq(List.of(
+                                ConfigurationKeys.STRIPE_CONNECTED_ID, ConfigurationKeys.MOLLIE_CONNECT_REFRESH_TOKEN)),
+                        any(ConfigurationLevel.class)))
+                .thenReturn(options);
 
         Map<String, Boolean> result = controller.loadPlatformModeStatus(orgId, principal);
 
@@ -382,7 +389,8 @@ class ConfigurationApiControllerUnitTest {
         when(eventManager.getSingleEventById(eventId, "admin")).thenReturn(event);
 
         // from > to
-        ResponseEntity<List<Integer>> response = controller.getMatchingInvoicesForEvent(eventId, 2000L, 1000L, principal);
+        ResponseEntity<List<Integer>> response =
+                controller.getMatchingInvoicesForEvent(eventId, 2000L, 1000L, principal);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -393,9 +401,11 @@ class ConfigurationApiControllerUnitTest {
         Event event = mock(Event.class);
         when(event.getZoneId()).thenReturn(ZoneId.of("Europe/Rome"));
         when(eventManager.getSingleEventById(eventId, "admin")).thenReturn(event);
-        when(billingDocumentManager.findMatchingInvoiceIds(anyInt(), any(), any())).thenReturn(List.of(1, 2));
+        when(billingDocumentManager.findMatchingInvoiceIds(anyInt(), any(), any()))
+                .thenReturn(List.of(1, 2));
 
-        ResponseEntity<List<Integer>> response = controller.getMatchingInvoicesForEvent(eventId, 1000L, 2000L, principal);
+        ResponseEntity<List<Integer>> response =
+                controller.getMatchingInvoicesForEvent(eventId, 1000L, 2000L, principal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(List.of(1, 2), response.getBody());
@@ -434,7 +444,8 @@ class ConfigurationApiControllerUnitTest {
     void generateTicketsForSubscriptions_owner_schedulesJob() {
         int orgId = 42;
         when(userManager.isOwnerOfOrganization("admin", orgId)).thenReturn(true);
-        when(adminJobManager.scheduleExecution(eq(AdminJobExecutor.JobName.ASSIGN_TICKETS_TO_SUBSCRIBERS), any())).thenReturn(true);
+        when(adminJobManager.scheduleExecution(eq(AdminJobExecutor.JobName.ASSIGN_TICKETS_TO_SUBSCRIBERS), any()))
+                .thenReturn(true);
 
         ResponseEntity<Boolean> response = controller.generateTicketsForSubscriptions(null, orgId, principal);
 
@@ -446,7 +457,8 @@ class ConfigurationApiControllerUnitTest {
     void loadTranslations_returnsTranslations() {
         ConfigurationManager.MaybeConfiguration config = mock(ConfigurationManager.MaybeConfiguration.class);
         when(config.getValue()).thenReturn(Optional.of("{\"en\": {\"key\": \"value\"}}"));
-        when(configurationManager.getFor(eq(ConfigurationKeys.TRANSLATION_OVERRIDE), any(ConfigurationLevel.class))).thenReturn(config);
+        when(configurationManager.getFor(eq(ConfigurationKeys.TRANSLATION_OVERRIDE), any(ConfigurationLevel.class)))
+                .thenReturn(config);
 
         Map<String, Map<String, String>> result = controller.loadTranslations();
 

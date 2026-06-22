@@ -16,11 +16,10 @@
  */
 package alfio.controller.form;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class ReservationCodeForm implements Serializable {
@@ -29,7 +28,6 @@ public class ReservationCodeForm implements Serializable {
     private String email;
     private int amount;
     private ReservationCodeType type;
-
 
     public enum ReservationCodeType {
         SUBSCRIPTION

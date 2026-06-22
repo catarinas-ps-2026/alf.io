@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -30,21 +34,16 @@ import alfio.model.modification.TicketCategoryModification;
 import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.BaseIntegrationTest;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -53,23 +52,67 @@ class ReservationFlowIntegrationTest extends BaseReservationFlowTest {
 
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private CheckInManager checkInManager;
 
     private ReservationFlowContext createContext() {
         List<TicketCategoryModification> categories = Arrays.asList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.ONE, true, "", true, URL_CODE_HIDDEN, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+                new TicketCategoryModification(
+                        null,
+                        "default",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        "hidden",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        2,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.ONE,
+                        true,
+                        "",
+                        true,
+                        URL_CODE_HIDDEN,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         return new ReservationFlowContext(eventAndUser.getLeft(), owner(eventAndUser.getRight()));
     }
 
@@ -81,7 +124,8 @@ class ReservationFlowIntegrationTest extends BaseReservationFlowTest {
     @Override
     protected void performAdditionalTests(ReservationFlowContext context) {
         var event = context.event;
-        BaseIntegrationTest.testTransferEventToAnotherOrg(event.getId(), event.getOrganizationId(), context.userId, jdbcTemplate);
+        BaseIntegrationTest.testTransferEventToAnotherOrg(
+                event.getId(), event.getOrganizationId(), context.userId, jdbcTemplate);
     }
 
     @Override

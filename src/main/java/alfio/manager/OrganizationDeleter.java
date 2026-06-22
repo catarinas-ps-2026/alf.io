@@ -20,13 +20,12 @@ import alfio.repository.*;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.join.UserOrganizationRepository;
 import alfio.util.RequestUtils;
+import java.security.Principal;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.security.Principal;
-import java.util.List;
 
 @Component
 @Transactional
@@ -40,11 +39,12 @@ public class OrganizationDeleter {
     private final EventDeleterRepository eventDeleterRepository;
     private final OrganizationDeleterRepository organizationDeleterRepository;
 
-    public OrganizationDeleter(UserOrganizationRepository userOrganizationRepository,
-                               OrganizationRepository organizationRepository,
-                               EventRepository eventRepository,
-                               EventDeleterRepository eventDeleterRepository,
-                               OrganizationDeleterRepository organizationDeleterRepository) {
+    public OrganizationDeleter(
+            UserOrganizationRepository userOrganizationRepository,
+            OrganizationRepository organizationRepository,
+            EventRepository eventRepository,
+            EventDeleterRepository eventDeleterRepository,
+            OrganizationDeleterRepository organizationDeleterRepository) {
         this.userOrganizationRepository = userOrganizationRepository;
         this.organizationRepository = organizationRepository;
         this.eventRepository = eventRepository;
@@ -52,12 +52,15 @@ public class OrganizationDeleter {
         this.organizationDeleterRepository = organizationDeleterRepository;
     }
 
-
     public boolean deleteOrganization(int organizationId, Principal principal) {
         boolean isAdmin = RequestUtils.isAdmin(principal) || RequestUtils.isSystemApiKey(principal);
         if (isAdmin) {
             var originalOrg = organizationRepository.getById(organizationId);
-            log.warn("Delete organization {} ({}) initiated by user {}", organizationId, originalOrg.getName(), principal.getName());
+            log.warn(
+                    "Delete organization {} ({}) initiated by user {}",
+                    organizationId,
+                    originalOrg.getName(),
+                    principal.getName());
             var disabledEventIds = eventRepository.disableEventsForOrganization(organizationId);
             if (!disabledEventIds.isEmpty()) {
                 log.warn("deleting {} events linked to organization {}", disabledEventIds.size(), organizationId);
@@ -74,6 +77,4 @@ public class OrganizationDeleter {
         }
         return false;
     }
-
-
 }

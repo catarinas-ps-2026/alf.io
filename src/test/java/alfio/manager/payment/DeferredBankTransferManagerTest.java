@@ -16,6 +16,13 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
+import static alfio.model.TicketReservation.TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
+import static alfio.model.TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT;
+import static alfio.model.system.ConfigurationKeys.DEFERRED_BANK_TRANSFER_ENABLED;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.support.PaymentResult;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.Event;
@@ -23,20 +30,12 @@ import alfio.model.TicketReservationStatusAndValidation;
 import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.model.transaction.*;
 import alfio.repository.TicketReservationRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
-
-import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
-import static alfio.model.TicketReservation.TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
-import static alfio.model.TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT;
-import static alfio.model.system.ConfigurationKeys.DEFERRED_BANK_TRANSFER_ENABLED;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class DeferredBankTransferManagerTest {
 
@@ -56,22 +55,33 @@ class DeferredBankTransferManagerTest {
     @Test
     void acceptPaymentRequest() {
         var paymentContext = new PaymentContext(event);
-        when(bankTransferManager.options(paymentContext)).thenReturn(Map.of(DEFERRED_BANK_TRANSFER_ENABLED,
-            new MaybeConfiguration(DEFERRED_BANK_TRANSFER_ENABLED, new ConfigurationKeyValuePathLevel(DEFERRED_BANK_TRANSFER_ENABLED.name(), "true", null))));
-        when(bankTransferManager.bankTransferEnabledForMethod(any(), eq(paymentContext), anyMap())).thenReturn(true);
+        when(bankTransferManager.options(paymentContext))
+                .thenReturn(Map.of(
+                        DEFERRED_BANK_TRANSFER_ENABLED,
+                        new MaybeConfiguration(
+                                DEFERRED_BANK_TRANSFER_ENABLED,
+                                new ConfigurationKeyValuePathLevel(
+                                        DEFERRED_BANK_TRANSFER_ENABLED.name(), "true", null))));
+        when(bankTransferManager.bankTransferEnabledForMethod(any(), eq(paymentContext), anyMap()))
+                .thenReturn(true);
         when(bankTransferManager.isPaymentDeferredEnabled(anyMap())).thenCallRealMethod();
-        assertTrue(deferredBankTransferManager.accept(StaticPaymentMethods.BANK_TRANSFER, paymentContext, TransactionRequest.empty()));
-        assertFalse(deferredBankTransferManager.accept(StaticPaymentMethods.BANK_TRANSFER, new PaymentContext(), TransactionRequest.empty()));
+        assertTrue(deferredBankTransferManager.accept(
+                StaticPaymentMethods.BANK_TRANSFER, paymentContext, TransactionRequest.empty()));
+        assertFalse(deferredBankTransferManager.accept(
+                StaticPaymentMethods.BANK_TRANSFER, new PaymentContext(), TransactionRequest.empty()));
     }
 
     @Test
     void doNotAcceptPaymentRequestBecauseFlagIsNotActive() {
         var paymentContext = new PaymentContext(event);
-        when(bankTransferManager.options(paymentContext)).thenReturn(Map.of(DEFERRED_BANK_TRANSFER_ENABLED,
-            new MaybeConfiguration(DEFERRED_BANK_TRANSFER_ENABLED)));
-        when(bankTransferManager.bankTransferEnabledForMethod(any(), eq(paymentContext), anyMap())).thenReturn(true);
+        when(bankTransferManager.options(paymentContext))
+                .thenReturn(
+                        Map.of(DEFERRED_BANK_TRANSFER_ENABLED, new MaybeConfiguration(DEFERRED_BANK_TRANSFER_ENABLED)));
+        when(bankTransferManager.bankTransferEnabledForMethod(any(), eq(paymentContext), anyMap()))
+                .thenReturn(true);
         when(bankTransferManager.isPaymentDeferredEnabled(anyMap())).thenCallRealMethod();
-        assertFalse(deferredBankTransferManager.accept(StaticPaymentMethods.BANK_TRANSFER, paymentContext, TransactionRequest.empty()));
+        assertFalse(deferredBankTransferManager.accept(
+                StaticPaymentMethods.BANK_TRANSFER, paymentContext, TransactionRequest.empty()));
     }
 
     @Test
@@ -79,8 +89,11 @@ class DeferredBankTransferManagerTest {
         var eventBegin = ZonedDateTime.now(Clock.systemUTC()).plusDays(7);
         when(event.getBegin()).thenReturn(eventBegin);
         var paymentSpecification = new PaymentSpecification("reservation-id", null, null, 1, event, "", null);
-        assertEquals(PaymentResult.successful(NOT_YET_PAID_TRANSACTION_ID), deferredBankTransferManager.doPayment(paymentSpecification));
-        verify(bankTransferManager).postponePayment(eq(paymentSpecification), eq(DEFERRED_OFFLINE_PAYMENT), eq(eventBegin));
+        assertEquals(
+                PaymentResult.successful(NOT_YET_PAID_TRANSACTION_ID),
+                deferredBankTransferManager.doPayment(paymentSpecification));
+        verify(bankTransferManager)
+                .postponePayment(eq(paymentSpecification), eq(DEFERRED_OFFLINE_PAYMENT), eq(eventBegin));
         verify(bankTransferManager).overrideExistingTransactions(paymentSpecification);
     }
 
@@ -92,11 +105,10 @@ class DeferredBankTransferManagerTest {
         when(transaction.getPaymentProxy()).thenReturn(PaymentProxy.OFFLINE);
         when(transaction.getReservationId()).thenReturn(reservationId);
         when(ticketReservationRepository.findOptionalStatusAndValidationById(eq(reservationId)))
-            .thenReturn(
-                Optional.of(new TicketReservationStatusAndValidation(DEFERRED_OFFLINE_PAYMENT, true)),
-                Optional.of(new TicketReservationStatusAndValidation(OFFLINE_PAYMENT, true)),
-                Optional.empty()
-            );
+                .thenReturn(
+                        Optional.of(new TicketReservationStatusAndValidation(DEFERRED_OFFLINE_PAYMENT, true)),
+                        Optional.of(new TicketReservationStatusAndValidation(OFFLINE_PAYMENT, true)),
+                        Optional.empty());
         // first call, we accept the transaction
         assertTrue(deferredBankTransferManager.accept(transaction));
         // second call, we do not accept the transaction because the reservation status is wrong

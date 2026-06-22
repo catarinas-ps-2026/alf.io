@@ -27,7 +27,6 @@ public class DescriptionRequest {
     private String body;
 
     public boolean isValid() {
-        return StringUtils.isNotEmpty(lang)
-            && StringUtils.isNotEmpty(body);
+        return StringUtils.isNotEmpty(lang) && StringUtils.isNotEmpty(body);
     }
 }

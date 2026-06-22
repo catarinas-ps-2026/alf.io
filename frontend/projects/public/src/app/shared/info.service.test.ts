@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+    HttpClientTestingModule,
+    HttpTestingController,
+} from '@angular/common/http/testing';
 import { InfoService } from './info.service';
 import type { Info } from '../model/info';
 
@@ -27,7 +30,10 @@ describe('InfoService', () => {
             const mockInfo: Info = {
                 version: '2.0.0',
                 buildNumber: '12345',
-                walletConfiguration: { gWalletEnabled: true, passEnabled: false },
+                walletConfiguration: {
+                    gWalletEnabled: true,
+                    passEnabled: false,
+                },
             };
 
             service.getInfo().subscribe((result) => {
@@ -43,7 +49,10 @@ describe('InfoService', () => {
             const mockInfo: Info = {
                 version: '2.0.0',
                 buildNumber: '12345',
-                walletConfiguration: { gWalletEnabled: true, passEnabled: false },
+                walletConfiguration: {
+                    gWalletEnabled: true,
+                    passEnabled: false,
+                },
             };
 
             service.getInfo().subscribe();
@@ -58,7 +67,10 @@ describe('InfoService', () => {
             const mockInfo: Info = {
                 version: '2.0.0',
                 buildNumber: '12345',
-                walletConfiguration: { gWalletEnabled: false, passEnabled: true },
+                walletConfiguration: {
+                    gWalletEnabled: false,
+                    passEnabled: true,
+                },
             };
 
             service.getInfo().subscribe((result) => {

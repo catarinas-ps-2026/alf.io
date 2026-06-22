@@ -14,18 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.repository;
-
-import alfio.manager.support.CheckInStatistics;
-import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -34,10 +23,20 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import alfio.manager.support.CheckInStatistics;
+import java.util.Collections;
+import java.util.List;
+import java.util.TimeZone;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
 class EventRepositoryTest {
 
     private final NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
-    private final EventRepository eventRepository = mock(EventRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+    private final EventRepository eventRepository =
+            mock(EventRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 
     @Test
     void testGetZoneIdByEventId() {
@@ -50,11 +49,16 @@ class EventRepositoryTest {
     void testRetrieveCheckInStatisticsForEventWithCategories() {
         doReturn(jdbcTemplate).when(eventRepository).getJdbcTemplate();
         CheckInStatistics expected = mock(CheckInStatistics.class);
-        when(jdbcTemplate.query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class))).thenReturn(expected);
+        when(jdbcTemplate.query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class)))
+                .thenReturn(expected);
 
         CheckInStatistics result = eventRepository.retrieveCheckInStatisticsForEvent(1, List.of(10, 11));
-        
-        verify(jdbcTemplate).query(contains("category_id in (:categories)"), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+
+        verify(jdbcTemplate)
+                .query(
+                        contains("category_id in (:categories)"),
+                        any(MapSqlParameterSource.class),
+                        any(ResultSetExtractor.class));
         assertEquals(expected, result);
     }
 
@@ -62,11 +66,16 @@ class EventRepositoryTest {
     void testRetrieveCheckInStatisticsForEventWithoutCategories() {
         doReturn(jdbcTemplate).when(eventRepository).getJdbcTemplate();
         CheckInStatistics expected = mock(CheckInStatistics.class);
-        when(jdbcTemplate.query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class))).thenReturn(expected);
+        when(jdbcTemplate.query(anyString(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class)))
+                .thenReturn(expected);
 
         CheckInStatistics result = eventRepository.retrieveCheckInStatisticsForEvent(1, Collections.emptyList());
-        
-        verify(jdbcTemplate).query(eq(EventRepository.STATISTICS_QUERY), any(MapSqlParameterSource.class), any(ResultSetExtractor.class));
+
+        verify(jdbcTemplate)
+                .query(
+                        eq(EventRepository.STATISTICS_QUERY),
+                        any(MapSqlParameterSource.class),
+                        any(ResultSetExtractor.class));
         assertEquals(expected, result);
     }
 }

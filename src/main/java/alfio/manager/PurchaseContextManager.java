@@ -22,15 +22,14 @@ import alfio.model.TicketReservation;
 import alfio.repository.EventRepository;
 import alfio.repository.SubscriptionRepository;
 import alfio.repository.TicketReservationRepository;
+import java.util.Optional;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Transactional(readOnly = true)
 @Component
@@ -41,15 +40,17 @@ public class PurchaseContextManager {
     private final SubscriptionRepository subscriptionRepository;
     private final TicketReservationRepository ticketReservationRepository;
 
-    public PurchaseContextManager(EventRepository eventRepository,
-                                  SubscriptionRepository subscriptionRepository,
-                                  TicketReservationRepository ticketReservationRepository) {
+    public PurchaseContextManager(
+            EventRepository eventRepository,
+            SubscriptionRepository subscriptionRepository,
+            TicketReservationRepository ticketReservationRepository) {
         this.eventRepository = eventRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.ticketReservationRepository = ticketReservationRepository;
     }
 
-    public Optional<? extends PurchaseContext> findBy(PurchaseContext.PurchaseContextType purchaseContextType, String publicIdentifier) {
+    public Optional<? extends PurchaseContext> findBy(
+            PurchaseContext.PurchaseContextType purchaseContextType, String publicIdentifier) {
         return switch (purchaseContextType) {
             case event -> eventRepository.findOptionalByShortName(publicIdentifier);
             case subscription -> subscriptionRepository.findOne(UUID.fromString(publicIdentifier));
@@ -57,7 +58,8 @@ public class PurchaseContextManager {
         };
     }
 
-    Optional<? extends PurchaseContext> findById(PurchaseContext.PurchaseContextType purchaseContextType, String idAsString) {
+    Optional<? extends PurchaseContext> findById(
+            PurchaseContext.PurchaseContextType purchaseContextType, String idAsString) {
         return switch (purchaseContextType) {
             case event -> eventRepository.findOptionalById(Integer.parseInt(idAsString));
             case subscription -> subscriptionRepository.findOne(UUID.fromString(idAsString));
@@ -66,9 +68,11 @@ public class PurchaseContextManager {
     }
 
     public Optional<PurchaseContext> findByReservationId(String reservationId) {
-        return ticketReservationRepository.findEventIdFor(reservationId).map(eventRepository::findById)
-            .map(PurchaseContext.class::cast)
-            .or(() -> subscriptionRepository.findDescriptorByReservationId(reservationId));
+        return ticketReservationRepository
+                .findEventIdFor(reservationId)
+                .map(eventRepository::findById)
+                .map(PurchaseContext.class::cast)
+                .or(() -> subscriptionRepository.findDescriptorByReservationId(reservationId));
     }
 
     public Optional<ConfigurationLevel> detectConfigurationLevel(String eventShortName, String subscriptionId) {
@@ -78,12 +82,14 @@ public class PurchaseContextManager {
 
         try {
             if (StringUtils.isNotEmpty(eventShortName)) {
-                return eventRepository.findOptionalEventAndOrganizationIdByShortName(eventShortName)
-                    .map(ConfigurationLevel::event);
+                return eventRepository
+                        .findOptionalEventAndOrganizationIdByShortName(eventShortName)
+                        .map(ConfigurationLevel::event);
             }
 
-            return subscriptionRepository.findOrganizationIdForSubscription(UUID.fromString(subscriptionId))
-                .map(ConfigurationLevel::organization);
+            return subscriptionRepository
+                    .findOrganizationIdForSubscription(UUID.fromString(subscriptionId))
+                    .map(ConfigurationLevel::organization);
         } catch (Exception ex) {
             log.warn("error while loading ConfigurationLevel", ex);
             return Optional.empty();
@@ -92,14 +98,16 @@ public class PurchaseContextManager {
 
     public Optional<Pair<PurchaseContext, TicketReservation>> getReservationWithPurchaseContext(String reservationId) {
         return findByReservationId(reservationId)
-            .map(event -> Pair.of(event, ticketReservationRepository.findReservationById(reservationId)));
+                .map(event -> Pair.of(event, ticketReservationRepository.findReservationById(reservationId)));
     }
 
     public int getOrganizationId(PurchaseContext.PurchaseContextType purchaseContextType, String publicIdentifier) {
         if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {
             return eventRepository.findOrganizationIdByShortName(publicIdentifier);
         } else {
-            return subscriptionRepository.findOrganizationIdForDescriptor(UUID.fromString(publicIdentifier)).orElseThrow();
+            return subscriptionRepository
+                    .findOrganizationIdForDescriptor(UUID.fromString(publicIdentifier))
+                    .orElseThrow();
         }
     }
 }

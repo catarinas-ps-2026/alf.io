@@ -20,9 +20,8 @@ import alfio.model.transaction.PaymentMethod;
 import alfio.model.transaction.PaymentProxy;
 import alfio.model.transaction.PaymentToken;
 import alfio.model.transaction.StaticPaymentMethods;
-import lombok.Getter;
-
 import java.beans.ConstructorProperties;
+import lombok.Getter;
 
 @Getter
 public class PayPalToken implements PaymentToken {

@@ -16,13 +16,12 @@
  */
 package alfio.util;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class SqlUtilsTest {
 
@@ -35,6 +34,9 @@ class SqlUtilsTest {
     void timestampToZoneDateTimeUsesApplicationClockZone() {
         var timestamp = Timestamp.from(Instant.parse("2024-01-01T10:00:00Z"));
 
-        assertEquals(ZonedDateTime.ofInstant(timestamp.toInstant(), ClockProvider.clock().getZone()), SqlUtils.timestampToZoneDateTime(timestamp));
+        assertEquals(
+                ZonedDateTime.ofInstant(
+                        timestamp.toInstant(), ClockProvider.clock().getZone()),
+                SqlUtils.timestampToZoneDateTime(timestamp));
     }
 }

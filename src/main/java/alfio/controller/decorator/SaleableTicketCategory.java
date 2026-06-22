@@ -18,18 +18,18 @@ package alfio.controller.decorator;
 
 import alfio.model.*;
 import alfio.util.MonetaryUtil;
-import lombok.experimental.Delegate;
-import org.apache.commons.lang3.StringUtils;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import lombok.experimental.Delegate;
+import org.apache.commons.lang3.StringUtils;
 
 public class SaleableTicketCategory implements PriceContainer {
 
     @Delegate
     private final TicketCategory ticketCategory;
+
     private final ZonedDateTime now;
     private final ZoneId zoneId;
     private final Event event;
@@ -40,12 +40,13 @@ public class SaleableTicketCategory implements PriceContainer {
     private final boolean hasPendingTickets;
     private final PromoCodeDiscount promoCodeDiscount;
 
-    public SaleableTicketCategory(TicketCategory ticketCategory,
-                                  ZonedDateTime now,
-                                  Event event,
-                                  CategoryAvailability categoryAvailability,
-                                  int maxTickets,
-                                  PromoCodeDiscount promoCodeDiscount) {
+    public SaleableTicketCategory(
+            TicketCategory ticketCategory,
+            ZonedDateTime now,
+            Event event,
+            CategoryAvailability categoryAvailability,
+            int maxTickets,
+            PromoCodeDiscount promoCodeDiscount) {
         this.ticketCategory = ticketCategory;
         this.now = now;
         this.zoneId = event.getZoneId();
@@ -77,8 +78,8 @@ public class SaleableTicketCategory implements PriceContainer {
     public boolean getSaleInFuture() {
         return getInception(zoneId).isAfter(now);
     }
-    
-    //jmustache
+
+    // jmustache
     public boolean getAccessRestricted() {
         return isAccessRestricted();
     }
@@ -112,7 +113,9 @@ public class SaleableTicketCategory implements PriceContainer {
 
     public String getFormattedFinalPrice() {
         if (StringUtils.isNotEmpty(getCurrencyCode())) {
-            return MonetaryUtil.formatUnit(getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()), getCurrencyCode());
+            return MonetaryUtil.formatUnit(
+                    getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()),
+                    getCurrencyCode());
         }
         return "";
     }
@@ -130,7 +133,8 @@ public class SaleableTicketCategory implements PriceContainer {
     }
 
     public String getDiscountedPrice() {
-        return MonetaryUtil.formatUnit(getFinalPriceToDisplay(getFinalPrice(), getVAT(), getVatStatus()), getCurrencyCode());
+        return MonetaryUtil.formatUnit(
+                getFinalPriceToDisplay(getFinalPrice(), getVAT(), getVatStatus()), getCurrencyCode());
     }
 
     public boolean getSupportsDiscount() {
@@ -138,15 +142,15 @@ public class SaleableTicketCategory implements PriceContainer {
     }
 
     public PromoCodeDiscount getPromoCodeDiscount() {
-        return (promoCodeDiscount == null || promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT) ? promoCodeDiscount : null;
+        return (promoCodeDiscount == null || promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT)
+                ? promoCodeDiscount
+                : null;
     }
 
     static BigDecimal getFinalPriceToDisplay(BigDecimal price, BigDecimal vat, VatStatus vatStatus) {
-        if(vatStatus == VatStatus.NOT_INCLUDED) {
+        if (vatStatus == VatStatus.NOT_INCLUDED) {
             return price.subtract(vat);
         }
         return price;
     }
-
-
 }

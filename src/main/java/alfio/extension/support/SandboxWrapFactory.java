@@ -16,10 +16,9 @@
  */
 package alfio.extension.support;
 
-import org.mozilla.javascript.*;
-
 import java.util.List;
 import java.util.Map;
+import org.mozilla.javascript.*;
 
 // source: https://codeutopia.net/blog/2009/01/02/sandboxing-rhino-in-java/
 public class SandboxWrapFactory extends WrapFactory {

@@ -16,6 +16,8 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.payment.BaseStripeManager.STRIPE_MANAGER_TYPE_KEY;
+import static alfio.model.system.ConfigurationKeys.*;
 
 import alfio.manager.support.PaymentResult;
 import alfio.manager.system.ConfigurationManager;
@@ -34,6 +36,8 @@ import alfio.util.ClockProvider;
 import com.stripe.exception.StripeException;
 import com.stripe.model.BalanceTransaction;
 import com.stripe.model.Charge;
+import java.time.ZonedDateTime;
+import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,39 +45,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.time.ZonedDateTime;
-import java.util.*;
-
-import static alfio.manager.payment.BaseStripeManager.STRIPE_MANAGER_TYPE_KEY;
-import static alfio.model.system.ConfigurationKeys.*;
-
 @Component
 public class StripeCreditCardManager implements PaymentProvider, ClientServerTokenRequest, RefundRequest, PaymentInfo {
 
     public static final String STRIPE_UNEXPECTED = "error.STEP2_STRIPE_unexpected";
     private static final Logger log = LoggerFactory.getLogger(StripeCreditCardManager.class);
     private static final String STRIPE_MANAGER = StripeCreditCardManager.class.getName();
-    protected static final EnumSet<ConfigurationKeys> OPTIONS_TO_LOAD = EnumSet.of(STRIPE_ENABLE_SCA, STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY);
+    protected static final EnumSet<ConfigurationKeys> OPTIONS_TO_LOAD =
+            EnumSet.of(STRIPE_ENABLE_SCA, STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY);
 
     private final TransactionRepository transactionRepository;
     private final BaseStripeManager baseStripeManager;
     private final ClockProvider clockProvider;
 
     @Autowired
-    public StripeCreditCardManager(ConfigurationManager configurationManager,
-                                   TicketRepository ticketRepository,
-                                   TransactionRepository transactionRepository,
-                                   ConfigurationRepository configurationRepository,
-                                   Environment environment,
-                                   ClockProvider clockProvider) {
-        this(transactionRepository,
-            new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, environment),
-            clockProvider);
+    public StripeCreditCardManager(
+            ConfigurationManager configurationManager,
+            TicketRepository ticketRepository,
+            TransactionRepository transactionRepository,
+            ConfigurationRepository configurationRepository,
+            Environment environment,
+            ClockProvider clockProvider) {
+        this(
+                transactionRepository,
+                new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, environment),
+                clockProvider);
     }
 
-    StripeCreditCardManager(TransactionRepository transactionRepository,
-                            BaseStripeManager baseStripeManager,
-                            ClockProvider clockProvider) {
+    StripeCreditCardManager(
+            TransactionRepository transactionRepository,
+            BaseStripeManager baseStripeManager,
+            ClockProvider clockProvider) {
         this.transactionRepository = transactionRepository;
         this.baseStripeManager = baseStripeManager;
         this.clockProvider = clockProvider;
@@ -105,8 +107,9 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
     }
 
     @Override
-    public Set<? extends PaymentMethod> getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
-        if(!isActive(paymentContext)) {
+    public Set<? extends PaymentMethod> getSupportedPaymentMethods(
+            PaymentContext paymentContext, TransactionRequest transactionRequest) {
+        if (!isActive(paymentContext)) {
             return EnumSet.noneOf(StaticPaymentMethods.class);
         }
         return EnumSet.of(StaticPaymentMethods.CREDIT_CARD);
@@ -124,14 +127,16 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
 
     private boolean checkConfiguration(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> config) {
         return !config.get(STRIPE_ENABLE_SCA).getValueAsBooleanOrDefault()
-            && config.get(STRIPE_SECRET_KEY).isPresent() && config.get(STRIPE_PUBLIC_KEY).isPresent();
+                && config.get(STRIPE_SECRET_KEY).isPresent()
+                && config.get(STRIPE_PUBLIC_KEY).isPresent();
     }
 
     @Override
     public boolean accept(Transaction transaction) {
-        //note, only StripeWebhookPaymentManager set 'clientSecret' in the metadata, this is a fallback for old cases
+        // note, only StripeWebhookPaymentManager set 'clientSecret' in the metadata, this is a fallback for old cases
         var hasMetadata = !transaction.getMetadata().isEmpty();
-        var isCCManager = STRIPE_MANAGER.equals(transaction.getMetadata().get(STRIPE_MANAGER_TYPE_KEY)) || transaction.getMetadata().get("clientSecret") == null;
+        var isCCManager = STRIPE_MANAGER.equals(transaction.getMetadata().get(STRIPE_MANAGER_TYPE_KEY))
+                || transaction.getMetadata().get("clientSecret") == null;
         return transaction.getPaymentProxy() == PaymentProxy.STRIPE && (!hasMetadata || isCCManager);
     }
 
@@ -146,23 +151,46 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
     }
 
     @Override
-    public PaymentResult doPayment( PaymentSpecification spec ) {
+    public PaymentResult doPayment(PaymentSpecification spec) {
         try {
             final Optional<Charge> optionalCharge = baseStripeManager.chargeCreditCard(spec);
-            return optionalCharge.map(charge -> {
-                log.info("transaction {} paid: {}", spec.getReservationId(), charge.getPaid());
-                Pair<Long, Long> fees = Optional.ofNullable(charge.getBalanceTransactionObject()).map( bt -> {
-                    List<BalanceTransaction.FeeDetail> feeDetails = bt.getFeeDetails();
-                    return Pair.of(Optional.ofNullable( BaseStripeManager.getFeeAmount(feeDetails, "application_fee")).map(Long::parseLong).orElse(0L),
-                        Optional.ofNullable( BaseStripeManager.getFeeAmount(feeDetails, "stripe_fee")).map(Long::parseLong).orElse(0L));
-                }).orElse(null);
+            return optionalCharge
+                    .map(charge -> {
+                        log.info("transaction {} paid: {}", spec.getReservationId(), charge.getPaid());
+                        Pair<Long, Long> fees = Optional.ofNullable(charge.getBalanceTransactionObject())
+                                .map(bt -> {
+                                    List<BalanceTransaction.FeeDetail> feeDetails = bt.getFeeDetails();
+                                    return Pair.of(
+                                            Optional.ofNullable(BaseStripeManager.getFeeAmount(
+                                                            feeDetails, "application_fee"))
+                                                    .map(Long::parseLong)
+                                                    .orElse(0L),
+                                            Optional.ofNullable(
+                                                            BaseStripeManager.getFeeAmount(feeDetails, "stripe_fee"))
+                                                    .map(Long::parseLong)
+                                                    .orElse(0L));
+                                })
+                                .orElse(null);
 
-                PaymentManagerUtils.invalidateExistingTransactions(spec.getReservationId(), transactionRepository);
-                transactionRepository.insert(charge.getId(), null, spec.getReservationId(),
-                    ZonedDateTime.now(clockProvider.withZone(spec.getPurchaseContext().getZoneId())), spec.getPriceWithVAT(), spec.getPurchaseContext().getCurrency(), charge.getDescription(), PaymentProxy.STRIPE.name(),
-                    fees != null ? fees.getLeft() : 0L, fees != null ? fees.getRight() : 0L, Transaction.Status.COMPLETE, Map.of(STRIPE_MANAGER_TYPE_KEY, STRIPE_MANAGER));
-                return PaymentResult.successful(charge.getId());
-            }).orElseGet(() -> PaymentResult.failed("error.STEP2_UNABLE_TO_TRANSITION"));
+                        PaymentManagerUtils.invalidateExistingTransactions(
+                                spec.getReservationId(), transactionRepository);
+                        transactionRepository.insert(
+                                charge.getId(),
+                                null,
+                                spec.getReservationId(),
+                                ZonedDateTime.now(clockProvider.withZone(
+                                        spec.getPurchaseContext().getZoneId())),
+                                spec.getPriceWithVAT(),
+                                spec.getPurchaseContext().getCurrency(),
+                                charge.getDescription(),
+                                PaymentProxy.STRIPE.name(),
+                                fees != null ? fees.getLeft() : 0L,
+                                fees != null ? fees.getRight() : 0L,
+                                Transaction.Status.COMPLETE,
+                                Map.of(STRIPE_MANAGER_TYPE_KEY, STRIPE_MANAGER));
+                        return PaymentResult.successful(charge.getId());
+                    })
+                    .orElseGet(() -> PaymentResult.failed("error.STEP2_UNABLE_TO_TRANSITION"));
         } catch (StripeException e) {
             return PaymentResult.failed(baseStripeManager.handleException(e));
         } catch (Exception e) {
@@ -174,5 +202,4 @@ public class StripeCreditCardManager implements PaymentProvider, ClientServerTok
     public PaymentToken buildPaymentToken(String clientToken, PaymentContext context) {
         return new StripeCreditCardToken(clientToken);
     }
-
 }

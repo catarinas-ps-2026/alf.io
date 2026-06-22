@@ -20,49 +20,52 @@ import alfio.model.ContentLanguage;
 import alfio.model.Event;
 import alfio.model.LocalizedContent;
 import alfio.util.MustacheCustomTag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
-
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.BiConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 
 public class Formatters {
 
     public static final String LINK_NEW_TAB_KEY = "link.new-tab";
     private static final Logger log = LoggerFactory.getLogger(Formatters.class);
 
-    private Formatters() {
-    }
+    private Formatters() {}
 
-    public static Map<String, String> getFormattedDate(LocalizedContent localizedContent, ZonedDateTime date, String code, MessageSource messageSource) {
-        if(localizedContent != null && date != null) {
+    public static Map<String, String> getFormattedDate(
+            LocalizedContent localizedContent, ZonedDateTime date, String code, MessageSource messageSource) {
+        if (localizedContent != null && date != null) {
             return getFormattedDate(localizedContent.getContentLanguages(), date, code, messageSource);
         }
         return null;
     }
 
-    private static Map<String, String> getFormattedDate(List<ContentLanguage> languages, ZonedDateTime date, String code, MessageSource messageSource) {
+    private static Map<String, String> getFormattedDate(
+            List<ContentLanguage> languages, ZonedDateTime date, String code, MessageSource messageSource) {
         Map<String, String> formatted = new HashMap<>();
         languages.forEach(cl -> formatDateForLocale(date, code, messageSource, formatted::put, cl, false));
         return formatted;
     }
 
-    static void formatDateForLocale(ZonedDateTime date,
-                                    String code,
-                                    MessageSource messageSource,
-                                    BiConsumer<String, String> storeFunction,
-                                    ContentLanguage cl,
-                                    boolean notifyError) {
+    static void formatDateForLocale(
+            ZonedDateTime date,
+            String code,
+            MessageSource messageSource,
+            BiConsumer<String, String> storeFunction,
+            ContentLanguage cl,
+            boolean notifyError) {
         String pattern = null;
         try {
             pattern = messageSource.getMessage(code, null, cl.locale());
-            storeFunction.accept(cl.getLanguage(), DateTimeFormatter.ofPattern(pattern, cl.locale()).format(date));
+            storeFunction.accept(
+                    cl.getLanguage(),
+                    DateTimeFormatter.ofPattern(pattern, cl.locale()).format(date));
         } catch (RuntimeException e) {
-            String message = "cannot parse pattern "+code+" ("+pattern+") for language "+ cl.getLanguage();
-            if(notifyError) {
+            String message = "cannot parse pattern " + code + " (" + pattern + ") for language " + cl.getLanguage();
+            if (notifyError) {
                 throw new RuntimeException(message, e);
             } else {
                 log.warn(message, e);
@@ -70,13 +73,13 @@ public class Formatters {
         }
     }
 
-    public static FormattedEventDates getFormattedDates(Event e, MessageSource messageSource, List<ContentLanguage> contentLanguages) {
+    public static FormattedEventDates getFormattedDates(
+            Event e, MessageSource messageSource, List<ContentLanguage> contentLanguages) {
         return new FormattedEventDates(
-            getFormattedDate(contentLanguages, e.getBegin(), "common.event.date-format", messageSource),
-            getFormattedDate(contentLanguages, e.getBegin(), "common.event.time-format", messageSource),
-            getFormattedDate(contentLanguages, e.getEnd(), "common.event.date-format", messageSource),
-            getFormattedDate(contentLanguages, e.getEnd(), "common.event.time-format", messageSource)
-        );
+                getFormattedDate(contentLanguages, e.getBegin(), "common.event.date-format", messageSource),
+                getFormattedDate(contentLanguages, e.getBegin(), "common.event.time-format", messageSource),
+                getFormattedDate(contentLanguages, e.getEnd(), "common.event.date-format", messageSource),
+                getFormattedDate(contentLanguages, e.getEnd(), "common.event.time-format", messageSource));
     }
 
     public static Map<String, String> applyCommonMark(Map<String, String> in) {
@@ -90,7 +93,9 @@ public class Formatters {
 
         var res = new HashMap<String, String>();
         in.forEach((k, v) -> {
-            var targetBlankMessage = messageSource != null ? messageSource.getMessage(LINK_NEW_TAB_KEY, null, Locale.forLanguageTag(k)) : null;
+            var targetBlankMessage = messageSource != null
+                    ? messageSource.getMessage(LINK_NEW_TAB_KEY, null, Locale.forLanguageTag(k))
+                    : null;
             res.put(k, MustacheCustomTag.renderToHtmlCommonmarkEscaped(v, targetBlankMessage));
         });
         return res;

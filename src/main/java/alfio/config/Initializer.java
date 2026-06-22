@@ -21,13 +21,12 @@ import com.openhtmltopdf.util.XRLog;
 import jakarta.servlet.FilterRegistration.Dynamic;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import java.util.Objects;
+import java.util.logging.Level;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-
-import java.util.Objects;
-import java.util.logging.Level;
 
 public class Initializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
@@ -56,31 +55,33 @@ public class Initializer extends AbstractAnnotationConfigDispatcherServletInitia
         characterEncodingFilter.setAsyncSupported(true);
         characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
 
-        //force log initialization, then disable it
+        // force log initialization, then disable it
         XRLog.setLevel(XRLog.EXCEPTION, Level.WARNING);
         XRLog.setLoggingEnabled(false);
-
     }
 
     @Override
     protected WebApplicationContext createRootApplicationContext() {
-        ConfigurableWebApplicationContext ctx = ((ConfigurableWebApplicationContext) super.createRootApplicationContext());
+        ConfigurableWebApplicationContext ctx =
+                ((ConfigurableWebApplicationContext) super.createRootApplicationContext());
         Objects.requireNonNull(ctx, "Something really bad is happening...");
         return ctx;
     }
 
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        return new Class<?>[] { ApplicationPropertiesConfiguration.class, DataSourceConfiguration.class, WebSecurityConfig.class };
+        return new Class<?>[] {
+            ApplicationPropertiesConfiguration.class, DataSourceConfiguration.class, WebSecurityConfig.class
+        };
     }
 
     @Override
     protected Class<?>[] getServletConfigClasses() {
-        return new Class<?>[] { MvcConfiguration.class };
+        return new Class<?>[] {MvcConfiguration.class};
     }
 
     @Override
     protected String[] getServletMappings() {
-        return new String[] { "/" };
+        return new String[] {"/"};
     }
 }

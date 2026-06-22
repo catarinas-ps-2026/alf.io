@@ -21,13 +21,12 @@ import alfio.util.Json;
 import ch.digitalfondue.npjt.mapper.ColumnMapper;
 import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
 import ch.digitalfondue.npjt.mapper.ParameterConverter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-
 import java.lang.annotation.Annotation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 public class JSONColumnMapper extends ColumnMapper {
 
@@ -40,7 +39,7 @@ public class JSONColumnMapper extends ColumnMapper {
     @Override
     public Object getObject(ResultSet rs) throws SQLException {
         var jsonAsString = rs.getString(name);
-        if(jsonAsString != null) {
+        if (jsonAsString != null) {
             return Json.fromJson(jsonAsString, paramType);
         }
         return null;
@@ -48,7 +47,7 @@ public class JSONColumnMapper extends ColumnMapper {
 
     private static boolean hasAnnotation(Annotation[] annotations) {
         return annotations != null
-            && Arrays.stream(annotations).anyMatch(annotation -> annotation.annotationType() == JSONData.class);
+                && Arrays.stream(annotations).anyMatch(annotation -> annotation.annotationType() == JSONData.class);
     }
 
     public static class Factory implements ColumnMapperFactory {
@@ -71,7 +70,7 @@ public class JSONColumnMapper extends ColumnMapper {
         public RowMapper<Object> getSingleColumnRowMapper(Class<Object> clazz) {
             return (resultSet, rowNum) -> {
                 var jsonAsString = resultSet.getString(1);
-                if(jsonAsString != null) {
+                if (jsonAsString != null) {
                     return Json.fromJson(jsonAsString, clazz);
                 }
                 return null;
@@ -86,7 +85,8 @@ public class JSONColumnMapper extends ColumnMapper {
         }
 
         @Override
-        public void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
+        public void processParameter(
+                String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
             ps.addValue(parameterName, Json.toJson(arg));
         }
 

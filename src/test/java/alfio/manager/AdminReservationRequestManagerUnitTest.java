@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.model.AdminReservationRequestStats;
 import alfio.model.Event;
 import alfio.model.EventAndOrganizationId;
@@ -28,16 +31,12 @@ import alfio.repository.AdminReservationRequestRepository;
 import alfio.repository.EventRepository;
 import alfio.repository.user.UserRepository;
 import alfio.util.ClockProvider;
+import java.util.Collections;
+import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.PlatformTransactionManager;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class AdminReservationRequestManagerUnitTest {
 
@@ -61,10 +60,13 @@ class AdminReservationRequestManagerUnitTest {
         clockProvider = mock(ClockProvider.class);
 
         manager = new AdminReservationRequestManager(
-            adminReservationManager, eventManager, userRepository,
-            adminReservationRequestRepository, eventRepository,
-            transactionManager, clockProvider
-        );
+                adminReservationManager,
+                eventManager,
+                userRepository,
+                adminReservationRequestRepository,
+                eventRepository,
+                transactionManager,
+                clockProvider);
     }
 
     @Test
@@ -72,16 +74,18 @@ class AdminReservationRequestManagerUnitTest {
         String requestId = "req-1";
         String eventName = "event";
         String username = "user";
-        
+
         EventAndOrganizationId eaoi = mock(EventAndOrganizationId.class);
         when(eaoi.getId()).thenReturn(1);
-        when(eventManager.getOptionalEventAndOrganizationIdByName(eventName, username)).thenReturn(Optional.of(eaoi));
-        
+        when(eventManager.getOptionalEventAndOrganizationIdByName(eventName, username))
+                .thenReturn(Optional.of(eaoi));
+
         AdminReservationRequestStats stats = mock(AdminReservationRequestStats.class);
-        when(adminReservationRequestRepository.findStatsByRequestIdAndEventId(requestId, 1)).thenReturn(Optional.of(stats));
-        
+        when(adminReservationRequestRepository.findStatsByRequestIdAndEventId(requestId, 1))
+                .thenReturn(Optional.of(stats));
+
         Result<AdminReservationRequestStats> result = manager.getRequestStatus(requestId, eventName, username);
-        
+
         assertTrue(result.isSuccess());
         assertEquals(stats, result.getData());
     }
@@ -91,11 +95,12 @@ class AdminReservationRequestManagerUnitTest {
         String requestId = "req-1";
         String eventName = "event";
         String username = "user";
-        
-        when(eventManager.getOptionalEventAndOrganizationIdByName(eventName, username)).thenReturn(Optional.empty());
-        
+
+        when(eventManager.getOptionalEventAndOrganizationIdByName(eventName, username))
+                .thenReturn(Optional.empty());
+
         Result<AdminReservationRequestStats> result = manager.getRequestStatus(requestId, eventName, username);
-        
+
         assertFalse(result.isSuccess());
         assertEquals("access_denied", result.getErrors().iterator().next().getCode());
     }
@@ -104,26 +109,26 @@ class AdminReservationRequestManagerUnitTest {
     void testScheduleReservations() {
         String eventName = "event";
         String username = "user";
-        
+
         AttendeeData attendee = new AttendeeData("fn", "ln", "e@e.com", "ref", null, null);
-        AttendeesByCategory attendeesByCategory = new AttendeesByCategory(1, 1, Collections.singletonList(attendee), null);
+        AttendeesByCategory attendeesByCategory =
+                new AttendeesByCategory(1, 1, Collections.singletonList(attendee), null);
         TicketReservationCreationRequest request = new TicketReservationCreationRequest(
-            Collections.singletonList(attendeesByCategory),
-            null, null, null, null, "en", null, null
-        );
-        
+                Collections.singletonList(attendeesByCategory), null, null, null, null, "en", null, null);
+
         when(clockProvider.getClock()).thenReturn(java.time.Clock.systemUTC());
-        
+
         Event event = mock(Event.class);
         when(event.getId()).thenReturn(1);
         when(eventManager.getOptionalByName(eventName, username)).thenReturn(Optional.of(event));
-        
+
         AdminReservationModification mod = mock(AdminReservationModification.class);
         when(adminReservationManager.validateTickets(any(), eq(event))).thenReturn(Result.success(Pair.of(event, mod)));
         when(userRepository.findIdByUserName(username)).thenReturn(Optional.of(123));
 
-        Result<String> result = manager.scheduleReservations(eventName, "en", Collections.singletonList(request), username);
-        
+        Result<String> result =
+                manager.scheduleReservations(eventName, "en", Collections.singletonList(request), username);
+
         assertTrue(result.isSuccess());
         assertNotNull(result.getData());
         verify(adminReservationRequestRepository).insertRequest(anyString(), eq(123L), eq(event), any());

@@ -16,6 +16,10 @@
  */
 package alfio.controller;
 
+import static alfio.controller.Constants.*;
+import static alfio.model.system.ConfigurationKeys.ENABLE_CAPTCHA_FOR_LOGIN;
+import static alfio.model.system.ConfigurationKeys.RECAPTCHA_API_KEY;
+
 import alfio.config.authentication.support.AuthenticationConstants;
 import alfio.controller.support.CSPConfigurer;
 import alfio.controller.support.UserStatus;
@@ -24,6 +28,9 @@ import alfio.manager.system.ConfigurationManager;
 import alfio.util.TemplateManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.EnumSet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -33,14 +40,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.EnumSet;
-
-import static alfio.controller.Constants.*;
-import static alfio.model.system.ConfigurationKeys.ENABLE_CAPTCHA_FOR_LOGIN;
-import static alfio.model.system.ConfigurationKeys.RECAPTCHA_API_KEY;
 
 @Controller
 public class AuthenticationController {
@@ -52,10 +51,11 @@ public class AuthenticationController {
     private final CSPConfigurer cspConfigurer;
     private final TemplateManager templateManager;
 
-    public AuthenticationController(ConfigurationManager configurationManager,
-                                    Environment environment,
-                                    CSPConfigurer cspConfigurer,
-                                    TemplateManager templateManager) {
+    public AuthenticationController(
+            ConfigurationManager configurationManager,
+            Environment environment,
+            CSPConfigurer cspConfigurer,
+            TemplateManager templateManager) {
         this.configurationManager = configurationManager;
         this.environment = environment;
         this.cspConfigurer = cspConfigurer;
@@ -63,29 +63,30 @@ public class AuthenticationController {
     }
 
     @GetMapping(AuthenticationConstants.AUTHENTICATION_STATUS)
-    public ResponseEntity<UserStatus> authenticationStatus(Principal principal,
-                                                           @Value("${alfio.version}") String version) {
+    public ResponseEntity<UserStatus> authenticationStatus(
+            Principal principal, @Value("${alfio.version}") String version) {
 
         return ResponseEntity.ok(new UserStatus(
-            principal != null,
-            principal != null ? principal.getName() : null,
-            version,
-            demoModeEnabled(environment),
-            devModeEnabled(environment),
-            prodModeEnabled(environment)
-        ));
+                principal != null,
+                principal != null ? principal.getName() : null,
+                version,
+                demoModeEnabled(environment),
+                devModeEnabled(environment),
+                prodModeEnabled(environment)));
     }
 
     @GetMapping("/authentication")
-    public void getLoginPage(@RequestParam(value="failed", required = false) String failed,
-                             @RequestParam(value = "recaptchaFailed", required = false) String recaptchaFailed,
-                             Model model,
-                             Principal principal,
-                             HttpServletRequest request,
-                             HttpServletResponse response,
-                             @Value("${alfio.version}") String version) throws IOException {
+    public void getLoginPage(
+            @RequestParam(value = "failed", required = false) String failed,
+            @RequestParam(value = "recaptchaFailed", required = false) String recaptchaFailed,
+            Model model,
+            Principal principal,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @Value("${alfio.version}") String version)
+            throws IOException {
 
-        if(principal != null) {
+        if (principal != null) {
             response.sendRedirect("/admin/");
             return;
         }
@@ -99,14 +100,17 @@ public class AuthenticationController {
 
         //
 
-        var configuration = configurationManager.getFor(EnumSet.of(RECAPTCHA_API_KEY, ENABLE_CAPTCHA_FOR_LOGIN), ConfigurationLevel.system());
+        var configuration = configurationManager.getFor(
+                EnumSet.of(RECAPTCHA_API_KEY, ENABLE_CAPTCHA_FOR_LOGIN), ConfigurationLevel.system());
 
-        configuration.get(RECAPTCHA_API_KEY).getValue()
-            .filter(key -> configuration.get(ENABLE_CAPTCHA_FOR_LOGIN).getValueAsBooleanOrDefault())
-            .ifPresent(key -> {
-                model.addAttribute("hasRecaptchaApiKey", true);
-                model.addAttribute("recaptchaApiKey", key);
-            });
+        configuration
+                .get(RECAPTCHA_API_KEY)
+                .getValue()
+                .filter(key -> configuration.get(ENABLE_CAPTCHA_FOR_LOGIN).getValueAsBooleanOrDefault())
+                .ifPresent(key -> {
+                    model.addAttribute("hasRecaptchaApiKey", true);
+                    model.addAttribute("recaptchaApiKey", key);
+                });
         try (var os = response.getOutputStream()) {
             response.setContentType(TEXT_HTML_CHARSET_UTF_8);
             response.setCharacterEncoding(UTF_8);
@@ -120,5 +124,4 @@ public class AuthenticationController {
     public String doLogin() {
         return REDIRECT_ADMIN;
     }
-
 }

@@ -18,19 +18,18 @@ package alfio.controller.api.v2;
 
 import alfio.controller.api.support.TicketHelper;
 import alfio.controller.api.v2.model.Language;
-import alfio.model.LocalizedCountry;
 import alfio.manager.i18n.I18nManager;
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.system.ConfigurationManager;
+import alfio.model.LocalizedCountry;
 import alfio.model.system.ConfigurationKeys;
 import alfio.util.LocaleUtil;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.web.bind.annotation.*;
-
 import java.text.Collator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v2/")
@@ -40,22 +39,31 @@ public class TranslationsApiController {
     private final ConfigurationManager configurationManager;
     private final I18nManager i18nManager;
 
-    public TranslationsApiController(MessageSourceManager messageSourceManager, ConfigurationManager configurationManager, I18nManager i18nManager) {
+    public TranslationsApiController(
+            MessageSourceManager messageSourceManager,
+            ConfigurationManager configurationManager,
+            I18nManager i18nManager) {
         this.messageSourceManager = messageSourceManager;
         this.configurationManager = configurationManager;
         this.i18nManager = i18nManager;
     }
 
     @GetMapping("/public/i18n/bundle/{lang}")
-    public Map<String, String> getPublicTranslations(@PathVariable String lang,
-                                                     @RequestParam(value = "withSystemOverride", defaultValue = "true", required = false) boolean withSystemOverride) {
-        return messageSourceManager.getBundleAsMap("alfio.i18n.public", withSystemOverride, lang, MessageSourceManager.PUBLIC_FRONTEND);
+    public Map<String, String> getPublicTranslations(
+            @PathVariable String lang,
+            @RequestParam(value = "withSystemOverride", defaultValue = "true", required = false)
+                    boolean withSystemOverride) {
+        return messageSourceManager.getBundleAsMap(
+                "alfio.i18n.public", withSystemOverride, lang, MessageSourceManager.PUBLIC_FRONTEND);
     }
 
     @GetMapping("/admin/i18n/bundle/{lang}")
-    public Map<String, String> getAdminTranslations(@PathVariable String lang,
-                                                    @RequestParam(value = "withSystemOverride", defaultValue = "true", required = false) boolean withSystemOverride) {
-        return messageSourceManager.getBundleAsMap("alfio.i18n.public", withSystemOverride, lang, MessageSourceManager.ADMIN_FRONTEND);
+    public Map<String, String> getAdminTranslations(
+            @PathVariable String lang,
+            @RequestParam(value = "withSystemOverride", defaultValue = "true", required = false)
+                    boolean withSystemOverride) {
+        return messageSourceManager.getBundleAsMap(
+                "alfio.i18n.public", withSystemOverride, lang, MessageSourceManager.ADMIN_FRONTEND);
     }
 
     @GetMapping("/public/i18n/countries/{lang}")
@@ -70,23 +78,26 @@ public class TranslationsApiController {
 
     @GetMapping("/public/i18n/eu-countries-vat/{lang}")
     public List<LocalizedCountry> getEuCountriesForVat(@PathVariable String lang) {
-        var countries = TicketHelper.getLocalizedEUCountriesForVat(LocaleUtil.forLanguageTag(lang),
-            configurationManager.getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST).getRequiredValue());
+        var countries = TicketHelper.getLocalizedEUCountriesForVat(
+                LocaleUtil.forLanguageTag(lang),
+                configurationManager
+                        .getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST)
+                        .getRequiredValue());
         return fromPair(countries);
     }
 
     private static List<LocalizedCountry> fromPair(List<Pair<String, String>> countries) {
-        var collator = Collator.getInstance(Locale.FRENCH); //<- gives the better sorting experience...
-        return countries.stream().map(p-> new LocalizedCountry(p.getKey(), p.getValue()))
-            .sorted((lc1, lc2) -> collator.compare(lc1.name(), lc2.name()))
-            .toList();
+        var collator = Collator.getInstance(Locale.FRENCH); // <- gives the better sorting experience...
+        return countries.stream()
+                .map(p -> new LocalizedCountry(p.getKey(), p.getValue()))
+                .sorted((lc1, lc2) -> collator.compare(lc1.name(), lc2.name()))
+                .toList();
     }
 
     @GetMapping("/public/i18n/languages")
     public List<Language> getSupportedLanguages() {
-        return i18nManager.getAvailableLanguages()
-            .stream()
-            .map(cl -> new Language(cl.locale().getLanguage(), cl.getDisplayLanguage()))
-            .toList();
+        return i18nManager.getAvailableLanguages().stream()
+                .map(cl -> new Language(cl.locale().getLanguage(), cl.getDisplayLanguage()))
+                .toList();
     }
 }

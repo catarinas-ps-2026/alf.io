@@ -30,7 +30,13 @@ describe('TicketFormComponent', () => {
         ticketCategories: [],
         localization: {},
         contentLanguages: [{ locale: 'en', name: 'English' }],
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: false, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: false,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
     } as unknown as PurchaseContext;
 
@@ -122,22 +128,39 @@ describe('TicketFormComponent', () => {
         });
 
         it('should return true when lockEmailEdit is true and ticket has email', () => {
-            component.ticket = { ...mockTicket, locked: false, email: 'john@example.com' } as Ticket;
-            component.reservationMetadata = { ...mockReservationMetadata, lockEmailEdit: true };
+            component.ticket = {
+                ...mockTicket,
+                locked: false,
+                email: 'john@example.com',
+            } as Ticket;
+            component.reservationMetadata = {
+                ...mockReservationMetadata,
+                lockEmailEdit: true,
+            };
 
             expect(component.emailEditForbidden).toBe(true);
         });
 
         it('should return false when ticket is not locked and lockEmailEdit is false', () => {
             component.ticket = { ...mockTicket, locked: false } as Ticket;
-            component.reservationMetadata = { ...mockReservationMetadata, lockEmailEdit: false };
+            component.reservationMetadata = {
+                ...mockReservationMetadata,
+                lockEmailEdit: false,
+            };
 
             expect(component.emailEditForbidden).toBe(false);
         });
 
         it('should return false when lockEmailEdit is true but ticket has no email', () => {
-            component.ticket = { ...mockTicket, locked: false, email: null } as Ticket;
-            component.reservationMetadata = { ...mockReservationMetadata, lockEmailEdit: true };
+            component.ticket = {
+                ...mockTicket,
+                locked: false,
+                email: null,
+            } as Ticket;
+            component.reservationMetadata = {
+                ...mockReservationMetadata,
+                lockEmailEdit: true,
+            };
 
             expect(component.emailEditForbidden).toBe(false);
         });

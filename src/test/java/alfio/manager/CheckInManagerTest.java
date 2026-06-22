@@ -64,136 +64,73 @@ class CheckInManagerTest {
     public void setUp() {
         eventRepository = mock(EventRepository.class);
         configurationManager = mock(ConfigurationManager.class);
-        OrganizationRepository organizationRepository = mock(
-            OrganizationRepository.class
-        );
+        OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
         ticketRepository = mock(TicketRepository.class);
         ticketCategoryRepository = mock(TicketCategoryRepository.class);
         Event event = mock(Event.class);
         Organization organization = mock(Organization.class);
         ConfigurationLevel cl = ConfigurationLevel.event(event);
         when(event.getConfigurationLevel()).thenReturn(cl);
-        when(eventRepository.findOptionalByShortName(EVENT_NAME)).thenReturn(
-            Optional.of(event)
-        );
+        when(eventRepository.findOptionalByShortName(EVENT_NAME)).thenReturn(Optional.of(event));
         when(event.getId()).thenReturn(EVENT_ID);
         when(event.getOrganizationId()).thenReturn(ORG_ID);
-        when(
-            organizationRepository.findOrganizationForUser(USERNAME, ORG_ID)
-        ).thenReturn(Optional.of(organization));
+        when(organizationRepository.findOrganizationForUser(USERNAME, ORG_ID)).thenReturn(Optional.of(organization));
         when(organization.getId()).thenReturn(ORG_ID);
-        when(
-            eventRepository.retrieveCheckInStatisticsForEvent(
-                eq(EVENT_ID),
-                isNull()
-            )
-        ).thenReturn(new CheckInStatistics(0, 0, new Date()));
+        when(eventRepository.retrieveCheckInStatisticsForEvent(eq(EVENT_ID), isNull()))
+                .thenReturn(new CheckInStatistics(0, 0, new Date()));
         checkInManager = new CheckInManager(
-            ticketRepository,
-            eventRepository,
-            null,
-            null,
-            ticketCategoryRepository,
-            null,
-            null,
-            configurationManager,
-            organizationRepository,
-            null,
-            null,
-            null,
-            null,
-            null,
-            TestUtil.clockProvider(),
-            null
-        );
+                ticketRepository,
+                eventRepository,
+                null,
+                null,
+                ticketCategoryRepository,
+                null,
+                null,
+                configurationManager,
+                organizationRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                TestUtil.clockProvider(),
+                null);
     }
 
     @Test
     void getStatistics() {
-        when(
-            configurationManager.getFor(
-                eq(CHECK_IN_STATS),
-                any(ConfigurationLevel.class)
-            )
-        ).thenReturn(
-            new ConfigurationManager.MaybeConfiguration(
-                CHECK_IN_STATS,
-                new ConfigurationKeyValuePathLevel(null, "true", null)
-            )
-        );
-        CheckInStatistics statistics = checkInManager.getStatistics(
-            EVENT_NAME,
-            null,
-            USERNAME
-        );
+        when(configurationManager.getFor(eq(CHECK_IN_STATS), any(ConfigurationLevel.class)))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(
+                        CHECK_IN_STATS, new ConfigurationKeyValuePathLevel(null, "true", null)));
+        CheckInStatistics statistics = checkInManager.getStatistics(EVENT_NAME, null, USERNAME);
         assertNotNull(statistics);
-        verify(eventRepository).retrieveCheckInStatisticsForEvent(
-            eq(EVENT_ID),
-            isNull()
-        );
+        verify(eventRepository).retrieveCheckInStatisticsForEvent(eq(EVENT_ID), isNull());
     }
 
     @Test
     void getStatisticsDisabled() {
-        when(
-            configurationManager.getFor(
-                eq(CHECK_IN_STATS),
-                any(ConfigurationLevel.class)
-            )
-        ).thenReturn(
-            new ConfigurationManager.MaybeConfiguration(
-                CHECK_IN_STATS,
-                new ConfigurationKeyValuePathLevel(null, "false", null)
-            )
-        );
-        CheckInStatistics statistics = checkInManager.getStatistics(
-            EVENT_NAME,
-            null,
-            USERNAME
-        );
+        when(configurationManager.getFor(eq(CHECK_IN_STATS), any(ConfigurationLevel.class)))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(
+                        CHECK_IN_STATS, new ConfigurationKeyValuePathLevel(null, "false", null)));
+        CheckInStatistics statistics = checkInManager.getStatistics(EVENT_NAME, null, USERNAME);
         assertNull(statistics);
-        verify(eventRepository, never()).retrieveCheckInStatisticsForEvent(
-            eq(EVENT_ID),
-            isNull()
-        );
+        verify(eventRepository, never()).retrieveCheckInStatisticsForEvent(eq(EVENT_ID), isNull());
     }
 
     @Test
     void testExtractStatus_EventNotFound() {
-        when(eventRepository.findOptionalById(anyInt())).thenReturn(
-            Optional.empty()
-        );
-        var result = checkInManager.checkIn(
-            1,
-            "uuid",
-            Optional.of("code"),
-            "user"
-        );
-        assertEquals(
-            CheckInStatus.EVENT_NOT_FOUND,
-            result.getResult().getStatus()
-        );
+        when(eventRepository.findOptionalById(anyInt())).thenReturn(Optional.empty());
+        var result = checkInManager.checkIn(1, "uuid", Optional.of("code"), "user");
+        assertEquals(CheckInStatus.EVENT_NOT_FOUND, result.getResult().getStatus());
     }
 
     @Test
     void testExtractStatus_TicketNotFound() {
         Event event = mock(Event.class);
-        when(eventRepository.findOptionalById(anyInt())).thenReturn(
-            Optional.of(event)
-        );
-        when(ticketRepository.findByUUIDForUpdate(anyString())).thenReturn(
-            Optional.empty()
-        );
-        var result = checkInManager.checkIn(
-            1,
-            "uuid",
-            Optional.of("code"),
-            "user"
-        );
-        assertEquals(
-            CheckInStatus.TICKET_NOT_FOUND,
-            result.getResult().getStatus()
-        );
+        when(eventRepository.findOptionalById(anyInt())).thenReturn(Optional.of(event));
+        when(ticketRepository.findByUUIDForUpdate(anyString())).thenReturn(Optional.empty());
+        var result = checkInManager.checkIn(1, "uuid", Optional.of("code"), "user");
+        assertEquals(CheckInStatus.TICKET_NOT_FOUND, result.getResult().getStatus());
     }
 
     @Test
@@ -201,32 +138,18 @@ class CheckInManagerTest {
         Event event = mock(Event.class);
         Ticket ticket = mock(Ticket.class);
         TicketCategory tc = mock(TicketCategory.class);
-        when(eventRepository.findOptionalById(anyInt())).thenReturn(
-            Optional.of(event)
-        );
-        when(ticketRepository.findByUUIDForUpdate(anyString())).thenReturn(
-            Optional.of(ticket)
-        );
+        when(eventRepository.findOptionalById(anyInt())).thenReturn(Optional.of(event));
+        when(ticketRepository.findByUUIDForUpdate(anyString())).thenReturn(Optional.of(ticket));
         when(ticket.getCategoryId()).thenReturn(10);
         when(ticketCategoryRepository.getById(10)).thenReturn(tc);
         when(event.getPrivateKey()).thenReturn("key");
         when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
         when(event.now(any(ClockProvider.class))).thenReturn(ZonedDateTime.now());
         when(tc.hasValidCheckIn(any(), any())).thenReturn(true);
-        when(ticket.ticketCode(anyString(), anyBoolean())).thenReturn(
-            "correct-code"
-        );
+        when(ticket.ticketCode(anyString(), anyBoolean())).thenReturn("correct-code");
 
-        var result = checkInManager.checkIn(
-            1,
-            "uuid",
-            Optional.of("wrong-code"),
-            "user"
-        );
-        assertEquals(
-            CheckInStatus.INVALID_TICKET_CODE,
-            result.getResult().getStatus()
-        );
+        var result = checkInManager.checkIn(1, "uuid", Optional.of("wrong-code"), "user");
+        assertEquals(CheckInStatus.INVALID_TICKET_CODE, result.getResult().getStatus());
     }
 
     @Test
@@ -238,7 +161,8 @@ class CheckInManagerTest {
         when(ticket.getCategoryId()).thenReturn(null);
         var result = checkInManager.checkIn(1, "uuid", Optional.of("code"), "user");
         assertEquals(CheckInStatus.INVALID_TICKET_STATE, result.getResult().getStatus());
-        assertEquals("Invalid ticket state", ((alfio.manager.support.DefaultCheckInResult)result.getResult()).getMessage());
+        assertEquals(
+                "Invalid ticket state", ((alfio.manager.support.DefaultCheckInResult) result.getResult()).getMessage());
     }
 
     @Test
@@ -254,7 +178,9 @@ class CheckInManagerTest {
         when(event.now(any(ClockProvider.class))).thenReturn(ZonedDateTime.now());
         when(tc.hasValidCheckIn(any(), any())).thenReturn(false);
         var result = checkInManager.checkIn(1, "uuid", Optional.of("code"), "user");
-        assertEquals(CheckInStatus.INVALID_TICKET_CATEGORY_CHECK_IN_DATE, result.getResult().getStatus());
+        assertEquals(
+                CheckInStatus.INVALID_TICKET_CATEGORY_CHECK_IN_DATE,
+                result.getResult().getStatus());
     }
 
     @Test
@@ -295,7 +221,9 @@ class CheckInManagerTest {
 
         var result = checkInManager.checkIn(1, "uuid", Optional.of("code"), "user");
         assertEquals(CheckInStatus.INVALID_TICKET_STATE, result.getResult().getStatus());
-        assertTrue(((alfio.manager.support.DefaultCheckInResult)result.getResult()).getMessage().contains("expected ACQUIRED state"));
+        assertTrue(((alfio.manager.support.DefaultCheckInResult) result.getResult())
+                .getMessage()
+                .contains("expected ACQUIRED state"));
     }
 
     @Test
@@ -303,37 +231,53 @@ class CheckInManagerTest {
         Ticket ticket = mock(Ticket.class);
         Event event = mock(Event.class);
         TicketCategory tc = mock(TicketCategory.class);
-        
+
         when(event.getFormat()).thenReturn(Event.EventFormat.ONLINE);
         when(tc.hasValidCheckIn(any(), any())).thenReturn(true);
         when(ticket.isCheckedIn()).thenReturn(false);
         when(ticket.getUuid()).thenReturn("uuid");
         when(event.getId()).thenReturn(1);
         when(ticketRepository.performCheckIn("uuid", 1)).thenReturn(1);
-        
+
         var auditingRepository = mock(alfio.repository.AuditingRepository.class);
         var extensionManager = mock(alfio.manager.ExtensionManager.class);
-        checkInManager = new CheckInManager(ticketRepository, eventRepository, null, null, ticketCategoryRepository, null, auditingRepository, configurationManager, null, null, null, extensionManager, null, null, TestUtil.clockProvider(), null);
+        checkInManager = new CheckInManager(
+                ticketRepository,
+                eventRepository,
+                null,
+                null,
+                ticketCategoryRepository,
+                null,
+                auditingRepository,
+                configurationManager,
+                null,
+                null,
+                null,
+                extensionManager,
+                null,
+                null,
+                TestUtil.clockProvider(),
+                null);
 
         var status = checkInManager.performCheckinForOnlineEvent(ticket, event, tc);
         assertEquals(CheckInStatus.SUCCESS, status);
         verify(auditingRepository).insert(any(), any(), anyInt(), any(), any(), any(), any());
         verify(extensionManager).handleTicketCheckedIn(ticket);
     }
-    
+
     @Test
     void testPerformCheckinForOnlineEvent_Fail() {
         Ticket ticket = mock(Ticket.class);
         Event event = mock(Event.class);
         TicketCategory tc = mock(TicketCategory.class);
-        
+
         when(event.getFormat()).thenReturn(Event.EventFormat.ONLINE);
         when(tc.hasValidCheckIn(any(), any())).thenReturn(true);
         when(ticket.isCheckedIn()).thenReturn(false);
         when(ticket.getUuid()).thenReturn("uuid");
         when(event.getId()).thenReturn(1);
         when(ticketRepository.performCheckIn("uuid", 1)).thenReturn(0);
-        
+
         var status = checkInManager.performCheckinForOnlineEvent(ticket, event, tc);
         assertEquals(CheckInStatus.ERROR, status);
     }
@@ -343,11 +287,11 @@ class CheckInManagerTest {
         Ticket ticket = mock(Ticket.class);
         Event event = mock(Event.class);
         TicketCategory tc = mock(TicketCategory.class);
-        
+
         when(event.getFormat()).thenReturn(Event.EventFormat.ONLINE);
         when(tc.hasValidCheckIn(any(), any())).thenReturn(true);
         when(ticket.isCheckedIn()).thenReturn(true);
-        
+
         var status = checkInManager.performCheckinForOnlineEvent(ticket, event, tc);
         assertEquals(CheckInStatus.ALREADY_CHECK_IN, status);
     }
@@ -357,10 +301,10 @@ class CheckInManagerTest {
         Ticket ticket = mock(Ticket.class);
         Event event = mock(Event.class);
         TicketCategory tc = mock(TicketCategory.class);
-        
+
         when(event.getFormat()).thenReturn(Event.EventFormat.ONLINE);
         when(tc.hasValidCheckIn(any(), any())).thenReturn(false);
-        
+
         var status = checkInManager.performCheckinForOnlineEvent(ticket, event, tc);
         assertEquals(CheckInStatus.INVALID_TICKET_CATEGORY_CHECK_IN_DATE, status);
     }
@@ -375,10 +319,26 @@ class CheckInManagerTest {
         when(ticket.getUuid()).thenReturn("uuid");
         when(ticket.getEventId()).thenReturn(1);
         when(eventRepository.findById(1)).thenReturn(event);
-        
+
         var ticketReservationManager = mock(alfio.manager.TicketReservationManager.class);
-        checkInManager = new CheckInManager(ticketRepository, eventRepository, null, null, ticketCategoryRepository, null, null, configurationManager, null, null, ticketReservationManager, null, null, null, TestUtil.clockProvider(), null);
-        
+        checkInManager = new CheckInManager(
+                ticketRepository,
+                eventRepository,
+                null,
+                null,
+                ticketCategoryRepository,
+                null,
+                null,
+                configurationManager,
+                null,
+                null,
+                ticketReservationManager,
+                null,
+                null,
+                null,
+                TestUtil.clockProvider(),
+                null);
+
         checkInManager.confirmOnSitePayment("uuid");
         verify(ticketRepository).updateTicketStatusWithUUID("uuid", Ticket.TicketStatus.ACQUIRED.toString());
         verify(ticketReservationManager).registerAlfioTransactionForOnsitePayment(eq(event), any());
@@ -393,13 +353,29 @@ class CheckInManagerTest {
         when(ticket.getEventId()).thenReturn(1);
         when(eventRepository.findById(1)).thenReturn(event);
         when(ticketRepository.findByUUID("uuid")).thenReturn(ticket);
-        
+
         var scanAuditRepository = mock(alfio.repository.audit.ScanAuditRepository.class);
         var auditingRepository = mock(alfio.repository.AuditingRepository.class);
         var userRepository = mock(alfio.repository.user.UserRepository.class);
-        
-        checkInManager = new CheckInManager(ticketRepository, eventRepository, null, null, ticketCategoryRepository, scanAuditRepository, auditingRepository, configurationManager, null, userRepository, null, mock(alfio.manager.ExtensionManager.class), null, null, TestUtil.clockProvider(), null);
-        
+
+        checkInManager = new CheckInManager(
+                ticketRepository,
+                eventRepository,
+                null,
+                null,
+                ticketCategoryRepository,
+                scanAuditRepository,
+                auditingRepository,
+                configurationManager,
+                null,
+                userRepository,
+                null,
+                mock(alfio.manager.ExtensionManager.class),
+                null,
+                null,
+                TestUtil.clockProvider(),
+                null);
+
         assertTrue(checkInManager.manualCheckIn(1, "uuid", "user"));
         verify(scanAuditRepository).insert(eq("uuid"), eq(1), any(), eq("user"), eq(CheckInStatus.SUCCESS), any());
     }
@@ -410,17 +386,20 @@ class CheckInManagerTest {
         Ticket ticket = mock(Ticket.class);
         TicketCategory tc = mock(TicketCategory.class);
         OrganizationRepository organizationRepository = mock(OrganizationRepository.class);
-        
+
         when(eventRepository.findOptionalByShortName(EVENT_NAME)).thenReturn(Optional.of(event));
         when(event.getShortName()).thenReturn(EVENT_NAME);
         when(event.getId()).thenReturn(EVENT_ID);
         when(event.getOrganizationId()).thenReturn(ORG_ID);
-        when(organizationRepository.findOrganizationForUser(USERNAME, ORG_ID)).thenReturn(Optional.of(mock(Organization.class)));
-        
-        doReturn(alfio.manager.system.ConfigurationLevel.event(event)).when(event).getConfigurationLevel();
+        when(organizationRepository.findOrganizationForUser(USERNAME, ORG_ID))
+                .thenReturn(Optional.of(mock(Organization.class)));
+
+        doReturn(alfio.manager.system.ConfigurationLevel.event(event))
+                .when(event)
+                .getConfigurationLevel();
         when(event.supportsLinkedAdditionalServices()).thenReturn(true);
         when(event.getFormat()).thenReturn(Event.EventFormat.ONLINE);
-        
+
         // Setup for evaluateTicketStatus (extractStatus)
         when(ticketRepository.findOptionalByUUID("uuid")).thenReturn(Optional.of(ticket));
         when(ticket.getCategoryId()).thenReturn(10);
@@ -435,13 +414,13 @@ class CheckInManagerTest {
         when(ticket.getFinalPriceCts()).thenReturn(1000);
         when(ticket.getUuid()).thenReturn("uuid");
         when(ticket.getTicketsReservationId()).thenReturn("resId");
-        
+
         // Setup for checkIn(int eventId, ...)
         when(eventRepository.findOptionalById(EVENT_ID)).thenReturn(Optional.of(event));
         when(eventRepository.findEventAndOrganizationIdById(EVENT_ID)).thenReturn(event);
         when(ticketRepository.findByUUIDForUpdate("uuid")).thenReturn(Optional.of(ticket));
         when(ticketRepository.findByUUID("uuid")).thenReturn(ticket);
-        
+
         // Mock dependencies for checkIn call
         var scanAuditRepository = mock(alfio.repository.audit.ScanAuditRepository.class);
         var auditingRepository = mock(alfio.repository.AuditingRepository.class);
@@ -449,17 +428,33 @@ class CheckInManagerTest {
         var ticketReservationManager = mock(alfio.manager.TicketReservationManager.class);
         var extensionManager = mock(alfio.manager.ExtensionManager.class);
         var purchaseContextFieldRepository = mock(alfio.repository.PurchaseContextFieldRepository.class);
-        
-        checkInManager = new CheckInManager(ticketRepository, eventRepository, mock(alfio.repository.TicketReservationRepository.class), purchaseContextFieldRepository, ticketCategoryRepository, scanAuditRepository, auditingRepository, configurationManager, organizationRepository, userRepository, ticketReservationManager, extensionManager, mock(alfio.repository.AdditionalServiceItemRepository.class), null, TestUtil.clockProvider(), null);
-        
+
+        checkInManager = new CheckInManager(
+                ticketRepository,
+                eventRepository,
+                mock(alfio.repository.TicketReservationRepository.class),
+                purchaseContextFieldRepository,
+                ticketCategoryRepository,
+                scanAuditRepository,
+                auditingRepository,
+                configurationManager,
+                organizationRepository,
+                userRepository,
+                ticketReservationManager,
+                extensionManager,
+                mock(alfio.repository.AdditionalServiceItemRepository.class),
+                null,
+                TestUtil.clockProvider(),
+                null);
+
         // We need to make it OK_READY_TO_BE_CHECKED_IN for the second call
         // The first call returns MUST_PAY, which triggers confirmOnSitePayment
         // confirmOnSitePayment calls acquire, which should update status to ACQUIRED
-        // But since we are mocking, we need to handle the state change if we want a full flow, 
+        // But since we are mocking, we need to handle the state change if we want a full flow,
         // or just verify the calls.
-        
+
         checkInManager.checkIn(EVENT_NAME, "uuid", Optional.of("code"), USERNAME, "auditUser", true);
-        
+
         verify(ticketReservationManager).registerAlfioTransactionForOnsitePayment(any(), any());
     }
 
@@ -470,15 +465,19 @@ class CheckInManagerTest {
         when(event.getPrivateKey()).thenReturn("key");
         when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
         when(event.supportsLinkedAdditionalServices()).thenReturn(true);
-        
-        when(configurationManager.areBooleanSettingsEnabledForEvent(any(), any())).thenReturn(ev -> true);
-        when(configurationManager.getFor(eq(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION, new alfio.model.system.ConfigurationKeyValuePathLevel(null, null, null)));
-        
+
+        when(configurationManager.areBooleanSettingsEnabledForEvent(any(), any()))
+                .thenReturn(ev -> true);
+        when(configurationManager.getFor(eq(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION), any()))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(
+                        alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION,
+                        new alfio.model.system.ConfigurationKeyValuePathLevel(null, null, null)));
+
         TicketCategory tc = mock(TicketCategory.class);
         when(tc.getName()).thenReturn("Cat");
         when(tc.getTicketCheckInStrategy()).thenReturn(TicketCategory.TicketCheckInStrategy.ONCE_PER_EVENT);
         when(ticketCategoryRepository.findByEventIdAsMap(1)).thenReturn(Collections.singletonMap(10, tc));
-        
+
         alfio.model.FullTicketInfo fi = mock(alfio.model.FullTicketInfo.class);
         when(fi.getFirstName()).thenReturn("John");
         when(fi.getLastName()).thenReturn("Doe");
@@ -488,28 +487,47 @@ class CheckInManagerTest {
         when(fi.getTicketCategory()).thenReturn(tc);
         when(fi.ticketCode(anyString(), anyBoolean())).thenReturn("code");
         when(fi.hmacTicketInfo(anyString(), anyBoolean())).thenReturn("hmac");
-        
+
         alfio.model.BillingDetails bd = mock(alfio.model.BillingDetails.class);
         when(fi.getBillingDetails()).thenReturn(bd);
         when(fi.getTicketsReservationId()).thenReturn("resId");
         when(ticketRepository.findFirstTicketIdInReservation("resId")).thenReturn(Optional.of(1));
         when(fi.getId()).thenReturn(1);
-        
-        when(ticketRepository.findAllFullTicketInfoAssignedByEventId(1, Collections.singletonList(1))).thenReturn(Collections.singletonList(fi));
-        
+
+        when(ticketRepository.findAllFullTicketInfoAssignedByEventId(1, Collections.singletonList(1)))
+                .thenReturn(Collections.singletonList(fi));
+
         var purchaseContextFieldRepository = mock(alfio.repository.PurchaseContextFieldRepository.class);
         alfio.model.FieldValueAndDescription fvd = mock(alfio.model.FieldValueAndDescription.class);
         when(fvd.getName()).thenReturn("field");
         when(fvd.getValue()).thenReturn("value");
         when(fvd.getDescription()).thenReturn("{\"restrictedValues\":{\"value\":\"Label\"}}");
-        when(purchaseContextFieldRepository.findValueForTicketId(anyInt(), anySet())).thenReturn(Collections.singletonList(fvd));
-        
+        when(purchaseContextFieldRepository.findValueForTicketId(anyInt(), anySet()))
+                .thenReturn(Collections.singletonList(fvd));
+
         var pollRepository = mock(alfio.repository.PollRepository.class);
         when(pollRepository.findAllForEvent(1)).thenReturn(Collections.emptyList());
-        
-        checkInManager = new CheckInManager(ticketRepository, eventRepository, null, purchaseContextFieldRepository, ticketCategoryRepository, null, null, configurationManager, null, null, null, null, mock(alfio.repository.AdditionalServiceItemRepository.class), pollRepository, TestUtil.clockProvider(), null);
-        
-        var result = checkInManager.getEncryptedAttendeesInformation(event, Collections.singleton("field"), Collections.singletonList(1));
+
+        checkInManager = new CheckInManager(
+                ticketRepository,
+                eventRepository,
+                null,
+                purchaseContextFieldRepository,
+                ticketCategoryRepository,
+                null,
+                null,
+                configurationManager,
+                null,
+                null,
+                null,
+                null,
+                mock(alfio.repository.AdditionalServiceItemRepository.class),
+                pollRepository,
+                TestUtil.clockProvider(),
+                null);
+
+        var result = checkInManager.getEncryptedAttendeesInformation(
+                event, Collections.singleton("field"), Collections.singletonList(1));
         assertNotNull(result);
         assertEquals(1, result.size());
     }
@@ -517,23 +535,13 @@ class CheckInManagerTest {
     @Test
     void testGetEncryptedAttendeesInformation_Disabled() {
         Event event = mock(Event.class);
-        when(configurationManager.areBooleanSettingsEnabledForEvent(any(), any())).thenReturn(ev -> false);
-        when(
-            configurationManager.getFor(
-                eq(OFFLINE_CHECKIN_ENABLED),
-                any(ConfigurationLevel.class)
-            )
-        ).thenReturn(
-            new ConfigurationManager.MaybeConfiguration(
-                OFFLINE_CHECKIN_ENABLED,
-                new ConfigurationKeyValuePathLevel(null, "false", null)
-            )
-        );
-        var result = checkInManager.getEncryptedAttendeesInformation(
-            event,
-            Collections.emptySet(),
-            Collections.emptyList()
-        );
+        when(configurationManager.areBooleanSettingsEnabledForEvent(any(), any()))
+                .thenReturn(ev -> false);
+        when(configurationManager.getFor(eq(OFFLINE_CHECKIN_ENABLED), any(ConfigurationLevel.class)))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(
+                        OFFLINE_CHECKIN_ENABLED, new ConfigurationKeyValuePathLevel(null, "false", null)));
+        var result =
+                checkInManager.getEncryptedAttendeesInformation(event, Collections.emptySet(), Collections.emptyList());
         assertEquals(Collections.emptyMap(), result);
     }
 }

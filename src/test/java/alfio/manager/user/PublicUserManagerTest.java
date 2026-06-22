@@ -16,12 +16,18 @@
  */
 package alfio.manager.user;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.controller.form.UpdateProfileForm;
 import alfio.manager.ExtensionManager;
 import alfio.model.user.PublicUserProfile;
 import alfio.model.user.User;
 import alfio.repository.PurchaseContextFieldRepository;
 import alfio.repository.user.UserRepository;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -29,21 +35,17 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 public class PublicUserManagerTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private ExtensionManager extensionManager;
+
     @Mock
     private UserManager userManager;
+
     @Mock
     private PurchaseContextFieldRepository purchaseContextFieldRepository;
 
@@ -52,12 +54,8 @@ public class PublicUserManagerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        publicUserManager = new PublicUserManager(
-                userRepository,
-                extensionManager,
-                userManager,
-                purchaseContextFieldRepository
-        );
+        publicUserManager =
+                new PublicUserManager(userRepository, extensionManager, userManager, purchaseContextFieldRepository);
     }
 
     @Test
@@ -134,30 +132,47 @@ public class PublicUserManagerTest {
         PublicUserProfile profile = mock(PublicUserProfile.class);
         when(profile.getAdditionalData()).thenReturn(Collections.emptyMap());
         when(userRepository.loadUserProfile(42)).thenReturn(Optional.of(profile));
-        when(userRepository.persistUserProfile(eq(42), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(1);
+        when(userRepository.persistUserProfile(
+                        eq(42), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(1);
 
         Optional<PublicUserProfile> result = publicUserManager.updateProfile(original, form, false);
 
         assertTrue(result.isPresent());
         verify(userRepository).update(42, "username", "First", "Last", "email@example.com", "desc");
-        verify(userRepository).persistUserProfile(eq(42), eq("Company"), eq("L1"), eq("L2"), eq("12345"), eq("City"), eq("State"), eq("IT"), eq("12345"), any(), any());
+        verify(userRepository)
+                .persistUserProfile(
+                        eq(42),
+                        eq("Company"),
+                        eq("L1"),
+                        eq("L2"),
+                        eq("12345"),
+                        eq("City"),
+                        eq("State"),
+                        eq("IT"),
+                        eq("12345"),
+                        any(),
+                        any());
     }
 
     @Test
     public void testPersistProfileForPublicUser() {
         java.security.Principal principal = mock(java.security.Principal.class);
         when(principal.getName()).thenReturn("test-user");
-        
-        org.springframework.validation.BindingResult bindingResult = mock(org.springframework.validation.BindingResult.class);
+
+        org.springframework.validation.BindingResult bindingResult =
+                mock(org.springframework.validation.BindingResult.class);
         when(bindingResult.hasErrors()).thenReturn(false);
-        
+
         alfio.model.TicketReservationAdditionalInfo info = mock(alfio.model.TicketReservationAdditionalInfo.class);
         when(info.getBillingAddressCompany()).thenReturn("Company");
-        
+
         when(userRepository.findIdByUserName("test-user")).thenReturn(Optional.of(42));
-        
+
         publicUserManager.persistProfileForPublicUser(principal, new Object(), bindingResult, info, Map.of());
-        
-        verify(userRepository).persistUserProfile(eq(42), eq("Company"), any(), any(), any(), any(), any(), any(), any(), any(), any());
+
+        verify(userRepository)
+                .persistUserProfile(
+                        eq(42), eq("Company"), any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 }

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultExceptionHandler.class);
+
     @Override
     public void uncaughtException(Thread t, Throwable e) {
         log.error("uncaught Exception", e);

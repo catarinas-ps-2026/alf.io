@@ -20,14 +20,13 @@ import alfio.model.support.Array;
 import ch.digitalfondue.npjt.mapper.ColumnMapper;
 import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
 import ch.digitalfondue.npjt.mapper.ParameterConverter;
-import org.springframework.jdbc.core.RowMapper;
-
 import java.lang.annotation.Annotation;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.jdbc.core.RowMapper;
 
 public class ArrayColumnMapper extends ColumnMapper {
 
@@ -40,18 +39,17 @@ public class ArrayColumnMapper extends ColumnMapper {
     @Override
     public Object getObject(ResultSet rs) throws SQLException {
         var array = rs.getArray(name);
-        if(array != null) {
+        if (array != null) {
             return Arrays.asList((Object[]) array.getArray());
         }
         return null;
     }
 
     private static boolean hasAnnotation(Annotation[] annotations) {
-        return annotations != null
-            && Arrays.stream(annotations).anyMatch(ArrayColumnMapper::annotationFinder);
+        return annotations != null && Arrays.stream(annotations).anyMatch(ArrayColumnMapper::annotationFinder);
     }
 
-    private static boolean annotationFinder(Annotation annotation){
+    private static boolean annotationFinder(Annotation annotation) {
         return annotation.annotationType() == Array.class;
     }
 
@@ -75,7 +73,7 @@ public class ArrayColumnMapper extends ColumnMapper {
         public RowMapper<Object> getSingleColumnRowMapper(Class<Object> clazz) {
             return (resultSet, rowNum) -> {
                 var array = resultSet.getArray(1);
-                if(array != null) {
+                if (array != null) {
                     return Arrays.asList((Object[]) array.getArray());
                 }
                 return null;
@@ -89,17 +87,21 @@ public class ArrayColumnMapper extends ColumnMapper {
             return hasAnnotation(annotations) && List.class.isAssignableFrom(parameterType);
         }
 
-
         @Override
         public void processParameter(ProcessParameterContext processParameterContext) {
             var arg = processParameterContext.getArg();
             var ps = processParameterContext.getParameterSource();
-            if(arg == null) {
+            if (arg == null) {
                 ps.addValue(processParameterContext.getParameterName(), null, Types.ARRAY);
             } else {
-                Array def = (Array) Arrays.stream(processParameterContext.getParameterAnnotations()).filter(ArrayColumnMapper::annotationFinder).findFirst().orElseThrow();
+                Array def = (Array) Arrays.stream(processParameterContext.getParameterAnnotations())
+                        .filter(ArrayColumnMapper::annotationFinder)
+                        .findFirst()
+                        .orElseThrow();
                 try {
-                    var array = processParameterContext.getConnection().createArrayOf(def.type(), ((List<?>) arg).toArray());
+                    var array = processParameterContext
+                            .getConnection()
+                            .createArrayOf(def.type(), ((List<?>) arg).toArray());
                     ps.addValue(processParameterContext.getParameterName(), array);
                 } catch (SQLException e) {
                     throw new IllegalStateException(e);

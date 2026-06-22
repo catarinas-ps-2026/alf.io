@@ -16,6 +16,8 @@
  */
 package alfio;
 
+import static alfio.test.util.TestUtil.FIXED_TIME_CLOCK;
+
 import alfio.config.Initializer;
 import alfio.config.support.PlatformProvider;
 import alfio.manager.FileDownloadManager;
@@ -29,17 +31,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.Stripe;
 import com.zaxxer.hikari.HikariConfig;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ByteArrayResource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.net.http.HttpClient;
@@ -51,8 +42,16 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
-
-import static alfio.test.util.TestUtil.FIXED_TIME_CLOCK;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ByteArrayResource;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 @Configuration(proxyBeanMethods = false)
 public class BaseTestConfiguration {
@@ -77,9 +76,9 @@ public class BaseTestConfiguration {
         String postgresVersion = Objects.requireNonNullElse(System.getProperty("pgsql.version"), "10");
         log.debug("Running tests using PostgreSQL v.{}", postgresVersion);
         if (postgres == null) {
-            postgres = new PostgreSQLContainer<>("postgres:"+postgresVersion)
-                .withDatabaseName(POSTGRES_DB)
-                .withInitScript("init-db-user.sql");
+            postgres = new PostgreSQLContainer<>("postgres:" + postgresVersion)
+                    .withDatabaseName(POSTGRES_DB)
+                    .withInitScript("init-db-user.sql");
             postgres.start();
             if ("true".equals(System.getenv().get("TESTCONTAINERS_RYUK_DISABLED"))) {
                 Runtime.getRuntime().addShutdownHook(new Thread(postgres::stop));
@@ -98,12 +97,14 @@ public class BaseTestConfiguration {
     public static PropertySourcesPlaceholderConfigurer propConfig() {
         Properties properties = new Properties();
         properties.put("alfio.version", "2.0-SNAPSHOT");
-        properties.put("alfio.build-ts", ZonedDateTime.now(ZoneId.of("UTC")).minusDays(1).toString());
+        properties.put(
+                "alfio.build-ts",
+                ZonedDateTime.now(ZoneId.of("UTC")).minusDays(1).toString());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter pw = new PrintWriter(out, true, Charset.defaultCharset());
         properties.list(pw);
         pw.flush();
-        var configurer =  new PropertySourcesPlaceholderConfigurer();
+        var configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setLocation(new ByteArrayResource(out.toByteArray()));
         return configurer;
     }
@@ -141,8 +142,7 @@ public class BaseTestConfiguration {
     @PostConstruct
     public void initStripeMock() {
         if (stripeMock == null) {
-            stripeMock = new GenericContainer<>("stripe/stripe-mock:latest")
-                .withExposedPorts(12111, 12112);
+            stripeMock = new GenericContainer<>("stripe/stripe-mock:latest").withExposedPorts(12111, 12112);
             stripeMock.start();
             if ("true".equals(System.getenv().get("TESTCONTAINERS_RYUK_DISABLED"))) {
                 Runtime.getRuntime().addShutdownHook(new Thread(stripeMock::stop));

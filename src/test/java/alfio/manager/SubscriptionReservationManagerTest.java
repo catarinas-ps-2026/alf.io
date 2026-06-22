@@ -16,24 +16,24 @@
  */
 package alfio.manager;
 
+import static org.mockito.Mockito.*;
+
 import alfio.model.DescriptorIdAndReservationId;
 import alfio.model.modification.SubscriptionDescriptorModification;
 import alfio.model.subscription.SubscriptionDescriptor;
 import alfio.model.system.command.CleanupReservations;
 import alfio.repository.SubscriptionRepository;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.*;
-
-import static org.mockito.Mockito.*;
-
 public class SubscriptionReservationManagerTest {
 
     @Mock
     private SubscriptionRepository subscriptionRepository;
+
     @Mock
     private ExtensionManager extensionManager;
 
@@ -55,12 +55,14 @@ public class SubscriptionReservationManagerTest {
         List<String> reservationIds = Arrays.asList("res-1", "res-2");
         CleanupReservations cleanup = new CleanupReservations(sd, reservationIds, true, false, false);
 
-        when(subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds)).thenReturn(2);
+        when(subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds))
+                .thenReturn(2);
 
         manager.cleanupReservations(cleanup);
 
         verify(subscriptionRepository).deleteSubscriptionWithReservationId(reservationIds);
-        verify(subscriptionRepository).preGenerateSubscriptions(any(SubscriptionDescriptorModification.class), eq(sdId), eq(2));
+        verify(subscriptionRepository)
+                .preGenerateSubscriptions(any(SubscriptionDescriptorModification.class), eq(sdId), eq(2));
         verify(extensionManager).handleReservationsExpired(sd, reservationIds);
         verify(extensionManager, never()).handleReservationsCancelled(any(), any());
     }
@@ -75,12 +77,14 @@ public class SubscriptionReservationManagerTest {
         List<String> reservationIds = Arrays.asList("res-1", "res-2");
         CleanupReservations cleanup = new CleanupReservations(sd, reservationIds, false, false, false);
 
-        when(subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds)).thenReturn(2);
+        when(subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds))
+                .thenReturn(2);
 
         manager.cleanupReservations(cleanup);
 
         verify(subscriptionRepository).deleteSubscriptionWithReservationId(reservationIds);
-        verify(subscriptionRepository).preGenerateSubscriptions(any(SubscriptionDescriptorModification.class), eq(sdId), eq(2));
+        verify(subscriptionRepository)
+                .preGenerateSubscriptions(any(SubscriptionDescriptorModification.class), eq(sdId), eq(2));
         verify(extensionManager).handleReservationsCancelled(sd, reservationIds);
         verify(extensionManager, never()).handleReservationsExpired(any(), any());
     }
@@ -90,8 +94,10 @@ public class SubscriptionReservationManagerTest {
         List<String> reservationIds = Arrays.asList("res-1", "res-2");
         CleanupReservations cleanup = new CleanupReservations(null, reservationIds, false, false, false);
 
-        when(subscriptionRepository.findDescriptorsByReservationIds(reservationIds)).thenReturn(Collections.emptyList());
-        when(subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds)).thenReturn(0);
+        when(subscriptionRepository.findDescriptorsByReservationIds(reservationIds))
+                .thenReturn(Collections.emptyList());
+        when(subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds))
+                .thenReturn(0);
 
         manager.cleanupReservations(cleanup);
 
@@ -109,25 +115,28 @@ public class SubscriptionReservationManagerTest {
         when(descAndRes1.descriptorId()).thenReturn(descId);
         when(descAndRes1.reservationId()).thenReturn("res-1");
         when(descAndRes1.maxAvailable()).thenReturn(10);
-        
+
         DescriptorIdAndReservationId descAndRes2 = mock(DescriptorIdAndReservationId.class);
         when(descAndRes2.descriptorId()).thenReturn(descId);
         when(descAndRes2.reservationId()).thenReturn("res-2");
         when(descAndRes2.maxAvailable()).thenReturn(10);
 
-        when(subscriptionRepository.findDescriptorsByReservationIds(reservationIds)).thenReturn(Arrays.asList(descAndRes1, descAndRes2));
+        when(subscriptionRepository.findDescriptorsByReservationIds(reservationIds))
+                .thenReturn(Arrays.asList(descAndRes1, descAndRes2));
 
         SubscriptionDescriptor sd = mock(SubscriptionDescriptor.class);
         when(sd.getMaxAvailable()).thenReturn(10);
         when(sd.getId()).thenReturn(descId);
         when(subscriptionRepository.findByIds(Set.of(descId))).thenReturn(Collections.singletonList(sd));
 
-        when(subscriptionRepository.deleteSubscriptionWithReservationId(Arrays.asList("res-1", "res-2"))).thenReturn(2);
+        when(subscriptionRepository.deleteSubscriptionWithReservationId(Arrays.asList("res-1", "res-2")))
+                .thenReturn(2);
 
         manager.cleanupReservations(cleanup);
 
         verify(subscriptionRepository).deleteSubscriptionWithReservationId(Arrays.asList("res-1", "res-2"));
-        verify(subscriptionRepository).preGenerateSubscriptions(any(SubscriptionDescriptorModification.class), eq(descId), eq(2));
+        verify(subscriptionRepository)
+                .preGenerateSubscriptions(any(SubscriptionDescriptorModification.class), eq(descId), eq(2));
         verify(extensionManager).handleReservationsCancelled(sd, Arrays.asList("res-1", "res-2"));
     }
 }

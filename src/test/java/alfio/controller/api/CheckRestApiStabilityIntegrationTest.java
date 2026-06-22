@@ -16,10 +16,20 @@
  */
 package alfio.controller.api;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
 import alfio.util.Json;
+import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -41,33 +51,23 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Base64;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-
 @SpringBootTest
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = {
-    DataSourceConfiguration.class,
-    TestConfiguration.class,
-    ControllerConfiguration.class,
-    CheckRestApiStabilityIntegrationTest.DisableSecurity.class,
-    SpringDocConfiguration.class,
-    SpringDocConfigProperties.class,
-    SpringDocWebMvcConfiguration.class
-})
+@ContextConfiguration(
+        classes = {
+            DataSourceConfiguration.class,
+            TestConfiguration.class,
+            ControllerConfiguration.class,
+            CheckRestApiStabilityIntegrationTest.DisableSecurity.class,
+            SpringDocConfiguration.class,
+            SpringDocConfigProperties.class,
+            SpringDocWebMvcConfiguration.class
+        })
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class CheckRestApiStabilityIntegrationTest {
 
     private static final String DESCRIPTOR_JSON_PATH = "src/test/resources/api/descriptor.json";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -76,9 +76,10 @@ class CheckRestApiStabilityIntegrationTest {
     @Test
     void checkRestApiStability() throws Exception {
 
-        var mvcResult = this.mockMvc.perform(get(Constants.DEFAULT_API_DOCS_URL))
-            .andExpect(status().isOk())
-            .andReturn();
+        var mvcResult = this.mockMvc
+                .perform(get(Constants.DEFAULT_API_DOCS_URL))
+                .andExpect(status().isOk())
+                .andReturn();
 
         var response = mvcResult.getResponse();
         var content = response.getContentAsString();
@@ -88,7 +89,8 @@ class CheckRestApiStabilityIntegrationTest {
         // for generating the result
         if (updateDescriptor) {
             try (var writer = Files.newBufferedWriter(Paths.get(DESCRIPTOR_JSON_PATH), StandardCharsets.UTF_8)) {
-                var formattedDescriptor = Json.OBJECT_MAPPER.readTree(descriptor).toPrettyString();
+                var formattedDescriptor =
+                        Json.OBJECT_MAPPER.readTree(descriptor).toPrettyString();
                 writer.write(formattedDescriptor);
             }
         }
@@ -103,14 +105,15 @@ class CheckRestApiStabilityIntegrationTest {
         }
     }
 
-
     @EnableWebSecurity
     @Configuration
     public static class DisableSecurity {
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            return http.authorizeHttpRequests(auth -> auth.requestMatchers("/**").permitAll()).build();
+            return http.authorizeHttpRequests(
+                            auth -> auth.requestMatchers("/**").permitAll())
+                    .build();
         }
     }
 }

@@ -16,6 +16,14 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.testSupport.StripeUtils.completeStripeConfiguration;
+import static alfio.model.system.ConfigurationKeys.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.Event;
@@ -27,21 +35,12 @@ import alfio.repository.TicketRepository;
 import alfio.test.util.TestUtil;
 import com.stripe.exception.*;
 import com.stripe.net.RequestOptions;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Optional;
-
-import static alfio.manager.testSupport.StripeUtils.completeStripeConfiguration;
-import static alfio.model.system.ConfigurationKeys.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class StripeCreditCardManagerTest {
 
@@ -56,23 +55,31 @@ public class StripeCreditCardManagerTest {
         configurationManager = mock(ConfigurationManager.class);
         TicketRepository ticketRepository = mock(TicketRepository.class);
         event = mock(Event.class);
-        baseStripeManager = new BaseStripeManager(configurationManager, null, ticketRepository,  null);
+        baseStripeManager = new BaseStripeManager(configurationManager, null, ticketRepository, null);
         stripeCreditCardManager = new StripeCreditCardManager(null, baseStripeManager, TestUtil.clockProvider());
     }
 
     @Test
     void testCardExceptionHandler() {
-        assertEquals("error.STEP2_STRIPE_houston_we_ve_a_problem", baseStripeManager.handleException(new CardException("", "abcd", "houston_we_ve_a_problem", "param", null, null, null, null)));
+        assertEquals(
+                "error.STEP2_STRIPE_houston_we_ve_a_problem",
+                baseStripeManager.handleException(
+                        new CardException("", "abcd", "houston_we_ve_a_problem", "param", null, null, null, null)));
     }
 
     @Test
     void testInvalidRequestExceptionHandler() {
-        assertEquals("error.STEP2_STRIPE_invalid_param", baseStripeManager.handleException(new InvalidRequestException("abcd", "param", null, null, null, null)));
+        assertEquals(
+                "error.STEP2_STRIPE_invalid_param",
+                baseStripeManager.handleException(
+                        new InvalidRequestException("abcd", "param", null, null, null, null)));
     }
 
     @Test
     void testAuthenticationExceptionHandler() {
-        assertEquals("error.STEP2_STRIPE_abort", baseStripeManager.handleException(new AuthenticationException("abcd", null, "401", 401)));
+        assertEquals(
+                "error.STEP2_STRIPE_abort",
+                baseStripeManager.handleException(new AuthenticationException("abcd", null, "401", 401)));
     }
 
     @Test
@@ -82,14 +89,18 @@ public class StripeCreditCardManagerTest {
 
     @Test
     void testUnexpectedError() {
-        assertEquals("error.STEP2_STRIPE_unexpected", baseStripeManager.handleException(new StripeException("", null, "42", 42) {}));
+        assertEquals(
+                "error.STEP2_STRIPE_unexpected",
+                baseStripeManager.handleException(new StripeException("", null, "42", 42) {}));
     }
 
     @Test
     void testMissingStripeConnectedId() {
         when(configurationManager.getFor(eq(PLATFORM_MODE_ENABLED), any()))
-            .thenReturn(new ConfigurationManager.MaybeConfiguration(PLATFORM_MODE_ENABLED, new ConfigurationKeyValuePathLevel(null, "true", null)));
-        when(configurationManager.getFor(eq(STRIPE_CONNECTED_ID), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID));
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(
+                        PLATFORM_MODE_ENABLED, new ConfigurationKeyValuePathLevel(null, "true", null)));
+        when(configurationManager.getFor(eq(STRIPE_CONNECTED_ID), any()))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID));
         Optional<RequestOptions> options = baseStripeManager.options(event);
         Assertions.assertNotNull(options);
         assertFalse(options.isPresent());
@@ -98,44 +109,94 @@ public class StripeCreditCardManagerTest {
     @Test
     void stripeConfigurationIncompletePlatformModeOff() {
         var configuration = new HashMap<>(completeStripeConfiguration(false));
-        configuration.put(STRIPE_CONNECTED_ID, new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID));// missing config
+        configuration.put(
+                STRIPE_CONNECTED_ID,
+                new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID)); // missing config
         configuration.put(PLATFORM_MODE_ENABLED, new ConfigurationManager.MaybeConfiguration(PLATFORM_MODE_ENABLED));
         configuration.put(STRIPE_SECRET_KEY, new ConfigurationManager.MaybeConfiguration(STRIPE_SECRET_KEY));
 
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(PLATFORM_MODE_ENABLED, STRIPE_CC_ENABLED, STRIPE_CONNECTED_ID, STRIPE_ENABLE_SCA, STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY), configurationLevel))
-            .thenReturn(configuration);
-        assertFalse(stripeCreditCardManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CC_ENABLED,
+                                STRIPE_CONNECTED_ID,
+                                STRIPE_ENABLE_SCA,
+                                STRIPE_SECRET_KEY,
+                                STRIPE_PUBLIC_KEY),
+                        configurationLevel))
+                .thenReturn(configuration);
+        assertFalse(stripeCreditCardManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
     void stripeConfigurationCompletePlatformModeOff() {
         var configuration = new HashMap<>(completeStripeConfiguration(false));
-        configuration.put(STRIPE_CONNECTED_ID, new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID));// missing config
+        configuration.put(
+                STRIPE_CONNECTED_ID,
+                new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID)); // missing config
         configuration.put(PLATFORM_MODE_ENABLED, new ConfigurationManager.MaybeConfiguration(PLATFORM_MODE_ENABLED));
 
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(PLATFORM_MODE_ENABLED, STRIPE_CC_ENABLED, STRIPE_CONNECTED_ID, STRIPE_ENABLE_SCA, STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY), configurationLevel))
-            .thenReturn(configuration);
-        assertTrue(stripeCreditCardManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CC_ENABLED,
+                                STRIPE_CONNECTED_ID,
+                                STRIPE_ENABLE_SCA,
+                                STRIPE_SECRET_KEY,
+                                STRIPE_PUBLIC_KEY),
+                        configurationLevel))
+                .thenReturn(configuration);
+        assertTrue(stripeCreditCardManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
     void stripeConfigurationIncompletePlatformModeOn() {
         var configuration = new HashMap<>(completeStripeConfiguration(false));
-        configuration.put(STRIPE_CONNECTED_ID, new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID));// missing config
+        configuration.put(
+                STRIPE_CONNECTED_ID,
+                new ConfigurationManager.MaybeConfiguration(STRIPE_CONNECTED_ID)); // missing config
 
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(PLATFORM_MODE_ENABLED, STRIPE_CC_ENABLED, STRIPE_CONNECTED_ID, STRIPE_ENABLE_SCA, STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY), configurationLevel))
-            .thenReturn(configuration);
-        assertFalse(stripeCreditCardManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CC_ENABLED,
+                                STRIPE_CONNECTED_ID,
+                                STRIPE_ENABLE_SCA,
+                                STRIPE_SECRET_KEY,
+                                STRIPE_PUBLIC_KEY),
+                        configurationLevel))
+                .thenReturn(configuration);
+        assertFalse(stripeCreditCardManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
     void stripeConfigurationCompletePlatformModeOn() {
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(PLATFORM_MODE_ENABLED, STRIPE_CC_ENABLED, STRIPE_CONNECTED_ID, STRIPE_ENABLE_SCA, STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY), configurationLevel))
-            .thenReturn(completeStripeConfiguration(false));
-        assertTrue(stripeCreditCardManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CC_ENABLED,
+                                STRIPE_CONNECTED_ID,
+                                STRIPE_ENABLE_SCA,
+                                STRIPE_SECRET_KEY,
+                                STRIPE_PUBLIC_KEY),
+                        configurationLevel))
+                .thenReturn(completeStripeConfiguration(false));
+        assertTrue(stripeCreditCardManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 }

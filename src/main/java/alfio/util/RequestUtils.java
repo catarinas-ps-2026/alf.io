@@ -16,15 +16,10 @@
  */
 package alfio.util;
 
+import static java.util.Objects.requireNonNull;
+
 import alfio.model.ContentLanguage;
 import alfio.model.Event;
-import org.apache.commons.collections4.IteratorUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.web.context.request.ServletWebRequest;
-
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
@@ -32,18 +27,21 @@ import java.security.Principal;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
+import org.apache.commons.collections4.IteratorUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.web.context.request.ServletWebRequest;
 
 public class RequestUtils {
 
     private static final Logger log = LoggerFactory.getLogger(RequestUtils.class);
 
-    private RequestUtils() {
-    }
+    private RequestUtils() {}
 
     public static Optional<String> readRequest(HttpServletRequest request) {
-        try (ServletInputStream is = request.getInputStream()){
+        try (ServletInputStream is = request.getInputStream()) {
             return Optional.ofNullable(is.readAllBytes()).map(b -> new String(b, StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("exception during request conversion", e);
@@ -51,18 +49,22 @@ public class RequestUtils {
         }
     }
 
-    private static final Pattern SOCIAL_MEDIA_UA = Pattern.compile("facebookexternalhit/|XING-contenttabreceiver/|LinkedInBot/|Twitterbot/|WhatsApp|Slackbot|TelegramBot");
+    private static final Pattern SOCIAL_MEDIA_UA = Pattern.compile(
+            "facebookexternalhit/|XING-contenttabreceiver/|LinkedInBot/|Twitterbot/|WhatsApp|Slackbot|TelegramBot");
 
     public static boolean isSocialMediaShareUA(String ua) {
         return ua != null && SOCIAL_MEDIA_UA.matcher(ua).find();
     }
 
-
     public static Locale getMatchingLocale(ServletWebRequest request, List<String> allowedLanguages) {
-        var l = requireNonNull(request.getNativeRequest(HttpServletRequest.class)).getLocales();
+        var l = requireNonNull(request.getNativeRequest(HttpServletRequest.class))
+                .getLocales();
         List<Locale> locales = l != null ? IteratorUtils.toList(l.asIterator()) : Collections.emptyList();
-        var selectedLocale = locales.stream().map(Locale::getLanguage).filter(allowedLanguages::contains).findFirst()
-            .orElseGet(() -> allowedLanguages.stream().findFirst().orElseThrow());
+        var selectedLocale = locales.stream()
+                .map(Locale::getLanguage)
+                .filter(allowedLanguages::contains)
+                .findFirst()
+                .orElseGet(() -> allowedLanguages.stream().findFirst().orElseThrow());
         return LocaleUtil.forLanguageTag(selectedLocale);
     }
 
@@ -74,7 +76,9 @@ public class RequestUtils {
      * @return
      */
     public static Locale getMatchingLocale(ServletWebRequest request, Event event) {
-        var allowedLanguages = event.getContentLanguages().stream().map(ContentLanguage::getLanguage).collect(Collectors.toList());
+        var allowedLanguages = event.getContentLanguages().stream()
+                .map(ContentLanguage::getLanguage)
+                .collect(Collectors.toList());
         return getMatchingLocale(request, allowedLanguages);
     }
 
@@ -87,8 +91,8 @@ public class RequestUtils {
 
     private static boolean hasRole(Authentication principal, String role) {
         return principal.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(role::equals);
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role::equals);
     }
 
     public static boolean isSystemApiKey(Principal principal) {

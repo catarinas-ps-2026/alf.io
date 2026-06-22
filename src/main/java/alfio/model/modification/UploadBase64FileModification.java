@@ -16,13 +16,12 @@
  */
 package alfio.model.modification;
 
-import lombok.Data;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class UploadBase64FileModification {

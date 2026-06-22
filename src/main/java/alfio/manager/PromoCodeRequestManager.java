@@ -32,15 +32,6 @@ import alfio.util.ClockProvider;
 import alfio.util.ErrorsCode;
 import alfio.util.RequestUtils;
 import alfio.util.ReservationUtil;
-import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.context.request.ServletWebRequest;
-
 import java.security.Principal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -50,6 +41,14 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.context.request.ServletWebRequest;
 
 @Component
 @AllArgsConstructor
@@ -65,50 +64,68 @@ public class PromoCodeRequestManager {
     private final AdditionalServiceManager additionalServiceManager;
 
     enum PromoCodeType {
-        SPECIAL_PRICE, PROMO_CODE_DISCOUNT, TICKET_CATEGORY_CODE, NOT_FOUND
+        SPECIAL_PRICE,
+        PROMO_CODE_DISCOUNT,
+        TICKET_CATEGORY_CODE,
+        NOT_FOUND
     }
 
-    public Optional<String> createReservationFromPromoCode(String eventName,
-                                                           String code,
-                                                           BiConsumer<String, String> queryStringHandler,
-                                                           Function<Pair<Optional<String>, BindingResult>, Optional<String>> handleErrors,
-                                                           ServletWebRequest request,
-                                                           Principal principal) {
+    public Optional<String> createReservationFromPromoCode(
+            String eventName,
+            String code,
+            BiConsumer<String, String> queryStringHandler,
+            Function<Pair<Optional<String>, BindingResult>, Optional<String>> handleErrors,
+            ServletWebRequest request,
+            Principal principal) {
 
         String trimmedCode = StringUtils.trimToNull(code);
 
-        if(trimmedCode == null) {
+        if (trimmedCode == null) {
             return Optional.empty();
         }
 
         return eventRepository.findOptionalByShortName(eventName).flatMap(e -> {
-
             var checkedCode = checkCode(e, trimmedCode);
 
             var codeType = checkPromoCodeType(e.getId(), trimmedCode);
 
             var maybePromoCodeDiscount = checkedCode.getValue().getRight();
 
-            if(checkedCode.isSuccess() && codeType == PromoCodeType.PROMO_CODE_DISCOUNT) {
+            if (checkedCode.isSuccess() && codeType == PromoCodeType.PROMO_CODE_DISCOUNT) {
                 queryStringHandler.accept("code", trimmedCode);
                 return Optional.empty();
-            } else if(codeType == PromoCodeType.TICKET_CATEGORY_CODE) {
-                var category = ticketCategoryRepository.findCodeInEvent(e.getId(), trimmedCode).orElseThrow();
-                if(!category.isAccessRestricted()) {
-                    var res = makeSimpleReservation(e, category.getId(), trimmedCode, request, maybePromoCodeDiscount, principal);
+            } else if (codeType == PromoCodeType.TICKET_CATEGORY_CODE) {
+                var category = ticketCategoryRepository
+                        .findCodeInEvent(e.getId(), trimmedCode)
+                        .orElseThrow();
+                if (!category.isAccessRestricted()) {
+                    var res = makeSimpleReservation(
+                            e, category.getId(), trimmedCode, request, maybePromoCodeDiscount, principal);
                     return handleErrors.apply(res);
                 } else {
-                    var specialPrice = specialPriceRepository.findActiveNotAssignedByCategoryId(category.getId(), 1).stream().findFirst();
-                    if(specialPrice.isEmpty()) {
+                    var specialPrice =
+                            specialPriceRepository.findActiveNotAssignedByCategoryId(category.getId(), 1).stream()
+                                    .findFirst();
+                    if (specialPrice.isEmpty()) {
                         queryStringHandler.accept("errors", ErrorsCode.STEP_1_CODE_NOT_FOUND);
                         return Optional.empty();
                     }
-                    var res = makeSimpleReservation(e, category.getId(), specialPrice.get().getCode(), request, maybePromoCodeDiscount, principal);
+                    var res = makeSimpleReservation(
+                            e,
+                            category.getId(),
+                            specialPrice.get().getCode(),
+                            request,
+                            maybePromoCodeDiscount,
+                            principal);
                     return handleErrors.apply(res);
                 }
             } else if (checkedCode.isSuccess() && codeType == PromoCodeType.SPECIAL_PRICE) {
-                int ticketCategoryId = specialPriceRepository.getByCode(trimmedCode).orElseThrow().getTicketCategoryId();
-                var res = makeSimpleReservation(e, ticketCategoryId, trimmedCode, request, maybePromoCodeDiscount, principal);
+                int ticketCategoryId = specialPriceRepository
+                        .getByCode(trimmedCode)
+                        .orElseThrow()
+                        .getTicketCategoryId();
+                var res = makeSimpleReservation(
+                        e, ticketCategoryId, trimmedCode, request, maybePromoCodeDiscount, principal);
                 return handleErrors.apply(res);
             } else {
                 queryStringHandler.accept("errors", ErrorsCode.STEP_1_CODE_NOT_FOUND);
@@ -117,35 +134,49 @@ public class PromoCodeRequestManager {
         });
     }
 
-    public ValidatedResponse<Triple<Optional<SpecialPrice>, Event, Optional<PromoCodeDiscount>>> checkCode(String eventName, String promoCode) {
+    public ValidatedResponse<Triple<Optional<SpecialPrice>, Event, Optional<PromoCodeDiscount>>> checkCode(
+            String eventName, String promoCode) {
         var eventOptional = eventRepository.findOptionalByShortName(eventName);
-        if(eventOptional.isEmpty()) {
-            return new ValidatedResponse<>(ValidationResult.failed(new ValidationResult.ErrorDescriptor("eventName", "Event not found.")), null);
+        if (eventOptional.isEmpty()) {
+            return new ValidatedResponse<>(
+                    ValidationResult.failed(new ValidationResult.ErrorDescriptor("eventName", "Event not found.")),
+                    null);
         }
         var event = eventOptional.get();
         var response = checkCode(event, promoCode);
-        if(response.isSuccess()) {
+        if (response.isSuccess()) {
             var value = response.getValue();
-            return new ValidatedResponse<>(ValidationResult.success(), Triple.of(value.getLeft(), event, value.getRight()));
+            return new ValidatedResponse<>(
+                    ValidationResult.success(), Triple.of(value.getLeft(), event, value.getRight()));
         } else {
-            return new ValidatedResponse<>(ValidationResult.failed(new ValidationResult.ErrorDescriptor("promoCode", ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)), null);
+            return new ValidatedResponse<>(
+                    ValidationResult.failed(new ValidationResult.ErrorDescriptor(
+                            "promoCode", ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)),
+                    null);
         }
     }
 
-    public ValidatedResponse<Pair<Optional<SpecialPrice>, Optional<PromoCodeDiscount>>> checkCode(Event event, String promoCode) {
+    public ValidatedResponse<Pair<Optional<SpecialPrice>, Optional<PromoCodeDiscount>>> checkCode(
+            Event event, String promoCode) {
         ZoneId eventZoneId = event.getZoneId();
         ZonedDateTime now = ZonedDateTime.now(clockProvider.withZone(eventZoneId));
         Optional<String> maybeSpecialCode = Optional.ofNullable(StringUtils.trimToNull(promoCode));
         Optional<SpecialPrice> specialCode = maybeSpecialCode.flatMap(specialPriceRepository::getByCode);
-        Optional<PromoCodeDiscount> promotionCodeDiscount = maybeSpecialCode.flatMap(trimmedCode -> promoCodeRepository.findPublicPromoCodeInEventOrOrganization(event.getId(), trimmedCode));
+        Optional<PromoCodeDiscount> promotionCodeDiscount = maybeSpecialCode.flatMap(trimmedCode ->
+                promoCodeRepository.findPublicPromoCodeInEventOrOrganization(event.getId(), trimmedCode));
 
         var result = Pair.of(specialCode, promotionCodeDiscount);
 
-        var errorResponse = new ValidatedResponse<>(ValidationResult.failed(new ValidationResult.ErrorDescriptor("promoCode", ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)), result);
+        var errorResponse = new ValidatedResponse<>(
+                ValidationResult.failed(new ValidationResult.ErrorDescriptor(
+                        "promoCode", ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)),
+                result);
 
         //
-        if(specialCode.isPresent()) {
-            if (eventManager.getOptionalByIdAndActive(specialCode.get().getTicketCategoryId(), event.getId()).isEmpty()) {
+        if (specialCode.isPresent()) {
+            if (eventManager
+                    .getOptionalByIdAndActive(specialCode.get().getTicketCategoryId(), event.getId())
+                    .isEmpty()) {
                 return errorResponse;
             }
 
@@ -153,11 +184,11 @@ public class PromoCodeRequestManager {
                 return errorResponse;
             }
 
-        } else if(promotionCodeDiscount.isPresent()) {
+        } else if (promotionCodeDiscount.isPresent()) {
             var pcd = promotionCodeDiscount.get();
             if (!pcd.isCurrentlyValid(eventZoneId, now)
-                || isDiscountCodeUsageExceeded(pcd)
-                || (pcd.hasCurrencyCode() && !pcd.getCurrencyCode().equals(event.getCurrency()))) {
+                    || isDiscountCodeUsageExceeded(pcd)
+                    || (pcd.hasCurrencyCode() && !pcd.getCurrencyCode().equals(event.getCurrency()))) {
                 return errorResponse;
             }
         } else {
@@ -168,13 +199,17 @@ public class PromoCodeRequestManager {
     }
 
     private PromoCodeType checkPromoCodeType(int eventId, String trimmedCode) {
-        if(trimmedCode == null) {
+        if (trimmedCode == null) {
             return PromoCodeType.NOT_FOUND;
-        }  else if(specialPriceRepository.getByCode(trimmedCode).isPresent()) {
+        } else if (specialPriceRepository.getByCode(trimmedCode).isPresent()) {
             return PromoCodeType.SPECIAL_PRICE;
-        } else if (promoCodeRepository.findPublicPromoCodeInEventOrOrganization(eventId, trimmedCode).isPresent()) {
+        } else if (promoCodeRepository
+                .findPublicPromoCodeInEventOrOrganization(eventId, trimmedCode)
+                .isPresent()) {
             return PromoCodeType.PROMO_CODE_DISCOUNT;
-        } else if (ticketCategoryRepository.findCodeInEvent(eventId, trimmedCode).isPresent()) {
+        } else if (ticketCategoryRepository
+                .findCodeInEvent(eventId, trimmedCode)
+                .isPresent()) {
             return PromoCodeType.TICKET_CATEGORY_CODE;
         } else {
             return PromoCodeType.NOT_FOUND;
@@ -182,15 +217,17 @@ public class PromoCodeRequestManager {
     }
 
     private boolean isDiscountCodeUsageExceeded(PromoCodeDiscount discount) {
-        return discount.getMaxUsage() != null && discount.getMaxUsage() <= promoCodeRepository.countConfirmedPromoCode(discount.getId());
+        return discount.getMaxUsage() != null
+                && discount.getMaxUsage() <= promoCodeRepository.countConfirmedPromoCode(discount.getId());
     }
 
-    private Pair<Optional<String>, BindingResult> makeSimpleReservation(Event event,
-                                                                        int ticketCategoryId,
-                                                                        String promoCode,
-                                                                        ServletWebRequest request,
-                                                                        Optional<PromoCodeDiscount> promoCodeDiscount,
-                                                                        Principal principal) {
+    private Pair<Optional<String>, BindingResult> makeSimpleReservation(
+            Event event,
+            int ticketCategoryId,
+            String promoCode,
+            ServletWebRequest request,
+            Optional<PromoCodeDiscount> promoCodeDiscount,
+            Principal principal) {
 
         Locale locale = RequestUtils.getMatchingLocale(request, event);
         ReservationForm form = new ReservationForm();
@@ -200,17 +237,37 @@ public class PromoCodeRequestManager {
         reservation.setTicketCategoryId(ticketCategoryId);
         form.setReservation(Collections.singletonList(reservation));
         var bindingRes = new BeanPropertyBindingResult(form, "reservationForm");
-        return Pair.of(createTicketReservation(form, bindingRes, event, locale, promoCodeDiscount.map(PromoCodeDiscount::getPromoCode), principal), bindingRes);
+        return Pair.of(
+                createTicketReservation(
+                        form,
+                        bindingRes,
+                        event,
+                        locale,
+                        promoCodeDiscount.map(PromoCodeDiscount::getPromoCode),
+                        principal),
+                bindingRes);
     }
 
-    private Optional<String> createTicketReservation(ReservationForm reservation,
-                                                     BindingResult bindingResult,
-                                                     Event event,
-                                                     Locale locale,
-                                                     Optional<String> promoCodeDiscount,
-                                                     Principal principal) {
-        return ReservationUtil.validateCreateRequest(reservation, bindingResult, ticketReservationManager, eventManager, additionalServiceManager, promoCodeDiscount.orElse(null), event)
-            .flatMap(selected -> ReservationUtil.handleReservationCreationErrors(() -> ticketReservationManager.createTicketReservation(event, selected.getLeft(), selected.getRight(), promoCodeDiscount, locale, principal), bindingResult, event.getType()));
+    private Optional<String> createTicketReservation(
+            ReservationForm reservation,
+            BindingResult bindingResult,
+            Event event,
+            Locale locale,
+            Optional<String> promoCodeDiscount,
+            Principal principal) {
+        return ReservationUtil.validateCreateRequest(
+                        reservation,
+                        bindingResult,
+                        ticketReservationManager,
+                        eventManager,
+                        additionalServiceManager,
+                        promoCodeDiscount.orElse(null),
+                        event)
+                .flatMap(selected -> ReservationUtil.handleReservationCreationErrors(
+                        () -> ticketReservationManager.createTicketReservation(
+                                event, selected.getLeft(), selected.getRight(), promoCodeDiscount, locale, principal),
+                        bindingResult,
+                        event.getType()));
     }
 
     public Optional<PromoCodeDiscount> findById(int id) {
@@ -223,7 +280,7 @@ public class PromoCodeRequestManager {
 
     public int countUsage(int promoCodeId) {
         Optional<PromoCodeDiscount> code = findById(promoCodeId);
-        if(code.isEmpty()) {
+        if (code.isEmpty()) {
             return 0;
         }
         return promoCodeRepository.countConfirmedPromoCode(promoCodeId);
@@ -231,8 +288,7 @@ public class PromoCodeRequestManager {
 
     public List<PromoCodeUsageResult> retrieveDetailedUsage(int promoCodeId, Integer eventId) {
         return findById(promoCodeId)
-            .map(pc -> promoCodeRepository.findDetailedUsage(pc.getPromoCode(), eventId))
-            .orElse(List.of());
+                .map(pc -> promoCodeRepository.findDetailedUsage(pc.getPromoCode(), eventId))
+                .orElse(List.of());
     }
-
 }

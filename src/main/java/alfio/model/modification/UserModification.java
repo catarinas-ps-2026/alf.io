@@ -19,11 +19,10 @@ package alfio.model.modification;
 import alfio.model.user.User;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class UserModification {
@@ -40,16 +39,17 @@ public class UserModification {
     private final String description;
 
     @JsonCreator
-    public UserModification(@JsonProperty("id") Integer id,
-                            @JsonProperty("organizationId") int organizationId,
-                            @JsonProperty("role") String role,
-                            @JsonProperty("username") String username,
-                            @JsonProperty("firstName") String firstName,
-                            @JsonProperty("lastName") String lastName,
-                            @JsonProperty("emailAddress") String emailAddress,
-                            @JsonProperty("type") User.Type type,
-                            @JsonProperty("validTo") Long validTo,
-                            @JsonProperty("description") String description) {
+    public UserModification(
+            @JsonProperty("id") Integer id,
+            @JsonProperty("organizationId") int organizationId,
+            @JsonProperty("role") String role,
+            @JsonProperty("username") String username,
+            @JsonProperty("firstName") String firstName,
+            @JsonProperty("lastName") String lastName,
+            @JsonProperty("emailAddress") String emailAddress,
+            @JsonProperty("type") User.Type type,
+            @JsonProperty("validTo") Long validTo,
+            @JsonProperty("description") String description) {
         this.id = id;
         this.organizationId = organizationId;
         this.role = role;

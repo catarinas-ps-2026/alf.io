@@ -17,16 +17,15 @@
 package alfio.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.experimental.Delegate;
-
 import java.beans.ConstructorProperties;
 import java.util.List;
-
+import lombok.experimental.Delegate;
 
 public class UserWithOrganizations {
     @Delegate
     @JsonIgnore
     private final User user;
+
     private final List<Organization> memberOf;
     private final List<Role> roles;
 
@@ -40,6 +39,7 @@ public class UserWithOrganizations {
     public List<Organization> getMemberOf() {
         return memberOf;
     }
+
     public List<Role> getRoles() {
         return roles;
     }

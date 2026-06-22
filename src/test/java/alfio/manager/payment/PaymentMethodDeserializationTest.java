@@ -20,19 +20,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import alfio.controller.form.PaymentForm;
 import alfio.model.transaction.PaymentMethod;
 import alfio.model.transaction.StaticPaymentMethods;
 import alfio.model.transaction.UserDefinedOfflinePaymentMethod;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the custom deserialization logic for payment method deserialization.
@@ -41,7 +38,6 @@ import alfio.model.transaction.UserDefinedOfflinePaymentMethod;
  * These tests ensure the correct output PaymentMethod type is deserialized from
  * received API JSON.
  */
-
 class PaymentMethodDeserializationTest {
 
     ObjectMapper objectMapper;
@@ -53,7 +49,8 @@ class PaymentMethodDeserializationTest {
 
     @Test
     void testStaticPaymentMethodDeserialization() throws JsonProcessingException {
-        String json = """
+        String json =
+                """
             {
                 "termAndConditionsAccepted": true,
                 "privacyPolicyAccepted": true,
@@ -74,7 +71,8 @@ class PaymentMethodDeserializationTest {
 
     @Test
     void testDeletedUserDefinedPaymentMethodsDeserialization() throws JsonProcessingException {
-        String json = """
+        String json =
+                """
             [
                 {
                     "paymentMethodId": "90561fe0-b514-462d-a966-8248b86c1c70",
@@ -91,7 +89,8 @@ class PaymentMethodDeserializationTest {
 
                 """;
 
-        var paymentMethods = objectMapper.readValue(json, new TypeReference<List<UserDefinedOfflinePaymentMethod>>() {});
+        var paymentMethods =
+                objectMapper.readValue(json, new TypeReference<List<UserDefinedOfflinePaymentMethod>>() {});
         assertEquals(1, paymentMethods.size());
 
         var paymentMethod = paymentMethods.get(0);

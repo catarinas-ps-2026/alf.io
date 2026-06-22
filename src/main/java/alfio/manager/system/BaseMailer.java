@@ -16,39 +16,40 @@
  */
 package alfio.manager.system;
 
+import static java.util.Objects.requireNonNull;
+
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.system.ConfigurationKeys;
 import alfio.repository.user.OrganizationRepository;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.apache.commons.lang3.StringUtils;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static java.util.Objects.requireNonNull;
+import org.apache.commons.lang3.StringUtils;
 
 abstract class BaseMailer implements Mailer {
 
     static final String MISSING_CONFIG_MESSAGE = "config cannot be null";
     private final OrganizationRepository organizationRepository;
-    private static final Cache<Integer, String> ORG_ADDRESS_CACHE = Caffeine.newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(1L))
-        .build();
+    private static final Cache<Integer, String> ORG_ADDRESS_CACHE =
+            Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(1L)).build();
 
     BaseMailer(OrganizationRepository organizationRepository) {
         this.organizationRepository = organizationRepository;
     }
 
-    void setReplyToIfPresent(Map<ConfigurationKeys, MaybeConfiguration> conf,
-                             int organizationId,
-                             Consumer<String> replyToSetter) {
-        var replyToConfig = requireNonNull(requireNonNull(conf, MISSING_CONFIG_MESSAGE).get(ConfigurationKeys.MAIL_REPLY_TO), "MAIL_REPLY_TO is required")
-            .getValueOrDefault("");
+    void setReplyToIfPresent(
+            Map<ConfigurationKeys, MaybeConfiguration> conf, int organizationId, Consumer<String> replyToSetter) {
+        var replyToConfig = requireNonNull(
+                        requireNonNull(conf, MISSING_CONFIG_MESSAGE).get(ConfigurationKeys.MAIL_REPLY_TO),
+                        "MAIL_REPLY_TO is required")
+                .getValueOrDefault("");
         if (StringUtils.isNotBlank(replyToConfig)) {
             replyToSetter.accept(replyToConfig);
-        } else if(requireNonNull(conf.get(ConfigurationKeys.MAIL_SET_ORG_REPLY_TO), "MAIL_SET_ORG_REPLY_TO is required").getValueAsBooleanOrDefault()) {
+        } else if (requireNonNull(
+                        conf.get(ConfigurationKeys.MAIL_SET_ORG_REPLY_TO), "MAIL_SET_ORG_REPLY_TO is required")
+                .getValueAsBooleanOrDefault()) {
             var address = ORG_ADDRESS_CACHE.get(organizationId, id -> {
                 var organization = organizationRepository.getContactById(organizationId);
                 if (StringUtils.isNotBlank(organization.getEmail())) {

@@ -20,11 +20,11 @@ import alfio.controller.form.ReservationCreate;
 import alfio.model.modification.AdditionalServiceReservationModification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-
-public class TicketReservationCreationRequest implements ReservationCreate<AttendeesByCategory>, ReservationAPICreationRequest {
+public class TicketReservationCreationRequest
+        implements ReservationCreate<AttendeesByCategory>, ReservationAPICreationRequest {
 
     private final List<AttendeesByCategory> tickets;
     private final List<AdditionalServiceReservationModification> additionalServices;
@@ -36,14 +36,15 @@ public class TicketReservationCreationRequest implements ReservationCreate<Atten
     private final String externalReference;
 
     @JsonCreator
-    public TicketReservationCreationRequest(@JsonProperty("tickets") List<AttendeesByCategory> tickets,
-                                            @JsonProperty("additionalServices") List<AdditionalServiceReservationModification> additionalServices,
-                                            @JsonProperty("configuration") ReservationConfiguration reservationConfiguration,
-                                            @JsonProperty("user") ReservationUser user,
-                                            @JsonProperty("promoCode") String promoCode,
-                                            @JsonProperty("language") String language,
-                                            @JsonProperty("subscriptionId") String subscriptionId,
-                                            @JsonProperty("externalReference") String externalReference) {
+    public TicketReservationCreationRequest(
+            @JsonProperty("tickets") List<AttendeesByCategory> tickets,
+            @JsonProperty("additionalServices") List<AdditionalServiceReservationModification> additionalServices,
+            @JsonProperty("configuration") ReservationConfiguration reservationConfiguration,
+            @JsonProperty("user") ReservationUser user,
+            @JsonProperty("promoCode") String promoCode,
+            @JsonProperty("language") String language,
+            @JsonProperty("subscriptionId") String subscriptionId,
+            @JsonProperty("externalReference") String externalReference) {
         this.tickets = tickets;
         this.additionalServices = additionalServices;
         this.reservationConfiguration = reservationConfiguration;
@@ -53,7 +54,6 @@ public class TicketReservationCreationRequest implements ReservationCreate<Atten
         this.subscriptionId = StringUtils.trimToNull(subscriptionId);
         this.externalReference = externalReference;
     }
-
 
     @Override
     public String getPromoCode() {

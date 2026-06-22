@@ -28,8 +28,7 @@ public class UsageDetails {
 
     public static UsageDetails fromSubscription(Subscription subscription, int usageCount) {
         int maxEntries = Math.max(subscription.getMaxEntries(), 0);
-        return new UsageDetails(maxEntries == 0 ? null : maxEntries,
-                                usageCount,
-                                maxEntries == 0 ? null : maxEntries - usageCount);
+        return new UsageDetails(
+                maxEntries == 0 ? null : maxEntries, usageCount, maxEntries == 0 ? null : maxEntries - usageCount);
     }
 }

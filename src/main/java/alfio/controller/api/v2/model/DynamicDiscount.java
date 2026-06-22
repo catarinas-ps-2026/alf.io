@@ -17,9 +17,8 @@
 package alfio.controller.api.v2.model;
 
 import alfio.model.PromoCodeDiscount;
-import lombok.Data;
-
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class DynamicDiscount {

@@ -16,16 +16,15 @@
  */
 package alfio.config.authentication.support;
 
+import static alfio.model.system.ConfigurationKeys.OPENID_CONFIGURATION_JSON;
+
 import alfio.manager.openid.OpenIdConfiguration;
 import alfio.manager.system.ConfigurationManager;
 import alfio.util.Json;
+import java.util.Objects;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-
-import java.util.Objects;
-
-import static alfio.model.system.ConfigurationKeys.OPENID_CONFIGURATION_JSON;
 
 public class UserProvidedClientRegistrationRepository implements ClientRegistrationRepository {
 
@@ -37,14 +36,19 @@ public class UserProvidedClientRegistrationRepository implements ClientRegistrat
         this.configurationManager = configurationManager;
     }
 
-
     @Override
     public ClientRegistration findByRegistrationId(String registrationId) {
         // lookup from configuration
         if (!configurationManager.isPublicOpenIdEnabled()) {
             throw new AuthenticationCredentialsNotFoundException("openid is not enabled");
         }
-        var openIdConfiguration = Objects.requireNonNull(Json.fromJson(configurationManager.getPublicOpenIdConfiguration().get(OPENID_CONFIGURATION_JSON).getValueOrNull(), OpenIdConfiguration.class));
-        return openIdConfiguration.toClientRegistration(PUBLIC_REGISTRATION_ID, "{baseUrl}"+ OPENID_CALLBACK_PATH, false);
+        var openIdConfiguration = Objects.requireNonNull(Json.fromJson(
+                configurationManager
+                        .getPublicOpenIdConfiguration()
+                        .get(OPENID_CONFIGURATION_JSON)
+                        .getValueOrNull(),
+                OpenIdConfiguration.class));
+        return openIdConfiguration.toClientRegistration(
+                PUBLIC_REGISTRATION_ID, "{baseUrl}" + OPENID_CALLBACK_PATH, false);
     }
 }

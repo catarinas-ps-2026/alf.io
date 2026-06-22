@@ -20,6 +20,7 @@ public class PassedIdDoesNotExistException extends Exception {
     public PassedIdDoesNotExistException() {
         super();
     }
+
     public PassedIdDoesNotExistException(String message) {
         super(message);
     }

@@ -31,30 +31,39 @@ public class SaferpayCallbackController {
     private final TicketReservationManager ticketReservationManager;
     private final PurchaseContextManager purchaseContextManager;
 
-    public SaferpayCallbackController(TicketReservationManager ticketReservationManager, PurchaseContextManager purchaseContextManager) {
+    public SaferpayCallbackController(
+            TicketReservationManager ticketReservationManager, PurchaseContextManager purchaseContextManager) {
         this.ticketReservationManager = ticketReservationManager;
         this.purchaseContextManager = purchaseContextManager;
     }
 
     @GetMapping(PaymentPageInitializeRequestBuilder.CANCEL_URL_TEMPLATE)
-    public String saferpayCancel(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                 @PathVariable String purchaseContextIdentifier,
-                                 @PathVariable String reservationId) {
+    public String saferpayCancel(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String purchaseContextIdentifier,
+            @PathVariable String reservationId) {
         var maybePurchaseContext = purchaseContextManager.findBy(purchaseContextType, purchaseContextIdentifier);
-        if(maybePurchaseContext.isEmpty()) {
+        if (maybePurchaseContext.isEmpty()) {
             return "redirect:/";
         }
         var purchaseContext = maybePurchaseContext.get();
         var optionalReservation = ticketReservationManager.findById(reservationId);
-        if(optionalReservation.isEmpty()) {
-            return "redirect:/"+purchaseContext.getType().getUrlComponent()+"/"+purchaseContext.getPublicIdentifier();
+        if (optionalReservation.isEmpty()) {
+            return "redirect:/" + purchaseContext.getType().getUrlComponent() + "/"
+                    + purchaseContext.getPublicIdentifier();
         }
         var optionalResult = ticketReservationManager.forceTransactionCheck(purchaseContext, optionalReservation.get());
-        if(optionalResult.isEmpty()) {
+        if (optionalResult.isEmpty()) {
             // there's no transaction available.
-            return "redirect:/"+purchaseContext.getType().getUrlComponent()+"/"+purchaseContext.getPublicIdentifier();
+            return "redirect:/" + purchaseContext.getType().getUrlComponent() + "/"
+                    + purchaseContext.getPublicIdentifier();
         }
-        return "redirect:" + UriComponentsBuilder.fromPath(PaymentPageInitializeRequestBuilder.SUCCESS_URL_TEMPLATE)
-            .buildAndExpand(purchaseContext.getType().getUrlComponent(), purchaseContext.getPublicIdentifier(), reservationId).toUriString();
-     }
+        return "redirect:"
+                + UriComponentsBuilder.fromPath(PaymentPageInitializeRequestBuilder.SUCCESS_URL_TEMPLATE)
+                        .buildAndExpand(
+                                purchaseContext.getType().getUrlComponent(),
+                                purchaseContext.getPublicIdentifier(),
+                                reservationId)
+                        .toUriString();
+    }
 }

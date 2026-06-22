@@ -21,7 +21,6 @@ import alfio.model.support.ReservationInfo;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,16 +31,17 @@ public class PromoCodeUsageResult {
     private final EventBasicInfo event;
     private final List<ReservationInfo> reservations;
 
-    public PromoCodeUsageResult(@Column("promo_code") String promoCode,
-                                @Column("event_short_name") String eventShortName,
-                                @Column("event_display_name") String eventDisplayName,
-                                @Column("reservations") String reservationsJson) {
+    public PromoCodeUsageResult(
+            @Column("promo_code") String promoCode,
+            @Column("event_short_name") String eventShortName,
+            @Column("event_display_name") String eventDisplayName,
+            @Column("reservations") String reservationsJson) {
         this.promoCode = promoCode;
         this.event = new EventBasicInfo(eventShortName, eventDisplayName);
         List<ReservationInfo> parsed = Json.fromJson(reservationsJson, new TypeReference<>() {});
         this.reservations = parsed.stream()
-            .sorted(Comparator.comparing(ReservationInfo::getConfirmationTimestamp))
-            .collect(Collectors.toList());
+                .sorted(Comparator.comparing(ReservationInfo::getConfirmationTimestamp))
+                .collect(Collectors.toList());
     }
 
     public String getPromoCode() {
@@ -55,5 +55,4 @@ public class PromoCodeUsageResult {
     public List<ReservationInfo> getReservations() {
         return reservations;
     }
-
 }

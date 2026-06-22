@@ -16,6 +16,10 @@
  */
 package alfio.manager.system;
 
+import static java.util.Objects.requireNonNullElse;
+import static java.util.stream.Collectors.*;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import alfio.config.Initializer;
 import alfio.manager.support.extension.ExtensionCapability;
 import alfio.manager.support.extension.ExtensionEvent;
@@ -25,6 +29,9 @@ import alfio.model.ExtensionSupport;
 import alfio.model.system.Configuration;
 import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.model.system.ConfigurationPathLevel;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,16 +42,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNullElse;
-import static java.util.stream.Collectors.*;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 @Component
-@Profile("!"+ Initializer.PROFILE_INTEGRATION_TEST)
+@Profile("!" + Initializer.PROFILE_INTEGRATION_TEST)
 @ConfigurationProperties("alfio.override.system")
 @Getter
 @Setter
@@ -60,11 +59,12 @@ public class ExternalConfiguration {
 
     public Optional<Configuration> getSingle(String key) {
         return Optional.ofNullable(settings.get(key))
-            .or(() -> settings.entrySet().stream()
-                .filter(e -> normalize(e.getKey()).equals(normalize(key)))
-                .map(Map.Entry::getValue)
-                .findFirst())
-            .map(value -> new Configuration(EXTERNAL_CONFIGURATION_ID, key, value, ConfigurationPathLevel.EXTERNAL));
+                .or(() -> settings.entrySet().stream()
+                        .filter(e -> normalize(e.getKey()).equals(normalize(key)))
+                        .map(Map.Entry::getValue)
+                        .findFirst())
+                .map(value ->
+                        new Configuration(EXTERNAL_CONFIGURATION_ID, key, value, ConfigurationPathLevel.EXTERNAL));
     }
 
     private static String normalize(String s) {
@@ -73,55 +73,71 @@ public class ExternalConfiguration {
 
     public List<ConfigurationKeyValuePathLevel> getAll(Collection<String> keys) {
         return keys.stream()
-            .map(this::getSingle)
-            .flatMap(Optional::stream)
-            .map(c -> new ConfigurationKeyValuePathLevel(c.getKey(), c.getValue(), c.getConfigurationPathLevel()))
-            .collect(Collectors.toList());
+                .map(this::getSingle)
+                .flatMap(Optional::stream)
+                .map(c -> new ConfigurationKeyValuePathLevel(c.getKey(), c.getValue(), c.getConfigurationPathLevel()))
+                .collect(Collectors.toList());
     }
 
     public Optional<String> getScript(String path, String name) {
-        if(EXTERNAL_EXTENSION_PATH.equals(path)) {
-            return extensions.stream().filter(e -> e.isValid() && e.id.equals(name))
-                .map(ExtensionOverride::getContent)
-                .findFirst();
+        if (EXTERNAL_EXTENSION_PATH.equals(path)) {
+            return extensions.stream()
+                    .filter(e -> e.isValid() && e.id.equals(name))
+                    .map(ExtensionOverride::getContent)
+                    .findFirst();
         }
         return Optional.empty();
     }
 
     public List<ExtensionSupport.ScriptPathNameHash> getAllExtensionsFor(String event, boolean async) {
         return extensions.stream()
-            .filter(e -> e.async == async && e.isValid() && e.getEvents().contains(event))
-            .map(e -> new ExtensionSupport.ScriptPathNameHash(EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))
-            .collect(Collectors.toList());
+                .filter(e -> e.async == async && e.isValid() && e.getEvents().contains(event))
+                .map(e -> new ExtensionSupport.ScriptPathNameHash(
+                        EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))
+                .collect(Collectors.toList());
     }
 
     public List<ExtensionSupport.ScriptPathNameHash> getAllExtensionsForCapability(ExtensionCapability capability) {
         var eventsAsString = capability.getCompatibleEvents().stream()
-            .map(ExtensionEvent::name).collect(Collectors.toList());
+                .map(ExtensionEvent::name)
+                .collect(Collectors.toList());
         return extensions.stream()
-            .filter(e -> e.isValid() && CollectionUtils.containsAny(e.events, eventsAsString) && e.getCapabilities().contains(capability.name()))
-            .map(e -> new ExtensionSupport.ScriptPathNameHash(EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))
-            .collect(Collectors.toList());
+                .filter(e -> e.isValid()
+                        && CollectionUtils.containsAny(e.events, eventsAsString)
+                        && e.getCapabilities().contains(capability.name()))
+                .map(e -> new ExtensionSupport.ScriptPathNameHash(
+                        EXTERNAL_EXTENSION_PATH, e.getId(), DigestUtils.sha256Hex(e.file)))
+                .collect(Collectors.toList());
     }
 
     public Set<ExtensionCapabilitySummary> getSupportedCapabilities(Set<ExtensionCapability> requested) {
         return extensions.stream()
-            .map(e -> Pair.of(e, e.getCapabilityDetails().stream().filter(cd -> requested.contains(cd.key)).collect(Collectors.toList())))
-            .filter(p -> !p.getRight().isEmpty())
-            .flatMap(p -> {
-                Map<ExtensionCapability, List<ExtensionCapabilityDetails>> byCapability = p.getRight().stream()
-                    .collect(groupingBy(ExtensionCapabilityDetailsOverride::getKey, mapping(cd -> new ExtensionCapabilityDetails(cd.label, cd.description, cd.selector), toList())));
-                return byCapability.entrySet().stream()
-                    .map(e -> new ExtensionCapabilitySummary(e.getKey(), e.getValue()));
-            }).collect(Collectors.toSet());
+                .map(e -> Pair.of(
+                        e,
+                        e.getCapabilityDetails().stream()
+                                .filter(cd -> requested.contains(cd.key))
+                                .collect(Collectors.toList())))
+                .filter(p -> !p.getRight().isEmpty())
+                .flatMap(p -> {
+                    Map<ExtensionCapability, List<ExtensionCapabilityDetails>> byCapability = p.getRight().stream()
+                            .collect(groupingBy(
+                                    ExtensionCapabilityDetailsOverride::getKey,
+                                    mapping(
+                                            cd -> new ExtensionCapabilityDetails(cd.label, cd.description, cd.selector),
+                                            toList())));
+                    return byCapability.entrySet().stream()
+                            .map(e -> new ExtensionCapabilitySummary(e.getKey(), e.getValue()));
+                })
+                .collect(Collectors.toSet());
     }
 
     public Map<String, String> getParametersForExtension(String id) {
-        return extensions.stream().filter(ExtensionOverride::isValid)
-            .filter(extensionOverride -> extensionOverride.id.equals(id))
-            .map(ExtensionOverride::getParams)
-            .findFirst()
-            .orElse(Map.of());
+        return extensions.stream()
+                .filter(ExtensionOverride::isValid)
+                .filter(extensionOverride -> extensionOverride.id.equals(id))
+                .map(ExtensionOverride::getParams)
+                .findFirst()
+                .orElse(Map.of());
     }
 
     @Data
@@ -135,9 +151,7 @@ public class ExternalConfiguration {
         private List<ExtensionCapabilityDetailsOverride> capabilityDetails;
 
         boolean isValid() {
-            return isNotBlank(id)
-                && isNotBlank(file)
-                && events != null && !events.isEmpty();
+            return isNotBlank(id) && isNotBlank(file) && events != null && !events.isEmpty();
         }
 
         Map<String, String> getParams() {
@@ -145,16 +159,14 @@ public class ExternalConfiguration {
         }
 
         String getContent() {
-            if("base64".equals(type) && isNotBlank(file)) {
+            if ("base64".equals(type) && isNotBlank(file)) {
                 return new String(Base64.getDecoder().decode(file), StandardCharsets.UTF_8);
             }
             return file;
         }
 
         Set<String> getCapabilities() {
-            return getCapabilityDetails().stream()
-                .map(ec -> ec.key.name())
-                .collect(Collectors.toSet());
+            return getCapabilityDetails().stream().map(ec -> ec.key.name()).collect(Collectors.toSet());
         }
 
         List<ExtensionCapabilityDetailsOverride> getCapabilityDetails() {
@@ -173,6 +185,4 @@ public class ExternalConfiguration {
     public static boolean isExternalPath(String path) {
         return EXTERNAL_EXTENSION_PATH.equals(path);
     }
-
-
 }

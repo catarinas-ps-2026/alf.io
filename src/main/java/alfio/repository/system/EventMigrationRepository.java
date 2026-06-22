@@ -20,7 +20,6 @@ import alfio.model.system.EventMigration;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
-
 import java.time.ZonedDateTime;
 
 @QueryRepository
@@ -29,12 +28,19 @@ public interface EventMigrationRepository {
     @Query("select * from event_migration where event_id = :eventId")
     EventMigration loadEventMigration(@Bind("eventId") int eventId);
 
-    @Query("update event_migration set current_version = :currentVersion, build_ts = :currentTimestamp, status = :status where id = :id")
-    int updateMigrationData(@Bind("id") int id, @Bind("currentVersion") String currentVersion, @Bind("currentTimestamp") ZonedDateTime currentTimestamp, @Bind("status") String status);
+    @Query(
+            "update event_migration set current_version = :currentVersion, build_ts = :currentTimestamp, status = :status where id = :id")
+    int updateMigrationData(
+            @Bind("id") int id,
+            @Bind("currentVersion") String currentVersion,
+            @Bind("currentTimestamp") ZonedDateTime currentTimestamp,
+            @Bind("status") String status);
 
-    @Query("insert into event_migration (event_id, current_version, build_ts, status) values(:eventId, :currentVersion, :currentTimestamp, :status)")
-    int insertMigrationData(@Bind("eventId") int eventId, @Bind("currentVersion") String currentVersion, @Bind("currentTimestamp") ZonedDateTime currentTimestamp, @Bind("status") String status);
-
-
-
+    @Query(
+            "insert into event_migration (event_id, current_version, build_ts, status) values(:eventId, :currentVersion, :currentTimestamp, :status)")
+    int insertMigrationData(
+            @Bind("eventId") int eventId,
+            @Bind("currentVersion") String currentVersion,
+            @Bind("currentTimestamp") ZonedDateTime currentTimestamp,
+            @Bind("status") String status);
 }

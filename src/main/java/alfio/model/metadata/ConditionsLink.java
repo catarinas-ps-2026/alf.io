@@ -18,14 +18,15 @@ package alfio.model.metadata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class ConditionsLink {
     enum Type {
-        TERMS_OF_PARTICIPATION, PRIVACY_POLICY, CUSTOM;
+        TERMS_OF_PARTICIPATION,
+        PRIVACY_POLICY,
+        CUSTOM;
     }
 
     private final Type type;
@@ -33,9 +34,10 @@ public class ConditionsLink {
     private final String url;
 
     @JsonCreator
-    public ConditionsLink(@JsonProperty("type") Type type,
-                          @JsonProperty("description") Map<String, String> description,
-                          @JsonProperty("url") String url) {
+    public ConditionsLink(
+            @JsonProperty("type") Type type,
+            @JsonProperty("description") Map<String, String> description,
+            @JsonProperty("url") String url) {
         this.type = type;
         this.description = description;
         this.url = url;

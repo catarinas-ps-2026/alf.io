@@ -16,6 +16,8 @@
  */
 package alfio.controller;
 
+import static alfio.controller.Constants.*;
+
 import alfio.controller.support.DataPreloaderManager;
 import alfio.model.TicketReservationStatusAndValidation;
 import alfio.repository.EventRepository;
@@ -26,6 +28,13 @@ import ch.digitalfondue.jfiveparse.Document;
 import ch.digitalfondue.jfiveparse.JFiveParse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
@@ -34,16 +43,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import static alfio.controller.Constants.*;
 
 @Controller
 public class IndexController {
@@ -57,10 +56,11 @@ public class IndexController {
     private final SubscriptionRepository subscriptionRepository;
     private final DataPreloaderManager dataPreloaderManager;
 
-    public IndexController(EventRepository eventRepository,
-                           TicketReservationRepository ticketReservationRepository,
-                           SubscriptionRepository subscriptionRepository,
-                           DataPreloaderManager dataPreloaderManager) {
+    public IndexController(
+            EventRepository eventRepository,
+            TicketReservationRepository ticketReservationRepository,
+            SubscriptionRepository subscriptionRepository,
+            DataPreloaderManager dataPreloaderManager) {
 
         this.eventRepository = eventRepository;
 
@@ -68,16 +68,16 @@ public class IndexController {
         this.subscriptionRepository = subscriptionRepository;
         this.dataPreloaderManager = dataPreloaderManager;
         try (var idxIs = new ClassPathResource("alfio-public-frontend-index.html").getInputStream();
-             var idxOpenIs = new ClassPathResource("alfio/web-templates/event-open-graph-page.html").getInputStream();
-             var idxIsR = new InputStreamReader(idxIs, StandardCharsets.UTF_8);
-             var idxOpenGraphReader = new InputStreamReader(idxOpenIs, StandardCharsets.UTF_8)) {
+                var idxOpenIs =
+                        new ClassPathResource("alfio/web-templates/event-open-graph-page.html").getInputStream();
+                var idxIsR = new InputStreamReader(idxIs, StandardCharsets.UTF_8);
+                var idxOpenGraphReader = new InputStreamReader(idxOpenIs, StandardCharsets.UTF_8)) {
             indexPage = JFiveParse.parse(idxIsR);
             openGraphPage = JFiveParse.parse(idxOpenGraphReader);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
-
 
     @RequestMapping(value = "/", method = RequestMethod.HEAD)
     public ResponseEntity<String> replyToProxy() {
@@ -89,39 +89,38 @@ public class IndexController {
         return ResponseEntity.ok("Up and running!");
     }
 
-
-    //url defined in the angular app in app-routing.module.ts
+    // url defined in the angular app in app-routing.module.ts
     /**
-     <pre>{@code
-    { path: '', component: EventListComponent, canActivate: [LanguageGuard] },
-    { path: 'event/:eventShortName', component: EventDisplayComponent, canActivate: [EventGuard, LanguageGuard] },
-    { path: 'event/:eventShortName/poll', loadChildren: () => import('./poll/poll.module').then(m => m.PollModule), canActivate: [EventGuard, LanguageGuard] },
-    { path: 'event/:eventShortName/reservation/:reservationId', children: [
-    { path: 'book', component: BookingComponent, canActivate: reservationsGuard },
-    { path: 'overview', component: OverviewComponent, canActivate: reservationsGuard },
-    { path: 'waitingPayment', redirectTo: 'waiting-payment'},
-    { path: 'waiting-payment', component: OfflinePaymentComponent, canActivate: reservationsGuard },
-    { path: 'deferred-payment', component: DeferredOfflinePaymentComponent, canActivate: reservationsGuard },
-    { path: 'processing-payment', component: ProcessingPaymentComponent, canActivate: reservationsGuard },
-    { path: 'success', component: SuccessComponent, canActivate: reservationsGuard },
-    { path: 'not-found', component: NotFoundComponent, canActivate: reservationsGuard },
-    { path: 'error', component: ErrorComponent, canActivate: reservationsGuard },
-    ]},
-    { path: 'event/:eventShortName/ticket/:ticketId', children: [
-    { path: 'view', component: ViewTicketComponent, canActivate: [EventGuard, LanguageGuard] },
-    { path: 'update', component: UpdateTicketComponent, canActivate: [EventGuard, LanguageGuard] }
-    ]}
-    }
-     </pre>
-     Poll routing:
-     <pre>{@code
-    { path: '', component: PollComponent, children: [
-    {path: '', component: PollSelectionComponent },
-    {path: ':pollId', component: DisplayPollComponent }
-    ]}
-    }
-     </pre>
-
+     * <pre>{@code
+     * { path: '', component: EventListComponent, canActivate: [LanguageGuard] },
+     * { path: 'event/:eventShortName', component: EventDisplayComponent, canActivate: [EventGuard, LanguageGuard] },
+     * { path: 'event/:eventShortName/poll', loadChildren: () => import('./poll/poll.module').then(m => m.PollModule), canActivate: [EventGuard, LanguageGuard] },
+     * { path: 'event/:eventShortName/reservation/:reservationId', children: [
+     * { path: 'book', component: BookingComponent, canActivate: reservationsGuard },
+     * { path: 'overview', component: OverviewComponent, canActivate: reservationsGuard },
+     * { path: 'waitingPayment', redirectTo: 'waiting-payment'},
+     * { path: 'waiting-payment', component: OfflinePaymentComponent, canActivate: reservationsGuard },
+     * { path: 'deferred-payment', component: DeferredOfflinePaymentComponent, canActivate: reservationsGuard },
+     * { path: 'processing-payment', component: ProcessingPaymentComponent, canActivate: reservationsGuard },
+     * { path: 'success', component: SuccessComponent, canActivate: reservationsGuard },
+     * { path: 'not-found', component: NotFoundComponent, canActivate: reservationsGuard },
+     * { path: 'error', component: ErrorComponent, canActivate: reservationsGuard },
+     * ]},
+     * { path: 'event/:eventShortName/ticket/:ticketId', children: [
+     * { path: 'view', component: ViewTicketComponent, canActivate: [EventGuard, LanguageGuard] },
+     * { path: 'update', component: UpdateTicketComponent, canActivate: [EventGuard, LanguageGuard] }
+     * ]}
+     * }
+     * </pre>
+     * Poll routing:
+     * <pre>{@code
+     * { path: '', component: PollComponent, children: [
+     * {path: '', component: PollSelectionComponent },
+     * {path: ':pollId', component: DisplayPollComponent }
+     * ]}
+     * }
+     * </pre>
+     *
      */
     @GetMapping({
         "/",
@@ -164,61 +163,85 @@ public class IndexController {
         "/my-orders",
         "/my-profile",
     })
-    public void replyToIndex(@PathVariable(value = EVENT_SHORT_NAME, required = false) String eventShortName,
-                             @PathVariable(required = false) String subscriptionId,
-                             @RequestHeader(value = "User-Agent", required = false) String userAgent,
-                             @RequestParam(value = "lang", required = false) String lang,
-                             ServletWebRequest request,
-                             HttpServletResponse response,
-                             HttpSession session,
-                             Authentication authentication) throws IOException {
+    public void replyToIndex(
+            @PathVariable(value = EVENT_SHORT_NAME, required = false) String eventShortName,
+            @PathVariable(required = false) String subscriptionId,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent,
+            @RequestParam(value = "lang", required = false) String lang,
+            ServletWebRequest request,
+            HttpServletResponse response,
+            HttpSession session,
+            Authentication authentication)
+            throws IOException {
 
         response.setContentType(TEXT_HTML_CHARSET_UTF_8);
         response.setCharacterEncoding(UTF_8);
 
-        try (var os = response.getOutputStream(); var osw = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+        try (var os = response.getOutputStream();
+                var osw = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
             var doc = dataPreloaderManager.generateIndexDocument(
-                eventShortName,
-                subscriptionId,
-                userAgent,
-                lang,
-                request,
-                response,
-                session,
-                authentication,
-                openGraphPage,
-                indexPage
-            );
+                    eventShortName,
+                    subscriptionId,
+                    userAgent,
+                    lang,
+                    request,
+                    response,
+                    session,
+                    authentication,
+                    openGraphPage,
+                    indexPage);
             JFiveParse.serialize(doc, osw);
         }
     }
 
     @GetMapping("/event/{eventShortName}/reservation/{reservationId}")
-    public String redirectEventToReservation(@PathVariable(value = EVENT_SHORT_NAME) String eventShortName,
-                                             @PathVariable String reservationId,
-                                             @RequestParam(value = "subscription", required = false) String subscriptionId) {
+    public String redirectEventToReservation(
+            @PathVariable(value = EVENT_SHORT_NAME) String eventShortName,
+            @PathVariable String reservationId,
+            @RequestParam(value = "subscription", required = false) String subscriptionId) {
         if (eventRepository.existsByShortName(eventShortName)) {
-            var reservationStatusUrlSegment = ticketReservationRepository.findOptionalStatusAndValidationById(reservationId)
-                .map(IndexController::reservationStatusToUrlMapping).orElse(NOT_FOUND);
-            return REDIRECT + UriComponentsBuilder.fromPath("/event/{eventShortName}/reservation/{reservationId}/{status}")
-                // if subscription param is present, we forward it to the reservation resource
-                .queryParamIfPresent("subscription", Optional.ofNullable(StringUtils.trimToNull(subscriptionId)))
-                .buildAndExpand(Map.of(EVENT_SHORT_NAME, eventShortName, "reservationId", reservationId, "status",reservationStatusUrlSegment))
-                .toUriString();
+            var reservationStatusUrlSegment = ticketReservationRepository
+                    .findOptionalStatusAndValidationById(reservationId)
+                    .map(IndexController::reservationStatusToUrlMapping)
+                    .orElse(NOT_FOUND);
+            return REDIRECT
+                    + UriComponentsBuilder.fromPath("/event/{eventShortName}/reservation/{reservationId}/{status}")
+                            // if subscription param is present, we forward it to the reservation resource
+                            .queryParamIfPresent(
+                                    "subscription", Optional.ofNullable(StringUtils.trimToNull(subscriptionId)))
+                            .buildAndExpand(Map.of(
+                                    EVENT_SHORT_NAME,
+                                    eventShortName,
+                                    "reservationId",
+                                    reservationId,
+                                    "status",
+                                    reservationStatusUrlSegment))
+                            .toUriString();
         } else {
             return "redirect:/";
         }
     }
 
     @GetMapping("/subscription/{subscriptionId}/reservation/{reservationId}")
-    public String redirectSubscriptionToReservation(@PathVariable String subscriptionId, @PathVariable String reservationId) {
+    public String redirectSubscriptionToReservation(
+            @PathVariable String subscriptionId, @PathVariable String reservationId) {
         if (subscriptionRepository.existsById(UUID.fromString(subscriptionId))) {
-            var reservationStatusUrlSegment = ticketReservationRepository.findOptionalStatusAndValidationById(reservationId)
-                .map(IndexController::reservationStatusToUrlMapping).orElse(NOT_FOUND);
+            var reservationStatusUrlSegment = ticketReservationRepository
+                    .findOptionalStatusAndValidationById(reservationId)
+                    .map(IndexController::reservationStatusToUrlMapping)
+                    .orElse(NOT_FOUND);
 
-            return REDIRECT + UriComponentsBuilder.fromPath("/subscription/{subscriptionId}/reservation/{reservationId}/{status}")
-                .buildAndExpand(Map.of("subscriptionId", subscriptionId, "reservationId", reservationId, "status",reservationStatusUrlSegment))
-                .toUriString();
+            return REDIRECT
+                    + UriComponentsBuilder.fromPath(
+                                    "/subscription/{subscriptionId}/reservation/{reservationId}/{status}")
+                            .buildAndExpand(Map.of(
+                                    "subscriptionId",
+                                    subscriptionId,
+                                    "reservationId",
+                                    reservationId,
+                                    "status",
+                                    reservationStatusUrlSegment))
+                            .toUriString();
         } else {
             return "redirect:/";
         }
@@ -236,24 +259,26 @@ public class IndexController {
         };
     }
 
-    @GetMapping(value = {
-        "/event/{eventShortName}/code/{code}",
-        "/e/{eventShortName}/c/{code}"})
-    public String redirectCode(@PathVariable(EVENT_SHORT_NAME) String eventName,
-                               @PathVariable String code,
-                               @RequestHeader(value = "User-Agent", required = false) String userAgent) {
+    @GetMapping(value = {"/event/{eventShortName}/code/{code}", "/e/{eventShortName}/c/{code}"})
+    public String redirectCode(
+            @PathVariable(EVENT_SHORT_NAME) String eventName,
+            @PathVariable String code,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent) {
 
         if (RequestUtils.isSocialMediaShareUA(userAgent)) {
-            return REDIRECT + UriComponentsBuilder.fromPath("/event/{eventShortName}").build(Map.of(EVENT_SHORT_NAME, eventName));
+            return REDIRECT
+                    + UriComponentsBuilder.fromPath("/event/{eventShortName}")
+                            .build(Map.of(EVENT_SHORT_NAME, eventName));
         }
 
-        return REDIRECT + UriComponentsBuilder.fromPath("/api/v2/public/event/{eventShortName}/code/{code}")
-            .build(Map.of(EVENT_SHORT_NAME, eventName, "code", code));
+        return REDIRECT
+                + UriComponentsBuilder.fromPath("/api/v2/public/event/{eventShortName}/code/{code}")
+                        .build(Map.of(EVENT_SHORT_NAME, eventName, "code", code));
     }
 
     @GetMapping("/e/{eventShortName}")
     public String redirectEvent(@PathVariable(EVENT_SHORT_NAME) String eventName) {
-        return REDIRECT + UriComponentsBuilder.fromPath("/event/{eventShortName}").build(Map.of(EVENT_SHORT_NAME, eventName));
+        return REDIRECT
+                + UriComponentsBuilder.fromPath("/event/{eventShortName}").build(Map.of(EVENT_SHORT_NAME, eventName));
     }
-
 }

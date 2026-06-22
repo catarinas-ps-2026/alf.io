@@ -16,6 +16,8 @@
  */
 package alfio.config;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.DataMigrator;
 import alfio.manager.user.UserManager;
@@ -33,9 +35,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import static alfio.model.system.ConfigurationKeys.*;
-import static java.util.Optional.ofNullable;
-
 @Component
 public class ConfigurationStatusChecker implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -47,12 +46,13 @@ public class ConfigurationStatusChecker implements ApplicationListener<ContextRe
     private final String version;
     private final DataMigrator dataMigrator;
 
-    public ConfigurationStatusChecker(ConfigurationManager configurationManager,
-                                      UserRepository userRepository,
-                                      AuthorityRepository authorityRepository,
-                                      PasswordEncoder passwordEncoder,
-                                      @Value("${alfio.version}") String version,
-                                      DataMigrator dataMigrator) {
+    public ConfigurationStatusChecker(
+            ConfigurationManager configurationManager,
+            UserRepository userRepository,
+            AuthorityRepository authorityRepository,
+            PasswordEncoder passwordEncoder,
+            @Value("${alfio.version}") String version,
+            DataMigrator dataMigrator) {
         this.configurationManager = configurationManager;
         this.authorityRepository = authorityRepository;
         this.userRepository = userRepository;
@@ -64,10 +64,21 @@ public class ConfigurationStatusChecker implements ApplicationListener<ContextRe
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         configurationManager.seedSystemSettings();
-        boolean initCompleted = configurationManager.getForSystem(ConfigurationKeys.INIT_COMPLETED).getValueAsBooleanOrDefault();
+        boolean initCompleted = configurationManager
+                .getForSystem(ConfigurationKeys.INIT_COMPLETED)
+                .getValueAsBooleanOrDefault();
         if (!initCompleted) {
             String adminPassword = PasswordGenerator.generateRandomPassword();
-            userRepository.create(UserManager.ADMIN_USERNAME, passwordEncoder.encode(adminPassword), "The", "Administrator", "admin@localhost", true, User.Type.INTERNAL, null, null);
+            userRepository.create(
+                    UserManager.ADMIN_USERNAME,
+                    passwordEncoder.encode(adminPassword),
+                    "The",
+                    "Administrator",
+                    "admin@localhost",
+                    true,
+                    User.Type.INTERNAL,
+                    null,
+                    null);
             authorityRepository.create(UserManager.ADMIN_USERNAME, Role.ADMIN.getRoleName());
             log.info("*******************************************************");
             log.info("   This is the first time you're running alf.io");

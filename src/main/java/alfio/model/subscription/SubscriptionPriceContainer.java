@@ -16,15 +16,14 @@
  */
 package alfio.model.subscription;
 
-import alfio.model.PriceContainer;
-import alfio.model.PromoCodeDiscount;
-import lombok.AllArgsConstructor;
-
-import java.math.BigDecimal;
-import java.util.Optional;
-
 import static alfio.util.MonetaryUtil.centsToUnit;
 import static alfio.util.MonetaryUtil.unitToCents;
+
+import alfio.model.PriceContainer;
+import alfio.model.PromoCodeDiscount;
+import java.math.BigDecimal;
+import java.util.Optional;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class SubscriptionPriceContainer implements PriceContainer {
@@ -32,7 +31,6 @@ public class SubscriptionPriceContainer implements PriceContainer {
     private final Subscription subscription;
     private final PromoCodeDiscount promoCodeDiscount;
     private final SubscriptionDescriptor descriptor;
-
 
     @Override
     public int getSrcPriceCts() {
@@ -63,13 +61,15 @@ public class SubscriptionPriceContainer implements PriceContainer {
     public BigDecimal getNetPrice() {
         var vatStatus = getVatStatus();
         var currencyCode = getCurrencyCode();
-        if(vatStatus == VatStatus.NOT_INCLUDED_EXEMPT) {
+        if (vatStatus == VatStatus.NOT_INCLUDED_EXEMPT) {
             return centsToUnit(getSrcPriceCts(), currencyCode);
-        } else if(vatStatus == VatStatus.INCLUDED_EXEMPT) {
-            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
+        } else if (vatStatus == VatStatus.INCLUDED_EXEMPT) {
+            var rawVat =
+                    vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
             return centsToUnit(getSrcPriceCts(), currencyCode).add(rawVat);
-        } else if(vatStatus == VatStatus.INCLUDED) {
-            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
+        } else if (vatStatus == VatStatus.INCLUDED) {
+            var rawVat =
+                    vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
             return centsToUnit(getSrcPriceCts(), currencyCode).subtract(rawVat);
         } else {
             return centsToUnit(getSrcPriceCts(), currencyCode);
@@ -77,7 +77,7 @@ public class SubscriptionPriceContainer implements PriceContainer {
     }
 
     public int getSummarySrcPriceCts() {
-        if(VatStatus.isVatExempt(getVatStatus())) {
+        if (VatStatus.isVatExempt(getVatStatus())) {
             return unitToCents(getFinalPrice(), getCurrencyCode());
         }
         return getSrcPriceCts();

@@ -19,7 +19,6 @@ package alfio.model.extension;
 import alfio.model.PriceContainer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -43,8 +42,8 @@ public class CustomTaxPolicy {
         private final PriceContainer.VatStatus taxPolicy;
 
         @JsonCreator
-        public TicketTaxPolicy(@JsonProperty("uuid") String uuid,
-                               @JsonProperty("taxPolicy") PriceContainer.VatStatus taxPolicy) {
+        public TicketTaxPolicy(
+                @JsonProperty("uuid") String uuid, @JsonProperty("taxPolicy") PriceContainer.VatStatus taxPolicy) {
             this.uuid = Objects.requireNonNull(uuid);
             this.taxPolicy = taxPolicy;
         }

@@ -16,10 +16,9 @@
  */
 package alfio.controller.api.support;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.Map;
 
 @AllArgsConstructor
 @Getter

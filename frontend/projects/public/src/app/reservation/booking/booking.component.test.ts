@@ -14,7 +14,10 @@ import { FeedbackService } from '../../shared/feedback/feedback.service';
 import { I18nService } from '../../shared/i18n.service';
 import { AdditionalFieldService } from '../../shared/additional-field.service';
 import type { PurchaseContext } from '../../model/purchase-context';
-import type { ReservationInfo, TicketsByTicketCategory } from '../../model/reservation-info';
+import type {
+    ReservationInfo,
+    TicketsByTicketCategory,
+} from '../../model/reservation-info';
 import type { Ticket } from '../../model/ticket';
 import { ANONYMOUS } from '../../model/user';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -92,12 +95,21 @@ describe('BookingComponent', () => {
         additionalCategories: [],
         ticketCategories: [],
         localization: {},
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: false, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: false,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
     } as unknown as PurchaseContext;
 
     const mockActivatedRoute = {
-        data: of({ type: 'event', publicIdentifierParameter: 'eventShortName' }),
+        data: of({
+            type: 'event',
+            publicIdentifierParameter: 'eventShortName',
+        }),
         params: of({ eventShortName: 'test-event', reservationId: 'res-123' }),
         queryParams: of({}),
         snapshot: {
@@ -122,9 +134,19 @@ describe('BookingComponent', () => {
     };
 
     const mockTicketService = {
-        buildFormGroupForTicket: vi.fn(() => new UntypedFormBuilder().group({ firstName: '', lastName: '', email: '' })),
-        buildAdditionalServicesFormGroup: vi.fn(() => new UntypedFormBuilder().group({})),
-        buildAdditionalServiceGroup: vi.fn(() => new UntypedFormBuilder().group({})),
+        buildFormGroupForTicket: vi.fn(() =>
+            new UntypedFormBuilder().group({
+                firstName: '',
+                lastName: '',
+                email: '',
+            }),
+        ),
+        buildAdditionalServicesFormGroup: vi.fn(() =>
+            new UntypedFormBuilder().group({}),
+        ),
+        buildAdditionalServiceGroup: vi.fn(() =>
+            new UntypedFormBuilder().group({}),
+        ),
     };
 
     const mockPurchaseContextService = {
@@ -174,9 +196,15 @@ describe('BookingComponent', () => {
             providers: [
                 { provide: ActivatedRoute, useValue: mockActivatedRoute },
                 { provide: Router, useValue: mockRouter },
-                { provide: ReservationService, useValue: mockReservationService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
                 { provide: TicketService, useValue: mockTicketService },
-                { provide: PurchaseContextService, useValue: mockPurchaseContextService },
+                {
+                    provide: PurchaseContextService,
+                    useValue: mockPurchaseContextService,
+                },
                 { provide: UntypedFormBuilder, useValue: mockFormBuilder },
                 { provide: I18nService, useValue: mockI18nService },
                 { provide: TranslateService, useValue: mockTranslateService },
@@ -184,7 +212,10 @@ describe('BookingComponent', () => {
                 { provide: NgbModal, useValue: mockModalService },
                 { provide: UserService, useValue: mockUserService },
                 { provide: FeedbackService, useValue: mockFeedbackService },
-                { provide: AdditionalFieldService, useValue: mockAdditionalFieldService },
+                {
+                    provide: AdditionalFieldService,
+                    useValue: mockAdditionalFieldService,
+                },
             ],
         });
 
@@ -201,9 +232,17 @@ describe('BookingComponent', () => {
             component.ngOnInit();
             await fixture.whenStable();
 
-            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith('event', 'test-event');
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalledWith('res-123');
-            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith('reservation-page.header.title', mockPurchaseContext);
+            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+            );
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalledWith('res-123');
+            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith(
+                'reservation-page.header.title',
+                mockPurchaseContext,
+            );
             expect(component.reservationInfo).toEqual(mockReservationInfo);
             expect(component.purchaseContext).toEqual(mockPurchaseContext);
             expect(component.contactAndTicketsForm).toBeDefined();
@@ -240,7 +279,10 @@ describe('BookingComponent', () => {
                 },
             };
 
-            const result = BookingComponent.optionalGet(billingDetails, (i) => i.fiscalCode);
+            const result = BookingComponent.optionalGet(
+                billingDetails,
+                (i) => i.fiscalCode,
+            );
             expect(result).toBe('RSSMRA85T10A562K');
         });
 
@@ -257,14 +299,19 @@ describe('BookingComponent', () => {
                 invoicingAdditionalInfo: {},
             };
 
-            const result = BookingComponent.optionalGet(billingDetails, (i) => i.fiscalCode);
+            const result = BookingComponent.optionalGet(
+                billingDetails,
+                (i) => i.fiscalCode,
+            );
             expect(result).toBeNull();
         });
     });
 
     describe('BookingComponent.isUUID', () => {
         it('should return true for valid UUID v4', () => {
-            expect(BookingComponent.isUUID('550e8400-e29b-41d4-a716-446655440000')).toBe(true);
+            expect(
+                BookingComponent.isUUID('550e8400-e29b-41d4-a716-446655440000'),
+            ).toBe(true);
         });
 
         it('should return false for invalid UUID', () => {
@@ -282,7 +329,9 @@ describe('BookingComponent', () => {
             component.submitForm();
             await fixture.whenStable();
 
-            expect(mockReservationService.validateToOverview).toHaveBeenCalled();
+            expect(
+                mockReservationService.validateToOverview,
+            ).toHaveBeenCalled();
         });
     });
 
@@ -295,7 +344,9 @@ describe('BookingComponent', () => {
             component.cancelPendingReservation();
             await fixture.whenStable();
 
-            expect(mockReservationService.cancelPendingReservation).toHaveBeenCalledWith('res-123');
+            expect(
+                mockReservationService.cancelPendingReservation,
+            ).toHaveBeenCalledWith('res-123');
         });
     });
 
@@ -311,13 +362,18 @@ describe('BookingComponent', () => {
             });
 
             const mockTicket = { uuid: 'ticket-123' } as Ticket;
-            const ticketsGroup = component.contactAndTicketsForm.get('tickets') as any;
+            const ticketsGroup = component.contactAndTicketsForm.get(
+                'tickets',
+            ) as any;
 
-            ticketsGroup.addControl('ticket-123', mockFormBuilder.group({
-                firstName: '',
-                lastName: '',
-                email: '',
-            }));
+            ticketsGroup.addControl(
+                'ticket-123',
+                mockFormBuilder.group({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                }),
+            );
 
             component.copyContactInfoTo(mockTicket);
 
@@ -362,7 +418,16 @@ describe('BookingComponent', () => {
 
             const mockTicket = { uuid: 'ticket-123' } as Ticket;
             component['additionalServicesWithData'] = {
-                'ticket-123': [{ title: { en: 'Test' }, itemId: 1, serviceId: 1, ticketUUID: 'ticket-123', ticketFieldConfiguration: [], type: 'SUPPLEMENT' as const }],
+                'ticket-123': [
+                    {
+                        title: { en: 'Test' },
+                        itemId: 1,
+                        serviceId: 1,
+                        ticketUUID: 'ticket-123',
+                        ticketFieldConfiguration: [],
+                        type: 'SUPPLEMENT' as const,
+                    },
+                ],
             };
 
             const result = component.getAdditionalData(mockTicket);
@@ -406,8 +471,16 @@ describe('BookingComponent', () => {
                     name: 'Category 1',
                     ticketAccessType: 'IN_PERSON',
                     tickets: [
-                        { uuid: 'ticket-1', firstName: 'John', lastName: 'Doe' },
-                        { uuid: 'ticket-2', firstName: 'Jane', lastName: 'Doe' },
+                        {
+                            uuid: 'ticket-1',
+                            firstName: 'John',
+                            lastName: 'Doe',
+                        },
+                        {
+                            uuid: 'ticket-2',
+                            firstName: 'Jane',
+                            lastName: 'Doe',
+                        },
                     ],
                 },
             ];
@@ -427,8 +500,15 @@ describe('BookingComponent', () => {
             await fixture.whenStable();
 
             const mockTicket = { uuid: 'ticket-123' } as Ticket;
-            const additionalServicesGroup = component.contactAndTicketsForm.get('additionalServices') as any;
-            additionalServicesGroup.addControl('ticket-123', new UntypedFormBuilder().array([new UntypedFormBuilder().group({})]));
+            const additionalServicesGroup = component.contactAndTicketsForm.get(
+                'additionalServices',
+            ) as any;
+            additionalServicesGroup.addControl(
+                'ticket-123',
+                new UntypedFormBuilder().array([
+                    new UntypedFormBuilder().group({}),
+                ]),
+            );
 
             const result = component.getAdditionalDataForm(mockTicket);
             expect(result).not.toBeNull();
@@ -483,20 +563,30 @@ describe('BookingComponent', () => {
             component.ngOnInit();
             await fixture.whenStable();
 
-            component.contactAndTicketsForm.patchValue({ addCompanyBillingDetails: null });
+            component.contactAndTicketsForm.patchValue({
+                addCompanyBillingDetails: null,
+            });
             component.handleInvoiceRequestedChange();
 
-            expect(component.contactAndTicketsForm.get('addCompanyBillingDetails').value).toBe(false);
+            expect(
+                component.contactAndTicketsForm.get('addCompanyBillingDetails')
+                    .value,
+            ).toBe(false);
         });
 
         it('should not change addCompanyBillingDetails when not null', async () => {
             component.ngOnInit();
             await fixture.whenStable();
 
-            component.contactAndTicketsForm.patchValue({ addCompanyBillingDetails: true });
+            component.contactAndTicketsForm.patchValue({
+                addCompanyBillingDetails: true,
+            });
             component.handleInvoiceRequestedChange();
 
-            expect(component.contactAndTicketsForm.get('addCompanyBillingDetails').value).toBe(true);
+            expect(
+                component.contactAndTicketsForm.get('addCompanyBillingDetails')
+                    .value,
+            ).toBe(true);
         });
     });
 
@@ -532,7 +622,13 @@ describe('BookingComponent', () => {
             await fixture.whenStable();
 
             component.reservationInfo.subscriptionInfos = [
-                { owner: { firstName: 'John', lastName: 'Doe', email: 'john@test.com' } } as any,
+                {
+                    owner: {
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'john@test.com',
+                    },
+                } as any,
             ];
 
             expect(component['isDifferentOwnerDefined']()).toBe(true);
@@ -554,7 +650,9 @@ describe('BookingComponent', () => {
             await fixture.whenStable();
 
             component.reservationInfo.subscriptionInfos = [
-                { owner: { firstName: null, lastName: null, email: null } } as any,
+                {
+                    owner: { firstName: null, lastName: null, email: null },
+                } as any,
             ];
 
             expect(component['isDifferentOwnerDefined']()).toBe(false);
@@ -570,14 +668,14 @@ describe('BookingComponent', () => {
                 status: 400,
                 error: {
                     validationResult: {
-                        errors: [
-                            { code: 'ERROR_CODE', params: ['param1'] },
-                        ],
+                        errors: [{ code: 'ERROR_CODE', params: ['param1'] }],
                     },
                 },
             };
 
-            mockReservationService.validateToOverview.mockReturnValue(throwError(() => mockError));
+            mockReservationService.validateToOverview.mockReturnValue(
+                throwError(() => mockError),
+            );
 
             component.validateToOverview(false);
 
@@ -608,15 +706,22 @@ describe('BookingComponent', () => {
             };
 
             // Just test the data structure update logic
-            const element = { ...mockAdditionalService, ticketUUID: 'ticket-2' };
+            const element = {
+                ...mockAdditionalService,
+                ticketUUID: 'ticket-2',
+            };
             component['additionalServicesWithData']['ticket-2'] = [];
             component['additionalServicesWithData']['ticket-2'].push(element);
-            component['additionalServicesWithData']['ticket-1'] = component['additionalServicesWithData']['ticket-1'].filter(
-                (a) => a.itemId !== 'addon-1',
-            );
+            component['additionalServicesWithData']['ticket-1'] = component[
+                'additionalServicesWithData'
+            ]['ticket-1'].filter((a) => a.itemId !== 'addon-1');
 
-            expect(component['additionalServicesWithData']['ticket-1']).toHaveLength(0);
-            expect(component['additionalServicesWithData']['ticket-2']).toHaveLength(1);
+            expect(
+                component['additionalServicesWithData']['ticket-1'],
+            ).toHaveLength(0);
+            expect(
+                component['additionalServicesWithData']['ticket-2'],
+            ).toHaveLength(1);
         });
     });
 
@@ -635,8 +740,13 @@ describe('BookingComponent', () => {
 
             component['removeUnnecessaryFields']();
 
-            expect(component.contactAndTicketsForm.get('billingAddressCompany').value).toBeNull();
-            expect(component.contactAndTicketsForm.get('vatNr').value).toBeNull();
+            expect(
+                component.contactAndTicketsForm.get('billingAddressCompany')
+                    .value,
+            ).toBeNull();
+            expect(
+                component.contactAndTicketsForm.get('vatNr').value,
+            ).toBeNull();
         });
     });
 
@@ -647,7 +757,9 @@ describe('BookingComponent', () => {
 
             component.login();
 
-            expect(mockReservationService.validateToOverview).toHaveBeenCalled();
+            expect(
+                mockReservationService.validateToOverview,
+            ).toHaveBeenCalled();
         });
     });
 });

@@ -18,5 +18,4 @@ package alfio.controller.api.support;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record AdditionalItemSwapRequest(@JsonProperty("id1") int id1, @JsonProperty("id2") int id2) {
-}
+public record AdditionalItemSwapRequest(@JsonProperty("id1") int id1, @JsonProperty("id2") int id2) {}

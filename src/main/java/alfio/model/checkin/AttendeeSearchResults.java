@@ -17,38 +17,31 @@
 package alfio.model.checkin;
 
 import alfio.model.Ticket;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 public record AttendeeSearchResults(
-    int totalResults,
-    int checkedIn,
-    int totalPages,
-    int numPage,
-    List<AttendeeResult> attendees
-) {
+        int totalResults, int checkedIn, int totalPages, int numPage, List<AttendeeResult> attendees) {
 
     public boolean hasMorePages() {
         return numPage < totalPages - 1;
     }
 
     public record AttendeeResult(
-        String uuid,
-        UUID publicUUID,
-        String firstName,
-        String lastName,
-        String categoryName,
-        Map<String, List<String>> additionalInfo,
-        Ticket.TicketStatus ticketStatus,
-        String amountToPay
-    ) {
+            String uuid,
+            UUID publicUUID,
+            String firstName,
+            String lastName,
+            String categoryName,
+            Map<String, List<String>> additionalInfo,
+            Ticket.TicketStatus ticketStatus,
+            String amountToPay) {
 
         @Override
         public Map<String, List<String>> additionalInfo() {
-                return Objects.requireNonNullElse(additionalInfo, Map.of());
-            }
+            return Objects.requireNonNullElse(additionalInfo, Map.of());
         }
+    }
 }

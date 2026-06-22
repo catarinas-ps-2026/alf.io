@@ -16,9 +16,13 @@
  */
 package alfio.controller.payment.api.stripe;
 
+import static alfio.util.HttpUtils.APPLICATION_JSON_UTF8;
+
 import alfio.manager.TicketReservationManager;
 import alfio.model.transaction.PaymentProxy;
 import alfio.util.RequestUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,11 +31,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.Map;
-
-import static alfio.util.HttpUtils.APPLICATION_JSON_UTF8;
-
 @RestController
 @AllArgsConstructor
 public class StripePaymentWebhookController {
@@ -39,27 +38,28 @@ public class StripePaymentWebhookController {
     private final TicketReservationManager ticketReservationManager;
 
     @PostMapping("/api/payment/webhook/stripe/payment")
-    public ResponseEntity<String> receivePaymentConfirmation(@RequestHeader(value = "Stripe-Signature") String stripeSignature,
-                                                           HttpServletRequest request) {
+    public ResponseEntity<String> receivePaymentConfirmation(
+            @RequestHeader(value = "Stripe-Signature") String stripeSignature, HttpServletRequest request) {
         var httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF8);
         return RequestUtils.readRequest(request)
-            .map(content -> {
-                var result = ticketReservationManager.processTransactionWebhook(content, stripeSignature, PaymentProxy.STRIPE, Map.of());
-                if(result.isSuccessful()) {
+                .map(content -> {
+                    var result = ticketReservationManager.processTransactionWebhook(
+                            content, stripeSignature, PaymentProxy.STRIPE, Map.of());
+                    if (result.isSuccessful()) {
+                        return ResponseEntity.status(HttpStatus.OK)
+                                .headers(httpHeaders)
+                                .body("OK");
+                    } else if (result.isError()) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .headers(httpHeaders)
+                                .body(result.getReason());
+                    }
                     return ResponseEntity.status(HttpStatus.OK)
-                        .headers(httpHeaders)
-                        .body("OK");
-                } else if(result.isError()) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .headers(httpHeaders)
-                        .body(result.getReason());
-                }
-                return ResponseEntity.status(HttpStatus.OK)
-                    .headers(httpHeaders)
-                    .body(result.getReason());
-            })
-            .orElseGet(() -> ResponseEntity.badRequest().headers(httpHeaders).body("Malformed request."));
-
+                            .headers(httpHeaders)
+                            .body(result.getReason());
+                })
+                .orElseGet(
+                        () -> ResponseEntity.badRequest().headers(httpHeaders).body("Malformed request."));
     }
 }

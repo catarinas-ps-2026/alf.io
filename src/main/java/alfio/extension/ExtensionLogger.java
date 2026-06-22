@@ -14,12 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
 
 public interface ExtensionLogger {
     default void logWarning(String msg) {}
+
     default void logSuccess(String msg) {}
+
     default void logError(String msg) {}
+
     default void logInfo(String msg) {}
 }

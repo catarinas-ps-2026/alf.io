@@ -18,8 +18,7 @@ package alfio.config.authentication.support;
 
 public final class AuthenticationConstants {
 
-    private AuthenticationConstants() {
-    }
+    private AuthenticationConstants() {}
 
     public static final String OPERATOR = "OPERATOR";
     public static final String SPONSOR = "SPONSOR";

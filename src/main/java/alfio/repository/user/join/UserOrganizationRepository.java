@@ -21,7 +21,6 @@ import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
 import ch.digitalfondue.npjt.QueryType;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -43,7 +42,9 @@ public interface UserOrganizationRepository {
     @Query("insert into j_user_organization (user_id, org_id) values(:userId, :organizationId)")
     int create(@Bind("userId") int userId, @Bind("organizationId") int organizationId);
 
-    @Query(type = QueryType.TEMPLATE, value = "insert into j_user_organization (user_id, org_id) values(:userId, :organizationId)")
+    @Query(
+            type = QueryType.TEMPLATE,
+            value = "insert into j_user_organization (user_id, org_id) values(:userId, :organizationId)")
     String bulkCreate();
 
     @Query("update j_user_organization set org_id = :organizationId where user_id = :userId")
@@ -53,7 +54,8 @@ public interface UserOrganizationRepository {
     List<Integer> findOrganizationsForUsers(@Bind("users") List<Integer> users);
 
     @Query("delete from j_user_organization where user_id = :userId and org_id in (:organizationIds)")
-    int removeOrganizationUserLinks(@Bind("userId") int userId, @Bind("organizationIds") Collection<Integer> organizationIds);
+    int removeOrganizationUserLinks(
+            @Bind("userId") int userId, @Bind("organizationIds") Collection<Integer> organizationIds);
 
     @Query("delete from j_user_organization where org_id = :organizationId")
     int cleanupOrganization(@Bind("organizationId") int organizationId);

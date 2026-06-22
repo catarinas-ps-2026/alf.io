@@ -13,7 +13,10 @@ describe('test-data.ts', () => {
         it('should have required properties', () => {
             expect(mockEvent.id).toBe(1);
             expect(mockEvent.shortName).toBe('test-event');
-            expect(mockEvent.title).toEqual({ en: 'Test Event', it: 'Evento Test' });
+            expect(mockEvent.title).toEqual({
+                en: 'Test Event',
+                it: 'Evento Test',
+            });
             expect(mockEvent.format).toBe('IN_PERSON');
             expect(mockEvent.enabled).toBe(true);
             expect(mockEvent.currency).toBe('USD');
@@ -45,12 +48,20 @@ describe('test-data.ts', () => {
         });
 
         it('should have valid invoicingConfiguration', () => {
-            expect(mockPurchaseContext.invoicingConfiguration.enabled).toBe(false);
-            expect(mockPurchaseContext.invoicingConfiguration.userCanDownloadReceiptOrInvoice).toBe(true);
+            expect(mockPurchaseContext.invoicingConfiguration.enabled).toBe(
+                false,
+            );
+            expect(
+                mockPurchaseContext.invoicingConfiguration
+                    .userCanDownloadReceiptOrInvoice,
+            ).toBe(true);
         });
 
         it('should have assignmentConfiguration', () => {
-            expect(mockPurchaseContext.assignmentConfiguration.enableAttendeeAutocomplete).toBe(true);
+            expect(
+                mockPurchaseContext.assignmentConfiguration
+                    .enableAttendeeAutocomplete,
+            ).toBe(true);
         });
     });
 
@@ -113,8 +124,12 @@ describe('test-data.ts', () => {
         });
 
         it('should have empty field configurations', () => {
-            expect(mockTicket.ticketFieldConfigurationBeforeStandard).toEqual([]);
-            expect(mockTicket.ticketFieldConfigurationAfterStandard).toEqual([]);
+            expect(mockTicket.ticketFieldConfigurationBeforeStandard).toEqual(
+                [],
+            );
+            expect(mockTicket.ticketFieldConfigurationAfterStandard).toEqual(
+                [],
+            );
         });
     });
 

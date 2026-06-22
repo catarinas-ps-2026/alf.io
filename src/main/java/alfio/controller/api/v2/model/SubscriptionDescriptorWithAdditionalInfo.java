@@ -22,10 +22,9 @@ import alfio.model.PurchaseContext;
 import alfio.model.subscription.SubscriptionDescriptor;
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class SubscriptionDescriptorWithAdditionalInfo implements ApiPurchaseContext {
@@ -35,7 +34,7 @@ public class SubscriptionDescriptorWithAdditionalInfo implements ApiPurchaseCont
     private final EventWithAdditionalInfo.CaptchaConfiguration captchaConfiguration;
     private final EmbeddingConfiguration embeddingConfiguration;
 
-    //payment related information
+    // payment related information
     private final String bankAccount;
     private final List<String> bankAccountOwner;
     //
@@ -201,7 +200,7 @@ public class SubscriptionDescriptorWithAdditionalInfo implements ApiPurchaseCont
 
     @Override
     public boolean isCanApplySubscriptions() {
-        return false;//cannot buy a subscription with another subscription
+        return false; // cannot buy a subscription with another subscription
     }
 
     public Integer getNumAvailable() {

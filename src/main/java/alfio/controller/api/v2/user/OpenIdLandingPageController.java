@@ -17,13 +17,12 @@
 package alfio.controller.api.v2.user;
 
 import alfio.model.PurchaseContext;
+import java.security.Principal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
-import java.security.Principal;
 
 @Controller
 public class OpenIdLandingPageController {
@@ -31,10 +30,11 @@ public class OpenIdLandingPageController {
     private static final Logger log = LoggerFactory.getLogger(OpenIdLandingPageController.class);
 
     @GetMapping("/openid/{purchaseContextType}/{publicIdentifier}/reservation/{reservationId}")
-    public String redirectToReservation(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                        @PathVariable String publicIdentifier,
-                                        @PathVariable String reservationId,
-                                        Principal principal) {
+    public String redirectToReservation(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @PathVariable String reservationId,
+            Principal principal) {
         if (log.isTraceEnabled()) {
             log.trace("redirecting to reservation. Principal exists: {}", principal != null);
         }

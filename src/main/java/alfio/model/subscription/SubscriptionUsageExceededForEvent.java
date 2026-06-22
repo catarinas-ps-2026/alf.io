@@ -33,5 +33,4 @@ public class SubscriptionUsageExceededForEvent extends RuntimeException {
         this.allowed = allowed;
         this.requested = requested;
     }
-
 }

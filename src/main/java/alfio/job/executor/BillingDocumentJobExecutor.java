@@ -24,15 +24,14 @@ import alfio.model.system.AdminJobSchedule;
 import alfio.repository.EventRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.util.RenderedTemplate;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
@@ -57,19 +56,33 @@ public class BillingDocumentJobExecutor implements AdminJobExecutor {
         var event = eventRepository.findById(eventId);
         var counter = new AtomicInteger();
         Pattern.compile(",")
-            .splitAsStream(Objects.requireNonNull((String) metadata.get("ids")))
-            .map(String::trim)
-            .map(Long::valueOf)
-            .forEach(id -> {
-                var billingDocument = billingDocumentManager.getDocumentById(id).orElseThrow();
-                var reservation = ticketReservationManager.findById(billingDocument.getReservationId()).orElseThrow();
-                billingDocumentManager.createBillingDocument(event, reservation, username, ticketReservationManager.orderSummaryForReservation(reservation, event));
-                counter.incrementAndGet();
-            });
-        if(counter.get() > 0) {
+                .splitAsStream(Objects.requireNonNull((String) metadata.get("ids")))
+                .map(String::trim)
+                .map(Long::valueOf)
+                .forEach(id -> {
+                    var billingDocument =
+                            billingDocumentManager.getDocumentById(id).orElseThrow();
+                    var reservation = ticketReservationManager
+                            .findById(billingDocument.getReservationId())
+                            .orElseThrow();
+                    billingDocumentManager.createBillingDocument(
+                            event,
+                            reservation,
+                            username,
+                            ticketReservationManager.orderSummaryForReservation(reservation, event));
+                    counter.incrementAndGet();
+                });
+        if (counter.get() > 0) {
             var organization = organizationRepository.getById(event.getOrganizationId());
-            notificationManager.sendSimpleEmail(event, null, organization.getEmail(), "Invoice Regeneration complete",
-                () -> RenderedTemplate.plaintext("Invoice regeneration for event "+event.getDisplayName()+ " is now complete. "+counter.get()+" invoices generated.", Map.of()));
+            notificationManager.sendSimpleEmail(
+                    event,
+                    null,
+                    organization.getEmail(),
+                    "Invoice Regeneration complete",
+                    () -> RenderedTemplate.plaintext(
+                            "Invoice regeneration for event " + event.getDisplayName() + " is now complete. "
+                                    + counter.get() + " invoices generated.",
+                            Map.of()));
         }
         return "generated";
     }

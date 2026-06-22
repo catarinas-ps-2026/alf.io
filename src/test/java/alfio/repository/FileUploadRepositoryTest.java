@@ -14,10 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.repository;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import alfio.model.modification.UploadBase64FileModification;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,25 +38,14 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class FileUploadRepositoryTest {
 
     private final NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
     private final JdbcOperations jdbcOperations = mock(JdbcOperations.class);
-    private final FileUploadRepository fileUploadRepository = mock(FileUploadRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+    private final FileUploadRepository fileUploadRepository =
+            mock(FileUploadRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 
     @Test
     void testUpload() {
@@ -55,7 +53,7 @@ class FileUploadRepositoryTest {
         when(jdbcTemplate.getJdbcOperations()).thenReturn(jdbcOperations);
 
         UploadBase64FileModification fileMod = mock(UploadBase64FileModification.class);
-        when(fileMod.getFile()).thenReturn(new byte[]{1, 2, 3});
+        when(fileMod.getFile()).thenReturn(new byte[] {1, 2, 3});
         when(fileMod.getName()).thenReturn("test.txt");
         when(fileMod.getType()).thenReturn("text/plain");
 
@@ -67,16 +65,16 @@ class FileUploadRepositoryTest {
     @Test
     void testFile() throws SQLException, IOException {
         doReturn(jdbcTemplate).when(fileUploadRepository).getNamedParameterJdbcTemplate();
-        
+
         ResultSet rs = mock(ResultSet.class);
         byte[] content = "hello world".getBytes();
         when(rs.getBinaryStream("content")).thenReturn(new ByteArrayInputStream(content));
-        
+
         when(jdbcTemplate.query(anyString(), any(SqlParameterSource.class), any(ResultSetExtractor.class)))
-            .thenAnswer(invocation -> {
-                ResultSetExtractor<?> extractor = invocation.getArgument(2);
-                return extractor.extractData(rs);
-            });
+                .thenAnswer(invocation -> {
+                    ResultSetExtractor<?> extractor = invocation.getArgument(2);
+                    return extractor.extractData(rs);
+                });
 
         File result = fileUploadRepository.file("some-id");
         assertNotNull(result);

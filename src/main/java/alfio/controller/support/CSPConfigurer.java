@@ -16,17 +16,16 @@
  */
 package alfio.controller.support;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import jakarta.servlet.http.HttpServletResponse;
+import java.security.SecureRandom;
+import java.util.List;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-
-import java.security.SecureRandom;
-import java.util.List;
-
-import static alfio.model.system.ConfigurationKeys.*;
 
 @Component
 public class CSPConfigurer {
@@ -42,13 +41,16 @@ public class CSPConfigurer {
         return addCspHeader(response, ConfigurationLevel.system(), embeddingSupported);
     }
 
-    public String addCspHeader(HttpServletResponse response, ConfigurationLevel configurationLevel, boolean embeddingSupported) {
+    public String addCspHeader(
+            HttpServletResponse response, ConfigurationLevel configurationLevel, boolean embeddingSupported) {
 
         var nonce = getNonce();
 
         String reportUri = "";
 
-        var conf = configurationManager.getFor(List.of(SECURITY_CSP_REPORT_ENABLED, SECURITY_CSP_REPORT_URI, EMBED_ALLOWED_ORIGINS), configurationLevel);
+        var conf = configurationManager.getFor(
+                List.of(SECURITY_CSP_REPORT_ENABLED, SECURITY_CSP_REPORT_URI, EMBED_ALLOWED_ORIGINS),
+                configurationLevel);
 
         boolean enabledReport = conf.get(SECURITY_CSP_REPORT_ENABLED).getValueAsBooleanOrDefault();
         if (enabledReport) {
@@ -64,24 +66,27 @@ public class CSPConfigurer {
             var splitHosts = allowedContainer.split("[,\n]");
             frameAncestors = String.join(" ", splitHosts);
             // IE11
-            response.addHeader("X-Frame-Options", "ALLOW-FROM "+splitHosts[0]);
+            response.addHeader("X-Frame-Options", "ALLOW-FROM " + splitHosts[0]);
         } else {
             response.addHeader("X-Frame-Options", "DENY");
         }
 
-        response.addHeader("Content-Security-Policy", "object-src 'none'; "+
-            "script-src 'strict-dynamic' 'nonce-" + nonce + "' 'unsafe-inline' http: https: " +
-            "'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='" // see https://github.com/angular/angular-cli/issues/20864#issuecomment-983672336
-            +"; " +
-            "base-uri 'self'; " +
-            "frame-ancestors " + frameAncestors + "; "
-            + reportUri);
+        response.addHeader(
+                "Content-Security-Policy",
+                "object-src 'none'; " + "script-src 'strict-dynamic' 'nonce-"
+                        + nonce + "' 'unsafe-inline' http: https: "
+                        + "'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='" // see
+                        // https://github.com/angular/angular-cli/issues/20864#issuecomment-983672336
+                        + "; " + "base-uri 'self'; "
+                        + "frame-ancestors "
+                        + frameAncestors + "; "
+                        + reportUri);
 
         return nonce;
     }
 
     private static String getNonce() {
-        var nonce = new byte[16]; //128 bit = 16 bytes
+        var nonce = new byte[16]; // 128 bit = 16 bytes
         SECURE_RANDOM.nextBytes(nonce);
         return Hex.encodeHexString(nonce);
     }

@@ -14,14 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.controller.api.admin;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import alfio.manager.AccessService;
 import alfio.manager.CheckInManager;
 import alfio.manager.EventManager;
 import alfio.manager.support.CheckInStatistics;
-import alfio.manager.support.DefaultCheckInResult;
 import alfio.manager.support.TicketAndCheckInResult;
 import alfio.manager.support.TicketCheckInStatusResult;
 import alfio.manager.system.ConfigurationLevel;
@@ -30,11 +34,12 @@ import alfio.model.Event;
 import alfio.model.EventAndOrganizationId;
 import alfio.model.FullTicketInfo;
 import alfio.model.checkin.AttendeeSearchResults;
-import alfio.model.system.ConfigurationKeys;
 import alfio.model.system.ConfigurationKeyValuePathLevel;
-import alfio.util.Json;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import alfio.model.system.ConfigurationKeys;
+import jakarta.servlet.http.HttpServletResponse;
+import java.security.Principal;
+import java.util.*;
+import java.util.function.Predicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,17 +47,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.security.Principal;
-import java.util.*;
-import java.util.function.Predicate;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class CheckInApiControllerTest {
@@ -85,29 +79,35 @@ class CheckInApiControllerTest {
     @Test
     void findTicketWithUUID_withValidIdAndIdentifier_returnsTicketResult() {
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
-        when(checkInManager.evaluateTicketStatus(1, "ticket-123", Optional.of("qr-code"))).thenReturn(result);
+        when(checkInManager.evaluateTicketStatus(1, "ticket-123", Optional.of("qr-code")))
+                .thenReturn(result);
 
         TicketAndCheckInResult actual = controller.findTicketWithUUID(1, "ticket-123", "qr-code", principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).evaluateTicketStatus(1, "ticket-123", Optional.of("qr-code"));
     }
 
     @Test
     void findTicketWithUUID_withEventName_returnsTicketResult() {
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
-        when(checkInManager.evaluateTicketStatus("event-name", "ticket-123", Optional.of("qr-code"))).thenReturn(result);
+        when(checkInManager.evaluateTicketStatus("event-name", "ticket-123", Optional.of("qr-code")))
+                .thenReturn(result);
 
         TicketAndCheckInResult actual = controller.findTicketWithUUID("event-name", "ticket-123", "qr-code", principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(
+                        principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).evaluateTicketStatus("event-name", "ticket-123", Optional.of("qr-code"));
     }
 
     @Test
     void findTicketWithUUID_withNullQrCode_evaluatesWithEmptyOptional() {
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
-        when(checkInManager.evaluateTicketStatus(1, "ticket-123", Optional.empty())).thenReturn(result);
+        when(checkInManager.evaluateTicketStatus(1, "ticket-123", Optional.empty()))
+                .thenReturn(result);
 
         TicketAndCheckInResult actual = controller.findTicketWithUUID(1, "ticket-123", null, principal);
 
@@ -116,18 +116,15 @@ class CheckInApiControllerTest {
 
     @Test
     void getTicketStatus_withValidIdentifier_returnsStatus() {
-        TicketCheckInStatusResult status = new TicketCheckInStatusResult(
-                null,
-                null,
-                null,
-                null,
-                Collections.emptyList()
-            );
+        TicketCheckInStatusResult status =
+                new TicketCheckInStatusResult(null, null, null, null, Collections.emptyList());
         when(checkInManager.retrieveTicketStatus("ticket-123")).thenReturn(status);
 
         TicketCheckInStatusResult actual = controller.getTicketStatus("event-name", "ticket-123", principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(
+                        principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).retrieveTicketStatus("ticket-123");
     }
 
@@ -135,13 +132,15 @@ class CheckInApiControllerTest {
     void checkIn_withEventIdAndValidCode_performsCheckIn() {
         when(principal.getName()).thenReturn("user");
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
-        when(checkInManager.checkIn(1, "ticket-123", Optional.of("code"), "user")).thenReturn(result);
+        when(checkInManager.checkIn(1, "ticket-123", Optional.of("code"), "user"))
+                .thenReturn(result);
 
         CheckInApiController.TicketCode ticketCode = new CheckInApiController.TicketCode();
         ticketCode.setCode("code");
         TicketAndCheckInResult actual = controller.checkIn(1, "ticket-123", ticketCode, principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).checkIn(1, "ticket-123", Optional.of("code"), "user");
     }
 
@@ -160,7 +159,8 @@ class CheckInApiControllerTest {
     void checkIn_withEventNameAndValidCode_performsCheckIn() {
         when(principal.getName()).thenReturn("user");
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
-        when(checkInManager.checkIn("event-name", "ticket-123", Optional.of("code"), "user", "user")).thenReturn(result);
+        when(checkInManager.checkIn("event-name", "ticket-123", Optional.of("code"), "user", "user"))
+                .thenReturn(result);
 
         CheckInApiController.TicketCode ticketCode = new CheckInApiController.TicketCode();
         ticketCode.setCode("code");
@@ -173,11 +173,13 @@ class CheckInApiControllerTest {
     void checkIn_withEventNameAndOfflineUser_usesOfflineUserAsAudit() {
         when(principal.getName()).thenReturn("user");
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
-        when(checkInManager.checkIn("event-name", "ticket-123", Optional.of("code"), "user", "offline-user")).thenReturn(result);
+        when(checkInManager.checkIn("event-name", "ticket-123", Optional.of("code"), "user", "offline-user"))
+                .thenReturn(result);
 
         CheckInApiController.TicketCode ticketCode = new CheckInApiController.TicketCode();
         ticketCode.setCode("code");
-        TicketAndCheckInResult actual = controller.checkIn("event-name", "ticket-123", ticketCode, "offline-user", principal);
+        TicketAndCheckInResult actual =
+                controller.checkIn("event-name", "ticket-123", ticketCode, "offline-user", principal);
 
         verify(checkInManager).checkIn("event-name", "ticket-123", Optional.of("code"), "user", "offline-user");
     }
@@ -192,9 +194,10 @@ class CheckInApiControllerTest {
         tickets.add(ticket1);
 
         when(checkInManager.checkIn("event-name", "ticket-1", Optional.of("code-1"), "user", "user", false))
-            .thenReturn(new TicketAndCheckInResult(null, null));
+                .thenReturn(new TicketAndCheckInResult(null, null));
 
-        Map<String, TicketAndCheckInResult> results = controller.bulkCheckIn("event-name", tickets, null, false, principal);
+        Map<String, TicketAndCheckInResult> results =
+                controller.bulkCheckIn("event-name", tickets, null, false, principal);
 
         verify(accessService).checkEventMembership(principal, "event-name", AccessService.CHECKIN_ROLES);
         verify(checkInManager).checkIn("event-name", "ticket-1", Optional.of("code-1"), "user", "user", false);
@@ -210,9 +213,10 @@ class CheckInApiControllerTest {
         tickets.add(ticket);
 
         when(checkInManager.checkIn("event-name", "ticket-1", Optional.of("code-1"), "user", "user", true))
-            .thenReturn(new TicketAndCheckInResult(null, null));
+                .thenReturn(new TicketAndCheckInResult(null, null));
 
-        Map<String, TicketAndCheckInResult> results = controller.bulkCheckIn("event-name", tickets, null, true, principal);
+        Map<String, TicketAndCheckInResult> results =
+                controller.bulkCheckIn("event-name", tickets, null, true, principal);
 
         verify(checkInManager).checkIn("event-name", "ticket-1", Optional.of("code-1"), "user", "user", true);
     }
@@ -228,11 +232,13 @@ class CheckInApiControllerTest {
         tickets.add(ticket);
 
         when(checkInManager.checkIn("event-name", "ticket-1", Optional.of("code-1"), "user", "user", false))
-            .thenReturn(new TicketAndCheckInResult(null, null));
+                .thenReturn(new TicketAndCheckInResult(null, null));
 
-        Map<String, TicketAndCheckInResult> results = controller.bulkCheckIn("event-name", tickets, null, false, principal);
+        Map<String, TicketAndCheckInResult> results =
+                controller.bulkCheckIn("event-name", tickets, null, false, principal);
 
-        verify(checkInManager, times(1)).checkIn("event-name", "ticket-1", Optional.of("code-1"), "user", "user", false);
+        verify(checkInManager, times(1))
+                .checkIn("event-name", "ticket-1", Optional.of("code-1"), "user", "user", false);
     }
 
     @Test
@@ -242,7 +248,8 @@ class CheckInApiControllerTest {
 
         boolean result = controller.manualCheckIn(1, "ticket-123", principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).manualCheckIn(1, "ticket-123", "user");
     }
 
@@ -250,12 +257,15 @@ class CheckInApiControllerTest {
     void manualCheckIn_withEventName_returnsResponseEntity() {
         when(principal.getName()).thenReturn("user");
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
-        when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user")).thenReturn(Optional.of(event));
+        when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
+                .thenReturn(Optional.of(event));
         when(checkInManager.manualCheckIn(1, "ticket-123", "user")).thenReturn(true);
 
         var result = controller.manualCheckIn("event-name", "ticket-123", principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(
+                        principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
     }
 
     @Test
@@ -265,7 +275,8 @@ class CheckInApiControllerTest {
 
         boolean result = controller.revertCheckIn(1, "ticket-123", principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).revertCheckIn(1, "ticket-123", "user");
     }
 
@@ -273,8 +284,9 @@ class CheckInApiControllerTest {
     void revertCheckIn_withEventName_returnsResponseEntity() {
         when(principal.getName()).thenReturn("user");
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
-        when(accessService.checkEventTicketIdentifierMembership(principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES))
-            .thenReturn(event);
+        when(accessService.checkEventTicketIdentifierMembership(
+                        principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES))
+                .thenReturn(event);
         when(checkInManager.revertCheckIn(1, "ticket-123", "user")).thenReturn(true);
 
         var result = controller.revertCheckIn("event-name", "ticket-123", principal);
@@ -287,13 +299,16 @@ class CheckInApiControllerTest {
         when(principal.getName()).thenReturn("user");
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
         when(checkInManager.confirmOnSitePayment("event-name", "ticket-123", Optional.of("code"), "user", "user"))
-            .thenReturn(result);
+                .thenReturn(result);
 
         CheckInApiController.TicketCode ticketCode = new CheckInApiController.TicketCode();
         ticketCode.setCode("code");
-        TicketAndCheckInResult actual = controller.confirmOnSitePayment("event-name", "ticket-123", ticketCode, null, principal);
+        TicketAndCheckInResult actual =
+                controller.confirmOnSitePayment("event-name", "ticket-123", ticketCode, null, principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(
+                        principal, "event-name", "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).confirmOnSitePayment("event-name", "ticket-123", Optional.of("code"), "user", "user");
     }
 
@@ -301,25 +316,23 @@ class CheckInApiControllerTest {
     void confirmOnSitePayment_withEventNameAndOfflineUser_usesOfflineUser() {
         when(principal.getName()).thenReturn("user");
         TicketAndCheckInResult result = new TicketAndCheckInResult(null, null);
-        when(checkInManager.confirmOnSitePayment("event-name", "ticket-123", Optional.of("code"), "user", "offline-user"))
-            .thenReturn(result);
+        when(checkInManager.confirmOnSitePayment(
+                        "event-name", "ticket-123", Optional.of("code"), "user", "offline-user"))
+                .thenReturn(result);
 
         CheckInApiController.TicketCode ticketCode = new CheckInApiController.TicketCode();
         ticketCode.setCode("code");
-        TicketAndCheckInResult actual = controller.confirmOnSitePayment("event-name", "ticket-123", ticketCode, "offline-user", principal);
+        TicketAndCheckInResult actual =
+                controller.confirmOnSitePayment("event-name", "ticket-123", ticketCode, "offline-user", principal);
 
-        verify(checkInManager).confirmOnSitePayment("event-name", "ticket-123", Optional.of("code"), "user", "offline-user");
+        verify(checkInManager)
+                .confirmOnSitePayment("event-name", "ticket-123", Optional.of("code"), "user", "offline-user");
     }
 
     @Test
     void getStatistics_withValidEvent_returnsStatistics() {
         when(principal.getName()).thenReturn("user");
-        CheckInStatistics stats =
-            new CheckInStatistics(
-                0,
-                0,
-                new Date()
-            );
+        CheckInStatistics stats = new CheckInStatistics(0, 0, new Date());
         when(checkInManager.getStatistics("event-name", null, "user")).thenReturn(stats);
 
         CheckInStatistics result = controller.getStatistics("event-name", null, principal);
@@ -332,12 +345,7 @@ class CheckInApiControllerTest {
     void getStatistics_withCategories_includesCategories() {
         when(principal.getName()).thenReturn("user");
         List<Integer> categories = Arrays.asList(1, 2);
-        CheckInStatistics stats =
-            new CheckInStatistics(
-                0,
-                0,
-                new Date()
-            );
+        CheckInStatistics stats = new CheckInStatistics(0, 0, new Date());
         when(checkInManager.getStatistics("event-name", categories, "user")).thenReturn(stats);
 
         CheckInStatistics result = controller.getStatistics("event-name", categories, principal);
@@ -349,9 +357,11 @@ class CheckInApiControllerTest {
     void confirmOnSitePayment_withEventId_confirmAndReturnsStatus() {
         when(checkInManager.confirmOnSitePayment("ticket-123")).thenReturn(Optional.of("ok"));
 
-        CheckInApiController.OnSitePaymentConfirmation result = controller.confirmOnSitePayment(1, "ticket-123", principal);
+        CheckInApiController.OnSitePaymentConfirmation result =
+                controller.confirmOnSitePayment(1, "ticket-123", principal);
 
-        verify(accessService).checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
+        verify(accessService)
+                .checkEventTicketIdentifierMembership(principal, 1, "ticket-123", AccessService.CHECKIN_ROLES);
         verify(checkInManager).confirmOnSitePayment("ticket-123");
     }
 
@@ -359,7 +369,8 @@ class CheckInApiControllerTest {
     void confirmOnSitePayment_withEventId_ticketNotFound_returnsFalse() {
         when(checkInManager.confirmOnSitePayment("ticket-123")).thenReturn(Optional.empty());
 
-        CheckInApiController.OnSitePaymentConfirmation result = controller.confirmOnSitePayment(1, "ticket-123", principal);
+        CheckInApiController.OnSitePaymentConfirmation result =
+                controller.confirmOnSitePayment(1, "ticket-123", principal);
 
         verify(checkInManager).confirmOnSitePayment("ticket-123");
     }
@@ -369,8 +380,8 @@ class CheckInApiControllerTest {
         when(principal.getName()).thenReturn("user");
         List<Integer> identifiers = Arrays.asList(1, 2, 3);
         when(checkInManager.getAttendeesIdentifiers(eq(1), any(Date.class), eq("user")))
-            .thenReturn(identifiers);
-        
+                .thenReturn(identifiers);
+
         HttpServletResponse response = mock(HttpServletResponse.class);
 
         List<Integer> result = controller.findAllIdentifiersForAdminCheckIn(1, null, response, principal);
@@ -384,7 +395,7 @@ class CheckInApiControllerTest {
         long changedSince = System.currentTimeMillis();
         List<Integer> identifiers = Arrays.asList(1, 2, 3);
         when(checkInManager.getAttendeesIdentifiers(eq(1), any(Date.class), eq("user")))
-            .thenReturn(identifiers);
+                .thenReturn(identifiers);
 
         HttpServletResponse response = mock(HttpServletResponse.class);
 
@@ -412,21 +423,12 @@ class CheckInApiControllerTest {
     @Test
     void searchAttendees_withValidQueryAndEvent_returnsResults() {
         when(principal.getName()).thenReturn("user");
-        AttendeeSearchResults results = new AttendeeSearchResults(
-            0,
-            0,
-            0,
-            0,
-            Collections.emptyList()
-        );
+        AttendeeSearchResults results = new AttendeeSearchResults(0, 0, 0, 0, Collections.emptyList());
         Event event = mock(Event.class);
 
-        when(eventManager.getOptionalByName(
-            "event-name",
-            "user"
-        )).thenReturn(Optional.of(event));
+        when(eventManager.getOptionalByName("event-name", "user")).thenReturn(Optional.of(event));
         when(checkInManager.searchAttendees(any(), eq("query"), eq(0), eq(principal)))
-            .thenReturn(results);
+                .thenReturn(results);
 
         var result = controller.searchAttendees("event-name", "query", 0, principal);
 
@@ -474,25 +476,16 @@ class CheckInApiControllerTest {
     void getLabelLayoutForEvent_withOfflineCheckInEnabled_returnsLayout() {
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(accessService.canAccessEvent(principal, "event-name")).thenReturn(event);
-        
-        String layoutJson = "{\"qrCode\":{\"additionalInfo\":[],\"infoSeparator\":\" | \"},\"content\":{\"firstRow\":\"name\",\"secondRow\":\"email\",\"thirdRow\":[],\"additionalRows\":[],\"checkbox\":false},\"general\":{\"printPartialID\":true},\"mediaName\":\"test\"}";
-        ConfigurationKeyValuePathLevel config =
-            new ConfigurationKeyValuePathLevel(
-                "LABEL_LAYOUT",
-                layoutJson,
-                null
-            );
+
+        String layoutJson =
+                "{\"qrCode\":{\"additionalInfo\":[],\"infoSeparator\":\" | \"},\"content\":{\"firstRow\":\"name\",\"secondRow\":\"email\",\"thirdRow\":[],\"additionalRows\":[],\"checkbox\":false},\"general\":{\"printPartialID\":true},\"mediaName\":\"test\"}";
+        ConfigurationKeyValuePathLevel config = new ConfigurationKeyValuePathLevel("LABEL_LAYOUT", layoutJson, null);
 
         ConfigurationManager.MaybeConfiguration maybeConfig =
-            new ConfigurationManager.MaybeConfiguration(
-                ConfigurationKeys.LABEL_LAYOUT,
-                config
-            );
+                new ConfigurationManager.MaybeConfiguration(ConfigurationKeys.LABEL_LAYOUT, config);
 
-        when(configurationManager.getFor(
-            eq(ConfigurationKeys.LABEL_LAYOUT),
-            any()
-        )).thenReturn(maybeConfig);
+        when(configurationManager.getFor(eq(ConfigurationKeys.LABEL_LAYOUT), any()))
+                .thenReturn(maybeConfig);
         Predicate<EventAndOrganizationId> predicate = mock(Predicate.class);
 
         when(checkInManager.isOfflineCheckInEnabled()).thenReturn(predicate);
@@ -525,42 +518,25 @@ class CheckInApiControllerTest {
 
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
 
-        when(accessService.checkEventMembership(
-            principal,
-            "event-name",
-            AccessService.CHECKIN_ROLES))
-            .thenReturn(event);
+        when(accessService.checkEventMembership(principal, "event-name", AccessService.CHECKIN_ROLES))
+                .thenReturn(event);
 
         Predicate<EventAndOrganizationId> predicate = mock(Predicate.class);
 
-        when(checkInManager.isOfflineCheckInEnabled())
-            .thenReturn(predicate);
+        when(checkInManager.isOfflineCheckInEnabled()).thenReturn(predicate);
 
-        when(predicate.test(event))
-            .thenReturn(true);
+        when(predicate.test(event)).thenReturn(true);
 
         List<Integer> identifiers = Arrays.asList(1, 2, 3);
 
-        when(checkInManager.getAttendeesIdentifiers(
-            eq(event),
-            any(Date.class),
-            eq("user")
-        )).thenReturn(identifiers);
+        when(checkInManager.getAttendeesIdentifiers(eq(event), any(Date.class), eq("user")))
+                .thenReturn(identifiers);
 
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        List<Integer> result =
-            controller.getOfflineIdentifiers(
-                "event-name",
-                null,
-                response,
-                principal);
+        List<Integer> result = controller.getOfflineIdentifiers("event-name", null, response, principal);
 
-        verify(checkInManager).getAttendeesIdentifiers(
-            eq(event),
-            any(Date.class),
-            eq("user")
-        );
+        verify(checkInManager).getAttendeesIdentifiers(eq(event), any(Date.class), eq("user"));
     }
 
     @Test
@@ -568,23 +544,18 @@ class CheckInApiControllerTest {
 
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
 
-        when(accessService.checkEventMembership(principal,"event-name",AccessService.CHECKIN_ROLES)).thenReturn(event);
+        when(accessService.checkEventMembership(principal, "event-name", AccessService.CHECKIN_ROLES))
+                .thenReturn(event);
 
         Predicate<EventAndOrganizationId> predicate = mock(Predicate.class);
 
         when(checkInManager.isOfflineCheckInEnabled()).thenReturn(predicate);
 
-        when(predicate.test(event))
-            .thenReturn(false);
+        when(predicate.test(event)).thenReturn(false);
 
-        HttpServletResponse response =mock(HttpServletResponse.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
 
-        List<Integer> result =
-            controller.getOfflineIdentifiers(
-                "event-name",
-                null,
-                response,
-                principal);
+        List<Integer> result = controller.getOfflineIdentifiers("event-name", null, response, principal);
 
         verify(checkInManager, never()).getAttendeesIdentifiers(any(), any(), any());
         assertTrue(result.isEmpty());
@@ -601,54 +572,24 @@ class CheckInApiControllerTest {
 
         when(event.getConfigurationLevel()).thenReturn(configurationLevel);
 
-        when(eventManager.getOptionalByName("event-name", "user"))
-            .thenReturn(Optional.of(event));
+        when(eventManager.getOptionalByName("event-name", "user")).thenReturn(Optional.of(event));
 
-        ConfigurationKeyValuePathLevel cfg =
-            new ConfigurationKeyValuePathLevel(
-                "LABEL_LAYOUT",
-                null,
-                null
-            );
+        ConfigurationKeyValuePathLevel cfg = new ConfigurationKeyValuePathLevel("LABEL_LAYOUT", null, null);
 
         ConfigurationManager.MaybeConfiguration maybeCfg =
-            new ConfigurationManager.MaybeConfiguration(
-                ConfigurationKeys.LABEL_LAYOUT,
-                cfg
-            );
+                new ConfigurationManager.MaybeConfiguration(ConfigurationKeys.LABEL_LAYOUT, cfg);
 
-        when(configurationManager.getFor(
-            ConfigurationKeys.LABEL_LAYOUT,
-            configurationLevel
-        )).thenReturn(maybeCfg);
+        when(configurationManager.getFor(ConfigurationKeys.LABEL_LAYOUT, configurationLevel))
+                .thenReturn(maybeCfg);
 
-        when(checkInManager.getEncryptedAttendeesInformation(
-            eq(event),
-            any(),
-            eq(ids)
-        )).thenReturn(new HashMap<>());
+        when(checkInManager.getEncryptedAttendeesInformation(eq(event), any(), eq(ids)))
+                .thenReturn(new HashMap<>());
 
-        Map<String, String> result =
-            controller.getOfflineEncryptedInfo(
-                "event-name",
-                null,
-                ids,
-                principal
-            );
+        Map<String, String> result = controller.getOfflineEncryptedInfo("event-name", null, ids, principal);
 
-        verify(accessService)
-            .checkEventMembership(
-                principal,
-                "event-name",
-                AccessService.CHECKIN_ROLES
-            );
+        verify(accessService).checkEventMembership(principal, "event-name", AccessService.CHECKIN_ROLES);
 
-        verify(checkInManager)
-            .getEncryptedAttendeesInformation(
-                eq(event),
-                any(),
-                eq(ids)
-            );
+        verify(checkInManager).getEncryptedAttendeesInformation(eq(event), any(), eq(ids));
     }
 
     @Test
@@ -656,55 +597,29 @@ class CheckInApiControllerTest {
         when(principal.getName()).thenReturn("user");
 
         List<Integer> ids = Arrays.asList(1);
-        List<String> additionalFields =
-            Arrays.asList("field1", "field2");
+        List<String> additionalFields = Arrays.asList("field1", "field2");
 
         Event event = mock(Event.class);
         ConfigurationLevel configurationLevel = mock(ConfigurationLevel.class);
 
         when(event.getConfigurationLevel()).thenReturn(configurationLevel);
 
-        when(eventManager.getOptionalByName("event-name", "user"))
-            .thenReturn(Optional.of(event));
+        when(eventManager.getOptionalByName("event-name", "user")).thenReturn(Optional.of(event));
 
-        ConfigurationKeyValuePathLevel cfg =
-            new ConfigurationKeyValuePathLevel(
-                "LABEL_LAYOUT",
-                null,
-                null
-            );
+        ConfigurationKeyValuePathLevel cfg = new ConfigurationKeyValuePathLevel("LABEL_LAYOUT", null, null);
 
         ConfigurationManager.MaybeConfiguration maybeCfg =
-            new ConfigurationManager.MaybeConfiguration(
-                ConfigurationKeys.LABEL_LAYOUT,
-                cfg
-            );
+                new ConfigurationManager.MaybeConfiguration(ConfigurationKeys.LABEL_LAYOUT, cfg);
 
-        when(configurationManager.getFor(
-            ConfigurationKeys.LABEL_LAYOUT,
-            configurationLevel
-        )).thenReturn(maybeCfg);
+        when(configurationManager.getFor(ConfigurationKeys.LABEL_LAYOUT, configurationLevel))
+                .thenReturn(maybeCfg);
 
-        when(checkInManager.getEncryptedAttendeesInformation(
-            eq(event),
-            any(),
-            eq(ids)
-        )).thenReturn(new HashMap<>());
+        when(checkInManager.getEncryptedAttendeesInformation(eq(event), any(), eq(ids)))
+                .thenReturn(new HashMap<>());
 
-        Map<String, String> result =
-            controller.getOfflineEncryptedInfo(
-                "event-name",
-                additionalFields,
-                ids,
-                principal
-            );
+        Map<String, String> result = controller.getOfflineEncryptedInfo("event-name", additionalFields, ids, principal);
 
-        verify(checkInManager)
-            .getEncryptedAttendeesInformation(
-                eq(event),
-                any(),
-                eq(ids)
-            );
+        verify(checkInManager).getEncryptedAttendeesInformation(eq(event), any(), eq(ids));
     }
 
     @Test

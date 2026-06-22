@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.support;
 
+import static alfio.model.PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE;
+import static alfio.model.PurchaseContextFieldConfiguration.Context.ATTENDEE;
+import static java.util.Objects.requireNonNullElse;
+
 import alfio.controller.form.AdditionalServiceLinkForm;
 import alfio.controller.form.UpdateTicketOwnerForm;
 import alfio.controller.support.TemplateProcessor;
@@ -31,6 +35,11 @@ import alfio.repository.TicketRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.util.*;
 import alfio.util.Validator.AdvancedTicketAssignmentValidator;
+import java.text.Collator;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -40,21 +49,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 
-import java.text.Collator;
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static alfio.model.PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE;
-import static alfio.model.PurchaseContextFieldConfiguration.Context.ATTENDEE;
-import static java.util.Objects.requireNonNullElse;
-
 @Component
 @AllArgsConstructor
 public class TicketHelper {
 
-    private static final Set<TicketReservation.TicketReservationStatus> PENDING_RESERVATION_STATUSES = EnumSet.of(TicketReservation.TicketReservationStatus.PENDING, TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT);
+    private static final Set<TicketReservation.TicketReservationStatus> PENDING_RESERVATION_STATUSES = EnumSet.of(
+            TicketReservation.TicketReservationStatus.PENDING,
+            TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT);
 
     private final TicketReservationManager ticketReservationManager;
     private final OrganizationRepository organizationRepository;
@@ -68,33 +69,43 @@ public class TicketHelper {
     private final ConfigurationManager configurationManager;
     private final ExtensionManager extensionManager;
 
-
-    public BiFunction<Ticket, Event, List<FieldConfigurationDescriptionAndValue>> buildRetrieveFieldValuesFunction(boolean formatValues) {
-        return EventUtil.retrieveFieldValues(ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, formatValues);
+    public BiFunction<Ticket, Event, List<FieldConfigurationDescriptionAndValue>> buildRetrieveFieldValuesFunction(
+            boolean formatValues) {
+        return EventUtil.retrieveFieldValues(
+                ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, formatValues);
     }
 
-    public Optional<Triple<ValidationResult, Event, Ticket>> assignTicket(String eventName,
-                                                                          UUID ticketIdentifier,
-                                                                          UpdateTicketOwnerForm updateTicketOwner,
-                                                                          Optional<BindingResult> bindingResult,
-                                                                          Locale fallbackLocale,
-                                                                          Optional<UserDetails> userDetails,
-                                                                          boolean addPrefix) {
+    public Optional<Triple<ValidationResult, Event, Ticket>> assignTicket(
+            String eventName,
+            UUID ticketIdentifier,
+            UpdateTicketOwnerForm updateTicketOwner,
+            Optional<BindingResult> bindingResult,
+            Locale fallbackLocale,
+            Optional<UserDetails> userDetails,
+            boolean addPrefix) {
 
-        return ticketReservationManager.fetchComplete(eventName, ticketIdentifier)
-                .map(result -> assignTicket(updateTicketOwner, bindingResult, fallbackLocale, userDetails, result, addPrefix ? "tickets["+ticketIdentifier+"]" : ""));
+        return ticketReservationManager
+                .fetchComplete(eventName, ticketIdentifier)
+                .map(result -> assignTicket(
+                        updateTicketOwner,
+                        bindingResult,
+                        fallbackLocale,
+                        userDetails,
+                        result,
+                        addPrefix ? "tickets[" + ticketIdentifier + "]" : ""));
     }
 
-    private Triple<ValidationResult, Event, Ticket> assignTicket(UpdateTicketOwnerForm updateTicketOwner,
-                                                                 Optional<BindingResult> bindingResult,
-                                                                 Locale fallbackLocale,
-                                                                 Optional<UserDetails> userDetails,
-                                                                 Triple<Event, TicketReservation, Ticket> result,
-                                                                 String formPrefix) {
+    private Triple<ValidationResult, Event, Ticket> assignTicket(
+            UpdateTicketOwnerForm updateTicketOwner,
+            Optional<BindingResult> bindingResult,
+            Locale fallbackLocale,
+            Optional<UserDetails> userDetails,
+            Triple<Event, TicketReservation, Ticket> result,
+            String formPrefix) {
         Ticket t = result.getRight();
         final Event event = result.getLeft();
-        if(t.getLockedAssignment()) {
-            //in case of locked assignment, fullName and Email will be overwritten
+        if (t.getLockedAssignment()) {
+            // in case of locked assignment, fullName and Email will be overwritten
             updateTicketOwner.setFirstName(t.getFirstName());
             updateTicketOwner.setLastName(t.getLastName());
             updateTicketOwner.setFullName(t.getFullName());
@@ -102,44 +113,71 @@ public class TicketHelper {
         }
 
         final TicketReservation ticketReservation = result.getMiddle();
-        List<PurchaseContextFieldConfiguration> fieldConf = purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId());
-        var sameCountryValidator = new SameCountryValidator(configurationManager, extensionManager, event, ticketReservation.getId(), vatChecker);
-        AdvancedTicketAssignmentValidator advancedValidator = new AdvancedTicketAssignmentValidator(sameCountryValidator,
-            new GroupManager.WhitelistValidator(event.getId(), groupManager));
+        List<PurchaseContextFieldConfiguration> fieldConf =
+                purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId());
+        var sameCountryValidator = new SameCountryValidator(
+                configurationManager, extensionManager, event, ticketReservation.getId(), vatChecker);
+        AdvancedTicketAssignmentValidator advancedValidator = new AdvancedTicketAssignmentValidator(
+                sameCountryValidator, new GroupManager.WhitelistValidator(event.getId(), groupManager));
 
-
-        var additionalServiceItems = additionalServiceItemRepository.findByReservationUuid(event.getId(), ticketReservation.getId());
+        var additionalServiceItems =
+                additionalServiceItemRepository.findByReservationUuid(event.getId(), ticketReservation.getId());
 
         List<Ticket> ticketsInReservation = ticketRepository.findTicketsInReservation(ticketReservation.getId());
-        var ticketFieldFilterer = new Validator.AdditionalFieldsFilterer(fieldConf,
-            ticketsInReservation,
-            event.supportsLinkedAdditionalServices(),
-            additionalServiceItems);
+        var ticketFieldFilterer = new Validator.AdditionalFieldsFilterer(
+                fieldConf, ticketsInReservation, event.supportsLinkedAdditionalServices(), additionalServiceItems);
 
-        Validator.AdvancedValidationContext context = new Validator.AdvancedValidationContext(updateTicketOwner, fieldConf, t.getCategoryId(), t.getUuid(), formPrefix);
+        Validator.AdvancedValidationContext context = new Validator.AdvancedValidationContext(
+                updateTicketOwner, fieldConf, t.getCategoryId(), t.getUuid(), formPrefix);
 
-        ValidationResult validationResult = Validator.validateTicketAssignment(updateTicketOwner, ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ATTENDEE)), bindingResult, event, formPrefix, sameCountryValidator, extensionManager)
-                .or(validateAdditionalItemsFields(event, updateTicketOwner, t.getPublicUuid(), ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ADDITIONAL_SERVICE)), additionalServiceItems, bindingResult.orElse(null), sameCountryValidator))
+        ValidationResult validationResult = Validator.validateTicketAssignment(
+                        updateTicketOwner,
+                        ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ATTENDEE)),
+                        bindingResult,
+                        event,
+                        formPrefix,
+                        sameCountryValidator,
+                        extensionManager)
+                .or(validateAdditionalItemsFields(
+                        event,
+                        updateTicketOwner,
+                        t.getPublicUuid(),
+                        ticketFieldFilterer.getFieldsForTicket(t.getPublicUuid(), EnumSet.of(ADDITIONAL_SERVICE)),
+                        additionalServiceItems,
+                        bindingResult.orElse(null),
+                        sameCountryValidator))
                 .or(Validator.performAdvancedValidation(advancedValidator, context, bindingResult.orElse(null)))
-                .ifSuccess(() -> updateTicketOwner(updateTicketOwner, fallbackLocale, t, event, ticketReservation, userDetails));
-        return Triple.of(validationResult, event, ticketsInReservation.stream().filter(t2 -> t2.getUuid().equals(t.getUuid())).findFirst().orElseThrow());
+                .ifSuccess(() ->
+                        updateTicketOwner(updateTicketOwner, fallbackLocale, t, event, ticketReservation, userDetails));
+        return Triple.of(
+                validationResult,
+                event,
+                ticketsInReservation.stream()
+                        .filter(t2 -> t2.getUuid().equals(t.getUuid()))
+                        .findFirst()
+                        .orElseThrow());
     }
 
-    private ValidationResult validateAdditionalItemsFields(Event event,
-                                                           UpdateTicketOwnerForm updateTicketOwner,
-                                                           UUID ticketPublicUUID,
-                                                           List<PurchaseContextFieldConfiguration> fieldsForTicket,
-                                                           List<AdditionalServiceItem> additionalServiceItems,
-                                                           BindingResult bindingResult,
-                                                           SameCountryValidator vatValidator) {
+    private ValidationResult validateAdditionalItemsFields(
+            Event event,
+            UpdateTicketOwnerForm updateTicketOwner,
+            UUID ticketPublicUUID,
+            List<PurchaseContextFieldConfiguration> fieldsForTicket,
+            List<AdditionalServiceItem> additionalServiceItems,
+            BindingResult bindingResult,
+            SameCountryValidator vatValidator) {
 
         if (!event.supportsLinkedAdditionalServices() || fieldsForTicket.isEmpty() || bindingResult == null) {
             return ValidationResult.success();
         }
         final String publicUUIDAsString = ticketPublicUUID.toString();
-        Map<String, List<AdditionalServiceLinkForm>> map = requireNonNullElse(updateTicketOwner.getAdditionalServices(), Map.of());
+        Map<String, List<AdditionalServiceLinkForm>> map =
+                requireNonNullElse(updateTicketOwner.getAdditionalServices(), Map.of());
         var fieldForms = Objects.requireNonNullElse(map.get(publicUUIDAsString), List.<AdditionalServiceLinkForm>of());
-        int formFieldsSize = (int) fieldForms.stream().flatMap(f -> f.getAdditional().keySet().stream()).distinct().count();
+        int formFieldsSize = (int) fieldForms.stream()
+                .flatMap(f -> f.getAdditional().keySet().stream())
+                .distinct()
+                .count();
         if (formFieldsSize != fieldsForTicket.size()) {
             // form contains wrong fields. Reject all values
             bindingResult.reject(ErrorsCode.EMPTY_FIELD);
@@ -148,7 +186,9 @@ public class TicketHelper {
             return ValidationResult.success();
         }
 
-        var bookedItems = fieldForms.stream().map(AdditionalServiceLinkForm::getAdditionalServiceItemId).collect(Collectors.toSet());
+        var bookedItems = fieldForms.stream()
+                .map(AdditionalServiceLinkForm::getAdditionalServiceItemId)
+                .collect(Collectors.toSet());
 
         // validate that the input form only contains items that are actually linked to the current ticket
         int count = additionalServiceItemRepository.countMatchingItemsForTicket(ticketPublicUUID, bookedItems);
@@ -162,7 +202,14 @@ public class TicketHelper {
 
         for (int i = 0; i < fieldForms.size(); i++) {
             var form = fieldForms.get(i);
-            result = result.or(Validator.validateAdditionalItemFieldsForTicket(form, fieldsForTicket, bindingResult, "additionalServices["+publicUUIDAsString+"]["+i+"]", vatValidator, fieldForms, additionalServiceItems));
+            result = result.or(Validator.validateAdditionalItemFieldsForTicket(
+                    form,
+                    fieldsForTicket,
+                    bindingResult,
+                    "additionalServices[" + publicUUIDAsString + "][" + i + "]",
+                    vatValidator,
+                    fieldForms,
+                    additionalServiceItems));
         }
 
         return result;
@@ -171,37 +218,50 @@ public class TicketHelper {
     /**
      * This method has been implemented explicitly for PayPal, since we need to pre-assign tickets before payment, in order to keep the data inserted by the customer
      */
-    public Optional<Triple<ValidationResult, Event, Ticket>> preAssignTicket(String eventName,
-                                                                             String reservationId,
-                                                                             UUID publicTicketUUID,
-                                                                             UpdateTicketOwnerForm updateTicketOwner,
-                                                                             Optional<BindingResult> bindingResult,
-                                                                             Locale fallbackLocale) {
+    public Optional<Triple<ValidationResult, Event, Ticket>> preAssignTicket(
+            String eventName,
+            String reservationId,
+            UUID publicTicketUUID,
+            UpdateTicketOwnerForm updateTicketOwner,
+            Optional<BindingResult> bindingResult,
+            Locale fallbackLocale) {
 
-        return ticketReservationManager.from(eventName, reservationId, publicTicketUUID)
-            .filter(temp -> PENDING_RESERVATION_STATUSES.contains(temp.getMiddle().getStatus()) && temp.getRight().getStatus() == Ticket.TicketStatus.PENDING)
-            .map(result -> assignTicket(updateTicketOwner, bindingResult, fallbackLocale,Optional.empty(), result,"tickets["+publicTicketUUID.toString()+"]"));
+        return ticketReservationManager
+                .from(eventName, reservationId, publicTicketUUID)
+                .filter(temp ->
+                        PENDING_RESERVATION_STATUSES.contains(temp.getMiddle().getStatus())
+                                && temp.getRight().getStatus() == Ticket.TicketStatus.PENDING)
+                .map(result -> assignTicket(
+                        updateTicketOwner,
+                        bindingResult,
+                        fallbackLocale,
+                        Optional.empty(),
+                        result,
+                        "tickets[" + publicTicketUUID.toString() + "]"));
     }
 
-    public Optional<Triple<ValidationResult, Event, Ticket>> assignTicket(String eventName,
-                                                                          UUID ticketIdentifier,
-                                                                          UpdateTicketOwnerForm updateTicketOwner,
-                                                                          Optional<BindingResult> bindingResult,
-                                                                          Locale locale) {
-        return assignTicket(eventName, ticketIdentifier, updateTicketOwner, bindingResult, locale, Optional.empty(), false);
+    public Optional<Triple<ValidationResult, Event, Ticket>> assignTicket(
+            String eventName,
+            UUID ticketIdentifier,
+            UpdateTicketOwnerForm updateTicketOwner,
+            Optional<BindingResult> bindingResult,
+            Locale locale) {
+        return assignTicket(
+                eventName, ticketIdentifier, updateTicketOwner, bindingResult, locale, Optional.empty(), false);
     }
 
-    public Optional<Triple<ValidationResult, Event, Ticket>> directTicketAssignment(String eventName,
-                                                                                    String reservationId,
-                                                                                    String email,
-                                                                                    String fullName,
-                                                                                    String firstName,
-                                                                                    String lastName,
-                                                                                    String userLanguage,
-                                                                                    Optional<BindingResult> bindingResult,
-                                                                                    Locale locale) {
+    public Optional<Triple<ValidationResult, Event, Ticket>> directTicketAssignment(
+            String eventName,
+            String reservationId,
+            String email,
+            String fullName,
+            String firstName,
+            String lastName,
+            String userLanguage,
+            Optional<BindingResult> bindingResult,
+            Locale locale) {
         List<Ticket> tickets = ticketReservationManager.findTicketsInReservation(reservationId);
-        if(tickets.size() > 1) {
+        if (tickets.size() > 1) {
             return Optional.empty();
         }
         var ticketUuid = tickets.get(0).getPublicUuid();
@@ -228,16 +288,18 @@ public class TicketHelper {
     }
 
     private static List<LocalizedCountry> sortCountries(Stream<Pair<String, String>> countries) {
-        var collator = Collator.getInstance(Locale.FRENCH); //<- gives the better sorting experience...
+        var collator = Collator.getInstance(Locale.FRENCH); // <- gives the better sorting experience...
         return countries
-            .map(pair -> new LocalizedCountry(pair.getKey(), pair.getValue()))
-            .sorted((lc1, lc2) -> collator.compare(lc1.name(), lc2.name()))
-            .toList();
+                .map(pair -> new LocalizedCountry(pair.getKey(), pair.getValue()))
+                .sorted((lc1, lc2) -> collator.compare(lc1.name(), lc2.name()))
+                .toList();
     }
 
     public static List<Pair<String, String>> getLocalizedEUCountriesForVat(Locale locale, String euCountries) {
-        return fixVAT(mapISOCountries(Stream.of(Locale.getISOCountries())
-            .filter(isoCode -> Strings.CS.contains(euCountries, isoCode) || "GR".equals(isoCode)), locale));
+        return fixVAT(mapISOCountries(
+                Stream.of(Locale.getISOCountries())
+                        .filter(isoCode -> Strings.CS.contains(euCountries, isoCode) || "GR".equals(isoCode)),
+                locale));
     }
 
     public static List<Pair<String, String>> getLocalizedCountriesForVat(Locale locale) {
@@ -246,32 +308,42 @@ public class TicketHelper {
 
     private static List<Pair<String, String>> fixVAT(List<Pair<String, String>> countries) {
         return countries.stream()
-            .map(kv -> Pair.of(FIX_ISO_CODE_FOR_VAT.getOrDefault(kv.getKey(), kv.getKey()), kv.getValue()))
-            .collect(Collectors.toList());
+                .map(kv -> Pair.of(FIX_ISO_CODE_FOR_VAT.getOrDefault(kv.getKey(), kv.getKey()), kv.getValue()))
+                .collect(Collectors.toList());
     }
-
 
     //
     public static final Map<String, String> FIX_ISO_CODE_FOR_VAT = Collections.singletonMap("GR", "EL");
 
     private static List<Pair<String, String>> mapISOCountries(Stream<String> isoCountries, Locale locale) {
         return isoCountries
-            .map(isoCode -> Pair.of(isoCode, new Locale("", isoCode).getDisplayCountry(locale)))
-            .sorted(Comparator.comparing(Pair::getRight))
-            .collect(Collectors.toList());
+                .map(isoCode -> Pair.of(isoCode, new Locale("", isoCode).getDisplayCountry(locale)))
+                .sorted(Comparator.comparing(Pair::getRight))
+                .collect(Collectors.toList());
     }
 
-    private void updateTicketOwner(UpdateTicketOwnerForm updateTicketOwner, Locale fallBackLocale, Ticket t, Event event, TicketReservation ticketReservation, Optional<UserDetails> userDetails) {
+    private void updateTicketOwner(
+            UpdateTicketOwnerForm updateTicketOwner,
+            Locale fallBackLocale,
+            Ticket t,
+            Event event,
+            TicketReservation ticketReservation,
+            Optional<UserDetails> userDetails) {
         Locale language = Optional.ofNullable(updateTicketOwner.getUserLanguage())
                 .filter(StringUtils::isNotBlank)
                 .map(LocaleUtil::forLanguageTag)
                 .orElse(fallBackLocale);
         var ticketLanguage = LocaleUtil.getTicketLanguage(t, fallBackLocale);
-        ticketReservationManager.updateTicketOwner(t, language, event, updateTicketOwner,
+        ticketReservationManager.updateTicketOwner(
+                t,
+                language,
+                event,
+                updateTicketOwner,
                 getConfirmationTextBuilder(ticketLanguage, event, ticketReservation, t),
                 getOwnerChangeTextBuilder(ticketLanguage, t, event),
                 userDetails);
-        if(t.hasBeenSold() && !groupManager.findLinks(event.getId(), t.getCategoryId()).isEmpty()) {
+        if (t.hasBeenSold()
+                && !groupManager.findLinks(event.getId(), t.getCategoryId()).isEmpty()) {
             ticketRepository.forbidReassignment(Collections.singletonList(t.getId()));
         }
     }
@@ -279,16 +351,16 @@ public class TicketHelper {
     private PartialTicketTextGenerator getOwnerChangeTextBuilder(Locale ticketLanguage, Ticket t, Event event) {
         Organization organization = organizationRepository.getById(event.getOrganizationId());
         String ticketUrl = ReservationUtil.ticketUpdateUrl(event, t, configurationManager);
-        return TemplateProcessor.buildEmailForOwnerChange(event, t, organization, ticketUrl, templateManager, ticketLanguage);
+        return TemplateProcessor.buildEmailForOwnerChange(
+                event, t, organization, ticketUrl, templateManager, ticketLanguage);
     }
 
-    public PartialTicketTextGenerator getConfirmationTextBuilder(Locale ticketLanguage,
-                                                                 Event event,
-                                                                 TicketReservation ticketReservation,
-                                                                 Ticket ticket) {
-        return ticketReservationManager.getTicketEmailGenerator(event,
-            ticketReservation,
-            ticketLanguage,
-            ticketReservationManager.retrieveAttendeeAdditionalInfoForTicket(ticket));
+    public PartialTicketTextGenerator getConfirmationTextBuilder(
+            Locale ticketLanguage, Event event, TicketReservation ticketReservation, Ticket ticket) {
+        return ticketReservationManager.getTicketEmailGenerator(
+                event,
+                ticketReservation,
+                ticketLanguage,
+                ticketReservationManager.retrieveAttendeeAdditionalInfoForTicket(ticket));
     }
 }

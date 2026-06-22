@@ -16,23 +16,20 @@
  */
 package alfio.util;
 
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
+import java.util.Optional;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.ServerErrorMessage;
 import org.springframework.jdbc.UncategorizedSQLException;
 
-import java.sql.Timestamp;
-import java.time.ZonedDateTime;
-import java.util.Optional;
-
 public class SqlUtils {
 
-    private SqlUtils() {
-
-    }
+    private SqlUtils() {}
 
     public static Optional<ServerErrorMessage> findServerError(UncategorizedSQLException exception) {
         for (var throwable : exception.getSQLException()) {
-            if(throwable instanceof PSQLException lException && lException.getServerErrorMessage() != null) {
+            if (throwable instanceof PSQLException lException && lException.getServerErrorMessage() != null) {
                 return Optional.ofNullable(lException.getServerErrorMessage());
             }
         }
@@ -43,6 +40,7 @@ public class SqlUtils {
         if (timestamp == null) {
             return null;
         }
-        return ZonedDateTime.ofInstant(timestamp.toInstant(), ClockProvider.clock().getZone());
+        return ZonedDateTime.ofInstant(
+                timestamp.toInstant(), ClockProvider.clock().getZone());
     }
 }

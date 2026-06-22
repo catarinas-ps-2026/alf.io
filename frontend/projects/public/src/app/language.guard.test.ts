@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { type ActivatedRouteSnapshot, type RouterStateSnapshot } from '@angular/router';
+import {
+    type ActivatedRouteSnapshot,
+    type RouterStateSnapshot,
+} from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { LanguageGuard } from './language.guard';
 import { I18nService } from './shared/i18n.service';
@@ -32,13 +35,26 @@ describe('LanguageGuard', () => {
         ticketCategories: [],
         localization: {},
         privacyPolicyUrl: null,
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: true, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: true,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
-        contentLanguages: [{ locale: 'en', name: 'English' }, { locale: 'it', name: 'Italiano' }],
+        contentLanguages: [
+            { locale: 'en', name: 'English' },
+            { locale: 'it', name: 'Italiano' },
+        ],
         currency: 'USD',
     } as unknown as PurchaseContext;
 
-    const mockRoute = (queryParams?: any, data?: any, params?: any): Partial<ActivatedRouteSnapshot> => ({
+    const mockRoute = (
+        queryParams?: any,
+        data?: any,
+        params?: any,
+    ): Partial<ActivatedRouteSnapshot> => ({
         queryParams: queryParams || {},
         data: data || {},
         params: params || {},
@@ -52,7 +68,12 @@ describe('LanguageGuard', () => {
         mockI18nService = {
             getPersistedLanguage: vi.fn(),
             useTranslation: vi.fn(() => of(true)),
-            getAvailableLanguages: vi.fn(() => of([{ locale: 'en', name: 'English' }, { locale: 'it', name: 'Italiano' }])),
+            getAvailableLanguages: vi.fn(() =>
+                of([
+                    { locale: 'en', name: 'English' },
+                    { locale: 'it', name: 'Italiano' },
+                ]),
+            ),
         };
 
         mockPurchaseContextService = {
@@ -67,7 +88,10 @@ describe('LanguageGuard', () => {
             providers: [
                 LanguageGuard,
                 { provide: I18nService, useValue: mockI18nService },
-                { provide: PurchaseContextService, useValue: mockPurchaseContextService },
+                {
+                    provide: PurchaseContextService,
+                    useValue: mockPurchaseContextService,
+                },
                 { provide: TranslateService, useValue: mockTranslateService },
             ],
         }).compileComponents();
@@ -79,34 +103,75 @@ describe('LanguageGuard', () => {
         it('should use queryParam lang when available and supported', () => {
             mockI18nService.getPersistedLanguage.mockReturnValue('en');
 
-            const route = mockRoute({ lang: 'it' }, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
-            mockPurchaseContextService.getContext.mockReturnValue(of(mockPurchaseContext));
+            const route = mockRoute(
+                { lang: 'it' },
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
+            mockPurchaseContextService.getContext.mockReturnValue(
+                of(mockPurchaseContext),
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
-            expect(mockI18nService.useTranslation).toHaveBeenCalledWith('event', 'test-event', 'it');
+            expect(mockI18nService.useTranslation).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+                'it',
+            );
         });
 
         it('should use persisted lang when queryParam not available', () => {
             mockI18nService.getPersistedLanguage.mockReturnValue('it');
             mockI18nService.useTranslation.mockReturnValue(of(true));
 
-            const route = mockRoute({}, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
-            mockPurchaseContextService.getContext.mockReturnValue(of(mockPurchaseContext));
+            const route = mockRoute(
+                {},
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
+            mockPurchaseContextService.getContext.mockReturnValue(
+                of(mockPurchaseContext),
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
-            expect(mockI18nService.useTranslation).toHaveBeenCalledWith('event', 'test-event', 'it');
+            expect(mockI18nService.useTranslation).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+                'it',
+            );
         });
 
         it('should use browser lang when no queryParam or persisted', () => {
             mockI18nService.getPersistedLanguage.mockReturnValue(null);
             mockI18nService.useTranslation.mockReturnValue(of(true));
 
-            const route = mockRoute({}, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
-            mockPurchaseContextService.getContext.mockReturnValue(of(mockPurchaseContext));
+            const route = mockRoute(
+                {},
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
+            mockPurchaseContextService.getContext.mockReturnValue(
+                of(mockPurchaseContext),
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
             expect(mockTranslateService.getBrowserLang).toHaveBeenCalled();
         });
@@ -116,12 +181,27 @@ describe('LanguageGuard', () => {
             mockTranslateService.getBrowserLang.mockReturnValue('fr');
             mockI18nService.useTranslation.mockReturnValue(of(true));
 
-            const route = mockRoute({}, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
-            mockPurchaseContextService.getContext.mockReturnValue(of(mockPurchaseContext));
+            const route = mockRoute(
+                {},
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
+            mockPurchaseContextService.getContext.mockReturnValue(
+                of(mockPurchaseContext),
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
-            expect(mockI18nService.useTranslation).toHaveBeenCalledWith('event', 'test-event', 'en');
+            expect(mockI18nService.useTranslation).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+                'en',
+            );
         });
 
         it('should use first available language as last resort', () => {
@@ -129,12 +209,27 @@ describe('LanguageGuard', () => {
             mockTranslateService.getBrowserLang.mockReturnValue('de');
             mockI18nService.useTranslation.mockReturnValue(of(true));
 
-            const route = mockRoute({}, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
-            mockPurchaseContextService.getContext.mockReturnValue(of(mockPurchaseContext));
+            const route = mockRoute(
+                {},
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
+            mockPurchaseContextService.getContext.mockReturnValue(
+                of(mockPurchaseContext),
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
-            expect(mockI18nService.useTranslation).toHaveBeenCalledWith('event', 'test-event', 'en');
+            expect(mockI18nService.useTranslation).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+                'en',
+            );
         });
     });
 
@@ -143,35 +238,73 @@ describe('LanguageGuard', () => {
             mockI18nService.getPersistedLanguage.mockReturnValue(null);
             mockI18nService.useTranslation.mockReturnValue(of(true));
 
-            const route = mockRoute({}, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
+            const route = mockRoute(
+                {},
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
-            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith('event', 'test-event');
+            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+            );
         });
 
         it('should call getForApp when type is null', () => {
             mockI18nService.getPersistedLanguage.mockReturnValue(null);
             mockI18nService.useTranslation.mockReturnValue(of(true));
-            mockI18nService.getAvailableLanguages.mockReturnValue(of([{ locale: 'en', name: 'English' }]));
+            mockI18nService.getAvailableLanguages.mockReturnValue(
+                of([{ locale: 'en', name: 'English' }]),
+            );
 
-            const route = mockRoute({}, { type: null, publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
+            const route = mockRoute(
+                {},
+                { type: null, publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
             expect(mockI18nService.getAvailableLanguages).toHaveBeenCalled();
-            expect(mockPurchaseContextService.getContext).not.toHaveBeenCalled();
+            expect(
+                mockPurchaseContextService.getContext,
+            ).not.toHaveBeenCalled();
         });
 
         it('should fallback to getForApp on error in getForContext', () => {
             mockI18nService.getPersistedLanguage.mockReturnValue(null);
             mockI18nService.useTranslation.mockReturnValue(of(true));
-            mockI18nService.getAvailableLanguages.mockReturnValue(of([{ locale: 'en', name: 'English' }]));
+            mockI18nService.getAvailableLanguages.mockReturnValue(
+                of([{ locale: 'en', name: 'English' }]),
+            );
 
-            const route = mockRoute({}, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
-            mockPurchaseContextService.getContext.mockReturnValue(throwError(() => new Error('Not found')));
+            const route = mockRoute(
+                {},
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
+            mockPurchaseContextService.getContext.mockReturnValue(
+                throwError(() => new Error('Not found')),
+            );
 
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot).subscribe();
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
+                .subscribe();
 
             expect(mockI18nService.getAvailableLanguages).toHaveBeenCalled();
         });
@@ -182,11 +315,21 @@ describe('LanguageGuard', () => {
             mockI18nService.getPersistedLanguage.mockReturnValue('en');
             mockI18nService.useTranslation.mockReturnValue(of(true));
 
-            const route = mockRoute({}, { type: 'event', publicIdentifierParameter: 'eventShortName' }, { eventShortName: 'test-event' });
-            mockPurchaseContextService.getContext.mockReturnValue(of(mockPurchaseContext));
+            const route = mockRoute(
+                {},
+                { type: 'event', publicIdentifierParameter: 'eventShortName' },
+                { eventShortName: 'test-event' },
+            );
+            mockPurchaseContextService.getContext.mockReturnValue(
+                of(mockPurchaseContext),
+            );
 
             let result: boolean = false;
-            guard.canActivate(route as ActivatedRouteSnapshot, mockState as RouterStateSnapshot)
+            guard
+                .canActivate(
+                    route as ActivatedRouteSnapshot,
+                    mockState as RouterStateSnapshot,
+                )
                 .subscribe((res) => (result = res));
 
             expect(result).toBe(true);

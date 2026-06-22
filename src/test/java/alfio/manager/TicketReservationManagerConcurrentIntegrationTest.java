@@ -16,6 +16,12 @@
  */
 package alfio.manager;
 
+import static alfio.manager.TicketReservationManagerIntegrationTest.DESCRIPTION;
+import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
+import static alfio.test.util.IntegrationTestUtil.initEvent;
+import static alfio.test.util.TestUtil.clockProvider;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -32,6 +38,14 @@ import alfio.repository.SpecialPriceRepository;
 import alfio.repository.TicketCategoryRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
@@ -45,21 +59,6 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.stream.Stream;
-
-import static alfio.manager.TicketReservationManagerIntegrationTest.DESCRIPTION;
-import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
-import static alfio.test.util.IntegrationTestUtil.initEvent;
-import static alfio.test.util.TestUtil.clockProvider;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -69,22 +68,31 @@ class TicketReservationManagerConcurrentIntegrationTest {
 
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private TicketCategoryRepository ticketCategoryRepository;
+
     @Autowired
     private TicketReservationManager ticketReservationManager;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private PromoCodeDiscountRepository promoCodeDiscountRepository;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private SpecialPriceTokenGenerator specialPriceTokenGenerator;
+
     @Autowired
     private PlatformTransactionManager platformTransactionManager;
+
     @Autowired
     private SpecialPriceRepository specialPriceRepository;
 
@@ -100,22 +108,61 @@ class TicketReservationManagerConcurrentIntegrationTest {
         transactionTemplate = new TransactionTemplate(platformTransactionManager, transactionDefinition);
 
         transactionTemplate.execute(tx -> {
-            List<TicketCategoryModification> categories = Collections.singletonList(
-                new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                    new DateTimeModification(LocalDate.now(clockProvider().getClock()), LocalTime.now(clockProvider().getClock())),
-                    new DateTimeModification(LocalDate.now(clockProvider().getClock()), LocalTime.now(clockProvider().getClock())),
-                    DESCRIPTION, BigDecimal.TEN, true, "", true, null,
-                    null, null, null, null, null, TicketCategory.TicketCheckInStrategy.ONCE_PER_EVENT, null, AlfioMetadata.empty()));
+            List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                    null,
+                    "default",
+                    TicketCategory.TicketAccessType.INHERIT,
+                    AVAILABLE_SEATS,
+                    new DateTimeModification(
+                            LocalDate.now(clockProvider().getClock()),
+                            LocalTime.now(clockProvider().getClock())),
+                    new DateTimeModification(
+                            LocalDate.now(clockProvider().getClock()),
+                            LocalTime.now(clockProvider().getClock())),
+                    DESCRIPTION,
+                    BigDecimal.TEN,
+                    true,
+                    "",
+                    true,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    TicketCategory.TicketCheckInStrategy.ONCE_PER_EVENT,
+                    null,
+                    AlfioMetadata.empty()));
 
-            Pair<Event, String> eventStringPair = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+            Pair<Event, String> eventStringPair =
+                    initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
             event = eventStringPair.getLeft();
             username = eventStringPair.getRight();
             int eventId = event.getId();
-            firstCategoryId = ticketCategoryRepository.findAllTicketCategories(eventId).get(0).getId();
+            firstCategoryId = ticketCategoryRepository
+                    .findAllTicketCategories(eventId)
+                    .get(0)
+                    .getId();
 
             specialPriceTokenGenerator.generatePendingCodesForCategory(firstCategoryId);
-            promoCodeDiscountRepository.addPromoCode(ACCESS_CODE, eventId, event.getOrganizationId(), ZonedDateTime.now(clockProvider().getClock()), ZonedDateTime.now(clockProvider().getClock()).plusDays(1), 0, PromoCodeDiscount.DiscountType.NONE, null, 100, null, null, PromoCodeDiscount.CodeType.ACCESS, firstCategoryId, null);
-            promoCodeDiscount = promoCodeDiscountRepository.findPublicPromoCodeInEventOrOrganization(eventId, ACCESS_CODE).orElseThrow();
+            promoCodeDiscountRepository.addPromoCode(
+                    ACCESS_CODE,
+                    eventId,
+                    event.getOrganizationId(),
+                    ZonedDateTime.now(clockProvider().getClock()),
+                    ZonedDateTime.now(clockProvider().getClock()).plusDays(1),
+                    0,
+                    PromoCodeDiscount.DiscountType.NONE,
+                    null,
+                    100,
+                    null,
+                    null,
+                    PromoCodeDiscount.CodeType.ACCESS,
+                    firstCategoryId,
+                    null);
+            promoCodeDiscount = promoCodeDiscountRepository
+                    .findPublicPromoCodeInEventOrOrganization(eventId, ACCESS_CODE)
+                    .orElseThrow();
             return null;
         });
     }
@@ -130,24 +177,24 @@ class TicketReservationManagerConcurrentIntegrationTest {
                     TicketReservationModification tr = new TicketReservationModification();
                     tr.setAmount(1);
                     tr.setTicketCategoryId(firstCategoryId);
-                    TicketReservationWithOptionalCodeModification mod = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
+                    TicketReservationWithOptionalCodeModification mod =
+                            new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
                     return ticketReservationManager.reserveTokensForAccessCode(mod, promoCodeDiscount);
                 });
             });
         }
-        long count = pool.invokeAll(callableList)
-            .stream()
-            .flatMap(f -> {
-                try {
-                    return f.get().stream().map(SpecialPrice::getCode);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    fail(e.getMessage());
-                    return Stream.empty();
-                }
-            })
-            .distinct()
-            .count();
+        long count = pool.invokeAll(callableList).stream()
+                .flatMap(f -> {
+                    try {
+                        return f.get().stream().map(SpecialPrice::getCode);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        fail(e.getMessage());
+                        return Stream.empty();
+                    }
+                })
+                .distinct()
+                .count();
 
         assertEquals(AVAILABLE_SEATS, count);
     }
@@ -157,17 +204,38 @@ class TicketReservationManagerConcurrentIntegrationTest {
         TicketReservationModification tr = new TicketReservationModification();
         tr.setAmount(1);
         tr.setTicketCategoryId(firstCategoryId);
-        TicketReservationWithOptionalCodeModification mod = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
+        TicketReservationWithOptionalCodeModification mod =
+                new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
 
-        var id1 = ticketReservationManager.createTicketReservation(event, List.of(mod), List.of(), DateUtils.addHours(new Date(), -1), Optional.of(ACCESS_CODE), Locale.ENGLISH, false, null);
-        var id2 = ticketReservationManager.createTicketReservation(event, List.of(mod), List.of(), DateUtils.addHours(new Date(), 1), Optional.of(ACCESS_CODE), Locale.ENGLISH, false, null);
+        var id1 = ticketReservationManager.createTicketReservation(
+                event,
+                List.of(mod),
+                List.of(),
+                DateUtils.addHours(new Date(), -1),
+                Optional.of(ACCESS_CODE),
+                Locale.ENGLISH,
+                false,
+                null);
+        var id2 = ticketReservationManager.createTicketReservation(
+                event,
+                List.of(mod),
+                List.of(),
+                DateUtils.addHours(new Date(), 1),
+                Optional.of(ACCESS_CODE),
+                Locale.ENGLISH,
+                false,
+                null);
 
         ticketReservationManager.cleanupExpiredReservations(new Date());
 
         assertTrue(ticketReservationManager.findById(id1).isEmpty());
         Optional<TicketReservation> res2 = ticketReservationManager.findById(id2);
         assertTrue(res2.isPresent());
-        assertEquals(1, specialPriceRepository.findAllByCategoryId(firstCategoryId).stream().filter(sp -> sp.getAccessCodeId() != null).count());
+        assertEquals(
+                1,
+                specialPriceRepository.findAllByCategoryId(firstCategoryId).stream()
+                        .filter(sp -> sp.getAccessCodeId() != null)
+                        .count());
     }
 
     @AfterEach

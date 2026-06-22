@@ -16,18 +16,17 @@
  */
 package alfio.manager.system;
 
-import alfio.model.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import alfio.model.*;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 class ReservationPriceCalculatorTest {
 
@@ -69,23 +68,55 @@ class ReservationPriceCalculatorTest {
 
         @Test
         void returnZeroIfDiscountIsNull() {
-            assertEquals(BigDecimal.ZERO, new ReservationPriceCalculator(reservation, null, tickets, additionalServiceItems, additionalServices, event, List.of(), Optional.empty()).getAppliedDiscount());
+            assertEquals(
+                    BigDecimal.ZERO,
+                    new ReservationPriceCalculator(
+                                    reservation,
+                                    null,
+                                    tickets,
+                                    additionalServiceItems,
+                                    additionalServices,
+                                    event,
+                                    List.of(),
+                                    Optional.empty())
+                            .getAppliedDiscount());
         }
 
         @Test
         void discountOnReservation() {
             when(discount.getDiscountType()).thenReturn(PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION);
             when(discount.getDiscountAmount()).thenReturn(1);
-            assertEquals(new BigDecimal("0.01"), new ReservationPriceCalculator(reservation, discount, tickets, additionalServiceItems, additionalServices, event, List.of(), Optional.empty()).getAppliedDiscount());
+            assertEquals(
+                    new BigDecimal("0.01"),
+                    new ReservationPriceCalculator(
+                                    reservation,
+                                    discount,
+                                    tickets,
+                                    additionalServiceItems,
+                                    additionalServices,
+                                    event,
+                                    List.of(),
+                                    Optional.empty())
+                            .getAppliedDiscount());
         }
 
         @Test
         void discountOnItems() {
             when(discount.getDiscountType()).thenReturn(PromoCodeDiscount.DiscountType.PERCENTAGE);
             when(discount.getDiscountAmount()).thenReturn(10);
-            assertEquals(new BigDecimal("2.00"), new ReservationPriceCalculator(reservation, discount, tickets, additionalServiceItems, additionalServices, event, List.of(), Optional.empty()).getAppliedDiscount());
+            assertEquals(
+                    new BigDecimal("2.00"),
+                    new ReservationPriceCalculator(
+                                    reservation,
+                                    discount,
+                                    tickets,
+                                    additionalServiceItems,
+                                    additionalServices,
+                                    event,
+                                    List.of(),
+                                    Optional.empty())
+                            .getAppliedDiscount());
         }
-
     }
 
     @Nested
@@ -100,17 +131,33 @@ class ReservationPriceCalculatorTest {
         @Test
         void allItemsAreSubjectedToTaxation() {
             when(additionalService.vatType()).thenReturn(AdditionalService.VatType.INHERITED);
-            var taxablePrice = new ReservationPriceCalculator(reservation, null, tickets, additionalServiceItems, additionalServices, event, List.of(), Optional.empty()).getTaxablePrice();
+            var taxablePrice = new ReservationPriceCalculator(
+                            reservation,
+                            null,
+                            tickets,
+                            additionalServiceItems,
+                            additionalServices,
+                            event,
+                            List.of(),
+                            Optional.empty())
+                    .getTaxablePrice();
             assertEquals(new BigDecimal("21.00"), taxablePrice);
         }
 
         @Test
         void additionalItemsAreNotSubjectedToTaxation() {
             when(additionalService.vatType()).thenReturn(AdditionalService.VatType.NONE);
-            var taxablePrice = new ReservationPriceCalculator(reservation, null, tickets, additionalServiceItems, additionalServices, event, List.of(), Optional.empty()).getTaxablePrice();
+            var taxablePrice = new ReservationPriceCalculator(
+                            reservation,
+                            null,
+                            tickets,
+                            additionalServiceItems,
+                            additionalServices,
+                            event,
+                            List.of(),
+                            Optional.empty())
+                    .getTaxablePrice();
             assertEquals(new BigDecimal("10.00"), taxablePrice);
         }
-
     }
-
 }

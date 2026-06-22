@@ -30,10 +30,12 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 public class PayPalRedirectSessionConfiguration {
     @Bean
     public SecurityFilterChain payPalRedirectSessionFilterChain(HttpSecurity http) throws Exception {
-        PathPatternRequestMatcher redirectRequestMatcher = PathPatternRequestMatcher.withDefaults().matcher("/payment/paypal/redirect/*");
+        PathPatternRequestMatcher redirectRequestMatcher =
+                PathPatternRequestMatcher.withDefaults().matcher("/payment/paypal/redirect/*");
         return http.securityMatcher(redirectRequestMatcher)
-            .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authorizer -> authorizer.requestMatchers(redirectRequestMatcher).permitAll())
-            .build();
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorizer ->
+                        authorizer.requestMatchers(redirectRequestMatcher).permitAll())
+                .build();
     }
 }

@@ -32,12 +32,20 @@ describe('AdditionalFieldService', () => {
                     required: false,
                     restrictedValues: [],
                     fields: [
-                        { fieldIndex: 0, fieldValue: 'test value', restrictedValueSelection: false },
+                        {
+                            fieldIndex: 0,
+                            fieldValue: 'test value',
+                            restrictedValueSelection: false,
+                        },
                     ],
                 },
             ];
 
-            const result = service.buildAdditionalFields(beforeFields, [], 'en');
+            const result = service.buildAdditionalFields(
+                beforeFields,
+                [],
+                'en',
+            );
             expect(result.get('custom-field')).toBeDefined();
         });
 
@@ -49,7 +57,11 @@ describe('AdditionalFieldService', () => {
                     required: true,
                     restrictedValues: [],
                     fields: [
-                        { fieldIndex: 0, fieldValue: null, restrictedValueSelection: false },
+                        {
+                            fieldIndex: 0,
+                            fieldValue: null,
+                            restrictedValueSelection: false,
+                        },
                     ],
                 },
             ];
@@ -66,14 +78,30 @@ describe('AdditionalFieldService', () => {
                     required: false,
                     restrictedValues: ['option1', 'option2', 'option3'],
                     fields: [
-                        { fieldIndex: 0, fieldValue: null, restrictedValueSelection: false },
-                        { fieldIndex: 1, fieldValue: null, restrictedValueSelection: false },
-                        { fieldIndex: 2, fieldValue: null, restrictedValueSelection: false },
+                        {
+                            fieldIndex: 0,
+                            fieldValue: null,
+                            restrictedValueSelection: false,
+                        },
+                        {
+                            fieldIndex: 1,
+                            fieldValue: null,
+                            restrictedValueSelection: false,
+                        },
+                        {
+                            fieldIndex: 2,
+                            fieldValue: null,
+                            restrictedValueSelection: false,
+                        },
                     ],
                 },
             ];
 
-            const result = service.buildAdditionalFields(beforeFields, [], 'en');
+            const result = service.buildAdditionalFields(
+                beforeFields,
+                [],
+                'en',
+            );
             const checkboxControl = result.get('checkbox-field');
             expect(checkboxControl).toBeDefined();
         });
@@ -86,7 +114,11 @@ describe('AdditionalFieldService', () => {
                     required: false,
                     restrictedValues: [],
                     fields: [
-                        { fieldIndex: 0, fieldValue: null, restrictedValueSelection: false },
+                        {
+                            fieldIndex: 0,
+                            fieldValue: null,
+                            restrictedValueSelection: false,
+                        },
                     ],
                 },
             ];
@@ -98,13 +130,22 @@ describe('AdditionalFieldService', () => {
                 },
             };
 
-            const result = service.buildAdditionalFields(beforeFields, [], 'en', userData);
+            const result = service.buildAdditionalFields(
+                beforeFields,
+                [],
+                'en',
+                userData,
+            );
             const control = result.get('user-field');
             expect(control).toBeDefined();
         });
 
         it('should handle null before and after arrays', () => {
-            const result = service.buildAdditionalFields(null as any, null as any, 'en');
+            const result = service.buildAdditionalFields(
+                null as any,
+                null as any,
+                'en',
+            );
             expect(result).toBeDefined();
         });
     });
@@ -118,7 +159,11 @@ describe('AdditionalFieldService', () => {
                     required: false,
                     restrictedValues: [],
                     fields: [
-                        { fieldIndex: 0, fieldValue: null, restrictedValueSelection: false },
+                        {
+                            fieldIndex: 0,
+                            fieldValue: null,
+                            restrictedValueSelection: false,
+                        },
                     ],
                 },
             ];
@@ -130,7 +175,12 @@ describe('AdditionalFieldService', () => {
                 },
             };
 
-            const result = service.buildAdditionalFields(beforeFields, [], 'en', userData);
+            const result = service.buildAdditionalFields(
+                beforeFields,
+                [],
+                'en',
+                userData,
+            );
             expect(result.get('test-field')).toBeDefined();
         });
 
@@ -142,7 +192,11 @@ describe('AdditionalFieldService', () => {
                     required: false,
                     restrictedValues: [],
                     fields: [
-                        { fieldIndex: 0, fieldValue: null, restrictedValueSelection: false },
+                        {
+                            fieldIndex: 0,
+                            fieldValue: null,
+                            restrictedValueSelection: false,
+                        },
                     ],
                 },
             ];
@@ -154,7 +208,12 @@ describe('AdditionalFieldService', () => {
                 },
             };
 
-            const result = service.buildAdditionalFields(beforeFields, [], 'en', userData);
+            const result = service.buildAdditionalFields(
+                beforeFields,
+                [],
+                'en',
+                userData,
+            );
             expect(result.get('test-field')).toBeDefined();
         });
     });

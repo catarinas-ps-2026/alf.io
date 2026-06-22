@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { CustomOfflinePaymentProxyComponent } from './custom-offline-payment-proxy.component';
@@ -19,9 +23,7 @@ describe('CustomOfflinePaymentProxyComponent', () => {
 
         await TestBed.configureTestingModule({
             declarations: [CustomOfflinePaymentProxyComponent],
-            providers: [
-                { provide: I18nService, useValue: mockI18nService },
-            ],
+            providers: [{ provide: I18nService, useValue: mockI18nService }],
             imports: [TranslateModule.forRoot()],
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
         }).compileComponents();
@@ -83,13 +85,17 @@ describe('CustomOfflinePaymentProxyComponent', () => {
     describe('ngOnChanges', () => {
         it('should emit paymentProvider when matchProxyAndMethod and method changes', () => {
             const emittedProviders: any[] = [];
-            component.paymentProvider.subscribe((p) => emittedProviders.push(p));
+            component.paymentProvider.subscribe((p) =>
+                emittedProviders.push(p),
+            );
 
             component.method = 'CUSTOM_OFFLINE_1';
             component.availableMethods = mockCustomOfflinePayments;
             component.proxy = 'CUSTOM_OFFLINE';
 
-            component.ngOnChanges({ method: { currentValue: 'CUSTOM_OFFLINE_1' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'CUSTOM_OFFLINE_1' },
+            } as any);
 
             expect(emittedProviders.length).toBe(1);
             expect(emittedProviders[0]).toBeDefined();
@@ -97,13 +103,17 @@ describe('CustomOfflinePaymentProxyComponent', () => {
 
         it('should emit paymentProvider when availableMethods changes', () => {
             const emittedProviders: any[] = [];
-            component.paymentProvider.subscribe((p) => emittedProviders.push(p));
+            component.paymentProvider.subscribe((p) =>
+                emittedProviders.push(p),
+            );
 
             component.method = 'CUSTOM_OFFLINE_1';
             component.availableMethods = mockCustomOfflinePayments;
             component.proxy = 'CUSTOM_OFFLINE';
 
-            component.ngOnChanges({ availableMethods: { currentValue: mockCustomOfflinePayments } } as any);
+            component.ngOnChanges({
+                availableMethods: { currentValue: mockCustomOfflinePayments },
+            } as any);
 
             expect(emittedProviders.length).toBe(1);
         });
@@ -116,7 +126,9 @@ describe('CustomOfflinePaymentProxyComponent', () => {
             component.availableMethods = mockCustomOfflinePayments;
             component.proxy = 'STRIPE';
 
-            component.ngOnChanges({ method: { currentValue: 'CREDIT_CARD' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'CREDIT_CARD' },
+            } as any);
 
             expect(emitCount).toBe(0);
         });

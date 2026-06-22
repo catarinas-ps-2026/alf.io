@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -30,12 +34,21 @@ describe('ErrorComponent', () => {
         ticketCategories: [],
         localization: {},
         privacyPolicyUrl: null,
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: false, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: false,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
     } as unknown as PurchaseContext;
 
     const mockActivatedRoute = {
-        data: of({ type: 'event', publicIdentifierParameter: 'eventShortName' }),
+        data: of({
+            type: 'event',
+            publicIdentifierParameter: 'eventShortName',
+        }),
         params: of({ eventShortName: 'test-event', reservationId: 'res-123' }),
     };
 
@@ -56,7 +69,10 @@ describe('ErrorComponent', () => {
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
             providers: [
                 { provide: ActivatedRoute, useValue: mockActivatedRoute },
-                { provide: PurchaseContextService, useValue: mockPurchaseContextService },
+                {
+                    provide: PurchaseContextService,
+                    useValue: mockPurchaseContextService,
+                },
                 { provide: I18nService, useValue: mockI18nService },
             ],
         }).inject(TranslateService);
@@ -73,28 +89,34 @@ describe('ErrorComponent', () => {
         it('should load purchase context', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith('event', 'test-event');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+            );
         });
 
         it('should set page title', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith('reservation-page-not-found.header.title', mockPurchaseContext);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith(
+                'reservation-page-not-found.header.title',
+                mockPurchaseContext,
+            );
         });
 
         it('should store reservationId from params', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.reservationId).toBe('res-123');
         });
 
         it('should store purchaseContext', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.purchaseContext).toEqual(mockPurchaseContext);
         });
     });

@@ -17,9 +17,8 @@
 package alfio.model.modification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.time.*;
+import lombok.Getter;
 
 @Getter
 public class DateTimeModification {
@@ -49,11 +48,12 @@ public class DateTimeModification {
     }
 
     public static DateTimeModification fromZonedDateTime(ZonedDateTime zonedDateTime) {
-        return zonedDateTime == null ? null : new DateTimeModification(zonedDateTime.toLocalDate(), zonedDateTime.toLocalTime());
+        return zonedDateTime == null
+                ? null
+                : new DateTimeModification(zonedDateTime.toLocalDate(), zonedDateTime.toLocalTime());
     }
 
     public static ZonedDateTime atZone(DateTimeModification t, ZoneId zoneId) {
         return t == null ? null : t.toZonedDateTime(zoneId);
     }
-
 }

@@ -21,13 +21,12 @@ import alfio.model.ReservationsByEvent;
 import alfio.model.user.Organization;
 import alfio.repository.ExportRepository;
 import alfio.util.ClockProvider;
-import org.springframework.stereotype.Component;
-
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ExportManager {
@@ -36,9 +35,7 @@ public class ExportManager {
     private final ClockProvider clockProvider;
     private final UserManager userManager;
 
-    public ExportManager(ExportRepository exportRepository,
-                         ClockProvider clockProvider,
-                         UserManager userManager) {
+    public ExportManager(ExportRepository exportRepository, ClockProvider clockProvider, UserManager userManager) {
         this.exportRepository = exportRepository;
         this.clockProvider = clockProvider;
         this.userManager = userManager;
@@ -48,13 +45,15 @@ public class ExportManager {
         if (from.isAfter(to)) {
             throw new IllegalArgumentException("Wrong interval");
         }
-        var orgIds = userManager.findUserOrganizations(Objects.requireNonNull(principal).getName());
+        var orgIds = userManager.findUserOrganizations(
+                Objects.requireNonNull(principal).getName());
         if (orgIds.isEmpty()) {
             throw new IllegalArgumentException("Wrong user");
         }
         var zoneId = clockProvider.getClock().getZone();
         var zonedFrom = from.atStartOfDay().atZone(zoneId);
         var zonedTo = to.plusDays(1).atStartOfDay().minusSeconds(1).atZone(zoneId);
-        return exportRepository.allReservationsForInterval(zonedFrom, zonedTo, orgIds.stream().map(Organization::getId).collect(Collectors.toList()));
+        return exportRepository.allReservationsForInterval(
+                zonedFrom, zonedTo, orgIds.stream().map(Organization::getId).collect(Collectors.toList()));
     }
 }

@@ -16,15 +16,14 @@
  */
 package alfio.model.api.v1.admin;
 
-import alfio.model.api.v1.admin.subscription.SubscriptionConfiguration;
+import static java.util.Objects.requireNonNullElseGet;
+
 import alfio.model.api.v1.admin.subscription.Owner;
+import alfio.model.api.v1.admin.subscription.SubscriptionConfiguration;
 import alfio.model.metadata.SubscriptionMetadata;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
-
-import static java.util.Objects.requireNonNullElseGet;
 
 public class SubscriptionReservationCreationRequest implements ReservationAPICreationRequest {
     private final Map<String, String> metadata;
@@ -35,17 +34,19 @@ public class SubscriptionReservationCreationRequest implements ReservationAPICre
     private final Owner owner;
 
     @JsonCreator
-    public SubscriptionReservationCreationRequest(@JsonProperty("metadata") Map<String, String> metadata,
-                                                  @JsonProperty("user") ReservationUser user,
-                                                  @JsonProperty("language") String language,
-                                                  @JsonProperty("configuration") ReservationConfiguration reservationConfiguration,
-                                                  @JsonProperty("subscriptionConfiguration") SubscriptionConfiguration subscriptionConfiguration,
-                                                  @JsonProperty("owner") Owner owner) {
+    public SubscriptionReservationCreationRequest(
+            @JsonProperty("metadata") Map<String, String> metadata,
+            @JsonProperty("user") ReservationUser user,
+            @JsonProperty("language") String language,
+            @JsonProperty("configuration") ReservationConfiguration reservationConfiguration,
+            @JsonProperty("subscriptionConfiguration") SubscriptionConfiguration subscriptionConfiguration,
+            @JsonProperty("owner") Owner owner) {
         this.metadata = metadata;
         this.user = user;
         this.language = language;
         this.reservationConfiguration = reservationConfiguration;
-        this.subscriptionConfiguration = requireNonNullElseGet(subscriptionConfiguration, SubscriptionConfiguration::defaultConfiguration);
+        this.subscriptionConfiguration =
+                requireNonNullElseGet(subscriptionConfiguration, SubscriptionConfiguration::defaultConfiguration);
         this.owner = requireNonNullElseGet(owner, Owner::empty);
     }
 

@@ -16,24 +16,22 @@
  */
 package alfio.util;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.Assert;
-
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.Assert;
 
 public class PinGenerator {
 
     private static final String ALLOWED_CHARS = "ACDEFGHJKLMNPQRTUVWXY34679";
-    private static final Pattern VALIDATION_PATTERN = Pattern.compile("^["+ALLOWED_CHARS+"]+$");
+    private static final Pattern VALIDATION_PATTERN = Pattern.compile("^[" + ALLOWED_CHARS + "]+$");
     private static final int PIN_LENGTH = 6;
 
-    private PinGenerator() {
-    }
+    private PinGenerator() {}
 
     public static String uuidToPin(String uuid, int pinLength) {
-        var src = new BigInteger(uuid.replace("-", "").substring(0, pinLength+1), 16);
+        var src = new BigInteger(uuid.replace("-", "").substring(0, pinLength + 1), 16);
         var chars = BigInteger.valueOf(ALLOWED_CHARS.length());
         var pin = new StringBuilder();
         do {
@@ -42,7 +40,7 @@ public class PinGenerator {
             src = src.divide(chars);
         } while (!src.equals(BigInteger.ZERO));
 
-        while(pin.length() < pinLength) {
+        while (pin.length() < pinLength) {
             pin.append(ALLOWED_CHARS.charAt(0));
         }
 
@@ -59,13 +57,13 @@ public class PinGenerator {
             var toAdd = BigInteger.valueOf(ALLOWED_CHARS.indexOf(c)).multiply(base.pow(i));
             num = num.add(toAdd);
         }
-        return StringUtils.leftPad(num.toString(16), pinLength+1, '0');
+        return StringUtils.leftPad(num.toString(16), pinLength + 1, '0');
     }
 
     public static boolean isPinValid(String pin, int pinLength) {
         return pin != null
-            && (pin.strip().length() == pinLength || pin.strip().length() == pinLength + 1)
-            && VALIDATION_PATTERN.matcher(pin.toUpperCase()).matches();
+                && (pin.strip().length() == pinLength || pin.strip().length() == pinLength + 1)
+                && VALIDATION_PATTERN.matcher(pin.toUpperCase()).matches();
     }
 
     public static String uuidToPin(String uuid) {
@@ -79,5 +77,4 @@ public class PinGenerator {
     public static boolean isPinValid(String pin) {
         return isPinValid(pin, PIN_LENGTH);
     }
-
 }

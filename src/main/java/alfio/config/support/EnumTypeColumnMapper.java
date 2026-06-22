@@ -20,15 +20,14 @@ import alfio.model.support.EnumTypeAsString;
 import ch.digitalfondue.npjt.mapper.ColumnMapper;
 import ch.digitalfondue.npjt.mapper.ColumnMapperFactory;
 import ch.digitalfondue.npjt.mapper.ParameterConverter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Objects;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 public class EnumTypeColumnMapper extends ColumnMapper {
 
@@ -49,8 +48,9 @@ public class EnumTypeColumnMapper extends ColumnMapper {
 
     private static boolean isSupported(Class<?> paramType, Annotation[] annotations) {
         return annotations != null
-            && Arrays.stream(annotations).anyMatch(annotation -> annotation.annotationType() == EnumTypeAsString.class)
-            && Enum.class.isAssignableFrom(paramType);
+                && Arrays.stream(annotations)
+                        .anyMatch(annotation -> annotation.annotationType() == EnumTypeAsString.class)
+                && Enum.class.isAssignableFrom(paramType);
     }
 
     public static class Factory implements ColumnMapperFactory {
@@ -74,7 +74,7 @@ public class EnumTypeColumnMapper extends ColumnMapper {
         public RowMapper<Object> getSingleColumnRowMapper(Class<Object> clazz) {
             return (resultSet, rowNum) -> {
                 var enumAsString = resultSet.getString(1);
-                if(enumAsString != null) {
+                if (enumAsString != null) {
                     return parseValue(clazz, enumAsString);
                 }
                 return null;
@@ -90,7 +90,8 @@ public class EnumTypeColumnMapper extends ColumnMapper {
         }
 
         @Override
-        public void processParameter(String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
+        public void processParameter(
+                String parameterName, Object arg, Class<?> parameterType, MapSqlParameterSource ps) {
             String value = arg != null ? arg.toString() : null;
             ps.addValue(parameterName, value);
         }

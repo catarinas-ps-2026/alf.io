@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -39,15 +42,6 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -57,9 +51,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
@@ -116,13 +115,32 @@ class SubscriptionManagerIntegrationTest {
         toInsert.setType("image/gif");
         fileBlobId = fileUploadManager.insertFile(toInsert);
 
-        //create test event
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        // create test event
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
 
         event = eventAndUser.getLeft();
         username = eventAndUser.getRight();
@@ -137,10 +155,14 @@ class SubscriptionManagerIntegrationTest {
     void testCreateRead() {
         int orgId = event.getOrganizationId();
         assertTrue(subscriptionManager.findAll(orgId).isEmpty());
-        var optionalDescriptorId = subscriptionManager.createSubscriptionDescriptor(buildSubscriptionDescriptor(orgId, null, new BigDecimal("100")));
+        var optionalDescriptorId = subscriptionManager.createSubscriptionDescriptor(
+                buildSubscriptionDescriptor(orgId, null, new BigDecimal("100")));
         assertTrue(optionalDescriptorId.isPresent());
         var descriptorId = optionalDescriptorId.get();
-        var count = jdbcTemplate.queryForObject("select count(*) from subscription where subscription_descriptor_fk = :descriptorId", Map.of("descriptorId", descriptorId), Integer.class);
+        var count = jdbcTemplate.queryForObject(
+                "select count(*) from subscription where subscription_descriptor_fk = :descriptorId",
+                Map.of("descriptorId", descriptorId),
+                Integer.class);
         assertNotNull(count);
         assertEquals(42, count);
         var res = subscriptionManager.findAll(orgId);
@@ -152,7 +174,8 @@ class SubscriptionManagerIntegrationTest {
         assertEquals("en", descriptor.getContentLanguages().get(0).getLanguage());
 
         // update price
-        subscriptionManager.updateSubscriptionDescriptor(buildSubscriptionDescriptor(orgId, descriptor.getId(), new BigDecimal("200")));
+        subscriptionManager.updateSubscriptionDescriptor(
+                buildSubscriptionDescriptor(orgId, descriptor.getId(), new BigDecimal("200")));
 
         res = subscriptionManager.findAll(orgId);
         assertEquals(1, res.size());
@@ -161,15 +184,19 @@ class SubscriptionManagerIntegrationTest {
         assertEquals("description", descriptor.getDescription().get("en"));
         assertEquals(20000, descriptor.getPrice());
 
-        var publicSubscriptions = subscriptionManager.getActivePublicSubscriptionsDescriptor(ZonedDateTime.now(ClockProvider.clock()), SearchOptions.empty());
+        var publicSubscriptions = subscriptionManager.getActivePublicSubscriptionsDescriptor(
+                ZonedDateTime.now(ClockProvider.clock()), SearchOptions.empty());
         assertEquals(0, publicSubscriptions.size());
 
         subscriptionManager.setPublicStatus(descriptor.getId(), orgId, true);
-        publicSubscriptions = subscriptionManager.getActivePublicSubscriptionsDescriptor(ZonedDateTime.now(ClockProvider.clock()), SearchOptions.empty());
+        publicSubscriptions = subscriptionManager.getActivePublicSubscriptionsDescriptor(
+                ZonedDateTime.now(ClockProvider.clock()), SearchOptions.empty());
         assertEquals(1, publicSubscriptions.size());
         assertEquals(res.get(0).getId(), publicSubscriptions.get(0).getId());
 
-        assertTrue(subscriptionManager.getSubscriptionById(publicSubscriptions.get(0).getId()).isPresent());
+        assertTrue(subscriptionManager
+                .getSubscriptionById(publicSubscriptions.get(0).getId())
+                .isPresent());
 
         var subscriptionsWithStatistics = subscriptionManager.loadSubscriptionsWithStatistics(orgId);
         assertEquals(1, subscriptionsWithStatistics.size());
@@ -187,12 +214,42 @@ class SubscriptionManagerIntegrationTest {
     void linkToEventUsingEventManager() {
         int orgId = event.getOrganizationId();
         assertTrue(subscriptionManager.findAll(orgId).isEmpty());
-        var subscriptionId = subscriptionManager.createSubscriptionDescriptor(buildSubscriptionDescriptor(orgId, null, new BigDecimal("100"))).orElseThrow();
-        var eventModification = new EventModification(event.getId(), null, null, null,
-            null, null, null, null, null, null, orgId, null,
-            null, null, null, null, null, null, BigDecimal.TEN, "CHF", 0,
-            BigDecimal.ONE, false, List.of(PaymentProxy.OFFLINE), List.of(), false, null, 0, List.of(),
-            List.of(), AlfioMetadata.empty(), List.of(subscriptionId));
+        var subscriptionId = subscriptionManager
+                .createSubscriptionDescriptor(buildSubscriptionDescriptor(orgId, null, new BigDecimal("100")))
+                .orElseThrow();
+        var eventModification = new EventModification(
+                event.getId(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                orgId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                BigDecimal.TEN,
+                "CHF",
+                0,
+                BigDecimal.ONE,
+                false,
+                List.of(PaymentProxy.OFFLINE),
+                List.of(),
+                false,
+                null,
+                0,
+                List.of(),
+                List.of(),
+                AlfioMetadata.empty(),
+                List.of(subscriptionId));
         eventManager.updateEventSeatsAndPrices(event, eventModification, username);
 
         var links = subscriptionManager.getLinkedEvents(orgId, subscriptionId);
@@ -201,13 +258,40 @@ class SubscriptionManagerIntegrationTest {
         assertEquals(subscriptionId, links.get(0).getSubscriptionDescriptorId());
         assertEquals(0, links.get(0).getPricePerTicket());
 
-
         // subscription list not present, therefore nothing should happen
-        eventModification = new EventModification(event.getId(), null, null, null,
-            null, null, null, null, null, null, orgId, null,
-            null, null, null, null, null, null, BigDecimal.TEN, "CHF", 0,
-            BigDecimal.ONE, false, List.of(PaymentProxy.OFFLINE), List.of(), false, null, 0, List.of(),
-            List.of(), AlfioMetadata.empty(), null);
+        eventModification = new EventModification(
+                event.getId(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                orgId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                BigDecimal.TEN,
+                "CHF",
+                0,
+                BigDecimal.ONE,
+                false,
+                List.of(PaymentProxy.OFFLINE),
+                List.of(),
+                false,
+                null,
+                0,
+                List.of(),
+                List.of(),
+                AlfioMetadata.empty(),
+                null);
         eventManager.updateEventSeatsAndPrices(event, eventModification, username);
 
         links = subscriptionManager.getLinkedEvents(orgId, subscriptionId);
@@ -217,12 +301,42 @@ class SubscriptionManagerIntegrationTest {
         assertEquals(0, links.get(0).getPricePerTicket());
 
         // subscription list modified, we expect to have an additional link
-        var subscriptionId2 = subscriptionManager.createSubscriptionDescriptor(buildSubscriptionDescriptor(orgId, null, new BigDecimal("100"))).orElseThrow();
-        eventModification = new EventModification(event.getId(), null, null, null,
-            null, null, null, null, null, null, orgId, null,
-            null, null, null, null, null, null, BigDecimal.TEN, "CHF", 0,
-            BigDecimal.ONE, false, List.of(PaymentProxy.OFFLINE), List.of(), false, null, 0, List.of(),
-            List.of(), AlfioMetadata.empty(), List.of(subscriptionId, subscriptionId2));
+        var subscriptionId2 = subscriptionManager
+                .createSubscriptionDescriptor(buildSubscriptionDescriptor(orgId, null, new BigDecimal("100")))
+                .orElseThrow();
+        eventModification = new EventModification(
+                event.getId(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                orgId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                BigDecimal.TEN,
+                "CHF",
+                0,
+                BigDecimal.ONE,
+                false,
+                List.of(PaymentProxy.OFFLINE),
+                List.of(),
+                false,
+                null,
+                0,
+                List.of(),
+                List.of(),
+                AlfioMetadata.empty(),
+                List.of(subscriptionId, subscriptionId2));
         eventManager.updateEventSeatsAndPrices(event, eventModification, username);
 
         var subscriptions = subscriptionRepository.findLinkedSubscriptionIds(event.getId(), event.getOrganizationId());
@@ -231,11 +345,39 @@ class SubscriptionManagerIntegrationTest {
         assertTrue(subscriptions.contains(subscriptionId2));
 
         // unlink all subscriptions
-        eventModification = new EventModification(event.getId(), null, null, null,
-            null, null, null, null, null, null, orgId, null,
-            null, null, null, null, null, null, BigDecimal.TEN, "CHF", 0,
-            BigDecimal.ONE, false, List.of(PaymentProxy.OFFLINE), List.of(), false, null, 0, List.of(),
-            List.of(), AlfioMetadata.empty(), List.of());
+        eventModification = new EventModification(
+                event.getId(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                orgId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                BigDecimal.TEN,
+                "CHF",
+                0,
+                BigDecimal.ONE,
+                false,
+                List.of(PaymentProxy.OFFLINE),
+                List.of(),
+                false,
+                null,
+                0,
+                List.of(),
+                List.of(),
+                AlfioMetadata.empty(),
+                List.of());
         eventManager.updateEventSeatsAndPrices(event, eventModification, username);
 
         subscriptions = subscriptionRepository.findLinkedSubscriptionIds(event.getId(), event.getOrganizationId());
@@ -251,7 +393,10 @@ class SubscriptionManagerIntegrationTest {
         var optionalDescriptorId = subscriptionManager.createSubscriptionDescriptor(request);
         assertTrue(optionalDescriptorId.isPresent());
         var descriptorId = optionalDescriptorId.get();
-        var count = jdbcTemplate.queryForObject("select count(*) from subscription where subscription_descriptor_fk = :descriptorId", Map.of("descriptorId", descriptorId), Integer.class);
+        var count = jdbcTemplate.queryForObject(
+                "select count(*) from subscription where subscription_descriptor_fk = :descriptorId",
+                Map.of("descriptorId", descriptorId),
+                Integer.class);
         assertNotNull(count);
         assertEquals(0, count);
         var res = subscriptionManager.findAll(orgId);
@@ -261,13 +406,19 @@ class SubscriptionManagerIntegrationTest {
 
         request = buildSubscriptionDescriptor(orgId, descriptorId, new BigDecimal("100"), 42);
         subscriptionManager.updateSubscriptionDescriptor(request);
-        count = jdbcTemplate.queryForObject("select count(*) from subscription where subscription_descriptor_fk = :descriptorId", Map.of("descriptorId", descriptorId), Integer.class);
+        count = jdbcTemplate.queryForObject(
+                "select count(*) from subscription where subscription_descriptor_fk = :descriptorId",
+                Map.of("descriptorId", descriptorId),
+                Integer.class);
         assertNotNull(count);
         assertEquals(42, count);
 
         request = buildSubscriptionDescriptor(orgId, descriptorId, new BigDecimal("100"), 1);
         subscriptionManager.updateSubscriptionDescriptor(request);
-        count = jdbcTemplate.queryForObject("select count(*) from subscription where subscription_descriptor_fk = :descriptorId and status = 'FREE'", Map.of("descriptorId", descriptorId), Integer.class);
+        count = jdbcTemplate.queryForObject(
+                "select count(*) from subscription where subscription_descriptor_fk = :descriptorId and status = 'FREE'",
+                Map.of("descriptorId", descriptorId),
+                Integer.class);
         assertNotNull(count);
         assertEquals(1, count);
     }
@@ -282,13 +433,19 @@ class SubscriptionManagerIntegrationTest {
         assertTrue(optionalDescriptorId.isPresent());
         var descriptorId = optionalDescriptorId.get();
         var paramsMap = Map.of("descriptorId", descriptorId);
-        var count = jdbcTemplate.queryForObject("select count(*) from subscription where subscription_descriptor_fk = :descriptorId and src_price_cts = 10000", paramsMap, Integer.class);
+        var count = jdbcTemplate.queryForObject(
+                "select count(*) from subscription where subscription_descriptor_fk = :descriptorId and src_price_cts = 10000",
+                paramsMap,
+                Integer.class);
         assertNotNull(count);
         assertEquals(10, count);
 
         request = buildSubscriptionDescriptor(orgId, descriptorId, new BigDecimal("200"), 10);
         subscriptionManager.updateSubscriptionDescriptor(request);
-        count = jdbcTemplate.queryForObject("select count(*) from subscription where subscription_descriptor_fk = :descriptorId and src_price_cts = 20000", paramsMap, Integer.class);
+        count = jdbcTemplate.queryForObject(
+                "select count(*) from subscription where subscription_descriptor_fk = :descriptorId and src_price_cts = 20000",
+                paramsMap,
+                Integer.class);
         assertNotNull(count);
         assertEquals(10, count);
     }
@@ -306,7 +463,9 @@ class SubscriptionManagerIntegrationTest {
         var result = subscriptionManager.deactivateDescriptor(orgId, descriptorId);
         assertTrue(result.isSuccess());
         assertFalse(subscriptionRepository.existsById(descriptorId));
-        assertTrue(subscriptionRepository.findAllActiveAndPublic(ZonedDateTime.now(ClockProvider.clock()), null).isEmpty());
+        assertTrue(subscriptionRepository
+                .findAllActiveAndPublic(ZonedDateTime.now(ClockProvider.clock()), null)
+                .isEmpty());
         assertTrue(subscriptionManager.loadActiveSubscriptionDescriptors(orgId).isEmpty());
         assertTrue(subscriptionRepository.findAllWithStatistics(orgId).isEmpty());
     }
@@ -315,37 +474,39 @@ class SubscriptionManagerIntegrationTest {
         return buildSubscriptionDescriptor(orgId, id, price, 42, fileBlobId);
     }
 
-    private SubscriptionDescriptorModification buildSubscriptionDescriptor(int orgId, UUID id, BigDecimal price, Integer maxAvailable) {
+    private SubscriptionDescriptorModification buildSubscriptionDescriptor(
+            int orgId, UUID id, BigDecimal price, Integer maxAvailable) {
         return buildSubscriptionDescriptor(orgId, id, price, maxAvailable, fileBlobId);
     }
 
-    static SubscriptionDescriptorModification buildSubscriptionDescriptor(int orgId, UUID id, BigDecimal price, Integer maxAvailable, String fileBlobId) {
+    static SubscriptionDescriptorModification buildSubscriptionDescriptor(
+            int orgId, UUID id, BigDecimal price, Integer maxAvailable, String fileBlobId) {
 
-        return new SubscriptionDescriptorModification(id,
-            Map.of("en", "title"),
-            Map.of("en", "description"),
-            maxAvailable,
-            ZonedDateTime.now(ClockProvider.clock()),
-            null,
-            price,
-            new BigDecimal("7.7"),
-            PriceContainer.VatStatus.INCLUDED,
-            "CHF",
-            false,
-            orgId,
-            42,
-            SubscriptionDescriptor.SubscriptionValidityType.CUSTOM,
-            null,
-            null,
-            ZonedDateTime.now(ClockProvider.clock()).minusDays(1),
-            ZonedDateTime.now(ClockProvider.clock()).plusDays(42),
-            SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT,
-            "https://example.org",
-            null,
-            fileBlobId,
-            List.of(PaymentProxy.STRIPE),
-            ZoneId.of("Europe/Zurich"),
-            false);
+        return new SubscriptionDescriptorModification(
+                id,
+                Map.of("en", "title"),
+                Map.of("en", "description"),
+                maxAvailable,
+                ZonedDateTime.now(ClockProvider.clock()),
+                null,
+                price,
+                new BigDecimal("7.7"),
+                PriceContainer.VatStatus.INCLUDED,
+                "CHF",
+                false,
+                orgId,
+                42,
+                SubscriptionDescriptor.SubscriptionValidityType.CUSTOM,
+                null,
+                null,
+                ZonedDateTime.now(ClockProvider.clock()).minusDays(1),
+                ZonedDateTime.now(ClockProvider.clock()).plusDays(42),
+                SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT,
+                "https://example.org",
+                null,
+                fileBlobId,
+                List.of(PaymentProxy.STRIPE),
+                ZoneId.of("Europe/Zurich"),
+                false);
     }
-
 }

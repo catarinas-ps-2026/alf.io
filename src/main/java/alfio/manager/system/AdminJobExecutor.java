@@ -17,7 +17,6 @@
 package alfio.manager.system;
 
 import alfio.model.system.AdminJobSchedule;
-
 import java.util.Arrays;
 import java.util.Set;
 
@@ -46,8 +45,9 @@ public interface AdminJobExecutor {
 
         public static JobName safeValueOf(String value) {
             return Arrays.stream(values())
-                .filter(v -> v.name().equalsIgnoreCase(value))
-                .findFirst().orElse(UNKNOWN);
+                    .filter(v -> v.name().equalsIgnoreCase(value))
+                    .findFirst()
+                    .orElse(UNKNOWN);
         }
     }
 

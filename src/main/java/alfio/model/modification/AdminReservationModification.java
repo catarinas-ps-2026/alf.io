@@ -16,6 +16,11 @@
  */
 package alfio.model.modification;
 
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+
 import alfio.model.TicketCategory;
 import alfio.model.TicketReservationInvoicingAdditionalInfo;
 import alfio.model.transaction.PaymentProxy;
@@ -23,18 +28,12 @@ import alfio.util.ClockProvider;
 import alfio.util.Json;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 public class AdminReservationModification implements Serializable {
@@ -51,16 +50,17 @@ public class AdminReservationModification implements Serializable {
     private final UUID linkedSubscriptionId;
 
     @JsonCreator
-    public AdminReservationModification(@JsonProperty("expiration") DateTimeModification expiration,
-                                        @JsonProperty("customerData") CustomerData customerData,
-                                        @JsonProperty("ticketsInfo") List<TicketsInfo> ticketsInfo,
-                                        @JsonProperty("language") String language,
-                                        @JsonProperty("updateContactData") Boolean updateContactData,
-                                        @JsonProperty("updateAdvancedBillingOptions") Boolean updateAdvancedBillingOptions,
-                                        @JsonProperty("advancedBillingOptions") AdvancedBillingOptions advancedBillingOptions,
-                                        @JsonProperty("notification") Notification notification,
-                                        @JsonProperty("subscriptionDetails") SubscriptionDetails subscriptionDetails,
-                                        @JsonProperty("linkedSubscriptionId") UUID linkedSubscriptionId) {
+    public AdminReservationModification(
+            @JsonProperty("expiration") DateTimeModification expiration,
+            @JsonProperty("customerData") CustomerData customerData,
+            @JsonProperty("ticketsInfo") List<TicketsInfo> ticketsInfo,
+            @JsonProperty("language") String language,
+            @JsonProperty("updateContactData") Boolean updateContactData,
+            @JsonProperty("updateAdvancedBillingOptions") Boolean updateAdvancedBillingOptions,
+            @JsonProperty("advancedBillingOptions") AdvancedBillingOptions advancedBillingOptions,
+            @JsonProperty("notification") Notification notification,
+            @JsonProperty("subscriptionDetails") SubscriptionDetails subscriptionDetails,
+            @JsonProperty("linkedSubscriptionId") UUID linkedSubscriptionId) {
         this.expiration = expiration;
         this.customerData = customerData;
         this.ticketsInfo = ticketsInfo;
@@ -86,15 +86,17 @@ public class AdminReservationModification implements Serializable {
         private final TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo;
 
         @JsonCreator
-        public CustomerData(@JsonProperty("firstName") String firstName,
-                            @JsonProperty("lastName") String lastName,
-                            @JsonProperty("emailAddress") String emailAddress,
-                            @JsonProperty("billingAddress") String billingAddress,
-                            @JsonProperty("userLanguage") String userLanguage,
-                            @JsonProperty("customerReference") String customerReference,
-                            @JsonProperty("vatNr") String vatNr,
-                            @JsonProperty("vatCountryCode") String vatCountryCode,
-                            @JsonProperty("invoicingAdditionalInfo") TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo) {
+        public CustomerData(
+                @JsonProperty("firstName") String firstName,
+                @JsonProperty("lastName") String lastName,
+                @JsonProperty("emailAddress") String emailAddress,
+                @JsonProperty("billingAddress") String billingAddress,
+                @JsonProperty("userLanguage") String userLanguage,
+                @JsonProperty("customerReference") String customerReference,
+                @JsonProperty("vatNr") String vatNr,
+                @JsonProperty("vatCountryCode") String vatCountryCode,
+                @JsonProperty("invoicingAdditionalInfo")
+                        TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo) {
             this.firstName = trimToEmpty(firstName);
             this.lastName = trimToEmpty(lastName);
             this.emailAddress = trimToEmpty(emailAddress);
@@ -129,10 +131,11 @@ public class AdminReservationModification implements Serializable {
         private final boolean updateAttendees;
 
         @JsonCreator
-        public TicketsInfo(@JsonProperty("category") Category category,
-                           @JsonProperty("attendees") List<Attendee> attendees,
-                           @JsonProperty("addSeatsIfNotAvailable") boolean addSeatsIfNotAvailable,
-                           @JsonProperty("updateAttendees") Boolean updateAttendees) {
+        public TicketsInfo(
+                @JsonProperty("category") Category category,
+                @JsonProperty("attendees") List<Attendee> attendees,
+                @JsonProperty("addSeatsIfNotAvailable") boolean addSeatsIfNotAvailable,
+                @JsonProperty("updateAttendees") Boolean updateAttendees) {
             this.category = category;
             this.attendees = attendees;
             this.addSeatsIfNotAvailable = addSeatsIfNotAvailable;
@@ -148,14 +151,16 @@ public class AdminReservationModification implements Serializable {
         private final TicketCategory.TicketAccessType ticketAccessType;
 
         @JsonCreator
-        public Category(@JsonProperty("existingCategoryId") Integer existingCategoryId,
-                        @JsonProperty("name") String name,
-                        @JsonProperty("price") BigDecimal price,
-                        @JsonProperty("ticketAccessType") TicketCategory.TicketAccessType ticketAccessType) {
+        public Category(
+                @JsonProperty("existingCategoryId") Integer existingCategoryId,
+                @JsonProperty("name") String name,
+                @JsonProperty("price") BigDecimal price,
+                @JsonProperty("ticketAccessType") TicketCategory.TicketAccessType ticketAccessType) {
             this.existingCategoryId = existingCategoryId;
             this.name = name;
             this.price = price;
-            this.ticketAccessType = Objects.requireNonNullElse(ticketAccessType, TicketCategory.TicketAccessType.INHERIT);
+            this.ticketAccessType =
+                    Objects.requireNonNullElse(ticketAccessType, TicketCategory.TicketAccessType.INHERIT);
         }
 
         public boolean isExisting() {
@@ -177,16 +182,17 @@ public class AdminReservationModification implements Serializable {
         private final Map<String, String> metadata;
 
         @JsonCreator
-        public Attendee(@JsonProperty("ticketId") Integer ticketId,
-                        @JsonProperty("firstName") String firstName,
-                        @JsonProperty("lastName") String lastName,
-                        @JsonProperty("emailAddress") String emailAddress,
-                        @JsonProperty("language") String language,
-                        @JsonProperty("forbidReassignment") Boolean reassignmentForbidden,
-                        @JsonProperty("reference") String reference,
-                        @JsonProperty("subscriptionId") UUID subscriptionId,
-                        @JsonProperty("additionalInfo") Map<String, List<String>> additionalInfo,
-                        @JsonProperty("metadata") Map<String, String> metadata) {
+        public Attendee(
+                @JsonProperty("ticketId") Integer ticketId,
+                @JsonProperty("firstName") String firstName,
+                @JsonProperty("lastName") String lastName,
+                @JsonProperty("emailAddress") String emailAddress,
+                @JsonProperty("language") String language,
+                @JsonProperty("forbidReassignment") Boolean reassignmentForbidden,
+                @JsonProperty("reference") String reference,
+                @JsonProperty("subscriptionId") UUID subscriptionId,
+                @JsonProperty("additionalInfo") Map<String, List<String>> additionalInfo,
+                @JsonProperty("metadata") Map<String, String> metadata) {
             this.ticketId = ticketId;
             this.firstName = trimToEmpty(firstName);
             this.lastName = trimToEmpty(lastName);
@@ -213,8 +219,9 @@ public class AdminReservationModification implements Serializable {
         private final DateTimeModification expiration;
         private final Notification notification;
 
-        public Update(@JsonProperty("expiration") DateTimeModification expiration,
-                      @JsonProperty("notification") Notification notification) {
+        public Update(
+                @JsonProperty("expiration") DateTimeModification expiration,
+                @JsonProperty("notification") Notification notification) {
             this.expiration = expiration;
             this.notification = notification;
         }
@@ -229,8 +236,7 @@ public class AdminReservationModification implements Serializable {
         private final boolean attendees;
 
         @JsonCreator
-        public Notification(@JsonProperty("customer") boolean customer,
-                            @JsonProperty("attendees") boolean attendees) {
+        public Notification(@JsonProperty("customer") boolean customer, @JsonProperty("attendees") boolean attendees) {
             this.customer = customer;
             this.attendees = attendees;
         }
@@ -249,11 +255,12 @@ public class AdminReservationModification implements Serializable {
         private final PaymentProxy paymentProvider;
 
         @JsonCreator
-        public TransactionDetails(@JsonProperty("id") String id,
-                                  @JsonProperty("paidAmount") BigDecimal paidAmount,
-                                  @JsonProperty("timestamp") LocalDateTime timestamp,
-                                  @JsonProperty("notes") String notes,
-                                  @JsonProperty("paymentProvider") PaymentProxy paymentProvider) {
+        public TransactionDetails(
+                @JsonProperty("id") String id,
+                @JsonProperty("paidAmount") BigDecimal paidAmount,
+                @JsonProperty("timestamp") LocalDateTime timestamp,
+                @JsonProperty("notes") String notes,
+                @JsonProperty("paymentProvider") PaymentProxy paymentProvider) {
             this.id = id;
             this.paidAmount = paidAmount;
             this.timestamp = timestamp;
@@ -282,7 +289,8 @@ public class AdminReservationModification implements Serializable {
         }
 
         public static TransactionDetails admin() {
-            return new TransactionDetails(null, null, LocalDateTime.now(ClockProvider.clock()), null, PaymentProxy.ADMIN);
+            return new TransactionDetails(
+                    null, null, LocalDateTime.now(ClockProvider.clock()), null, PaymentProxy.ADMIN);
         }
     }
 
@@ -295,12 +303,13 @@ public class AdminReservationModification implements Serializable {
         private final DateTimeModification validityFrom;
         private final DateTimeModification validityTo;
 
-        public SubscriptionDetails(@JsonProperty("firstName") String firstName,
-                                   @JsonProperty("lastName") String lastName,
-                                   @JsonProperty("email") String email,
-                                   @JsonProperty("maxAllowed") Integer maxAllowed,
-                                   @JsonProperty("validityFrom") DateTimeModification validityFrom,
-                                   @JsonProperty("validityTo") DateTimeModification validityTo) {
+        public SubscriptionDetails(
+                @JsonProperty("firstName") String firstName,
+                @JsonProperty("lastName") String lastName,
+                @JsonProperty("email") String email,
+                @JsonProperty("maxAllowed") Integer maxAllowed,
+                @JsonProperty("validityFrom") DateTimeModification validityFrom,
+                @JsonProperty("validityTo") DateTimeModification validityTo) {
             this.firstName = firstName;
             this.lastName = lastName;
             this.email = email;
@@ -312,53 +321,59 @@ public class AdminReservationModification implements Serializable {
 
     public static String summary(AdminReservationModification src) {
         try {
-            List<TicketsInfo> ticketsInfo = src.ticketsInfo.stream().map(ti -> {
-                List<Attendee> attendees = ti.getAttendees()
-                    .stream()
-                    .map(a -> new Attendee(a.ticketId,
-                        placeholderIfNotEmpty(a.firstName),
-                        placeholderIfNotEmpty(a.lastName),
-                        placeholderIfNotEmpty(a.emailAddress),
-                        a.language,
-                        a.reassignmentForbidden,
-                        a.reference,
-                        a.subscriptionId,
-                        singletonMap("hasAdditionalInfo", singletonList(String.valueOf(a.additionalInfo.isEmpty()))),
-                        Map.of())).collect(toList());
-                return new TicketsInfo(ti.getCategory(), attendees, ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees());
-            }).collect(toList());
-            return Json.toJson(new AdminReservationModification(src.expiration,
-                summaryForCustomerData(src.customerData),
-                ticketsInfo,
-                src.getLanguage(),
-                src.updateContactData,
-                src.updateAdvancedBillingOptions,
-                src.advancedBillingOptions,
-                src.notification,
-                src.subscriptionDetails,
-                src.linkedSubscriptionId));
-        } catch(Exception e) {
+            List<TicketsInfo> ticketsInfo = src.ticketsInfo.stream()
+                    .map(ti -> {
+                        List<Attendee> attendees = ti.getAttendees().stream()
+                                .map(a -> new Attendee(
+                                        a.ticketId,
+                                        placeholderIfNotEmpty(a.firstName),
+                                        placeholderIfNotEmpty(a.lastName),
+                                        placeholderIfNotEmpty(a.emailAddress),
+                                        a.language,
+                                        a.reassignmentForbidden,
+                                        a.reference,
+                                        a.subscriptionId,
+                                        singletonMap(
+                                                "hasAdditionalInfo",
+                                                singletonList(String.valueOf(a.additionalInfo.isEmpty()))),
+                                        Map.of()))
+                                .collect(toList());
+                        return new TicketsInfo(
+                                ti.getCategory(), attendees, ti.isAddSeatsIfNotAvailable(), ti.isUpdateAttendees());
+                    })
+                    .collect(toList());
+            return Json.toJson(new AdminReservationModification(
+                    src.expiration,
+                    summaryForCustomerData(src.customerData),
+                    ticketsInfo,
+                    src.getLanguage(),
+                    src.updateContactData,
+                    src.updateAdvancedBillingOptions,
+                    src.advancedBillingOptions,
+                    src.notification,
+                    src.subscriptionDetails,
+                    src.linkedSubscriptionId));
+        } catch (Exception e) {
             return e.toString();
         }
     }
 
     private static CustomerData summaryForCustomerData(CustomerData in) {
-        if(in != null) {
-            return new CustomerData(placeholderIfNotEmpty(in.firstName),
-                placeholderIfNotEmpty(in.lastName),
-                placeholderIfNotEmpty(in.emailAddress),
-                placeholderIfNotEmpty(in.billingAddress),
-                placeholderIfNotEmpty(in.userLanguage),
-                placeholderIfNotEmpty(in.customerReference),
-                placeholderIfNotEmpty(in.vatNr),
-                placeholderIfNotEmpty(in.vatCountryCode),
-                in.invoicingAdditionalInfo);
-        }
-        else return null;
+        if (in != null) {
+            return new CustomerData(
+                    placeholderIfNotEmpty(in.firstName),
+                    placeholderIfNotEmpty(in.lastName),
+                    placeholderIfNotEmpty(in.emailAddress),
+                    placeholderIfNotEmpty(in.billingAddress),
+                    placeholderIfNotEmpty(in.userLanguage),
+                    placeholderIfNotEmpty(in.customerReference),
+                    placeholderIfNotEmpty(in.vatNr),
+                    placeholderIfNotEmpty(in.vatCountryCode),
+                    in.invoicingAdditionalInfo);
+        } else return null;
     }
 
     private static String placeholderIfNotEmpty(String in) {
         return StringUtils.isNotEmpty(in) ? "xxx" : null;
     }
 }
-

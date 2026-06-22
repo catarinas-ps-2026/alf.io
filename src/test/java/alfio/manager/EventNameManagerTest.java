@@ -16,12 +16,12 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
 import alfio.repository.EventAdminRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
 
 public class EventNameManagerTest {
 
@@ -71,5 +71,4 @@ public class EventNameManagerTest {
     public void removeUnicodeCharacters() {
         assertEquals("sa-lsia", eventNameManager.generateShortName("sa\u2013lsia"));
     }
-
 }

@@ -16,21 +16,20 @@
  */
 package alfio.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.model.ContentLanguage;
 import alfio.model.LocalizedContent;
 import alfio.model.Ticket;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
 
 class LocaleUtilTest {
 
@@ -80,7 +79,9 @@ class LocaleUtilTest {
     void atZoneConvertsZonedDateTimeAndKeepsNullAsNull() {
         var input = ZonedDateTime.parse("2024-01-01T12:00:00Z");
 
-        assertEquals(ZonedDateTime.parse("2024-01-01T13:00:00+01:00[Europe/Rome]"), LocaleUtil.atZone(input, ZoneId.of("Europe/Rome")));
+        assertEquals(
+                ZonedDateTime.parse("2024-01-01T13:00:00+01:00[Europe/Rome]"),
+                LocaleUtil.atZone(input, ZoneId.of("Europe/Rome")));
         assertNull(LocaleUtil.atZone((ZonedDateTime) null, ZoneId.of("Europe/Rome")));
     }
 
@@ -88,7 +89,9 @@ class LocaleUtilTest {
     void atZoneAppliesZoneToLocalDateTimeAndKeepsNullAsNull() {
         var input = LocalDateTime.parse("2024-01-01T12:00:00");
 
-        assertEquals(ZonedDateTime.parse("2024-01-01T12:00:00+01:00[Europe/Rome]"), LocaleUtil.atZone(input, ZoneId.of("Europe/Rome")));
+        assertEquals(
+                ZonedDateTime.parse("2024-01-01T12:00:00+01:00[Europe/Rome]"),
+                LocaleUtil.atZone(input, ZoneId.of("Europe/Rome")));
         assertNull(LocaleUtil.atZone((LocalDateTime) null, ZoneId.of("Europe/Rome")));
     }
 
@@ -96,8 +99,9 @@ class LocaleUtilTest {
     void formatDateReturnsLanguageKeyedFormattedDates() {
         var date = ZonedDateTime.parse("2024-04-10T12:34:56Z");
 
-        assertEquals(Map.of("en", "2024-04-10", "it", "10/04/2024"),
-            LocaleUtil.formatDate(date, Map.of(Locale.ENGLISH, "yyyy-MM-dd", Locale.ITALIAN, "dd/MM/yyyy")));
+        assertEquals(
+                Map.of("en", "2024-04-10", "it", "10/04/2024"),
+                LocaleUtil.formatDate(date, Map.of(Locale.ENGLISH, "yyyy-MM-dd", Locale.ITALIAN, "dd/MM/yyyy")));
     }
 
     @Test

@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
 
 import org.mozilla.javascript.ErrorReporter;
@@ -39,7 +38,8 @@ public class JSErrorReporter implements ErrorReporter {
     }
 
     @Override
-    public EvaluatorException runtimeError(String message, String sourceName, int line, String lineSource, int lineOffset) {
+    public EvaluatorException runtimeError(
+            String message, String sourceName, int line, String lineSource, int lineOffset) {
         return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
     }
 
@@ -47,5 +47,4 @@ public class JSErrorReporter implements ErrorReporter {
     public void error(String message, String sourceName, int line, String lineSource, int lineOffset) {
         log.warn("Error : " + message);
     }
-
 }

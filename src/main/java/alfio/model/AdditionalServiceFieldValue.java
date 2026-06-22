@@ -29,12 +29,13 @@ public class AdditionalServiceFieldValue {
     private final String name;
     private final String value;
 
-    public AdditionalServiceFieldValue(@Column("additional_service_item_id_fk") int additionalServiceItemId,
-                                       @Column("additional_service_id_fk") int additionalServiceId,
-                                       @Column("field_configuration_id_fk") long fieldConfigurationId,
-                                       @Column("field_name") String name,
-                                       @Column("field_value") String value,
-                                       @Column("ticket_id_fk") int ticketId) {
+    public AdditionalServiceFieldValue(
+            @Column("additional_service_item_id_fk") int additionalServiceItemId,
+            @Column("additional_service_id_fk") int additionalServiceId,
+            @Column("field_configuration_id_fk") long fieldConfigurationId,
+            @Column("field_name") String name,
+            @Column("field_value") String value,
+            @Column("ticket_id_fk") int ticketId) {
         this.additionalServiceItemId = additionalServiceItemId;
         this.additionalServiceId = additionalServiceId;
         this.fieldConfigurationId = fieldConfigurationId;

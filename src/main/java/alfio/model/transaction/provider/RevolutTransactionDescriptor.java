@@ -18,13 +18,12 @@ package alfio.model.transaction.provider;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class RevolutTransactionDescriptor {
@@ -40,15 +39,16 @@ public class RevolutTransactionDescriptor {
     private final List<TransactionLeg> legs;
 
     @JsonCreator
-    public RevolutTransactionDescriptor(@JsonProperty("id") String id,
-                                        @JsonProperty("type") String type,
-                                        @JsonProperty("request_id") String requestId,
-                                        @JsonProperty("state") String state,
-                                        @JsonProperty("created_at") ZonedDateTime createdAt,
-                                        @JsonProperty("updated_at") ZonedDateTime updatedAt,
-                                        @JsonProperty("completed_at") ZonedDateTime completedAt,
-                                        @JsonProperty("reference") String reference,
-                                        @JsonProperty("legs") List<TransactionLeg> legs) {
+    public RevolutTransactionDescriptor(
+            @JsonProperty("id") String id,
+            @JsonProperty("type") String type,
+            @JsonProperty("request_id") String requestId,
+            @JsonProperty("state") String state,
+            @JsonProperty("created_at") ZonedDateTime createdAt,
+            @JsonProperty("updated_at") ZonedDateTime updatedAt,
+            @JsonProperty("completed_at") ZonedDateTime completedAt,
+            @JsonProperty("reference") String reference,
+            @JsonProperty("legs") List<TransactionLeg> legs) {
         this.id = id;
         this.type = type;
         this.requestId = requestId;
@@ -71,12 +71,13 @@ public class RevolutTransactionDescriptor {
         private final BigDecimal balance;
 
         @JsonCreator
-        public TransactionLeg(@JsonProperty("leg_id") String id,
-                              @JsonProperty("account_id") String accountId,
-                              @JsonProperty("counterparty") Counterparty counterparty,
-                              @JsonProperty("amount") BigDecimal amount,
-                              @JsonProperty("currency") String currency,
-                              @JsonProperty("balance") BigDecimal balance) {
+        public TransactionLeg(
+                @JsonProperty("leg_id") String id,
+                @JsonProperty("account_id") String accountId,
+                @JsonProperty("counterparty") Counterparty counterparty,
+                @JsonProperty("amount") BigDecimal amount,
+                @JsonProperty("currency") String currency,
+                @JsonProperty("balance") BigDecimal balance) {
             this.id = id;
             this.accountId = accountId;
             this.counterpartyAccountId = counterparty.id;
@@ -93,9 +94,10 @@ public class RevolutTransactionDescriptor {
 
     public Map<String, String> getMetadata() {
         return Map.of(
-            "counterpartyAccountId", Optional.ofNullable(legs.get(0).counterpartyAccountId).orElse("N/A"),
-            "counterpartyType", Optional.ofNullable(legs.get(0).counterpartyType).orElse("N/A")
-        );
+                "counterpartyAccountId",
+                        Optional.ofNullable(legs.get(0).counterpartyAccountId).orElse("N/A"),
+                "counterpartyType",
+                        Optional.ofNullable(legs.get(0).counterpartyType).orElse("N/A"));
     }
 
     private static class Counterparty {
@@ -103,12 +105,9 @@ public class RevolutTransactionDescriptor {
         private final String id;
 
         @JsonCreator
-        public Counterparty(@JsonProperty("account_type") String type,
-                            @JsonProperty("account_id") String id) {
+        public Counterparty(@JsonProperty("account_type") String type, @JsonProperty("account_id") String id) {
             this.type = type;
             this.id = id;
         }
     }
 }
-
-

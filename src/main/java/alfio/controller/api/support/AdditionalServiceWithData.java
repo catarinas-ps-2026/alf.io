@@ -17,10 +17,8 @@
 package alfio.controller.api.support;
 
 import alfio.model.AdditionalService;
-
 import java.util.List;
 import java.util.Map;
-
 
 public class AdditionalServiceWithData {
     private final Map<String, String> title;
@@ -31,12 +29,13 @@ public class AdditionalServiceWithData {
 
     private final AdditionalService.AdditionalServiceType type;
 
-    public AdditionalServiceWithData(Map<String, String> title,
-                                     int itemId,
-                                     Integer serviceId,
-                                     String ticketUUID,
-                                     List<AdditionalField> ticketFieldConfiguration,
-                                     AdditionalService.AdditionalServiceType type) {
+    public AdditionalServiceWithData(
+            Map<String, String> title,
+            int itemId,
+            Integer serviceId,
+            String ticketUUID,
+            List<AdditionalField> ticketFieldConfiguration,
+            AdditionalService.AdditionalServiceType type) {
         this.title = title;
         this.itemId = itemId;
         this.serviceId = serviceId;

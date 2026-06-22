@@ -18,13 +18,12 @@ package alfio.controller;
 
 import alfio.config.Initializer;
 import alfio.config.WebSecurityConfig;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.ui.Model;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 public interface Constants {
     String TICKET_QR_CODE_URI = "/api/v2/public/event/{eventName}/ticket/{ticketIdentifier}/code.png";
@@ -41,7 +40,8 @@ public interface Constants {
     String CONTENT = "content";
     String PROPERTY = "property";
 
-    static void addCommonModelAttributes(Model model, HttpServletRequest request, String version, Environment environment) {
+    static void addCommonModelAttributes(
+            Model model, HttpServletRequest request, String version, Environment environment) {
         var contextPath = StringUtils.appendIfMissing(request.getContextPath(), "/") + version;
         model.addAttribute("contextPath", contextPath);
         model.addAttribute("demoModeEnabled", demoModeEnabled(environment));
@@ -65,5 +65,4 @@ public interface Constants {
     private static boolean profileActive(Environment environment, String profile) {
         return environment.acceptsProfiles(Profiles.of(profile));
     }
-
 }

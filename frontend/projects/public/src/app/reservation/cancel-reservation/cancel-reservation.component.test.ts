@@ -18,9 +18,7 @@ describe('CancelReservationComponent', () => {
         TestBed.configureTestingModule({
             declarations: [CancelReservationComponent],
             imports: [NgbModule, TranslateModule.forRoot()],
-            providers: [
-                { provide: NgbActiveModal, useValue: mockActiveModal },
-            ],
+            providers: [{ provide: NgbActiveModal, useValue: mockActiveModal }],
         });
 
         fixture = TestBed.createComponent(CancelReservationComponent);

@@ -16,6 +16,10 @@
  */
 package alfio.manager;
 
+import static alfio.model.system.ConfigurationKeys.ENABLE_PRE_REGISTRATION;
+import static alfio.model.system.ConfigurationKeys.ENABLE_WAITING_QUEUE;
+import static java.util.stream.Collectors.toList;
+
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.Event;
@@ -29,6 +33,10 @@ import alfio.repository.WaitingQueueRepository;
 import alfio.util.ClockProvider;
 import alfio.util.TemplateManager;
 import alfio.util.TemplateResource;
+import java.sql.Date;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,15 +47,6 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-
-import java.sql.Date;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static alfio.model.system.ConfigurationKeys.ENABLE_PRE_REGISTRATION;
-import static alfio.model.system.ConfigurationKeys.ENABLE_WAITING_QUEUE;
-import static java.util.stream.Collectors.toList;
 
 @Component
 @Transactional
@@ -66,7 +65,18 @@ public class WaitingQueueSubscriptionProcessor {
     private final PlatformTransactionManager transactionManager;
     private final ClockProvider clockProvider;
 
-    public WaitingQueueSubscriptionProcessor(EventManager eventManager, TicketReservationManager ticketReservationManager, ConfigurationManager configurationManager, WaitingQueueManager waitingQueueManager, NotificationManager notificationManager, WaitingQueueRepository waitingQueueRepository, MessageSourceManager messageSourceManager, TemplateManager templateManager, TicketRepository ticketRepository, PlatformTransactionManager transactionManager, ClockProvider clockProvider) {
+    public WaitingQueueSubscriptionProcessor(
+            EventManager eventManager,
+            TicketReservationManager ticketReservationManager,
+            ConfigurationManager configurationManager,
+            WaitingQueueManager waitingQueueManager,
+            NotificationManager notificationManager,
+            WaitingQueueRepository waitingQueueRepository,
+            MessageSourceManager messageSourceManager,
+            TemplateManager templateManager,
+            TicketRepository ticketRepository,
+            PlatformTransactionManager transactionManager,
+            ClockProvider clockProvider) {
         this.eventManager = eventManager;
         this.ticketReservationManager = ticketReservationManager;
         this.configurationManager = configurationManager;
@@ -82,16 +92,17 @@ public class WaitingQueueSubscriptionProcessor {
 
     public void handleWaitingTickets() {
         Map<Boolean, List<Event>> activeEvents = eventManager.getActiveEvents().stream()
-            .collect(Collectors.partitioningBy(this::isWaitingListFormEnabled));
+                .collect(Collectors.partitioningBy(this::isWaitingListFormEnabled));
         activeEvents.get(true).forEach(event -> {
-            TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+            TransactionStatus transaction = transactionManager.getTransaction(
+                    new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
             try {
                 ticketReservationManager.revertTicketsToFreeIfAccessRestricted(event.getId());
                 revertTicketToFreeIfCategoryIsExpired(event);
                 distributeAvailableSeats(event);
                 transactionManager.commit(transaction);
-            } catch(Exception ex) {
-                if(!(ex instanceof TransactionException)) {
+            } catch (Exception ex) {
+                if (!(ex instanceof TransactionException)) {
                     transactionManager.rollback(transaction);
                 }
                 log.error("cannot process waiting list for event {}", event.getShortName(), ex);
@@ -102,15 +113,16 @@ public class WaitingQueueSubscriptionProcessor {
 
     public void revertTicketToFreeIfCategoryIsExpired(Event event) {
         int eventId = event.getId();
-        List<TicketInfo> releasedButExpired = ticketRepository.findReleasedBelongingToExpiredCategories(eventId, event.now(clockProvider));
-        Map<Pair<Integer, Boolean>, List<Integer>> releasedByCategory = releasedButExpired.stream().collect(Collectors.groupingBy(
-            t-> Pair.of(t.getTicketCategoryId(), t.isTicketCategoryBounded()),
-            Collectors.mapping(TicketInfo::getTicketId, toList())
-        ));
+        List<TicketInfo> releasedButExpired =
+                ticketRepository.findReleasedBelongingToExpiredCategories(eventId, event.now(clockProvider));
+        Map<Pair<Integer, Boolean>, List<Integer>> releasedByCategory = releasedButExpired.stream()
+                .collect(Collectors.groupingBy(
+                        t -> Pair.of(t.getTicketCategoryId(), t.isTicketCategoryBounded()),
+                        Collectors.mapping(TicketInfo::getTicketId, toList())));
         releasedByCategory.forEach((ticketCategory, ticketIds) -> {
             int ticketCategoryId = ticketCategory.getKey();
             boolean isTicketCategoryBounded = ticketCategory.getRight();
-            if(!ticketIds.isEmpty()) {
+            if (!ticketIds.isEmpty()) {
                 if (isTicketCategoryBounded) {
                     ticketRepository.revertToFree(eventId, ticketCategoryId, ticketIds);
                 } else {
@@ -121,8 +133,10 @@ public class WaitingQueueSubscriptionProcessor {
     }
 
     private boolean isWaitingListFormEnabled(EventAndOrganizationId event) {
-        var res = configurationManager.getFor(Set.of(ENABLE_WAITING_QUEUE, ENABLE_PRE_REGISTRATION), event.getConfigurationLevel());
-        return res.get(ENABLE_WAITING_QUEUE).getValueAsBooleanOrDefault() || res.get(ENABLE_PRE_REGISTRATION).getValueAsBooleanOrDefault();
+        var res = configurationManager.getFor(
+                Set.of(ENABLE_WAITING_QUEUE, ENABLE_PRE_REGISTRATION), event.getConfigurationLevel());
+        return res.get(ENABLE_WAITING_QUEUE).getValueAsBooleanOrDefault()
+                || res.get(ENABLE_PRE_REGISTRATION).getValueAsBooleanOrDefault();
     }
 
     public void distributeAvailableSeats(Event event) {
@@ -133,27 +147,35 @@ public class WaitingQueueSubscriptionProcessor {
             ZonedDateTime expiration = triple.getRight();
             Organization organization = eventManager.loadOrganizerUsingSystemPrincipal(event);
             String reservationId = createReservation(event, triple.getMiddle(), expiration, locale);
-            String subject = messageSource.getMessage("email-waiting-queue-acquired.subject", new Object[]{event.getDisplayName()}, locale);
+            String subject = messageSource.getMessage(
+                    "email-waiting-queue-acquired.subject", new Object[] {event.getDisplayName()}, locale);
             String reservationUrl = ticketReservationManager.reservationUrl(reservationId, event);
-            Map<String, Object> model = TemplateResource.buildModelForWaitingQueueReservationEmail(organization, event, subscription, reservationUrl, expiration);
-            notificationManager.sendSimpleEmail(event,
+            Map<String, Object> model = TemplateResource.buildModelForWaitingQueueReservationEmail(
+                    organization, event, subscription, reservationUrl, expiration);
+            notificationManager.sendSimpleEmail(
+                    event,
                     reservationId,
                     subscription.getEmailAddress(),
                     subject,
-                    () -> templateManager.renderTemplate(event, TemplateResource.WAITING_QUEUE_RESERVATION_EMAIL, model, locale));
+                    () -> templateManager.renderTemplate(
+                            event, TemplateResource.WAITING_QUEUE_RESERVATION_EMAIL, model, locale));
             waitingQueueRepository.flagAsPending(reservationId, subscription.getId());
         });
     }
 
-    private String createReservation(Event event, TicketReservationWithOptionalCodeModification reservation, ZonedDateTime expiration, Locale locale) {
-        return ticketReservationManager.createTicketReservation(event,
-            Collections.singletonList(reservation),
-            Collections.emptyList(),
-            Date.from(expiration.toInstant()),
-            Optional.empty(),
-            locale,
-            true,
-            null); // set principal to null because this happens in a job
+    private String createReservation(
+            Event event,
+            TicketReservationWithOptionalCodeModification reservation,
+            ZonedDateTime expiration,
+            Locale locale) {
+        return ticketReservationManager.createTicketReservation(
+                event,
+                Collections.singletonList(reservation),
+                Collections.emptyList(),
+                Date.from(expiration.toInstant()),
+                Optional.empty(),
+                locale,
+                true,
+                null); // set principal to null because this happens in a job
     }
-
 }

@@ -16,15 +16,14 @@
  */
 package alfio.manager.system;
 
+import static alfio.model.system.ConfigurationKeys.MAILER_TYPE;
+
 import alfio.model.Configurable;
 import alfio.repository.user.OrganizationRepository;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
 import java.net.http.HttpClient;
 import java.util.*;
-
-import static alfio.model.system.ConfigurationKeys.MAILER_TYPE;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DefaultMailer implements Mailer {
@@ -34,10 +33,11 @@ public class DefaultMailer implements Mailer {
     private final Mailer defaultMailer;
     private final Environment environment;
 
-    public DefaultMailer(ConfigurationManager configurationManager,
-                         Environment environment,
-                         HttpClient httpClient,
-                         OrganizationRepository organizationRepository) {
+    public DefaultMailer(
+            ConfigurationManager configurationManager,
+            Environment environment,
+            HttpClient httpClient,
+            OrganizationRepository organizationRepository) {
         this.configurationManager = configurationManager;
         this.environment = environment;
         this.mailers = new HashMap<>();
@@ -50,16 +50,24 @@ public class DefaultMailer implements Mailer {
     }
 
     @Override
-    public void send(Configurable configurable, String fromName, String to, List<String> cc, String subject, String text,
-                     Optional<String> html, Attachment... attachments) {
+    public void send(
+            Configurable configurable,
+            String fromName,
+            String to,
+            List<String> cc,
+            String subject,
+            String text,
+            Optional<String> html,
+            Attachment... attachments) {
 
         subject = decorateSubjectIfDemo(subject, environment);
 
-        String mailerType = configurationManager.getFor(MAILER_TYPE, configurable.getConfigurationLevel())
-            .getValueOrDefault("disabled").toLowerCase(Locale.ENGLISH);
+        String mailerType = configurationManager
+                .getFor(MAILER_TYPE, configurable.getConfigurationLevel())
+                .getValueOrDefault("disabled")
+                .toLowerCase(Locale.ENGLISH);
 
         mailers.getOrDefault(mailerType, defaultMailer)
                 .send(configurable, fromName, to, cc, subject, text, html, attachments);
     }
-
 }

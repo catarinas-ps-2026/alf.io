@@ -16,10 +16,9 @@
  */
 package alfio.model.extension;
 
-import lombok.Data;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class CustomEmailText {
@@ -36,7 +35,7 @@ public class CustomEmailText {
     }
 
     private static void addIfNotBlank(String in, String key, Map<String, Object> map) {
-        if(in != null && !in.isBlank()) {
+        if (in != null && !in.isBlank()) {
             map.put(key, in);
         }
     }

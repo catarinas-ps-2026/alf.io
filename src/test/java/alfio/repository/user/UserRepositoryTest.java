@@ -14,28 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.repository.user;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 @ExtendWith(MockitoExtension.class)
 class UserRepositoryTest {
 
-    private final UserRepository userRepository = mock(UserRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+    private final UserRepository userRepository =
+            mock(UserRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 
     @Test
     void testNullSafeFindIdByUserName() {
         when(userRepository.findIdByUserName("user1")).thenReturn(Optional.of(123));
-        
+
         assertEquals(Optional.of(123), userRepository.nullSafeFindIdByUserName("user1"));
         assertTrue(userRepository.nullSafeFindIdByUserName(null).isEmpty());
         assertTrue(userRepository.nullSafeFindIdByUserName("").isEmpty());
@@ -46,7 +45,7 @@ class UserRepositoryTest {
     void testDeleteUserAndReferences() {
         int userId = 123;
         userRepository.deleteUserAndReferences(userId);
-        
+
         verify(userRepository).deleteUserFromSponsorScan(userId);
         verify(userRepository).deleteUserFromOrganization(userId);
         verify(userRepository).deleteUserFromAuthority(userId);

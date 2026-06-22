@@ -21,5 +21,5 @@ import alfio.util.RenderedTemplate;
 
 @FunctionalInterface
 public interface PartialTicketTextGenerator {
-	RenderedTemplate generate(Ticket ticket);
+    RenderedTemplate generate(Ticket ticket);
 }

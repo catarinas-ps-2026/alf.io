@@ -16,6 +16,18 @@
  */
 package alfio.controller.api.admin;
 
+import static alfio.controller.api.admin.EventApiController.FIXED_FIELDS;
+import static alfio.test.toolkit.PromoCodeDiscountIntegrationTestingToolkit.TEST_PROMO_CODE;
+import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
+import static alfio.test.util.IntegrationTestUtil.DESCRIPTION;
+import static alfio.test.util.IntegrationTestUtil.initEvent;
+import static alfio.test.util.IntegrationTestUtil.owner;
+import static alfio.test.util.TestUtil.clockProvider;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -43,6 +55,14 @@ import alfio.test.toolkit.PromoCodeDiscountIntegrationTestingToolkit;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.ClockProvider;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -54,27 +74,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static alfio.controller.api.admin.EventApiController.FIXED_FIELDS;
-import static alfio.test.toolkit.PromoCodeDiscountIntegrationTestingToolkit.TEST_PROMO_CODE;
-import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
-import static alfio.test.util.IntegrationTestUtil.DESCRIPTION;
-import static alfio.test.util.IntegrationTestUtil.initEvent;
-import static alfio.test.util.IntegrationTestUtil.owner;
-import static alfio.test.util.TestUtil.clockProvider;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -82,28 +81,40 @@ class EventApiControllerIntegrationTest {
 
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private EventDeleterRepository eventDeleterRepository;
+
     @Autowired
     private EventApiController eventApiController;
+
     @Autowired
     private AttendeeBulkImportApiController attendeeBulkImportApiController;
+
     @Autowired
     private AdminReservationRequestManager adminReservationRequestManager;
+
     @Autowired
     private TicketCategoryRepository ticketCategoryRepository;
+
     @Autowired
     private TicketRepository ticketRepository;
+
     @Autowired
     private PromoCodeDiscountIntegrationTestingToolkit promoCodeDiscountIntegrationTestingToolkit;
+
     @Autowired
     private CustomOfflineConfigurationManager customOfflineConfigurationManager;
 
@@ -165,17 +176,22 @@ class EventApiControllerIntegrationTest {
         var principal = Mockito.mock(Authentication.class);
         when(principal.getName()).thenReturn(owner(eventAndUser.getValue()));
         var modification = getTestAdminReservationModification();
-        var result = this.attendeeBulkImportApiController.createReservations(eventAndUser.getKey().getShortName(), modification, false, principal);
-        var organizationId = organizationRepository.findAllForUser(eventAndUser.getRight()).get(0).getId();
+        var result = this.attendeeBulkImportApiController.createReservations(
+                eventAndUser.getKey().getShortName(), modification, false, principal);
+        var organizationId = organizationRepository
+                .findAllForUser(eventAndUser.getRight())
+                .get(0)
+                .getId();
 
         // GIVEN - invocation of async processing job
-        var requestStatus = this.attendeeBulkImportApiController.getRequestsStatus(eventAndUser.getKey().getShortName(), result.getData(), principal);
+        var requestStatus = this.attendeeBulkImportApiController.getRequestsStatus(
+                eventAndUser.getKey().getShortName(), result.getData(), principal);
         assertEquals(1, requestStatus.getData().getCountPending());
 
         // WHEN - processing of pending reservations completes
         this.adminReservationRequestManager.processPendingReservations();
-        promoCodeDiscountIntegrationTestingToolkit.createPromoCodeDiscount(event.getId(), organizationId, modification.getCustomerData()
-                                                                                                                      .getEmailAddress());
+        promoCodeDiscountIntegrationTestingToolkit.createPromoCodeDiscount(
+                event.getId(), organizationId, modification.getCustomerData().getEmailAddress());
         // THEN - assert correctness of data persisted
         var tickets = this.ticketRepository.findAllConfirmedForCSV(event.getId());
         assertEquals(1, tickets.size());
@@ -190,20 +206,31 @@ class EventApiControllerIntegrationTest {
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addParameter("fields", FIXED_FIELDS.toArray(new String[0]));
         MockHttpServletResponse mockResponse = new MockHttpServletResponse();
-        this.eventApiController.downloadAllTicketsCSV(event.getShortName(), "csv", mockRequest, mockResponse, principal);
-        String expectedTestAttendeeCsvLine = "\""+foundTicket.getUuid()+"\""+",default,"+"\""+event.getShortName()+"\""+",ACQUIRED,0,0,0,0,"+"\""+foundTicket.getTicketsReservationId()+"\""+",\""+TEST_ATTENDEE_FIRST_NAME+" "+TEST_ATTENDEE_LAST_NAME+"\","+TEST_ATTENDEE_FIRST_NAME+","+TEST_ATTENDEE_LAST_NAME+","+TEST_ATTENDEE_EMAIL+",false,"+TEST_ATTENDEE_USER_LANGUAGE;
+        this.eventApiController.downloadAllTicketsCSV(
+                event.getShortName(), "csv", mockRequest, mockResponse, principal);
+        String expectedTestAttendeeCsvLine = "\"" + foundTicket.getUuid() + "\"" + ",default," + "\""
+                + event.getShortName() + "\"" + ",ACQUIRED,0,0,0,0," + "\"" + foundTicket.getTicketsReservationId()
+                + "\"" + ",\"" + TEST_ATTENDEE_FIRST_NAME + " " + TEST_ATTENDEE_LAST_NAME + "\","
+                + TEST_ATTENDEE_FIRST_NAME + "," + TEST_ATTENDEE_LAST_NAME + "," + TEST_ATTENDEE_EMAIL + ",false,"
+                + TEST_ATTENDEE_USER_LANGUAGE;
         String returnedCsvContent = mockResponse.getContentAsString().trim().replace("\uFEFF", ""); // remove BOM
         assertTrue(returnedCsvContent.startsWith(getExpectedHeaderCsvLine() + "\n" + expectedTestAttendeeCsvLine));
-        assertTrue(returnedCsvContent.endsWith("\"Billing Address\",,"+TEST_PROMO_CODE+",,," + TEST_ATTENDEE_EXTERNAL_REFERENCE));
+        assertTrue(returnedCsvContent.endsWith(
+                "\"Billing Address\",," + TEST_PROMO_CODE + ",,," + TEST_ATTENDEE_EXTERNAL_REFERENCE));
     }
 
     @Test
-    void testCanGetDeniedCustomPaymentMethods() throws CustomOfflinePaymentMethodAlreadyExistsException, PassedIdDoesNotExistException, CustomOfflinePaymentMethodDoesNotExistException {
+    void testCanGetDeniedCustomPaymentMethods()
+            throws CustomOfflinePaymentMethodAlreadyExistsException, PassedIdDoesNotExistException,
+                    CustomOfflinePaymentMethodDoesNotExistException {
         var eventAndUser = createEvent(Event.EventFormat.ONLINE);
         event = eventAndUser.getKey();
         var principal = Mockito.mock(Authentication.class);
         when(principal.getName()).thenReturn(owner(eventAndUser.getValue()));
-        var organizationId = organizationRepository.findAllForUser(eventAndUser.getRight()).get(0).getId();
+        var organizationId = organizationRepository
+                .findAllForUser(eventAndUser.getRight())
+                .get(0)
+                .getId();
         var ticketCategoryList = this.ticketCategoryRepository.findAllTicketCategories(event.getId());
 
         assertEquals(1, ticketCategoryList.size());
@@ -211,53 +238,43 @@ class EventApiControllerIntegrationTest {
         var ticketCategory = ticketCategoryList.get(0);
 
         var paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
-                "15146df3-2436-4d2e-90b9-0d6cb273e291",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant bank transfer from any Canadian account.",
-                        "Send the payment to `payments@example.com`."
-                    )
-                )
-            ),
-            new UserDefinedOfflinePaymentMethod(
-                "ec6c5268-4122-4b27-98ee-fa070df11c5b",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Venmo",
-                        "Instant money transfers via the Venmo app.",
-                        "Send the payment to user `exampleco` on Venmo."
-                    )
-                )
-            )
-        );
+                new UserDefinedOfflinePaymentMethod(
+                        "15146df3-2436-4d2e-90b9-0d6cb273e291",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Interac E-Transfer",
+                                        "Instant bank transfer from any Canadian account.",
+                                        "Send the payment to `payments@example.com`."))),
+                new UserDefinedOfflinePaymentMethod(
+                        "ec6c5268-4122-4b27-98ee-fa070df11c5b",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Venmo",
+                                        "Instant money transfers via the Venmo app.",
+                                        "Send the payment to user `exampleco` on Venmo."))));
 
-        for(var pm : paymentMethods) {
+        for (var pm : paymentMethods) {
             customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(organizationId, pm);
         }
         customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(
-            event,
-            ticketCategory,
-            List.of(paymentMethods.get(0))
-        );
+                event, ticketCategory, List.of(paymentMethods.get(0)));
 
-        var response = eventApiController.getDeniedCustomPaymentMethods(
-            event.getId(),
-            ticketCategory.getId(),
-            principal
-        );
+        var response =
+                eventApiController.getDeniedCustomPaymentMethods(event.getId(), ticketCategory.getId(), principal);
 
         var deniedMethodIds = response.getBody();
 
         assertEquals(1, deniedMethodIds.size());
-        assertTrue(deniedMethodIds.stream().allMatch(blItem ->
-            paymentMethods.stream().anyMatch(pmItem -> blItem.equals(pmItem.getPaymentMethodId())))
-        );
+        assertTrue(deniedMethodIds.stream().allMatch(blItem -> paymentMethods.stream()
+                .anyMatch(pmItem -> blItem.equals(pmItem.getPaymentMethodId()))));
     }
 
     @Test
-    void testCanSetDeniedCustomPaymentMethods() throws PassedIdDoesNotExistException, CustomOfflinePaymentMethodAlreadyExistsException, CustomOfflinePaymentMethodDoesNotExistException {
+    void testCanSetDeniedCustomPaymentMethods()
+            throws PassedIdDoesNotExistException, CustomOfflinePaymentMethodAlreadyExistsException,
+                    CustomOfflinePaymentMethodDoesNotExistException {
         var eventAndUser = createEvent(Event.EventFormat.ONLINE);
         event = eventAndUser.getKey();
         var principal = Mockito.mock(Authentication.class);
@@ -269,69 +286,94 @@ class EventApiControllerIntegrationTest {
         var ticketCategory = ticketCategoryList.get(0);
 
         var paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
-                "15146df3-2436-4d2e-90b9-0d6cb273e291",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant bank transfer from any Canadian account.",
-                        "Send the payment to `payments@example.com`."
-                    )
-                )
-            ),
-            new UserDefinedOfflinePaymentMethod(
-                "ec6c5268-4122-4b27-98ee-fa070df11c5b",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Venmo",
-                        "Instant money transfers via the Venmo app.",
-                        "Send the payment to user `exampleco` on Venmo."
-                    )
-                )
-            )
-        );
+                new UserDefinedOfflinePaymentMethod(
+                        "15146df3-2436-4d2e-90b9-0d6cb273e291",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Interac E-Transfer",
+                                        "Instant bank transfer from any Canadian account.",
+                                        "Send the payment to `payments@example.com`."))),
+                new UserDefinedOfflinePaymentMethod(
+                        "ec6c5268-4122-4b27-98ee-fa070df11c5b",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Venmo",
+                                        "Instant money transfers via the Venmo app.",
+                                        "Send the payment to user `exampleco` on Venmo."))));
 
-        for(var pm : paymentMethods) {
-            customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(event.getOrganizationId(), pm);
+        for (var pm : paymentMethods) {
+            customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(
+                    event.getOrganizationId(), pm);
         }
 
         eventApiController.setDeniedCustomPaymentMethods(
-            event.getId(),
-            ticketCategory.getId(),
-            List.of(paymentMethods.get(0).getPaymentMethodId()),
-            principal
-        );
+                event.getId(),
+                ticketCategory.getId(),
+                List.of(paymentMethods.get(0).getPaymentMethodId()),
+                principal);
 
-        var storedDeniedPaymentMethods = customOfflineConfigurationManager.getDeniedPaymentMethodsByTicketCategory(
-            event,
-            ticketCategory
-        );
+        var storedDeniedPaymentMethods =
+                customOfflineConfigurationManager.getDeniedPaymentMethodsByTicketCategory(event, ticketCategory);
         assertEquals(1, storedDeniedPaymentMethods.size());
 
-        assertTrue(storedDeniedPaymentMethods.stream().allMatch(
-            blItem -> paymentMethods.stream().anyMatch(pmItem -> blItem.getPaymentMethodId().equals(pmItem.getPaymentMethodId())))
-        );
+        assertTrue(storedDeniedPaymentMethods.stream().allMatch(blItem -> paymentMethods.stream()
+                .anyMatch(pmItem -> blItem.getPaymentMethodId().equals(pmItem.getPaymentMethodId()))));
     }
 
     private AdminReservationModification getTestAdminReservationModification() {
-        DateTimeModification expiration = DateTimeModification.fromZonedDateTime(ZonedDateTime.now(ClockProvider.clock()).plusDays(1));
-        AdminReservationModification.CustomerData customerData = new AdminReservationModification.CustomerData("Integration", "Test", "integration-test@test.ch", "Billing Address", "reference", "en", "1234", "CH", null);
+        DateTimeModification expiration = DateTimeModification.fromZonedDateTime(
+                ZonedDateTime.now(ClockProvider.clock()).plusDays(1));
+        AdminReservationModification.CustomerData customerData = new AdminReservationModification.CustomerData(
+                "Integration",
+                "Test",
+                "integration-test@test.ch",
+                "Billing Address",
+                "reference",
+                "en",
+                "1234",
+                "CH",
+                null);
         var ticketCategoryList = this.ticketCategoryRepository.findAllTicketCategories(event.getId());
-        AdminReservationModification.Category category = new AdminReservationModification.Category(ticketCategoryList.get(0).getId(), "name", new BigDecimal("100.00"), null);
-        List<AdminReservationModification.TicketsInfo> ticketsInfoList = Collections.singletonList(new AdminReservationModification.TicketsInfo(category, Collections.singletonList(generateTestAttendee()), true, false));
-        return new AdminReservationModification(expiration, customerData, ticketsInfoList, "en", false, false, null, null, null, null);
+        AdminReservationModification.Category category = new AdminReservationModification.Category(
+                ticketCategoryList.get(0).getId(), "name", new BigDecimal("100.00"), null);
+        List<AdminReservationModification.TicketsInfo> ticketsInfoList =
+                Collections.singletonList(new AdminReservationModification.TicketsInfo(
+                        category, Collections.singletonList(generateTestAttendee()), true, false));
+        return new AdminReservationModification(
+                expiration, customerData, ticketsInfoList, "en", false, false, null, null, null, null);
     }
 
-    private Pair<Event,String> createEvent(Event.EventFormat format) {
+    private Pair<Event, String> createEvent(Event.EventFormat format) {
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-        List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1), LocalTime.now(clockProvider().getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1), LocalTime.now(clockProvider().getClock())),
-                DESCRIPTION, BigDecimal.ZERO, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        return initEvent(categories, organizationRepository, userManager, eventManager, eventRepository, List.of(), format);
-
+        List<TicketCategoryModification> categories = List.of(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(clockProvider().getClock()).minusDays(1),
+                        LocalTime.now(clockProvider().getClock())),
+                new DateTimeModification(
+                        LocalDate.now(clockProvider().getClock()).plusDays(1),
+                        LocalTime.now(clockProvider().getClock())),
+                DESCRIPTION,
+                BigDecimal.ZERO,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        return initEvent(
+                categories, organizationRepository, userManager, eventManager, eventRepository, List.of(), format);
     }
 
     private String getExpectedHeaderCsvLine() {
@@ -349,7 +391,17 @@ class EventApiControllerIntegrationTest {
     }
 
     private AdminReservationModification.Attendee generateTestAttendee() {
-        return new AdminReservationModification.Attendee(null, TEST_ATTENDEE_FIRST_NAME, TEST_ATTENDEE_LAST_NAME, TEST_ATTENDEE_EMAIL, TEST_ATTENDEE_USER_LANGUAGE,false, TEST_ATTENDEE_EXTERNAL_REFERENCE, null, Collections.emptyMap(), null);
+        return new AdminReservationModification.Attendee(
+                null,
+                TEST_ATTENDEE_FIRST_NAME,
+                TEST_ATTENDEE_LAST_NAME,
+                TEST_ATTENDEE_EMAIL,
+                TEST_ATTENDEE_USER_LANGUAGE,
+                false,
+                TEST_ATTENDEE_EXTERNAL_REFERENCE,
+                null,
+                Collections.emptyMap(),
+                null);
     }
 
     @AfterEach

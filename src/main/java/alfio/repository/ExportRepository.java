@@ -21,13 +21,15 @@ import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
 import ch.digitalfondue.npjt.QueryType;
-
 import java.time.ZonedDateTime;
 import java.util.List;
 
 @QueryRepository
 public interface ExportRepository {
-    @Query(type = QueryType.SELECT, value = """
+    @Query(
+            type = QueryType.SELECT,
+            value =
+                    """
         with tickets as (\
             select tr_id, jsonb_agg(jsonb_build_object(\
                     'id', t_uuid,\
@@ -81,7 +83,6 @@ public interface ExportRepository {
          where e.org_id in (:orgIds)\
          order by 1\
         """)
-    List<ReservationsByEvent> allReservationsForInterval(@Bind("startTs") ZonedDateTime from,
-                                                         @Bind("endTs") ZonedDateTime to,
-                                                         @Bind("orgIds") List<Integer> orgIds);
+    List<ReservationsByEvent> allReservationsForInterval(
+            @Bind("startTs") ZonedDateTime from, @Bind("endTs") ZonedDateTime to, @Bind("orgIds") List<Integer> orgIds);
 }

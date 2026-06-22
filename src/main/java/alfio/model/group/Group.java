@@ -27,12 +27,12 @@ public class Group {
     private final Integer organizationId;
     private final boolean active;
 
-
-    public Group(@Column("id") int id,
-                 @Column("name") String name,
-                 @Column("description") String description,
-                 @Column("organization_id_fk") Integer organizationId,
-                 @Column("active") boolean active) {
+    public Group(
+            @Column("id") int id,
+            @Column("name") String name,
+            @Column("description") String description,
+            @Column("organization_id_fk") Integer organizationId,
+            @Column("active") boolean active) {
         this.id = id;
         this.name = name;
         this.description = description;

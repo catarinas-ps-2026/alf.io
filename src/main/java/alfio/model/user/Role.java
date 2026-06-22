@@ -16,11 +16,10 @@
  */
 package alfio.model.user;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
+import lombok.Getter;
 
 @Getter
 public enum Role {
@@ -42,11 +41,13 @@ public enum Role {
     }
 
     public static Role fromRoleName(String roleName) {
-        return Arrays.stream(values()).filter(r -> r.getRoleName().equals(roleName)).findFirst().orElse(OPERATOR);
+        return Arrays.stream(values())
+                .filter(r -> r.getRoleName().equals(roleName))
+                .findFirst()
+                .orElse(OPERATOR);
     }
 
-    public String getRoleName()
-    {
+    public String getRoleName() {
         return roleName;
     }
 }

@@ -16,13 +16,8 @@
  */
 package alfio.manager.payment;
 
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.Map;
-import java.util.OptionalInt;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
+import static alfio.model.TicketReservation.TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT;
 
 import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager;
 import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager.CustomOfflinePaymentMethodDoesNotExistException;
@@ -38,13 +33,17 @@ import alfio.repository.EventRepository;
 import alfio.repository.TicketReservationRepository;
 import alfio.repository.TransactionRepository;
 import alfio.util.ClockProvider;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.Map;
+import java.util.OptionalInt;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
-import static alfio.model.TicketReservation.TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT;
 
 @Component
 public class CustomOfflinePaymentManager implements PaymentProvider {
@@ -57,12 +56,11 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
     private final CustomOfflineConfigurationManager customOfflineConfigurationManager;
 
     public CustomOfflinePaymentManager(
-        ClockProvider clockProvider,
-        TicketReservationRepository ticketReservationRepository,
-        TransactionRepository transactionRepository,
-        EventRepository eventRepository,
-        CustomOfflineConfigurationManager customOfflineConfigurationManager
-    ) {
+            ClockProvider clockProvider,
+            TicketReservationRepository ticketReservationRepository,
+            TransactionRepository transactionRepository,
+            EventRepository eventRepository,
+            CustomOfflineConfigurationManager customOfflineConfigurationManager) {
         this.clockProvider = clockProvider;
         this.ticketReservationRepository = ticketReservationRepository;
         this.transactionRepository = transactionRepository;
@@ -72,9 +70,7 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
 
     @Override
     public Set<? extends PaymentMethod> getSupportedPaymentMethods(
-        PaymentContext paymentContext,
-        TransactionRequest transactionRequest
-    ) {
+            PaymentContext paymentContext, TransactionRequest transactionRequest) {
         OptionalInt maybeOrgId = paymentContext.getConfigurationLevel().getOrganizationId();
 
         if (!maybeOrgId.isPresent()) {
@@ -83,10 +79,8 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
 
         var orgId = maybeOrgId.getAsInt();
 
-        return customOfflineConfigurationManager
-            .getOrganizationCustomOfflinePaymentMethods(orgId)
-            .stream()
-            .collect(Collectors.toSet());
+        return customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethods(orgId).stream()
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -98,9 +92,7 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
         try {
             customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodById(
-                context.getPurchaseContext().getOrganizationId(),
-                paymentMethod.getPaymentMethodId()
-            );
+                    context.getPurchaseContext().getOrganizationId(), paymentMethod.getPaymentMethodId());
 
             return isActive(context);
         } catch (CustomOfflinePaymentMethodDoesNotExistException e) {
@@ -117,12 +109,11 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
     public PaymentMethod getPaymentMethodForTransaction(Transaction transaction) {
         var transMetadata = transaction.getMetadata();
 
-        if(!transMetadata.containsKey(Transaction.SELECTED_PAYMENT_METHOD_KEY)) {
+        if (!transMetadata.containsKey(Transaction.SELECTED_PAYMENT_METHOD_KEY)) {
             log.warn(
-                "Transaction '{}' using 'CUSTOM_OFFLINE' has no {} metadata field. This should not happen.",
-                transaction.getId(),
-                Transaction.SELECTED_PAYMENT_METHOD_KEY
-            );
+                    "Transaction '{}' using 'CUSTOM_OFFLINE' has no {} metadata field. This should not happen.",
+                    transaction.getId(),
+                    Transaction.SELECTED_PAYMENT_METHOD_KEY);
             return null;
         }
 
@@ -130,26 +121,22 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
 
         var reservationId = transaction.getReservationId();
         var event = eventRepository.findByReservationId(reservationId);
-        if(event == null) {
+        if (event == null) {
             log.warn(
-                "Transaction '{}' using 'CUSTOM_OFFLINE' is not associated with an event, so we cannot find the payment method.",
-                transaction.getId()
-            );
+                    "Transaction '{}' using 'CUSTOM_OFFLINE' is not associated with an event, so we cannot find the payment method.",
+                    transaction.getId());
             return null;
         }
 
         UserDefinedOfflinePaymentMethod paymentMethod;
         try {
             paymentMethod = customOfflineConfigurationManager.getOrganizationCustomOfflinePaymentMethodById(
-                event.getOrganizationId(),
-                paymentMethodId
-            );
+                    event.getOrganizationId(), paymentMethodId);
         } catch (CustomOfflinePaymentMethodDoesNotExistException e) {
             log.warn(
-                "Transaction '{}' using 'CUSTOM_OFFLINE' has a payment method id of '{}', which does not exist in the event organization.",
-                transaction.getId(),
-                paymentMethodId
-            );
+                    "Transaction '{}' using 'CUSTOM_OFFLINE' has a payment method id of '{}', which does not exist in the event organization.",
+                    transaction.getId(),
+                    paymentMethodId);
             return null;
         }
 
@@ -158,9 +145,8 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
 
     @Override
     public boolean isActive(PaymentContext paymentContext) {
-        return
-            paymentContext.getPurchaseContext() != null
-            && paymentContext.getPurchaseContext().event().isPresent();
+        return paymentContext.getPurchaseContext() != null
+                && paymentContext.getPurchaseContext().event().isPresent();
     }
 
     @Override
@@ -196,7 +182,9 @@ public class CustomOfflinePaymentManager implements PaymentProvider {
                 0L,
                 0L,
                 Transaction.Status.PENDING,
-                Map.of(Transaction.SELECTED_PAYMENT_METHOD_KEY, spec.getSelectedPaymentMethod().getPaymentMethodId()));
+                Map.of(
+                        Transaction.SELECTED_PAYMENT_METHOD_KEY,
+                        spec.getSelectedPaymentMethod().getPaymentMethodId()));
 
         // RETURN RESULT
         return PaymentResult.successful(NOT_YET_PAID_TRANSACTION_ID);

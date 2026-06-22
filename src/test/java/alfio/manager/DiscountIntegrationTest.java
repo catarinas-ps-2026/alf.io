@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -39,6 +42,12 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
@@ -47,28 +56,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class DiscountIntegrationTest extends BaseIntegrationTest {
 
-
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private EventManager eventManager;
 
@@ -97,36 +98,58 @@ class DiscountIntegrationTest extends BaseIntegrationTest {
         var countdownLatchBeforeComplete = new CountDownLatch(concurrencyCount);
         var doneSignal = new CountDownLatch(concurrencyCount);
 
-
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-        List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false,
-                "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = List.of(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
 
         var event = eventAndUser.getLeft();
 
-        TicketCategory category = ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
+        TicketCategory category =
+                ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
 
         String promoCode = "100_PROMO";
 
-        eventManager.addPromoCode(promoCode,
-            event.getId(), null,
-            ZonedDateTime.now(clockProvider.getClock()).minusDays(2),
-            event.getEnd().plusDays(2),
-            50, PromoCodeDiscount.DiscountType.PERCENTAGE, List.of(category.getId()),
-            1, "100% discount",
-            "test@test.ch",
-            PromoCodeDiscount.CodeType.DISCOUNT,
-            null,
-            null);
+        eventManager.addPromoCode(
+                promoCode,
+                event.getId(),
+                null,
+                ZonedDateTime.now(clockProvider.getClock()).minusDays(2),
+                event.getEnd().plusDays(2),
+                50,
+                PromoCodeDiscount.DiscountType.PERCENTAGE,
+                List.of(category.getId()),
+                1,
+                "100% discount",
+                "test@test.ch",
+                PromoCodeDiscount.CodeType.DISCOUNT,
+                null,
+                null);
 
-        var promoCodeDiscount = promoCodeDiscountRepository.findAllInEvent(event.getId()).get(0);
-
+        var promoCodeDiscount =
+                promoCodeDiscountRepository.findAllInEvent(event.getId()).get(0);
 
         for (int i = 0; i < concurrencyCount; i++) {
             Runnable runnable = () -> {
@@ -141,19 +164,22 @@ class DiscountIntegrationTest extends BaseIntegrationTest {
                     TicketReservationModification tr = new TicketReservationModification();
                     tr.setQuantity(1);
                     tr.setTicketCategoryId(category.getId());
-                    TicketReservationWithOptionalCodeModification mod = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
+                    TicketReservationWithOptionalCodeModification mod =
+                            new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
                     startSignal.countDown();
                     startSignal.await();
 
                     String reservationId = null;
                     try {
-                        reservationId = ticketReservationManager.createTicketReservation(event, Collections.singletonList(mod), Collections.emptyList(),
-                            DateUtils.addDays(new Date(), 1),
-                            Optional.of(promoCode),
-                            Locale.ENGLISH,
-                            false,
-                            null);
-
+                        reservationId = ticketReservationManager.createTicketReservation(
+                                event,
+                                Collections.singletonList(mod),
+                                Collections.emptyList(),
+                                DateUtils.addDays(new Date(), 1),
+                                Optional.of(promoCode),
+                                Locale.ENGLISH,
+                                false,
+                                null);
 
                     } catch (Throwable t) {
 
@@ -164,12 +190,34 @@ class DiscountIntegrationTest extends BaseIntegrationTest {
 
                     try {
                         if (reservationId != null) {
-                            Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount = ticketReservationManager.totalReservationCostWithVAT(reservationId);
+                            Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount =
+                                    ticketReservationManager.totalReservationCostWithVAT(reservationId);
                             TotalPrice totalPrice = priceAndDiscount.getLeft();
-                            PaymentSpecification specification = new PaymentSpecification(reservationId, null, null, totalPrice.getPriceWithVAT(),
-                                event, "email@example.com", new CustomerName("full name", "full", "name", event.mustUseFirstAndLastName()),
-                                "billing address", null, Locale.ENGLISH, true, false, null, "IT", "123456", PriceContainer.VatStatus.INCLUDED, true, false);
-                            var paymentResult = ticketReservationManager.performPayment(specification, totalPrice, PaymentProxy.OFFLINE, StaticPaymentMethods.BANK_TRANSFER, null);
+                            PaymentSpecification specification = new PaymentSpecification(
+                                    reservationId,
+                                    null,
+                                    null,
+                                    totalPrice.getPriceWithVAT(),
+                                    event,
+                                    "email@example.com",
+                                    new CustomerName("full name", "full", "name", event.mustUseFirstAndLastName()),
+                                    "billing address",
+                                    null,
+                                    Locale.ENGLISH,
+                                    true,
+                                    false,
+                                    null,
+                                    "IT",
+                                    "123456",
+                                    PriceContainer.VatStatus.INCLUDED,
+                                    true,
+                                    false);
+                            var paymentResult = ticketReservationManager.performPayment(
+                                    specification,
+                                    totalPrice,
+                                    PaymentProxy.OFFLINE,
+                                    StaticPaymentMethods.BANK_TRANSFER,
+                                    null);
                             assertTrue(paymentResult.isSuccessful());
                         }
                     } catch (Throwable t) {
@@ -177,10 +225,10 @@ class DiscountIntegrationTest extends BaseIntegrationTest {
                         countdownLatchBeforeComplete.countDown();
                     }
 
-
                     countdownLatchBeforeComplete.await();
                     if (reservationId != null) {
-                        ticketReservationManager.confirmOfflinePayment(event, reservationId, null, eventAndUser.getRight());
+                        ticketReservationManager.confirmOfflinePayment(
+                                event, reservationId, null, eventAndUser.getRight());
                     }
                 } catch (InterruptedException e) {
                     throw new IllegalStateException(e);

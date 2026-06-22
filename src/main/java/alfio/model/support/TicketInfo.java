@@ -32,15 +32,16 @@ public class TicketInfo {
     private final PriceContainer.VatStatus taxStatus;
 
     @JsonCreator
-    private TicketInfo(@JsonProperty("id") String id,
-                       @JsonProperty("firstName") String firstName,
-                       @JsonProperty("lastName") String lastName,
-                       @JsonProperty("type") String type,
-                       @JsonProperty("status") String status,
-                       @JsonProperty("finalPriceCts") Integer finalPriceCts,
-                       @JsonProperty("srcPriceCts") Integer srcPriceCts,
-                       @JsonProperty("taxCts") Integer taxCts,
-                       @JsonProperty("taxStatus") PriceContainer.VatStatus taxStatus) {
+    private TicketInfo(
+            @JsonProperty("id") String id,
+            @JsonProperty("firstName") String firstName,
+            @JsonProperty("lastName") String lastName,
+            @JsonProperty("type") String type,
+            @JsonProperty("status") String status,
+            @JsonProperty("finalPriceCts") Integer finalPriceCts,
+            @JsonProperty("srcPriceCts") Integer srcPriceCts,
+            @JsonProperty("taxCts") Integer taxCts,
+            @JsonProperty("taxStatus") PriceContainer.VatStatus taxStatus) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;

@@ -16,6 +16,8 @@
  */
 package alfio.controller.api.v1;
 
+import static alfio.util.Wrappers.optionally;
+
 import alfio.manager.AccessService;
 import alfio.manager.AttendeeManager;
 import alfio.manager.support.SponsorAttendeeData;
@@ -27,6 +29,12 @@ import alfio.util.EventUtil;
 import alfio.util.Wrappers;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,15 +44,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static alfio.util.Wrappers.optionally;
 
 @RestController
 @RequestMapping("/api/attendees")
@@ -73,33 +72,54 @@ public class AttendeeApiController {
         return new ResponseEntity<>("unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @PostMapping("/sponsor-scan")
-    public ResponseEntity<TicketAndCheckInResult> scanBadge(@RequestBody SponsorScanRequest request,
-                                                            Principal principal,
-                                                            @RequestHeader(name = ALFIO_OPERATOR_HEADER, required = false) String operator) {
-        return ResponseEntity.ok(attendeeManager.registerSponsorScan(request.eventName, request.ticketIdentifier, request.notes, request.leadStatus, principal.getName(), operator, request.timestamp));
+    public ResponseEntity<TicketAndCheckInResult> scanBadge(
+            @RequestBody SponsorScanRequest request,
+            Principal principal,
+            @RequestHeader(name = ALFIO_OPERATOR_HEADER, required = false) String operator) {
+        return ResponseEntity.ok(attendeeManager.registerSponsorScan(
+                request.eventName,
+                request.ticketIdentifier,
+                request.notes,
+                request.leadStatus,
+                principal.getName(),
+                operator,
+                request.timestamp));
     }
 
     @PostMapping("/sponsor-scan/bulk")
-    public ResponseEntity<List<TicketAndCheckInResult>> scanBadges(@RequestBody List<SponsorScanRequest> requests,
-                                                                   Principal principal,
-                                                                   @RequestHeader(name = ALFIO_OPERATOR_HEADER, required = false) String operator) {
+    public ResponseEntity<List<TicketAndCheckInResult>> scanBadges(
+            @RequestBody List<SponsorScanRequest> requests,
+            Principal principal,
+            @RequestHeader(name = ALFIO_OPERATOR_HEADER, required = false) String operator) {
         String username = principal.getName();
         return ResponseEntity.ok(requests.stream()
-            .map(request -> attendeeManager.registerSponsorScan(request.eventName, request.ticketIdentifier, request.notes, request.leadStatus, username, operator, request.timestamp))
-            .toList());
+                .map(request -> attendeeManager.registerSponsorScan(
+                        request.eventName,
+                        request.ticketIdentifier,
+                        request.notes,
+                        request.leadStatus,
+                        username,
+                        operator,
+                        request.timestamp))
+                .toList());
     }
 
     @GetMapping("/{eventKey}/sponsor-scan/mine")
-    public ResponseEntity<List<SponsorAttendeeData>> getScannedBadges(@PathVariable("eventKey") String eventShortName, @RequestParam(value = "from", required = false) String from, Principal principal) {
+    public ResponseEntity<List<SponsorAttendeeData>> getScannedBadges(
+            @PathVariable("eventKey") String eventShortName,
+            @RequestParam(value = "from", required = false) String from,
+            Principal principal) {
 
         ZonedDateTime start = Optional.ofNullable(StringUtils.trimToNull(from))
-            .map(EventUtil.JSON_DATETIME_FORMATTER::parse)
-            .flatMap(d -> Wrappers.safeSupplier(() -> ZonedDateTime.of(LocalDateTime.from(d), ZoneOffset.UTC)))
-            .orElse(SponsorScanRepository.DEFAULT_TIMESTAMP);
+                .map(EventUtil.JSON_DATETIME_FORMATTER::parse)
+                .flatMap(d -> Wrappers.safeSupplier(() -> ZonedDateTime.of(LocalDateTime.from(d), ZoneOffset.UTC)))
+                .orElse(SponsorScanRepository.DEFAULT_TIMESTAMP);
         accessService.canAccessEvent(principal, eventShortName);
-        return attendeeManager.retrieveScannedAttendees(eventShortName, principal.getName(), start).map(ResponseEntity::ok).orElse(notFound());
+        return attendeeManager
+                .retrieveScannedAttendees(eventShortName, principal.getName(), start)
+                .map(ResponseEntity::ok)
+                .orElse(notFound());
     }
 
     /**
@@ -119,7 +139,8 @@ public class AttendeeApiController {
      * @return
      */
     @GetMapping("/{eventKey}/ticket/{UUID}")
-    public ResponseEntity<TicketWithAdditionalFields> getTicketDetails(@PathVariable("eventKey") String eventShortName, @PathVariable("UUID") String uuid, Principal principal) {
+    public ResponseEntity<TicketWithAdditionalFields> getTicketDetails(
+            @PathVariable("eventKey") String eventShortName, @PathVariable("UUID") String uuid, Principal principal) {
         accessService.canAccessTicket(principal, eventShortName, uuid);
         var result = attendeeManager.retrieveTicket(eventShortName, uuid, principal.getName());
         if (result.isSuccess()) {
@@ -127,7 +148,6 @@ public class AttendeeApiController {
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-
     }
 
     private static <T> ResponseEntity<T> notFound() {
@@ -143,19 +163,19 @@ public class AttendeeApiController {
         private final Long timestamp;
 
         @JsonCreator
-        public SponsorScanRequest(@JsonProperty("eventName") String eventName,
-                                  @JsonProperty("ticketIdentifier") String ticketIdentifier,
-                                  @JsonProperty("notes") String notes,
-                                  @JsonProperty("leadStatus") String leadStatus,
-                                  @JsonProperty("timestamp") Long timestamp) {
+        public SponsorScanRequest(
+                @JsonProperty("eventName") String eventName,
+                @JsonProperty("ticketIdentifier") String ticketIdentifier,
+                @JsonProperty("notes") String notes,
+                @JsonProperty("leadStatus") String leadStatus,
+                @JsonProperty("timestamp") Long timestamp) {
             this.eventName = eventName;
             this.ticketIdentifier = ticketIdentifier;
             this.notes = notes;
             this.leadStatus = Optional.ofNullable(leadStatus)
-                .flatMap(l -> optionally(() -> SponsorScan.LeadStatus.valueOf(l)))
-                .orElse(SponsorScan.LeadStatus.WARM);
+                    .flatMap(l -> optionally(() -> SponsorScan.LeadStatus.valueOf(l)))
+                    .orElse(SponsorScan.LeadStatus.WARM);
             this.timestamp = timestamp;
         }
     }
-
 }

@@ -28,7 +28,9 @@ describe('AdditionalItemService', () => {
 
             await AdditionalItemService.loadAll({ eventId: 10 });
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/event/10/additional-services');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/event/10/additional-services',
+            );
         });
     });
 
@@ -39,7 +41,9 @@ describe('AdditionalItemService', () => {
 
             await AdditionalItemService.useCount(10);
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/event/10/additional-services/count');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/event/10/additional-services/count',
+            );
         });
     });
 
@@ -52,7 +56,8 @@ describe('AdditionalItemService', () => {
                 json: vi.fn().mockResolvedValue(mockResponse),
             } as unknown as Response);
 
-            const result = await AdditionalItemService.validateAdditionalItem(item);
+            const result =
+                await AdditionalItemService.validateAdditionalItem(item);
 
             expect(mockPostJson).toHaveBeenCalledWith(
                 '/admin/api/additional-services/validate',
@@ -67,8 +72,18 @@ describe('AdditionalItemService', () => {
         // - PE1: id presente (incluye 0) → PUT
         // - PE2: id undefined/null → POST
         it.each([
-            ['PUT cuando id está presente', { id: 1, price: 1000 }, '/admin/api/event/10/additional-services/1', 'putJson'],
-            ['PUT cuando id es 0', { id: 0, price: 1000 }, '/admin/api/event/10/additional-services/0', 'putJson'],
+            [
+                'PUT cuando id está presente',
+                { id: 1, price: 1000 },
+                '/admin/api/event/10/additional-services/1',
+                'putJson',
+            ],
+            [
+                'PUT cuando id es 0',
+                { id: 0, price: 1000 },
+                '/admin/api/event/10/additional-services/0',
+                'putJson',
+            ],
         ])('%s', async (_label, item, expectedUrl, expectedMethod) => {
             mockPutJson.mockResolvedValue({} as Response);
             mockPostJson.mockResolvedValue({} as Response);
@@ -105,7 +120,9 @@ describe('AdditionalItemService', () => {
 
             await AdditionalItemService.deleteAdditionalItem(5, 10);
 
-            expect(mockCallDelete).toHaveBeenCalledWith('/admin/api/event/10/additional-services/5');
+            expect(mockCallDelete).toHaveBeenCalledWith(
+                '/admin/api/event/10/additional-services/5',
+            );
         });
     });
 

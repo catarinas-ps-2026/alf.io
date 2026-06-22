@@ -18,6 +18,8 @@ package alfio.util;
 
 public class JsonViews {
     public interface PublicApi {}
+
     public interface AdminPublicApi extends PublicApi {}
+
     public interface AdminApi extends AdminPublicApi {}
 }

@@ -18,23 +18,36 @@ package alfio.model.decorator;
 
 import alfio.model.*;
 import alfio.util.MonetaryUtil;
-import lombok.experimental.Delegate;
-
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.util.Optional;
+import lombok.experimental.Delegate;
 
 public class AdditionalServiceItemPriceContainer implements SummaryPriceContainer {
     @Delegate(excludes = PriceContainer.class)
     private final AdditionalServiceItem additionalServiceItem;
+
     private final AdditionalService additionalService;
     private final String currencyCode;
     private final PromoCodeDiscount discount;
     private final VatStatus eventVatStatus;
     private final BigDecimal eventVatPercentage;
 
-    @ConstructorProperties({"additionalServiceItem", "additionalService", "currencyCode", "discount", "eventVatStatus", "eventVatPercentage"})
-    private AdditionalServiceItemPriceContainer(AdditionalServiceItem additionalServiceItem, AdditionalService additionalService, String currencyCode, PromoCodeDiscount discount, VatStatus eventVatStatus, BigDecimal eventVatPercentage) {
+    @ConstructorProperties({
+        "additionalServiceItem",
+        "additionalService",
+        "currencyCode",
+        "discount",
+        "eventVatStatus",
+        "eventVatPercentage"
+    })
+    private AdditionalServiceItemPriceContainer(
+            AdditionalServiceItem additionalServiceItem,
+            AdditionalService additionalService,
+            String currencyCode,
+            PromoCodeDiscount discount,
+            VatStatus eventVatStatus,
+            BigDecimal eventVatPercentage) {
         this.additionalServiceItem = additionalServiceItem;
         this.additionalService = additionalService;
         this.currencyCode = currencyCode;
@@ -50,7 +63,8 @@ public class AdditionalServiceItemPriceContainer implements SummaryPriceContaine
 
     @Override
     public Optional<PromoCodeDiscount> getDiscount() {
-        return Optional.ofNullable(discount).filter(d -> d.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION);
+        return Optional.ofNullable(discount)
+                .filter(d -> d.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION);
     }
 
     @Override
@@ -60,7 +74,7 @@ public class AdditionalServiceItemPriceContainer implements SummaryPriceContaine
 
     @Override
     public Optional<BigDecimal> getOptionalVatPercentage() {
-        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {
+        if (additionalService.vatType() == AdditionalService.VatType.INHERITED) {
             return Optional.ofNullable(eventVatPercentage);
         } else {
             return Optional.empty();
@@ -69,7 +83,7 @@ public class AdditionalServiceItemPriceContainer implements SummaryPriceContaine
 
     @Override
     public VatStatus getVatStatus() {
-        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {
+        if (additionalService.vatType() == AdditionalService.VatType.INHERITED) {
             return eventVatStatus;
         } else {
             return VatStatus.NONE;
@@ -78,20 +92,33 @@ public class AdditionalServiceItemPriceContainer implements SummaryPriceContaine
 
     @Override
     public BigDecimal getTaxablePrice() {
-        if(getVatStatus() == VatStatus.NONE) {
+        if (getVatStatus() == VatStatus.NONE) {
             return BigDecimal.ZERO;
         }
         return MonetaryUtil.centsToUnit(getSrcPriceCts(), getCurrencyCode()).subtract(getAppliedDiscount());
     }
 
-    public static AdditionalServiceItemPriceContainer from(AdditionalServiceItem item, AdditionalService additionalService, PurchaseContext purchaseContext, PromoCodeDiscount discount) {
-        var discountToApply = isDiscountCompatible(discount) && additionalService.type() != AdditionalService.AdditionalServiceType.DONATION ? discount : null;
-        return new AdditionalServiceItemPriceContainer(item, additionalService, purchaseContext.getCurrency(), discountToApply, purchaseContext.getVatStatus(), purchaseContext.getVat());
+    public static AdditionalServiceItemPriceContainer from(
+            AdditionalServiceItem item,
+            AdditionalService additionalService,
+            PurchaseContext purchaseContext,
+            PromoCodeDiscount discount) {
+        var discountToApply = isDiscountCompatible(discount)
+                        && additionalService.type() != AdditionalService.AdditionalServiceType.DONATION
+                ? discount
+                : null;
+        return new AdditionalServiceItemPriceContainer(
+                item,
+                additionalService,
+                purchaseContext.getCurrency(),
+                discountToApply,
+                purchaseContext.getVatStatus(),
+                purchaseContext.getVat());
     }
 
     private static boolean isDiscountCompatible(PromoCodeDiscount discount) {
         return discount != null
-            && discount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT
-            && discount.getDiscountType() == PromoCodeDiscount.DiscountType.PERCENTAGE;
+                && discount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT
+                && discount.getDiscountType() == PromoCodeDiscount.DiscountType.PERCENTAGE;
     }
 }

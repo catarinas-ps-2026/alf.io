@@ -16,14 +16,13 @@
  */
 package alfio.controller.form;
 
-import lombok.Data;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
+import lombok.Data;
 
 @Data
 public class UpdateTicketOwnerForm implements Serializable, AdditionalFieldsContainer {
@@ -33,7 +32,6 @@ public class UpdateTicketOwnerForm implements Serializable, AdditionalFieldsCont
     private String lastName;
     private String userLanguage;
     private Map<String, List<AdditionalServiceLinkForm>> additionalServices;
-
 
     private Map<String, List<String>> additional;
 

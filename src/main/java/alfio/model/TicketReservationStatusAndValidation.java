@@ -25,8 +25,9 @@ public class TicketReservationStatusAndValidation {
     private final TicketReservation.TicketReservationStatus status;
     private final Boolean validated;
 
-    public TicketReservationStatusAndValidation(@Column("status") TicketReservation.TicketReservationStatus status,
-                                                @Column("validated_for_overview") Boolean validated) {
+    public TicketReservationStatusAndValidation(
+            @Column("status") TicketReservation.TicketReservationStatus status,
+            @Column("validated_for_overview") Boolean validated) {
         this.status = status;
         this.validated = validated;
     }

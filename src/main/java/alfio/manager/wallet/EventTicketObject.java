@@ -36,8 +36,7 @@ public class EventTicketObject implements WalletEntity {
 
     private String barcode;
 
-    public EventTicketObject() {
-    }
+    public EventTicketObject() {}
 
     public EventTicketObject(String id, String classId, String ticketHolderName, String ticketNumber, String barcode) {
         this.id = id;
@@ -54,9 +53,7 @@ public class EventTicketObject implements WalletEntity {
         object.put("state", "ACTIVE");
         object.put("ticketHolderName", ticketHolderName);
         object.put("ticketNumber", ticketNumber);
-        object.set("barcode", mapper.createObjectNode()
-            .put("type", "QR_CODE")
-            .put("value", barcode));
+        object.set("barcode", mapper.createObjectNode().put("type", "QR_CODE").put("value", barcode));
 
         try {
             return mapper.writeValueAsString(object);
@@ -64,5 +61,4 @@ public class EventTicketObject implements WalletEntity {
             throw new RuntimeException(e);
         }
     }
-
 }

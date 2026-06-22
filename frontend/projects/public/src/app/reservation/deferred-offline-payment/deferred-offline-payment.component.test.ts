@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -33,7 +37,13 @@ describe('DeferredOfflinePaymentComponent', () => {
         ticketCategories: [],
         localization: {},
         privacyPolicyUrl: null,
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: false, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: false,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
     } as unknown as PurchaseContext;
 
@@ -91,7 +101,10 @@ describe('DeferredOfflinePaymentComponent', () => {
     };
 
     const mockActivatedRoute = {
-        data: of({ type: 'event', publicIdentifierParameter: 'eventShortName' }),
+        data: of({
+            type: 'event',
+            publicIdentifierParameter: 'eventShortName',
+        }),
         params: of({ eventShortName: 'test-event', reservationId: 'res-123' }),
     };
 
@@ -123,8 +136,14 @@ describe('DeferredOfflinePaymentComponent', () => {
             providers: [
                 { provide: ActivatedRoute, useValue: mockActivatedRoute },
                 { provide: TranslateService, useValue: mockTranslateService },
-                { provide: ReservationService, useValue: mockReservationService },
-                { provide: PurchaseContextService, useValue: mockPurchaseContextService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
+                {
+                    provide: PurchaseContextService,
+                    useValue: mockPurchaseContextService,
+                },
                 { provide: I18nService, useValue: mockI18nService },
                 { provide: AnalyticsService, useValue: mockAnalyticsService },
             ],
@@ -142,17 +161,25 @@ describe('DeferredOfflinePaymentComponent', () => {
         it('should load purchase context and reservation', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith('event', 'test-event');
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalledWith('res-123');
-            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith('reservation-page-waiting.header.title', mockPurchaseContext);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+            );
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalledWith('res-123');
+            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith(
+                'reservation-page-waiting.header.title',
+                mockPurchaseContext,
+            );
             expect(mockAnalyticsService.pageView).toHaveBeenCalled();
         });
 
         it('should store purchaseContext and reservationInfo', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.purchaseContext).toEqual(mockPurchaseContext);
             expect(component.reservationInfo).toEqual(mockReservationInfo);
             expect(component.reservationId).toBe('res-123');

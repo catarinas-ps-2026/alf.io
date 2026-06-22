@@ -17,5 +17,7 @@
 package alfio.model.user;
 
 public enum RoleTarget {
-    ADMIN, USER, API_KEY
+    ADMIN,
+    USER,
+    API_KEY
 }

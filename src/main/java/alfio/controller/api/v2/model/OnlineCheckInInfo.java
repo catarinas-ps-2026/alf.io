@@ -16,17 +16,16 @@
  */
 package alfio.controller.api.v2.model;
 
+import static alfio.controller.support.Formatters.getFormattedDate;
+
 import alfio.model.checkin.EventWithCheckInInfo;
 import alfio.model.metadata.JoinLink;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.springframework.context.MessageSource;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
-
-import static alfio.controller.support.Formatters.getFormattedDate;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.springframework.context.MessageSource;
 
 @AllArgsConstructor
 @Getter
@@ -51,33 +50,30 @@ public class OnlineCheckInInfo implements DateValidity {
             getFormattedDate(event, end.withZoneSameInstant(target), "time.extended.pattern", messageSource)
      */
 
-    public static OnlineCheckInInfo fromJoinLink(JoinLink joinLink,
-                                                 EventWithCheckInInfo event,
-                                                 ZoneId targetTz,
-                                                 MessageSource messageSource) {
+    public static OnlineCheckInInfo fromJoinLink(
+            JoinLink joinLink, EventWithCheckInInfo event, ZoneId targetTz, MessageSource messageSource) {
         var start = joinLink.getValidFrom().atZone(event.getZoneId());
         var end = joinLink.getValidFrom().atZone(event.getZoneId());
         return fromDates(event, start, end, targetTz, messageSource);
     }
 
-    public static OnlineCheckInInfo fromEvent(EventWithCheckInInfo event,
-                                              ZoneId targetTz,
-                                              MessageSource messageSource) {
+    public static OnlineCheckInInfo fromEvent(
+            EventWithCheckInInfo event, ZoneId targetTz, MessageSource messageSource) {
         return fromDates(event, event.getBegin(), event.getEnd(), targetTz, messageSource);
     }
 
-    private static OnlineCheckInInfo fromDates(EventWithCheckInInfo event,
-                                               ZonedDateTime start,
-                                               ZonedDateTime end,
-                                               ZoneId targetTz,
-                                               MessageSource messageSource) {
+    private static OnlineCheckInInfo fromDates(
+            EventWithCheckInInfo event,
+            ZonedDateTime start,
+            ZonedDateTime end,
+            ZoneId targetTz,
+            MessageSource messageSource) {
         return new OnlineCheckInInfo(
-            getFormattedDate(event, start.withZoneSameInstant(targetTz), "date.extended.pattern", messageSource),
-            getFormattedDate(event, start.withZoneSameInstant(targetTz), "time.extended.pattern", messageSource),
-            getFormattedDate(event, end.withZoneSameInstant(targetTz), "date.extended.pattern", messageSource),
-            getFormattedDate(event, end.withZoneSameInstant(targetTz), "time.extended.pattern", messageSource),
-            event.getZoneId().toString(),
-            DatesWithTimeZoneOffset.fromDates(start, end)
-        );
+                getFormattedDate(event, start.withZoneSameInstant(targetTz), "date.extended.pattern", messageSource),
+                getFormattedDate(event, start.withZoneSameInstant(targetTz), "time.extended.pattern", messageSource),
+                getFormattedDate(event, end.withZoneSameInstant(targetTz), "date.extended.pattern", messageSource),
+                getFormattedDate(event, end.withZoneSameInstant(targetTz), "time.extended.pattern", messageSource),
+                event.getZoneId().toString(),
+                DatesWithTimeZoneOffset.fromDates(start, end));
     }
 }

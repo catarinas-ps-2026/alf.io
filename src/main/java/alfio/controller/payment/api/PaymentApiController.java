@@ -24,13 +24,12 @@ import alfio.model.PurchaseContext;
 import alfio.model.TicketReservation;
 import alfio.model.transaction.PaymentMethod;
 import alfio.model.transaction.TransactionInitializationToken;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @AllArgsConstructor
@@ -40,12 +39,14 @@ public class PaymentApiController {
     private final TicketReservationManager ticketReservationManager;
     private final PurchaseContextManager purchaseContextManager;
 
-    @PostMapping({"/api/reservation/{reservationId}/payment/{method}/init",
-        "/api/events/{eventName}/reservation/{reservationId}/payment/{method}/init" //<-deprecated
+    @PostMapping({
+        "/api/reservation/{reservationId}/payment/{method}/init",
+        "/api/events/{eventName}/reservation/{reservationId}/payment/{method}/init" // <-deprecated
     })
-    public ResponseEntity<TransactionInitializationToken> initTransaction(@PathVariable String reservationId,
-                                                                          @PathVariable("method") String paymentMethodStr,
-                                                                          @RequestParam MultiValueMap<String, String> allParams) {
+    public ResponseEntity<TransactionInitializationToken> initTransaction(
+            @PathVariable String reservationId,
+            @PathVariable("method") String paymentMethodStr,
+            @RequestParam MultiValueMap<String, String> allParams) {
 
         var paymentMethod = PaymentMethod.safeParse(paymentMethodStr);
         if (paymentMethod == null) {
@@ -53,41 +54,43 @@ public class PaymentApiController {
         }
 
         return getEventReservationPair(reservationId)
-            .flatMap(pair -> ticketReservationManager.initTransaction(pair.getLeft(), reservationId, paymentMethod, allParams))
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+                .flatMap(pair -> ticketReservationManager.initTransaction(
+                        pair.getLeft(), reservationId, paymentMethod, allParams))
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     private Optional<Pair<? extends PurchaseContext, TicketReservation>> getEventReservationPair(String reservationId) {
-        return purchaseContextManager.findByReservationId(reservationId)
-            .map(event -> Pair.of(event, ticketReservationManager.findById(reservationId)))
-            .filter(pair -> pair.getRight().isPresent())
-            .map(pair -> Pair.of(pair.getLeft(), pair.getRight().orElseThrow()));
+        return purchaseContextManager
+                .findByReservationId(reservationId)
+                .map(event -> Pair.of(event, ticketReservationManager.findById(reservationId)))
+                .filter(pair -> pair.getRight().isPresent())
+                .map(pair -> Pair.of(pair.getLeft(), pair.getRight().orElseThrow()));
     }
 
     @GetMapping({
         "/api/reservation/{reservationId}/payment/{method}/status",
-        "/api/events/{eventName}/reservation/{reservationId}/payment/{method}/status" //<-deprecated
+        "/api/events/{eventName}/reservation/{reservationId}/payment/{method}/status" // <-deprecated
     })
-    public ResponseEntity<PaymentResult> getTransactionStatus(@PathVariable String reservationId,
-                                                              @PathVariable("method") String paymentMethodStr) {
+    public ResponseEntity<PaymentResult> getTransactionStatus(
+            @PathVariable String reservationId, @PathVariable("method") String paymentMethodStr) {
         var paymentMethod = PaymentMethod.safeParse(paymentMethodStr);
         if (paymentMethod == null) {
             return ResponseEntity.badRequest().build();
         }
 
         return getEventReservationPair(reservationId)
-            .flatMap(pair -> paymentManager.getTransactionStatus(pair.getRight(), paymentMethod))
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+                .flatMap(pair -> paymentManager.getTransactionStatus(pair.getRight(), paymentMethod))
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping({
         "/api/v2/public/reservation/{reservationId}/transaction/force-check",
-        "/api/v2/public/event/{eventName}/reservation/{reservationId}/transaction/force-check" //<-deprecated
+        "/api/v2/public/event/{eventName}/reservation/{reservationId}/transaction/force-check" // <-deprecated
     })
     public ResponseEntity<PaymentResult> forceCheckStatus(@PathVariable String reservationId) {
         return ResponseEntity.of(getEventReservationPair(reservationId)
-            .flatMap(pair -> ticketReservationManager.forceTransactionCheck(pair.getLeft(), pair.getRight())));
+                .flatMap(pair -> ticketReservationManager.forceTransactionCheck(pair.getLeft(), pair.getRight())));
     }
 }

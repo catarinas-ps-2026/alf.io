@@ -16,13 +16,12 @@
  */
 package alfio.manager.system;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-
 import static alfio.manager.system.DataMigrator.parseVersion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.math.BigDecimal;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("DataMigrator: parse version")
 public class DataMigratorTest {
