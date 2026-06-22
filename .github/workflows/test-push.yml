@@ -50,6 +50,18 @@ jobs:
             - name: Run Backend Tests
               run: ./gradlew test jacocoTestReport -Dpgsql.version=${{ matrix.postgresql }}
 
+            - name: Run Checkstyle
+              if: matrix.postgresql == '16'
+              run: ./gradlew checkstyleMain checkstyleTest
+
+            - name: Upload Checkstyle Report Artifact
+              uses: actions/upload-artifact@v4
+              if: always() && matrix.postgresql == '16'
+              with:
+                  name: checkstyle-report
+                  path: build/reports/checkstyle/
+                  if-no-files-found: ignore
+
             - name: Run Frontend Tests
               if: matrix.postgresql == '16'
               run: |
@@ -63,19 +75,27 @@ jobs:
                   mkdir -p public-coverage/backend
                   mkdir -p public-coverage/frontend-admin
                   mkdir -p public-coverage/frontend-public
+                  mkdir -p public-coverage/checkstyle
                   cp -r build/reports/jacoco/test/html/* public-coverage/backend/
                   cp -r frontend/admin/coverage/* public-coverage/frontend-admin/
                   cp -r frontend/projects/public/coverage/* public-coverage/frontend-public/
+                  cp -r build/reports/checkstyle/* public-coverage/checkstyle/ || true
                   cat <<EOF > public-coverage/index.html
                   <!DOCTYPE html>
                   <html>
-                  <head><title>Coverage Reports - main branch</title></head>
+                  <head><title>Coverage & Checkstyle Reports - main branch</title></head>
                   <body>
-                  <h1>Coverage Reports - main branch</h1>
+                  <h1>Coverage & Checkstyle Reports - main branch</h1>
                   <ul>
                   <li><a href="backend/index.html">Backend (Jacoco)</a></li>
                   <li><a href="frontend-admin/index.html">Frontend Admin</a></li>
                   <li><a href="frontend-public/index.html">Frontend Public</a></li>
+                  <li>Checkstyle Reports:
+                    <ul>
+                      <li><a href="checkstyle/main.html">Main Sources</a></li>
+                      <li><a href="checkstyle/test.html">Test Sources</a></li>
+                    </ul>
+                  </li>
                   </ul>
                   </body>
                   </html>

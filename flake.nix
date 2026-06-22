@@ -44,6 +44,7 @@
               nixd
               mermaid-cli
               plantuml
+              uv
             ];
 
           buildInputs = [ pkgs.bashInteractive ];
