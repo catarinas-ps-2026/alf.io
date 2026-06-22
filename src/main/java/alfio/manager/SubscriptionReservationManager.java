@@ -21,17 +21,16 @@ import alfio.model.modification.SubscriptionDescriptorModification;
 import alfio.model.subscription.SubscriptionDescriptor;
 import alfio.model.system.command.CleanupReservations;
 import alfio.repository.SubscriptionRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional
@@ -42,48 +41,57 @@ public class SubscriptionReservationManager {
     private final SubscriptionRepository subscriptionRepository;
     private final ExtensionManager extensionManager;
 
-    public SubscriptionReservationManager(SubscriptionRepository subscriptionRepository,
-                                          ExtensionManager extensionManager) {
+    public SubscriptionReservationManager(
+            SubscriptionRepository subscriptionRepository, ExtensionManager extensionManager) {
         this.subscriptionRepository = subscriptionRepository;
         this.extensionManager = extensionManager;
     }
 
     @EventListener(CleanupReservations.class)
     public void cleanupReservations(CleanupReservations cleanupReservations) {
-        if (cleanupReservations.purchaseContext() != null && cleanupReservations.purchaseContext() instanceof SubscriptionDescriptor sd) {
+        if (cleanupReservations.purchaseContext() != null
+                && cleanupReservations.purchaseContext() instanceof SubscriptionDescriptor sd) {
             deleteReservationsForDescriptor(cleanupReservations.reservationIds(), sd, cleanupReservations.expired());
         } else if (cleanupReservations.purchaseContext() == null) {
-            var involvedDescriptors = subscriptionRepository.findDescriptorsByReservationIds(cleanupReservations.reservationIds());
+            var involvedDescriptors =
+                    subscriptionRepository.findDescriptorsByReservationIds(cleanupReservations.reservationIds());
 
             var descriptorsIdsNeedingUpdate = involvedDescriptors.stream()
-                .filter(d -> d.maxAvailable() > 0)
-                .map(DescriptorIdAndReservationId::descriptorId)
-                .collect(Collectors.toSet());
+                    .filter(d -> d.maxAvailable() > 0)
+                    .map(DescriptorIdAndReservationId::descriptorId)
+                    .collect(Collectors.toSet());
 
             if (descriptorsIdsNeedingUpdate.isEmpty()) {
-                deleteReservationsForDescriptor(cleanupReservations.reservationIds(), null, cleanupReservations.expired());
+                deleteReservationsForDescriptor(
+                        cleanupReservations.reservationIds(), null, cleanupReservations.expired());
             } else {
-                Map<UUID, SubscriptionDescriptor> descriptorsById = subscriptionRepository.findByIds(descriptorsIdsNeedingUpdate).stream()
-                    .collect(Collectors.toMap(SubscriptionDescriptor::getId, Function.identity()));
+                Map<UUID, SubscriptionDescriptor> descriptorsById =
+                        subscriptionRepository.findByIds(descriptorsIdsNeedingUpdate).stream()
+                                .collect(Collectors.toMap(SubscriptionDescriptor::getId, Function.identity()));
                 var reservationByDescriptorId = involvedDescriptors.stream()
-                    .collect(Collectors.groupingBy(DescriptorIdAndReservationId::descriptorId));
+                        .collect(Collectors.groupingBy(DescriptorIdAndReservationId::descriptorId));
                 for (var entry : reservationByDescriptorId.entrySet()) {
-                    var reservations = entry.getValue().stream().map(DescriptorIdAndReservationId::reservationId).toList();
-                    deleteReservationsForDescriptor(reservations, descriptorsById.get(entry.getKey()), cleanupReservations.expired());
+                    var reservations = entry.getValue().stream()
+                            .map(DescriptorIdAndReservationId::reservationId)
+                            .toList();
+                    deleteReservationsForDescriptor(
+                            reservations, descriptorsById.get(entry.getKey()), cleanupReservations.expired());
                 }
             }
         }
     }
 
-    private void deleteReservationsForDescriptor(List<String> reservationIds, SubscriptionDescriptor sd, boolean expired) {
+    private void deleteReservationsForDescriptor(
+            List<String> reservationIds, SubscriptionDescriptor sd, boolean expired) {
         int deleted = subscriptionRepository.deleteSubscriptionWithReservationId(reservationIds);
         log.trace("deleted {} subscriptions", deleted);
         if (sd != null && sd.getMaxAvailable() > -1) {
             // restore deleted subscriptions
-            subscriptionRepository.preGenerateSubscriptions(SubscriptionDescriptorModification.fromModel(sd), sd.getId(), deleted);
+            subscriptionRepository.preGenerateSubscriptions(
+                    SubscriptionDescriptorModification.fromModel(sd), sd.getId(), deleted);
             log.trace("created {} subscriptions to replace deleted", deleted);
         }
-        if(expired) {
+        if (expired) {
             extensionManager.handleReservationsExpired(sd, reservationIds);
         } else {
             extensionManager.handleReservationsCancelled(sd, reservationIds);

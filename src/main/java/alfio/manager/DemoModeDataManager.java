@@ -26,6 +26,9 @@ import alfio.repository.OrganizationDeleterRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
 import alfio.repository.user.join.UserOrganizationRepository;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
@@ -33,10 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 @AllArgsConstructor
 public class DemoModeDataManager {
@@ -54,7 +53,7 @@ public class DemoModeDataManager {
     }
 
     public void deleteAccounts(List<Integer> userIds) {
-        if(!userIds.isEmpty()) {
+        if (!userIds.isEmpty()) {
             log.info("found {} expired users", userIds.size());
             var organizationIds = userOrganizationRepository.findOrganizationsForUsers(userIds);
             var disabledEventIds = eventRepository.disableEventsForUsers(userIds);
@@ -72,7 +71,9 @@ public class DemoModeDataManager {
     public void cleanupForDemoMode() {
         log.info("########## running job cleanupForDemoMode");
         try {
-            int expirationDate = configurationManager.getForSystem(ConfigurationKeys.DEMO_MODE_ACCOUNT_EXPIRATION_DAYS).getValueAsIntOrDefault(20);
+            int expirationDate = configurationManager
+                    .getForSystem(ConfigurationKeys.DEMO_MODE_ACCOUNT_EXPIRATION_DAYS)
+                    .getValueAsIntOrDefault(20);
             List<Integer> userIds = findExpiredUsers(DateUtils.addDays(new Date(), -expirationDate));
             if (!userIds.isEmpty()) {
                 deleteAccounts(userIds);
@@ -81,5 +82,4 @@ public class DemoModeDataManager {
             log.info("########## end job cleanupForDemoMode");
         }
     }
-
 }

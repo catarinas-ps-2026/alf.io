@@ -19,41 +19,49 @@ package alfio.controller.api.v2.model;
 import alfio.controller.api.support.CurrencyDescriptor;
 import alfio.model.PurchaseContext;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.joda.money.CurrencyUnit;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.joda.money.CurrencyUnit;
 
 public interface ApiPurchaseContext {
 
     InvoicingConfiguration getInvoicingConfiguration();
+
     EventWithAdditionalInfo.AssignmentConfiguration getAssignmentConfiguration();
+
     AnalyticsConfiguration getAnalyticsConfiguration();
 
     OfflinePaymentConfiguration getOfflinePaymentConfiguration();
+
     EventWithAdditionalInfo.CaptchaConfiguration getCaptchaConfiguration();
 
     EmbeddingConfiguration getEmbeddingConfiguration();
 
     boolean isVatIncluded();
+
     boolean isFree();
+
     String getCurrency();
+
     String getVat();
 
     default List<Language> getContentLanguages() {
-        return purchaseContext().getContentLanguages()
-            .stream()
-            .map(cl -> new Language(cl.locale().getLanguage(), cl.getDisplayLanguage()))
-            .collect(Collectors.toList());
+        return purchaseContext().getContentLanguages().stream()
+                .map(cl -> new Language(cl.locale().getLanguage(), cl.getDisplayLanguage()))
+                .collect(Collectors.toList());
     }
 
     default CurrencyDescriptor getCurrencyDescriptor() {
-        if(purchaseContext().isFreeOfCharge()) {
+        if (purchaseContext().isFreeOfCharge()) {
             return null;
         }
         var currencyUnit = CurrencyUnit.of(getCurrency());
-        return new CurrencyDescriptor(currencyUnit.getCode(), currencyUnit.toCurrency().getDisplayName(), currencyUnit.getSymbol(), currencyUnit.getDecimalPlaces());
+        return new CurrencyDescriptor(
+                currencyUnit.getCode(),
+                currencyUnit.toCurrency().getDisplayName(),
+                currencyUnit.getSymbol(),
+                currencyUnit.getDecimalPlaces());
     }
 
     String getPrivacyPolicyUrl();
@@ -63,13 +71,15 @@ public interface ApiPurchaseContext {
     String getFileBlobId();
 
     Map<String, String> getTitle();
+
     Map<String, String> getDescription();
 
     String getBankAccount();
+
     List<String> getBankAccountOwner();
 
-
     String getOrganizationEmail();
+
     String getOrganizationName();
 
     @JsonIgnore

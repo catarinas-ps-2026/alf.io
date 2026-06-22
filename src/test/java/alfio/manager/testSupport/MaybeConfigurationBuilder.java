@@ -29,5 +29,4 @@ public class MaybeConfigurationBuilder {
     public static ConfigurationManager.MaybeConfiguration missing(ConfigurationKeys k) {
         return new ConfigurationManager.MaybeConfiguration(k);
     }
-
 }

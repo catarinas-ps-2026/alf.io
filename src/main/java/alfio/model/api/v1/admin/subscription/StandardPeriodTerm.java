@@ -26,8 +26,8 @@ public class StandardPeriodTerm implements SubscriptionTerm {
     private final Integer units;
 
     @JsonCreator
-    public StandardPeriodTerm(@JsonProperty("timeUnit") SubscriptionTimeUnit timeUnit,
-                              @JsonProperty("units") Integer units) {
+    public StandardPeriodTerm(
+            @JsonProperty("timeUnit") SubscriptionTimeUnit timeUnit, @JsonProperty("units") Integer units) {
         this.timeUnit = timeUnit;
         this.units = units;
     }

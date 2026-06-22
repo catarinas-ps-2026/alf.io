@@ -17,15 +17,16 @@
 package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class SponsorScan {
 
     public enum LeadStatus {
-        COLD, WARM, HOT
+        COLD,
+        WARM,
+        HOT
     }
 
     private final int userId;
@@ -36,14 +37,14 @@ public class SponsorScan {
     private final LeadStatus leadStatus;
     private final String operator;
 
-
-    public SponsorScan(@Column("user_id") int userId,
-                       @Column("creation") ZonedDateTime timestamp,
-                       @Column("event_id") int eventId,
-                       @Column("ticket_id") int ticketId,
-                       @Column("notes") String notes,
-                       @Column("lead_status") LeadStatus leadStatus,
-                       @Column("operator") String operator) {
+    public SponsorScan(
+            @Column("user_id") int userId,
+            @Column("creation") ZonedDateTime timestamp,
+            @Column("event_id") int eventId,
+            @Column("ticket_id") int ticketId,
+            @Column("notes") String notes,
+            @Column("lead_status") LeadStatus leadStatus,
+            @Column("operator") String operator) {
         this.userId = userId;
         this.timestamp = timestamp;
         this.eventId = eventId;

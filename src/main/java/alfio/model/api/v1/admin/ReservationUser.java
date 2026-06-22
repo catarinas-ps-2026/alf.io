@@ -27,11 +27,12 @@ public class ReservationUser {
     private final String id;
 
     @JsonCreator
-    public ReservationUser(@JsonProperty("username") String username,
-                    @JsonProperty("firstName") String firstName,
-                    @JsonProperty("lastName") String lastName,
-                    @JsonProperty("email") String email,
-                    @JsonProperty("id") String id) {
+    public ReservationUser(
+            @JsonProperty("username") String username,
+            @JsonProperty("firstName") String firstName,
+            @JsonProperty("lastName") String lastName,
+            @JsonProperty("email") String email,
+            @JsonProperty("id") String id) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;

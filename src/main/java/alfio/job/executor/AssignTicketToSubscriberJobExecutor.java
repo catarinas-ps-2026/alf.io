@@ -16,6 +16,9 @@
  */
 package alfio.job.executor;
 
+import static alfio.manager.NotificationManager.SEND_TICKET_CC;
+import static alfio.model.system.ConfigurationKeys.GENERATE_TICKETS_FOR_SUBSCRIPTIONS;
+
 import alfio.manager.AdminReservationRequestManager;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.manager.system.ConfigurationManager;
@@ -32,11 +35,6 @@ import alfio.repository.PurchaseContextFieldRepository;
 import alfio.repository.SubscriptionRepository;
 import alfio.repository.TicketCategoryRepository;
 import alfio.util.ClockProvider;
-import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -46,9 +44,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static alfio.manager.NotificationManager.SEND_TICKET_CC;
-import static alfio.model.system.ConfigurationKeys.GENERATE_TICKETS_FOR_SUBSCRIPTIONS;
+import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AssignTicketToSubscriberJobExecutor implements AdminJobExecutor {
@@ -65,13 +64,14 @@ public class AssignTicketToSubscriberJobExecutor implements AdminJobExecutor {
     private final TicketCategoryRepository ticketCategoryRepository;
     private final PurchaseContextFieldRepository purchaseContextFieldRepository;
 
-    public AssignTicketToSubscriberJobExecutor(AdminReservationRequestManager requestManager,
-                                               ConfigurationManager configurationManager,
-                                               SubscriptionRepository subscriptionRepository,
-                                               EventRepository eventRepository,
-                                               ClockProvider clockProvider,
-                                               TicketCategoryRepository ticketCategoryRepository,
-                                               PurchaseContextFieldRepository purchaseContextFieldRepository) {
+    public AssignTicketToSubscriberJobExecutor(
+            AdminReservationRequestManager requestManager,
+            ConfigurationManager configurationManager,
+            SubscriptionRepository subscriptionRepository,
+            EventRepository eventRepository,
+            ClockProvider clockProvider,
+            TicketCategoryRepository ticketCategoryRepository,
+            PurchaseContextFieldRepository purchaseContextFieldRepository) {
         this.requestManager = requestManager;
         this.configurationManager = configurationManager;
         this.subscriptionRepository = subscriptionRepository;
@@ -96,26 +96,38 @@ public class AssignTicketToSubscriberJobExecutor implements AdminJobExecutor {
         //     - validity_from is <= now()
         //     - validity_to is null or > now()
         //     - status = 'ACQUIRED'
-        var subscriptionsByEvent = subscriptionRepository.loadAvailableSubscriptionsByEvent((Integer) metadata.get(EVENT_ID), (Integer) metadata.get(ORGANIZATION_ID));
+        var subscriptionsByEvent = subscriptionRepository.loadAvailableSubscriptionsByEvent(
+                (Integer) metadata.get(EVENT_ID), (Integer) metadata.get(ORGANIZATION_ID));
         if (!subscriptionsByEvent.isEmpty()) {
             boolean forceGeneration = Boolean.TRUE.equals(metadata.get(FORCE_GENERATION));
             Set<Integer> ids = subscriptionsByEvent.keySet();
             var fieldsByEventId = purchaseContextFieldRepository.findAdditionalFieldNamesForEvents(ids);
             eventRepository.findByIds(ids).forEach(event -> {
                 // 2. for each event check if the flag is active, unless forceGeneration has been specified
-                boolean generationEnabled = forceGeneration || configurationManager.getFor(GENERATE_TICKETS_FOR_SUBSCRIPTIONS, event.getConfigurationLevel())
-                    .getValueAsBooleanOrDefault();
+                boolean generationEnabled = forceGeneration
+                        || configurationManager
+                                .getFor(GENERATE_TICKETS_FOR_SUBSCRIPTIONS, event.getConfigurationLevel())
+                                .getValueAsBooleanOrDefault();
                 if (generationEnabled) {
                     var subscriptions = subscriptionsByEvent.get(event.getId());
                     var availableCategories = ticketCategoryRepository.findAllWithAvailableTickets(event.getId());
                     if (CollectionUtils.isNotEmpty(availableCategories)) {
-                        // 3. create reservation import request for the subscribers. ID is "AUTO_${eventShortName}_${now_ISO}"
-                        var requestId = String.format("AUTO_%s_%s", event.getShortName(), LocalDateTime.now(clockProvider.getClock()).format(DateTimeFormatter.ISO_DATE_TIME));
-                        requestManager.insertRequest(requestId,
-                            buildBody(event, subscriptions, availableCategories, fieldsByEventId.getOrDefault(event.getId(), Set.of())),
-                            event,
-                            false,
-                            "admin");
+                        // 3. create reservation import request for the subscribers. ID is
+                        // "AUTO_${eventShortName}_${now_ISO}"
+                        var requestId = String.format(
+                                "AUTO_%s_%s",
+                                event.getShortName(),
+                                LocalDateTime.now(clockProvider.getClock()).format(DateTimeFormatter.ISO_DATE_TIME));
+                        requestManager.insertRequest(
+                                requestId,
+                                buildBody(
+                                        event,
+                                        subscriptions,
+                                        availableCategories,
+                                        fieldsByEventId.getOrDefault(event.getId(), Set.of())),
+                                event,
+                                false,
+                                "admin");
 
                     } else {
                         log.warn("Cannot find a suitable ticket category for event {}", event.getId());
@@ -128,72 +140,91 @@ public class AssignTicketToSubscriberJobExecutor implements AdminJobExecutor {
         return null;
     }
 
-    private AdminReservationModification buildBody(Event event,
-                                                   List<AvailableSubscriptionsByEvent> subscriptions,
-                                                   List<TicketCategory> availableCategories,
-                                                   Set<String> fieldsForEvent) {
+    private AdminReservationModification buildBody(
+            Event event,
+            List<AvailableSubscriptionsByEvent> subscriptions,
+            List<TicketCategory> availableCategories,
+            Set<String> fieldsForEvent) {
         var clock = clockProvider.getClock();
-        var subscriptionsByDescriptor = subscriptions.stream().collect(Collectors.groupingBy(AvailableSubscriptionsByEvent::getDescriptorId));
-        var tickets = subscriptionsByDescriptor.values().stream().flatMap(availableSubscriptionsByEvents -> {
-            var firstValue = availableSubscriptionsByEvents.get(0);
-            var categoryOptional = availableCategories.stream()
-                .filter(c -> CollectionUtils.isEmpty(firstValue.getCompatibleCategoryIds()) || firstValue.getCompatibleCategoryIds().contains(c.getId()))
-                .findFirst();
+        var subscriptionsByDescriptor =
+                subscriptions.stream().collect(Collectors.groupingBy(AvailableSubscriptionsByEvent::getDescriptorId));
+        var tickets = subscriptionsByDescriptor.values().stream()
+                .flatMap(availableSubscriptionsByEvents -> {
+                    var firstValue = availableSubscriptionsByEvents.get(0);
+                    var categoryOptional = availableCategories.stream()
+                            .filter(c -> CollectionUtils.isEmpty(firstValue.getCompatibleCategoryIds())
+                                    || firstValue.getCompatibleCategoryIds().contains(c.getId()))
+                            .findFirst();
 
-            if (categoryOptional.isEmpty()) {
-                var categoriesIds = availableCategories.stream().map(TicketCategory::getId).collect(Collectors.toSet());
-                log.warn("Skipping descriptor {}. No compatible category found (wanted: one of {}, available: {})", firstValue.getDescriptorId(), firstValue.getCompatibleCategoryIds(), categoriesIds);
-            }
+                    if (categoryOptional.isEmpty()) {
+                        var categoriesIds = availableCategories.stream()
+                                .map(TicketCategory::getId)
+                                .collect(Collectors.toSet());
+                        log.warn(
+                                "Skipping descriptor {}. No compatible category found (wanted: one of {}, available: {})",
+                                firstValue.getDescriptorId(),
+                                firstValue.getCompatibleCategoryIds(),
+                                categoriesIds);
+                    }
 
-            return categoryOptional.stream()
-                .map(category -> new TicketsInfo(
-                    new Category(category.getId(), category.getName(), category.getPrice(), category.getTicketAccessType()),
-                    toAttendees(availableSubscriptionsByEvents, fieldsForEvent),
-                    false,
-                    false
-                ));
-        }).collect(Collectors.toList());
+                    return categoryOptional.stream()
+                            .map(category -> new TicketsInfo(
+                                    new Category(
+                                            category.getId(),
+                                            category.getName(),
+                                            category.getPrice(),
+                                            category.getTicketAccessType()),
+                                    toAttendees(availableSubscriptionsByEvents, fieldsForEvent),
+                                    false,
+                                    false));
+                })
+                .collect(Collectors.toList());
 
         return new AdminReservationModification(
-            new DateTimeModification(LocalDate.now(clock), LocalTime.now(clock).plusMinutes(5L)),
-            new CustomerData("", "", "", null, "", null, null, null, null),
-            tickets,
-            event.getContentLanguages().get(0).getLanguage(),
-            false,
-            false,
-            null,
-            new Notification(false, true),
-            null,
-            null
-        );
+                new DateTimeModification(
+                        LocalDate.now(clock), LocalTime.now(clock).plusMinutes(5L)),
+                new CustomerData("", "", "", null, "", null, null, null, null),
+                tickets,
+                event.getContentLanguages().get(0).getLanguage(),
+                false,
+                false,
+                null,
+                new Notification(false, true),
+                null,
+                null);
     }
 
-    private List<Attendee> toAttendees(List<AvailableSubscriptionsByEvent> subscriptions,
-                                       Set<String> fieldsForEvent) {
+    private List<Attendee> toAttendees(List<AvailableSubscriptionsByEvent> subscriptions, Set<String> fieldsForEvent) {
         return subscriptions.stream()
-            .map(s -> {
-                Map<String, String> metadata = Map.of();
-                if (!s.getEmailAddress().strip().equalsIgnoreCase(s.getReservationEmail().strip())) {
-                    metadata = Map.of(SEND_TICKET_CC, "[\""+s.getReservationEmail()+"\"]");
-                }
+                .map(s -> {
+                    Map<String, String> metadata = Map.of();
+                    if (!s.getEmailAddress()
+                            .strip()
+                            .equalsIgnoreCase(s.getReservationEmail().strip())) {
+                        metadata = Map.of(SEND_TICKET_CC, "[\"" + s.getReservationEmail() + "\"]");
+                    }
 
-                return new Attendee(null,
-                        s.getFirstName(),
-                        s.getLastName(),
-                        s.getEmailAddress(),
-                        s.getUserLanguage(),
-                        false,
-                        s.getSubscriptionId() + "_auto",
-                        s.getSubscriptionId(),
-                        parseExistingFields(s, fieldsForEvent),
-                        metadata);
-                }
-            ).collect(Collectors.toList());
+                    return new Attendee(
+                            null,
+                            s.getFirstName(),
+                            s.getLastName(),
+                            s.getEmailAddress(),
+                            s.getUserLanguage(),
+                            false,
+                            s.getSubscriptionId() + "_auto",
+                            s.getSubscriptionId(),
+                            parseExistingFields(s, fieldsForEvent),
+                            metadata);
+                })
+                .collect(Collectors.toList());
     }
 
-    private static Map<String, List<String>> parseExistingFields(AvailableSubscriptionsByEvent s, Set<String> eventFieldNames) {
+    private static Map<String, List<String>> parseExistingFields(
+            AvailableSubscriptionsByEvent s, Set<String> eventFieldNames) {
         return s.getAdditionalFields().stream()
-            .filter(f -> eventFieldNames.contains(f.getName()))
-            .collect(Collectors.groupingBy(FieldNameAndValue::getName, Collectors.mapping(FieldNameAndValue::getValue, Collectors.toList())));
+                .filter(f -> eventFieldNames.contains(f.getName()))
+                .collect(Collectors.groupingBy(
+                        FieldNameAndValue::getName,
+                        Collectors.mapping(FieldNameAndValue::getValue, Collectors.toList())));
     }
 }

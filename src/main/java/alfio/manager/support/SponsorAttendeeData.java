@@ -37,4 +37,3 @@ public class SponsorAttendeeData {
      */
     private final String email;
 }
-

@@ -18,10 +18,9 @@ package alfio.model.support;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class CheckInOutputColorConfiguration {
@@ -29,8 +28,9 @@ public class CheckInOutputColorConfiguration {
     private final List<ColorConfiguration> configurations;
 
     @JsonCreator
-    public CheckInOutputColorConfiguration(@JsonProperty("defaultColorName") String defaultColorName,
-                                           @JsonProperty("configurations") List<ColorConfiguration> configurations) {
+    public CheckInOutputColorConfiguration(
+            @JsonProperty("defaultColorName") String defaultColorName,
+            @JsonProperty("configurations") List<ColorConfiguration> configurations) {
         this.defaultColorName = defaultColorName;
         this.configurations = configurations;
     }
@@ -40,11 +40,10 @@ public class CheckInOutputColorConfiguration {
         private final String colorName;
         private final List<Integer> categories;
 
-        public ColorConfiguration(@JsonProperty("colorName") String colorName,
-                                   @JsonProperty("categories") List<Integer> categories) {
+        public ColorConfiguration(
+                @JsonProperty("colorName") String colorName, @JsonProperty("categories") List<Integer> categories) {
             this.colorName = colorName;
             this.categories = Optional.ofNullable(categories).orElse(List.of());
         }
     }
 }
-

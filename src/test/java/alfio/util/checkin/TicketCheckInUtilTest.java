@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.util.checkin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,85 +55,47 @@ class TicketCheckInUtilTest {
 
         String expectedHash = DigestUtils.sha256Hex("ticket-code");
 
-        String result = TicketCheckInUtil.ticketOnlineCheckInUrl(
-            event,
-            ticket,
-            "https://alf.io/"
-        );
+        String result = TicketCheckInUtil.ticketOnlineCheckInUrl(event, ticket, "https://alf.io/");
 
-        assertEquals(
-            "https://alf.io/event/my-event/ticket/" +
-                uuid +
-                "/check-in/" +
-                expectedHash,
-            result
-        );
+        assertEquals("https://alf.io/event/my-event/ticket/" + uuid + "/check-in/" + expectedHash, result);
     }
 
     @Test
     void shouldReturnCustomOnlineCheckInInfo() {
         ExtensionManager extensionManager = mock(ExtensionManager.class);
         EventRepository eventRepository = mock(EventRepository.class);
-        TicketCategoryRepository ticketCategoryRepository = mock(
-            TicketCategoryRepository.class
-        );
-        ConfigurationManager configurationManager = mock(
-            ConfigurationManager.class
-        );
+        TicketCategoryRepository ticketCategoryRepository = mock(TicketCategoryRepository.class);
+        ConfigurationManager configurationManager = mock(ConfigurationManager.class);
 
         Event event = mock(Event.class);
         Ticket ticket = mock(Ticket.class);
         TicketCategory ticketCategory = mock(TicketCategory.class);
 
-        JoinLink joinLink = new JoinLink(
-            "https://meet.example.com",
-            null,
-            null,
-            Map.of("en", "Join meeting")
-        );
+        JoinLink joinLink = new JoinLink("https://meet.example.com", null, null, Map.of("en", "Join meeting"));
 
-        TicketMetadata ticketMetadata = new TicketMetadata(
-            joinLink,
-            Map.of("en", "Meeting description"),
-            Map.of()
-        );
+        TicketMetadata ticketMetadata = new TicketMetadata(joinLink, Map.of("en", "Meeting description"), Map.of());
 
-        when(
-            extensionManager.handleCustomOnlineJoinUrl(
-                eq(event),
-                eq(ticket),
-                anyMap()
-            )
-        ).thenReturn(Optional.of(ticketMetadata));
+        when(extensionManager.handleCustomOnlineJoinUrl(eq(event), eq(ticket), anyMap()))
+                .thenReturn(Optional.of(ticketMetadata));
 
         Map<String, String> result = TicketCheckInUtil.getOnlineCheckInInfo(
-            extensionManager,
-            eventRepository,
-            ticketCategoryRepository,
-            configurationManager,
-            event,
-            Locale.ENGLISH,
-            ticket,
-            ticketCategory,
-            Map.of()
-        );
+                extensionManager,
+                eventRepository,
+                ticketCategoryRepository,
+                configurationManager,
+                event,
+                Locale.ENGLISH,
+                ticket,
+                ticketCategory,
+                Map.of());
 
         assertEquals("true", result.get(TicketCheckInUtil.CUSTOM_CHECK_IN_URL));
 
-        assertEquals(
-            "https://meet.example.com",
-            result.get(TicketCheckInUtil.ONLINE_CHECK_IN_URL)
-        );
+        assertEquals("https://meet.example.com", result.get(TicketCheckInUtil.ONLINE_CHECK_IN_URL));
 
-        assertEquals(
-            "Join meeting",
-            result.get(TicketCheckInUtil.CUSTOM_CHECK_IN_URL_TEXT)
-        );
+        assertEquals("Join meeting", result.get(TicketCheckInUtil.CUSTOM_CHECK_IN_URL_TEXT));
 
-        assertEquals(
-            "Meeting description",
-            result.get(TicketCheckInUtil.CUSTOM_CHECK_IN_URL_DESCRIPTION)
-        );
+        assertEquals("Meeting description", result.get(TicketCheckInUtil.CUSTOM_CHECK_IN_URL_DESCRIPTION));
 
         assertEquals("", result.get("prerequisites"));
     }

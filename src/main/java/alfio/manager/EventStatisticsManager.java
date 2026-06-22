@@ -16,6 +16,11 @@
  */
 package alfio.manager;
 
+import static alfio.model.system.ConfigurationKeys.DISPLAY_STATS_IN_EVENT_DETAIL;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+
 import alfio.manager.support.extension.ExtensionCapability;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
@@ -25,11 +30,6 @@ import alfio.model.user.Organization;
 import alfio.repository.*;
 import alfio.util.EventUtil;
 import alfio.util.MonetaryUtil;
-import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -37,11 +37,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static alfio.model.system.ConfigurationKeys.DISPLAY_STATS_IN_EVENT_DETAIL;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional(readOnly = true)
@@ -60,18 +58,19 @@ public class EventStatisticsManager {
     private final ExtensionManager extensionManager;
     private final PurchaseContextFieldManager purchaseContextFieldManager;
 
-    public EventStatisticsManager(EventRepository eventRepository,
-                                  EventDescriptionRepository eventDescriptionRepository,
-                                  TicketSearchRepository ticketSearchRepository,
-                                  TicketCategoryRepository ticketCategoryRepository,
-                                  TicketCategoryDescriptionRepository ticketCategoryDescriptionRepository,
-                                  TicketReservationRepository ticketReservationRepository,
-                                  SpecialPriceRepository specialPriceRepository,
-                                  ConfigurationManager configurationManager,
-                                  UserManager userManager,
-                                  SubscriptionRepository subscriptionRepository,
-                                  ExtensionManager extensionManager,
-                                  PurchaseContextFieldManager purchaseContextFieldManager) {
+    public EventStatisticsManager(
+            EventRepository eventRepository,
+            EventDescriptionRepository eventDescriptionRepository,
+            TicketSearchRepository ticketSearchRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            TicketCategoryDescriptionRepository ticketCategoryDescriptionRepository,
+            TicketReservationRepository ticketReservationRepository,
+            SpecialPriceRepository specialPriceRepository,
+            ConfigurationManager configurationManager,
+            UserManager userManager,
+            SubscriptionRepository subscriptionRepository,
+            ExtensionManager extensionManager,
+            PurchaseContextFieldManager purchaseContextFieldManager) {
         this.eventRepository = eventRepository;
         this.eventDescriptionRepository = eventDescriptionRepository;
         this.ticketSearchRepository = ticketSearchRepository;
@@ -87,46 +86,51 @@ public class EventStatisticsManager {
     }
 
     private List<Event> getAllEvents(String username) {
-        List<Integer> orgIds = userManager.findUserOrganizations(username).stream().map(Organization::getId).collect(toList());
+        List<Integer> orgIds = userManager.findUserOrganizations(username).stream()
+                .map(Organization::getId)
+                .collect(toList());
         return orgIds.isEmpty() ? Collections.emptyList() : eventRepository.findByOrganizationIds(orgIds);
     }
-
 
     public List<EventStatistic> getAllEventsWithStatisticsFilteredBy(String username, Predicate<Event> predicate) {
         List<Event> events = getAllEvents(username).stream().filter(predicate).collect(toList());
         Map<Integer, Event> mappedEvent = events.stream().collect(Collectors.toMap(Event::getId, Function.identity()));
-        if(!mappedEvent.isEmpty()) {
+        if (!mappedEvent.isEmpty()) {
             boolean isOwner = userManager.isOwner(userManager.findUserByUsername(username));
             Set<Integer> ids = mappedEvent.keySet();
             final Stream<EventStatisticView> stats;
-            if(isOwner) {
+            if (isOwner) {
                 stats = eventRepository.findStatisticsFor(ids).stream();
             } else {
                 stats = ids.stream().map(EventStatisticView::empty);
             }
             return stats.map(stat -> {
-                Event event = mappedEvent.get(stat.getEventId());
-                return new EventStatistic(event, stat, displayStatisticsForEvent(event));
-            }).collect(Collectors.toList());
+                        Event event = mappedEvent.get(stat.getEventId());
+                        return new EventStatistic(event, stat, displayStatisticsForEvent(event));
+                    })
+                    .collect(Collectors.toList());
         } else {
             return Collections.emptyList();
         }
     }
 
     private boolean displayStatisticsForEvent(EventAndOrganizationId event) {
-        return configurationManager.getFor(DISPLAY_STATS_IN_EVENT_DETAIL, event.getConfigurationLevel()).getValueAsBooleanOrDefault();
+        return configurationManager
+                .getFor(DISPLAY_STATS_IN_EVENT_DETAIL, event.getConfigurationLevel())
+                .getValueAsBooleanOrDefault();
     }
-
 
     public List<EventStatistic> getAllEventsWithStatistics(String username) {
         return getAllEventsWithStatisticsFilteredBy(username, e -> true);
     }
 
     public List<EventWithAdditionalInfo> getAllEventsWithAdditionalInfo(String username) {
-        List<Integer> organizations = userManager.findUserOrganizations(username).stream().map(Organization::getId).toList();
+        List<Integer> organizations = userManager.findUserOrganizations(username).stream()
+                .map(Organization::getId)
+                .toList();
         return eventRepository.findByOrganizationIds(organizations).stream()
-            .map(e -> getEventWithAdditionalInfo(username, e))
-            .toList();
+                .map(e -> getEventWithAdditionalInfo(username, e))
+                .toList();
     }
 
     public EventWithAdditionalInfo getEventWithAdditionalInfo(String eventName, String username) {
@@ -137,37 +141,55 @@ public class EventStatisticsManager {
     private EventWithAdditionalInfo getEventWithAdditionalInfo(String username, Event event) {
         Map<String, String> description = eventDescriptionRepository.findByEventIdAsMap(event.getId());
         boolean owner = userManager.isOwner(userManager.findUserByUsername(username));
-        EventStatisticView statistics = owner ? eventRepository.findStatisticsFor(event.getId()) : EventStatisticView.empty(event.getId());
+        EventStatisticView statistics =
+                owner ? eventRepository.findStatisticsFor(event.getId()) : EventStatisticView.empty(event.getId());
         EventStatistic eventStatistic = new EventStatistic(event, statistics, displayStatisticsForEvent(event));
-        BigDecimal grossIncome = owner ? MonetaryUtil.centsToUnit(eventRepository.getGrossIncome(event.getId()), event.getCurrency()) : BigDecimal.ZERO;
+        BigDecimal grossIncome = owner
+                ? MonetaryUtil.centsToUnit(eventRepository.getGrossIncome(event.getId()), event.getCurrency())
+                : BigDecimal.ZERO;
 
         List<TicketCategory> ticketCategories = ticketCategoryRepository.findAllTicketCategories(event.getId());
-        List<Integer> ticketCategoriesIds = ticketCategories.stream().map(TicketCategory::getId).collect(Collectors.toList());
+        List<Integer> ticketCategoriesIds =
+                ticketCategories.stream().map(TicketCategory::getId).collect(Collectors.toList());
 
-        Map<Integer, Map<String, String>> descriptions = ticketCategoryDescriptionRepository.descriptionsByTicketCategory(ticketCategoriesIds);
-        Map<Integer, TicketCategoryStatisticView> ticketCategoriesStatistics = owner ? ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId()) : ticketCategoriesIds.stream().collect(toMap(Function.identity(), id -> TicketCategoryStatisticView.empty(id, event.getId())));
-        Map<Integer, List<SpecialPrice>> specialPrices = ticketCategoriesIds.isEmpty() ? Collections.emptyMap() : specialPriceRepository.findAllByCategoriesIdsMapped(ticketCategoriesIds);
+        Map<Integer, Map<String, String>> descriptions =
+                ticketCategoryDescriptionRepository.descriptionsByTicketCategory(ticketCategoriesIds);
+        Map<Integer, TicketCategoryStatisticView> ticketCategoriesStatistics = owner
+                ? ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId())
+                : ticketCategoriesIds.stream()
+                        .collect(
+                                toMap(Function.identity(), id -> TicketCategoryStatisticView.empty(id, event.getId())));
+        Map<Integer, List<SpecialPrice>> specialPrices = ticketCategoriesIds.isEmpty()
+                ? Collections.emptyMap()
+                : specialPriceRepository.findAllByCategoriesIdsMapped(ticketCategoriesIds);
 
         var metadata = ticketCategoryRepository.findCategoryMetadataForEventGroupByCategoryId(event.getId());
 
         List<TicketCategoryWithAdditionalInfo> tWithInfo = ticketCategories.stream()
-            .map(t -> new TicketCategoryWithAdditionalInfo(event, t, ticketCategoriesStatistics.get(t.getId()), descriptions.get(t.getId()), specialPrices.get(t.getId()), metadata.get(t.getId())))
-            .toList();
+                .map(t -> new TicketCategoryWithAdditionalInfo(
+                        event,
+                        t,
+                        ticketCategoriesStatistics.get(t.getId()),
+                        descriptions.get(t.getId()),
+                        specialPrices.get(t.getId()),
+                        metadata.get(t.getId())))
+                .toList();
 
-        Set<ExtensionCapabilitySummary> supportedCapabilities = extensionManager.getSupportedCapabilities(EnumSet.allOf(ExtensionCapability.class), event);
+        Set<ExtensionCapabilitySummary> supportedCapabilities =
+                extensionManager.getSupportedCapabilities(EnumSet.allOf(ExtensionCapability.class), event);
 
         // TODO category and event settings
 
-        return new EventWithAdditionalInfo(event,
-            tWithInfo,
-            eventStatistic,
-            description,
-            grossIncome,
-            eventRepository.getMetadataForEvent(event.getId()),
-            subscriptionRepository.findLinkedSubscriptionIds(event.getId(), event.getOrganizationId()),
-            supportedCapabilities,
-            purchaseContextFieldManager.findAdditionalFields(event)
-        );
+        return new EventWithAdditionalInfo(
+                event,
+                tWithInfo,
+                eventStatistic,
+                description,
+                grossIncome,
+                eventRepository.getMetadataForEvent(event.getId()),
+                subscriptionRepository.findLinkedSubscriptionIds(event.getId(), event.getOrganizationId()),
+                supportedCapabilities,
+                purchaseContextFieldManager.findAdditionalFields(event));
     }
 
     private Event getEventAndCheckOwnership(String eventName, String username) {
@@ -185,25 +207,34 @@ public class EventStatisticsManager {
         Event event = eventRepository.findById(eventId);
         String toSearch = prepareSearchTerm(search);
         final int pageSize = 30;
-        return ticketSearchRepository.findAllModifiedTicketsWithReservationAndTransaction(eventId, categoryId, page * pageSize, pageSize, toSearch).stream()
-            .map(t -> new TicketWithStatistic(t.getTicket(), t.getTicketReservation(), event.getZoneId(), t.getTransaction(), firstNonNull(t.getPromoCode(), t.getSpecialPriceToken())))
-            .sorted()
-            .collect(Collectors.toList());
+        return ticketSearchRepository
+                .findAllModifiedTicketsWithReservationAndTransaction(
+                        eventId, categoryId, page * pageSize, pageSize, toSearch)
+                .stream()
+                .map(t -> new TicketWithStatistic(
+                        t.getTicket(),
+                        t.getTicketReservation(),
+                        event.getZoneId(),
+                        t.getTransaction(),
+                        firstNonNull(t.getPromoCode(), t.getSpecialPriceToken())))
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     public Integer countModifiedTicket(int eventId, int categoryId, String search) {
         String toSearch = prepareSearchTerm(search);
-        return ticketSearchRepository.countAllModifiedTicketsWithReservationAndTransaction(eventId, categoryId, toSearch);
+        return ticketSearchRepository.countAllModifiedTicketsWithReservationAndTransaction(
+                eventId, categoryId, toSearch);
     }
 
     public Predicate<EventAndOrganizationId> noSeatsAvailable() {
         return event -> {
-            Map<Integer, TicketCategoryStatisticView> stats = ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId());
+            Map<Integer, TicketCategoryStatisticView> stats =
+                    ticketCategoryRepository.findStatisticsForEventIdByCategoryId(event.getId());
             EventStatisticView eventStatisticView = eventRepository.findStatisticsFor(event.getId());
-            return ticketCategoryRepository.findAllTicketCategories(event.getId())
-                .stream()
-                .filter(tc -> !tc.isAccessRestricted())
-                .allMatch(tc -> EventUtil.determineAvailableSeats(stats.get(tc.getId()), eventStatisticView) == 0);
+            return ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()
+                    .filter(tc -> !tc.isAccessRestricted())
+                    .allMatch(tc -> EventUtil.determineAvailableSeats(stats.get(tc.getId()), eventStatisticView) == 0);
         };
     }
 
@@ -215,13 +246,13 @@ public class EventStatisticsManager {
         return ticketReservationRepository.getFirstReservationCreatedTimestampForEvent(eventId);
     }
 
-    public List<TicketsByDateStatistic> getTicketSoldStatistics(int eventId, ZonedDateTime from, ZonedDateTime to, String granularity) {
+    public List<TicketsByDateStatistic> getTicketSoldStatistics(
+            int eventId, ZonedDateTime from, ZonedDateTime to, String granularity) {
         return ticketReservationRepository.getSoldStatistic(eventId, from, to, granularity);
     }
 
-    public List<TicketsByDateStatistic> getTicketReservedStatistics(int eventId, ZonedDateTime from, ZonedDateTime to, String granularity) {
+    public List<TicketsByDateStatistic> getTicketReservedStatistics(
+            int eventId, ZonedDateTime from, ZonedDateTime to, String granularity) {
         return ticketReservationRepository.getReservedStatistic(eventId, from, to, granularity);
     }
-
-
 }

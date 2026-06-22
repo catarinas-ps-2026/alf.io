@@ -19,7 +19,6 @@ package alfio.model.transaction.capabilities;
 import alfio.model.transaction.Capability;
 import alfio.model.transaction.PaymentToken;
 import alfio.model.transaction.Transaction;
-
 import java.util.Optional;
 
 public interface ExtractPaymentTokenFromTransaction extends Capability {

@@ -19,35 +19,35 @@ package alfio.manager.payment.saferpay;
 import alfio.manager.payment.PaymentSpecification;
 import alfio.model.transaction.StaticPaymentMethods;
 import com.google.gson.stream.JsonWriter;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class PaymentPageInitializeRequestBuilder {
-    public static final String WEBHOOK_URL_TEMPLATE = "/api/payment/webhook/saferpay/reservation/{reservationId}/success";
-    public static final String SUCCESS_URL_TEMPLATE = "/{purchaseContextType}/{purchaseContextIdentifier}/reservation/{reservationId}";
-    public static final String CANCEL_URL_TEMPLATE = "/{purchaseContextType}/{purchaseContextIdentifier}/reservation/{reservationId}/payment/saferpay/cancel";
+    public static final String WEBHOOK_URL_TEMPLATE =
+            "/api/payment/webhook/saferpay/reservation/{reservationId}/success";
+    public static final String SUCCESS_URL_TEMPLATE =
+            "/{purchaseContextType}/{purchaseContextIdentifier}/reservation/{reservationId}";
+    public static final String CANCEL_URL_TEMPLATE =
+            "/{purchaseContextType}/{purchaseContextIdentifier}/reservation/{reservationId}/payment/saferpay/cancel";
 
     static final Set<String> SUPPORTED_METHODS = Set.of(
-        StaticPaymentMethods.ALIPAY.name(),
+            StaticPaymentMethods.ALIPAY.name(),
 
-        //CREDIT_CARD
-        "AMEX",
-        "VISA",
-        "VPAY",
-        "DINERS",
-        "BONUS",
-        "JCB",
-        "MAESTRO",
-        "MASTERCARD",
-        "POSTCARD",
-
-        StaticPaymentMethods.POSTFINANCE.name(),
-        StaticPaymentMethods.TWINT.name()
-    );
+            // CREDIT_CARD
+            "AMEX",
+            "VISA",
+            "VPAY",
+            "DINERS",
+            "BONUS",
+            "JCB",
+            "MAESTRO",
+            "MASTERCARD",
+            "POSTCARD",
+            StaticPaymentMethods.POSTFINANCE.name(),
+            StaticPaymentMethods.TWINT.name());
 
     private String customerId;
     private String requestId;
@@ -65,27 +65,30 @@ public class PaymentPageInitializeRequestBuilder {
 
     public PaymentPageInitializeRequestBuilder(String baseUrl, PaymentSpecification paymentSpecification) {
         var cleanBaseUrl = StringUtils.removeEnd(baseUrl, "/");
-        var purchaseContextType = paymentSpecification.getPurchaseContext().getType().getUrlComponent();
-        var purchaseContextIdentifier = paymentSpecification.getPurchaseContext().getPublicIdentifier();
+        var purchaseContextType =
+                paymentSpecification.getPurchaseContext().getType().getUrlComponent();
+        var purchaseContextIdentifier =
+                paymentSpecification.getPurchaseContext().getPublicIdentifier();
         var reservationId = paymentSpecification.getReservationId();
-        var eventUrl = cleanBaseUrl + expandUriTemplate(SUCCESS_URL_TEMPLATE, purchaseContextType, purchaseContextIdentifier, reservationId);
+        var eventUrl = cleanBaseUrl
+                + expandUriTemplate(
+                        SUCCESS_URL_TEMPLATE, purchaseContextType, purchaseContextIdentifier, reservationId);
         this.successURL = eventUrl + "/book";
-        this.failureURL = cleanBaseUrl + expandUriTemplate(CANCEL_URL_TEMPLATE, purchaseContextType, purchaseContextIdentifier, reservationId);
-        this.notifyURL  = cleanBaseUrl + expandUriTemplate(WEBHOOK_URL_TEMPLATE, reservationId);
+        this.failureURL = cleanBaseUrl
+                + expandUriTemplate(CANCEL_URL_TEMPLATE, purchaseContextType, purchaseContextIdentifier, reservationId);
+        this.notifyURL = cleanBaseUrl + expandUriTemplate(WEBHOOK_URL_TEMPLATE, reservationId);
     }
 
-    public PaymentPageInitializeRequestBuilder addAuthentication(String customerId, String requestId, String terminalId) {
+    public PaymentPageInitializeRequestBuilder addAuthentication(
+            String customerId, String requestId, String terminalId) {
         this.customerId = customerId;
         this.requestId = requestId;
         this.terminalId = terminalId;
         return this;
     }
 
-    public PaymentPageInitializeRequestBuilder addOrderInformation(String orderId,
-                                                                   String formattedAmount,
-                                                                   String currencyCode,
-                                                                   String description,
-                                                                   int numTry) {
+    public PaymentPageInitializeRequestBuilder addOrderInformation(
+            String orderId, String formattedAmount, String currencyCode, String description, int numTry) {
         this.orderId = orderId;
         this.formattedAmount = formattedAmount;
         this.currencyCode = currencyCode;
@@ -94,35 +97,46 @@ public class PaymentPageInitializeRequestBuilder {
         return this;
     }
 
-
     public String build() throws IOException {
         var out = new StringWriter();
         var requestHeaderBuilder = new RequestHeaderBuilder(customerId, requestId, retryIndicator);
         try (var writer = new JsonWriter(out)) {
             // @formatter:off
-            addPaymentMethods(requestHeaderBuilder.appendTo(writer.beginObject()) //
-                .name("TerminalId").value(terminalId) //
-                .name("Payment").beginObject() //
-                    .name("Amount").beginObject() //
-                        .name("Value").value(formattedAmount) //
-                        .name("CurrencyCode").value(currencyCode) //
-                    .endObject() //
-                    .name("OrderId").value(orderId) //
-                    .name("Description").value(description) //
-                .endObject() //
-                .name("ReturnUrls").beginObject() //
-                    .name("Success").value(successURL) //
-                    .name("Fail").value(failureURL) //
-                .endObject() //
-                .name("Notification").beginObject() //
-                    .name("NotifyUrl").value(notifyURL) //
-                .endObject()) //
-            .endObject();
+            addPaymentMethods(requestHeaderBuilder
+                            .appendTo(writer.beginObject()) //
+                            .name("TerminalId")
+                            .value(terminalId) //
+                            .name("Payment")
+                            .beginObject() //
+                            .name("Amount")
+                            .beginObject() //
+                            .name("Value")
+                            .value(formattedAmount) //
+                            .name("CurrencyCode")
+                            .value(currencyCode) //
+                            .endObject() //
+                            .name("OrderId")
+                            .value(orderId) //
+                            .name("Description")
+                            .value(description) //
+                            .endObject() //
+                            .name("ReturnUrls")
+                            .beginObject() //
+                            .name("Success")
+                            .value(successURL) //
+                            .name("Fail")
+                            .value(failureURL) //
+                            .endObject() //
+                            .name("Notification")
+                            .beginObject() //
+                            .name("NotifyUrl")
+                            .value(notifyURL) //
+                            .endObject()) //
+                    .endObject();
             return out.toString();
             // @formatter:on
         }
     }
-
 
     private JsonWriter addPaymentMethods(JsonWriter writer) throws IOException {
         var array = writer.name("PaymentMethods").beginArray();
@@ -133,11 +147,15 @@ public class PaymentPageInitializeRequestBuilder {
     }
 
     private String expandUriTemplate(String template, String reservationId) {
-        return UriComponentsBuilder.fromPath(template).buildAndExpand(reservationId).toUriString();
+        return UriComponentsBuilder.fromPath(template)
+                .buildAndExpand(reservationId)
+                .toUriString();
     }
 
-    private String expandUriTemplate(String template, String purchaseContextType, String purchaseContextIdentifier, String reservationId) {
-        return UriComponentsBuilder.fromPath(template).buildAndExpand(purchaseContextType, purchaseContextIdentifier, reservationId).toUriString();
+    private String expandUriTemplate(
+            String template, String purchaseContextType, String purchaseContextIdentifier, String reservationId) {
+        return UriComponentsBuilder.fromPath(template)
+                .buildAndExpand(purchaseContextType, purchaseContextIdentifier, reservationId)
+                .toUriString();
     }
-
 }

@@ -19,10 +19,9 @@ package alfio.model.modification;
 import alfio.model.poll.PollOption;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
-
-import java.util.Map;
 
 @Getter
 public class PollOptionModification {
@@ -32,9 +31,10 @@ public class PollOptionModification {
     private final Map<String, String> description;
 
     @JsonCreator
-    public PollOptionModification(@JsonProperty("id") Long id,
-                                  @JsonProperty("title") Map<String, String> title,
-                                  @JsonProperty("description") Map<String, String> description) {
+    public PollOptionModification(
+            @JsonProperty("id") Long id,
+            @JsonProperty("title") Map<String, String> title,
+            @JsonProperty("description") Map<String, String> description) {
         this.id = id;
         this.title = title;
         this.description = description;

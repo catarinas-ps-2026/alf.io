@@ -17,8 +17,6 @@
 package alfio.util;
 
 import alfio.model.TicketCategoryStatisticView;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -29,8 +27,13 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import org.apache.commons.lang3.tuple.Pair;
 
-public final class PreReservedTicketDistributor implements Collector<Pair<Integer, TicketCategoryStatisticView>, List<Pair<Integer, TicketCategoryStatisticView>>, List<Pair<Integer, TicketCategoryStatisticView>>> {
+public final class PreReservedTicketDistributor
+        implements Collector<
+                Pair<Integer, TicketCategoryStatisticView>,
+                List<Pair<Integer, TicketCategoryStatisticView>>,
+                List<Pair<Integer, TicketCategoryStatisticView>>> {
 
     private final AtomicInteger requestedTickets;
 
@@ -44,7 +47,8 @@ public final class PreReservedTicketDistributor implements Collector<Pair<Intege
     }
 
     @Override
-    public BiConsumer<List<Pair<Integer, TicketCategoryStatisticView>>, Pair<Integer, TicketCategoryStatisticView>> accumulator() {
+    public BiConsumer<List<Pair<Integer, TicketCategoryStatisticView>>, Pair<Integer, TicketCategoryStatisticView>>
+            accumulator() {
         return (accumulator, candidate) -> {
             int requested = requestedTickets.get();
             if (requested > 0) {
@@ -65,10 +69,10 @@ public final class PreReservedTicketDistributor implements Collector<Pair<Intege
     }
 
     @Override
-    public Function<List<Pair<Integer, TicketCategoryStatisticView>>, List<Pair<Integer, TicketCategoryStatisticView>>> finisher() {
+    public Function<List<Pair<Integer, TicketCategoryStatisticView>>, List<Pair<Integer, TicketCategoryStatisticView>>>
+            finisher() {
         return Function.identity();
     }
-
 
     @Override
     public Set<Characteristics> characteristics() {

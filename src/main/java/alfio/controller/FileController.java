@@ -18,14 +18,13 @@ package alfio.controller;
 
 import alfio.manager.FileUploadManager;
 import alfio.model.FileBlobMetadata;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class FileController {
@@ -39,12 +38,12 @@ public class FileController {
     }
 
     @GetMapping("/file/{digest}")
-    public void showFile(@PathVariable String digest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+    public void showFile(@PathVariable String digest, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
 
         // fast path if the user has the header If-None-Match set and there is a matching file
         // this avoid a db connection
-        var digestNoneMatchHeader =  request.getHeader("If-None-Match");
+        var digestNoneMatchHeader = request.getHeader("If-None-Match");
         if (digest.equals(digestNoneMatchHeader) && manager.hasCached(digest)) {
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             return;
@@ -59,7 +58,7 @@ public class FileController {
             } else {
                 response.setContentType(metadata.getContentType());
                 response.setContentLength(metadata.getContentSize());
-                response.setHeader("ETag", metadata.getId()); //id = digest
+                response.setHeader("ETag", metadata.getId()); // id = digest
                 response.setHeader("Cache-Control", MAX_AGE_6_MONTH);
                 try (var os = response.getOutputStream()) {
                     manager.outputFile(digest, os);

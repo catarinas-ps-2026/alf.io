@@ -16,13 +16,12 @@
  */
 package alfio.controller.form;
 
-import lombok.Getter;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.commons.lang3.StringUtils.trimToNull;
+import lombok.Getter;
 
 @Getter
 public class UpdateSubscriptionOwnerForm implements Serializable, AdditionalFieldsContainer {

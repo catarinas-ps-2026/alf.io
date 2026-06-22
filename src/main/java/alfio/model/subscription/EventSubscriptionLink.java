@@ -21,13 +21,12 @@ import alfio.util.Json;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import lombok.Getter;
 
 @Getter
 public class EventSubscriptionLink {
@@ -40,15 +39,15 @@ public class EventSubscriptionLink {
     private final String eventCurrency;
     private final List<Integer> compatibleCategories;
 
-
-    public EventSubscriptionLink(@Column("subscription_descriptor_id") UUID subscriptionDescriptorId,
-                                 @Column("subscription_descriptor_title") @JSONData Map<String, String> subscriptionDescriptorTitle,
-                                 @Column("event_id") int eventId,
-                                 @Column("event_short_name") String eventShortName,
-                                 @Column("event_display_name") String eventDisplayName,
-                                 @Column("event_currency") String eventCurrency,
-                                 @Column("price_per_ticket") int pricePerTicket,
-                                 @Column("compatible_categories") String compatibleCategories) {
+    public EventSubscriptionLink(
+            @Column("subscription_descriptor_id") UUID subscriptionDescriptorId,
+            @Column("subscription_descriptor_title") @JSONData Map<String, String> subscriptionDescriptorTitle,
+            @Column("event_id") int eventId,
+            @Column("event_short_name") String eventShortName,
+            @Column("event_display_name") String eventDisplayName,
+            @Column("event_currency") String eventCurrency,
+            @Column("price_per_ticket") int pricePerTicket,
+            @Column("compatible_categories") String compatibleCategories) {
         this.subscriptionDescriptorId = subscriptionDescriptorId;
         this.subscriptionDescriptorTitle = subscriptionDescriptorTitle;
         this.eventId = eventId;
@@ -56,7 +55,8 @@ public class EventSubscriptionLink {
         this.eventCurrency = eventCurrency;
         this.eventDisplayName = eventDisplayName;
         this.pricePerTicket = pricePerTicket;
-        this.compatibleCategories = Json.fromJson(Objects.requireNonNullElse(compatibleCategories, "[]"), new TypeReference<>() {});
+        this.compatibleCategories =
+                Json.fromJson(Objects.requireNonNullElse(compatibleCategories, "[]"), new TypeReference<>() {});
     }
 
     public BigDecimal getFormattedPricePerTicket() {

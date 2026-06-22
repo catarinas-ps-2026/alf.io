@@ -16,17 +16,16 @@
  */
 package alfio.job.executor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.extension.ExtensionService;
 import alfio.extension.ScriptingExecutionService;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.model.system.AdminJobSchedule;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
 
 class RetryFailedExtensionJobExecutorTest {
 
@@ -36,11 +35,12 @@ class RetryFailedExtensionJobExecutorTest {
         var executor = new RetryFailedExtensionJobExecutor(extensionService);
         var payload = Map.<String, Object>of("eventId", 42);
 
-        assertEquals("OK", executor.process(schedule(Map.of(
-            ScriptingExecutionService.EXTENSION_NAME, "extensionName",
-            ScriptingExecutionService.EXTENSION_PATH, "/path",
-            ScriptingExecutionService.EXTENSION_PARAMS, payload
-        ))));
+        assertEquals(
+                "OK",
+                executor.process(schedule(Map.of(
+                        ScriptingExecutionService.EXTENSION_NAME, "extensionName",
+                        ScriptingExecutionService.EXTENSION_PATH, "/path",
+                        ScriptingExecutionService.EXTENSION_PARAMS, payload))));
 
         verify(extensionService).retryFailedAsyncScript("/path", "extensionName", payload);
         verifyNoMoreInteractions(extensionService);
@@ -54,17 +54,25 @@ class RetryFailedExtensionJobExecutorTest {
         var failure = new IllegalStateException("boom");
         doThrow(failure).when(extensionService).retryFailedAsyncScript("/path", "extensionName", payload);
 
-        var thrown = assertThrows(IllegalStateException.class, () -> executor.process(schedule(Map.of(
-            ScriptingExecutionService.EXTENSION_NAME, "extensionName",
-            ScriptingExecutionService.EXTENSION_PATH, "/path",
-            ScriptingExecutionService.EXTENSION_PARAMS, payload
-        ))));
+        var thrown = assertThrows(
+                IllegalStateException.class,
+                () -> executor.process(schedule(Map.of(
+                        ScriptingExecutionService.EXTENSION_NAME, "extensionName",
+                        ScriptingExecutionService.EXTENSION_PATH, "/path",
+                        ScriptingExecutionService.EXTENSION_PARAMS, payload))));
 
         assertEquals(failure, thrown);
         verify(extensionService).retryFailedAsyncScript("/path", "extensionName", payload);
     }
 
     private static AdminJobSchedule schedule(Map<String, Object> metadata) {
-        return new AdminJobSchedule(1L, AdminJobExecutor.JobName.EXECUTE_EXTENSION.name(), null, AdminJobSchedule.Status.SCHEDULED, null, metadata, 0);
+        return new AdminJobSchedule(
+                1L,
+                AdminJobExecutor.JobName.EXECUTE_EXTENSION.name(),
+                null,
+                AdminJobSchedule.Status.SCHEDULED,
+                null,
+                metadata,
+                0);
     }
 }

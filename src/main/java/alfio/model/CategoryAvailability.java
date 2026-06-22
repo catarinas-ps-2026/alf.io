@@ -18,8 +18,8 @@ package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 
-public record CategoryAvailability(@Column("available_tickets") int availableTickets,
-                                   @Column("pending_tickets") int pendingTickets) {
+public record CategoryAvailability(
+        @Column("available_tickets") int availableTickets, @Column("pending_tickets") int pendingTickets) {
     public boolean hasPendingTickets() {
         return pendingTickets > 0;
     }

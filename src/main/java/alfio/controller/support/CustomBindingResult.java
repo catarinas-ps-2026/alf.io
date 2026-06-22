@@ -17,15 +17,15 @@
 package alfio.controller.support;
 
 import alfio.model.result.WarningMessage;
-import lombok.experimental.Delegate;
-import org.springframework.validation.BindingResult;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.experimental.Delegate;
+import org.springframework.validation.BindingResult;
 
 public class CustomBindingResult implements BindingResult {
     @Delegate
     private final BindingResult target;
+
     private final List<WarningMessage> warnings = new ArrayList<>();
 
     public CustomBindingResult(BindingResult target) {
@@ -47,5 +47,4 @@ public class CustomBindingResult implements BindingResult {
     public boolean hasWarnings() {
         return !warnings.isEmpty();
     }
-
 }

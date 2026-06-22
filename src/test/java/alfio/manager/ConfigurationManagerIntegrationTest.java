@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static alfio.model.system.ConfigurationKeys.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -46,22 +49,17 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static alfio.model.system.ConfigurationKeys.*;
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
@@ -96,11 +94,19 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     public void prepareEnv() {
-        //setup...
+        // setup...
         organizationRepository.create("org", "org", "email@example.com", null, null);
         Organization organization = organizationRepository.findByName("org").get();
 
-        userManager.insertUser(organization.getId(), USERNAME, "test", "test", "test@example.com", Role.OWNER, User.Type.INTERNAL, null);
+        userManager.insertUser(
+                organization.getId(),
+                USERNAME,
+                "test",
+                "test",
+                "test@example.com",
+                Role.OWNER,
+                User.Type.INTERNAL,
+                null);
 
         Map<String, String> desc = new HashMap<>();
         desc.put("en", "muh description");
@@ -108,80 +114,192 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
         desc.put("de", "muh description");
 
         List<TicketCategoryModification> ticketsCategory = List.of(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, 20,
+                new TicketCategoryModification(
+                        null,
+                        "default",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        20,
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
+                        Collections.singletonMap("en", "desc"),
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        "second",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        20,
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
+                        Collections.singletonMap("en", "desc"),
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
+        EventModification em = new EventModification(
+                null,
+                Event.EventFormat.IN_PERSON,
+                "url",
+                "url",
+                "url",
+                null,
+                null,
+                null,
+                "eventShortName",
+                "displayName",
+                organization.getId(),
+                "muh location",
+                "0.0",
+                "0.0",
+                ZoneId.systemDefault().getId(),
+                desc,
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-                Collections.singletonMap("en", "desc"), BigDecimal.TEN, false, "", false, null, null,
-                null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, "second", TicketCategory.TicketAccessType.INHERIT, 20,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-                Collections.singletonMap("en", "desc"), BigDecimal.TEN, false, "", false, null, null,
-                null, null, null, 0, null, null, AlfioMetadata.empty()));
-        EventModification em = new EventModification(null, Event.EventFormat.IN_PERSON, "url", "url", "url", null, null, null,
-            "eventShortName", "displayName", organization.getId(),
-            "muh location", "0.0", "0.0", ZoneId.systemDefault().getId(), desc,
-            new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-            new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-            BigDecimal.TEN, "CHF", 20, BigDecimal.ONE, true, null, ticketsCategory, false, new LocationDescriptor("","","",""), 7, null, null, AlfioMetadata.empty(), List.of());
+                BigDecimal.TEN,
+                "CHF",
+                20,
+                BigDecimal.ONE,
+                true,
+                null,
+                ticketsCategory,
+                false,
+                new LocationDescriptor("", "", "", ""),
+                7,
+                null,
+                null,
+                AlfioMetadata.empty(),
+                List.of());
         eventManager.createEvent(em, USERNAME);
 
         event = eventManager.getSingleEvent("eventShortName", "test");
-        ticketCategory = ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
+        ticketCategory =
+                ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
     }
 
     @Test
     public void testPresentStringConfigValue() {
-        assertEquals(Optional.of("5"), configurationManager.getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event)).getValue());
+        assertEquals(
+                Optional.of("5"),
+                configurationManager
+                        .getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event))
+                        .getValue());
     }
 
     @Test
     public void testEmptyStringConfigValue() {
-        assertTrue(configurationManager.getFor(SMTP_PASSWORD, ConfigurationLevel.event(event)).getValue().isEmpty());
+        assertTrue(configurationManager
+                .getFor(SMTP_PASSWORD, ConfigurationLevel.event(event))
+                .getValue()
+                .isEmpty());
     }
 
     @Test
     public void testStringValueWithDefault() {
-        assertEquals("5", configurationManager.getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event)).getRequiredValue());
-        assertEquals("-1", configurationManager.getFor(SMTP_PASSWORD, ConfigurationLevel.event(event)).getValueOrDefault("-1"));
+        assertEquals(
+                "5",
+                configurationManager
+                        .getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event))
+                        .getRequiredValue());
+        assertEquals(
+                "-1",
+                configurationManager
+                        .getFor(SMTP_PASSWORD, ConfigurationLevel.event(event))
+                        .getValueOrDefault("-1"));
     }
 
     @Test
     public void testMissingConfigValue() {
-        assertThrows(IllegalArgumentException.class, () -> configurationManager.getFor(SMTP_PASSWORD, ConfigurationLevel.event(event)).getRequiredValue());
+        assertThrows(IllegalArgumentException.class, () -> configurationManager
+                .getFor(SMTP_PASSWORD, ConfigurationLevel.event(event))
+                .getRequiredValue());
     }
 
     @Test
     public void testRequiredValue() {
-        assertEquals("5", configurationManager.getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event)).getRequiredValue());
+        assertEquals(
+                "5",
+                configurationManager
+                        .getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event))
+                        .getRequiredValue());
     }
 
     @Test
     public void testIntValue() {
-        assertEquals(5, configurationManager.getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event)).getValueAsIntOrDefault(-1));
+        assertEquals(
+                5,
+                configurationManager
+                        .getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event))
+                        .getValueAsIntOrDefault(-1));
 
-        //missing value
-        assertEquals(-1, configurationManager.getFor(ASSIGNMENT_REMINDER_INTERVAL, ConfigurationLevel.event(event)).getValueAsIntOrDefault(-1));
-
+        // missing value
+        assertEquals(
+                -1,
+                configurationManager
+                        .getFor(ASSIGNMENT_REMINDER_INTERVAL, ConfigurationLevel.event(event))
+                        .getValueAsIntOrDefault(-1));
 
         configurationManager.saveSystemConfiguration(ConfigurationKeys.BASE_URL, "blabla");
-        assertEquals("blabla", configurationManager.getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.event(event)).getRequiredValue());
-        //not a number
-        assertEquals(-1, configurationManager.getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.event(event)).getValueAsIntOrDefault(-1));
+        assertEquals(
+                "blabla",
+                configurationManager
+                        .getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.event(event))
+                        .getRequiredValue());
+        // not a number
+        assertEquals(
+                -1,
+                configurationManager
+                        .getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.event(event))
+                        .getValueAsIntOrDefault(-1));
     }
 
     @Test
     public void testBooleanValue() {
-        //missing value
-        assertFalse(configurationManager.getFor(ALLOW_FREE_TICKETS_CANCELLATION, ConfigurationLevel.ticketCategory(event, ticketCategory.getId())).getValueAsBooleanOrDefault());
+        // missing value
+        assertFalse(configurationManager
+                .getFor(
+                        ALLOW_FREE_TICKETS_CANCELLATION,
+                        ConfigurationLevel.ticketCategory(event, ticketCategory.getId()))
+                .getValueAsBooleanOrDefault());
 
-        //false value
+        // false value
         configurationManager.saveSystemConfiguration(ConfigurationKeys.ALLOW_FREE_TICKETS_CANCELLATION, "false");
-        assertFalse(configurationManager.getFor(ALLOW_FREE_TICKETS_CANCELLATION, ConfigurationLevel.ticketCategory(event, ticketCategory.getId())).getValueAsBooleanOrDefault());
+        assertFalse(configurationManager
+                .getFor(
+                        ALLOW_FREE_TICKETS_CANCELLATION,
+                        ConfigurationLevel.ticketCategory(event, ticketCategory.getId()))
+                .getValueAsBooleanOrDefault());
 
-        //true value
+        // true value
         configurationManager.saveSystemConfiguration(ConfigurationKeys.ALLOW_FREE_TICKETS_CANCELLATION, "true");
-        assertTrue(configurationManager.getFor(ALLOW_FREE_TICKETS_CANCELLATION, ConfigurationLevel.ticketCategory(event, ticketCategory.getId())).getValueAsBooleanOrDefault());
+        assertTrue(configurationManager
+                .getFor(
+                        ALLOW_FREE_TICKETS_CANCELLATION,
+                        ConfigurationLevel.ticketCategory(event, ticketCategory.getId()))
+                .getValueAsBooleanOrDefault());
     }
 
     @Test
@@ -189,32 +307,71 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
 
         Organization organization = organizationRepository.findByName("org").orElseThrow();
 
-
         Event event = eventManager.getSingleEvent("eventShortName", "test");
 
         TicketCategory tc = eventManager.loadTicketCategories(event).get(0);
         //
 
-        //check override level up to event level
+        // check override level up to event level
 
-        assertEquals(5, configurationManager.getFor(Collections.singleton(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION), ConfigurationLevel.event(event)).get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getValueAsIntOrDefault(Integer.MIN_VALUE));
+        assertEquals(
+                5,
+                configurationManager
+                        .getFor(
+                                Collections.singleton(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION),
+                                ConfigurationLevel.event(event))
+                        .get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION)
+                        .getValueAsIntOrDefault(Integer.MIN_VALUE));
 
-        assertEquals(5, configurationManager.getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event)).getValueAsIntOrDefault(-1));
+        assertEquals(
+                5,
+                configurationManager
+                        .getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event))
+                        .getValueAsIntOrDefault(-1));
 
-        configurationRepository.insertOrganizationLevel(organization.getId(), MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(), "6", "desc");
+        configurationRepository.insertOrganizationLevel(
+                organization.getId(), MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(), "6", "desc");
 
-        assertEquals(6, configurationManager.getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event)).getValueAsIntOrDefault(-1));
+        assertEquals(
+                6,
+                configurationManager
+                        .getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event))
+                        .getValueAsIntOrDefault(-1));
 
-        assertEquals(6, configurationManager.getFor(Collections.singleton(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION), ConfigurationLevel.event(event)).get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getValueAsIntOrDefault(Integer.MIN_VALUE));
+        assertEquals(
+                6,
+                configurationManager
+                        .getFor(
+                                Collections.singleton(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION),
+                                ConfigurationLevel.event(event))
+                        .get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION)
+                        .getValueAsIntOrDefault(Integer.MIN_VALUE));
 
-        configurationRepository.insertEventLevel(organization.getId(), event.getId(), MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(), "7", "desc");
+        configurationRepository.insertEventLevel(
+                organization.getId(), event.getId(), MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(), "7", "desc");
 
-        assertEquals(7, configurationManager.getFor(Collections.singleton(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION), ConfigurationLevel.event(event)).get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getValueAsIntOrDefault(Integer.MIN_VALUE));
+        assertEquals(
+                7,
+                configurationManager
+                        .getFor(
+                                Collections.singleton(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION),
+                                ConfigurationLevel.event(event))
+                        .get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION)
+                        .getValueAsIntOrDefault(Integer.MIN_VALUE));
 
-        configurationRepository.insertTicketCategoryLevel(organization.getId(), event.getId(), tc.getId(), MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(), "8", "desc");
+        configurationRepository.insertTicketCategoryLevel(
+                organization.getId(),
+                event.getId(),
+                tc.getId(),
+                MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(),
+                "8",
+                "desc");
 
-        assertEquals(7, configurationManager.getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event)).getValueAsIntOrDefault(-1));
-
+        assertEquals(
+                7,
+                configurationManager
+                        .getFor(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ConfigurationLevel.event(event))
+                        .getValueAsIntOrDefault(-1));
     }
 
     @Test
@@ -232,16 +389,26 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void testSaveOnlyExistingConfiguration() {
-        configurationRepository.insertOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue(), "MY-ACCOUNT_NUMBER", "empty");
-        Configuration existing = configurationRepository.findByKeyAtOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue()).orElseThrow(IllegalStateException::new);
-        Map<ConfigurationKeys.SettingCategory, List<Configuration>> all = configurationManager.loadOrganizationConfig(event.getOrganizationId(), USERNAME);
-        List<Configuration> flatten = all.entrySet().stream().flatMap(e -> e.getValue().stream()).collect(Collectors.toList());
-        List<ConfigurationModification> modified = flatten.stream().filter(c -> !c.getKey().equals(ConfigurationKeys.BANK_ACCOUNT_NR.getValue())).map(ConfigurationModification::fromConfiguration).collect(Collectors.toList());
+        configurationRepository.insertOrganizationLevel(
+                event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue(), "MY-ACCOUNT_NUMBER", "empty");
+        Configuration existing = configurationRepository
+                .findByKeyAtOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue())
+                .orElseThrow(IllegalStateException::new);
+        Map<ConfigurationKeys.SettingCategory, List<Configuration>> all =
+                configurationManager.loadOrganizationConfig(event.getOrganizationId(), USERNAME);
+        List<Configuration> flatten =
+                all.entrySet().stream().flatMap(e -> e.getValue().stream()).collect(Collectors.toList());
+        List<ConfigurationModification> modified = flatten.stream()
+                .filter(c -> !c.getKey().equals(ConfigurationKeys.BANK_ACCOUNT_NR.getValue()))
+                .map(ConfigurationModification::fromConfiguration)
+                .collect(Collectors.toList());
         modified.add(new ConfigurationModification(existing.getId(), existing.getKey(), "NEW-NUMBER"));
         configurationManager.saveAllOrganizationConfiguration(event.getOrganizationId(), modified, USERNAME);
-        List<Configuration> organizationConfiguration = configurationRepository.findOrganizationConfiguration(event.getOrganizationId());
+        List<Configuration> organizationConfiguration =
+                configurationRepository.findOrganizationConfiguration(event.getOrganizationId());
         assertEquals(1, organizationConfiguration.size());
-        Optional<Configuration> result = configurationRepository.findByKeyAtOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue());
+        Optional<Configuration> result = configurationRepository.findByKeyAtOrganizationLevel(
+                event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue());
         assertTrue(result.isPresent());
         Configuration configuration = result.get();
         assertEquals(ConfigurationKeys.BANK_ACCOUNT_NR, configuration.getConfigurationKey());
@@ -250,22 +417,35 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void testSaveOnlyValidConfiguration() {
-        configurationRepository.insertOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue(), "MY-ACCOUNT_NUMBER", "empty");
-        Configuration existing = configurationRepository.findByKeyAtOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue()).orElseThrow(IllegalStateException::new);
-        Map<ConfigurationKeys.SettingCategory, List<Configuration>> all = configurationManager.loadOrganizationConfig(event.getOrganizationId(), USERNAME);
-        List<Configuration> flatten = all.entrySet().stream().flatMap(e -> e.getValue().stream()).collect(Collectors.toList());
-        List<ConfigurationModification> modified = flatten.stream().filter(c -> !c.getKey().equals(ConfigurationKeys.BANK_ACCOUNT_NR.getValue()) && !c.getKey().equals(ConfigurationKeys.PARTIAL_RESERVATION_ID_LENGTH.getValue())).map(ConfigurationModification::fromConfiguration).collect(Collectors.toList());
+        configurationRepository.insertOrganizationLevel(
+                event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue(), "MY-ACCOUNT_NUMBER", "empty");
+        Configuration existing = configurationRepository
+                .findByKeyAtOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue())
+                .orElseThrow(IllegalStateException::new);
+        Map<ConfigurationKeys.SettingCategory, List<Configuration>> all =
+                configurationManager.loadOrganizationConfig(event.getOrganizationId(), USERNAME);
+        List<Configuration> flatten =
+                all.entrySet().stream().flatMap(e -> e.getValue().stream()).collect(Collectors.toList());
+        List<ConfigurationModification> modified = flatten.stream()
+                .filter(c -> !c.getKey().equals(ConfigurationKeys.BANK_ACCOUNT_NR.getValue())
+                        && !c.getKey().equals(ConfigurationKeys.PARTIAL_RESERVATION_ID_LENGTH.getValue()))
+                .map(ConfigurationModification::fromConfiguration)
+                .collect(Collectors.toList());
         modified.add(new ConfigurationModification(existing.getId(), existing.getKey(), "NEW-NUMBER"));
-        modified.add(new ConfigurationModification(-1, ConfigurationKeys.PARTIAL_RESERVATION_ID_LENGTH.getValue(), "9"));
+        modified.add(
+                new ConfigurationModification(-1, ConfigurationKeys.PARTIAL_RESERVATION_ID_LENGTH.getValue(), "9"));
         configurationManager.saveAllOrganizationConfiguration(event.getOrganizationId(), modified, USERNAME);
-        List<Configuration> organizationConfiguration = configurationRepository.findOrganizationConfiguration(event.getOrganizationId());
+        List<Configuration> organizationConfiguration =
+                configurationRepository.findOrganizationConfiguration(event.getOrganizationId());
         assertEquals(2, organizationConfiguration.size());
-        Optional<Configuration> result = configurationRepository.findByKeyAtOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue());
+        Optional<Configuration> result = configurationRepository.findByKeyAtOrganizationLevel(
+                event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue());
         assertTrue(result.isPresent());
         Configuration configuration = result.get();
         assertEquals(ConfigurationKeys.BANK_ACCOUNT_NR, configuration.getConfigurationKey());
         assertEquals("NEW-NUMBER", configuration.getValue());
-        result = configurationRepository.findByKeyAtOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.PARTIAL_RESERVATION_ID_LENGTH.getValue());
+        result = configurationRepository.findByKeyAtOrganizationLevel(
+                event.getOrganizationId(), ConfigurationKeys.PARTIAL_RESERVATION_ID_LENGTH.getValue());
         assertTrue(result.isPresent());
         configuration = result.get();
         assertEquals(ConfigurationKeys.PARTIAL_RESERVATION_ID_LENGTH, configuration.getConfigurationKey());
@@ -274,13 +454,27 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void testLoadOrganizationConfiguration() {
-        Map<ConfigurationKeys.SettingCategory, List<Configuration>> orgConf = configurationManager.loadOrganizationConfig(event.getOrganizationId(), USERNAME);
-        assertEquals(ConfigurationKeys.byPathLevel(ConfigurationPathLevel.ORGANIZATION).size(), orgConf.values().stream().mapToLong(Collection::size).sum());
+        Map<ConfigurationKeys.SettingCategory, List<Configuration>> orgConf =
+                configurationManager.loadOrganizationConfig(event.getOrganizationId(), USERNAME);
+        assertEquals(
+                ConfigurationKeys.byPathLevel(ConfigurationPathLevel.ORGANIZATION)
+                        .size(),
+                orgConf.values().stream().mapToLong(Collection::size).sum());
         String value = "MY-ACCOUNT_NUMBER";
-        configurationRepository.insertOrganizationLevel(event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue(), value, "empty");
+        configurationRepository.insertOrganizationLevel(
+                event.getOrganizationId(), ConfigurationKeys.BANK_ACCOUNT_NR.getValue(), value, "empty");
         orgConf = configurationManager.loadOrganizationConfig(event.getOrganizationId(), USERNAME);
-        assertEquals(ConfigurationKeys.byPathLevel(ConfigurationPathLevel.ORGANIZATION).size(), orgConf.values().stream().mapToLong(Collection::size).sum());
-        assertEquals(value, orgConf.get(SettingCategory.PAYMENT_OFFLINE).stream().filter(c -> c.getConfigurationKey() == ConfigurationKeys.BANK_ACCOUNT_NR).findFirst().orElseThrow(IllegalStateException::new).getValue());
+        assertEquals(
+                ConfigurationKeys.byPathLevel(ConfigurationPathLevel.ORGANIZATION)
+                        .size(),
+                orgConf.values().stream().mapToLong(Collection::size).sum());
+        assertEquals(
+                value,
+                orgConf.get(SettingCategory.PAYMENT_OFFLINE).stream()
+                        .filter(c -> c.getConfigurationKey() == ConfigurationKeys.BANK_ACCOUNT_NR)
+                        .findFirst()
+                        .orElseThrow(IllegalStateException::new)
+                        .getValue());
     }
 
     @Test
@@ -293,15 +487,19 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
     public void testSaveBooleanOptions() {
         String ftcKey = ALLOW_FREE_TICKETS_CANCELLATION.getValue();
         configurationRepository.insert(ftcKey, "false", "this should be updated to true");
-        ConfigurationModification ftc = new ConfigurationModification(configurationRepository.findByKey(ftcKey).getId(), ftcKey, "true");
+        ConfigurationModification ftc = new ConfigurationModification(
+                configurationRepository.findByKey(ftcKey).getId(), ftcKey, "true");
 
         String prKey = ENABLE_PRE_REGISTRATION.getValue();
         configurationRepository.insert(prKey, "true", "this should be updated to false");
-        ConfigurationModification pr = new ConfigurationModification(configurationRepository.findByKey(prKey).getId(), prKey, "false");
+        ConfigurationModification pr = new ConfigurationModification(
+                configurationRepository.findByKey(prKey).getId(), prKey, "false");
 
         ConfigurationModification newTrue = new ConfigurationModification(-1, ENABLE_WAITING_QUEUE.getValue(), "true");
-        ConfigurationModification newFalse = new ConfigurationModification(-1, ENABLE_WAITING_QUEUE_NOTIFICATION.getValue(), "false");
-        ConfigurationModification newNull = new ConfigurationModification(-1, GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue(), null);
+        ConfigurationModification newFalse =
+                new ConfigurationModification(-1, ENABLE_WAITING_QUEUE_NOTIFICATION.getValue(), "false");
+        ConfigurationModification newNull =
+                new ConfigurationModification(-1, GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue(), null);
 
         configurationManager.saveAllSystemConfiguration(Arrays.asList(ftc, pr, newTrue, newFalse, newNull));
 
@@ -321,16 +519,18 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
         assertNotNull(nFalse);
         assertEquals("false", nFalse.getValue());
 
-        Optional<Configuration> opt = configurationRepository.findOptionalByKey(GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue());
+        Optional<Configuration> opt =
+                configurationRepository.findOptionalByKey(GOOGLE_ANALYTICS_ANONYMOUS_MODE.getValue());
         assertFalse(opt.isPresent());
-
     }
 
     @Test
     public void testBulk() {
         Event event = eventManager.getSingleEvent("eventShortName", "test");
 
-        var res = configurationManager.getFor(Set.of(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ENABLE_WAITING_QUEUE, ENABLE_WAITING_QUEUE_NOTIFICATION), ConfigurationLevel.event(event));
+        var res = configurationManager.getFor(
+                Set.of(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ENABLE_WAITING_QUEUE, ENABLE_WAITING_QUEUE_NOTIFICATION),
+                ConfigurationLevel.event(event));
 
         assertEquals(3, res.size());
         assertNotNull(res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION));
@@ -338,47 +538,68 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
         assertNotNull(res.get(ENABLE_WAITING_QUEUE_NOTIFICATION));
         assertTrue(res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).isPresent());
         assertEquals(5, res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getValueAsIntOrDefault(Integer.MIN_VALUE));
-        assertEquals(ConfigurationPathLevel.SYSTEM, res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getConfigurationPathLevelOrDefault(null));
+        assertEquals(
+                ConfigurationPathLevel.SYSTEM,
+                res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getConfigurationPathLevelOrDefault(null));
         assertFalse(res.get(ENABLE_WAITING_QUEUE).isPresent());
         assertFalse(res.get(ENABLE_WAITING_QUEUE_NOTIFICATION).isPresent());
 
-        configurationRepository.insertOrganizationLevel(event.getOrganizationId(), ENABLE_WAITING_QUEUE.getValue(), "true", "");
-        configurationRepository.insertOrganizationLevel(event.getOrganizationId(), ENABLE_WAITING_QUEUE_NOTIFICATION.getValue(), "false", "");
+        configurationRepository.insertOrganizationLevel(
+                event.getOrganizationId(), ENABLE_WAITING_QUEUE.getValue(), "true", "");
+        configurationRepository.insertOrganizationLevel(
+                event.getOrganizationId(), ENABLE_WAITING_QUEUE_NOTIFICATION.getValue(), "false", "");
 
-
-        res = configurationManager.getFor(Set.of(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ENABLE_WAITING_QUEUE, ENABLE_WAITING_QUEUE_NOTIFICATION), ConfigurationLevel.event(event));
+        res = configurationManager.getFor(
+                Set.of(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ENABLE_WAITING_QUEUE, ENABLE_WAITING_QUEUE_NOTIFICATION),
+                ConfigurationLevel.event(event));
         assertEquals(3, res.size());
         assertTrue(res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).isPresent());
         assertTrue(res.get(ENABLE_WAITING_QUEUE).isPresent());
         assertTrue(res.get(ENABLE_WAITING_QUEUE_NOTIFICATION).isPresent());
 
-        assertEquals(ConfigurationPathLevel.ORGANIZATION, res.get(ENABLE_WAITING_QUEUE).getConfigurationPathLevelOrDefault(null));
-        assertEquals(ConfigurationPathLevel.ORGANIZATION, res.get(ENABLE_WAITING_QUEUE_NOTIFICATION).getConfigurationPathLevelOrDefault(null));
+        assertEquals(
+                ConfigurationPathLevel.ORGANIZATION,
+                res.get(ENABLE_WAITING_QUEUE).getConfigurationPathLevelOrDefault(null));
+        assertEquals(
+                ConfigurationPathLevel.ORGANIZATION,
+                res.get(ENABLE_WAITING_QUEUE_NOTIFICATION).getConfigurationPathLevelOrDefault(null));
         assertTrue(res.get(ENABLE_WAITING_QUEUE).getValueAsBooleanOrDefault());
         assertFalse(res.get(ENABLE_WAITING_QUEUE_NOTIFICATION).getValueAsBooleanOrDefault());
 
+        configurationRepository.insertEventLevel(
+                event.getOrganizationId(), event.getId(), MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(), "20", "");
+        configurationRepository.insertEventLevel(
+                event.getOrganizationId(), event.getId(), ENABLE_WAITING_QUEUE.getValue(), "true", "");
+        configurationRepository.insertEventLevel(
+                event.getOrganizationId(), event.getId(), ENABLE_WAITING_QUEUE_NOTIFICATION.getValue(), "true", "");
 
-        configurationRepository.insertEventLevel(event.getOrganizationId(), event.getId(), MAX_AMOUNT_OF_TICKETS_BY_RESERVATION.getValue(), "20", "");
-        configurationRepository.insertEventLevel(event.getOrganizationId(), event.getId(), ENABLE_WAITING_QUEUE.getValue(), "true", "");
-        configurationRepository.insertEventLevel(event.getOrganizationId(), event.getId(), ENABLE_WAITING_QUEUE_NOTIFICATION.getValue(), "true", "");
+        res = configurationManager.getFor(
+                Set.of(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ENABLE_WAITING_QUEUE, ENABLE_WAITING_QUEUE_NOTIFICATION),
+                ConfigurationLevel.event(event));
 
-        res = configurationManager.getFor(Set.of(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION, ENABLE_WAITING_QUEUE, ENABLE_WAITING_QUEUE_NOTIFICATION), ConfigurationLevel.event(event));
-
-        assertEquals(ConfigurationPathLevel.PURCHASE_CONTEXT, res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getConfigurationPathLevelOrDefault(null));
+        assertEquals(
+                ConfigurationPathLevel.PURCHASE_CONTEXT,
+                res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getConfigurationPathLevelOrDefault(null));
         assertEquals(20, res.get(MAX_AMOUNT_OF_TICKETS_BY_RESERVATION).getValueAsIntOrDefault(Integer.MIN_VALUE));
-        assertEquals(ConfigurationPathLevel.PURCHASE_CONTEXT, res.get(ENABLE_WAITING_QUEUE).getConfigurationPathLevelOrDefault(null));
-        assertEquals(ConfigurationPathLevel.PURCHASE_CONTEXT, res.get(ENABLE_WAITING_QUEUE_NOTIFICATION).getConfigurationPathLevelOrDefault(null));
+        assertEquals(
+                ConfigurationPathLevel.PURCHASE_CONTEXT,
+                res.get(ENABLE_WAITING_QUEUE).getConfigurationPathLevelOrDefault(null));
+        assertEquals(
+                ConfigurationPathLevel.PURCHASE_CONTEXT,
+                res.get(ENABLE_WAITING_QUEUE_NOTIFICATION).getConfigurationPathLevelOrDefault(null));
     }
 
     @Test
     void testBaseUrl() {
-        configurationRepository.insertEventLevel(event.getOrganizationId(), event.getId(), BASE_URL.getValue(), "https://test/", "");
+        configurationRepository.insertEventLevel(
+                event.getOrganizationId(), event.getId(), BASE_URL.getValue(), "https://test/", "");
         assertEquals("https://test", configurationManager.baseUrl(event));
     }
 
     @Test
     void testSystemApiKeyGeneration() {
-        assertTrue(configurationRepository.findOptionalByKey(SYSTEM_API_KEY.name()).isEmpty());
+        assertTrue(
+                configurationRepository.findOptionalByKey(SYSTEM_API_KEY.name()).isEmpty());
         // force generation
         var apiKey = configurationManager.retrieveSystemApiKey(false);
         assertNotNull(apiKey);
@@ -397,49 +618,51 @@ class ConfigurationManagerIntegrationTest extends BaseIntegrationTest {
     void ensureNoErrorsWhenDeniedMethodsOptionIsEmpty() {
         var categories = ticketCategoryRepository.findAllTicketCategories(event.getId());
         // insert empty value
-        configurationRepository.insertTicketCategoryLevel(event.getOrganizationId(), event.getId(), categories.get(0).getId(), PAYMENT_METHODS_BLACKLIST.name(), "", "");
+        configurationRepository.insertTicketCategoryLevel(
+                event.getOrganizationId(),
+                event.getId(),
+                categories.get(0).getId(),
+                PAYMENT_METHODS_BLACKLIST.name(),
+                "",
+                "");
         // try with single category
-        var deniedMethods = configurationManager.getBlacklistedMethodsForReservation(event, List.of(categories.get(0).getId()));
+        var deniedMethods = configurationManager.getBlacklistedMethodsForReservation(
+                event, List.of(categories.get(0).getId()));
         assertNotNull(deniedMethods);
         assertTrue(deniedMethods.isEmpty());
 
         // try with multiple categories
-        deniedMethods = configurationManager.getBlacklistedMethodsForReservation(event, categories.stream().map(TicketCategory::getId).collect(Collectors.toList()));
+        deniedMethods = configurationManager.getBlacklistedMethodsForReservation(
+                event, categories.stream().map(TicketCategory::getId).collect(Collectors.toList()));
         assertNotNull(deniedMethods);
         assertTrue(deniedMethods.isEmpty());
     }
 
     @Test
-    void testCustomOfflinePaymentMethodsReturnedInDeniedList() throws CustomOfflinePaymentMethodAlreadyExistsException, CustomOfflinePaymentMethodDoesNotExistException {
-        var paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
+    void testCustomOfflinePaymentMethodsReturnedInDeniedList()
+            throws CustomOfflinePaymentMethodAlreadyExistsException, CustomOfflinePaymentMethodDoesNotExistException {
+        var paymentMethods = List.of(new UserDefinedOfflinePaymentMethod(
                 "15146df3-2436-4d2e-90b9-0d6cb273e291",
                 Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant bank transfer from any Canadian account.",
-                        "Send the payment to `payments@example.com`."
-                    )
-                )
-            )
-        );
+                        "en",
+                        new UserDefinedOfflinePaymentMethod.Localization(
+                                "Interac E-Transfer",
+                                "Instant bank transfer from any Canadian account.",
+                                "Send the payment to `payments@example.com`."))));
         for (var pm : paymentMethods) {
-            customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(event.getOrganizationId(), pm);
+            customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(
+                    event.getOrganizationId(), pm);
         }
 
         var categories = ticketCategoryRepository.findAllTicketCategories(event.getId());
         customOfflineConfigurationManager.setDeniedPaymentMethodsByTicketCategory(
-            event,
-            categories.get(0),
-            paymentMethods
-        );
+                event, categories.get(0), paymentMethods);
 
         var deniedMethods = configurationManager.getBlacklistedMethodsForReservation(
-            event,
-            List.of(categories.get(0).getId())
-        );
+                event, List.of(categories.get(0).getId()));
 
         assertNotNull(deniedMethods);
-        assertTrue(deniedMethods.stream().anyMatch(pm -> pm.getPaymentMethodId().equals(paymentMethods.get(0).getPaymentMethodId())));
+        assertTrue(deniedMethods.stream().anyMatch(pm -> pm.getPaymentMethodId()
+                .equals(paymentMethods.get(0).getPaymentMethodId())));
     }
 }

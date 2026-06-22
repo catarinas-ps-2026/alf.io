@@ -18,7 +18,6 @@ package alfio.model.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +27,8 @@ public class AdditionalInfoWithLabel {
     private final List<String> values;
 
     @JsonCreator
-    public AdditionalInfoWithLabel(@JsonProperty("label") Map<String, String> label,
-                                   @JsonProperty("values") List<String> values) {
+    public AdditionalInfoWithLabel(
+            @JsonProperty("label") Map<String, String> label, @JsonProperty("values") List<String> values) {
         this.label = label;
         this.values = values;
     }

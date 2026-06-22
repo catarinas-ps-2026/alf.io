@@ -16,7 +16,9 @@
  */
 package alfio.util;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.net.http.HttpRequest;
@@ -29,10 +31,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
 
 class HttpUtilsTest {
 
@@ -60,9 +59,8 @@ class HttpUtilsTest {
     @Test
     void formUrlEncodedBodyEscapesKeysAndValues() throws Exception {
         var body = readBody(HttpUtils.ofFormUrlEncodedBody(Map.of(
-            "a b", "c+d",
-            "symbol", "€"
-        )));
+                "a b", "c+d",
+                "symbol", "€")));
 
         assertTrue(body.contains("a+b=c%2Bd"));
         assertTrue(body.contains("symbol=%E2%82%AC"));
@@ -79,8 +77,12 @@ class HttpUtilsTest {
     @Test
     void multipartBodyPublisherBuildsStringAndStreamPartsWithFinalBoundary() throws Exception {
         var publisher = new HttpUtils.MultiPartBodyPublisher()
-            .addPart("field", "value")
-            .addPart("file", () -> new ByteArrayInputStream("content".getBytes(StandardCharsets.UTF_8)), "file.txt", null);
+                .addPart("field", "value")
+                .addPart(
+                        "file",
+                        () -> new ByteArrayInputStream("content".getBytes(StandardCharsets.UTF_8)),
+                        "file.txt",
+                        null);
         var boundary = publisher.getBoundary();
 
         var body = readBody(publisher.build());

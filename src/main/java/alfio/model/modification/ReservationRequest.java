@@ -16,17 +16,19 @@
  */
 package alfio.model.modification;
 
+import static alfio.util.MiscUtils.getAtIndexOrNull;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static alfio.util.MiscUtils.getAtIndexOrNull;
-
 public interface ReservationRequest {
     Integer getTicketCategoryId();
+
     Integer getQuantity();
+
     List<Map<String, String>> getMetadata();
 
     default List<AttendeeData> getAttendees() {
@@ -35,9 +37,9 @@ public interface ReservationRequest {
 
     static List<AttendeeData> metadataToAttendeesList(Integer quantity, List<Map<String, String>> metadata) {
         int q = Objects.requireNonNullElse(quantity, 0);
-        return Stream.iterate(0, s -> s+1)
-            .limit(q)
-            .map(i -> new AttendeeData(null, null, null, null, getAtIndexOrNull(metadata, i), Map.of()))
-            .collect(Collectors.toList());
+        return Stream.iterate(0, s -> s + 1)
+                .limit(q)
+                .map(i -> new AttendeeData(null, null, null, null, getAtIndexOrNull(metadata, i), Map.of()))
+                .collect(Collectors.toList());
     }
 }

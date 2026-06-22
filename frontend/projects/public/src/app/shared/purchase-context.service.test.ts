@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { PurchaseContextService, PurchaseContextType } from './purchase-context.service';
+import {
+    PurchaseContextService,
+    PurchaseContextType,
+} from './purchase-context.service';
 import { EventService } from './event.service';
 import { SubscriptionService } from './subscription.service';
 import type { PurchaseContext } from '../model/purchase-context';
@@ -23,7 +26,13 @@ describe('PurchaseContextService', () => {
         endDate: '2024-01-01T18:00:00Z',
         enabled: true,
         embeddingConfiguration: { enabled: false, notificationOrigin: '' },
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: true, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: true,
+            enabledItalyEInvoicing: false,
+        },
         localization: {},
         analyticsConfiguration: null,
     } as unknown as Event;
@@ -44,7 +53,13 @@ describe('PurchaseContextService', () => {
         ticketCategories: [],
         localization: {},
         privacyPolicyUrl: null,
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: true, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: true,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
         contentLanguages: [{ locale: 'en', name: 'English' }],
         currency: 'USD',
@@ -63,7 +78,10 @@ describe('PurchaseContextService', () => {
             providers: [
                 PurchaseContextService,
                 { provide: EventService, useValue: mockEventService },
-                { provide: SubscriptionService, useValue: mockSubscriptionService },
+                {
+                    provide: SubscriptionService,
+                    useValue: mockSubscriptionService,
+                },
             ],
         });
 
@@ -75,28 +93,40 @@ describe('PurchaseContextService', () => {
             mockEventService.getEvent.mockReturnValue(of(mockEvent));
 
             const promise = new Promise<PurchaseContext>((resolve) => {
-                service.getContext('event', 'test-event').subscribe({ next: (result) => resolve(result) });
+                service
+                    .getContext('event', 'test-event')
+                    .subscribe({ next: (result) => resolve(result) });
             });
 
             const result = await promise;
             expect(result).toEqual(mockEvent);
-            expect(mockEventService.getEvent).toHaveBeenCalledWith('test-event');
+            expect(mockEventService.getEvent).toHaveBeenCalledWith(
+                'test-event',
+            );
         });
 
         it('should return subscription when type is subscription', async () => {
-            mockSubscriptionService.getSubscriptionById.mockReturnValue(of(mockSubscription));
+            mockSubscriptionService.getSubscriptionById.mockReturnValue(
+                of(mockSubscription),
+            );
 
             const promise = new Promise<PurchaseContext>((resolve) => {
-                service.getContext('subscription', 'sub-123').subscribe({ next: (result) => resolve(result) });
+                service
+                    .getContext('subscription', 'sub-123')
+                    .subscribe({ next: (result) => resolve(result) });
             });
 
             const result = await promise;
             expect(result).toEqual(mockSubscription);
-            expect(mockSubscriptionService.getSubscriptionById).toHaveBeenCalledWith('sub-123');
+            expect(
+                mockSubscriptionService.getSubscriptionById,
+            ).toHaveBeenCalledWith('sub-123');
         });
 
         it('should throw error when type is unknown', () => {
-            expect(() => service.getContext('unknown' as PurchaseContextType, 'id')).toThrow();
+            expect(() =>
+                service.getContext('unknown' as PurchaseContextType, 'id'),
+            ).toThrow();
         });
     });
 });

@@ -16,10 +16,15 @@
  */
 package alfio.controller.payment.api.mollie;
 
+import static alfio.manager.payment.MollieWebhookPaymentManager.*;
+
 import alfio.manager.PurchaseContextManager;
 import alfio.manager.TicketReservationManager;
 import alfio.model.transaction.PaymentContext;
 import alfio.model.transaction.PaymentProxy;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -28,12 +33,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.Map;
-import java.util.Optional;
-
-import static alfio.manager.payment.MollieWebhookPaymentManager.*;
-
 @RestController
 @AllArgsConstructor
 public class MolliePaymentWebhookController {
@@ -41,23 +40,33 @@ public class MolliePaymentWebhookController {
     private final PurchaseContextManager purchaseContextManager;
 
     @PostMapping(WEBHOOK_URL_TEMPLATE)
-    public ResponseEntity<String> receivePaymentConfirmation(HttpServletRequest request,
-                                                             @PathVariable String reservationId) {
+    public ResponseEntity<String> receivePaymentConfirmation(
+            HttpServletRequest request, @PathVariable String reservationId) {
         return Optional.ofNullable(StringUtils.trimToNull(request.getParameter("id")))
-            .flatMap(id -> purchaseContextManager.findByReservationId(reservationId)
-                    .map(purchaseContext -> {
-                        var content = "id="+id;
-                        var result = ticketReservationManager.processTransactionWebhook(content, null, PaymentProxy.MOLLIE,
-                            Map.of(ADDITIONAL_INFO_PURCHASE_CONTEXT_TYPE, purchaseContext.getType().getUrlComponent(),
-                                ADDITIONAL_INFO_PURCHASE_IDENTIFIER, purchaseContext.getPublicIdentifier(),
-                                ADDITIONAL_INFO_RESERVATION_ID, reservationId), new PaymentContext(purchaseContext, reservationId));
-                        if(result.isSuccessful()) {
-                            return ResponseEntity.ok("OK");
-                        } else if(result.isError()) {
-                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.getReason());
-                        }
-                        return ResponseEntity.ok(result.getReason());
-                    }))
-            .orElseGet(() -> ResponseEntity.badRequest().body("NOK"));
+                .flatMap(id -> purchaseContextManager
+                        .findByReservationId(reservationId)
+                        .map(purchaseContext -> {
+                            var content = "id=" + id;
+                            var result = ticketReservationManager.processTransactionWebhook(
+                                    content,
+                                    null,
+                                    PaymentProxy.MOLLIE,
+                                    Map.of(
+                                            ADDITIONAL_INFO_PURCHASE_CONTEXT_TYPE,
+                                            purchaseContext.getType().getUrlComponent(),
+                                            ADDITIONAL_INFO_PURCHASE_IDENTIFIER,
+                                            purchaseContext.getPublicIdentifier(),
+                                            ADDITIONAL_INFO_RESERVATION_ID,
+                                            reservationId),
+                                    new PaymentContext(purchaseContext, reservationId));
+                            if (result.isSuccessful()) {
+                                return ResponseEntity.ok("OK");
+                            } else if (result.isError()) {
+                                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(result.getReason());
+                            }
+                            return ResponseEntity.ok(result.getReason());
+                        }))
+                .orElseGet(() -> ResponseEntity.badRequest().body("NOK"));
     }
 }

@@ -28,9 +28,8 @@ public class ConfigurationModification {
     private final String value;
 
     @JsonCreator
-    public ConfigurationModification(@JsonProperty("id") Integer id,
-                                     @JsonProperty("key") String key,
-                                     @JsonProperty("value") String value) {
+    public ConfigurationModification(
+            @JsonProperty("id") Integer id, @JsonProperty("key") String key, @JsonProperty("value") String value) {
         this.id = id;
         this.key = key;
         this.value = value;

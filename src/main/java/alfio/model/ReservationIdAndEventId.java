@@ -24,8 +24,7 @@ public class ReservationIdAndEventId {
     private final String id;
     private final int eventId;
 
-    public ReservationIdAndEventId(@Column("id") String id,
-                        @Column("event_id_fk") int eventId) {
+    public ReservationIdAndEventId(@Column("id") String id, @Column("event_id_fk") int eventId) {
         this.id = id;
         this.eventId = eventId;
     }

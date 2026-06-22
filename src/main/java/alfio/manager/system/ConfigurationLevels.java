@@ -16,14 +16,13 @@
  */
 package alfio.manager.system;
 
-import alfio.model.system.ConfigurationPathLevel;
-import lombok.AllArgsConstructor;
+import static alfio.model.system.ConfigurationPathLevel.*;
 
+import alfio.model.system.ConfigurationPathLevel;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
-
-import static alfio.model.system.ConfigurationPathLevel.*;
+import lombok.AllArgsConstructor;
 
 class ConfigurationLevels {
 

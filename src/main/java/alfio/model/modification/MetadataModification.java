@@ -21,11 +21,10 @@ import alfio.model.metadata.JoinLink;
 import alfio.model.metadata.OnlineConfiguration;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
 @Getter
 public class MetadataModification {
@@ -34,8 +33,9 @@ public class MetadataModification {
     private final Map<String, String> requirementsDescriptions;
 
     @JsonCreator
-    public MetadataModification(@JsonProperty("callLinks") List<CallLinkModification> callLinks,
-                                @JsonProperty("requirementDescriptions") Map<String, String> requirementsDescriptions) {
+    public MetadataModification(
+            @JsonProperty("callLinks") List<CallLinkModification> callLinks,
+            @JsonProperty("requirementDescriptions") Map<String, String> requirementsDescriptions) {
         this.callLinks = callLinks;
         this.requirementsDescriptions = requirementsDescriptions;
     }
@@ -46,11 +46,12 @@ public class MetadataModification {
 
     public AlfioMetadata toMetadataObj() {
         return new AlfioMetadata(
-            new OnlineConfiguration(callLinks.stream().map(CallLinkModification::toCallLink).collect(Collectors.toList())),
-            requirementsDescriptions,
-            List.of(),
-            null,
-            Map.of());
+                new OnlineConfiguration(
+                        callLinks.stream().map(CallLinkModification::toCallLink).collect(Collectors.toList())),
+                requirementsDescriptions,
+                List.of(),
+                null,
+                Map.of());
     }
 
     @Getter
@@ -59,11 +60,11 @@ public class MetadataModification {
         private final DateTimeModification validFrom;
         private final DateTimeModification validTo;
 
-
         @JsonCreator
-        public CallLinkModification(@JsonProperty("link") String link,
-                                    @JsonProperty("validFrom") DateTimeModification validFrom,
-                                    @JsonProperty("validTo") DateTimeModification validTo) {
+        public CallLinkModification(
+                @JsonProperty("link") String link,
+                @JsonProperty("validFrom") DateTimeModification validFrom,
+                @JsonProperty("validTo") DateTimeModification validTo) {
             this.link = link;
             this.validFrom = validFrom;
             this.validTo = validTo;

@@ -16,30 +16,31 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.util.HttpUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
-
 public class RecaptchaServiceTest {
 
     @Mock
     private HttpClient client;
+
     @Mock
     private ConfigurationManager configurationManager;
+
     @Mock
     private HttpServletRequest request;
 
@@ -80,7 +81,9 @@ public class RecaptchaServiceTest {
         try (MockedStatic<HttpUtils> httpUtilsMockedStatic = mockStatic(HttpUtils.class)) {
             HttpResponse<String> mockResponse = mock(HttpResponse.class);
             when(mockResponse.body()).thenReturn("{\"success\":true}");
-            httpUtilsMockedStatic.when(() -> HttpUtils.postForm(eq(client), anyString(), anyMap())).thenReturn(mockResponse);
+            httpUtilsMockedStatic
+                    .when(() -> HttpUtils.postForm(eq(client), anyString(), anyMap()))
+                    .thenReturn(mockResponse);
 
             assertTrue(service.checkRecaptcha("response-token", request));
         }
@@ -95,7 +98,9 @@ public class RecaptchaServiceTest {
         try (MockedStatic<HttpUtils> httpUtilsMockedStatic = mockStatic(HttpUtils.class)) {
             HttpResponse<String> mockResponse = mock(HttpResponse.class);
             when(mockResponse.body()).thenReturn("{\"success\":false}");
-            httpUtilsMockedStatic.when(() -> HttpUtils.postForm(eq(client), anyString(), anyMap())).thenReturn(mockResponse);
+            httpUtilsMockedStatic
+                    .when(() -> HttpUtils.postForm(eq(client), anyString(), anyMap()))
+                    .thenReturn(mockResponse);
 
             assertFalse(service.checkRecaptcha("response-token", request));
         }

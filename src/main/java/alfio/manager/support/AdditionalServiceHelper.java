@@ -16,6 +16,10 @@
  */
 package alfio.manager.support;
 
+import static alfio.controller.api.support.BookingInfoTicketLoader.fromFieldDescriptions;
+import static alfio.model.FieldConfigurationDescriptionAndValue.isBeforeStandardFields;
+import static java.util.stream.Collectors.groupingBy;
+
 import alfio.controller.api.support.AdditionalField;
 import alfio.controller.api.support.AdditionalServiceWithData;
 import alfio.controller.api.support.Field;
@@ -23,14 +27,9 @@ import alfio.manager.AdditionalServiceManager;
 import alfio.manager.PurchaseContextFieldManager;
 import alfio.model.*;
 import alfio.repository.PurchaseContextFieldRepository;
-import org.springframework.stereotype.Component;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static alfio.controller.api.support.BookingInfoTicketLoader.fromFieldDescriptions;
-import static alfio.model.FieldConfigurationDescriptionAndValue.isBeforeStandardFields;
-import static java.util.stream.Collectors.groupingBy;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AdditionalServiceHelper {
@@ -39,57 +38,82 @@ public class AdditionalServiceHelper {
     private final PurchaseContextFieldRepository purchaseContextFieldRepository;
     private final PurchaseContextFieldManager purchaseContextFieldManager;
 
-    public AdditionalServiceHelper(AdditionalServiceManager additionalServiceManager,
-                                   PurchaseContextFieldRepository purchaseContextFieldRepository,
-                                   PurchaseContextFieldManager purchaseContextFieldManager) {
+    public AdditionalServiceHelper(
+            AdditionalServiceManager additionalServiceManager,
+            PurchaseContextFieldRepository purchaseContextFieldRepository,
+            PurchaseContextFieldManager purchaseContextFieldManager) {
         this.additionalServiceManager = additionalServiceManager;
         this.purchaseContextFieldRepository = purchaseContextFieldRepository;
         this.purchaseContextFieldManager = purchaseContextFieldManager;
     }
 
-    public List<AdditionalServiceWithData> getAdditionalServicesWithData(PurchaseContext purchaseContext,
-                                                                         List<AdditionalServiceItem> additionalServiceItems,
-                                                                         Map<Integer, List<AdditionalServiceFieldValue>> valuesByItemId,
-                                                                         Map<Long, List<PurchaseContextFieldDescription>> descriptionsByTicketFieldId, List<Ticket> tickets) {
-        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event) && ((Event)purchaseContext).supportsLinkedAdditionalServices()) {
-            var event = ((Event)purchaseContext);
+    public List<AdditionalServiceWithData> getAdditionalServicesWithData(
+            PurchaseContext purchaseContext,
+            List<AdditionalServiceItem> additionalServiceItems,
+            Map<Integer, List<AdditionalServiceFieldValue>> valuesByItemId,
+            Map<Long, List<PurchaseContextFieldDescription>> descriptionsByTicketFieldId,
+            List<Ticket> tickets) {
+        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)
+                && ((Event) purchaseContext).supportsLinkedAdditionalServices()) {
+            var event = ((Event) purchaseContext);
             if (!additionalServiceItems.isEmpty()) {
-                var additionalServiceIds = additionalServiceItems.stream().map(AdditionalServiceItem::getAdditionalServiceId).toList();
-                var additionalItemDescriptionsById = additionalServiceManager.getDescriptionsByAdditionalServiceIds(additionalServiceIds);
+                var additionalServiceIds = additionalServiceItems.stream()
+                        .map(AdditionalServiceItem::getAdditionalServiceId)
+                        .toList();
+                var additionalItemDescriptionsById =
+                        additionalServiceManager.getDescriptionsByAdditionalServiceIds(additionalServiceIds);
                 var additionalItemTypeById = additionalServiceManager.getTypeByIds(additionalServiceIds);
-                var additionalFieldsById = purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId()).stream()
-                    .filter(f -> f.getContext() == PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE && additionalServiceIds.contains(f.getAdditionalServiceId()))
-                    .collect(Collectors.groupingBy(PurchaseContextFieldConfiguration::getAdditionalServiceId));
+                var additionalFieldsById =
+                        purchaseContextFieldRepository.findAdditionalFieldsForEvent(event.getId()).stream()
+                                .filter(f ->
+                                        f.getContext() == PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE
+                                                && additionalServiceIds.contains(f.getAdditionalServiceId()))
+                                .collect(Collectors.groupingBy(
+                                        PurchaseContextFieldConfiguration::getAdditionalServiceId));
                 return additionalServiceItems.stream()
-                    .map(as -> {
-                        var additionalItemTitle = additionalItemDescriptionsById.getOrDefault(as.getAdditionalServiceId(), Map.of())
-                            .getOrDefault(AdditionalServiceText.TextType.TITLE, Collections.emptyMap());
-                        var ticketId = as.getTicketId();
-                        var itemValues = valuesByItemId.get(as.getId());
-                        var fields = additionalFieldsById.getOrDefault(as.getAdditionalServiceId(), List.of()).stream()
-                            .map(fieldConfiguration -> {
-                                Optional<AdditionalServiceFieldValue> value = Optional.empty();
-                                if (itemValues != null) {
-                                    value = itemValues.stream()
-                                        .filter(fv -> fv.getTicketId() == ticketId && fv.getFieldConfigurationId() == fieldConfiguration.getId())
-                                        .findFirst();
-                                }
-                                var valueAsString = value.map(AdditionalServiceFieldValue::getValue).orElse("");
-                                return AdditionalField.fromFieldConfiguration(fieldConfiguration,
-                                    valueAsString,
-                                    List.of(new Field(0, valueAsString)),
-                                    isBeforeStandardFields(fieldConfiguration),
-                                    fromFieldDescriptions(descriptionsByTicketFieldId.get(fieldConfiguration.getId())));
-                            })
-                            .toList();
-                        var ticketUUID = tickets.stream().filter(t -> ticketId != null && t.getId() == ticketId)
-                            .map(t -> t.getPublicUuid().toString())
-                            .findFirst()
-                            .orElse(null);
-                        return new AdditionalServiceWithData(additionalItemTitle, as.getId(), as.getAdditionalServiceId(), ticketUUID, fields, additionalItemTypeById.get(as.getAdditionalServiceId()));
-                    })
-                    .sorted(Comparator.comparing(AdditionalServiceWithData::getServiceId))
-                    .toList();
+                        .map(as -> {
+                            var additionalItemTitle = additionalItemDescriptionsById
+                                    .getOrDefault(as.getAdditionalServiceId(), Map.of())
+                                    .getOrDefault(AdditionalServiceText.TextType.TITLE, Collections.emptyMap());
+                            var ticketId = as.getTicketId();
+                            var itemValues = valuesByItemId.get(as.getId());
+                            var fields =
+                                    additionalFieldsById.getOrDefault(as.getAdditionalServiceId(), List.of()).stream()
+                                            .map(fieldConfiguration -> {
+                                                Optional<AdditionalServiceFieldValue> value = Optional.empty();
+                                                if (itemValues != null) {
+                                                    value = itemValues.stream()
+                                                            .filter(fv -> fv.getTicketId() == ticketId
+                                                                    && fv.getFieldConfigurationId()
+                                                                            == fieldConfiguration.getId())
+                                                            .findFirst();
+                                                }
+                                                var valueAsString = value.map(AdditionalServiceFieldValue::getValue)
+                                                        .orElse("");
+                                                return AdditionalField.fromFieldConfiguration(
+                                                        fieldConfiguration,
+                                                        valueAsString,
+                                                        List.of(new Field(0, valueAsString)),
+                                                        isBeforeStandardFields(fieldConfiguration),
+                                                        fromFieldDescriptions(descriptionsByTicketFieldId.get(
+                                                                fieldConfiguration.getId())));
+                                            })
+                                            .toList();
+                            var ticketUUID = tickets.stream()
+                                    .filter(t -> ticketId != null && t.getId() == ticketId)
+                                    .map(t -> t.getPublicUuid().toString())
+                                    .findFirst()
+                                    .orElse(null);
+                            return new AdditionalServiceWithData(
+                                    additionalItemTitle,
+                                    as.getId(),
+                                    as.getAdditionalServiceId(),
+                                    ticketUUID,
+                                    fields,
+                                    additionalItemTypeById.get(as.getAdditionalServiceId()));
+                        })
+                        .sorted(Comparator.comparing(AdditionalServiceWithData::getServiceId))
+                        .toList();
             }
         }
         return List.of();
@@ -100,10 +124,20 @@ public class AdditionalServiceHelper {
             return List.of();
         }
         var additionalServiceItems = additionalServiceManager.findItemsForTicket(ticket);
-        Map<Integer, List<AdditionalServiceFieldValue>> additionalServicesByItemId = additionalServiceItems.isEmpty() ? Map.of() :
-            purchaseContextFieldRepository.findAdditionalServicesValueByItemIds(additionalServiceItems.stream().map(AdditionalServiceItem::getId).toList())
-                .stream().collect(groupingBy(AdditionalServiceFieldValue::getAdditionalServiceItemId));
+        Map<Integer, List<AdditionalServiceFieldValue>> additionalServicesByItemId = additionalServiceItems.isEmpty()
+                ? Map.of()
+                : purchaseContextFieldRepository
+                        .findAdditionalServicesValueByItemIds(additionalServiceItems.stream()
+                                .map(AdditionalServiceItem::getId)
+                                .toList())
+                        .stream()
+                        .collect(groupingBy(AdditionalServiceFieldValue::getAdditionalServiceItemId));
         var descriptionsByTicketFieldId = purchaseContextFieldManager.findDescriptionsGroupedByFieldId(event);
-        return getAdditionalServicesWithData(event, additionalServiceItems, additionalServicesByItemId, descriptionsByTicketFieldId, List.of(ticket));
+        return getAdditionalServicesWithData(
+                event,
+                additionalServiceItems,
+                additionalServicesByItemId,
+                descriptionsByTicketFieldId,
+                List.of(ticket));
     }
 }

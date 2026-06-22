@@ -17,12 +17,11 @@
 package alfio.model.poll;
 
 import alfio.util.MonetaryUtil;
-import lombok.AllArgsConstructor;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class PollStatistics {
@@ -45,31 +44,29 @@ public class PollStatistics {
     public List<StatisticDetail> getOptionStatistics() {
         BigDecimal totalVotes = new BigDecimal(this.totalVotes);
         return countByOption.stream()
-            .map(o -> {
-                var percentage = getVotesPercentage(totalVotes, o.getVotes());
-                return new StatisticDetail(o.getVotes(), o.getOptionId(), percentage);
-            })
-            .collect(Collectors.toList());
+                .map(o -> {
+                    var percentage = getVotesPercentage(totalVotes, o.getVotes());
+                    return new StatisticDetail(o.getVotes(), o.getOptionId(), percentage);
+                })
+                .collect(Collectors.toList());
     }
 
     private static String getVotesPercentage(BigDecimal totalVotes, int votes) {
-        if(votes == 0) {
+        if (votes == 0) {
             return "0";
         }
         return new BigDecimal(votes)
-            .setScale(3, RoundingMode.HALF_UP)
-            .divide(totalVotes, RoundingMode.HALF_UP)
-            .multiply(MonetaryUtil.HUNDRED)
-            .setScale(2, RoundingMode.HALF_UP)
-            .toPlainString();
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(totalVotes, RoundingMode.HALF_UP)
+                .multiply(MonetaryUtil.HUNDRED)
+                .setScale(2, RoundingMode.HALF_UP)
+                .toPlainString();
     }
-
 
     public static class StatisticDetail {
         private final int votes;
         private final long optionId;
         private final String percentage;
-
 
         public StatisticDetail(int votes, long optionId, String percentage) {
             this.votes = votes;
@@ -89,5 +86,4 @@ public class PollStatistics {
             return percentage;
         }
     }
-
 }

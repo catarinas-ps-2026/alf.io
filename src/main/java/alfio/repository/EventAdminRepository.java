@@ -17,10 +17,9 @@
 package alfio.repository;
 
 import ch.digitalfondue.npjt.QueryRepository;
+import java.util.Map;
 import org.springframework.jdbc.core.namedparam.EmptySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import java.util.Map;
 
 /**
  * This repository is specific to backoffice/admin operations.
@@ -37,17 +36,24 @@ public interface EventAdminRepository {
      */
     default boolean existsBySlug(String slug) {
         var jdbcTemplate = getJdbcTemplate();
-        boolean rlsEnabled = Boolean.TRUE.equals(jdbcTemplate.queryForObject("select coalesce(current_setting('alfio.checkRowAccess', true), 'false') = 'true'", EmptySqlParameterSource.INSTANCE, Boolean.class));
+        boolean rlsEnabled = Boolean.TRUE.equals(jdbcTemplate.queryForObject(
+                "select coalesce(current_setting('alfio.checkRowAccess', true), 'false') = 'true'",
+                EmptySqlParameterSource.INSTANCE,
+                Boolean.class));
         if (rlsEnabled) {
-            jdbcTemplate.queryForObject("select set_config('alfio.checkRowAccess', 'false', true)", EmptySqlParameterSource.INSTANCE, Boolean.class);
+            jdbcTemplate.queryForObject(
+                    "select set_config('alfio.checkRowAccess', 'false', true)",
+                    EmptySqlParameterSource.INSTANCE,
+                    Boolean.class);
         }
         boolean exists = Boolean.TRUE.equals(jdbcTemplate.queryForObject(
-            "select exists(select 1 from event where short_name = :slug)",
-            Map.of("slug", slug),
-            Boolean.class));
+                "select exists(select 1 from event where short_name = :slug)", Map.of("slug", slug), Boolean.class));
 
         if (rlsEnabled) {
-            jdbcTemplate.queryForObject("select set_config('alfio.checkRowAccess', 'true', true)", EmptySqlParameterSource.INSTANCE, Boolean.class);
+            jdbcTemplate.queryForObject(
+                    "select set_config('alfio.checkRowAccess', 'true', true)",
+                    EmptySqlParameterSource.INSTANCE,
+                    Boolean.class);
         }
         return exists;
     }

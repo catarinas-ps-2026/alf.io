@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
 
 import org.mozilla.javascript.CompilerEnvirons;
@@ -43,6 +42,4 @@ public class ScriptValidation {
         JSNodeVisitor nodeVisitor = new JSNodeVisitor();
         rootNode.visit(nodeVisitor);
     }
-
 }
-

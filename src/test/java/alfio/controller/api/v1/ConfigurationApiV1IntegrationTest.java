@@ -16,6 +16,13 @@
  */
 package alfio.controller.api.v1;
 
+import static alfio.controller.api.v1.EventApiV1IntegrationTest.creationRequest;
+import static alfio.controller.api.v1.SubscriptionApiV1IntegrationTest.modificationRequest;
+import static alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT;
+import static alfio.model.system.ConfigurationKeys.*;
+import static java.util.Map.entry;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -37,6 +44,10 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -44,39 +55,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static alfio.controller.api.v1.EventApiV1IntegrationTest.creationRequest;
-import static alfio.controller.api.v1.SubscriptionApiV1IntegrationTest.modificationRequest;
-import static alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType.ONCE_PER_EVENT;
-import static alfio.model.system.ConfigurationKeys.*;
-import static java.util.Map.entry;
-import static org.junit.jupiter.api.Assertions.*;
-
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class ConfigurationApiV1IntegrationTest extends BaseIntegrationTest {
 
-    public static final List<String> OPTIONS_TO_MODIFY = List.of(GENERATE_ONLY_INVOICE.name(), USE_INVOICE_NUMBER_AS_ID.name(), VAT_NUMBER_IS_REQUIRED.name());
+    public static final List<String> OPTIONS_TO_MODIFY =
+            List.of(GENERATE_ONLY_INVOICE.name(), USE_INVOICE_NUMBER_AS_ID.name(), VAT_NUMBER_IS_REQUIRED.name());
+
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private EventApiV1Controller eventApiController;
+
     @Autowired
     private SubscriptionApiV1Controller subscriptionApiV1Controller;
+
     @Autowired
     private ConfigurationApiV1Controller controller;
+
     @Autowired
     private ClockProvider clockProvider;
 
@@ -90,10 +97,19 @@ class ConfigurationApiV1IntegrationTest extends BaseIntegrationTest {
         String organizationName = UUID.randomUUID().toString();
         String username = UUID.randomUUID().toString();
 
-        var organizationModification = new OrganizationModification(null, organizationName, "email@example.com", "org", null, null);
+        var organizationModification =
+                new OrganizationModification(null, organizationName, "email@example.com", "org", null, null);
         userManager.createOrganization(organizationModification, null);
         organization = organizationRepository.findByName(organizationName).orElseThrow();
-        userManager.insertUser(organization.getId(), username, "test", "test", "test@example.com", Role.API_CONSUMER, User.Type.INTERNAL, null);
+        userManager.insertUser(
+                organization.getId(),
+                username,
+                "test",
+                "test",
+                "test@example.com",
+                Role.API_CONSUMER,
+                User.Type.INTERNAL,
+                null);
 
         this.mockPrincipal = Mockito.mock(Principal.class);
         Mockito.when(mockPrincipal.getName()).thenReturn(username);
@@ -103,16 +119,22 @@ class ConfigurationApiV1IntegrationTest extends BaseIntegrationTest {
     void addEventConfiguration() {
         String slug = "test";
         eventApiController.create(creationRequest(slug), mockPrincipal);
-        int eventId = eventRepository.findOptionalEventAndOrganizationIdByShortName(slug).orElseThrow().getId();
+        int eventId = eventRepository
+                .findOptionalEventAndOrganizationIdByShortName(slug)
+                .orElseThrow()
+                .getId();
         var existing = configurationRepository.findByEventAndKeys(organization.getId(), eventId, OPTIONS_TO_MODIFY);
         assertTrue(existing.isEmpty());
-        assertEquals(1, configurationRepository.insertEventLevel(organization.getId(), eventId, GENERATE_ONLY_INVOICE.name(), "true", ""));
+        assertEquals(
+                1,
+                configurationRepository.insertEventLevel(
+                        organization.getId(), eventId, GENERATE_ONLY_INVOICE.name(), "true", ""));
         var payload = Map.ofEntries(
-            entry(GENERATE_ONLY_INVOICE.name(), "false"),
-            entry(USE_INVOICE_NUMBER_AS_ID.name(), "true"),
-            entry(VAT_NUMBER_IS_REQUIRED.name(), "true")
-        );
-        var response = controller.saveConfigurationForPurchaseContext(organization.getId(), PurchaseContext.PurchaseContextType.event, slug, payload, mockPrincipal);
+                entry(GENERATE_ONLY_INVOICE.name(), "false"),
+                entry(USE_INVOICE_NUMBER_AS_ID.name(), "true"),
+                entry(VAT_NUMBER_IS_REQUIRED.name(), "true"));
+        var response = controller.saveConfigurationForPurchaseContext(
+                organization.getId(), PurchaseContext.PurchaseContextType.event, slug, payload, mockPrincipal);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         var modified = configurationRepository.findByEventAndKeys(organization.getId(), eventId, OPTIONS_TO_MODIFY);
         assertEquals(3, modified.size());
@@ -123,21 +145,31 @@ class ConfigurationApiV1IntegrationTest extends BaseIntegrationTest {
 
     @Test
     void addSubscriptionConfiguration() {
-        var createResponse = subscriptionApiV1Controller.create(modificationRequest(ONCE_PER_EVENT, true, clockProvider), mockPrincipal);
+        var createResponse = subscriptionApiV1Controller.create(
+                modificationRequest(ONCE_PER_EVENT, true, clockProvider), mockPrincipal);
         assertTrue(createResponse.getStatusCode().is2xxSuccessful());
         assertNotNull(createResponse.getBody());
         var subscriptionDescriptorId = UUID.fromString(createResponse.getBody());
-        var existing = configurationRepository.findBySubscriptionDescriptorAndKeys(organization.getId(), subscriptionDescriptorId, OPTIONS_TO_MODIFY);
+        var existing = configurationRepository.findBySubscriptionDescriptorAndKeys(
+                organization.getId(), subscriptionDescriptorId, OPTIONS_TO_MODIFY);
         assertTrue(existing.isEmpty());
-        assertEquals(1, configurationRepository.insertSubscriptionDescriptorLevel(organization.getId(), subscriptionDescriptorId, GENERATE_ONLY_INVOICE.name(), "true", ""));
+        assertEquals(
+                1,
+                configurationRepository.insertSubscriptionDescriptorLevel(
+                        organization.getId(), subscriptionDescriptorId, GENERATE_ONLY_INVOICE.name(), "true", ""));
         var payload = Map.ofEntries(
-            entry(GENERATE_ONLY_INVOICE.name(), "false"),
-            entry(USE_INVOICE_NUMBER_AS_ID.name(), "true"),
-            entry(VAT_NUMBER_IS_REQUIRED.name(), "true")
-        );
-        var response = controller.saveConfigurationForPurchaseContext(organization.getId(), PurchaseContext.PurchaseContextType.subscription, subscriptionDescriptorId.toString(), payload, mockPrincipal);
+                entry(GENERATE_ONLY_INVOICE.name(), "false"),
+                entry(USE_INVOICE_NUMBER_AS_ID.name(), "true"),
+                entry(VAT_NUMBER_IS_REQUIRED.name(), "true"));
+        var response = controller.saveConfigurationForPurchaseContext(
+                organization.getId(),
+                PurchaseContext.PurchaseContextType.subscription,
+                subscriptionDescriptorId.toString(),
+                payload,
+                mockPrincipal);
         assertTrue(response.getStatusCode().is2xxSuccessful());
-        var modified = configurationRepository.findBySubscriptionDescriptorAndKeys(organization.getId(), subscriptionDescriptorId, OPTIONS_TO_MODIFY);
+        var modified = configurationRepository.findBySubscriptionDescriptorAndKeys(
+                organization.getId(), subscriptionDescriptorId, OPTIONS_TO_MODIFY);
         assertEquals(3, modified.size());
         for (ConfigurationKeyValuePathLevel kv : modified) {
             assertEquals(kv.getConfigurationKey() == GENERATE_ONLY_INVOICE ? "false" : "true", kv.getValue());
@@ -148,12 +180,14 @@ class ConfigurationApiV1IntegrationTest extends BaseIntegrationTest {
     void addOrganizationConfiguration() {
         var existing = configurationRepository.findByOrganizationAndKeys(organization.getId(), OPTIONS_TO_MODIFY);
         assertTrue(existing.isEmpty());
-        assertEquals(1, configurationRepository.insertOrganizationLevel(organization.getId(), GENERATE_ONLY_INVOICE.name(), "true", ""));
+        assertEquals(
+                1,
+                configurationRepository.insertOrganizationLevel(
+                        organization.getId(), GENERATE_ONLY_INVOICE.name(), "true", ""));
         var payload = Map.ofEntries(
-            entry(GENERATE_ONLY_INVOICE.name(), "false"),
-            entry(USE_INVOICE_NUMBER_AS_ID.name(), "true"),
-            entry(VAT_NUMBER_IS_REQUIRED.name(), "true")
-        );
+                entry(GENERATE_ONLY_INVOICE.name(), "false"),
+                entry(USE_INVOICE_NUMBER_AS_ID.name(), "true"),
+                entry(VAT_NUMBER_IS_REQUIRED.name(), "true"));
         var response = controller.saveConfigurationForOrganization(organization.getId(), payload, mockPrincipal);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         var modified = configurationRepository.findByOrganizationAndKeys(organization.getId(), OPTIONS_TO_MODIFY);

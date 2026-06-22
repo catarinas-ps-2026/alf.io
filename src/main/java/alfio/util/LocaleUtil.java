@@ -19,8 +19,6 @@ package alfio.util;
 import alfio.model.ContentLanguage;
 import alfio.model.LocalizedContent;
 import alfio.model.Ticket;
-import org.apache.commons.lang3.StringUtils;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -30,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public final class LocaleUtil {
     private LocaleUtil() {}
@@ -43,7 +42,7 @@ public final class LocaleUtil {
 
     public static Locale forLanguageTag(String lang) {
         if (lang == null) {
-           return Locale.ENGLISH;
+            return Locale.ENGLISH;
         } else {
             return Locale.forLanguageTag(lang);
         }
@@ -51,36 +50,40 @@ public final class LocaleUtil {
 
     public static Locale forLanguageTag(String lang, LocalizedContent localizedContent) {
         String cleanedUpLang = StringUtils.trimToEmpty(lang).toLowerCase(Locale.ENGLISH);
-        var filteredLang = localizedContent.getContentLanguages()
-            .stream()
-            .filter(l -> cleanedUpLang.equalsIgnoreCase(l.getLanguage()))
-            .findFirst()
-            .map(ContentLanguage::getLanguage)
-            //vvv fallback
-            .orElseGet(() -> localizedContent.getContentLanguages().stream().findFirst().map(ContentLanguage::getLanguage).orElse("en"));
+        var filteredLang = localizedContent.getContentLanguages().stream()
+                .filter(l -> cleanedUpLang.equalsIgnoreCase(l.getLanguage()))
+                .findFirst()
+                .map(ContentLanguage::getLanguage)
+                // vvv fallback
+                .orElseGet(() -> localizedContent.getContentLanguages().stream()
+                        .findFirst()
+                        .map(ContentLanguage::getLanguage)
+                        .orElse("en"));
         return forLanguageTag(filteredLang);
     }
 
     public static ZonedDateTime atZone(ZonedDateTime in, ZoneId zone) {
-        if(in != null) {
+        if (in != null) {
             return in.withZoneSameInstant(zone);
         }
         return null;
     }
 
     public static ZonedDateTime atZone(LocalDateTime in, ZoneId zone) {
-        if(in != null) {
+        if (in != null) {
             return in.atZone(Objects.requireNonNull(zone));
         }
         return null;
     }
 
     public static Map<String, String> formatDate(ZonedDateTime date, Map<Locale, String> datePatterns) {
-        if(date == null) {
+        if (date == null) {
             return null;
         }
         return datePatterns.entrySet().stream()
-            .map(dp -> Map.entry(dp.getKey().getLanguage(), DateTimeFormatter.ofPattern(dp.getValue()).format(date)))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .map(dp -> Map.entry(
+                        dp.getKey().getLanguage(),
+                        DateTimeFormatter.ofPattern(dp.getValue()).format(date)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

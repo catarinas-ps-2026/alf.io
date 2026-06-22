@@ -19,8 +19,7 @@ package alfio.util;
 import java.util.List;
 
 public class MiscUtils {
-    private MiscUtils() {
-    }
+    private MiscUtils() {}
 
     public static <T> T getAtIndexOrNull(List<T> elements, int index) {
         if (elements == null || index < 0 || index >= elements.size()) {
@@ -32,5 +31,4 @@ public class MiscUtils {
     public static String removeTabsAndNewlines(String input) {
         return input != null ? input.replaceAll("[\n\r]", "_") : "";
     }
-
 }

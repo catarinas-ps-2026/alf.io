@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
+import static alfio.controller.api.v2.user.reservation.BaseReservationFlowTest.*;
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -43,6 +47,11 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.ClockProvider;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -50,16 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.validation.BeanPropertyBindingResult;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
-
-import static alfio.controller.api.v2.user.reservation.BaseReservationFlowTest.*;
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -79,17 +78,18 @@ class CustomTaxPolicyIntegrationTest {
     private final TicketRepository ticketRepository;
 
     @Autowired
-    public CustomTaxPolicyIntegrationTest(OrganizationRepository organizationRepository,
-                                          EventManager eventManager,
-                                          EventRepository eventRepository,
-                                          UserManager userManager,
-                                          ClockProvider clockProvider,
-                                          ConfigurationRepository configurationRepository,
-                                          TicketCategoryRepository ticketCategoryRepository,
-                                          TicketRepository ticketRepository,
-                                          TicketReservationManager ticketReservationManager,
-                                          ReservationApiV2Controller reservationApiV2Controller,
-                                          ExtensionService extensionService) {
+    public CustomTaxPolicyIntegrationTest(
+            OrganizationRepository organizationRepository,
+            EventManager eventManager,
+            EventRepository eventRepository,
+            UserManager userManager,
+            ClockProvider clockProvider,
+            ConfigurationRepository configurationRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            TicketRepository ticketRepository,
+            TicketReservationManager ticketReservationManager,
+            ReservationApiV2Controller reservationApiV2Controller,
+            ExtensionService extensionService) {
         this.organizationRepository = organizationRepository;
         this.userManager = userManager;
         this.extensionService = extensionService;
@@ -106,18 +106,68 @@ class CustomTaxPolicyIntegrationTest {
     private ReservationFlowContext createContext(PriceContainer.VatStatus vatStatus) {
         try {
             IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-            insertExtension(extensionService, "/custom-tax-policy-extension.js", false, true, "CustomTaxPolicy", allEvents());
+            insertExtension(
+                    extensionService, "/custom-tax-policy-extension.js", false, true, "CustomTaxPolicy", allEvents());
             List<TicketCategoryModification> categories = Arrays.asList(
-                new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                    DESCRIPTION, new BigDecimal("100.00"), false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-                new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                    DESCRIPTION, new BigDecimal("10.00"), true, "", true, URL_CODE_HIDDEN, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-            );
-            Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository, List.of(), Event.EventFormat.IN_PERSON, vatStatus);
+                    new TicketCategoryModification(
+                            null,
+                            "default",
+                            TicketCategory.TicketAccessType.INHERIT,
+                            AVAILABLE_SEATS,
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            DESCRIPTION,
+                            new BigDecimal("100.00"),
+                            false,
+                            "",
+                            false,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            null,
+                            null,
+                            AlfioMetadata.empty()),
+                    new TicketCategoryModification(
+                            null,
+                            "hidden",
+                            TicketCategory.TicketAccessType.INHERIT,
+                            2,
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            DESCRIPTION,
+                            new BigDecimal("10.00"),
+                            true,
+                            "",
+                            true,
+                            URL_CODE_HIDDEN,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            null,
+                            null,
+                            AlfioMetadata.empty()));
+            Pair<Event, String> eventAndUser = initEvent(
+                    categories,
+                    organizationRepository,
+                    userManager,
+                    eventManager,
+                    eventRepository,
+                    List.of(),
+                    Event.EventFormat.IN_PERSON,
+                    vatStatus);
             return new ReservationFlowContext(eventAndUser.getLeft(), owner(eventAndUser.getRight()));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -134,9 +184,19 @@ class CustomTaxPolicyIntegrationTest {
         ticketRequest.setTicketCategoryId(categories.get(0).getId());
 
         var request = List.of(new TicketReservationWithOptionalCodeModification(ticketRequest, Optional.empty()));
-        var reservationId = ticketReservationManager.createTicketReservation(context.event, request, List.of(), DateUtils.addDays(new Date(), 1), Optional.empty(), Locale.ENGLISH, false, null);
+        var reservationId = ticketReservationManager.createTicketReservation(
+                context.event,
+                request,
+                List.of(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
 
-        var totalPrice = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();
+        var totalPrice = ticketReservationManager
+                .totalReservationCostWithVAT(reservationId)
+                .getLeft();
         assertEquals(20000, totalPrice.getPriceWithVAT());
 
         var tickets = ticketRepository.findTicketsInReservation(reservationId);
@@ -148,20 +208,28 @@ class CustomTaxPolicyIntegrationTest {
         contactAndTicketsForm.setLastName("Customer");
         contactAndTicketsForm.setEmail("email@customer.com");
         contactAndTicketsForm.setTickets(Map.of(
-            firstUuid.toString(), updateTicketOwnerForm("example@example.org"),
-            secondUuid.toString(), updateTicketOwnerForm("example@example1.org")
-        ));
+                firstUuid.toString(), updateTicketOwnerForm("example@example.org"),
+                secondUuid.toString(), updateTicketOwnerForm("example@example1.org")));
         var bindingResult = new BeanPropertyBindingResult(contactAndTicketsForm, "form");
-        var response = reservationApiV2Controller.validateToOverview(reservationId, "en", false, contactAndTicketsForm, bindingResult, null);
+        var response = reservationApiV2Controller.validateToOverview(
+                reservationId, "en", false, contactAndTicketsForm, bindingResult, null);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
         // verify that first ticket has the expected tax settings
-        assertEquals(PriceContainer.VatStatus.CUSTOM_INCLUDED_EXEMPT, ticketRepository.findByPublicUUID(firstUuid).getVatStatus());
-        assertEquals(PriceContainer.VatStatus.INCLUDED, ticketRepository.findByPublicUUID(secondUuid).getVatStatus());
-        totalPrice = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();
+        assertEquals(
+                PriceContainer.VatStatus.CUSTOM_INCLUDED_EXEMPT,
+                ticketRepository.findByPublicUUID(firstUuid).getVatStatus());
+        assertEquals(
+                PriceContainer.VatStatus.INCLUDED,
+                ticketRepository.findByPublicUUID(secondUuid).getVatStatus());
+        totalPrice = ticketReservationManager
+                .totalReservationCostWithVAT(reservationId)
+                .getLeft();
         assertEquals(19901, totalPrice.getPriceWithVAT());
-        assertEquals(19901, ticketReservationManager.findById(reservationId).orElseThrow().getFinalPriceCts());
+        assertEquals(
+                19901,
+                ticketReservationManager.findById(reservationId).orElseThrow().getFinalPriceCts());
     }
 
     @Test
@@ -174,9 +242,19 @@ class CustomTaxPolicyIntegrationTest {
         ticketRequest.setTicketCategoryId(categories.get(0).getId());
 
         var request = List.of(new TicketReservationWithOptionalCodeModification(ticketRequest, Optional.empty()));
-        var reservationId = ticketReservationManager.createTicketReservation(context.event, request, List.of(), DateUtils.addDays(new Date(), 1), Optional.empty(), Locale.ENGLISH, false, null);
+        var reservationId = ticketReservationManager.createTicketReservation(
+                context.event,
+                request,
+                List.of(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
 
-        var totalPrice = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();
+        var totalPrice = ticketReservationManager
+                .totalReservationCostWithVAT(reservationId)
+                .getLeft();
         assertEquals(20200, totalPrice.getPriceWithVAT());
 
         var tickets = ticketRepository.findTicketsInReservation(reservationId);
@@ -188,20 +266,28 @@ class CustomTaxPolicyIntegrationTest {
         contactAndTicketsForm.setLastName("Customer");
         contactAndTicketsForm.setEmail("email@customer.com");
         contactAndTicketsForm.setTickets(Map.of(
-            firstUuid.toString(), updateTicketOwnerForm("example@example.org"),
-            secondUuid.toString(), updateTicketOwnerForm("example@example1.org")
-        ));
+                firstUuid.toString(), updateTicketOwnerForm("example@example.org"),
+                secondUuid.toString(), updateTicketOwnerForm("example@example1.org")));
         var bindingResult = new BeanPropertyBindingResult(contactAndTicketsForm, "form");
-        var response = reservationApiV2Controller.validateToOverview(reservationId, "en", false, contactAndTicketsForm, bindingResult, null);
+        var response = reservationApiV2Controller.validateToOverview(
+                reservationId, "en", false, contactAndTicketsForm, bindingResult, null);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
         // verify that first ticket has the expected tax settings
-        assertEquals(PriceContainer.VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT, ticketRepository.findByPublicUUID(firstUuid).getVatStatus());
-        assertEquals(PriceContainer.VatStatus.NOT_INCLUDED, ticketRepository.findByPublicUUID(secondUuid).getVatStatus());
-        totalPrice = ticketReservationManager.totalReservationCostWithVAT(reservationId).getLeft();
+        assertEquals(
+                PriceContainer.VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT,
+                ticketRepository.findByPublicUUID(firstUuid).getVatStatus());
+        assertEquals(
+                PriceContainer.VatStatus.NOT_INCLUDED,
+                ticketRepository.findByPublicUUID(secondUuid).getVatStatus());
+        totalPrice = ticketReservationManager
+                .totalReservationCostWithVAT(reservationId)
+                .getLeft();
         assertEquals(20100, totalPrice.getPriceWithVAT());
-        assertEquals(20100, ticketReservationManager.findById(reservationId).orElseThrow().getFinalPriceCts());
+        assertEquals(
+                20100,
+                ticketReservationManager.findById(reservationId).orElseThrow().getFinalPriceCts());
     }
 
     private static UpdateTicketOwnerForm updateTicketOwnerForm(String email) {

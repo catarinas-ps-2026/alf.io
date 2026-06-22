@@ -16,10 +16,9 @@
  */
 package alfio.model;
 
-import java.util.Date;
-
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
+import java.util.Date;
 import lombok.Getter;
 
 @Getter
@@ -35,15 +34,16 @@ public class TicketReservationInfo {
     private final int eventId;
     private final Date validity;
 
-    public TicketReservationInfo(@Column("id") String id,
-                                 @Column("full_name") String fullName,
-                                 @Column("first_name") String firstName,
-                                 @Column("last_name") String lastName,
-                                 @Column("email_address") String email,
-                                 @Column("final_price_cts") Integer finalPriceCts,
-                                 @Column("currency_code") String currencyCode,
-                                 @Column("event_id_fk") int eventId,
-                                 @Column("validity") Date validity) {
+    public TicketReservationInfo(
+            @Column("id") String id,
+            @Column("full_name") String fullName,
+            @Column("first_name") String firstName,
+            @Column("last_name") String lastName,
+            @Column("email_address") String email,
+            @Column("final_price_cts") Integer finalPriceCts,
+            @Column("currency_code") String currencyCode,
+            @Column("event_id_fk") int eventId,
+            @Column("validity") Date validity) {
         this.id = id;
         this.fullName = fullName;
         this.firstName = firstName;
@@ -60,7 +60,7 @@ public class TicketReservationInfo {
     }
 
     public String getTotalAmount() {
-        if(finalPriceCts > 0) {
+        if (finalPriceCts > 0) {
             return MonetaryUtil.formatCents(finalPriceCts, currencyCode);
         }
         return null;

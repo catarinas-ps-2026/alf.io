@@ -16,17 +16,16 @@
  */
 package alfio.manager;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.tuple.Pair;
+import static alfio.manager.CheckInManager.CYPHER_SPLITTER;
+import static alfio.manager.CheckInManager.getCypher;
 
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-
-import static alfio.manager.CheckInManager.CYPHER_SPLITTER;
-import static alfio.manager.CheckInManager.getCypher;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class CheckInManagerInvoker {
     public static String decrypt(String key, String payload) {

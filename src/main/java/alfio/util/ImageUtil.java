@@ -16,6 +16,9 @@
  */
 package alfio.util;
 
+import static org.apache.commons.lang3.StringUtils.center;
+import static org.apache.commons.lang3.StringUtils.truncate;
+
 import alfio.manager.FileUploadManager;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -24,19 +27,15 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.EnumMap;
 import java.util.Map;
-
-import static org.apache.commons.lang3.StringUtils.center;
-import static org.apache.commons.lang3.StringUtils.truncate;
+import javax.imageio.ImageIO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 
 public final class ImageUtil {
 
@@ -50,7 +49,8 @@ public final class ImageUtil {
     private static File loadDejaVuFont(String name) {
         try {
             var cachedFile = File.createTempFile("font-cache", ".tmp");
-            try (InputStream is = new ClassPathResource(name).getInputStream(); OutputStream tmpOs = new FileOutputStream(cachedFile)) {
+            try (InputStream is = new ClassPathResource(name).getInputStream();
+                    OutputStream tmpOs = new FileOutputStream(cachedFile)) {
                 is.transferTo(tmpOs);
             }
             return cachedFile;
@@ -72,9 +72,7 @@ public final class ImageUtil {
         return fileUploadManager.getFile(FONT_SECTION, "DejaVuSerif", () -> loadDejaVuFont(DEJA_VU_SERIF));
     }
 
-
-    private ImageUtil() {
-    }
+    private ImageUtil() {}
 
     public static byte[] createQRCode(String text) {
         try {
@@ -93,14 +91,15 @@ public final class ImageUtil {
         return new MultiFormatWriter().encode(text, BarcodeFormat.QR_CODE, 200, 200, hintMap);
     }
 
-    public static byte[] createQRCodeWithDescription(String text, String description, FileUploadManager fileUploadManager) {
+    public static byte[] createQRCodeWithDescription(
+            String text, String description, FileUploadManager fileUploadManager) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             BitMatrix matrix = drawQRCode(text);
             BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(matrix);
             BufferedImage scaled = new BufferedImage(200, 230, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D graphics = (Graphics2D)scaled.getGraphics();
+            Graphics2D graphics = (Graphics2D) scaled.getGraphics();
             graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            graphics.drawImage(bufferedImage, 0,0, null);
+            graphics.drawImage(bufferedImage, 0, 0, null);
             graphics.setColor(Color.WHITE);
             graphics.fillRect(0, 200, 200, 30);
             graphics.setColor(Color.BLACK);
@@ -115,5 +114,4 @@ public final class ImageUtil {
             throw new IllegalStateException(e);
         }
     }
-
 }

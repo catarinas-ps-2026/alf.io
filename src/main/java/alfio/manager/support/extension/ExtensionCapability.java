@@ -16,13 +16,13 @@
  */
 package alfio.manager.support.extension;
 
+import static alfio.manager.support.extension.ExtensionEvent.EVENT_METADATA_UPDATE;
+import static alfio.manager.support.extension.ExtensionEvent.ONLINE_CHECK_IN_REDIRECT;
+
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static alfio.manager.support.extension.ExtensionEvent.EVENT_METADATA_UPDATE;
-import static alfio.manager.support.extension.ExtensionEvent.ONLINE_CHECK_IN_REDIRECT;
 
 public enum ExtensionCapability {
     // online event
@@ -32,8 +32,7 @@ public enum ExtensionCapability {
     CREATE_GUEST_LINK(EnumSet.of(EVENT_METADATA_UPDATE, ONLINE_CHECK_IN_REDIRECT)),
 
     // link with external applications
-    LINK_EXTERNAL_APPLICATION(EnumSet.of(EVENT_METADATA_UPDATE))
-    ;
+    LINK_EXTERNAL_APPLICATION(EnumSet.of(EVENT_METADATA_UPDATE));
 
     private final Set<ExtensionEvent> compatibleEvents;
 

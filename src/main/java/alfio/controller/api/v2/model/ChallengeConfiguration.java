@@ -19,21 +19,23 @@ package alfio.controller.api.v2.model;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.system.ConfigurationKeys;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
 
 public sealed interface ChallengeConfiguration permits EmptyChallengeConfiguration, TurnstileChallengeConfiguration {
 
     @JsonProperty
     String apiKey();
+
     @JsonProperty
     boolean enabled();
+
     @JsonProperty
     String providerId();
 
     static ChallengeConfiguration build(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration) {
         if (configuration.get(ConfigurationKeys.CF_TURNSTILE_ENABLED).getValueAsBooleanOrDefault()) {
-            var siteKey = configuration.get(ConfigurationKeys.CF_TURNSTILE_SITE_KEY).getRequiredValue();
+            var siteKey =
+                    configuration.get(ConfigurationKeys.CF_TURNSTILE_SITE_KEY).getRequiredValue();
             return new TurnstileChallengeConfiguration(siteKey, true);
         }
         return new EmptyChallengeConfiguration();

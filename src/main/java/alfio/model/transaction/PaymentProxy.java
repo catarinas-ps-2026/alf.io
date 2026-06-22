@@ -18,24 +18,79 @@ package alfio.model.transaction;
 
 import alfio.model.system.ConfigurationKeys;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public enum PaymentProxy {
 
     // TODO: remove this enum and move all his properties to the corresponding PaymentProvider implementations
 
-    STRIPE("stripe.com", false, true, EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_STRIPE), true, Collections.emptySet(), StaticPaymentMethods.CREDIT_CARD),
-    ON_SITE("on-site payment", true, true, Collections.emptySet(), false, Collections.emptySet(), StaticPaymentMethods.ON_SITE),
-    OFFLINE("offline payment", false, true, EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_OFFLINE), false, Collections.emptySet(), StaticPaymentMethods.BANK_TRANSFER),
-    NONE("no payment required", false, false, Collections.emptySet(), false, Collections.emptySet(), StaticPaymentMethods.NONE),
+    STRIPE(
+            "stripe.com",
+            false,
+            true,
+            EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_STRIPE),
+            true,
+            Collections.emptySet(),
+            StaticPaymentMethods.CREDIT_CARD),
+    ON_SITE(
+            "on-site payment",
+            true,
+            true,
+            Collections.emptySet(),
+            false,
+            Collections.emptySet(),
+            StaticPaymentMethods.ON_SITE),
+    OFFLINE(
+            "offline payment",
+            false,
+            true,
+            EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_OFFLINE),
+            false,
+            Collections.emptySet(),
+            StaticPaymentMethods.BANK_TRANSFER),
+    NONE(
+            "no payment required",
+            false,
+            false,
+            Collections.emptySet(),
+            false,
+            Collections.emptySet(),
+            StaticPaymentMethods.NONE),
     ADMIN("manual", false, false, Collections.emptySet(), false, Collections.emptySet(), StaticPaymentMethods.NONE),
-    PAYPAL("paypal", false, true, EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_PAYPAL), true, Collections.emptySet(), StaticPaymentMethods.PAYPAL),
-    MOLLIE("mollie", false, true, EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_MOLLIE), true, Collections.emptySet(), StaticPaymentMethods.IDEAL),
-    SAFERPAY("saferpay", false, true, EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_SAFERPAY), false, Collections.emptySet(), StaticPaymentMethods.CREDIT_CARD),
-    CUSTOM_OFFLINE("Custom Offline", false, true, EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_OFFLINE), false, Collections.emptySet(), StaticPaymentMethods.NONE);
+    PAYPAL(
+            "paypal",
+            false,
+            true,
+            EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_PAYPAL),
+            true,
+            Collections.emptySet(),
+            StaticPaymentMethods.PAYPAL),
+    MOLLIE(
+            "mollie",
+            false,
+            true,
+            EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_MOLLIE),
+            true,
+            Collections.emptySet(),
+            StaticPaymentMethods.IDEAL),
+    SAFERPAY(
+            "saferpay",
+            false,
+            true,
+            EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_SAFERPAY),
+            false,
+            Collections.emptySet(),
+            StaticPaymentMethods.CREDIT_CARD),
+    CUSTOM_OFFLINE(
+            "Custom Offline",
+            false,
+            true,
+            EnumSet.of(ConfigurationKeys.SettingCategory.PAYMENT_OFFLINE),
+            false,
+            Collections.emptySet(),
+            StaticPaymentMethods.NONE);
 
     private final String description;
     private final boolean deskPayment;
@@ -45,7 +100,14 @@ public enum PaymentProxy {
     private final Set<String> onlyForCurrency;
     private final PaymentMethod paymentMethod;
 
-    PaymentProxy(String description, boolean deskPayment, boolean visible, Set<ConfigurationKeys.SettingCategory> settingCategories, boolean supportRefund, Set<String> onlyForCurrency, PaymentMethod paymentMethod) {
+    PaymentProxy(
+            String description,
+            boolean deskPayment,
+            boolean visible,
+            Set<ConfigurationKeys.SettingCategory> settingCategories,
+            boolean supportRefund,
+            Set<String> onlyForCurrency,
+            PaymentMethod paymentMethod) {
         this.description = description;
         this.deskPayment = deskPayment;
         this.visible = visible;
@@ -81,7 +143,9 @@ public enum PaymentProxy {
     }
 
     public static Optional<PaymentProxy> safeValueOf(String name) {
-        return Arrays.stream(values()).filter(p -> StringUtils.equals(p.name(), name)).findFirst();
+        return Arrays.stream(values())
+                .filter(p -> StringUtils.equals(p.name(), name))
+                .findFirst();
     }
 
     public static List<PaymentProxy> availableProxies() {
@@ -89,7 +153,10 @@ public enum PaymentProxy {
     }
 
     public static PaymentProxy fromPaymentMethod(PaymentMethod paymentMethod) {
-        return availableProxies().stream().filter(pp -> pp.getPaymentMethod() == paymentMethod).findFirst().orElse(null);
+        return availableProxies().stream()
+                .filter(pp -> pp.getPaymentMethod() == paymentMethod)
+                .findFirst()
+                .orElse(null);
     }
 
     public Set<String> getOnlyForCurrency() {

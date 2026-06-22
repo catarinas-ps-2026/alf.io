@@ -19,15 +19,14 @@ package alfio.controller.api.admin;
 import alfio.manager.AccessService;
 import alfio.manager.support.CustomMessageManager;
 import alfio.model.modification.MessageModification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/api/events/{eventName}/messages")
@@ -37,8 +36,7 @@ public class CustomMessagesApiController {
     private final CustomMessageManager customMessageManager;
     private final AccessService accessService;
 
-    public CustomMessagesApiController(CustomMessageManager customMessageManager,
-                                       AccessService accessService) {
+    public CustomMessagesApiController(CustomMessageManager customMessageManager, AccessService accessService) {
         this.customMessageManager = customMessageManager;
         this.accessService = accessService;
     }
@@ -52,20 +50,24 @@ public class CustomMessagesApiController {
     }
 
     @PostMapping("/preview")
-    public Map<String, Object> preview(@PathVariable String eventName,
-                                       @RequestParam(required = false, value = "categoryId") Integer categoryId,
-                                       @RequestBody List<MessageModification> messageModifications, Principal principal) {
+    public Map<String, Object> preview(
+            @PathVariable String eventName,
+            @RequestParam(required = false, value = "categoryId") Integer categoryId,
+            @RequestBody List<MessageModification> messageModifications,
+            Principal principal) {
         accessService.checkEventOwnership(principal, eventName);
-        return customMessageManager.generatePreview(eventName, Optional.ofNullable(categoryId), messageModifications, principal.getName());
+        return customMessageManager.generatePreview(
+                eventName, Optional.ofNullable(categoryId), messageModifications, principal.getName());
     }
 
     @PostMapping("/send")
-    public void send(@PathVariable String eventName,
-                    @RequestParam(required = false, value = "categoryId") Integer categoryId,
-                    @RequestBody List<MessageModification> messageModifications,
-                    Principal principal) {
+    public void send(
+            @PathVariable String eventName,
+            @RequestParam(required = false, value = "categoryId") Integer categoryId,
+            @RequestBody List<MessageModification> messageModifications,
+            Principal principal) {
         accessService.checkEventOwnership(principal, eventName);
-        customMessageManager.sendMessages(eventName, Optional.ofNullable(categoryId), messageModifications, principal.getName());
+        customMessageManager.sendMessages(
+                eventName, Optional.ofNullable(categoryId), messageModifications, principal.getName());
     }
-
 }

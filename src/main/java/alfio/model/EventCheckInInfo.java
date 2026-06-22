@@ -17,7 +17,6 @@
 package alfio.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.time.ZonedDateTime;
 
 public interface EventCheckInInfo extends TimeZoneInfo {
@@ -27,9 +26,13 @@ public interface EventCheckInInfo extends TimeZoneInfo {
     String VERSION_FOR_ADDITIONAL_ITEMS_ORDINAL = "205.2.0.0.58";
 
     int getId();
+
     String getPrivateKey();
+
     ZonedDateTime getBegin();
+
     ZonedDateTime getEnd();
+
     Event.EventFormat getFormat();
 
     @JsonIgnore
@@ -39,5 +42,4 @@ public interface EventCheckInInfo extends TimeZoneInfo {
     boolean supportsLinkedAdditionalServices();
 
     boolean supportsAdditionalServicesOrdinal();
-
 }

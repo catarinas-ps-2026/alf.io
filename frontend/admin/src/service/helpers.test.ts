@@ -90,12 +90,32 @@ describe('toDateTimeModification', () => {
     // - PE3: String vacío (0 chars)
     // - VL: Longitudes exactas 0, 10, 16
     it.each([
-        ['ISO datetime completo', '2025-01-15T10:00:00', { date: '2025-01-15', time: '10:00' }],
-        ['ISO con timezone', '2025-12-31T23:59:00+02:00', { date: '2025-12-31', time: '23:59' }],
-        ['fecha mínima', '2000-01-01T00:00:00', { date: '2000-01-01', time: '00:00' }],
-        ['solo fecha (10 chars)', '2025-01-15', { date: '2025-01-15', time: '' }],
+        [
+            'ISO datetime completo',
+            '2025-01-15T10:00:00',
+            { date: '2025-01-15', time: '10:00' },
+        ],
+        [
+            'ISO con timezone',
+            '2025-12-31T23:59:00+02:00',
+            { date: '2025-12-31', time: '23:59' },
+        ],
+        [
+            'fecha mínima',
+            '2000-01-01T00:00:00',
+            { date: '2000-01-01', time: '00:00' },
+        ],
+        [
+            'solo fecha (10 chars)',
+            '2025-01-15',
+            { date: '2025-01-15', time: '' },
+        ],
         ['string vacío', '', { date: '', time: '' }],
-        ['exactamente 16 chars', '2025-01-15T10:00', { date: '2025-01-15', time: '10:00' }],
+        [
+            'exactamente 16 chars',
+            '2025-01-15T10:00',
+            { date: '2025-01-15', time: '10:00' },
+        ],
     ])('parsea %s: "%s"', (_label, input, expected) => {
         expect(toDateTimeModification(input)).toEqual(expected);
     });
@@ -186,7 +206,14 @@ describe('supportedLanguages', () => {
     });
 
     it('retorna array con datos', () => {
-        const data = [{ locale: 'en', value: 1, language: 'English', displayLanguage: 'English' }];
+        const data = [
+            {
+                locale: 'en',
+                value: 1,
+                language: 'English',
+                displayLanguage: 'English',
+            },
+        ];
         (window as any).SUPPORTED_LANGUAGES = JSON.stringify(data);
         expect(supportedLanguages()).toEqual(data);
     });
@@ -246,7 +273,10 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
     let fetchMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-        fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+        fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({}),
+        } as Response);
         vi.stubGlobal('fetch', fetchMock);
         const metaHeader = document.createElement('meta');
         metaHeader.setAttribute('name', '_csrf_header');
@@ -260,7 +290,9 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
     });
 
     afterEach(() => {
-        document.head.querySelectorAll('meta[name="_csrf_header"], meta[name="_csrf"]').forEach(el => el.remove());
+        document.head
+            .querySelectorAll('meta[name="_csrf_header"], meta[name="_csrf"]')
+            .forEach((el) => el.remove());
         vi.restoreAllMocks();
     });
 
@@ -272,7 +304,9 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(fetchMock).toHaveBeenCalled();
         const callArgs = fetchMock.mock.calls[0];
         const headers = callArgs[1].headers;
-        expect(headers['Content-Type']).toBe('application/x-www-form-urlencoded');
+        expect(headers['Content-Type']).toBe(
+            'application/x-www-form-urlencoded',
+        );
     });
 
     it('postJson envía objeto JSON con content-type correcto', async () => {
@@ -328,7 +362,9 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
         expect(fetchMock).toHaveBeenCalled();
         const callArgs = fetchMock.mock.calls[0];
         expect(callArgs[1].method).toBe('PUT');
-        expect(callArgs[1].headers['Content-Type']).toBe('application/x-www-form-urlencoded');
+        expect(callArgs[1].headers['Content-Type']).toBe(
+            'application/x-www-form-urlencoded',
+        );
     });
 
     it('postJson envía objeto vacío como "{}"', async () => {
@@ -405,7 +441,9 @@ describe('fetchJson', () => {
         fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
         vi.stubGlobal('fetch', fetchMock);
 
-        await expect(fetchJson('https://example.com/api/test')).rejects.toThrow('Network error');
+        await expect(fetchJson('https://example.com/api/test')).rejects.toThrow(
+            'Network error',
+        );
     });
 });
 
@@ -415,7 +453,8 @@ describe('renderIf', () => {
     // - PE2: predicate false → retorna nothing
     it('retorna template cuando predicate es true', () => {
         const predicate = () => true;
-        const template = () => ({ strings: ['<div>content</div>'], values: [] } as any);
+        const template = () =>
+            ({ strings: ['<div>content</div>'], values: [] }) as any;
 
         const result = renderIf(predicate, template);
         expect(result).toBeDefined();
@@ -423,7 +462,8 @@ describe('renderIf', () => {
 
     it('retorna nothing cuando predicate es false', () => {
         const predicate = () => false;
-        const template = () => ({ strings: ['<div>content</div>'], values: [] } as any);
+        const template = () =>
+            ({ strings: ['<div>content</div>'], values: [] }) as any;
 
         const result = renderIf(predicate, template);
         expect(result).toBeDefined();

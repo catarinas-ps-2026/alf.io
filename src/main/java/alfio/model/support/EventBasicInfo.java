@@ -24,8 +24,8 @@ public class EventBasicInfo {
     private final String displayName;
 
     @JsonCreator
-    public EventBasicInfo(@JsonProperty("shortName") String shortName,
-                          @JsonProperty("displayName") String displayName) {
+    public EventBasicInfo(
+            @JsonProperty("shortName") String shortName, @JsonProperty("displayName") String displayName) {
         this.shortName = shortName;
         this.displayName = displayName;
     }

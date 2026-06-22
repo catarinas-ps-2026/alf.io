@@ -16,39 +16,41 @@
  */
 package alfio.util;
 
-import org.apache.commons.lang3.StringUtils;
-import org.joda.money.CurrencyUnit;
+import static java.math.RoundingMode.*;
 
 import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
-
-import static java.math.RoundingMode.*;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.money.CurrencyUnit;
 
 public final class MonetaryUtil {
 
     public static final BigDecimal HUNDRED = new BigDecimal("100.00");
     private static final int ROUNDING_SCALE = 10;
 
-    private MonetaryUtil() {
-    }
+    private MonetaryUtil() {}
 
     public static int addVAT(int priceInCents, BigDecimal vat) {
         return addVAT(new BigDecimal(priceInCents), vat).intValueExact();
     }
 
     private static BigDecimal addVAT(BigDecimal price, BigDecimal vat) {
-        return price.add(price.multiply(vat.divide(HUNDRED, ROUNDING_SCALE, UP))).setScale(0, HALF_UP);
+        return price.add(price.multiply(vat.divide(HUNDRED, ROUNDING_SCALE, UP)))
+                .setScale(0, HALF_UP);
     }
 
     public static BigDecimal extractVAT(BigDecimal price, BigDecimal vat) {
-        return price.subtract(price.divide(BigDecimal.ONE.add(vat.divide(HUNDRED, ROUNDING_SCALE, UP)), ROUNDING_SCALE, HALF_DOWN));
+        return price.subtract(
+                price.divide(BigDecimal.ONE.add(vat.divide(HUNDRED, ROUNDING_SCALE, UP)), ROUNDING_SCALE, HALF_DOWN));
     }
 
-    public static <T extends Number> T calcPercentage(long priceInCents, BigDecimal vat, Function<BigDecimal, T> converter) {
-        BigDecimal result = new BigDecimal(priceInCents).multiply(vat.divide(HUNDRED, ROUNDING_SCALE, UP))
-            .setScale(0, HALF_UP);
+    public static <T extends Number> T calcPercentage(
+            long priceInCents, BigDecimal vat, Function<BigDecimal, T> converter) {
+        BigDecimal result = new BigDecimal(priceInCents)
+                .multiply(vat.divide(HUNDRED, ROUNDING_SCALE, UP))
+                .setScale(0, HALF_UP);
         return converter.apply(result);
     }
 
@@ -65,7 +67,7 @@ public final class MonetaryUtil {
     }
 
     public static BigDecimal centsToUnit(long cents, String currencyCode, boolean formatZero) {
-        if((cents == 0 && !formatZero) || StringUtils.isEmpty(currencyCode)) {
+        if ((cents == 0 && !formatZero) || StringUtils.isEmpty(currencyCode)) {
             return BigDecimal.ZERO;
         }
         var currencyUnit = CurrencyUnit.of(currencyCode.toUpperCase(Locale.ENGLISH));
@@ -85,8 +87,11 @@ public final class MonetaryUtil {
         return unitToCents(unit, currencyCode, BigDecimal::intValueExact);
     }
 
-    public static <T extends Number> T unitToCents(BigDecimal unit, String currencyCode, Function<BigDecimal, T> converter) {
-        int scale = StringUtils.isEmpty(currencyCode) ? 2 : CurrencyUnit.of(currencyCode.toUpperCase(Locale.ENGLISH)).getDecimalPlaces();
+    public static <T extends Number> T unitToCents(
+            BigDecimal unit, String currencyCode, Function<BigDecimal, T> converter) {
+        int scale = StringUtils.isEmpty(currencyCode)
+                ? 2
+                : CurrencyUnit.of(currencyCode.toUpperCase(Locale.ENGLISH)).getDecimalPlaces();
         BigDecimal result = unit.multiply(BigDecimal.TEN.pow(scale)).setScale(0, HALF_UP);
         return converter.apply(result);
     }
@@ -112,12 +117,14 @@ public final class MonetaryUtil {
         }
 
         var currencyUnit = CurrencyUnit.of(Objects.requireNonNull(currencyCode).toUpperCase(Locale.ENGLISH));
-        return Objects.requireNonNull(unit).setScale(currencyUnit.getDecimalPlaces(), HALF_UP).toPlainString();
+        return Objects.requireNonNull(unit)
+                .setScale(currencyUnit.getDecimalPlaces(), HALF_UP)
+                .toPlainString();
     }
 
     public static String formatPercentage(int percentageCts) {
-        return formatPercentage(new BigDecimal(percentageCts).divide(HUNDRED, HALF_UP)
-            .setScale(2, HALF_UP));
+        return formatPercentage(
+                new BigDecimal(percentageCts).divide(HUNDRED, HALF_UP).setScale(2, HALF_UP));
     }
 
     public static String formatPercentage(BigDecimal unit) {

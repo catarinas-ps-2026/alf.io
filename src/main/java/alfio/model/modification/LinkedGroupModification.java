@@ -32,13 +32,14 @@ public class LinkedGroupModification {
     private final Integer maxAllocation;
 
     @JsonCreator
-    public LinkedGroupModification(@JsonProperty("id") Integer id,
-                                   @JsonProperty("groupId") int groupId,
-                                   @JsonProperty("eventId") int eventId,
-                                   @JsonProperty("ticketCategoryId") Integer ticketCategoryId,
-                                   @JsonProperty("type") LinkedGroup.Type type,
-                                   @JsonProperty("matchType") LinkedGroup.MatchType matchType,
-                                   @JsonProperty("maxAllocation") Integer maxAllocation) {
+    public LinkedGroupModification(
+            @JsonProperty("id") Integer id,
+            @JsonProperty("groupId") int groupId,
+            @JsonProperty("eventId") int eventId,
+            @JsonProperty("ticketCategoryId") Integer ticketCategoryId,
+            @JsonProperty("type") LinkedGroup.Type type,
+            @JsonProperty("matchType") LinkedGroup.MatchType matchType,
+            @JsonProperty("maxAllocation") Integer maxAllocation) {
         this.id = id;
         this.groupId = groupId;
         this.eventId = eventId;

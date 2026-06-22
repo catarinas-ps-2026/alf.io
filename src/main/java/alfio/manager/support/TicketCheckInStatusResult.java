@@ -25,7 +25,8 @@ public class TicketCheckInStatusResult {
     private final CheckInStatus checkInStatus;
     private final List<String> tags;
 
-    public TicketCheckInStatusResult(String ticketUuid, String firstName, String lastName, CheckInStatus checkInStatus, List<String> tags) {
+    public TicketCheckInStatusResult(
+            String ticketUuid, String firstName, String lastName, CheckInStatus checkInStatus, List<String> tags) {
         this.ticketUuid = ticketUuid;
         this.firstName = firstName;
         this.lastName = lastName;

@@ -18,10 +18,9 @@ package alfio.manager.support;
 
 import alfio.manager.system.Mailer;
 import alfio.util.TemplateResource;
-import lombok.AllArgsConstructor;
-
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class ConfirmationEmailConfiguration {

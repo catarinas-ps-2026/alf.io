@@ -28,16 +28,15 @@ import alfio.model.system.ConfigurationKeys;
 import alfio.model.system.ConfigurationPathLevel;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/admin/configuration")
@@ -47,30 +46,34 @@ public class ConfigurationApiV1Controller {
     private final AccessService accessService;
     private final PurchaseContextManager purchaseContextManager;
 
-    public ConfigurationApiV1Controller(ConfigurationManager configurationManager,
-                                        PurchaseContextManager purchaseContextManager,
-                                        AccessService accessService) {
+    public ConfigurationApiV1Controller(
+            ConfigurationManager configurationManager,
+            PurchaseContextManager purchaseContextManager,
+            AccessService accessService) {
         this.configurationManager = configurationManager;
         this.accessService = accessService;
         this.purchaseContextManager = purchaseContextManager;
     }
 
     @PutMapping("/organization/{organizationId}")
-    public ResponseEntity<String> saveConfigurationForOrganization(@PathVariable int organizationId,
-                                                                   @RequestBody Map<String, String> configurationKeyValues,
-                                                                   Principal principal) {
+    public ResponseEntity<String> saveConfigurationForOrganization(
+            @PathVariable int organizationId,
+            @RequestBody Map<String, String> configurationKeyValues,
+            Principal principal) {
         accessService.checkOrganizationOwnership(principal, organizationId);
         var configurationKeys = configurationKeyValues.keySet().stream()
-            .map(ConfigurationKeys::safeValueOf)
-            .collect(Collectors.toSet());
-        var validationErrorOptional = validateInput(ConfigurationPathLevel.ORGANIZATION, configurationKeyValues, configurationKeys);
+                .map(ConfigurationKeys::safeValueOf)
+                .collect(Collectors.toSet());
+        var validationErrorOptional =
+                validateInput(ConfigurationPathLevel.ORGANIZATION, configurationKeyValues, configurationKeys);
         if (validationErrorOptional.isPresent()) {
             return validationErrorOptional.get();
         }
-        var existingIds = configurationManager.loadOrganizationConfig(organizationId, principal.getName()).values().stream()
-            .flatMap(List::stream)
-            .filter(c -> configurationKeys.contains(c.getConfigurationKey()))
-            .collect(Collectors.toMap(Configuration::getKey, Configuration::getId));
+        var existingIds =
+                configurationManager.loadOrganizationConfig(organizationId, principal.getName()).values().stream()
+                        .flatMap(List::stream)
+                        .filter(c -> configurationKeys.contains(c.getConfigurationKey()))
+                        .collect(Collectors.toMap(Configuration::getKey, Configuration::getId));
         var toSave = configurationKeyValues.entrySet().stream()
                 .map(ckv -> new ConfigurationModification(existingIds.get(ckv.getKey()), ckv.getKey(), ckv.getValue()))
                 .collect(Collectors.toList());
@@ -79,18 +82,20 @@ public class ConfigurationApiV1Controller {
     }
 
     @PutMapping("/organization/{organizationId}/{purchaseContextType}/{publicIdentifier}")
-    public ResponseEntity<String> saveConfigurationForPurchaseContext(@PathVariable int organizationId,
-                                                                      @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                                                      @PathVariable String publicIdentifier,
-                                                                      @RequestBody Map<String, String> configurationKeyValues,
-                                                                      Principal principal) {
+    public ResponseEntity<String> saveConfigurationForPurchaseContext(
+            @PathVariable int organizationId,
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @RequestBody Map<String, String> configurationKeyValues,
+            Principal principal) {
         var configurationKeys = configurationKeyValues.keySet().stream()
-            .map(ConfigurationKeys::safeValueOf)
-            .collect(Collectors.toSet());
+                .map(ConfigurationKeys::safeValueOf)
+                .collect(Collectors.toSet());
 
         accessService.checkOrganizationOwnership(principal, organizationId);
 
-        var validationErrorOptional = validateInput(ConfigurationPathLevel.PURCHASE_CONTEXT, configurationKeyValues, configurationKeys);
+        var validationErrorOptional =
+                validateInput(ConfigurationPathLevel.PURCHASE_CONTEXT, configurationKeyValues, configurationKeys);
 
         if (validationErrorOptional.isPresent()) {
             return validationErrorOptional.get();
@@ -111,25 +116,27 @@ public class ConfigurationApiV1Controller {
         if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {
             int eventId = ((Event) purchaseContext).getId();
             var existingIds = configurationManager.loadEventConfig(eventId, principal.getName()).values().stream()
-                .flatMap(List::stream)
-                .filter(c -> configurationKeys.contains(c.getConfigurationKey()))
-                .collect(Collectors.toMap(Configuration::getKey, Configuration::getId));
+                    .flatMap(List::stream)
+                    .filter(c -> configurationKeys.contains(c.getConfigurationKey()))
+                    .collect(Collectors.toMap(Configuration::getKey, Configuration::getId));
             var toSave = configurationKeyValues.entrySet().stream()
-                .map(ckv -> new ConfigurationModification(existingIds.get(ckv.getKey()), ckv.getKey(), ckv.getValue()))
-                .collect(Collectors.toList());
+                    .map(ckv ->
+                            new ConfigurationModification(existingIds.get(ckv.getKey()), ckv.getKey(), ckv.getValue()))
+                    .collect(Collectors.toList());
             configurationManager.saveAllEventConfiguration(eventId, organizationId, toSave, principal.getName());
         } else {
             var sd = (SubscriptionDescriptor) purchaseContext;
-            var existingIds = configurationManager.loadSubscriptionDescriptorConfig(sd, principal.getName()).values().stream()
-                .flatMap(List::stream)
-                .filter(c -> configurationKeys.contains(c.getConfigurationKey()))
-                .collect(Collectors.toMap(Configuration::getKey, Configuration::getId));
+            var existingIds =
+                    configurationManager.loadSubscriptionDescriptorConfig(sd, principal.getName()).values().stream()
+                            .flatMap(List::stream)
+                            .filter(c -> configurationKeys.contains(c.getConfigurationKey()))
+                            .collect(Collectors.toMap(Configuration::getKey, Configuration::getId));
             var toSave = configurationKeyValues.entrySet().stream()
-                .map(ckv -> new ConfigurationModification(existingIds.get(ckv.getKey()), ckv.getKey(), ckv.getValue()))
-                .collect(Collectors.toList());
+                    .map(ckv ->
+                            new ConfigurationModification(existingIds.get(ckv.getKey()), ckv.getKey(), ckv.getValue()))
+                    .collect(Collectors.toList());
             configurationManager.saveAllSubscriptionDescriptorConfiguration(sd, toSave, principal.getName());
         }
-
 
         return ResponseEntity.ok().body("OK");
     }
@@ -154,9 +161,10 @@ public class ConfigurationApiV1Controller {
         }
     }
 
-    private Optional<ResponseEntity<String>> validateInput(ConfigurationPathLevel configurationPathLevel,
-                                                           Map<String, String> configurationKeyValues,
-                                                           Set<ConfigurationKeys> configurationKeys) {
+    private Optional<ResponseEntity<String>> validateInput(
+            ConfigurationPathLevel configurationPathLevel,
+            Map<String, String> configurationKeyValues,
+            Set<ConfigurationKeys> configurationKeys) {
         if (configurationKeys.size() != configurationKeyValues.size()) {
             return Optional.of(ResponseEntity.badRequest().body("Request contains duplicate keys"));
         }

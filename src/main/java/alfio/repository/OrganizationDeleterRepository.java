@@ -19,43 +19,43 @@ package alfio.repository;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 @QueryRepository
 public interface OrganizationDeleterRepository {
 
     Logger LOGGER = LoggerFactory.getLogger(OrganizationDeleterRepository.class);
-    String SELECT_EMPTY_ORGANIZATIONS = "select distinct(org_id) from j_user_organization where org_id in(:organizationIds)";
+    String SELECT_EMPTY_ORGANIZATIONS =
+            "select distinct(org_id) from j_user_organization where org_id in(:organizationIds)";
 
-    @Query("delete from auditing where organization_id_fk in(:organizationIds)" +
-        " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from auditing where organization_id_fk in(:organizationIds)" + " and organization_id_fk not in ("
+            + SELECT_EMPTY_ORGANIZATIONS + ")")
     int deleteAuditingForEmptyOrganizations(@Bind("organizationIds") List<Integer> organizationIds);
 
-    @Query("delete from invoice_sequences where organization_id_fk in(:organizationIds)" +
-        " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from invoice_sequences where organization_id_fk in(:organizationIds)"
+            + " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
     int deleteInvoiceSequencesForEmptyOrganizations(@Bind("organizationIds") List<Integer> organizationIds);
 
-    @Query("delete from a_group where organization_id_fk in(:organizationIds)" +
-        " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from a_group where organization_id_fk in(:organizationIds)" + " and organization_id_fk not in ("
+            + SELECT_EMPTY_ORGANIZATIONS + ")")
     int deleteGroupsForEmptyOrganizations(@Bind("organizationIds") List<Integer> organizationIds);
 
-    @Query("delete from group_member where organization_id_fk in(:organizationIds)" +
-        " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from group_member where organization_id_fk in(:organizationIds)" + " and organization_id_fk not in ("
+            + SELECT_EMPTY_ORGANIZATIONS + ")")
     int deleteGroupMembersForEmptyOrganizations(@Bind("organizationIds") List<Integer> organizationIds);
 
-    @Query("delete from configuration_organization where organization_id_fk in(:organizationIds)" +
-        " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from configuration_organization where organization_id_fk in(:organizationIds)"
+            + " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
     int deleteConfigurationForEmptyOrganizations(@Bind("organizationIds") List<Integer> organizationIds);
 
-    @Query("delete from configuration_purchase_context where organization_id_fk in(:organizationIds)" +
-        " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from configuration_purchase_context where organization_id_fk in(:organizationIds)"
+            + " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
     int deleteConfigurationForPurchaseContexts(@Bind("organizationIds") List<Integer> organizationIds);
 
-    @Query("delete from resource_organizer where organization_id_fk in(:organizationIds)" +
-        " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from resource_organizer where organization_id_fk in(:organizationIds)"
+            + " and organization_id_fk not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
     int deleteResourcesForEmptyOrganizations(@Bind("organizationIds") List<Integer> organizationIds);
 
     @Query("delete from subscription where organization_id_fk in (:organizationIds)")
@@ -67,8 +67,8 @@ public interface OrganizationDeleterRepository {
     @Query("delete from promo_code where organization_id_fk in (:organizationIds)")
     int deletePromoCodes(@Bind("organizationIds") List<Integer> organizationIds);
 
-    @Query("delete from organization where id in(:organizationIds)" +
-        " and id not in (" + SELECT_EMPTY_ORGANIZATIONS + ")")
+    @Query("delete from organization where id in(:organizationIds)" + " and id not in (" + SELECT_EMPTY_ORGANIZATIONS
+            + ")")
     int deleteOrganizationsIfEmpty(@Bind("organizationIds") List<Integer> organizationIds);
 
     @Query("delete from tickets_reservation where organization_id_fk in (:organizationIds)")
@@ -124,7 +124,8 @@ public interface OrganizationDeleterRepository {
         // delete subscriptions
         int deletedSubscriptions = deleteSubscriptions(organizationIds);
         int deletedDescriptors = deleteSubscriptionDescriptors(organizationIds);
-        LOGGER.info("deleted {} subscription descriptors and {} subscriptions", deletedDescriptors, deletedSubscriptions);
+        LOGGER.info(
+                "deleted {} subscription descriptors and {} subscriptions", deletedDescriptors, deletedSubscriptions);
 
         int deletedTransactions = deleteAllTransactions(organizationIds);
         LOGGER.info("deleted {} transactions", deletedTransactions);
@@ -147,6 +148,5 @@ public interface OrganizationDeleterRepository {
 
         int deletedOrganizations = deleteOrganizationsIfEmpty(organizationIds);
         LOGGER.info("deleted {} empty organizations", deletedOrganizations);
-
     }
 }

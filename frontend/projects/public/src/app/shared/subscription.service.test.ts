@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { SubscriptionService, getLocalizedContent } from './subscription.service';
+import {
+    HttpClientTestingModule,
+    HttpTestingController,
+} from '@angular/common/http/testing';
+import {
+    SubscriptionService,
+    getLocalizedContent,
+} from './subscription.service';
 
 describe('SubscriptionService', () => {
     let service: SubscriptionService;
@@ -44,7 +50,9 @@ describe('SubscriptionService', () => {
                 expect(result).toEqual(mockResponse);
             });
 
-            const req = httpMock.expectOne((u) => u.url.includes('/api/v2/public/subscriptions'));
+            const req = httpMock.expectOne((u) =>
+                u.url.includes('/api/v2/public/subscriptions'),
+            );
             expect(req.request.method).toBe('GET');
             req.flush(mockResponse);
         });
@@ -58,7 +66,9 @@ describe('SubscriptionService', () => {
                 expect(result).toEqual(mockResponse);
             });
 
-            const req = httpMock.expectOne('/api/v2/public/subscription/sub-123');
+            const req = httpMock.expectOne(
+                '/api/v2/public/subscription/sub-123',
+            );
             expect(req.request.method).toBe('GET');
             req.flush(mockResponse);
         });
@@ -69,7 +79,9 @@ describe('SubscriptionService', () => {
             service.getSubscriptionById('sub-123').subscribe();
             service.getSubscriptionById('sub-123').subscribe();
 
-            const req = httpMock.expectOne('/api/v2/public/subscription/sub-123');
+            const req = httpMock.expectOne(
+                '/api/v2/public/subscription/sub-123',
+            );
             expect(req.request.method).toBe('GET');
             req.flush(mockResponse);
         });
@@ -83,7 +95,9 @@ describe('SubscriptionService', () => {
                 expect(result).toEqual(mockResponse);
             });
 
-            const req = httpMock.expectOne('/api/v2/public/subscription/sub-123');
+            const req = httpMock.expectOne(
+                '/api/v2/public/subscription/sub-123',
+            );
             expect(req.request.method).toBe('POST');
             expect(req.request.body).toEqual({});
             req.flush(mockResponse);
@@ -93,17 +107,23 @@ describe('SubscriptionService', () => {
     describe('getLocalizedContent', () => {
         it('should return content for current language', () => {
             const container = { en: 'English Content', it: 'Italian Content' };
-            expect(getLocalizedContent(container, 'en')).toBe('English Content');
+            expect(getLocalizedContent(container, 'en')).toBe(
+                'English Content',
+            );
         });
 
         it('should return content for different language', () => {
             const container = { en: 'English Content', it: 'Italian Content' };
-            expect(getLocalizedContent(container, 'it')).toBe('Italian Content');
+            expect(getLocalizedContent(container, 'it')).toBe(
+                'Italian Content',
+            );
         });
 
         it('should fallback to first language when current not found', () => {
             const container = { en: 'English Content', fr: 'French Content' };
-            expect(getLocalizedContent(container, 'it')).toBe('English Content');
+            expect(getLocalizedContent(container, 'it')).toBe(
+                'English Content',
+            );
         });
 
         it('should return undefined when container is empty', () => {

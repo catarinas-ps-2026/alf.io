@@ -23,7 +23,7 @@ public class NameNormalizer {
 
     public static String normalize(String input) {
         StringBuilder sb = new StringBuilder(input.length());
-        for (int i=0; i < input.length(); i++) {
+        for (int i = 0; i < input.length(); i++) {
             sb.append(replaceCharIfNotSupported(input.charAt(i)));
         }
         return sb.toString();

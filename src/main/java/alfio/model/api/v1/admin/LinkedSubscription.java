@@ -25,8 +25,7 @@ public class LinkedSubscription {
     private final String eventSlug;
     private final Map<UUID, List<Integer>> subscriptions;
 
-    public LinkedSubscription(String eventSlug,
-                              Map<UUID, List<Integer>> subscriptions) {
+    public LinkedSubscription(String eventSlug, Map<UUID, List<Integer>> subscriptions) {
         this.eventSlug = eventSlug;
         this.subscriptions = subscriptions;
     }

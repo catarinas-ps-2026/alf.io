@@ -16,18 +16,18 @@
  */
 package alfio.util;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import static alfio.util.ItalianTaxIdValidator.fiscalCodeMatchesWithName;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 class ItalianTaxIdValidatorTest {
 
     @ParameterizedTest
-    @ValueSource(strings = { "63828920585", "58148510561", "61579460223" })
+    @ValueSource(strings = {"63828920585", "58148510561", "61579460223"})
     // note: the numbers above are random and as of 2021-02-06 they are not present in the italian database.
     void businessCodeValidationSuccess(String number) {
         assertTrue(ItalianTaxIdValidator.validateFiscalCode(number, true));
@@ -35,27 +35,27 @@ class ItalianTaxIdValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "63828920583", "58148510562", "61579460221" })
+    @ValueSource(strings = {"63828920583", "58148510562", "61579460221"})
     void businessCodeValidationFailure(String number) {
         assertFalse(ItalianTaxIdValidator.validateFiscalCode(number, false));
         assertFalse(ItalianTaxIdValidator.validateFiscalCode(number, true));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "63828920585", "58148510561", "61579460223" })
+    @ValueSource(strings = {"63828920585", "58148510561", "61579460223"})
     // note: the numbers above are random, and as of 2021-02-05, they are not present in the italian database.
     void vatIdValidationSuccess(String number) {
         assertTrue(ItalianTaxIdValidator.validateVatId(number));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "63828920583", "58148510562", "61579460221", "615794602211", "615794602" })
+    @ValueSource(strings = {"63828920583", "58148510562", "61579460221", "615794602211", "615794602"})
     void vatIdValidationFailure(String number) {
         assertFalse(ItalianTaxIdValidator.validateVatId(number));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "SMPHMR66A01B602I", "SMPLSI96L50C770S", "PRSBTL38H18H826X", "prsbtl38h18h826x" })
+    @ValueSource(strings = {"SMPHMR66A01B602I", "SMPLSI96L50C770S", "PRSBTL38H18H826X", "prsbtl38h18h826x"})
     // note: the numbers above are random
     void personalCodeValidationSuccess(String number) {
         assertTrue(ItalianTaxIdValidator.validateFiscalCode(number, true));
@@ -63,7 +63,14 @@ class ItalianTaxIdValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "SMPHMR66A01B602F", "SMPLSI96L50C770A", "PRSBTL38H18H826S", "PRSBTL38H18H826", "PRSBTL38H18H826SX" })
+    @ValueSource(
+            strings = {
+                "SMPHMR66A01B602F",
+                "SMPLSI96L50C770A",
+                "PRSBTL38H18H826S",
+                "PRSBTL38H18H826",
+                "PRSBTL38H18H826SX"
+            })
     void personalCodeValidationFailure(String number) {
         assertFalse(ItalianTaxIdValidator.validateFiscalCode(number, true));
         assertFalse(ItalianTaxIdValidator.validateFiscalCode(number, false));
@@ -89,5 +96,4 @@ class ItalianTaxIdValidatorTest {
         assertFalse(fiscalCodeMatchesWithName("First", "Last", "61579460221", true));
         assertFalse(fiscalCodeMatchesWithName("First", "Last", "61579460221", false));
     }
-
 }

@@ -21,13 +21,12 @@ import alfio.model.support.Array;
 import alfio.model.support.JSONData;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.Getter;
 
 @Getter
 public class SubscriptionDescriptorWithStatistics {
@@ -39,74 +38,70 @@ public class SubscriptionDescriptorWithStatistics {
     private final SubscriptionDescriptor descriptor;
 
     public SubscriptionDescriptorWithStatistics(
-
-        @Column("sd_id") UUID id,
-        @Column("sd_title") @JSONData Map<String, String> title,
-        @Column("sd_description") @JSONData Map<String, String> description,
-        @Column("sd_max_available") int maxAvailable,
-        @Column("sd_creation_ts") ZonedDateTime creation,
-        @Column("sd_on_sale_from") ZonedDateTime onSaleFrom,
-        @Column("sd_on_sale_to") ZonedDateTime onSaleTo,
-        @Column("sd_price_cts") int price,
-        @Column("sd_vat") BigDecimal vat,
-        @Column("sd_vat_status") PriceContainer.VatStatus vatStatus,
-        @Column("sd_currency") String currency,
-        @Column("sd_is_public") boolean isPublic,
-        @Column("sd_organization_id_fk") int organizationId,
-
-        @Column("sd_max_entries") int maxEntries,
-        @Column("sd_validity_type") SubscriptionDescriptor.SubscriptionValidityType validityType,
-        @Column("sd_validity_time_unit") SubscriptionDescriptor.SubscriptionTimeUnit validityTimeUnit,
-        @Column("sd_validity_units") Integer validityUnits,
-        @Column("sd_validity_from") ZonedDateTime validityFrom,
-        @Column("sd_validity_to") ZonedDateTime validityTo,
-        @Column("sd_usage_type") SubscriptionDescriptor.SubscriptionUsageType usageType,
-
-        @Column("sd_terms_conditions_url") String termsAndConditionsUrl,
-        @Column("sd_privacy_policy_url") String privacyPolicyUrl,
-        @Column("sd_file_blob_id_fk") String fileBlobId,
-        @Column("sd_allowed_payment_proxies") @Array List<String> paymentProxies,
-        @Column("sd_private_key") String privateKey,
-        @Column("sd_time_zone") String timeZone,
-        @Column("sd_supports_tickets_generation") Boolean supportsTicketsGeneration,
-
-
-        @Column("s_pending_count") int pendingCount,
-        @Column("s_sold_count") int soldCount,
-        @Column("s_reservations_count") int reservationsCount,
-        @Column("s_events_count") int linkedEventsCount) {
+            @Column("sd_id") UUID id,
+            @Column("sd_title") @JSONData Map<String, String> title,
+            @Column("sd_description") @JSONData Map<String, String> description,
+            @Column("sd_max_available") int maxAvailable,
+            @Column("sd_creation_ts") ZonedDateTime creation,
+            @Column("sd_on_sale_from") ZonedDateTime onSaleFrom,
+            @Column("sd_on_sale_to") ZonedDateTime onSaleTo,
+            @Column("sd_price_cts") int price,
+            @Column("sd_vat") BigDecimal vat,
+            @Column("sd_vat_status") PriceContainer.VatStatus vatStatus,
+            @Column("sd_currency") String currency,
+            @Column("sd_is_public") boolean isPublic,
+            @Column("sd_organization_id_fk") int organizationId,
+            @Column("sd_max_entries") int maxEntries,
+            @Column("sd_validity_type") SubscriptionDescriptor.SubscriptionValidityType validityType,
+            @Column("sd_validity_time_unit") SubscriptionDescriptor.SubscriptionTimeUnit validityTimeUnit,
+            @Column("sd_validity_units") Integer validityUnits,
+            @Column("sd_validity_from") ZonedDateTime validityFrom,
+            @Column("sd_validity_to") ZonedDateTime validityTo,
+            @Column("sd_usage_type") SubscriptionDescriptor.SubscriptionUsageType usageType,
+            @Column("sd_terms_conditions_url") String termsAndConditionsUrl,
+            @Column("sd_privacy_policy_url") String privacyPolicyUrl,
+            @Column("sd_file_blob_id_fk") String fileBlobId,
+            @Column("sd_allowed_payment_proxies") @Array List<String> paymentProxies,
+            @Column("sd_private_key") String privateKey,
+            @Column("sd_time_zone") String timeZone,
+            @Column("sd_supports_tickets_generation") Boolean supportsTicketsGeneration,
+            @Column("s_pending_count") int pendingCount,
+            @Column("s_sold_count") int soldCount,
+            @Column("s_reservations_count") int reservationsCount,
+            @Column("s_events_count") int linkedEventsCount) {
 
         this.pendingCount = pendingCount;
         this.soldCount = soldCount;
         this.linkedEventsCount = linkedEventsCount;
         this.reservationsCount = reservationsCount;
-        this.descriptor = new SubscriptionDescriptor(id,
-            title,
-            description,
-            maxAvailable,
-            creation,
-            onSaleFrom,
-            onSaleTo,
-            price,
-            vat,
-            vatStatus,
-            currency,
-            isPublic,
-            organizationId,
-            maxEntries,
-            validityType,
-            validityTimeUnit,
-            validityUnits,
-            validityFrom,
-            validityTo,
-            usageType,
-            termsAndConditionsUrl,
-            privacyPolicyUrl,
-            fileBlobId,
-            paymentProxies,
-            privateKey,
-            timeZone,
-            supportsTicketsGeneration);
+        this.descriptor = new SubscriptionDescriptor(
+                id,
+                title,
+                description,
+                maxAvailable,
+                creation,
+                onSaleFrom,
+                onSaleTo,
+                price,
+                vat,
+                vatStatus,
+                currency,
+                isPublic,
+                organizationId,
+                maxEntries,
+                validityType,
+                validityTimeUnit,
+                validityUnits,
+                validityFrom,
+                validityTo,
+                usageType,
+                termsAndConditionsUrl,
+                privacyPolicyUrl,
+                fileBlobId,
+                paymentProxies,
+                privateKey,
+                timeZone,
+                supportsTicketsGeneration);
     }
 
     public BigDecimal getUnitPrice() {
@@ -114,7 +109,7 @@ public class SubscriptionDescriptorWithStatistics {
     }
 
     public int getAvailableCount() {
-        if(descriptor.getMaxAvailable() > 0) {
+        if (descriptor.getMaxAvailable() > 0) {
             return Math.max(0, descriptor.getMaxAvailable() - soldCount - pendingCount);
         }
         return 0;

@@ -18,7 +18,6 @@ package alfio.test.util;
 
 import alfio.model.PriceContainer;
 import alfio.model.PromoCodeDiscount;
-
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -34,7 +33,12 @@ public class PriceContainerImpl implements PriceContainer {
         this(srcPriceCts, currencyCode, vat, vatStatus, null);
     }
 
-    public PriceContainerImpl(int srcPriceCts, String currencyCode, BigDecimal vat, VatStatus vatStatus, PromoCodeDiscount promoCodeDiscount) {
+    public PriceContainerImpl(
+            int srcPriceCts,
+            String currencyCode,
+            BigDecimal vat,
+            VatStatus vatStatus,
+            PromoCodeDiscount promoCodeDiscount) {
         this.srcPriceCts = srcPriceCts;
         this.currencyCode = currencyCode;
         this.vat = vat;
@@ -66,5 +70,4 @@ public class PriceContainerImpl implements PriceContainer {
     public VatStatus getVatStatus() {
         return vatStatus;
     }
-
 }

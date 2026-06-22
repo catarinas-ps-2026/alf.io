@@ -26,20 +26,24 @@ class PaymentManagerUtils {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentManagerUtils.class);
 
-    private PaymentManagerUtils() {
-    }
+    private PaymentManagerUtils() {}
 
     static void invalidateExistingTransactions(String reservationId, TransactionRepository transactionRepository) {
         invalidateExistingTransactions(reservationId, transactionRepository, null);
     }
 
-    static void invalidateExistingTransactions(String reservationId, TransactionRepository transactionRepository, PaymentProxy paymentProxy) {
+    static void invalidateExistingTransactions(
+            String reservationId, TransactionRepository transactionRepository, PaymentProxy paymentProxy) {
         // temporary, until we allow multiple transactions for a reservation
-        int invalidated = transactionRepository.invalidateForReservation(reservationId, paymentProxy != null ? paymentProxy.name() : null);
-        if(invalidated > 0) {
+        int invalidated = transactionRepository.invalidateForReservation(
+                reservationId, paymentProxy != null ? paymentProxy.name() : null);
+        if (invalidated > 0) {
             log.debug("invalidated {} existing transactions", invalidated);
         }
         // assert that there is no active transaction left
-        Validate.isTrue(transactionRepository.loadOptionalByReservationId(reservationId).isEmpty(), "There is already a transaction registered for reservation %s", reservationId);
+        Validate.isTrue(
+                transactionRepository.loadOptionalByReservationId(reservationId).isEmpty(),
+                "There is already a transaction registered for reservation %s",
+                reservationId);
     }
 }

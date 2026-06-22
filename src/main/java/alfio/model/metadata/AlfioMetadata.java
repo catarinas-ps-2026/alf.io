@@ -18,10 +18,9 @@ package alfio.model.metadata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class AlfioMetadata {
@@ -34,11 +33,12 @@ public class AlfioMetadata {
     private final Map<String, String> applicationData;
 
     @JsonCreator
-    public AlfioMetadata(@JsonProperty("onlineConfiguration") OnlineConfiguration onlineConfiguration,
-                         @JsonProperty("requirementsDescriptions") Map<String, String> requirementsDescriptions,
-                         @JsonProperty("conditionsToBeAccepted") List<ConditionsLink> conditionsToBeAccepted,
-                         @JsonProperty("copiedFrom") String copiedFrom,
-                         @JsonProperty("applicationData") Map<String, String> applicationData) {
+    public AlfioMetadata(
+            @JsonProperty("onlineConfiguration") OnlineConfiguration onlineConfiguration,
+            @JsonProperty("requirementsDescriptions") Map<String, String> requirementsDescriptions,
+            @JsonProperty("conditionsToBeAccepted") List<ConditionsLink> conditionsToBeAccepted,
+            @JsonProperty("copiedFrom") String copiedFrom,
+            @JsonProperty("applicationData") Map<String, String> applicationData) {
         this.onlineConfiguration = onlineConfiguration;
         this.requirementsDescriptions = requirementsDescriptions;
         this.conditionsToBeAccepted = conditionsToBeAccepted;
@@ -58,9 +58,10 @@ public class AlfioMetadata {
      */
     public AlfioMetadata merge(AlfioMetadata other) {
         return new AlfioMetadata(
-            other.onlineConfiguration,
-            other.requirementsDescriptions,
-            other.conditionsToBeAccepted,
-            copiedFrom, applicationData);
+                other.onlineConfiguration,
+                other.requirementsDescriptions,
+                other.conditionsToBeAccepted,
+                copiedFrom,
+                applicationData);
     }
 }

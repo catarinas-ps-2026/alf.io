@@ -24,9 +24,11 @@ import alfio.repository.EventRepository;
 import alfio.repository.PromoCodeDiscountRepository;
 import alfio.repository.system.ConfigurationRepository;
 import alfio.test.toolkit.PromoCodeDiscountIntegrationTestingToolkit;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Set;
 import org.mockito.Mockito;
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
@@ -39,30 +41,21 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 
-import java.time.Duration;
-import java.util.Map;
-import java.util.Set;
-
-
 @Configuration(proxyBeanMethods = false)
 @Import(BaseTestConfiguration.class)
 public class TestConfiguration {
 
     @Bean
-    ConfigurationManager configurationManager(ConfigurationRepository configurationRepository,
-                                              UserManager userManager,
-                                              EventRepository eventRepository,
-                                              ExternalConfiguration externalConfiguration,
-                                              Environment environment) {
-        Cache<Set<ConfigurationKeys>, Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> cache = Caffeine.newBuilder()
-            .expireAfterWrite(Duration.ZERO)
-            .build();
-        return new ConfigurationManager(configurationRepository,
-            userManager,
-            eventRepository,
-            externalConfiguration,
-            environment,
-            cache);
+    ConfigurationManager configurationManager(
+            ConfigurationRepository configurationRepository,
+            UserManager userManager,
+            EventRepository eventRepository,
+            ExternalConfiguration externalConfiguration,
+            Environment environment) {
+        Cache<Set<ConfigurationKeys>, Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> cache =
+                Caffeine.newBuilder().expireAfterWrite(Duration.ZERO).build();
+        return new ConfigurationManager(
+                configurationRepository, userManager, eventRepository, externalConfiguration, environment, cache);
     }
 
     @Bean
@@ -76,7 +69,9 @@ public class TestConfiguration {
     }
 
     @Bean
-    public PromoCodeDiscountIntegrationTestingToolkit promoCodeDiscountIntegrationTestingToolkit(final PromoCodeDiscountRepository promoCodeDiscountRepository, final NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+    public PromoCodeDiscountIntegrationTestingToolkit promoCodeDiscountIntegrationTestingToolkit(
+            final PromoCodeDiscountRepository promoCodeDiscountRepository,
+            final NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         return new PromoCodeDiscountIntegrationTestingToolkit(promoCodeDiscountRepository, namedParameterJdbcTemplate);
     }
 

@@ -16,6 +16,9 @@
  */
 package alfio.controller.api.admin;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.*;
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.model.UploadedResource;
@@ -26,17 +29,13 @@ import alfio.util.ClockProvider;
 import alfio.util.TemplateManager;
 import alfio.util.TemplateResource;
 import com.samskivert.mustache.MustacheException;
+import java.security.Principal;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class ResourceControllerUnitTest {
 
@@ -61,28 +60,27 @@ class ResourceControllerUnitTest {
     @BeforeEach
     void setUp() {
         uploadedResourceManager = mock(UploadedResourceManager.class);
-        eventRepository         = mock(EventRepository.class);
-        messageSourceManager    = mock(MessageSourceManager.class);
-        templateManager         = mock(TemplateManager.class);
-        organizationRepository  = mock(OrganizationRepository.class);
-        fileUploadManager       = mock(FileUploadManager.class);
-        extensionManager        = mock(ExtensionManager.class);
-        clockProvider           = mock(ClockProvider.class);
-        subscriptionManager     = mock(SubscriptionManager.class);
-        accessService           = mock(AccessService.class);
+        eventRepository = mock(EventRepository.class);
+        messageSourceManager = mock(MessageSourceManager.class);
+        templateManager = mock(TemplateManager.class);
+        organizationRepository = mock(OrganizationRepository.class);
+        fileUploadManager = mock(FileUploadManager.class);
+        extensionManager = mock(ExtensionManager.class);
+        clockProvider = mock(ClockProvider.class);
+        subscriptionManager = mock(SubscriptionManager.class);
+        accessService = mock(AccessService.class);
 
         controller = new ResourceController(
-            uploadedResourceManager,
-            eventRepository,
-            messageSourceManager,
-            templateManager,
-            organizationRepository,
-            fileUploadManager,
-            extensionManager,
-            clockProvider,
-            subscriptionManager,
-            accessService
-        );
+                uploadedResourceManager,
+                eventRepository,
+                messageSourceManager,
+                templateManager,
+                organizationRepository,
+                fileUploadManager,
+                extensionManager,
+                clockProvider,
+                subscriptionManager,
+                accessService);
 
         principal = mock(Principal.class);
         when(principal.getName()).thenReturn("admin");
@@ -98,8 +96,9 @@ class ResourceControllerUnitTest {
 
         assertNotNull(result);
         assertFalse(result.isEmpty(), "There should be at least one overridable template");
-        assertTrue(result.stream().allMatch(TemplateResource::overridable),
-            "Every returned template must have overridable=true");
+        assertTrue(
+                result.stream().allMatch(TemplateResource::overridable),
+                "Every returned template must have overridable=true");
     }
 
     // =========================================================================

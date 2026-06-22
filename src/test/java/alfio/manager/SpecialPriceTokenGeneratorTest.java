@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
@@ -26,27 +29,26 @@ import alfio.model.system.ConfigurationKeys;
 import alfio.repository.EventRepository;
 import alfio.repository.SpecialPriceRepository;
 import alfio.repository.TicketCategoryRepository;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
 public class SpecialPriceTokenGeneratorTest {
 
     @Mock
     private SpecialPriceRepository specialPriceRepository;
+
     @Mock
     private TicketCategoryRepository ticketCategoryRepository;
+
     @Mock
     private EventRepository eventRepository;
+
     @Mock
     private ConfigurationManager configurationManager;
 
@@ -56,11 +58,7 @@ public class SpecialPriceTokenGeneratorTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         generator = new SpecialPriceTokenGenerator(
-                configurationManager,
-                specialPriceRepository,
-                ticketCategoryRepository,
-                eventRepository
-        );
+                configurationManager, specialPriceRepository, ticketCategoryRepository, eventRepository);
     }
 
     @Test
@@ -87,7 +85,9 @@ public class SpecialPriceTokenGeneratorTest {
 
         MaybeConfiguration config = mock(MaybeConfiguration.class);
         when(config.getValueAsIntOrDefault(6)).thenReturn(6);
-        when(configurationManager.getFor(eq(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH), any(ConfigurationLevel.class))).thenReturn(config);
+        when(configurationManager.getFor(
+                        eq(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH), any(ConfigurationLevel.class)))
+                .thenReturn(config);
 
         // First attempt returns count > 0 (code exists), second returns 0
         when(specialPriceRepository.countByCode(anyString())).thenReturn(1).thenReturn(0);
@@ -114,18 +114,22 @@ public class SpecialPriceTokenGeneratorTest {
 
         MaybeConfiguration config = mock(MaybeConfiguration.class);
         when(config.getValueAsIntOrDefault(6)).thenReturn(6);
-        when(configurationManager.getFor(eq(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH), any(ConfigurationLevel.class))).thenReturn(config);
+        when(configurationManager.getFor(
+                        eq(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH), any(ConfigurationLevel.class)))
+                .thenReturn(config);
 
         when(specialPriceRepository.countByCode(anyString())).thenReturn(0);
 
         // Throw DataAccessException on the first updateCode call, then succeed
         AtomicInteger count = new AtomicInteger(0);
         doAnswer(invocation -> {
-            if (count.incrementAndGet() == 1) {
-                throw new DataIntegrityViolationException("Duplicate key error from test");
-            }
-            return 1;
-        }).when(specialPriceRepository).updateCode(anyString(), eq(42));
+                    if (count.incrementAndGet() == 1) {
+                        throw new DataIntegrityViolationException("Duplicate key error from test");
+                    }
+                    return 1;
+                })
+                .when(specialPriceRepository)
+                .updateCode(anyString(), eq(42));
 
         generator.generatePendingCodes();
 
@@ -160,7 +164,9 @@ public class SpecialPriceTokenGeneratorTest {
 
         MaybeConfiguration config = mock(MaybeConfiguration.class);
         when(config.getValueAsIntOrDefault(6)).thenReturn(6);
-        when(configurationManager.getFor(eq(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH), any(ConfigurationLevel.class))).thenReturn(config);
+        when(configurationManager.getFor(
+                        eq(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH), any(ConfigurationLevel.class)))
+                .thenReturn(config);
 
         when(specialPriceRepository.countByCode(anyString())).thenReturn(0);
 

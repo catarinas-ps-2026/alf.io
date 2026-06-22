@@ -16,5 +16,4 @@
  */
 package alfio.manager.support.reservation;
 
-public class MissingSpecialPriceTokenException extends RuntimeException {
-}
+public class MissingSpecialPriceTokenException extends RuntimeException {}

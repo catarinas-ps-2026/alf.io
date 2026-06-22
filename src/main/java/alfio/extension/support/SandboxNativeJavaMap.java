@@ -17,10 +17,9 @@
 package alfio.extension.support;
 
 import alfio.extension.exception.OutOfBoundariesException;
+import java.util.Map;
 import org.mozilla.javascript.NativeJavaMap;
 import org.mozilla.javascript.Scriptable;
-
-import java.util.Map;
 
 public class SandboxNativeJavaMap extends NativeJavaMap {
 
@@ -33,7 +32,7 @@ public class SandboxNativeJavaMap extends NativeJavaMap {
 
     @Override
     public Object get(String name, Scriptable start) {
-        if (name.equals("getClass") && !map.containsKey(name)){
+        if (name.equals("getClass") && !map.containsKey(name)) {
             throw new OutOfBoundariesException("Out of boundaries class use.");
         }
 

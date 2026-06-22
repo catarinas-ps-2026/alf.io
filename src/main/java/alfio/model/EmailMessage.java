@@ -20,24 +20,27 @@ import alfio.model.PurchaseContext.PurchaseContextType;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.google.gson.reflect.TypeToken;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 @Getter
 public class EmailMessage implements Comparable<EmailMessage> {
 
     public enum Status {
-        WAITING, RETRY, IN_PROCESS, SENT, ERROR
+        WAITING,
+        RETRY,
+        IN_PROCESS,
+        SENT,
+        ERROR
     }
-    
+
     private final int id;
     private final Integer eventId;
     private final UUID subscriptionDescriptorId;
@@ -54,21 +57,22 @@ public class EmailMessage implements Comparable<EmailMessage> {
     private final int attempts;
     private final int organizationId;
 
-    public EmailMessage(@Column("id") int id,
-                        @Column("event_id") Integer eventId,
-                        @Column("subscription_descriptor_id_fk") UUID subscriptionDescriptorId,
-                        @Column("status") String status,
-                        @Column("recipient") String recipient,
-                        @Column("subject") String subject,
-                        @Column("message") String message,
-                        @Column("html_message") String htmlMessage,
-                        @Column("attachments") String attachments,
-                        @Column("checksum") String checksum,
-                        @Column("request_ts") ZonedDateTime requestTimestamp,
-                        @Column("sent_ts") ZonedDateTime sentTimestamp,
-                        @Column("attempts") int attempts,
-                        @Column("email_cc") String emailCC,
-                        @Column("organization_id_fk") int organizationId) {
+    public EmailMessage(
+            @Column("id") int id,
+            @Column("event_id") Integer eventId,
+            @Column("subscription_descriptor_id_fk") UUID subscriptionDescriptorId,
+            @Column("status") String status,
+            @Column("recipient") String recipient,
+            @Column("subject") String subject,
+            @Column("message") String message,
+            @Column("html_message") String htmlMessage,
+            @Column("attachments") String attachments,
+            @Column("checksum") String checksum,
+            @Column("request_ts") ZonedDateTime requestTimestamp,
+            @Column("sent_ts") ZonedDateTime sentTimestamp,
+            @Column("attempts") int attempts,
+            @Column("email_cc") String emailCC,
+            @Column("organization_id_fk") int organizationId) {
         this.id = id;
         this.eventId = eventId;
         this.subscriptionDescriptorId = subscriptionDescriptorId;
@@ -84,8 +88,8 @@ public class EmailMessage implements Comparable<EmailMessage> {
         this.attempts = attempts;
         this.organizationId = organizationId;
 
-        if(StringUtils.isNotBlank(emailCC)) {
-            this.cc = Json.GSON.fromJson(emailCC, new TypeToken<List<String>>(){}.getType());
+        if (StringUtils.isNotBlank(emailCC)) {
+            this.cc = Json.GSON.fromJson(emailCC, new TypeToken<List<String>>() {}.getType());
         } else {
             this.cc = new ArrayList<>();
         }
@@ -98,30 +102,34 @@ public class EmailMessage implements Comparable<EmailMessage> {
     @Override
     public int compareTo(EmailMessage o) {
         return new CompareToBuilder()
-            .append(eventId, o.eventId)
-            .append(subscriptionDescriptorId, o.subscriptionDescriptorId)
-            .append(checksum, o.checksum)
-            .build();
+                .append(eventId, o.eventId)
+                .append(subscriptionDescriptorId, o.subscriptionDescriptorId)
+                .append(checksum, o.checksum)
+                .build();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof EmailMessage)) {
+        if (!(obj instanceof EmailMessage)) {
             return false;
         }
-        if(obj == this) {
+        if (obj == this) {
             return true;
         }
-        EmailMessage other = (EmailMessage)obj;
+        EmailMessage other = (EmailMessage) obj;
         return new EqualsBuilder()
-            .append(eventId, other.eventId)
-            .append(subscriptionDescriptorId, other.subscriptionDescriptorId)
-            .append(checksum, other.checksum)
-            .isEquals();
+                .append(eventId, other.eventId)
+                .append(subscriptionDescriptorId, other.subscriptionDescriptorId)
+                .append(checksum, other.checksum)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(eventId).append(subscriptionDescriptorId).append(checksum).toHashCode();
+        return new HashCodeBuilder()
+                .append(eventId)
+                .append(subscriptionDescriptorId)
+                .append(checksum)
+                .toHashCode();
     }
 }

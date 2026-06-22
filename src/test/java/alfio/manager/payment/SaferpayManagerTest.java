@@ -16,6 +16,10 @@
  */
 package alfio.manager.payment;
 
+import static alfio.model.system.ConfigurationKeys.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.Event;
 import alfio.model.system.ConfigurationKeys;
@@ -25,26 +29,22 @@ import alfio.repository.TicketRepository;
 import alfio.repository.TicketReservationRepository;
 import alfio.repository.TransactionRepository;
 import alfio.test.util.TestUtil;
+import java.io.IOException;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.util.EnumSet;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
-import java.util.EnumSet;
-import java.util.Map;
-
-import static alfio.model.system.ConfigurationKeys.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class SaferpayManagerTest {
 
-    private static final String CAPTURE_RESPONSE_BODY = """
+    private static final String CAPTURE_RESPONSE_BODY =
+            """
         {
           "ResponseHeader": {
             "SpecVersion": "[current Spec-Version]",
@@ -58,18 +58,25 @@ class SaferpayManagerTest {
 
     @Mock
     private TransactionRepository transactionRepository;
+
     @Mock
     private TicketReservationRepository ticketReservationRepository;
+
     @Mock
     private HttpClient httpClient;
+
     @Mock
     private TicketRepository ticketRepository;
+
     @Mock
     private Event event;
+
     @Mock
     private PaymentContext paymentContext;
+
     @Mock
     private ConfigurationManager.MaybeConfiguration maybeConfiguration;
+
     private SaferpayManager manager;
 
     @BeforeEach
@@ -77,11 +84,28 @@ class SaferpayManagerTest {
     public void init() {
         var configurationManager = mock(ConfigurationManager.class);
         var configuration = mock(Map.class);
-        when(configurationManager.getFor(eq(EnumSet.of(SAFERPAY_ENABLED, SAFERPAY_API_USERNAME, SAFERPAY_API_PASSWORD, SAFERPAY_CUSTOMER_ID, SAFERPAY_TERMINAL_ID, SAFERPAY_LIVE_MODE, BASE_URL, RESERVATION_TIMEOUT)), any())).thenReturn(configuration);
+        when(configurationManager.getFor(
+                        eq(EnumSet.of(
+                                SAFERPAY_ENABLED,
+                                SAFERPAY_API_USERNAME,
+                                SAFERPAY_API_PASSWORD,
+                                SAFERPAY_CUSTOMER_ID,
+                                SAFERPAY_TERMINAL_ID,
+                                SAFERPAY_LIVE_MODE,
+                                BASE_URL,
+                                RESERVATION_TIMEOUT)),
+                        any()))
+                .thenReturn(configuration);
         when(maybeConfiguration.getRequiredValue()).thenReturn("");
         when(configuration.get(any(ConfigurationKeys.class))).thenReturn(maybeConfiguration);
         when(paymentContext.getPurchaseContext()).thenReturn(event);
-        manager = new SaferpayManager(configurationManager, httpClient, ticketReservationRepository, transactionRepository, ticketRepository, TestUtil.clockProvider());
+        manager = new SaferpayManager(
+                configurationManager,
+                httpClient,
+                ticketReservationRepository,
+                transactionRepository,
+                ticketRepository,
+                TestUtil.clockProvider());
     }
 
     @Test
@@ -95,7 +119,16 @@ class SaferpayManagerTest {
         when(response.statusCode()).thenReturn(200);
         var webhookResult = manager.internalProcessWebhook(transaction, paymentContext);
         assertTrue(webhookResult.isSuccessful());
-        verify(transactionRepository).update(eq(2), eq("transactionId"), eq("captureId"), any(), eq(0L), eq(0L), eq(Transaction.Status.COMPLETE), anyMap());
+        verify(transactionRepository)
+                .update(
+                        eq(2),
+                        eq("transactionId"),
+                        eq("captureId"),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.COMPLETE),
+                        anyMap());
         verify(httpClient).send(any(), any());
     }
 
@@ -110,7 +143,16 @@ class SaferpayManagerTest {
         when(response.statusCode()).thenReturn(200);
         var webhookResult = manager.internalProcessWebhook(transaction, paymentContext);
         assertTrue(webhookResult.isSuccessful());
-        verify(transactionRepository).update(eq(2), eq("transactionId"), eq("captureId"), any(), eq(0L), eq(0L), eq(Transaction.Status.COMPLETE), anyMap());
+        verify(transactionRepository)
+                .update(
+                        eq(2),
+                        eq("transactionId"),
+                        eq("captureId"),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.COMPLETE),
+                        anyMap());
         verify(httpClient, times(2)).send(any(), any());
     }
 
@@ -125,7 +167,8 @@ class SaferpayManagerTest {
         when(response.statusCode()).thenReturn(404);
         var webhookResult = manager.internalProcessWebhook(transaction, paymentContext);
         assertFalse(webhookResult.isSuccessful());
-        verify(transactionRepository, never()).update(anyInt(), any(), any(), any(), anyLong(), anyLong(), any(), anyMap());
+        verify(transactionRepository, never())
+                .update(anyInt(), any(), any(), any(), anyLong(), anyLong(), any(), anyMap());
         verify(transactionRepository).invalidateById(2);
         verify(ticketReservationRepository).updateValidity(eq("reservationId"), any());
         verify(httpClient).send(any(), any());
@@ -143,15 +186,14 @@ class SaferpayManagerTest {
 
     // @formatter:off
     private String getJsonBody(boolean captured) {
-        return "{" +
-            "\"Transaction\": {" +
-                "\"Status\": \"" + (captured ? "CAPTURED" : "AUTHORIZED") + "\","+
-                "\"Id\": \"transactionId\"" + (captured ? "," : "") +
-                (captured ? "\"CaptureId\": \"captureId\", \"Date\": \"2015-01-30T12:45:22.258+01:00\"" : "") +
-            "}" +
-        "}";
+        return "{" + "\"Transaction\": {"
+                + "\"Status\": \""
+                + (captured ? "CAPTURED" : "AUTHORIZED") + "\"," + "\"Id\": \"transactionId\""
+                + (captured ? "," : "")
+                + (captured ? "\"CaptureId\": \"captureId\", \"Date\": \"2015-01-30T12:45:22.258+01:00\"" : "")
+                + "}"
+                + "}";
     }
     // @formatter:on
-
 
 }

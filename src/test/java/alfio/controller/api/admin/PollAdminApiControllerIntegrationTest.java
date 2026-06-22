@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.admin;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static alfio.test.util.TestUtil.clockProvider;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -34,6 +38,12 @@ import alfio.repository.system.ConfigurationRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,17 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.util.*;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static alfio.test.util.TestUtil.clockProvider;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -62,26 +61,37 @@ class PollAdminApiControllerIntegrationTest {
 
     @Autowired
     private PollAdminApiController controller;
+
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private EventDeleterRepository eventDeleterRepository;
+
     @Autowired
     private TicketReservationRepository ticketReservationRepository;
+
     @Autowired
     private TicketRepository ticketRepository;
+
     @Autowired
     private TicketCategoryRepository ticketCategoryRepository;
+
     @Autowired
     private PollRepository pollRepository;
+
     @Autowired
     private AuditingRepository auditingRepository;
 
@@ -91,13 +101,33 @@ class PollAdminApiControllerIntegrationTest {
     @BeforeEach
     void init() {
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-        List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1), LocalTime.now(clockProvider().getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1), LocalTime.now(clockProvider().getClock())),
-                DESCRIPTION, BigDecimal.ZERO, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = List.of(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(clockProvider().getClock()).minusDays(1),
+                        LocalTime.now(clockProvider().getClock())),
+                new DateTimeModification(
+                        LocalDate.now(clockProvider().getClock()).plusDays(1),
+                        LocalTime.now(clockProvider().getClock())),
+                DESCRIPTION,
+                BigDecimal.ZERO,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
 
         event = eventAndUser.getKey();
         principal = principal(owner(eventAndUser.getRight()));
@@ -107,8 +137,17 @@ class PollAdminApiControllerIntegrationTest {
     void createAndUpdatePoll() {
         // create poll
 
-        var options = List.of(new PollOptionModification(null, Map.of("en", "Homer J. Simpson"), null), new PollOptionModification(null, Map.of("en", "Bender B. Rodriguez"), Map.of()));
-        var form = new PollModification(null, Map.of("en", "Best Employee of the Year"), null, null, options, false, Poll.PollStatus.OPEN); // this must not have an impact
+        var options = List.of(
+                new PollOptionModification(null, Map.of("en", "Homer J. Simpson"), null),
+                new PollOptionModification(null, Map.of("en", "Bender B. Rodriguez"), Map.of()));
+        var form = new PollModification(
+                null,
+                Map.of("en", "Best Employee of the Year"),
+                null,
+                null,
+                options,
+                false,
+                Poll.PollStatus.OPEN); // this must not have an impact
         var eventName = event.getShortName();
         var createResponse = controller.createNewPoll(eventName, form, principal);
         assertTrue(createResponse.getStatusCode().is2xxSuccessful());
@@ -125,27 +164,48 @@ class PollAdminApiControllerIntegrationTest {
         assertEquals(Poll.PollStatus.DRAFT, poll.getStatus());
 
         // update poll status
-        var updateStatusResponse = controller.updateStatus(eventName, pollId, new PollAdminApiController.UpdatePollStatusForm(Poll.PollStatus.OPEN), principal);
+        var updateStatusResponse = controller.updateStatus(
+                eventName, pollId, new PollAdminApiController.UpdatePollStatusForm(Poll.PollStatus.OPEN), principal);
         assertTrue(updateStatusResponse.getStatusCode().is2xxSuccessful());
         assertNotNull(updateStatusResponse.getBody());
         assertEquals(Poll.PollStatus.OPEN, updateStatusResponse.getBody().getStatus());
 
         // update poll
         var newOptionsList = new ArrayList<>(poll.getOptions());
-        newOptionsList.addAll(List.of(new PollOptionModification(null, Map.of("en", "Lisa M. Simpson"), null), new PollOptionModification(null, Map.of("en", "Turanga Leela"), Map.of())));
-        var updateForm = new PollModification(poll.getId(), poll.getTitle(), poll.getDescription(), poll.getOrder(), newOptionsList, false, Poll.PollStatus.DRAFT);
+        newOptionsList.addAll(List.of(
+                new PollOptionModification(null, Map.of("en", "Lisa M. Simpson"), null),
+                new PollOptionModification(null, Map.of("en", "Turanga Leela"), Map.of())));
+        var updateForm = new PollModification(
+                poll.getId(),
+                poll.getTitle(),
+                poll.getDescription(),
+                poll.getOrder(),
+                newOptionsList,
+                false,
+                Poll.PollStatus.DRAFT);
         var updatePollResponse = controller.updatePoll(eventName, pollId, updateForm, principal);
         assertTrue(updatePollResponse.getStatusCode().is2xxSuccessful());
         assertNotNull(updatePollResponse.getBody());
         assertEquals(Poll.PollStatus.OPEN, updatePollResponse.getBody().getStatus());
         assertEquals(4, updatePollResponse.getBody().getOptions().size());
-        assertEquals("Homer J. Simpson", updatePollResponse.getBody().getOptions().get(0).getTitle().get("en"));
+        assertEquals(
+                "Homer J. Simpson",
+                updatePollResponse.getBody().getOptions().get(0).getTitle().get("en"));
     }
 
     @Test
     void allowPeopleToVote() {
-        var options = List.of(new PollOptionModification(null, Map.of("en", "Homer J. Simpson"), null), new PollOptionModification(null, Map.of("en", "Bender B. Rodriguez"), Map.of()));
-        var form = new PollModification(null, Map.of("en", "Best Employee of the Year"), null, null, options, true, Poll.PollStatus.OPEN); // this must not have an impact
+        var options = List.of(
+                new PollOptionModification(null, Map.of("en", "Homer J. Simpson"), null),
+                new PollOptionModification(null, Map.of("en", "Bender B. Rodriguez"), Map.of()));
+        var form = new PollModification(
+                null,
+                Map.of("en", "Best Employee of the Year"),
+                null,
+                null,
+                options,
+                true,
+                Poll.PollStatus.OPEN); // this must not have an impact
         var eventName = event.getShortName();
         var createResponse = controller.createNewPoll(eventName, form, principal);
         assertTrue(createResponse.getStatusCode().is2xxSuccessful());
@@ -153,14 +213,27 @@ class PollAdminApiControllerIntegrationTest {
         var pollId = createResponse.getBody();
 
         var reservationId = UUID.randomUUID().toString();
-        ticketReservationRepository.createNewReservation(reservationId, ZonedDateTime.now(event.getZoneId()), DateUtils.addMinutes(new Date(), 1), null, "en", event.getId(), null, null, null, event.getOrganizationId(), null);
+        ticketReservationRepository.createNewReservation(
+                reservationId,
+                ZonedDateTime.now(event.getZoneId()),
+                DateUtils.addMinutes(new Date(), 1),
+                null,
+                "en",
+                event.getId(),
+                null,
+                null,
+                null,
+                event.getOrganizationId(),
+                null);
         var firstCategory = CollectionUtils.get(ticketCategoryRepository.findByEventIdAsMap(event.getId()), 0);
         int categoryId = firstCategory.getKey();
         var tickets = ticketRepository.findFreeByEventId(event.getId());
         var firstTicket = tickets.get(0);
         int ticketId = firstTicket.getId();
-        ticketRepository.reserveTickets(reservationId, List.of(ticketId), firstCategory.getValue(), "en", event.getVatStatus(), i -> null);
-        ticketReservationRepository.updateReservationStatus(reservationId, TicketReservation.TicketReservationStatus.COMPLETE.name());
+        ticketRepository.reserveTickets(
+                reservationId, List.of(ticketId), firstCategory.getValue(), "en", event.getVatStatus(), i -> null);
+        ticketReservationRepository.updateReservationStatus(
+                reservationId, TicketReservation.TicketReservationStatus.COMPLETE.name());
         ticketRepository.updateTicketOwner(firstTicket.getUuid(), "test@test.ch", "First Last", "First", "Last");
         ticketRepository.updateTicketsStatusWithReservationId(reservationId, Ticket.TicketStatus.ACQUIRED.name());
 
@@ -178,7 +251,8 @@ class PollAdminApiControllerIntegrationTest {
         var allowRes = controller.allowAttendees(event.getShortName(), pollId, participantForm, principal);
         assertTrue(allowRes.getStatusCode().is2xxSuccessful());
         assertEquals(1, auditingRepository.countAuditsOfTypeForReservation(reservationId, Audit.EventType.TAG_TICKET));
-        assertEquals(0, auditingRepository.countAuditsOfTypeForReservation(reservationId, Audit.EventType.UNTAG_TICKET));
+        assertEquals(
+                0, auditingRepository.countAuditsOfTypeForReservation(reservationId, Audit.EventType.UNTAG_TICKET));
 
         var participantRes = controller.getAllowedAttendees(eventName, pollId, principal);
         assertTrue(participantRes.getStatusCode().is2xxSuccessful());
@@ -203,22 +277,25 @@ class PollAdminApiControllerIntegrationTest {
         assertTrue(forbidRes.getStatusCode().is2xxSuccessful());
         assertTrue(CollectionUtils.isEmpty(forbidRes.getBody()));
         assertEquals(1, auditingRepository.countAuditsOfTypeForReservation(reservationId, Audit.EventType.TAG_TICKET));
-        assertEquals(1, auditingRepository.countAuditsOfTypeForReservation(reservationId, Audit.EventType.UNTAG_TICKET));
+        assertEquals(
+                1, auditingRepository.countAuditsOfTypeForReservation(reservationId, Audit.EventType.UNTAG_TICKET));
 
         // remove option
-        var pollWithOptions = controller.getPollDetail(event.getShortName(), pollId, principal).getBody();
+        var pollWithOptions = controller
+                .getPollDetail(event.getShortName(), pollId, principal)
+                .getBody();
         assertNotNull(pollWithOptions);
         var firstOptionId = pollWithOptions.getOptions().get(0).getId();
         var removeOptionResponse = controller.removeOption(event.getShortName(), pollId, firstOptionId, principal);
         assertTrue(removeOptionResponse.getStatusCode().is2xxSuccessful());
-        assertTrue(Objects.requireNonNull(removeOptionResponse.getBody()).getOptions().stream().noneMatch(po -> firstOptionId.equals(po.getId())));
+        assertTrue(Objects.requireNonNull(removeOptionResponse.getBody()).getOptions().stream()
+                .noneMatch(po -> firstOptionId.equals(po.getId())));
 
         // delete poll
         var deletePollResponse = controller.deletePoll(eventName, pollId, principal);
         assertTrue(deletePollResponse.getStatusCode().is2xxSuccessful());
         assertNotNull(deletePollResponse.getBody());
         assertTrue(deletePollResponse.getBody());
-
     }
 
     @AfterEach

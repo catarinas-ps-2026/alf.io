@@ -16,28 +16,36 @@
  */
 package alfio.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.model.BillingDocument;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletResponse;
-
 import java.io.IOException;
 import java.time.ZonedDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 class FileUtilTest {
 
     @Test
     void getBillingDocumentFileNameUsesInvoiceDateNumberAndIdForInvoices() {
-        var document = new BillingDocument(99L, 1, "reservation", "INV-7", BillingDocument.Type.INVOICE,
-            "{\"confirmationDate\":\"2024-04-10T12:34:56Z\"}", ZonedDateTime.parse("2024-04-10T12:35:00Z"),
-            BillingDocument.Status.VALID, null);
+        var document = new BillingDocument(
+                99L,
+                1,
+                "reservation",
+                "INV-7",
+                BillingDocument.Type.INVOICE,
+                "{\"confirmationDate\":\"2024-04-10T12:34:56Z\"}",
+                ZonedDateTime.parse("2024-04-10T12:35:00Z"),
+                BillingDocument.Status.VALID,
+                null);
 
-        assertEquals("event-2024-04-10-123456-INV-7-99.pdf", FileUtil.getBillingDocumentFileName("event", "reservation", document));
+        assertEquals(
+                "event-2024-04-10-123456-INV-7-99.pdf",
+                FileUtil.getBillingDocumentFileName("event", "reservation", document));
     }
 
     @Test
@@ -45,7 +53,8 @@ class FileUtilTest {
         var document = mock(BillingDocument.class);
         when(document.getType()).thenReturn(BillingDocument.Type.RECEIPT);
 
-        assertEquals("receipt-event-reservation.pdf", FileUtil.getBillingDocumentFileName("event", "reservation", document));
+        assertEquals(
+                "receipt-event-reservation.pdf", FileUtil.getBillingDocumentFileName("event", "reservation", document));
     }
 
     @Test
@@ -58,13 +67,15 @@ class FileUtilTest {
 
         assertArrayEquals(new byte[] {1, 2, 3}, response.getContentAsByteArray());
         assertEquals("application/pdf", response.getContentType());
-        assertEquals("attachment; filename=\"receipt-event-reservation.pdf\"", response.getHeader("Content-Disposition"));
+        assertEquals(
+                "attachment; filename=\"receipt-event-reservation.pdf\"", response.getHeader("Content-Disposition"));
         assertEquals("noindex", response.getHeader(ExportUtils.X_ROBOTS_TAG));
     }
 
     @Test
     void sendPdfReturnsFalseWhenContentIsNull() {
-        assertFalse(FileUtil.sendPdf(null, new MockHttpServletResponse(), "event", "reservation", mock(BillingDocument.class)));
+        assertFalse(FileUtil.sendPdf(
+                null, new MockHttpServletResponse(), "event", "reservation", mock(BillingDocument.class)));
     }
 
     @Test
@@ -84,8 +95,7 @@ class FileUtilTest {
             }
 
             @Override
-            public void setWriteListener(WriteListener writeListener) {
-            }
+            public void setWriteListener(WriteListener writeListener) {}
         });
 
         assertFalse(FileUtil.sendPdf(new byte[] {1}, response, "event", "reservation", document));

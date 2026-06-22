@@ -16,6 +16,9 @@
  */
 package alfio.manager.system;
 
+import static alfio.model.system.AdminJobSchedule.Status.EXECUTED;
+import static java.util.stream.Collectors.*;
+
 import alfio.manager.support.RetryFinalizeReservation;
 import alfio.manager.system.AdminJobExecutor.JobName;
 import alfio.model.result.ErrorCode;
@@ -24,6 +27,11 @@ import alfio.model.system.AdminJobSchedule;
 import alfio.repository.system.AdminJobQueueRepository;
 import alfio.util.ClockProvider;
 import alfio.util.Json;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,24 +42,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static alfio.model.system.AdminJobSchedule.Status.EXECUTED;
-import static java.util.stream.Collectors.*;
-
 @Transactional
 public class AdminJobManager {
 
     private static final Logger log = LoggerFactory.getLogger(AdminJobManager.class);
     static final int MAX_ATTEMPTS = 17; // will retry for approximately 36h
-    private static final Set<JobName> REGULAR = EnumSet.complementOf(EnumSet.of(JobName.EXECUTE_EXTENSION, JobName.RETRY_RESERVATION_CONFIRMATION));
-    private static final Set<String> ADMIN_JOBS = REGULAR.stream()
-        .map(Enum::name)
-        .collect(toSet());
+    private static final Set<JobName> REGULAR =
+            EnumSet.complementOf(EnumSet.of(JobName.EXECUTE_EXTENSION, JobName.RETRY_RESERVATION_CONFIRMATION));
+    private static final Set<String> ADMIN_JOBS =
+            REGULAR.stream().map(Enum::name).collect(toSet());
     private static final Set<String> EXTENSIONS_JOB = Set.of(JobName.EXECUTE_EXTENSION.name());
     private static final Set<String> RESERVATIONS_JOB = Set.of(JobName.RETRY_RESERVATION_CONFIRMATION.name());
     private final Map<JobName, List<AdminJobExecutor>> executorsByJobId;
@@ -61,19 +60,23 @@ public class AdminJobManager {
     private final Set<String> notExecutedStatuses;
     private final ClockProvider clockProvider;
 
-    public AdminJobManager(List<AdminJobExecutor> jobExecutors,
-                           AdminJobQueueRepository adminJobQueueRepository,
-                           PlatformTransactionManager transactionManager,
-                           ClockProvider clockProvider) {
+    public AdminJobManager(
+            List<AdminJobExecutor> jobExecutors,
+            AdminJobQueueRepository adminJobQueueRepository,
+            PlatformTransactionManager transactionManager,
+            ClockProvider clockProvider) {
 
         this.executorsByJobId = jobExecutors.stream()
-            .flatMap(je -> je.getJobNames().stream().map(n -> Pair.of(n, je)))
-            .collect(groupingBy(Pair::getLeft, () -> new EnumMap<>(JobName.class), mapping(Pair::getValue, toList())));
+                .flatMap(je -> je.getJobNames().stream().map(n -> Pair.of(n, je)))
+                .collect(groupingBy(
+                        Pair::getLeft, () -> new EnumMap<>(JobName.class), mapping(Pair::getValue, toList())));
         this.adminJobQueueRepository = adminJobQueueRepository;
-        this.nestedTransactionTemplate = new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED));
+        this.nestedTransactionTemplate = new TransactionTemplate(
+                transactionManager, new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_NESTED));
         var executed = EnumSet.of(EXECUTED);
         this.executedStatuses = executed.stream().map(Enum::name).collect(toSet());
-        this.notExecutedStatuses = EnumSet.complementOf(executed).stream().map(Enum::name).collect(toSet());
+        this.notExecutedStatuses =
+                EnumSet.complementOf(executed).stream().map(Enum::name).collect(toSet());
         this.clockProvider = clockProvider;
     }
 
@@ -88,57 +91,67 @@ public class AdminJobManager {
 
     void processPendingRequests() {
         log.trace("Processing pending requests");
-        internalProcessPendingSchedules(adminJobQueueRepository.loadPendingSchedules(ADMIN_JOBS, ZonedDateTime.now(clockProvider.getClock())));
+        internalProcessPendingSchedules(
+                adminJobQueueRepository.loadPendingSchedules(ADMIN_JOBS, ZonedDateTime.now(clockProvider.getClock())));
         log.trace("done processing pending requests");
     }
 
     private void internalProcessPendingSchedules(List<AdminJobSchedule> pendingSchedules) {
         pendingSchedules.stream()
-            .map(this::processPendingRequest)
-            .filter(p -> !p.getRight().isEmpty())
-            .forEach(scheduleWithResults -> {
-                var schedule = scheduleWithResults.getLeft();
-                var partitionedResults = scheduleWithResults.getRight().stream().collect(Collectors.partitioningBy(Result::isSuccess));
-                if(!partitionedResults.get(false).isEmpty()) {
-                    partitionedResults.get(false).forEach(r -> log.warn("Processing failed for {}: {}", schedule.getJobName(), r.getErrors()));
-                    if (REGULAR.contains(schedule.getJobName()) || schedule.getAttempts() > MAX_ATTEMPTS) {
-                        adminJobQueueRepository.updateSchedule(schedule.getId(), AdminJobSchedule.Status.FAILED, ZonedDateTime.now(clockProvider.getClock()), Map.of());
-                    } else {
-                        var nextExecution = getNextExecution(schedule.getAttempts());
-                        logReschedule(nextExecution, schedule.getMetadata(), schedule.getJobName());
-                        adminJobQueueRepository.scheduleRetry(schedule.getId(), nextExecution);
-                    }
-                } else {
-                    partitionedResults.get(true).forEach(result -> {
-                        if(result.getData() != null) {
-                            log.trace("Message from {}: {}", schedule.getJobName(), result.getData());
+                .map(this::processPendingRequest)
+                .filter(p -> !p.getRight().isEmpty())
+                .forEach(scheduleWithResults -> {
+                    var schedule = scheduleWithResults.getLeft();
+                    var partitionedResults = scheduleWithResults.getRight().stream()
+                            .collect(Collectors.partitioningBy(Result::isSuccess));
+                    if (!partitionedResults.get(false).isEmpty()) {
+                        partitionedResults
+                                .get(false)
+                                .forEach(r ->
+                                        log.warn("Processing failed for {}: {}", schedule.getJobName(), r.getErrors()));
+                        if (REGULAR.contains(schedule.getJobName()) || schedule.getAttempts() > MAX_ATTEMPTS) {
+                            adminJobQueueRepository.updateSchedule(
+                                    schedule.getId(),
+                                    AdminJobSchedule.Status.FAILED,
+                                    ZonedDateTime.now(clockProvider.getClock()),
+                                    Map.of());
+                        } else {
+                            var nextExecution = getNextExecution(schedule.getAttempts());
+                            logReschedule(nextExecution, schedule.getMetadata(), schedule.getJobName());
+                            adminJobQueueRepository.scheduleRetry(schedule.getId(), nextExecution);
                         }
-                    });
-                    adminJobQueueRepository.updateSchedule(schedule.getId(), EXECUTED, ZonedDateTime.now(clockProvider.getClock()), Map.of());
-                }
-            });
+                    } else {
+                        partitionedResults.get(true).forEach(result -> {
+                            if (result.getData() != null) {
+                                log.trace("Message from {}: {}", schedule.getJobName(), result.getData());
+                            }
+                        });
+                        adminJobQueueRepository.updateSchedule(
+                                schedule.getId(), EXECUTED, ZonedDateTime.now(clockProvider.getClock()), Map.of());
+                    }
+                });
     }
 
     static ZonedDateTime getNextExecution(int currentAttempt) {
-        return ZonedDateTime.now(ClockProvider.clock())
-            .plusSeconds((long) Math.pow(2, currentAttempt + 1D));
+        return ZonedDateTime.now(ClockProvider.clock()).plusSeconds((long) Math.pow(2, currentAttempt + 1D));
     }
 
     void cleanupExpiredRequests() {
         log.trace("Cleanup expired requests");
         ZonedDateTime now = ZonedDateTime.now(clockProvider.getClock());
         int deleted = adminJobQueueRepository.removePastSchedules(now.minusDays(1), executedStatuses);
-        if(deleted > 0) {
+        if (deleted > 0) {
             log.trace("Deleted {} executed jobs", deleted);
         }
         deleted = adminJobQueueRepository.removePastSchedules(now.minusWeeks(1), notExecutedStatuses);
-        if(deleted > 0) {
+        if (deleted > 0) {
             log.warn("Deleted {} NOT executed jobs", deleted);
         }
     }
 
     public boolean scheduleExecution(JobName jobName, Map<String, Object> metadata) {
-        return scheduleExecution(jobName, metadata, ZonedDateTime.now(clockProvider.getClock()).truncatedTo(ChronoUnit.MINUTES));
+        return scheduleExecution(
+                jobName, metadata, ZonedDateTime.now(clockProvider.getClock()).truncatedTo(ChronoUnit.MINUTES));
     }
 
     public boolean scheduleExecution(JobName jobName, Map<String, Object> metadata, ZonedDateTime executionTime) {
@@ -146,25 +159,30 @@ public class AdminJobManager {
     }
 
     private Pair<AdminJobSchedule, List<Result<String>>> processPendingRequest(AdminJobSchedule schedule) {
-        return Pair.of(schedule, executorsByJobId.getOrDefault(schedule.getJobName(), List.of())
-            .stream()
-            .map(s -> {
-                try {
-                    return Result.success(nestedTransactionTemplate.execute(status -> s.process(schedule)));
-                } catch (Exception ex) {
-                    return Result.<String>error(ErrorCode.custom("exception", ex.getMessage()));
-                }
-            })
-            .collect(Collectors.toList()));
+        return Pair.of(
+                schedule,
+                executorsByJobId.getOrDefault(schedule.getJobName(), List.of()).stream()
+                        .map(s -> {
+                            try {
+                                return Result.success(nestedTransactionTemplate.execute(status -> s.process(schedule)));
+                            } catch (Exception ex) {
+                                return Result.<String>error(ErrorCode.custom("exception", ex.getMessage()));
+                            }
+                        })
+                        .collect(Collectors.toList()));
     }
 
-    public static Function<AdminJobQueueRepository, Boolean> executionScheduler(JobName jobName, Map<String, Object> metadata, ZonedDateTime executionTime) {
+    public static Function<AdminJobQueueRepository, Boolean> executionScheduler(
+            JobName jobName, Map<String, Object> metadata, ZonedDateTime executionTime) {
         return adminJobQueueRepository -> {
             try {
-                int result = adminJobQueueRepository.schedule(jobName, executionTime, metadata,
-                    // by setting a null value, we actually disable the unique constraint for this job name
-                    // and allow multiple rows to be present for the same timestamp
-                    jobName.allowsMultipleScheduling() ? null : "N");
+                int result = adminJobQueueRepository.schedule(
+                        jobName,
+                        executionTime,
+                        metadata,
+                        // by setting a null value, we actually disable the unique constraint for this job name
+                        // and allow multiple rows to be present for the same timestamp
+                        jobName.allowsMultipleScheduling() ? null : "N");
                 if (result == 0) {
                     log.trace("Possible duplication detected while inserting {}", jobName);
                 }
@@ -186,7 +204,11 @@ public class AdminJobManager {
                 var payload = Json.fromJson((String) metadata.get("payload"), RetryFinalizeReservation.class);
                 name = payload.getReservationId();
             }
-            log.debug("scheduling failed {} {} to be executed at {}", isExtension ? "extension" : "reservation", name, nextExecution);
+            log.debug(
+                    "scheduling failed {} {} to be executed at {}",
+                    isExtension ? "extension" : "reservation",
+                    name,
+                    nextExecution);
         } catch (Exception e) {
             log.warn("Cannot log reschedule", e);
         }

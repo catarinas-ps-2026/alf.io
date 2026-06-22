@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -11,7 +15,10 @@ import { AnalyticsService } from '../../shared/analytics.service';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 import { EventService } from '../../shared/event.service';
 import type { PurchaseContext } from '../../model/purchase-context';
-import type { ReservationInfo, ReservationSubscriptionInfo } from '../../model/reservation-info';
+import type {
+    ReservationInfo,
+    ReservationSubscriptionInfo,
+} from '../../model/reservation-info';
 import type { BasicEventInfo } from '../../model/basic-event-info';
 
 describe('SuccessSubscriptionComponent', () => {
@@ -45,7 +52,13 @@ describe('SuccessSubscriptionComponent', () => {
         ticketCategories: [],
         localization: {},
         privacyPolicyUrl: null,
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: true, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: true,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
     } as unknown as PurchaseContext;
 
@@ -104,13 +117,35 @@ describe('SuccessSubscriptionComponent', () => {
     };
 
     const mockCompatibleEvents: BasicEventInfo[] = [
-        { id: 1, shortName: 'event-1', title: { en: 'Event 1' }, startDate: '', endDate: '', format: 'IN_PERSON', enabled: true },
-        { id: 2, shortName: 'event-2', title: { en: 'Event 2' }, startDate: '', endDate: '', format: 'ONLINE', enabled: true },
+        {
+            id: 1,
+            shortName: 'event-1',
+            title: { en: 'Event 1' },
+            startDate: '',
+            endDate: '',
+            format: 'IN_PERSON',
+            enabled: true,
+        },
+        {
+            id: 2,
+            shortName: 'event-2',
+            title: { en: 'Event 2' },
+            startDate: '',
+            endDate: '',
+            format: 'ONLINE',
+            enabled: true,
+        },
     ];
 
     const mockActivatedRoute = {
-        data: of({ type: 'subscription', publicIdentifierParameter: 'subscriptionId' }),
-        params: of({ subscriptionId: 'test-subscription', reservationId: 'res-123' }),
+        data: of({
+            type: 'subscription',
+            publicIdentifierParameter: 'subscriptionId',
+        }),
+        params: of({
+            subscriptionId: 'test-subscription',
+            reservationId: 'res-123',
+        }),
     };
 
     const mockReservationService = {
@@ -150,8 +185,14 @@ describe('SuccessSubscriptionComponent', () => {
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
             providers: [
                 { provide: ActivatedRoute, useValue: mockActivatedRoute },
-                { provide: ReservationService, useValue: mockReservationService },
-                { provide: PurchaseContextService, useValue: mockPurchaseContextService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
+                {
+                    provide: PurchaseContextService,
+                    useValue: mockPurchaseContextService,
+                },
                 { provide: I18nService, useValue: mockI18nService },
                 { provide: AnalyticsService, useValue: mockAnalyticsService },
                 { provide: TranslateService, useValue: mockTranslateService },
@@ -172,16 +213,24 @@ describe('SuccessSubscriptionComponent', () => {
         it('should load purchase context and reservation', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith('subscription', 'test-subscription');
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalledWith('res-123');
-            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith('reservation-page.header.title', mockPurchaseContext);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith(
+                'subscription',
+                'test-subscription',
+            );
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalledWith('res-123');
+            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith(
+                'reservation-page.header.title',
+                mockPurchaseContext,
+            );
         });
 
         it('should store route params', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.publicIdentifier).toBe('test-subscription');
             expect(component.reservationId).toBe('res-123');
             expect(component.purchaseContextType).toBe('subscription');
@@ -192,9 +241,12 @@ describe('SuccessSubscriptionComponent', () => {
         it('should set finalized based on status', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
-            const finalizingReservation = { ...mockReservationInfo, status: 'FINALIZING' };
+            const finalizingReservation = {
+                ...mockReservationInfo,
+                status: 'FINALIZING',
+            };
             component.processReservationInfo(finalizingReservation);
 
             expect(component.reservationFinalized).toBe(false);
@@ -203,25 +255,33 @@ describe('SuccessSubscriptionComponent', () => {
         it('should load compatible events when finalized', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
             component.processReservationInfo(mockReservationInfo);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(mockEventService.getEvents).toHaveBeenCalled();
         });
 
         it('should load events when embedding is not enabled', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 200));
             const initialCalls = mockEventService.getEvents.mock.calls.length;
-            const nonEmbeddedContext = { ...mockPurchaseContext, embeddingConfiguration: { enabled: false, notificationOrigin: '' } };
+            const nonEmbeddedContext = {
+                ...mockPurchaseContext,
+                embeddingConfiguration: {
+                    enabled: false,
+                    notificationOrigin: '',
+                },
+            };
             component.purchaseContext = nonEmbeddedContext as PurchaseContext;
             component.processReservationInfo(mockReservationInfo);
 
-            await new Promise(resolve => setTimeout(resolve, 200));
-            expect(mockEventService.getEvents.mock.calls.length).toBeGreaterThan(initialCalls);
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            expect(
+                mockEventService.getEvents.mock.calls.length,
+            ).toBeGreaterThan(initialCalls);
         });
     });
 
@@ -229,7 +289,7 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return title in current language', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
             expect(component.purchaseContextTitle).toBe('Test Subscription');
         });
@@ -239,7 +299,7 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return true when all conditions met', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
             component.reservationInfo = mockReservationInfo;
             expect(component.downloadBillingDocumentVisible).toBe(true);
@@ -248,7 +308,7 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return false when not paid', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
             component.reservationInfo = { ...mockReservationInfo, paid: false };
             expect(component.downloadBillingDocumentVisible).toBe(false);
@@ -259,7 +319,7 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return first subscription info', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo = mockReservationInfo;
             expect(component.subscriptionInfo).toEqual(mockSubscriptionInfo);
         });
@@ -269,11 +329,16 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return true when finalized and configuration displayPin is true', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationFinalized = true;
             component.reservationInfo = {
                 ...mockReservationInfo,
-                subscriptionInfos: [{ ...mockSubscriptionInfo, configuration: { displayPin: true } }],
+                subscriptionInfos: [
+                    {
+                        ...mockSubscriptionInfo,
+                        configuration: { displayPin: true },
+                    },
+                ],
             };
             expect(component.displayPin).toBe(true);
         });
@@ -281,7 +346,7 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return false when finalized is false', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationFinalized = false;
             component.reservationInfo = {
                 ...mockReservationInfo,
@@ -293,11 +358,13 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return true by default when no configuration', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationFinalized = true;
             component.reservationInfo = {
                 ...mockReservationInfo,
-                subscriptionInfos: [{ ...mockSubscriptionInfo, configuration: undefined }],
+                subscriptionInfos: [
+                    { ...mockSubscriptionInfo, configuration: undefined },
+                ],
             };
             expect(component.displayPin).toBe(true);
         });
@@ -307,21 +374,32 @@ describe('SuccessSubscriptionComponent', () => {
         it('should call reservationService.reSendReservationEmail', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.publicIdentifier = 'test-subscription';
             component.reservationId = 'res-123';
             component.reSendReservationEmail();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.reSendReservationEmail).toHaveBeenCalledWith('subscription', 'test-subscription', 'res-123', 'en');
-            expect(mockFeedbackService.showSuccess).toHaveBeenCalledWith('email.confirmation-email-sent');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.reSendReservationEmail,
+            ).toHaveBeenCalledWith(
+                'subscription',
+                'test-subscription',
+                'res-123',
+                'en',
+            );
+            expect(mockFeedbackService.showSuccess).toHaveBeenCalledWith(
+                'email.confirmation-email-sent',
+            );
         });
     });
 
     describe('copied', () => {
         it('should show success feedback', () => {
             component.copied('1234');
-            expect(mockFeedbackService.showSuccess).toHaveBeenCalledWith('reservation-page-complete.subscription.copy.success');
+            expect(mockFeedbackService.showSuccess).toHaveBeenCalledWith(
+                'reservation-page-complete.subscription.copy.success',
+            );
         });
     });
 
@@ -329,7 +407,7 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return true when finalized and not embedded', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
             component.reservationInfo = mockReservationInfo;
             component.reservationFinalized = true;
@@ -339,7 +417,7 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return false when not finalized', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
             component.reservationInfo = mockReservationInfo;
             component.reservationFinalized = false;
@@ -349,9 +427,15 @@ describe('SuccessSubscriptionComponent', () => {
         it('should return false when hideConfirmationButtons is true', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext = mockPurchaseContext;
-            component.reservationInfo = { ...mockReservationInfo, metadata: { ...mockReservationInfo.metadata, hideConfirmationButtons: true } };
+            component.reservationInfo = {
+                ...mockReservationInfo,
+                metadata: {
+                    ...mockReservationInfo.metadata,
+                    hideConfirmationButtons: true,
+                },
+            };
             component.reservationFinalized = true;
             expect(component.showReservationButtons).toBe(false);
         });

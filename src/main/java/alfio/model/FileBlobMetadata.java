@@ -19,12 +19,11 @@ package alfio.model;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-import org.apache.commons.lang3.ObjectUtils;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import org.apache.commons.lang3.ObjectUtils;
 
 @Getter
 public class FileBlobMetadata {
@@ -38,11 +37,12 @@ public class FileBlobMetadata {
     private final String contentType;
     private final Map<String, String> attributes;
 
-    public FileBlobMetadata(@Column("id") String id,
-                            @Column("name") String name,
-                            @Column("content_size") int contentSize,
-                            @Column("content_type") String contentType,
-                            @Column("attributes") String attributes) {
+    public FileBlobMetadata(
+            @Column("id") String id,
+            @Column("name") String name,
+            @Column("content_size") int contentSize,
+            @Column("content_type") String contentType,
+            @Column("attributes") String attributes) {
         this.id = id;
         this.name = name;
         this.contentSize = contentSize;
@@ -51,11 +51,7 @@ public class FileBlobMetadata {
         this.attributes = ObjectUtils.firstNonNull(parsed, Collections.emptyMap());
     }
 
-    private static final Set<String> VALID_TYPE = Set.of(
-        "image/jpeg",
-        "image/png",
-        "image/gif"
-    );
+    private static final Set<String> VALID_TYPE = Set.of("image/jpeg", "image/png", "image/gif");
     // consider adding image/webp , image/avif  ?
 
     public String getContentType() {

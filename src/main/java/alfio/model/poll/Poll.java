@@ -19,20 +19,18 @@ package alfio.model.poll;
 import alfio.model.support.Array;
 import alfio.model.support.JSONData;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-
 import java.util.List;
 import java.util.Map;
 
-
-public record Poll(@Column("id") long id,
-                   @Column("status") PollStatus status,
-                   @Column("title") @JSONData Map<String, String> title,
-                   @Column("description") @JSONData Map<String, String> description,
-                   @Column("allowed_tags") @Array List<String> allowedTags,
-                   @Column("poll_order") int order,
-                   @Column("event_id_fk") int eventId,
-                   @Column("organization_id_fk") int organizationId) {
-
+public record Poll(
+        @Column("id") long id,
+        @Column("status") PollStatus status,
+        @Column("title") @JSONData Map<String, String> title,
+        @Column("description") @JSONData Map<String, String> description,
+        @Column("allowed_tags") @Array List<String> allowedTags,
+        @Column("poll_order") int order,
+        @Column("event_id_fk") int eventId,
+        @Column("organization_id_fk") int organizationId) {
 
     public enum PollStatus {
         DRAFT,

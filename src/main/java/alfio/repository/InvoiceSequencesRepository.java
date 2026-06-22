@@ -25,24 +25,26 @@ import ch.digitalfondue.npjt.QueryRepository;
 @QueryRepository
 public interface InvoiceSequencesRepository {
 
-    @Query("select invoice_sequence from invoice_sequences where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE for update")
-    int lockSequenceForUpdate(@Bind("orgId") int orgId, @Bind("documentType") @EnumTypeAsString BillingDocument.Type billingDocumentType);
+    @Query(
+            "select invoice_sequence from invoice_sequences where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE for update")
+    int lockSequenceForUpdate(
+            @Bind("orgId") int orgId, @Bind("documentType") @EnumTypeAsString BillingDocument.Type billingDocumentType);
 
     default int lockSequenceForUpdate(@Bind("orgId") int orgId) {
         return lockSequenceForUpdate(orgId, BillingDocument.Type.INVOICE);
     }
 
-    @Query("update invoice_sequences set invoice_sequence = invoice_sequence + 1 where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE")
-    int incrementSequenceFor(@Bind("orgId") int orgId, @Bind("documentType") @EnumTypeAsString BillingDocument.Type billingDocumentType);
-
+    @Query(
+            "update invoice_sequences set invoice_sequence = invoice_sequence + 1 where organization_id_fk = :orgId and document_type = :documentType::BILLING_DOCUMENT_TYPE")
+    int incrementSequenceFor(
+            @Bind("orgId") int orgId, @Bind("documentType") @EnumTypeAsString BillingDocument.Type billingDocumentType);
 
     default int incrementSequenceFor(@Bind("orgId") int orgId) {
         return incrementSequenceFor(orgId, BillingDocument.Type.INVOICE);
     }
 
-
-
-    @Query("""
+    @Query(
+            """
         insert into invoice_sequences(organization_id_fk, invoice_sequence, document_type) values\
          (:orgId, 1, 'INVOICE'),\
          (:orgId, 1, 'CREDIT_NOTE')\

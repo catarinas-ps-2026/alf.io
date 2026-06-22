@@ -16,23 +16,22 @@
  */
 package alfio.model;
 
+import static alfio.util.LocaleUtil.atZone;
+import static alfio.util.MonetaryUtil.centsToUnit;
+
 import alfio.model.support.JSONData;
 import alfio.model.transaction.PaymentProxy;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static alfio.util.LocaleUtil.atZone;
-import static alfio.util.MonetaryUtil.centsToUnit;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 public class ReservationWithPurchaseContext implements PriceContainer {
@@ -58,28 +57,28 @@ public class ReservationWithPurchaseContext implements PriceContainer {
     private final Map<String, String> purchaseContextTitle;
     private final List<PurchaseContextItem> items;
 
-
-    public ReservationWithPurchaseContext(@Column("tr_id") String id,
-                                          @Column("tr_validity") ZonedDateTime validity,
-                                          @Column("tr_status") TicketReservation.TicketReservationStatus status,
-                                          @Column("tr_confirmation_ts") ZonedDateTime confirmationTs,
-                                          @Column("tr_registration_ts") ZonedDateTime registrationTs,
-                                          @Column("tr_payment_method") PaymentProxy paymentMethod,
-                                          @Column("tr_invoice_number") String invoiceNumber,
-                                          @Column("tr_vat_status") PriceContainer.VatStatus vatStatus,
-                                          @Column("tr_used_vat_percent") BigDecimal vatPercentage,
-                                          @Column("tr_src_price_cts") int srcPriceCts,
-                                          @Column("tr_final_price_cts") int finalPriceCts,
-                                          @Column("tr_vat_cts") int vatCts,
-                                          @Column("tr_discount_cts") int discountCts,
-                                          @Column("tr_currency_code") String currencyCode,
-                                          @Column("pc_type") PurchaseContext.PurchaseContextType purchaseContextType,
-                                          @Column("pc_public_identifier") String purchaseContextPublicIdentifier,
-                                          @Column("pc_title") @JSONData Map<String, String> purchaseContextTitle,
-                                          @Column("pc_time_zone") String purchaseContextTimezone,
-                                          @Column("pc_start_date") ZonedDateTime purchaseContextStartDate,
-                                          @Column("pc_end_date") ZonedDateTime purchaseContextEndDate,
-                                          @Column("pc_items") String itemsJson) {
+    public ReservationWithPurchaseContext(
+            @Column("tr_id") String id,
+            @Column("tr_validity") ZonedDateTime validity,
+            @Column("tr_status") TicketReservation.TicketReservationStatus status,
+            @Column("tr_confirmation_ts") ZonedDateTime confirmationTs,
+            @Column("tr_registration_ts") ZonedDateTime registrationTs,
+            @Column("tr_payment_method") PaymentProxy paymentMethod,
+            @Column("tr_invoice_number") String invoiceNumber,
+            @Column("tr_vat_status") PriceContainer.VatStatus vatStatus,
+            @Column("tr_used_vat_percent") BigDecimal vatPercentage,
+            @Column("tr_src_price_cts") int srcPriceCts,
+            @Column("tr_final_price_cts") int finalPriceCts,
+            @Column("tr_vat_cts") int vatCts,
+            @Column("tr_discount_cts") int discountCts,
+            @Column("tr_currency_code") String currencyCode,
+            @Column("pc_type") PurchaseContext.PurchaseContextType purchaseContextType,
+            @Column("pc_public_identifier") String purchaseContextPublicIdentifier,
+            @Column("pc_title") @JSONData Map<String, String> purchaseContextTitle,
+            @Column("pc_time_zone") String purchaseContextTimezone,
+            @Column("pc_start_date") ZonedDateTime purchaseContextStartDate,
+            @Column("pc_end_date") ZonedDateTime purchaseContextEndDate,
+            @Column("pc_items") String itemsJson) {
         var zoneId = ZoneId.of(purchaseContextTimezone);
         this.id = id;
         this.validity = atZone(validity, zoneId);

@@ -16,7 +16,6 @@
  */
 package alfio.model;
 
-
 import alfio.model.transaction.PaymentProxy;
 import alfio.model.transaction.Transaction;
 import lombok.AllArgsConstructor;

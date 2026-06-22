@@ -17,11 +17,10 @@
 package alfio.controller.api.v2.model;
 
 import alfio.controller.api.support.AdditionalServiceWithData;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
@@ -37,12 +36,12 @@ public class TicketInfo implements DateValidity {
 
     private final boolean deskPaymentRequired;
 
-    //date related
+    // date related
     private final String timeZone;
     private final DatesWithTimeZoneOffset datesWithOffset;
     private final boolean sameDay;
     private final Map<String, String> formattedBeginDate; // day, month, year
-    private final Map<String, String> formattedBeginTime; //the hour/minute component
+    private final Map<String, String> formattedBeginTime; // the hour/minute component
     private final Map<String, String> formattedEndDate;
     private final Map<String, String> formattedEndTime;
     //

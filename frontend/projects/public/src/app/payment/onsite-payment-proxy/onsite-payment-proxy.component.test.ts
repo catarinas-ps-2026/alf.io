@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { OnsitePaymentProxyComponent } from './onsite-payment-proxy.component';
@@ -67,12 +71,16 @@ describe('OnsitePaymentProxyComponent', () => {
     describe('ngOnChanges', () => {
         it('should emit paymentProvider when matchProxyAndMethod and method changes', () => {
             const emittedProviders: any[] = [];
-            component.paymentProvider.subscribe((p) => emittedProviders.push(p));
+            component.paymentProvider.subscribe((p) =>
+                emittedProviders.push(p),
+            );
 
             component.method = 'ON_SITE';
             component.proxy = 'ON_SITE';
 
-            component.ngOnChanges({ method: { currentValue: 'ON_SITE' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'ON_SITE' },
+            } as any);
 
             expect(emittedProviders.length).toBe(1);
             expect(emittedProviders[0]).toBeDefined();
@@ -86,7 +94,9 @@ describe('OnsitePaymentProxyComponent', () => {
             component.method = 'CREDIT_CARD';
             component.proxy = 'STRIPE';
 
-            component.ngOnChanges({ method: { currentValue: 'CREDIT_CARD' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'CREDIT_CARD' },
+            } as any);
 
             expect(emitCount).toBe(0);
         });
@@ -111,7 +121,9 @@ describe('OnsitePaymentProxyComponent', () => {
             component.handleRecaptchaResponse('onsite-recaptcha-token');
 
             expect(mockFormGroup.get).toHaveBeenCalledWith('captcha');
-            expect(captchaControl.setValue).toHaveBeenCalledWith('onsite-recaptcha-token');
+            expect(captchaControl.setValue).toHaveBeenCalledWith(
+                'onsite-recaptcha-token',
+            );
         });
     });
 });

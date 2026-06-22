@@ -20,15 +20,14 @@ import alfio.model.EventAndOrganizationId;
 import alfio.model.PurchaseContext;
 import alfio.model.subscription.SubscriptionDescriptor;
 import alfio.model.system.ConfigurationPathLevel;
-
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
 
 public interface ConfigurationLevel {
 
+    ConfigurationPathLevel getPathLevel(); // waiting for pattern matching...
 
-    ConfigurationPathLevel getPathLevel(); //waiting for pattern matching...
     default OptionalInt getOrganizationId() {
         return OptionalInt.empty();
     }
@@ -58,15 +57,17 @@ public interface ConfigurationLevel {
     }
 
     static ConfigurationLevel event(EventAndOrganizationId eventAndOrganizationId) {
-        return new ConfigurationLevels.EventLevel(eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId());
+        return new ConfigurationLevels.EventLevel(
+                eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId());
     }
 
     static ConfigurationLevel subscriptionDescriptor(SubscriptionDescriptor subscriptionDescriptor) {
-        return new ConfigurationLevels.SubscriptionDescriptorLevel(subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId());
+        return new ConfigurationLevels.SubscriptionDescriptorLevel(
+                subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId());
     }
 
     static ConfigurationLevel purchaseContext(PurchaseContext purchaseContext) {
-        if(purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {
+        if (purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)) {
             return event(purchaseContext.event().orElseThrow());
         }
         return subscriptionDescriptor((SubscriptionDescriptor) purchaseContext);
@@ -77,7 +78,7 @@ public interface ConfigurationLevel {
     }
 
     static ConfigurationLevel ticketCategory(EventAndOrganizationId eventAndOrganizationId, int ticketCategoryId) {
-        return new ConfigurationLevels.CategoryLevel(eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId(), ticketCategoryId);
+        return new ConfigurationLevels.CategoryLevel(
+                eventAndOrganizationId.getOrganizationId(), eventAndOrganizationId.getId(), ticketCategoryId);
     }
-
 }

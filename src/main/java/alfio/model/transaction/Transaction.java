@@ -19,17 +19,17 @@ package alfio.model.transaction;
 import alfio.model.support.JSONData;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class Transaction {
 
     public static final String NOTES_KEY = "transactionNotes";
     public static final String SELECTED_PAYMENT_METHOD_KEY = "selectedPaymentMethod";
+
     public enum Status {
         PENDING,
         OFFLINE_MATCHING_PAYMENT_FOUND,
@@ -55,20 +55,20 @@ public class Transaction {
     private final Status status;
     private final Map<String, String> metadata;
 
-
-    public Transaction(@Column("id") int id,
-                       @Column("gtw_tx_id") String transactionId,
-                       @Column("gtw_payment_id") String paymentId,
-                       @Column("reservation_id") String reservationId,
-                       @Column("t_timestamp") ZonedDateTime timestamp,
-                       @Column("price_cts") int priceInCents,
-                       @Column("currency") String currency,
-                       @Column("description") String description,
-                       @Column("payment_proxy") String paymentProxy,
-                       @Column("plat_fee") long platformFee,
-                       @Column("gtw_fee") long gatewayFee,
-                       @Column("status") Status status,
-                       @Column("metadata") @JSONData Map<String, String> metadata) {
+    public Transaction(
+            @Column("id") int id,
+            @Column("gtw_tx_id") String transactionId,
+            @Column("gtw_payment_id") String paymentId,
+            @Column("reservation_id") String reservationId,
+            @Column("t_timestamp") ZonedDateTime timestamp,
+            @Column("price_cts") int priceInCents,
+            @Column("currency") String currency,
+            @Column("description") String description,
+            @Column("payment_proxy") String paymentProxy,
+            @Column("plat_fee") long platformFee,
+            @Column("gtw_fee") long gatewayFee,
+            @Column("status") Status status,
+            @Column("metadata") @JSONData Map<String, String> metadata) {
         this.id = id;
         this.transactionId = transactionId;
         this.paymentId = paymentId;
@@ -89,8 +89,7 @@ public class Transaction {
     }
 
     public boolean isPotentialMatch() {
-        return status == Status.OFFLINE_MATCHING_PAYMENT_FOUND
-            || status == Status.OFFLINE_PENDING_REVIEW;
+        return status == Status.OFFLINE_MATCHING_PAYMENT_FOUND || status == Status.OFFLINE_PENDING_REVIEW;
     }
 
     public String getFormattedAmount() {

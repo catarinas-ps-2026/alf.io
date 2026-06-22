@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -39,6 +42,10 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
@@ -48,40 +55,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class GroupManagerIntegrationTest extends BaseIntegrationTest {
 
     public static final String TEST_EMAIL_ADDRESS = "test@test.ch";
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private AuthorityRepository authorityRepository;
+
     @Autowired
     private TicketRepository ticketRepository;
+
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private GroupRepository groupRepository;
+
     @Autowired
     private GroupManager groupManager;
+
     @Autowired
     private TicketReservationManager ticketReservationManager;
 
@@ -94,16 +104,42 @@ class GroupManagerIntegrationTest extends BaseIntegrationTest {
     @Test
     void testLinkToEvent() {
 
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, 10,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> pair = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                10,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> pair =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         Event event = pair.getKey();
         Group group = groupManager.createNew("test", "This is a test", event.getOrganizationId());
         assertNotNull(group);
-        LinkedGroupModification modification = new LinkedGroupModification(null, group.getId(), event.getId(), null, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                null,
+                group.getId(),
+                event.getId(),
+                null,
+                LinkedGroup.Type.ONCE_PER_VALUE,
+                LinkedGroup.MatchType.FULL,
+                null);
         LinkedGroup configuration = groupManager.createLink(group.getId(), event.getId(), modification);
         assertNotNull(configuration);
         List<TicketCategory> ticketCategories = eventManager.loadTicketCategories(event);
@@ -113,8 +149,12 @@ class GroupManagerIntegrationTest extends BaseIntegrationTest {
         assertFalse(activeConfigurations.isEmpty(), "ActiveConfigurations should be empty");
         assertEquals(1, activeConfigurations.size());
         assertEquals(configuration.getId(), activeConfigurations.get(0).getId());
-        assertFalse(groupManager.isAllowed(TEST_EMAIL_ADDRESS, event.getId(), categoryId), "Group is empty, therefore no value is allowed");
-        Result<Integer> items = groupManager.insertMembers(group.getId(), Collections.singletonList(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description")));
+        assertFalse(
+                groupManager.isAllowed(TEST_EMAIL_ADDRESS, event.getId(), categoryId),
+                "Group is empty, therefore no value is allowed");
+        Result<Integer> items = groupManager.insertMembers(
+                group.getId(),
+                Collections.singletonList(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description")));
         assertTrue(items.isSuccess());
         assertEquals(Integer.valueOf(1), items.getData());
         assertTrue(groupManager.isAllowed(TEST_EMAIL_ADDRESS, event.getId(), categoryId));
@@ -123,38 +163,85 @@ class GroupManagerIntegrationTest extends BaseIntegrationTest {
         ticketReservation.setQuantity(1);
         ticketReservation.setTicketCategoryId(categoryId);
 
-        String reservationId = ticketReservationManager.createTicketReservation(event, Collections.singletonList(new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
-            Collections.emptyList(), DateUtils.addDays(new Date(), 1), Optional.empty(), Locale.ENGLISH, false, null);
+        String reservationId = ticketReservationManager.createTicketReservation(
+                event,
+                Collections.singletonList(
+                        new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
+                Collections.emptyList(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
 
-        Ticket ticket = ticketRepository.findFirstTicketInReservation(reservationId).orElseThrow(NullPointerException::new);
-        ticketRepository.updateTicketOwnerById(ticket.getId(), TEST_EMAIL_ADDRESS, "This is a Test", "This is", "a Test");
+        Ticket ticket =
+                ticketRepository.findFirstTicketInReservation(reservationId).orElseThrow(NullPointerException::new);
+        ticketRepository.updateTicketOwnerById(
+                ticket.getId(), TEST_EMAIL_ADDRESS, "This is a Test", "This is", "a Test");
 
         ticket = ticketRepository.findFirstTicketInReservation(reservationId).orElseThrow(NullPointerException::new);
         assertTrue(groupManager.acquireMemberForTicket(ticket));
 
-        reservationId = ticketReservationManager.createTicketReservation(event, Collections.singletonList(new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
-            Collections.emptyList(), DateUtils.addDays(new Date(), 1), Optional.empty(), Locale.ENGLISH, false, null);
+        reservationId = ticketReservationManager.createTicketReservation(
+                event,
+                Collections.singletonList(
+                        new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
+                Collections.emptyList(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
 
         ticket = ticketRepository.findFirstTicketInReservation(reservationId).orElseThrow(NullPointerException::new);
         assertFalse(groupManager.acquireMemberForTicket(ticket), "shouldn't be allowed");
-
     }
 
     @Test
     void testDuplicates() {
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, 10,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> pair = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                10,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> pair =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         Event event = pair.getKey();
         Group group = groupManager.createNew("test", "This is a test", event.getOrganizationId());
         assertNotNull(group);
-        LinkedGroupModification modification = new LinkedGroupModification(null, group.getId(), event.getId(), null, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                null,
+                group.getId(),
+                event.getId(),
+                null,
+                LinkedGroup.Type.ONCE_PER_VALUE,
+                LinkedGroup.MatchType.FULL,
+                null);
         LinkedGroup configuration = groupManager.createLink(group.getId(), event.getId(), modification);
         assertNotNull(configuration);
-        Result<Integer> items = groupManager.insertMembers(group.getId(), Arrays.asList(new GroupMemberModification(null,"test@test.ch", "description"), new GroupMemberModification(null,"test@test.ch", "description")));
+        Result<Integer> items = groupManager.insertMembers(
+                group.getId(),
+                Arrays.asList(
+                        new GroupMemberModification(null, "test@test.ch", "description"),
+                        new GroupMemberModification(null, "test@test.ch", "description")));
         Assertions.assertFalse(items.isSuccess());
         assertEquals("value.duplicate", items.getFirstErrorOrNull().getCode());
         assertEquals(TEST_EMAIL_ADDRESS, items.getFirstErrorOrNull().getDescription());
@@ -162,21 +249,48 @@ class GroupManagerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void testMatchByDomainName() {
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, 10,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> pair = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                10,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> pair =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         Event event = pair.getKey();
         Group group = groupManager.createNew("test", "This is a test", event.getOrganizationId());
         assertNotNull(group);
         List<TicketCategory> ticketCategories = eventManager.loadTicketCategories(event);
         int categoryId = ticketCategories.get(0).getId();
-        LinkedGroupModification modification = new LinkedGroupModification(null, group.getId(), event.getId(), categoryId, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.EMAIL_DOMAIN, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                null,
+                group.getId(),
+                event.getId(),
+                categoryId,
+                LinkedGroup.Type.ONCE_PER_VALUE,
+                LinkedGroup.MatchType.EMAIL_DOMAIN,
+                null);
         LinkedGroup configuration = groupManager.createLink(group.getId(), event.getId(), modification);
         assertNotNull(configuration);
-        Result<Integer> items = groupManager.insertMembers(group.getId(), List.of(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description")));
+        Result<Integer> items = groupManager.insertMembers(
+                group.getId(), List.of(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description")));
         Assertions.assertTrue(items.isSuccess());
         assertTrue(groupManager.isAllowed(TEST_EMAIL_ADDRESS, event.getId(), categoryId));
 
@@ -184,11 +298,21 @@ class GroupManagerIntegrationTest extends BaseIntegrationTest {
         ticketReservation.setQuantity(1);
         ticketReservation.setTicketCategoryId(categoryId);
 
-        String reservationId = ticketReservationManager.createTicketReservation(event, Collections.singletonList(new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
-            Collections.emptyList(), DateUtils.addDays(new Date(), 1), Optional.empty(), Locale.ENGLISH, false, null);
+        String reservationId = ticketReservationManager.createTicketReservation(
+                event,
+                Collections.singletonList(
+                        new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
+                Collections.emptyList(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
 
-        Ticket ticket = ticketRepository.findFirstTicketInReservation(reservationId).orElseThrow(NullPointerException::new);
-        ticketRepository.updateTicketOwnerById(ticket.getId(), TEST_EMAIL_ADDRESS, "This is a Test", "This is", "a Test");
+        Ticket ticket =
+                ticketRepository.findFirstTicketInReservation(reservationId).orElseThrow(NullPointerException::new);
+        ticketRepository.updateTicketOwnerById(
+                ticket.getId(), TEST_EMAIL_ADDRESS, "This is a Test", "This is", "a Test");
 
         // reload ticket
         ticket = ticketRepository.findById(ticket.getId(), categoryId);
@@ -198,38 +322,89 @@ class GroupManagerIntegrationTest extends BaseIntegrationTest {
         assertFalse(groupManager.acquireMemberForTicket(ticket), "same email address shouldn't be allowed");
 
         // however, we should be able to insert another email from the same domain
-        String secondReservationId = ticketReservationManager.createTicketReservation(event, Collections.singletonList(new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
-            Collections.emptyList(), DateUtils.addDays(new Date(), 1), Optional.empty(), Locale.ENGLISH, false, null);
-        Ticket secondTicket = ticketRepository.findFirstTicketInReservation(secondReservationId).orElseThrow(NullPointerException::new);
-        ticketRepository.updateTicketOwnerById(secondTicket.getId(), "second"+TEST_EMAIL_ADDRESS, "This is the second Test", "This is", "the second Test");
+        String secondReservationId = ticketReservationManager.createTicketReservation(
+                event,
+                Collections.singletonList(
+                        new TicketReservationWithOptionalCodeModification(ticketReservation, Optional.empty())),
+                Collections.emptyList(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
+        Ticket secondTicket = ticketRepository
+                .findFirstTicketInReservation(secondReservationId)
+                .orElseThrow(NullPointerException::new);
+        ticketRepository.updateTicketOwnerById(
+                secondTicket.getId(),
+                "second" + TEST_EMAIL_ADDRESS,
+                "This is the second Test",
+                "This is",
+                "the second Test");
 
         // reload ticket
         secondTicket = ticketRepository.findById(secondTicket.getId(), categoryId);
 
-        assertTrue(groupManager.acquireMemberForTicket(secondTicket), "another email address of the same domain must be allowed");
+        assertTrue(
+                groupManager.acquireMemberForTicket(secondTicket),
+                "another email address of the same domain must be allowed");
     }
 
     @Test
     void testEscape() {
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, 10,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> pair = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                10,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(2), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> pair =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         Event event = pair.getKey();
         Group group = groupManager.createNew("test > 1", "This is a test < 1", event.getOrganizationId());
         assertNotNull(group);
         assertEquals("This is a test &lt; 1", group.getDescription());
         assertEquals("test &gt; 1", group.getName());
-        LinkedGroupModification modification = new LinkedGroupModification(null, group.getId(), event.getId(), null, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                null,
+                group.getId(),
+                event.getId(),
+                null,
+                LinkedGroup.Type.ONCE_PER_VALUE,
+                LinkedGroup.MatchType.FULL,
+                null);
         LinkedGroup configuration = groupManager.createLink(group.getId(), event.getId(), modification);
         assertNotNull(configuration);
-        Result<Integer> items = groupManager.insertMembers(group.getId(), List.of(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description <>")));
+        Result<Integer> items = groupManager.insertMembers(
+                group.getId(), List.of(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description <>")));
         assertTrue(items.isSuccess());
         var persistedGroup = groupManager.loadComplete(group.getId()).orElseThrow();
         assertEquals("description &lt;&gt;", persistedGroup.getItems().get(0).getDescription());
-        groupManager.update(group.getId(), new GroupModification(group.getId(), "test > 1", "This is a test < 1", event.getOrganizationId(), List.of(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description <>"))));
+        groupManager.update(
+                group.getId(),
+                new GroupModification(
+                        group.getId(),
+                        "test > 1",
+                        "This is a test < 1",
+                        event.getOrganizationId(),
+                        List.of(new GroupMemberModification(null, TEST_EMAIL_ADDRESS, "description <>"))));
         persistedGroup = groupManager.loadComplete(group.getId()).orElseThrow();
         assertEquals("This is a test &lt; 1", persistedGroup.getDescription());
         assertEquals("test &gt; 1", persistedGroup.getName());

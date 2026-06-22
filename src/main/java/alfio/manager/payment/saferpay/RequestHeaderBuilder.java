@@ -17,7 +17,6 @@
 package alfio.manager.payment.saferpay;
 
 import com.google.gson.stream.JsonWriter;
-
 import java.io.IOException;
 
 class RequestHeaderBuilder {
@@ -32,12 +31,15 @@ class RequestHeaderBuilder {
         this.retryIndicator = retryIndicator;
     }
 
-
     JsonWriter appendTo(JsonWriter writer) throws IOException {
-        writer.name("RequestHeader").beginObject() //
-            .name("SpecVersion").value(SPEC_VERSION) //
-            .name("CustomerId").value(customerId) //
-            .name("RequestId").value(requestId);
+        writer.name("RequestHeader")
+                .beginObject() //
+                .name("SpecVersion")
+                .value(SPEC_VERSION) //
+                .name("CustomerId")
+                .value(customerId) //
+                .name("RequestId")
+                .value(requestId);
         if (retryIndicator != null) {
             writer.name("RetryIndicator").value(retryIndicator);
         }

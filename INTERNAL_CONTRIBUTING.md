@@ -74,9 +74,18 @@ You must name the branch according to the issue topic you are doing. For example
 - Do not reduce the overall test coverage.
 - Use descriptive PR titles and link the related issue.
 - Respect the project's code style and conventions.
-    - We enforce code quality and stylistic consistency using Checkstyle plugin in
-      grandlew.
-    - Currently is in Observation Mode due the technical debt.
-    - you can see the report in `build/reports/checkstyle/`.
-    - It is Highly recommended to install a Checkstyle plugin in your IDE.
-    - You can also use `./gradlew checkStyleMain`.
+    - We enforce code quality and stylistic consistency using Checkstyle and automatic code formatting tools.
+    - **Java Formatting (Spotless)**:
+        - We use Spotless with Palantir Java Format (4-space indentation).
+        - Format code locally: `./gradlew spotlessApply`
+        - Check formatting: `./gradlew spotlessCheck`
+    - **Frontend Formatting (Biome)**:
+        - We use Biome (4-space indentation).
+        - Format code locally: `pnpm --prefix frontend run format`
+        - Check formatting: `pnpm --prefix frontend run format:check`
+    - **CI Integration**:
+        - On pull requests, the CI pipeline automatically formats both backend and frontend code and pushes a commit with the changes.
+    - **Linter & Style Checks**:
+        - Checkstyle is configured in `build.gradle` (currently in soft warning mode due to technical debt).
+        - You can view the local checkstyle report under `build/reports/checkstyle/`.
+        - You can run checkstyle locally using `./gradlew checkstyleMain checkstyleTest`.

@@ -19,7 +19,8 @@ package alfio.model.transaction;
 public interface TransactionWebhookPayload {
 
     enum Status {
-        SUCCESS, FAILURE
+        SUCCESS,
+        FAILURE
     }
 
     Object getPayload();
@@ -29,5 +30,4 @@ public interface TransactionWebhookPayload {
     String getReservationId();
 
     Status getStatus();
-
 }

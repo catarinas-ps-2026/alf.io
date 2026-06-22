@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { WarningModalComponent } from './warning-modal/warning-modal.component';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -17,9 +21,7 @@ describe('WarningModalComponent', () => {
         await TestBed.configureTestingModule({
             declarations: [WarningModalComponent],
             imports: [TranslateModule.forRoot()],
-            providers: [
-                { provide: NgbActiveModal, useValue: mockActiveModal },
-            ],
+            providers: [{ provide: NgbActiveModal, useValue: mockActiveModal }],
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
         }).compileComponents();
 
@@ -36,12 +38,17 @@ describe('WarningModalComponent', () => {
     describe('@Input properties', () => {
         it('should accept message input', () => {
             component.message = 'Warning: This action cannot be undone';
-            expect(component.message).toBe('Warning: This action cannot be undone');
+            expect(component.message).toBe(
+                'Warning: This action cannot be undone',
+            );
         });
 
         it('should accept parameters input', () => {
             component.parameters = { key1: 'value1', key2: 'value2' };
-            expect(component.parameters).toEqual({ key1: 'value1', key2: 'value2' });
+            expect(component.parameters).toEqual({
+                key1: 'value1',
+                key2: 'value2',
+            });
         });
 
         it('should accept empty parameters', () => {

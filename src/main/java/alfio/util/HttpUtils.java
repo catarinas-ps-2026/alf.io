@@ -48,27 +48,31 @@ public final class HttpUtils {
         return statusCode >= 200 && statusCode < 300;
     }
 
-    public static HttpResponse<String> postForm(HttpClient httpClient, String url, Map<String, String> params) throws IOException, InterruptedException {
+    public static HttpResponse<String> postForm(HttpClient httpClient, String url, Map<String, String> params)
+            throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .POST(HttpUtils.ofFormUrlEncodedBody(params))
-            .build();
+                .uri(URI.create(url))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpUtils.ofFormUrlEncodedBody(params))
+                .build();
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     public static String basicAuth(String username, String password) {
-        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+        return "Basic "
+                + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
     }
 
     public static <K, V> HttpRequest.BodyPublisher ofFormUrlEncodedBody(Map<K, V> data) {
         Objects.requireNonNull(data);
         StringBuilder sb = new StringBuilder();
-        data.forEach((k,v) -> {
+        data.forEach((k, v) -> {
             if (sb.length() > 0) {
                 sb.append("&");
             }
-            sb.append(URLEncoder.encode(k.toString(), StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(v.toString(), StandardCharsets.UTF_8));
+            sb.append(URLEncoder.encode(k.toString(), StandardCharsets.UTF_8))
+                    .append("=")
+                    .append(URLEncoder.encode(v.toString(), StandardCharsets.UTF_8));
         });
         return HttpRequest.BodyPublishers.ofString(sb.toString());
     }
@@ -99,7 +103,8 @@ public final class HttpUtils {
             return this;
         }
 
-        public MultiPartBodyPublisher addPart(String name, Supplier<InputStream> value, String filename, String contentType) {
+        public MultiPartBodyPublisher addPart(
+                String name, Supplier<InputStream> value, String filename, String contentType) {
             PartsSpecification newPart = new PartsSpecification();
             newPart.type = PartsSpecification.TYPE.STREAM;
             newPart.name = name;
@@ -120,7 +125,9 @@ public final class HttpUtils {
         static class PartsSpecification {
 
             public enum TYPE {
-                STRING, STREAM, FINAL_BOUNDARY
+                STRING,
+                STREAM,
+                FINAL_BOUNDARY
             }
 
             PartsSpecification.TYPE type;
@@ -178,11 +185,10 @@ public final class HttpUtils {
                     if (!iter.hasNext()) return null;
                     PartsSpecification nextPart = iter.next();
                     if (PartsSpecification.TYPE.STRING.equals(nextPart.type)) {
-                        String part =
-                            "--" + boundary + "\r\n" +
-                                "Content-Disposition: form-data; name=" + nextPart.name + "\r\n" +
-                                "Content-Type: text/plain; charset=UTF-8\r\n\r\n" +
-                                nextPart.value + "\r\n";
+                        String part = "--" + boundary + "\r\n" + "Content-Disposition: form-data; name="
+                                + nextPart.name + "\r\n" + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+                                + nextPart.value
+                                + "\r\n";
                         return part.getBytes(StandardCharsets.UTF_8);
                     }
                     if (PartsSpecification.TYPE.FINAL_BOUNDARY.equals(nextPart.type)) {
@@ -196,10 +202,9 @@ public final class HttpUtils {
                     }
                     currentFileInput = nextPart.stream.get();
 
-                    String partHeader =
-                        "--" + boundary + "\r\n" +
-                            "Content-Disposition: form-data; name=" + nextPart.name + "; filename=" + filename + "\r\n" +
-                            "Content-Type: " + contentType + "\r\n\r\n";
+                    String partHeader = "--" + boundary + "\r\n" + "Content-Disposition: form-data; name="
+                            + nextPart.name + "; filename=" + filename + "\r\n" + "Content-Type: "
+                            + contentType + "\r\n\r\n";
                     return partHeader.getBytes(StandardCharsets.UTF_8);
                 } else {
                     byte[] buf = new byte[8192];

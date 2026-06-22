@@ -16,6 +16,8 @@
  */
 package alfio.controller.api.admin;
 
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+
 import alfio.manager.AccessService;
 import alfio.manager.PurchaseContextFieldManager;
 import alfio.manager.PurchaseContextManager;
@@ -27,19 +29,16 @@ import alfio.model.result.ValidationResult;
 import alfio.repository.DynamicFieldTemplateRepository;
 import alfio.util.JsonViews;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static alfio.util.MiscUtils.removeTabsAndNewlines;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/api/{purchaseContextType}/{publicIdentifier}/additional-field")
@@ -52,10 +51,11 @@ public class AdditionalFieldApiController {
     private final AccessService accessService;
     private final DynamicFieldTemplateRepository dynamicFieldTemplateRepository;
 
-    public AdditionalFieldApiController(PurchaseContextManager purchaseContextManager,
-                                        PurchaseContextFieldManager purchaseContextFieldManager,
-                                        AccessService accessService,
-                                        DynamicFieldTemplateRepository dynamicFieldTemplateRepository) {
+    public AdditionalFieldApiController(
+            PurchaseContextManager purchaseContextManager,
+            PurchaseContextFieldManager purchaseContextFieldManager,
+            AccessService accessService,
+            DynamicFieldTemplateRepository dynamicFieldTemplateRepository) {
         this.purchaseContextManager = purchaseContextManager;
         this.purchaseContextFieldManager = purchaseContextFieldManager;
         this.accessService = accessService;
@@ -63,8 +63,9 @@ public class AdditionalFieldApiController {
     }
 
     @GetMapping("/templates")
-    public List<DynamicFieldTemplate> loadTemplates(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                                    @PathVariable String publicIdentifier) {
+    public List<DynamicFieldTemplate> loadTemplates(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Loading templates for {} {}", purchaseContextType, removeTabsAndNewlines(publicIdentifier));
         }
@@ -72,110 +73,131 @@ public class AdditionalFieldApiController {
     }
 
     @GetMapping()
-    public List<FieldConfigurationAndAllDescriptions> getAllAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                                                            @PathVariable String publicIdentifier,
-                                                                            Principal principal) {
+    public List<FieldConfigurationAndAllDescriptions> getAllAdditionalField(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            Principal principal) {
         accessService.checkPurchaseContextOwnership(principal, purchaseContextType, publicIdentifier);
-        var purchaseContext = purchaseContextManager.findBy(purchaseContextType, publicIdentifier).orElseThrow();
-        final Map<Long, List<PurchaseContextFieldDescription>> descById = purchaseContextFieldManager.findDescriptionsGroupedByFieldId(purchaseContext);
+        var purchaseContext = purchaseContextManager
+                .findBy(purchaseContextType, publicIdentifier)
+                .orElseThrow();
+        final Map<Long, List<PurchaseContextFieldDescription>> descById =
+                purchaseContextFieldManager.findDescriptionsGroupedByFieldId(purchaseContext);
         return purchaseContextFieldManager.findAdditionalFields(purchaseContext).stream()
-            .map(field -> new FieldConfigurationAndAllDescriptions(field, descById.getOrDefault(field.getId(), Collections.emptyList())))
-            .toList();
+                .map(field -> new FieldConfigurationAndAllDescriptions(
+                        field, descById.getOrDefault(field.getId(), Collections.emptyList())))
+                .toList();
     }
 
     @GetMapping("/{id}/stats")
-    public List<RestrictedValueStats> getStats(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                               @PathVariable String publicIdentifier,
-                                               @PathVariable long id,
-                                               Principal principal) {
+    public List<RestrictedValueStats> getStats(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @PathVariable long id,
+            Principal principal) {
         //
         accessService.checkAccessToAdditionalField(principal, purchaseContextType, publicIdentifier, id);
         //
         return purchaseContextFieldManager.retrieveStats(id);
     }
 
-    @PostMapping(
-        "/new"
-    )
-    public ValidationResult addAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                               @PathVariable String publicIdentifier,
-                                               @RequestBody AdditionalFieldRequest field,
-                                               Principal principal,
-                                               Errors errors) {
+    @PostMapping("/new")
+    public ValidationResult addAdditionalField(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @RequestBody AdditionalFieldRequest field,
+            Principal principal,
+            Errors errors) {
         //
         accessService.checkPurchaseContextOwnership(principal, purchaseContextType, publicIdentifier);
         //
 
-        var purchaseContext = purchaseContextManager.findBy(purchaseContextType, publicIdentifier).orElseThrow();
+        var purchaseContext = purchaseContextManager
+                .findBy(purchaseContextType, publicIdentifier)
+                .orElseThrow();
         return purchaseContextFieldManager.validateAndAddField(purchaseContext, field, errors);
     }
 
     @PostMapping(
-        // "/events/{eventName}/additional-field/descriptions" // old
-        "/descriptions"
-    )
-    public void saveAdditionalFieldDescriptions(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                                @PathVariable String publicIdentifier,
-                                                @RequestBody Map<String, TicketFieldDescriptionModification> descriptions, Principal principal) {
+            // "/events/{eventName}/additional-field/descriptions" // old
+            "/descriptions")
+    public void saveAdditionalFieldDescriptions(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @RequestBody Map<String, TicketFieldDescriptionModification> descriptions,
+            Principal principal) {
         //
-        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, descriptions.values().stream().map(TicketFieldDescriptionModification::getTicketFieldConfigurationId).collect(Collectors.toSet()));
+        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(
+                principal,
+                purchaseContextType,
+                publicIdentifier,
+                descriptions.values().stream()
+                        .map(TicketFieldDescriptionModification::getTicketFieldConfigurationId)
+                        .collect(Collectors.toSet()));
         //
-        purchaseContextFieldManager.updateFieldDescriptions(descriptions, purchaseContextManager.getOrganizationId(purchaseContextType, publicIdentifier));
+        purchaseContextFieldManager.updateFieldDescriptions(
+                descriptions, purchaseContextManager.getOrganizationId(purchaseContextType, publicIdentifier));
     }
 
     @PostMapping(
-        // "/events/{eventName}/additional-field/swap-position/{id1}/{id2}" // old
-        "/swap-position/{id1}/{id2}"
-    )
-    public void swapAdditionalFieldPosition(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                            @PathVariable String publicIdentifier,
-                                            @PathVariable long id1,
-                                            @PathVariable long id2,
-                                            Principal principal) {
+            // "/events/{eventName}/additional-field/swap-position/{id1}/{id2}" // old
+            "/swap-position/{id1}/{id2}")
+    public void swapAdditionalFieldPosition(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @PathVariable long id1,
+            @PathVariable long id2,
+            Principal principal) {
         //
-        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id1, id2));
+        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(
+                principal, purchaseContextType, publicIdentifier, Set.of(id1, id2));
         //
         purchaseContextFieldManager.swapAdditionalFieldPosition(id1, id2);
     }
 
     @PostMapping(
-        // "/events/{eventName}/additional-field/set-position/{id}" // old
-        "/set-position/{id}"
-    )
-    public void setAdditionalFieldPosition(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                           @PathVariable String publicIdentifier,
-                                           @PathVariable long id,
-                                           @RequestParam("newPosition") int newPosition,
-                                           Principal principal) {
+            // "/events/{eventName}/additional-field/set-position/{id}" // old
+            "/set-position/{id}")
+    public void setAdditionalFieldPosition(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @PathVariable long id,
+            @RequestParam("newPosition") int newPosition,
+            Principal principal) {
         //
-        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id));
+        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(
+                principal, purchaseContextType, publicIdentifier, Set.of(id));
         //
         purchaseContextFieldManager.setAdditionalFieldPosition(id, newPosition);
     }
 
     @DeleteMapping(
-        // "/events/{eventName}/additional-field/{id}" // old
-        "/{id}"
-    )
-    public void deleteAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                      @PathVariable String publicIdentifier,
-                                      @PathVariable long id,
-                                      Principal principal) {
+            // "/events/{eventName}/additional-field/{id}" // old
+            "/{id}")
+    public void deleteAdditionalField(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @PathVariable long id,
+            Principal principal) {
         //
-        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id));
+        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(
+                principal, purchaseContextType, publicIdentifier, Set.of(id));
         //
         purchaseContextFieldManager.deleteAdditionalField(id);
     }
 
     @PostMapping("/{id}")
-    public void updateAdditionalField(@PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
-                                      @PathVariable String publicIdentifier,
-                                      @PathVariable long id,
-                                      @RequestBody EventModification.UpdateAdditionalField field,
-                                      Principal principal) {
+    public void updateAdditionalField(
+            @PathVariable PurchaseContext.PurchaseContextType purchaseContextType,
+            @PathVariable String publicIdentifier,
+            @PathVariable long id,
+            @RequestBody EventModification.UpdateAdditionalField field,
+            Principal principal) {
         //
-        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(principal, purchaseContextType, publicIdentifier, Set.of(id));
+        accessService.checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(
+                principal, purchaseContextType, publicIdentifier, Set.of(id));
         //
-        purchaseContextFieldManager.updateAdditionalField(id, field, purchaseContextManager.getOrganizationId(purchaseContextType, publicIdentifier));
+        purchaseContextFieldManager.updateAdditionalField(
+                id, field, purchaseContextManager.getOrganizationId(purchaseContextType, publicIdentifier));
     }
 }

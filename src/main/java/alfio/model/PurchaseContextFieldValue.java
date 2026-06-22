@@ -18,9 +18,8 @@ package alfio.model;
 
 import alfio.model.PurchaseContextFieldConfiguration.Context;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.util.UUID;
+import lombok.Getter;
 
 @Getter
 public class PurchaseContextFieldValue {
@@ -33,13 +32,14 @@ public class PurchaseContextFieldValue {
     private final String value;
     private final Context context;
 
-    public PurchaseContextFieldValue(@Column("ticket_id_fk") Integer ticketId,
-                                     @Column("subscription_id_fk") UUID subscriptionId,
-                                     @Column("additional_service_item_id_fk") Integer additionalServiceItemId,
-                                     @Column("field_configuration_id_fk") long fieldConfigurationId,
-                                     @Column("field_name") String name,
-                                     @Column("field_value") String value,
-                                     @Column("context") Context context) {
+    public PurchaseContextFieldValue(
+            @Column("ticket_id_fk") Integer ticketId,
+            @Column("subscription_id_fk") UUID subscriptionId,
+            @Column("additional_service_item_id_fk") Integer additionalServiceItemId,
+            @Column("field_configuration_id_fk") long fieldConfigurationId,
+            @Column("field_name") String name,
+            @Column("field_value") String value,
+            @Column("context") Context context) {
         this.ticketId = ticketId;
         this.subscriptionId = subscriptionId;
         this.additionalServiceItemId = additionalServiceItemId;

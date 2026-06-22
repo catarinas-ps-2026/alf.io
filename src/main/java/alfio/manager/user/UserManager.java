@@ -16,6 +16,10 @@
  */
 package alfio.manager.user;
 
+import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+
 import alfio.config.authentication.support.APITokenAuthentication;
 import alfio.manager.AccessService;
 import alfio.model.modification.OrganizationModification;
@@ -30,6 +34,13 @@ import alfio.repository.user.join.UserOrganizationRepository;
 import alfio.util.PasswordGenerator;
 import alfio.util.RequestUtils;
 import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import java.security.Principal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
@@ -40,18 +51,6 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import java.security.Principal;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 @Component
 @Transactional
@@ -69,7 +68,15 @@ public class UserManager {
     private final FindByIndexNameSessionRepository<?> sessionsByPrincipalFinder;
     private final AccessService accessService;
 
-    public UserManager(AuthorityRepository authorityRepository, OrganizationRepository organizationRepository, UserOrganizationRepository userOrganizationRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, InvoiceSequencesRepository invoiceSequencesRepository, FindByIndexNameSessionRepository<?> sessionsByPrincipalFinder, AccessService accessService) {
+    public UserManager(
+            AuthorityRepository authorityRepository,
+            OrganizationRepository organizationRepository,
+            UserOrganizationRepository userOrganizationRepository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            InvoiceSequencesRepository invoiceSequencesRepository,
+            FindByIndexNameSessionRepository<?> sessionsByPrincipalFinder,
+            AccessService accessService) {
         this.authorityRepository = authorityRepository;
         this.organizationRepository = organizationRepository;
         this.userOrganizationRepository = userOrganizationRepository;
@@ -80,7 +87,6 @@ public class UserManager {
         this.accessService = accessService;
     }
 
-
     private List<Authority> getUserAuthorities(User user) {
         return authorityRepository.findGrantedAuthorities(user.getUsername());
     }
@@ -90,28 +96,36 @@ public class UserManager {
         List<Organization> organizations = findUserOrganizations(username);
         Predicate<Collection<?>> isNotEmpty = ks -> !ks.isEmpty();
         return Optional.of(organizations)
-            .filter(isNotEmpty)
-            .flatMap(org -> {
-                Map<Integer, List<UserOrganization>> usersAndOrganizations = userOrganizationRepository.findByOrganizationIdsOrderByUserId(organizations.stream().map(Organization::getId).collect(toList()))
-                    .stream()
-                    .collect(Collectors.groupingBy(UserOrganization::getUserId));
-                return Optional.of(usersAndOrganizations.keySet())
-                    .filter(isNotEmpty)
-                    .map(ks -> userRepository.findByIds(ks)
-                        .stream()
-                        .map(u -> {
-                            List<UserOrganization> userOrganizations = usersAndOrganizations.get(u.getId());
-                            List<Organization> filteredOrganizations = organizations.stream().filter(o -> userOrganizations.stream().anyMatch(uo -> uo.getOrganizationId() == o.getId())).collect(toList());
-                            List<Role> roles = authorityRepository.findRoles(u.getUsername()).stream().map(Role::fromRoleName).collect(toList());
-                            return new UserWithOrganizations(u, filteredOrganizations, roles);
-                        }).collect(toList()));
-            }).orElseGet(Collections::emptyList);
+                .filter(isNotEmpty)
+                .flatMap(org -> {
+                    Map<Integer, List<UserOrganization>> usersAndOrganizations = userOrganizationRepository
+                            .findByOrganizationIdsOrderByUserId(organizations.stream()
+                                    .map(Organization::getId)
+                                    .collect(toList()))
+                            .stream()
+                            .collect(Collectors.groupingBy(UserOrganization::getUserId));
+                    return Optional.of(usersAndOrganizations.keySet())
+                            .filter(isNotEmpty)
+                            .map(ks -> userRepository.findByIds(ks).stream()
+                                    .map(u -> {
+                                        List<UserOrganization> userOrganizations = usersAndOrganizations.get(u.getId());
+                                        List<Organization> filteredOrganizations = organizations.stream()
+                                                .filter(o -> userOrganizations.stream()
+                                                        .anyMatch(uo -> uo.getOrganizationId() == o.getId()))
+                                                .collect(toList());
+                                        List<Role> roles = authorityRepository.findRoles(u.getUsername()).stream()
+                                                .map(Role::fromRoleName)
+                                                .collect(toList());
+                                        return new UserWithOrganizations(u, filteredOrganizations, roles);
+                                    })
+                                    .collect(toList()));
+                })
+                .orElseGet(Collections::emptyList);
     }
 
     @Transactional(readOnly = true)
     public List<User> findAllEnabledUsers(String username) {
-        return findUserOrganizations(username)
-                .stream()
+        return findUserOrganizations(username).stream()
                 .flatMap(o -> userOrganizationRepository.findByOrganizationId(o.getId()).stream())
                 .map(uo -> userRepository.findById(uo.getUserId()))
                 .filter(User::isEnabled)
@@ -155,7 +169,9 @@ public class UserManager {
     @Transactional(readOnly = true)
     public Collection<Role> getAvailableRoles(String username) {
         User user = findUserByUsername(username);
-        return isAdmin(user) || isOwner(user) ? EnumSet.of(Role.OWNER, Role.OPERATOR, Role.SUPERVISOR, Role.SPONSOR, Role.API_CONSUMER) : Collections.emptySet();
+        return isAdmin(user) || isOwner(user)
+                ? EnumSet.of(Role.OWNER, Role.OPERATOR, Role.SUPERVISOR, Role.SPONSOR, Role.API_CONSUMER)
+                : Collections.emptySet();
     }
 
     /**
@@ -165,7 +181,11 @@ public class UserManager {
      */
     @Transactional(readOnly = true)
     public Role getUserRole(User user) {
-        return getUserAuthorities(user).stream().map(Authority::getRole).sorted().findFirst().orElse(Role.OPERATOR);
+        return getUserAuthorities(user).stream()
+                .map(Authority::getRole)
+                .sorted()
+                .findFirst()
+                .orElse(Role.OPERATOR);
     }
 
     @Transactional(readOnly = true)
@@ -180,10 +200,9 @@ public class UserManager {
 
     @Transactional(readOnly = true)
     public Optional<Organization> findOptionalOrganizationById(int id, String username) {
-        return findUserOrganizations(username)
-            .stream()
-            .filter(o -> o.getId() == id)
-            .findFirst();
+        return findUserOrganizations(username).stream()
+                .filter(o -> o.getId() == id)
+                .findFirst();
     }
 
     @Transactional(readOnly = true)
@@ -198,14 +217,18 @@ public class UserManager {
 
     @Transactional(readOnly = true)
     public boolean isOwnerOfOrganization(User user, int organizationId) {
-        return isAdmin(user) || (isOwner(user) && userOrganizationRepository.findByUserId(user.getId()).stream().anyMatch(uo -> uo.getOrganizationId() == organizationId));
+        return isAdmin(user)
+                || (isOwner(user)
+                        && userOrganizationRepository.findByUserId(user.getId()).stream()
+                                .anyMatch(uo -> uo.getOrganizationId() == organizationId));
     }
 
     @Transactional(readOnly = true)
     public boolean isOwnerOfOrganization(String username, int organizationId) {
-        return userRepository.findByUsername(username)
-            .filter(user -> isOwnerOfOrganization(user, organizationId))
-            .isPresent();
+        return userRepository
+                .findByUsername(username)
+                .filter(user -> isOwnerOfOrganization(user, organizationId))
+                .isPresent();
     }
 
     private boolean checkRole(User user, Set<Role> expectedRoles) {
@@ -217,7 +240,8 @@ public class UserManager {
         //
         checkIsAdmin(principal);
         //
-        var affectedRowNumAndKey = organizationRepository.create(om.getName(), om.getDescription(), om.getEmail(), om.getExternalId(), om.getSlug());
+        var affectedRowNumAndKey = organizationRepository.create(
+                om.getName(), om.getDescription(), om.getEmail(), om.getExternalId(), om.getSlug());
         int orgId = affectedRowNumAndKey.getKey();
         Validate.isTrue(invoiceSequencesRepository.initFor(orgId) == 2);
         return orgId;
@@ -230,76 +254,109 @@ public class UserManager {
         //
         boolean isAdmin = RequestUtils.isAdmin(principal) || RequestUtils.isSystemApiKey(principal);
         var currentOrg = organizationRepository.getById(orgId);
-        organizationRepository.update(om.getId(),
-            om.getName(),
-            om.getDescription(),
-            om.getEmail(),
-            isAdmin ? om.getExternalId() : currentOrg.getExternalId(),
-            isAdmin ? om.getSlug() : currentOrg.getSlug());
+        organizationRepository.update(
+                om.getId(),
+                om.getName(),
+                om.getDescription(),
+                om.getEmail(),
+                isAdmin ? om.getExternalId() : currentOrg.getExternalId(),
+                isAdmin ? om.getSlug() : currentOrg.getSlug());
     }
 
     @Transactional(readOnly = true)
     public ValidationResult validateOrganizationSlug(OrganizationModification om, Principal principal) {
-        if(!RequestUtils.isAdmin(principal)) {
-            return ValidationResult.failed(new ValidationResult.ErrorDescriptor("slug", "Cannot update Organizer URL."));
+        if (!RequestUtils.isAdmin(principal)) {
+            return ValidationResult.failed(
+                    new ValidationResult.ErrorDescriptor("slug", "Cannot update Organizer URL."));
         }
         var slug = om.getSlug();
-        if(StringUtils.isBlank(slug) || !SLUG_VALIDATOR.matcher(om.getSlug()).matches()) {
+        if (StringUtils.isBlank(slug) || !SLUG_VALIDATOR.matcher(om.getSlug()).matches()) {
             return ValidationResult.failed(new ValidationResult.ErrorDescriptor("slug", "Invalid value"));
         }
-        if(organizationRepository.countBySlug(slug, om.getId()) > 0) {
-            return ValidationResult.failed(new ValidationResult.ErrorDescriptor("slug", "URL is already taken", "value_already_in_use"));
+        if (organizationRepository.countBySlug(slug, om.getId()) > 0) {
+            return ValidationResult.failed(
+                    new ValidationResult.ErrorDescriptor("slug", "URL is already taken", "value_already_in_use"));
         }
         return ValidationResult.success();
     }
 
     @Transactional(readOnly = true)
     public ValidationResult validateOrganization(OrganizationModification om, Principal principal) {
-        if(om.getId() == null && organizationRepository.findByName(om.getName()).isPresent()) {
-            return ValidationResult.failed(new ValidationResult.ErrorDescriptor("name", "There is already another organization with the same name."));
+        if (om.getId() == null
+                && organizationRepository.findByName(om.getName()).isPresent()) {
+            return ValidationResult.failed(new ValidationResult.ErrorDescriptor(
+                    "name", "There is already another organization with the same name."));
         }
         Validate.notBlank(om.getName(), "name can't be empty");
         Validate.notBlank(om.getEmail(), "email can't be empty");
         Validate.notBlank(om.getDescription(), "description can't be empty");
-        if(!RequestUtils.isAdmin(principal)) {
+        if (!RequestUtils.isAdmin(principal)) {
             Validate.isTrue(StringUtils.isBlank(om.getExternalId()), "cannot update external id");
             Validate.isTrue(StringUtils.isBlank(om.getSlug()), "cannot update slug");
-        } else if(StringUtils.isNotBlank(om.getSlug())) {
+        } else if (StringUtils.isNotBlank(om.getSlug())) {
             Validate.isTrue(SLUG_VALIDATOR.matcher(om.getSlug()).matches(), "Organizer address is not valid");
         }
         return ValidationResult.success();
     }
 
-    public void editUser(int id, int organizationId, String username, String firstName, String lastName, String emailAddress, String description, Role role, Principal principal) {
+    public void editUser(
+            int id,
+            int organizationId,
+            String username,
+            String firstName,
+            String lastName,
+            String emailAddress,
+            String description,
+            Role role,
+            Principal principal) {
         //
         checkAccessToUserIdAndNewOrganization(principal, id, organizationId);
         //
         String currentUsername = principal.getName();
         boolean admin = ADMIN_USERNAME.equals(username) && Role.ADMIN == role;
-        if(!admin) {
+        if (!admin) {
             int userOrganizationResult = userOrganizationRepository.updateUserOrganization(id, organizationId);
             Assert.isTrue(userOrganizationResult == 1, "unexpected error during organization update");
         }
         int userResult = userRepository.update(id, username, firstName, lastName, emailAddress, description);
         Assert.isTrue(userResult == 1, "unexpected error during user update");
-        if(!admin && !username.equals(currentUsername)) {
-            Assert.isTrue(getAvailableRoles(currentUsername).contains(role), "cannot assign role "+role);
+        if (!admin && !username.equals(currentUsername)) {
+            Assert.isTrue(getAvailableRoles(currentUsername).contains(role), "cannot assign role " + role);
             authorityRepository.revokeAll(username);
             authorityRepository.create(username, role.getRoleName());
         }
     }
 
-    public void updateCurrentUserContactInfo(String firstName, String lastName, String emailAddress, Principal principal) {
+    public void updateCurrentUserContactInfo(
+            String firstName, String lastName, String emailAddress, Principal principal) {
         var id = userRepository.findIdByUserName(principal.getName()).orElseThrow();
         userRepository.updateContactInfo(id, firstName, lastName, emailAddress);
     }
 
-    public UserWithPassword insertUser(int organizationId, String username, String firstName, String lastName, String emailAddress, Role role, User.Type userType, Principal principal) {
-        return insertUser(organizationId, username, firstName, lastName, emailAddress, role, userType, null, null, principal);
+    public UserWithPassword insertUser(
+            int organizationId,
+            String username,
+            String firstName,
+            String lastName,
+            String emailAddress,
+            Role role,
+            User.Type userType,
+            Principal principal) {
+        return insertUser(
+                organizationId, username, firstName, lastName, emailAddress, role, userType, null, null, principal);
     }
 
-
-    public UserWithPassword insertUser(int organizationId, String username, String firstName, String lastName, String emailAddress, Role role, User.Type userType, ZonedDateTime validTo, String description, Principal principal) {
+    public UserWithPassword insertUser(
+            int organizationId,
+            String username,
+            String firstName,
+            String lastName,
+            String emailAddress,
+            Role role,
+            User.Type userType,
+            ZonedDateTime validTo,
+            String description,
+            Principal principal) {
         if (userType == User.Type.API_KEY) {
             username = UUID.randomUUID().toString();
             firstName = "apikey";
@@ -308,7 +365,18 @@ public class UserManager {
         }
 
         String userPassword = PasswordGenerator.generateRandomPassword();
-        return insertUser(organizationId, username, firstName, lastName, emailAddress, role, userType, userPassword, validTo, description, principal);
+        return insertUser(
+                organizationId,
+                username,
+                firstName,
+                lastName,
+                emailAddress,
+                role,
+                userType,
+                userPassword,
+                validTo,
+                description,
+                principal);
     }
 
     public void bulkInsertApiKeys(int organizationId, Role role, List<String> descriptions, Principal principal) {
@@ -317,18 +385,39 @@ public class UserManager {
         }
     }
 
-
-    public UserWithPassword insertUser(int organizationId, String username, String firstName, String lastName, String emailAddress, Role role, User.Type userType, String userPassword, ZonedDateTime validTo, String description, Principal principal) {
+    public UserWithPassword insertUser(
+            int organizationId,
+            String username,
+            String firstName,
+            String lastName,
+            String emailAddress,
+            Role role,
+            User.Type userType,
+            String userPassword,
+            ZonedDateTime validTo,
+            String description,
+            Principal principal) {
         //
         checkAccessToOrganizationId(principal, organizationId);
         //
         Organization organization = organizationRepository.getById(organizationId);
-        AffectedRowCountAndKey<Integer> result = userRepository.create(username, passwordEncoder.encode(userPassword), firstName, lastName, emailAddress, true, userType, validTo, description);
+        AffectedRowCountAndKey<Integer> result = userRepository.create(
+                username,
+                passwordEncoder.encode(userPassword),
+                firstName,
+                lastName,
+                emailAddress,
+                true,
+                userType,
+                validTo,
+                description);
         userOrganizationRepository.create(result.getKey(), organization.getId());
         authorityRepository.create(username, role.getRoleName());
-        return new UserWithPassword(userRepository.findById(result.getKey()), userType != User.Type.API_KEY ? userPassword : "", UUID.randomUUID().toString());
+        return new UserWithPassword(
+                userRepository.findById(result.getKey()),
+                userType != User.Type.API_KEY ? userPassword : "",
+                UUID.randomUUID().toString());
     }
-
 
     public UserWithPassword resetPassword(int userId, Principal principal) {
         //
@@ -341,18 +430,20 @@ public class UserManager {
         }
 
         String password = PasswordGenerator.generateRandomPassword();
-        Validate.isTrue(userRepository.resetPassword(userId, passwordEncoder.encode(password)) == 1, "error during password reset");
+        Validate.isTrue(
+                userRepository.resetPassword(userId, passwordEncoder.encode(password)) == 1,
+                "error during password reset");
         return new UserWithPassword(user, password, UUID.randomUUID().toString());
     }
-
 
     public void updateCurrentUserPassword(String newPassword, Principal principal) {
         var username = principal.getName();
         User user = userRepository.findByUsername(username).orElseThrow(IllegalStateException::new);
         Validate.isTrue(PasswordGenerator.isValid(newPassword), "invalid password");
-        Validate.isTrue(userRepository.resetPassword(user.getId(), passwordEncoder.encode(newPassword)) == 1, "error during password update");
+        Validate.isTrue(
+                userRepository.resetPassword(user.getId(), passwordEncoder.encode(newPassword)) == 1,
+                "error during password update");
     }
-
 
     public void deleteUser(int userId, Principal principal) {
         //
@@ -360,18 +451,24 @@ public class UserManager {
         //
         if (!isSystemApiUser(principal)) {
             var currentUsername = principal.getName();
-            User currentUser = userRepository.findEnabledByUsername(currentUsername).orElseThrow(IllegalArgumentException::new);
+            User currentUser =
+                    userRepository.findEnabledByUsername(currentUsername).orElseThrow(IllegalArgumentException::new);
             Assert.isTrue(userId != currentUser.getId(), "sorry but you cannot delete your own account.");
         }
 
         var userToDelete = userRepository.findById(userId);
         userRepository.deleteUserAndReferences(userId);
         invalidateSessionsForUser(userToDelete.getUsername());
-        log.warn("Deleted user (id: {}, username: {}) as requested by {}", userId, userToDelete.getUsername(), principal.getName());
+        log.warn(
+                "Deleted user (id: {}, username: {}) as requested by {}",
+                userId,
+                userToDelete.getUsername(),
+                principal.getName());
     }
 
     private void invalidateSessionsForUser(String username) {
-        var sessionsToInvalidate = sessionsByPrincipalFinder.findByPrincipalName(username).keySet();
+        var sessionsToInvalidate =
+                sessionsByPrincipalFinder.findByPrincipalName(username).keySet();
         sessionsToInvalidate.forEach(sessionsByPrincipalFinder::deleteById);
     }
 
@@ -380,7 +477,8 @@ public class UserManager {
         checkAccessToUserId(principal, userId);
         //
         var currentUsername = principal.getName();
-        User currentUser = userRepository.findEnabledByUsername(currentUsername).orElseThrow(IllegalArgumentException::new);
+        User currentUser =
+                userRepository.findEnabledByUsername(currentUsername).orElseThrow(IllegalArgumentException::new);
         Assert.isTrue(userId != currentUser.getId(), "sorry but you cannot commit suicide");
 
         userRepository.toggleEnabled(userId, status);
@@ -392,46 +490,58 @@ public class UserManager {
     }
 
     @Transactional(readOnly = true)
-    public ValidationResult validateUser(Integer id, String username, String firstName, String lastName, String emailAddress) {
+    public ValidationResult validateUser(
+            Integer id, String username, String firstName, String lastName, String emailAddress) {
 
         Optional<User> existing = Optional.ofNullable(id).flatMap(userRepository::findOptionalById);
 
-        if(existing.filter(e -> e.getUsername().equals(username)).isEmpty() && usernameExists(username)) {
-            return ValidationResult.failed(new ValidationResult.ErrorDescriptor("username", "There is already another user with the same username."));
+        if (existing.filter(e -> e.getUsername().equals(username)).isEmpty() && usernameExists(username)) {
+            return ValidationResult.failed(new ValidationResult.ErrorDescriptor(
+                    "username", "There is already another user with the same username."));
         }
-        return ValidationResult.of(Stream.of(Pair.of(firstName, "firstName"), Pair.of(lastName, "lastName"), Pair.of(emailAddress, "emailAddress"))
-            .filter(p -> StringUtils.isEmpty(p.getKey()))
-            .map(p -> new ValidationResult.ErrorDescriptor(p.getKey(), p.getValue() + " is required"))
-            .collect(toList()));
+        return ValidationResult.of(Stream.of(
+                        Pair.of(firstName, "firstName"),
+                        Pair.of(lastName, "lastName"),
+                        Pair.of(emailAddress, "emailAddress"))
+                .filter(p -> StringUtils.isEmpty(p.getKey()))
+                .map(p -> new ValidationResult.ErrorDescriptor(p.getKey(), p.getValue() + " is required"))
+                .collect(toList()));
     }
 
     @Transactional(readOnly = true)
-    public ValidationResult validateNewPassword(String username, String oldPassword, String newPassword, String newPasswordConfirm) {
-        return userRepository.findByUsername(username)
-            .map(u -> {
-                List<ValidationResult.ErrorDescriptor> errors = new ArrayList<>();
-                Optional<String> password = userRepository.findPasswordByUsername(username);
-                if(password.filter(p -> oldPassword == null || passwordEncoder.matches(oldPassword, p)).isEmpty()) {
-                    errors.add(new ValidationResult.ErrorDescriptor("alfio.old-password-invalid", "wrong password"));
-                }
-                if(!PasswordGenerator.isValid(newPassword)) {
-                    errors.add(new ValidationResult.ErrorDescriptor("alfio.new-password-invalid", "new password is not strong enough"));
-                }
-                if(!StringUtils.equals(newPassword, newPasswordConfirm)) {
-                    errors.add(new ValidationResult.ErrorDescriptor("alfio.new-password-does-not-match", "new password has not been confirmed"));
-                }
-                return ValidationResult.of(errors);
-            })
-            .orElseGet(ValidationResult::failed);
+    public ValidationResult validateNewPassword(
+            String username, String oldPassword, String newPassword, String newPasswordConfirm) {
+        return userRepository
+                .findByUsername(username)
+                .map(u -> {
+                    List<ValidationResult.ErrorDescriptor> errors = new ArrayList<>();
+                    Optional<String> password = userRepository.findPasswordByUsername(username);
+                    if (password.filter(p -> oldPassword == null || passwordEncoder.matches(oldPassword, p))
+                            .isEmpty()) {
+                        errors.add(
+                                new ValidationResult.ErrorDescriptor("alfio.old-password-invalid", "wrong password"));
+                    }
+                    if (!PasswordGenerator.isValid(newPassword)) {
+                        errors.add(new ValidationResult.ErrorDescriptor(
+                                "alfio.new-password-invalid", "new password is not strong enough"));
+                    }
+                    if (!StringUtils.equals(newPassword, newPasswordConfirm)) {
+                        errors.add(new ValidationResult.ErrorDescriptor(
+                                "alfio.new-password-does-not-match", "new password has not been confirmed"));
+                    }
+                    return ValidationResult.of(errors);
+                })
+                .orElseGet(ValidationResult::failed);
     }
 
     public Integer createPublicUserIfNotExists(String username, String email, String firstName, String lastName) {
-        int result = userRepository.createPublicUserIfNotExists(username,
-            passwordEncoder.encode(PasswordGenerator.generateRandomPassword()),
-            firstName,
-            lastName,
-            email,
-            true);
+        int result = userRepository.createPublicUserIfNotExists(
+                username,
+                passwordEncoder.encode(PasswordGenerator.generateRandomPassword()),
+                firstName,
+                lastName,
+                email,
+                true);
         if (result == 1) {
             log.info("Created public user");
         } else {
@@ -439,7 +549,6 @@ public class UserManager {
         }
         return userRepository.findIdByUserName(username).orElse(null);
     }
-
 
     private void checkIsAdmin(Principal principal) {
         if (principal == null) {
@@ -474,7 +583,7 @@ public class UserManager {
 
     private boolean isSystemApiUser(Principal principal) {
         return principal instanceof APITokenAuthentication apita
-            && apita.getAuthorities().stream()
-            .allMatch(authority -> authority.getAuthority().equals("ROLE_" + SYSTEM_API_CLIENT));
+                && apita.getAuthorities().stream()
+                        .allMatch(authority -> authority.getAuthority().equals("ROLE_" + SYSTEM_API_CLIENT));
     }
 }

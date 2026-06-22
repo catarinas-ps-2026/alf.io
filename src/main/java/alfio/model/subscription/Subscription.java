@@ -16,22 +16,21 @@
  */
 package alfio.model.subscription;
 
+import static alfio.util.LocaleUtil.atZone;
+
 import alfio.model.AllocationStatus;
 import alfio.model.TimeZoneInfo;
 import alfio.util.ClockProvider;
 import alfio.util.PinGenerator;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import org.springframework.validation.BindingResult;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
-
-import static alfio.util.LocaleUtil.atZone;
+import lombok.Getter;
+import org.springframework.validation.BindingResult;
 
 @Getter
 public class Subscription implements TimeZoneInfo {
@@ -58,25 +57,25 @@ public class Subscription implements TimeZoneInfo {
 
     public static final int PIN_LENGTH = 8;
 
-
-    public Subscription(@Column("id") UUID id,
-                        @Column("first_name") String firstName,
-                        @Column("last_name") String lastName,
-                        @Column("email_address") String email,
-                        @Column("subscription_descriptor_fk") UUID subscriptionDescriptorId,
-                        @Column("reservation_id_fk") String reservationId,
-                        @Column("organization_id_fk") int organizationId,
-                        @Column("creation_ts") ZonedDateTime creationTime,
-                        @Column("update_ts") ZonedDateTime updateTime,
-                        @Column("src_price_cts") int srcPriceCts,
-                        @Column("discount_cts") int discountCts,
-                        @Column("currency") String currency,
-                        @Column("status") AllocationStatus status,
-                        @Column("max_entries") int maxEntries,
-                        @Column("validity_from") ZonedDateTime validityFrom,
-                        @Column("validity_to") ZonedDateTime validityTo,
-                        @Column("confirmation_ts") ZonedDateTime confirmationTimestamp,
-                        @Column("time_zone") String timeZone) {
+    public Subscription(
+            @Column("id") UUID id,
+            @Column("first_name") String firstName,
+            @Column("last_name") String lastName,
+            @Column("email_address") String email,
+            @Column("subscription_descriptor_fk") UUID subscriptionDescriptorId,
+            @Column("reservation_id_fk") String reservationId,
+            @Column("organization_id_fk") int organizationId,
+            @Column("creation_ts") ZonedDateTime creationTime,
+            @Column("update_ts") ZonedDateTime updateTime,
+            @Column("src_price_cts") int srcPriceCts,
+            @Column("discount_cts") int discountCts,
+            @Column("currency") String currency,
+            @Column("status") AllocationStatus status,
+            @Column("max_entries") int maxEntries,
+            @Column("validity_from") ZonedDateTime validityFrom,
+            @Column("validity_to") ZonedDateTime validityTo,
+            @Column("confirmation_ts") ZonedDateTime confirmationTimestamp,
+            @Column("time_zone") String timeZone) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -104,10 +103,10 @@ public class Subscription implements TimeZoneInfo {
             return false;
         }
         var now = now(ClockProvider.clock());
-        if(validityFrom != null && validityFrom.isAfter(now)) {
+        if (validityFrom != null && validityFrom.isAfter(now)) {
             reject(bindingResult, "subscription.not.valid");
             return false;
-        } else if(validityTo != null && validityTo.isBefore(now)) {
+        } else if (validityTo != null && validityTo.isBefore(now)) {
             reject(bindingResult, "subscription.expired");
             return false;
         }
@@ -132,14 +131,14 @@ public class Subscription implements TimeZoneInfo {
     }
 
     public String getFormattedValidityTo() {
-        if(validityTo == null) {
+        if (validityTo == null) {
             return null;
         }
         return validityTo.format(VALIDITY_FORMATTER);
     }
 
     public String getFormattedValidityFrom() {
-        if(validityFrom == null) {
+        if (validityFrom == null) {
             return null;
         }
         return validityFrom.format(VALIDITY_FORMATTER);

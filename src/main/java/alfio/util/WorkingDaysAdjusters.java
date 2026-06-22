@@ -25,11 +25,12 @@ import java.util.*;
 
 public class WorkingDaysAdjusters {
 
-    private static final Set<DayOfWeek> MON_FRI = EnumSet.complementOf(EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY));
-    private static final List<HoursRange> ALL_DAY = Collections.singletonList(new HoursRange(LocalTime.of(8, 0, 0), LocalTime.of(20, 0, 0)));
+    private static final Set<DayOfWeek> MON_FRI =
+            EnumSet.complementOf(EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY));
+    private static final List<HoursRange> ALL_DAY =
+            Collections.singletonList(new HoursRange(LocalTime.of(8, 0, 0), LocalTime.of(20, 0, 0)));
 
-    private WorkingDaysAdjusters() {
-    }
+    private WorkingDaysAdjusters() {}
 
     public static TemporalAdjuster defaultWorkingDays() {
         return temporal -> adjust(temporal, MON_FRI, ALL_DAY);
@@ -38,7 +39,7 @@ public class WorkingDaysAdjusters {
     public static Temporal addDays(Temporal start, int days) {
         // adjust start to make sure it is on a working day
         var end = start;
-        for(int i = 0; i < days; i++) {
+        for (int i = 0; i < days; i++) {
             end = adjust(end.plus(1, ChronoUnit.DAYS), MON_FRI, ALL_DAY);
         }
         return end;
@@ -49,16 +50,16 @@ public class WorkingDaysAdjusters {
         LocalTime localTime = LocalTime.from(in);
         boolean dayInRange = dayOfWeeks.contains(dayOfWeek);
         boolean hourInRange = hoursRanges.stream().anyMatch(hr -> hr.includes(localTime));
-        if(dayInRange && hourInRange) {
+        if (dayInRange && hourInRange) {
             return in;
         }
         Temporal result = in;
-        if(!dayInRange) {
+        if (!dayInRange) {
             do {
                 result = result.plus(1, ChronoUnit.DAYS);
-            } while(!dayOfWeeks.contains(DayOfWeek.from(result)));
+            } while (!dayOfWeeks.contains(DayOfWeek.from(result)));
         }
-        if(!hourInRange) {
+        if (!hourInRange) {
             OptionalInt distance = hoursRanges.stream()
                     .mapToInt(hr -> hr.getDistanceInHours(localTime))
                     .sorted()

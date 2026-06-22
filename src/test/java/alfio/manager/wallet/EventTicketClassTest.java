@@ -16,16 +16,15 @@
  */
 package alfio.manager.wallet;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import alfio.util.Json;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
 
 class EventTicketClassTest {
 
@@ -34,17 +33,16 @@ class EventTicketClassTest {
         ObjectMapper objectMapper = Json.OBJECT_MAPPER;
 
         EventTicketClass object = new EventTicketClass(
-            "ISSUER_ID.EVENT_CLASS_ID",
-            "Devoxx Belgium 2022",
-            "1",
-            null,
-            "Antwerp Kinepolis Belgium",
-            null,
-            "Speaker",
-            "https://reg.devoxx.be/file/c73315d4890c5fade112165c40338b72271e43939eed4e1e57a4e4891ee19cc8",
-            ZonedDateTime.of(2022, Month.OCTOBER.getValue(), 10, 8, 0, 0, 0, ZoneId.of("UTC")),
-            ZonedDateTime.of(2022, Month.OCTOBER.getValue(), 14, 14, 0, 0, 0, ZoneId.of("UTC"))
-        );
+                "ISSUER_ID.EVENT_CLASS_ID",
+                "Devoxx Belgium 2022",
+                "1",
+                null,
+                "Antwerp Kinepolis Belgium",
+                null,
+                "Speaker",
+                "https://reg.devoxx.be/file/c73315d4890c5fade112165c40338b72271e43939eed4e1e57a4e4891ee19cc8",
+                ZonedDateTime.of(2022, Month.OCTOBER.getValue(), 10, 8, 0, 0, 0, ZoneId.of("UTC")),
+                ZonedDateTime.of(2022, Month.OCTOBER.getValue(), 14, 14, 0, 0, 0, ZoneId.of("UTC")));
         String build = object.build(objectMapper);
 
         var resource = getClass().getResource("/wallet-json/event-class.json");
@@ -52,5 +50,4 @@ class EventTicketClassTest {
 
         assertEquals(objectMapper.readTree(resource), objectMapper.readTree(build));
     }
-
 }

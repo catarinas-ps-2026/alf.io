@@ -16,14 +16,11 @@
  */
 package alfio.manager.system;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.model.Configurable;
 import alfio.repository.user.OrganizationRepository;
 import alfio.util.HttpUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -32,8 +29,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.stream.Stream;
-
-import static alfio.model.system.ConfigurationKeys.*;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class MailgunMailer extends BaseMailer {
 
@@ -41,29 +40,24 @@ class MailgunMailer extends BaseMailer {
     private final HttpClient client;
     private final ConfigurationManager configurationManager;
 
-    MailgunMailer(HttpClient client,
-                         ConfigurationManager configurationManager,
-                         OrganizationRepository organizationRepository) {
+    MailgunMailer(
+            HttpClient client,
+            ConfigurationManager configurationManager,
+            OrganizationRepository organizationRepository) {
         super(organizationRepository);
         this.client = client;
         this.configurationManager = configurationManager;
     }
 
-
-    private static Map<String, String> getEmailData(String from,
-                                                    String to,
-                                                    List<String> cc,
-                                                    String subject,
-                                                    String text,
-                                                    Optional<String> html) {
+    private static Map<String, String> getEmailData(
+            String from, String to, List<String> cc, String subject, String text, Optional<String> html) {
         Map<String, String> emailData = new HashMap<>(Map.of(
-            "from", from,
-            "to", to,
-            "subject", subject,
-            "text", text
-        ));
-        
-        if(cc != null && !cc.isEmpty()) {
+                "from", from,
+                "to", to,
+                "subject", subject,
+                "text", text));
+
+        if (cc != null && !cc.isEmpty()) {
             emailData.put("cc", StringUtils.join(cc, ','));
         }
         html.ifPresent(htmlContent -> emailData.put("html", htmlContent));
@@ -71,18 +65,19 @@ class MailgunMailer extends BaseMailer {
     }
 
     @Override
-    public void send(Configurable configurable, String fromName, String to, List<String> cc, String subject, String text,
-                     Optional<String> html, Attachment... attachment) {
+    public void send(
+            Configurable configurable,
+            String fromName,
+            String to,
+            List<String> cc,
+            String subject,
+            String text,
+            Optional<String> html,
+            Attachment... attachment) {
 
         var conf = configurationManager.getFor(
-            Set.of(
-                MAILGUN_KEY,
-                MAILGUN_DOMAIN,
-                MAILGUN_EU,
-                MAILGUN_FROM,
-                MAIL_REPLY_TO,
-                MAIL_SET_ORG_REPLY_TO),
-            configurable.getConfigurationLevel());
+                Set.of(MAILGUN_KEY, MAILGUN_DOMAIN, MAILGUN_EU, MAILGUN_FROM, MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO),
+                configurable.getConfigurationLevel());
 
         String apiKey = conf.get(MAILGUN_KEY).getRequiredValue();
         String domain = conf.get(MAILGUN_DOMAIN).getRequiredValue();
@@ -91,34 +86,42 @@ class MailgunMailer extends BaseMailer {
         String baseUrl = useEU ? "https://api.eu.mailgun.net/v3/" : "https://api.mailgun.net/v3/";
         try {
 
-            var from = fromName + " <" + conf.get(MAILGUN_FROM).getRequiredValue() +">";
+            var from = fromName + " <" + conf.get(MAILGUN_FROM).getRequiredValue() + ">";
 
             var emailData = getEmailData(from, to, cc, subject, text, html);
 
-            setReplyToIfPresent(conf, configurable.getOrganizationId(),
-                replyTo -> emailData.put("h:Reply-To", replyTo));
+            setReplyToIfPresent(
+                    conf, configurable.getOrganizationId(), replyTo -> emailData.put("h:Reply-To", replyTo));
 
             var requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + domain + "/messages"))
-                .header(HttpUtils.AUTHORIZATION, HttpUtils.basicAuth("api", apiKey));
+                    .uri(URI.create(baseUrl + domain + "/messages"))
+                    .header(HttpUtils.AUTHORIZATION, HttpUtils.basicAuth("api", apiKey));
 
             if (ArrayUtils.isEmpty(attachment)) {
                 requestBuilder.header(HttpUtils.CONTENT_TYPE, HttpUtils.APPLICATION_FORM_URLENCODED);
                 requestBuilder.POST(HttpUtils.ofFormUrlEncodedBody(emailData));
             } else {
                 var mpb = new HttpUtils.MultiPartBodyPublisher();
-                requestBuilder.header(HttpUtils.CONTENT_TYPE, HttpUtils.MULTIPART_FORM_DATA+";boundary=\""+mpb.getBoundary()+"\"");
+                requestBuilder.header(
+                        HttpUtils.CONTENT_TYPE,
+                        HttpUtils.MULTIPART_FORM_DATA + ";boundary=\"" + mpb.getBoundary() + "\"");
                 emailData.forEach(mpb::addPart);
-                Stream.of(attachment).forEach(a -> mpb.addPart("attachment", () -> new ByteArrayInputStream(a.getSource()), a.getFilename(), a.getContentType()));
+                Stream.of(attachment)
+                        .forEach(a -> mpb.addPart(
+                                "attachment",
+                                () -> new ByteArrayInputStream(a.getSource()),
+                                a.getFilename(),
+                                a.getContentType()));
                 requestBuilder.POST(mpb.build());
             }
 
             HttpRequest request = requestBuilder.build();
 
             HttpResponse<?> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-            if(!HttpUtils.callSuccessful(response)) {
+            if (!HttpUtils.callSuccessful(response)) {
                 log.warn("sending email was not successful:" + response);
-                throw new IllegalStateException("Attempt to send a message failed. Result is: "+response.statusCode());
+                throw new IllegalStateException(
+                        "Attempt to send a message failed. Result is: " + response.statusCode());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

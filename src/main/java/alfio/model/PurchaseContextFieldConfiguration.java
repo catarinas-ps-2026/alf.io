@@ -21,27 +21,32 @@ import alfio.util.JsonViews;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.*;
 import java.util.regex.Pattern;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
 
 @Getter
 public class PurchaseContextFieldConfiguration {
 
-    public static final Set<Context> EVENT_RELATED_CONTEXTS = Set.copyOf(EnumSet.of(Context.ATTENDEE, Context.ADDITIONAL_SERVICE));
+    public static final Set<Context> EVENT_RELATED_CONTEXTS =
+            Set.copyOf(EnumSet.of(Context.ATTENDEE, Context.ADDITIONAL_SERVICE));
     private static final Pattern COLON_SPLITTER = Pattern.compile(":");
 
     public enum Context {
-        ATTENDEE, ADDITIONAL_SERVICE, SUBSCRIPTION
+        ATTENDEE,
+        ADDITIONAL_SERVICE,
+        SUBSCRIPTION
     }
 
     private final long id;
+
     @JsonView(JsonViews.AdminApi.class)
     private final Integer eventId;
+
     @JsonView(JsonViews.AdminApi.class)
     private final UUID subscriptionDescriptorId;
+
     private final String name;
     private final int order;
     private final String type;
@@ -56,23 +61,23 @@ public class PurchaseContextFieldConfiguration {
     private final List<String> disabledValues;
     private final boolean displayAtCheckIn;
 
-
-    public PurchaseContextFieldConfiguration(@Column("id") int id,
-                                             @Column("event_id_fk") Integer eventId,
-                                             @Column("subscription_descriptor_id_fk") UUID subscriptionDescriptorId,
-                                             @Column("field_name") String name,
-                                             @Column("field_order") int order,
-                                             @Column("field_type") String type,
-                                             @Column("field_maxlength") Integer maxLength,
-                                             @Column("field_minlength") Integer minLength,
-                                             @Column("field_required") boolean required,
-                                             @Column("field_editable") boolean editable,
-                                             @Column("field_restricted_values") String restrictedValues,
-                                             @Column("context") Context context,
-                                             @Column("additional_service_id") Integer additionalServiceId,
-                                             @Column("ticket_category_ids") String ticketCategoryIds,
-                                             @Column("field_disabled_values") String disabledValues,
-                                             @Column("display_at_check_in") boolean displayAtCheckIn) {
+    public PurchaseContextFieldConfiguration(
+            @Column("id") int id,
+            @Column("event_id_fk") Integer eventId,
+            @Column("subscription_descriptor_id_fk") UUID subscriptionDescriptorId,
+            @Column("field_name") String name,
+            @Column("field_order") int order,
+            @Column("field_type") String type,
+            @Column("field_maxlength") Integer maxLength,
+            @Column("field_minlength") Integer minLength,
+            @Column("field_required") boolean required,
+            @Column("field_editable") boolean editable,
+            @Column("field_restricted_values") String restrictedValues,
+            @Column("context") Context context,
+            @Column("additional_service_id") Integer additionalServiceId,
+            @Column("ticket_category_ids") String ticketCategoryIds,
+            @Column("field_disabled_values") String disabledValues,
+            @Column("display_at_check_in") boolean displayAtCheckIn) {
         this.id = id;
         this.eventId = eventId;
         this.subscriptionDescriptorId = subscriptionDescriptorId;
@@ -83,11 +88,17 @@ public class PurchaseContextFieldConfiguration {
         this.minLength = minLength;
         this.required = required;
         this.editable = editable;
-        this.restrictedValues = restrictedValues == null ? Collections.emptyList() : Json.GSON.fromJson(restrictedValues, new TypeToken<List<String>>(){}.getType());
-        this.disabledValues = disabledValues == null ? Collections.emptyList() : Json.GSON.fromJson(disabledValues, new TypeToken<List<String>>(){}.getType());
+        this.restrictedValues = restrictedValues == null
+                ? Collections.emptyList()
+                : Json.GSON.fromJson(restrictedValues, new TypeToken<List<String>>() {}.getType());
+        this.disabledValues = disabledValues == null
+                ? Collections.emptyList()
+                : Json.GSON.fromJson(disabledValues, new TypeToken<List<String>>() {}.getType());
         this.context = context;
         this.additionalServiceId = additionalServiceId;
-        this.categoryIds = ticketCategoryIds == null ? Collections.emptyList() : Json.GSON.fromJson(ticketCategoryIds, new TypeToken<List<Integer>>(){}.getType());
+        this.categoryIds = ticketCategoryIds == null
+                ? Collections.emptyList()
+                : Json.GSON.fromJson(ticketCategoryIds, new TypeToken<List<Integer>>() {}.getType());
         this.displayAtCheckIn = displayAtCheckIn;
     }
 

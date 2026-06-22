@@ -27,28 +27,31 @@ public interface EventDeleterRepository {
 
     Logger LOGGER = LoggerFactory.getLogger(EventDeleterRepository.class);
 
-	@Query("delete from waiting_queue where event_id = :eventId")
-	int deleteWaitingQueue(@Bind("eventId") int eventId);
-	
-	@Query("delete from configuration_event where event_id_fk = :eventId")
-	int deleteConfigurationEvent(@Bind("eventId") int eventId);
+    @Query("delete from waiting_queue where event_id = :eventId")
+    int deleteWaitingQueue(@Bind("eventId") int eventId);
+
+    @Query("delete from configuration_event where event_id_fk = :eventId")
+    int deleteConfigurationEvent(@Bind("eventId") int eventId);
 
     @Query("delete from configuration_purchase_context where event_id_fk = :eventId")
     int deleteConfigurationPurchaseContext(@Bind("eventId") int eventId);
 
-	@Query("delete from configuration_ticket_category where event_id_fk = :eventId")
-	int deleteConfigurationTicketCategory(@Bind("eventId") int eventId);
-	
-	@Query("delete from email_message where event_id = :eventId")
-	int deleteEmailMessage(@Bind("eventId") int eventId);
-	
-	@Query("delete from purchase_context_field_value fv using purchase_context_field_configuration fc where fv.field_configuration_id_fk = fc.id and fc.event_id_fk = :eventId")
-	int deleteFieldValues(@Bind("eventId") int eventId);
-	
-	@Query("delete from purchase_context_field_description d using purchase_context_field_configuration c where d.field_configuration_id_fk = c.id and c.event_id_fk = :eventId")
-	int deleteFieldDescription(@Bind("eventId") int eventId);
+    @Query("delete from configuration_ticket_category where event_id_fk = :eventId")
+    int deleteConfigurationTicketCategory(@Bind("eventId") int eventId);
 
-    @Query("delete from additional_service_description where additional_service_id_fk in (select id from additional_service where event_id_fk = :eventId)")
+    @Query("delete from email_message where event_id = :eventId")
+    int deleteEmailMessage(@Bind("eventId") int eventId);
+
+    @Query(
+            "delete from purchase_context_field_value fv using purchase_context_field_configuration fc where fv.field_configuration_id_fk = fc.id and fc.event_id_fk = :eventId")
+    int deleteFieldValues(@Bind("eventId") int eventId);
+
+    @Query(
+            "delete from purchase_context_field_description d using purchase_context_field_configuration c where d.field_configuration_id_fk = c.id and c.event_id_fk = :eventId")
+    int deleteFieldDescription(@Bind("eventId") int eventId);
+
+    @Query(
+            "delete from additional_service_description where additional_service_id_fk in (select id from additional_service where event_id_fk = :eventId)")
     int deleteAdditionalServiceDescriptions(@Bind("eventId") int eventId);
 
     @Query("delete from additional_service_item where event_id_fk = :eventId")
@@ -57,38 +60,40 @@ public interface EventDeleterRepository {
     @Query("delete from additional_service where event_id_fk = :eventId")
     int deleteAdditionalServices(@Bind("eventId") int eventId);
 
-	@Query("delete from purchase_context_field_configuration where event_id_fk = :eventId")
-	int deleteFieldConfigurations(@Bind("eventId") int eventId);
-	
-	@Query("delete from event_migration where event_id = :eventId")
-	int deleteEventMigration(@Bind("eventId") int eventId);
-	
-	@Query("delete from sponsor_scan where event_id = :eventId")
-	int deleteSponsorScan(@Bind("eventId") int eventId);
-	
-	@Query("delete from ticket where event_id = :eventId")
-	int deleteTicket(@Bind("eventId") int eventId);
+    @Query("delete from purchase_context_field_configuration where event_id_fk = :eventId")
+    int deleteFieldConfigurations(@Bind("eventId") int eventId);
 
-	@Query("delete from tickets_reservation where event_id_fk = :eventId")
-	int deleteReservation(@Bind("eventId") int eventId);
+    @Query("delete from event_migration where event_id = :eventId")
+    int deleteEventMigration(@Bind("eventId") int eventId);
 
-	@Query("delete from special_price where ticket_category_id in (select id from ticket_category where event_id = :eventId)")
+    @Query("delete from sponsor_scan where event_id = :eventId")
+    int deleteSponsorScan(@Bind("eventId") int eventId);
+
+    @Query("delete from ticket where event_id = :eventId")
+    int deleteTicket(@Bind("eventId") int eventId);
+
+    @Query("delete from tickets_reservation where event_id_fk = :eventId")
+    int deleteReservation(@Bind("eventId") int eventId);
+
+    @Query(
+            "delete from special_price where ticket_category_id in (select id from ticket_category where event_id = :eventId)")
     int deleteSpecialPrice(@Bind("eventId") int eventId);
 
-	@Query("delete from promo_code where event_id_fk = :eventId")
-	int deletePromoCode(@Bind("eventId") int eventId);
-	
-	@Query("delete from ticket_category_text where ticket_category_id_fk in (select id from ticket_category where event_id = :eventId)")
-	int deleteTicketCategoryText(@Bind("eventId") int eventId);
-	
-	@Query("delete from ticket_category where event_id = :eventId")
-	int deleteTicketCategory(@Bind("eventId") int eventId);
-	
-	@Query("delete from event_description_text where event_id_fk  = :eventId")
-	int deleteEventDescription(@Bind("eventId") int eventId);
-	
-	@Query("delete from event where id = :eventId")
-	int deleteEvent(@Bind("eventId") int eventId);
+    @Query("delete from promo_code where event_id_fk = :eventId")
+    int deletePromoCode(@Bind("eventId") int eventId);
+
+    @Query(
+            "delete from ticket_category_text where ticket_category_id_fk in (select id from ticket_category where event_id = :eventId)")
+    int deleteTicketCategoryText(@Bind("eventId") int eventId);
+
+    @Query("delete from ticket_category where event_id = :eventId")
+    int deleteTicketCategory(@Bind("eventId") int eventId);
+
+    @Query("delete from event_description_text where event_id_fk  = :eventId")
+    int deleteEventDescription(@Bind("eventId") int eventId);
+
+    @Query("delete from event where id = :eventId")
+    int deleteEvent(@Bind("eventId") int eventId);
 
     @Query("delete from resource_event where event_id_fk = :eventId")
     int deleteResources(@Bind("eventId") int eventId);
@@ -96,13 +101,15 @@ public interface EventDeleterRepository {
     @Query("delete from scan_audit where event_id_fk = :eventId")
     int deleteScanAudit(@Bind("eventId") int eventId);
 
-    @Query("delete from b_transaction where reservation_id in (select id from tickets_reservation where event_id_fk = :eventId)")
+    @Query(
+            "delete from b_transaction where reservation_id in (select id from tickets_reservation where event_id_fk = :eventId)")
     int deleteTransactions(@Bind("eventId") int eventId);
 
     @Query("delete from group_link where event_id_fk = :eventId")
     int deleteGroupLinks(@Bind("eventId") int eventId);
 
-    @Query("delete from whitelisted_ticket where group_link_id_fk in(select id from group_link where event_id_fk = :eventId)")
+    @Query(
+            "delete from whitelisted_ticket where group_link_id_fk in(select id from group_link where event_id_fk = :eventId)")
     int deleteWhitelistedTickets(@Bind("eventId") int eventId);
 
     @Query("delete from billing_document where event_id_fk = :eventId")
@@ -115,11 +122,13 @@ public interface EventDeleterRepository {
     int deleteSubscriptionLinks(@Bind("eventId") int eventId);
 
     @Deprecated
-    @Query("delete from ticket_field_value where ticket_field_configuration_id_fk in (select id from ticket_field_configuration where event_id_fk = :eventId)")
+    @Query(
+            "delete from ticket_field_value where ticket_field_configuration_id_fk in (select id from ticket_field_configuration where event_id_fk = :eventId)")
     int deleteLegacyTicketFieldValue(@Bind("eventId") int eventId);
 
     @Deprecated
-    @Query("delete from ticket_field_description where ticket_field_configuration_id_fk in (select id from ticket_field_configuration where event_id_fk = :eventId)")
+    @Query(
+            "delete from ticket_field_description where ticket_field_configuration_id_fk in (select id from ticket_field_configuration where event_id_fk = :eventId)")
     int deleteLegacyTicketFieldDescription(@Bind("eventId") int eventId);
 
     @Deprecated
@@ -167,5 +176,4 @@ public interface EventDeleterRepository {
         deleteSubscriptionLinks(eventId);
         deleteEvent(eventId);
     }
-
 }

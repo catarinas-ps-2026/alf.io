@@ -16,12 +16,18 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import alfio.manager.support.extension.ExtensionCapability;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
 import alfio.model.Event;
 import alfio.model.EventAndOrganizationId;
 import alfio.model.Ticket;
 import alfio.model.TicketCategory;
+import alfio.model.metadata.AlfioMetadata;
 import alfio.model.modification.DateTimeModification;
 import alfio.model.modification.EventModification;
 import alfio.model.modification.TicketCategoryModification;
@@ -31,6 +37,13 @@ import alfio.repository.system.ConfigurationRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.util.ClockProvider;
 import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.MigrationInfoService;
@@ -39,21 +52,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import alfio.manager.support.extension.ExtensionCapability;
-import alfio.model.metadata.AlfioMetadata;
-import org.apache.commons.lang3.StringUtils;
-
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 class EventManagerUnitTest {
 
@@ -89,15 +87,19 @@ class EventManagerUnitTest {
         ZonedDateTime now = ZonedDateTime.now();
         List<Integer> categories = Arrays.asList(1, 2);
         eventManager.updatePromoCode(promoCodeId, now, now.plusDays(1), 100, categories, "desc", "email", null);
-        verify(promoCodeRepository).updateEventPromoCode(eq(promoCodeId), eq(now), any(), eq(100), anyString(), eq("desc"), eq("email"), isNull());
+        verify(promoCodeRepository)
+                .updateEventPromoCode(
+                        eq(promoCodeId), eq(now), any(), eq(100), anyString(), eq("desc"), eq("email"), isNull());
     }
 
     @Test
     void testUpdatePromoCode_ValidationFails() {
         int promoCodeId = 123;
         String longDesc = StringUtils.repeat("a", 1025);
-        assertThrows(IllegalArgumentException.class, () -> 
-            eventManager.updatePromoCode(promoCodeId, ZonedDateTime.now(), ZonedDateTime.now(), 100, null, longDesc, "email", null));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> eventManager.updatePromoCode(
+                        promoCodeId, ZonedDateTime.now(), ZonedDateTime.now(), 100, null, longDesc, "email", null));
     }
 
     @Test
@@ -109,11 +111,14 @@ class EventManagerUnitTest {
         when(event.getOrganizationId()).thenReturn(1);
         when(event.getId()).thenReturn(10);
         when(eventRepository.findOptionalByShortName(eventName)).thenReturn(Optional.of(event));
-        when(organizationRepository.findOrganizationForUser(username, 1)).thenReturn(Optional.of(mock(Organization.class)));
-        
-        when(extensionManager.handleGenerateMeetingLinkCapability(any(), any(), any(), any())).thenReturn(Optional.of(AlfioMetadata.empty()));
-        
-        Optional<String> result = eventManager.executeCapability(eventName, username, ExtensionCapability.GENERATE_MEETING_LINK, params);
+        when(organizationRepository.findOrganizationForUser(username, 1))
+                .thenReturn(Optional.of(mock(Organization.class)));
+
+        when(extensionManager.handleGenerateMeetingLinkCapability(any(), any(), any(), any()))
+                .thenReturn(Optional.of(AlfioMetadata.empty()));
+
+        Optional<String> result =
+                eventManager.executeCapability(eventName, username, ExtensionCapability.GENERATE_MEETING_LINK, params);
         assertTrue(result.isPresent());
         assertEquals("metadata updated", result.get());
         verify(eventRepository).updateMetadata(any(), eq(10));
@@ -126,11 +131,13 @@ class EventManagerUnitTest {
         Event event = mock(Event.class);
         when(event.getOrganizationId()).thenReturn(1);
         when(eventRepository.findOptionalByShortName(eventName)).thenReturn(Optional.of(event));
-        when(organizationRepository.findOrganizationForUser(username, 1)).thenReturn(Optional.of(mock(Organization.class)));
-        
+        when(organizationRepository.findOrganizationForUser(username, 1))
+                .thenReturn(Optional.of(mock(Organization.class)));
+
         when(extensionManager.handleGenerateLinkCapability(any(), any(), any())).thenReturn(Optional.of("link"));
-        
-        Optional<String> result = eventManager.executeCapability(eventName, username, ExtensionCapability.LINK_EXTERNAL_APPLICATION, Collections.emptyMap());
+
+        Optional<String> result = eventManager.executeCapability(
+                eventName, username, ExtensionCapability.LINK_EXTERNAL_APPLICATION, Collections.emptyMap());
         assertTrue(result.isPresent());
         assertEquals("link", result.get());
     }
@@ -142,11 +149,14 @@ class EventManagerUnitTest {
         Event event = mock(Event.class);
         when(event.getOrganizationId()).thenReturn(1);
         when(eventRepository.findOptionalByShortName(eventName)).thenReturn(Optional.of(event));
-        when(organizationRepository.findOrganizationForUser(username, 1)).thenReturn(Optional.of(mock(Organization.class)));
-        
-        when(extensionManager.executeCapability(any(), any(), any(), eq(String.class))).thenReturn(Optional.of("other"));
-        
-        Optional<String> result = eventManager.executeCapability(eventName, username, ExtensionCapability.CREATE_VIRTUAL_ROOM, Collections.emptyMap());
+        when(organizationRepository.findOrganizationForUser(username, 1))
+                .thenReturn(Optional.of(mock(Organization.class)));
+
+        when(extensionManager.executeCapability(any(), any(), any(), eq(String.class)))
+                .thenReturn(Optional.of("other"));
+
+        Optional<String> result = eventManager.executeCapability(
+                eventName, username, ExtensionCapability.CREATE_VIRTUAL_ROOM, Collections.emptyMap());
         assertTrue(result.isPresent());
         assertEquals("other", result.get());
     }
@@ -178,14 +188,29 @@ class EventManagerUnitTest {
         additionalServiceManager = mock(AdditionalServiceManager.class);
 
         eventManager = new EventManager(
-            userManager, eventRepository, eventDescriptionRepository,
-            ticketCategoryRepository, ticketCategoryDescriptionRepository,
-            ticketRepository, specialPriceRepository, promoCodeRepository,
-            configurationManager, eventDeleterRepository, purchaseContextFieldManager,
-            flyway, environment, organizationRepository, auditingRepository,
-            extensionManager, groupRepository, jdbcTemplate, configurationRepository,
-            paymentManager, clockProvider, subscriptionRepository, additionalServiceManager
-        );
+                userManager,
+                eventRepository,
+                eventDescriptionRepository,
+                ticketCategoryRepository,
+                ticketCategoryDescriptionRepository,
+                ticketRepository,
+                specialPriceRepository,
+                promoCodeRepository,
+                configurationManager,
+                eventDeleterRepository,
+                purchaseContextFieldManager,
+                flyway,
+                environment,
+                organizationRepository,
+                auditingRepository,
+                extensionManager,
+                groupRepository,
+                jdbcTemplate,
+                configurationRepository,
+                paymentManager,
+                clockProvider,
+                subscriptionRepository,
+                additionalServiceManager);
     }
 
     @Test
@@ -195,8 +220,10 @@ class EventManagerUnitTest {
         Event event = mock(Event.class);
         when(event.getOrganizationId()).thenReturn(10);
         when(eventRepository.findById(eventId)).thenReturn(event);
-        when(organizationRepository.findOrganizationForUser(username, 10)).thenReturn(Optional.of(mock(Organization.class)));
-        when(environment.acceptsProfiles(any(org.springframework.core.env.Profiles.class))).thenReturn(false);
+        when(organizationRepository.findOrganizationForUser(username, 10))
+                .thenReturn(Optional.of(mock(Organization.class)));
+        when(environment.acceptsProfiles(any(org.springframework.core.env.Profiles.class)))
+                .thenReturn(false);
 
         eventManager.toggleActiveFlag(eventId, username, true);
 
@@ -211,7 +238,8 @@ class EventManagerUnitTest {
         Event event = mock(Event.class);
         when(event.getOrganizationId()).thenReturn(10);
         when(eventRepository.findById(eventId)).thenReturn(event);
-        when(organizationRepository.findOrganizationForUser(username, 10)).thenReturn(Optional.of(mock(Organization.class)));
+        when(organizationRepository.findOrganizationForUser(username, 10))
+                .thenReturn(Optional.of(mock(Organization.class)));
 
         eventManager.deleteEvent(eventId, username);
 
@@ -237,8 +265,10 @@ class EventManagerUnitTest {
         EventAndOrganizationId event = mock(EventAndOrganizationId.class);
         when(event.getId()).thenReturn(1);
         when(event.getOrganizationId()).thenReturn(2);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
-        when(organizationRepository.findOrganizationForUser(username, 2)).thenReturn(Optional.of(mock(Organization.class)));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
+        when(organizationRepository.findOrganizationForUser(username, 2))
+                .thenReturn(Optional.of(mock(Organization.class)));
 
         TicketCategory category = mock(TicketCategory.class);
         when(category.getId()).thenReturn(categoryId);
@@ -261,23 +291,54 @@ class EventManagerUnitTest {
         when(em.getShortName()).thenReturn("short-name");
         when(em.getAvailableSeats()).thenReturn(100);
         when(em.getBegin()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now()));
-        when(em.getEnd()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(1)));
+        when(em.getEnd())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(1)));
         when(em.getZoneId()).thenReturn("UTC");
-        
+
         Organization org = mock(Organization.class);
         when(org.getId()).thenReturn(1);
         when(organizationRepository.findAllForUser("user")).thenReturn(Collections.singletonList(org));
-        
+
         MigrationInfoService migrationInfoService = mock(MigrationInfoService.class);
         MigrationInfo migrationInfo = mock(MigrationInfo.class);
         when(migrationInfo.getVersion()).thenReturn(MigrationVersion.fromVersion("1.0"));
         when(migrationInfoService.current()).thenReturn(migrationInfo);
         when(flyway.info()).thenReturn(migrationInfoService);
-        
+
         AffectedRowCountAndKey<Integer> arcak = mock(AffectedRowCountAndKey.class);
         when(arcak.getKey()).thenReturn(123);
-        when(eventRepository.insert(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyInt(), anyBoolean(), any(), any(), any(), anyInt(), anyInt(), any(), anyInt(), any(), any(), any())).thenReturn(arcak);
-        
+        when(eventRepository.insert(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        anyBoolean(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        anyInt(),
+                        any(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any()))
+                .thenReturn(arcak);
+
         Event event = mock(Event.class);
         when(event.getId()).thenReturn(123);
         when(event.getTimeZone()).thenReturn("UTC");
@@ -285,8 +346,37 @@ class EventManagerUnitTest {
         when(eventRepository.findById(123)).thenReturn(event);
 
         eventManager.createEvent(em, "user");
-        
-        verify(eventRepository).insert(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyInt(), anyBoolean(), any(), any(), any(), anyInt(), anyInt(), any(), anyInt(), any(), any(), any());
+
+        verify(eventRepository)
+                .insert(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        anyBoolean(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        anyInt(),
+                        any(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any());
     }
 
     @Test
@@ -313,16 +403,35 @@ class EventManagerUnitTest {
         when(organizationRepository.findOrganizationForUser("admin", 10)).thenReturn(Optional.of(org));
 
         when(eventRepository.findById(1)).thenReturn(original);
-        
+
         EventAndOrganizationId eaoi = mock(EventAndOrganizationId.class);
         when(eaoi.getOrganizationId()).thenReturn(10);
         when(eaoi.getId()).thenReturn(1);
         when(eventRepository.findEventAndOrganizationIdById(1)).thenReturn(eaoi);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("short-name")).thenReturn(Optional.of(eaoi));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("short-name"))
+                .thenReturn(Optional.of(eaoi));
 
         eventManager.updateEventHeader(original, em, "admin");
 
-        verify(eventRepository).updateHeader(anyInt(), eq("New Name"), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyString(), anyInt(), anyInt(), any());
+        verify(eventRepository)
+                .updateHeader(
+                        anyInt(),
+                        eq("New Name"),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyString(),
+                        anyInt(),
+                        anyInt(),
+                        any());
     }
 
     @Test
@@ -338,9 +447,10 @@ class EventManagerUnitTest {
         when(em.isVatIncluded()).thenReturn(true);
         when(em.getVatPercentage()).thenReturn(java.math.BigDecimal.TEN);
 
-        when(organizationRepository.findOrganizationForUser("admin", 10)).thenReturn(Optional.of(mock(Organization.class)));
+        when(organizationRepository.findOrganizationForUser("admin", 10))
+                .thenReturn(Optional.of(mock(Organization.class)));
         when(eventRepository.countExistingTickets(1)).thenReturn(100);
-        
+
         Event modified = mock(Event.class);
         when(modified.getZoneId()).thenReturn(java.time.ZoneId.of("UTC"));
         when(eventRepository.findById(1)).thenReturn(modified);
@@ -348,7 +458,8 @@ class EventManagerUnitTest {
 
         eventManager.updateEventSeatsAndPrices(original, em, "admin");
 
-        verify(eventRepository).updatePrices(anyString(), eq(200), anyBoolean(), any(), anyString(), eq(1), any(), anyInt());
+        verify(eventRepository)
+                .updatePrices(anyString(), eq(200), anyBoolean(), any(), anyString(), eq(1), any(), anyInt());
         verify(ticketRepository).bulkTicketInitialization(any());
     }
 
@@ -360,9 +471,11 @@ class EventManagerUnitTest {
         when(em.getShortName()).thenReturn("new-event");
         when(em.getAvailableSeats()).thenReturn(100);
         when(em.getBegin()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now()));
-        when(em.getEnd()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(1)));
+        when(em.getEnd())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(1)));
         when(em.getZoneId()).thenReturn("UTC");
-        
+
         alfio.model.metadata.AlfioMetadata metadata = mock(alfio.model.metadata.AlfioMetadata.class);
         when(metadata.getCopiedFrom()).thenReturn("old-event");
         when(em.getMetadata()).thenReturn(metadata);
@@ -374,7 +487,8 @@ class EventManagerUnitTest {
         EventAndOrganizationId srcEvent = mock(EventAndOrganizationId.class);
         when(srcEvent.getId()).thenReturn(50);
         when(srcEvent.getOrganizationId()).thenReturn(1);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("old-event")).thenReturn(Optional.of(srcEvent));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("old-event"))
+                .thenReturn(Optional.of(srcEvent));
         when(organizationRepository.findOrganizationForUser("user", 1)).thenReturn(Optional.of(org));
 
         MigrationInfoService migrationInfoService = mock(MigrationInfoService.class);
@@ -385,7 +499,36 @@ class EventManagerUnitTest {
 
         AffectedRowCountAndKey<Integer> arcak = mock(AffectedRowCountAndKey.class);
         when(arcak.getKey()).thenReturn(123);
-        when(eventRepository.insert(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyInt(), anyBoolean(), any(), any(), any(), anyInt(), anyInt(), any(), anyInt(), any(), any(), any())).thenReturn(arcak);
+        when(eventRepository.insert(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        anyBoolean(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        anyInt(),
+                        any(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any()))
+                .thenReturn(arcak);
 
         Event event = mock(Event.class);
         when(event.getId()).thenReturn(123);
@@ -404,12 +547,20 @@ class EventManagerUnitTest {
         Event event = mock(Event.class);
         when(event.getId()).thenReturn(1);
         when(event.getOrganizationId()).thenReturn(10);
-        
-        when(configurationManager.getFor(eq(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION));
-        
+
+        when(configurationManager.getFor(eq(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION), any()))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(
+                        alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION));
+
         eventManager.saveBadgeColorConfiguration("blue", event, 100);
-        
-        verify(configurationRepository).insertEventLevel(eq(10), eq(1), eq(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION.name()), contains("blue"), any());
+
+        verify(configurationRepository)
+                .insertEventLevel(
+                        eq(10),
+                        eq(1),
+                        eq(alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION.name()),
+                        contains("blue"),
+                        any());
     }
 
     @Test
@@ -425,22 +576,53 @@ class EventManagerUnitTest {
         TicketCategoryModification tcm = mock(TicketCategoryModification.class);
         when(tcm.isBounded()).thenReturn(true);
         when(tcm.getMaxTickets()).thenReturn(10);
-        when(tcm.getExpiration()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(1)));
+        when(tcm.getExpiration())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(1)));
         when(tcm.getPrice()).thenReturn(java.math.BigDecimal.TEN);
-        when(tcm.getInception()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().minusHours(1)));
-        when(tcm.getValidCheckInFrom()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().minusHours(1)));
-        when(tcm.getValidCheckInTo()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(5)));
-        when(tcm.getTicketValidityStart()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().minusHours(1)));
-        when(tcm.getTicketValidityEnd()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(5)));
+        when(tcm.getInception())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().minusHours(1)));
+        when(tcm.getValidCheckInFrom())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().minusHours(1)));
+        when(tcm.getValidCheckInTo())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(5)));
+        when(tcm.getTicketValidityStart())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().minusHours(1)));
+        when(tcm.getTicketValidityEnd())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(5)));
 
-        when(organizationRepository.findOrganizationForUser("admin", 10)).thenReturn(Optional.of(mock(Organization.class)));
+        when(organizationRepository.findOrganizationForUser("admin", 10))
+                .thenReturn(Optional.of(mock(Organization.class)));
         when(ticketCategoryRepository.getTicketAllocation(1)).thenReturn(50);
         when(ticketRepository.countNotAllocatedFreeAndReleasedTicket(1)).thenReturn(20);
         when(eventRepository.countExistingTickets(1)).thenReturn(100);
-        
+
         AffectedRowCountAndKey<Integer> arcak = mock(AffectedRowCountAndKey.class);
         when(arcak.getKey()).thenReturn(1001);
-        when(ticketCategoryRepository.insert(any(), any(), any(), anyInt(), anyBoolean(), anyInt(), anyBoolean(), anyInt(), any(), any(), any(), any(), any(), anyInt(), any(), any(), any())).thenReturn(arcak);
+        when(ticketCategoryRepository.insert(
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        anyBoolean(),
+                        anyInt(),
+                        anyBoolean(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any()))
+                .thenReturn(arcak);
 
         TicketCategory tc = mock(TicketCategory.class);
         when(tc.getId()).thenReturn(1001);
@@ -449,7 +631,25 @@ class EventManagerUnitTest {
 
         eventManager.insertCategory(1, tcm, "admin");
 
-        verify(ticketCategoryRepository).insert(any(), any(), any(), eq(10), anyBoolean(), eq(1), anyBoolean(), anyInt(), any(), any(), any(), any(), any(), anyInt(), any(), any(), any());
+        verify(ticketCategoryRepository)
+                .insert(
+                        any(),
+                        any(),
+                        any(),
+                        eq(10),
+                        anyBoolean(),
+                        eq(1),
+                        anyBoolean(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any());
     }
 
     @Test
@@ -466,23 +666,36 @@ class EventManagerUnitTest {
         when(tcm.getId()).thenReturn(101);
         when(tcm.isBounded()).thenReturn(true);
         when(tcm.getMaxTickets()).thenReturn(20);
-        when(tcm.getExpiration()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(2)));
+        when(tcm.getExpiration())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(2)));
         when(tcm.isSkipWaitingList()).thenReturn(true);
         when(tcm.getPrice()).thenReturn(java.math.BigDecimal.TEN);
-        when(tcm.getInception()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().minusHours(1)));
-        when(tcm.getValidCheckInFrom()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().minusHours(1)));
-        when(tcm.getValidCheckInTo()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(5)));
-        when(tcm.getTicketValidityStart()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().minusHours(1)));
-        when(tcm.getTicketValidityEnd()).thenReturn(DateTimeModification.fromZonedDateTime(ZonedDateTime.now().plusHours(5)));
+        when(tcm.getInception())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().minusHours(1)));
+        when(tcm.getValidCheckInFrom())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().minusHours(1)));
+        when(tcm.getValidCheckInTo())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(5)));
+        when(tcm.getTicketValidityStart())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().minusHours(1)));
+        when(tcm.getTicketValidityEnd())
+                .thenReturn(DateTimeModification.fromZonedDateTime(
+                        ZonedDateTime.now().plusHours(5)));
 
         TicketCategory existing = mock(TicketCategory.class);
         when(existing.getId()).thenReturn(101);
         when(existing.isBounded()).thenReturn(true);
         when(existing.getMaxTickets()).thenReturn(10);
-        
+
         when(ticketCategoryRepository.getById(101)).thenReturn(existing);
         when(ticketCategoryRepository.getByIdAndActive(101, 1)).thenReturn(existing);
-        when(organizationRepository.findOrganizationForUser("admin", 10)).thenReturn(Optional.of(mock(Organization.class)));
+        when(organizationRepository.findOrganizationForUser("admin", 10))
+                .thenReturn(Optional.of(mock(Organization.class)));
         when(eventRepository.countExistingTickets(1)).thenReturn(100);
         when(ticketRepository.countAllocatedTicketsForEvent(1)).thenReturn(50);
         when(ticketCategoryRepository.getByIdAndActive(101, 1)).thenReturn(existing);
@@ -490,31 +703,48 @@ class EventManagerUnitTest {
 
         eventManager.updateCategory(101, 1, tcm, "admin");
 
-        verify(ticketCategoryRepository).update(eq(101), any(), any(), any(), eq(20), anyBoolean(), anyInt(), any(), any(), any(), any(), any(), any(), any());
+        verify(ticketCategoryRepository)
+                .update(
+                        eq(101),
+                        any(),
+                        any(),
+                        any(),
+                        eq(20),
+                        anyBoolean(),
+                        anyInt(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any());
     }
 
     @Test
     void testFixOutOfRangeCategories() {
         EventModification em = mock(EventModification.class);
         when(em.getShortName()).thenReturn("short-name");
-        
+
         EventAndOrganizationId event = mock(EventAndOrganizationId.class);
         when(event.getId()).thenReturn(1);
         when(event.getOrganizationId()).thenReturn(10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("short-name")).thenReturn(Optional.of(event));
-        when(organizationRepository.findOrganizationForUser("admin", 10)).thenReturn(Optional.of(mock(Organization.class)));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("short-name"))
+                .thenReturn(Optional.of(event));
+        when(organizationRepository.findOrganizationForUser("admin", 10))
+                .thenReturn(Optional.of(mock(Organization.class)));
 
         TicketCategory tc = mock(TicketCategory.class);
         when(tc.getId()).thenReturn(1001);
         when(tc.getName()).thenReturn("Category");
         when(tc.getInception(any())).thenReturn(ZonedDateTime.now().minusDays(1));
         when(tc.getExpiration(any())).thenReturn(ZonedDateTime.now().plusDays(2));
-        
+
         when(ticketCategoryRepository.findAllTicketCategories(1)).thenReturn(Collections.singletonList(tc));
-        
+
         ZonedDateTime newEnd = ZonedDateTime.now().plusDays(1);
         eventManager.fixOutOfRangeCategories(em, "admin", java.time.ZoneId.of("UTC"), newEnd);
-        
+
         verify(ticketCategoryRepository).fixDates(eq(1001), any(), eq(newEnd));
     }
 
@@ -522,15 +752,19 @@ class EventManagerUnitTest {
     void testUpdateLinkedSubscriptions() {
         int eventId = 1;
         int organizationId = 10;
-        alfio.model.subscription.LinkSubscriptionsToEventRequest request = mock(alfio.model.subscription.LinkSubscriptionsToEventRequest.class);
+        alfio.model.subscription.LinkSubscriptionsToEventRequest request =
+                mock(alfio.model.subscription.LinkSubscriptionsToEventRequest.class);
         java.util.UUID descriptorId = java.util.UUID.randomUUID();
         when(request.getDescriptorId()).thenReturn(descriptorId);
-        
-        when(jdbcTemplate.batchUpdate(anyString(), any(org.springframework.jdbc.core.namedparam.MapSqlParameterSource[].class))).thenReturn(new int[]{1});
+
+        when(jdbcTemplate.batchUpdate(
+                        anyString(), any(org.springframework.jdbc.core.namedparam.MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1});
 
         eventManager.updateLinkedSubscriptions(Collections.singletonList(request), eventId, organizationId);
-        
+
         verify(subscriptionRepository).removeStaleSubscriptions(eq(eventId), eq(organizationId), anyList());
-        verify(jdbcTemplate).batchUpdate(anyString(), any(org.springframework.jdbc.core.namedparam.MapSqlParameterSource[].class));
+        verify(jdbcTemplate)
+                .batchUpdate(anyString(), any(org.springframework.jdbc.core.namedparam.MapSqlParameterSource[].class));
     }
 }

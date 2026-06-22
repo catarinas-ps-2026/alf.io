@@ -24,8 +24,8 @@ public class TransactionMetadataModification {
     private final String notes;
 
     @JsonCreator
-    public TransactionMetadataModification(@JsonProperty("timestamp") DateTimeModification timestamp,
-                                           @JsonProperty("notes") String notes) {
+    public TransactionMetadataModification(
+            @JsonProperty("timestamp") DateTimeModification timestamp, @JsonProperty("notes") String notes) {
         this.timestamp = timestamp;
         this.notes = notes;
     }

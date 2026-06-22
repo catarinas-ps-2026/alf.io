@@ -16,10 +16,15 @@
  */
 package alfio.manager.payment.saferpay;
 
+import static alfio.manager.payment.saferpay.PaymentPageInitializeRequestBuilder.SUPPORTED_METHODS;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
 import alfio.manager.payment.PaymentSpecification;
 import alfio.model.Event;
 import alfio.model.PurchaseContext;
 import com.google.gson.JsonParser;
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,17 +32,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
-
-import static alfio.manager.payment.saferpay.PaymentPageInitializeRequestBuilder.SUPPORTED_METHODS;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-
 @DisplayName("Payment page initialize")
 @ExtendWith(MockitoExtension.class)
 class PaymentPageInitializeBuilderTest {
     @Mock
     private PaymentSpecification paymentSpecification;
+
     @Mock
     private Event event;
 
@@ -53,9 +53,9 @@ class PaymentPageInitializeBuilderTest {
     @Test
     void buildInitializeRequest() throws IOException {
         var prb = new PaymentPageInitializeRequestBuilder("http://localhost", paymentSpecification)
-            .addAuthentication("customerId", "requestId", "terminalId")
-            .addOrderInformation("orderId", "1", "CHF", "description", 1)
-            .build();
+                .addAuthentication("customerId", "requestId", "terminalId")
+                .addOrderInformation("orderId", "1", "CHF", "description", 1)
+                .build();
 
         var parsedJson = JsonParser.parseString(prb).getAsJsonObject();
 
@@ -74,13 +74,19 @@ class PaymentPageInitializeBuilderTest {
 
         // return URLs
         var returnUrls = parsedJson.get("ReturnUrls").getAsJsonObject();
-        assertEquals("http://localhost/event/shortName/reservation/reservationId/book", returnUrls.get("Success").getAsString());
-        assertEquals("http://localhost/event/shortName/reservation/reservationId/payment/saferpay/cancel", returnUrls.get("Fail").getAsString());
+        assertEquals(
+                "http://localhost/event/shortName/reservation/reservationId/book",
+                returnUrls.get("Success").getAsString());
+        assertEquals(
+                "http://localhost/event/shortName/reservation/reservationId/payment/saferpay/cancel",
+                returnUrls.get("Fail").getAsString());
 
         // Notifications
         var notification = parsedJson.get("Notification").getAsJsonObject();
         assertNotNull(notification);
-        assertEquals("http://localhost/api/payment/webhook/saferpay/reservation/reservationId/success", notification.get("NotifyUrl").getAsString());
+        assertEquals(
+                "http://localhost/api/payment/webhook/saferpay/reservation/reservationId/success",
+                notification.get("NotifyUrl").getAsString());
 
         // payment methods
         var paymentMethods = parsedJson.get("PaymentMethods").getAsJsonArray();
@@ -88,6 +94,5 @@ class PaymentPageInitializeBuilderTest {
             var element = paymentMethods.get(i);
             assertTrue(SUPPORTED_METHODS.contains(element.getAsString()));
         }
-
     }
 }

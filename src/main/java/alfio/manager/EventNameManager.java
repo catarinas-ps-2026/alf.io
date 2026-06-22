@@ -17,14 +17,6 @@
 package alfio.manager;
 
 import alfio.repository.EventAdminRepository;
-import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.text.RandomStringGenerator;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Locale;
@@ -32,6 +24,13 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.RandomStringGenerator;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @AllArgsConstructor
@@ -43,9 +42,9 @@ public class EventNameManager {
     private static final String FIND_EVIL_CHARACTERS = "[^\\sA-Z\\-a-z0-9]";
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final RandomStringGenerator RANDOM_STRING_GENERATOR = new RandomStringGenerator.Builder()
-        .withinRange(new char[] {'a', 'z'}, new char[] {'A', 'Z'} , new char[] { '0', '9'})
-        .usingRandom(RANDOM::nextInt)
-        .get();
+            .withinRange(new char[] {'a', 'z'}, new char[] {'A', 'Z'}, new char[] {'0', '9'})
+            .usingRandom(RANDOM::nextInt)
+            .get();
     private final EventAdminRepository eventAdminRepository;
 
     /**
@@ -63,12 +62,14 @@ public class EventNameManager {
      */
     public String generateShortName(String displayName) {
         Validate.isTrue(StringUtils.isNotBlank(displayName));
-        String cleanDisplayName = StringUtils.stripAccents(StringUtils.normalizeSpace(displayName)).toLowerCase(Locale.ENGLISH).replaceAll(FIND_EVIL_CHARACTERS, "-");
-        if(!StringUtils.containsWhitespace(cleanDisplayName) && isUnique(cleanDisplayName)) {
+        String cleanDisplayName = StringUtils.stripAccents(StringUtils.normalizeSpace(displayName))
+                .toLowerCase(Locale.ENGLISH)
+                .replaceAll(FIND_EVIL_CHARACTERS, "-");
+        if (!StringUtils.containsWhitespace(cleanDisplayName) && isUnique(cleanDisplayName)) {
             return cleanDisplayName;
         }
         Optional<String> dashedName = getDashedName(cleanDisplayName);
-        if(dashedName.isPresent()) {
+        if (dashedName.isPresent()) {
             return dashedName.get();
         }
         Optional<String> croppedName = getCroppedName(cleanDisplayName);
@@ -89,16 +90,16 @@ public class EventNameManager {
                 .map(w -> Pair.of(NUMBER_MATCHER.matcher(w).matches(), w))
                 .map(p -> Boolean.TRUE.equals(p.getKey()) ? p.getValue() : StringUtils.left(p.getValue(), 1))
                 .collect(Collectors.joining());
-        if(isUnique(candidate)) {
+        if (isUnique(candidate)) {
             return Optional.of(candidate);
         }
         return Optional.empty();
     }
 
     private Optional<String> getDashedName(String cleanDisplayName) {
-        if(cleanDisplayName.length() < 15) {
+        if (cleanDisplayName.length() < 15) {
             String candidate = cleanDisplayName.replaceAll(SPACES_AND_PUNCTUATION, "-");
-            if(isUnique(candidate)) {
+            if (isUnique(candidate)) {
                 return Optional.of(candidate);
             }
         }

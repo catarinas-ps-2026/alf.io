@@ -14,29 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.repository;
-
-import alfio.model.*;
-import alfio.model.subscription.SubscriptionDescriptor;
-import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import alfio.model.*;
+import alfio.model.subscription.SubscriptionDescriptor;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
 class PurchaseContextFieldRepositoryTest {
 
     private final NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
-    private final PurchaseContextFieldRepository repository = mock(PurchaseContextFieldRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+    private final PurchaseContextFieldRepository repository =
+            mock(PurchaseContextFieldRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 
     @Test
     void testGetFieldValueJson() {
         assertThrows(NullPointerException.class, () -> repository.getFieldValueJson(null));
-        //assertEquals("[]", repository.getFieldValueJson(Collections.emptyList()));
+        // assertEquals("[]", repository.getFieldValueJson(Collections.emptyList()));
         assertEquals("a", repository.getFieldValueJson(List.of("a")));
         assertEquals("[\"a\",\"b\"]", repository.getFieldValueJson(List.of("a", "b")));
     }
@@ -105,7 +103,14 @@ class PurchaseContextFieldRepositoryTest {
 
         repository.updateOrInsert(Map.of("field1", List.of("value1")), descriptor, null, subId);
 
-        verify(repository).insertValue(isNull(), eq(subId), eq(1), eq(1L), eq("value1"), eq(PurchaseContextFieldConfiguration.Context.SUBSCRIPTION));
+        verify(repository)
+                .insertValue(
+                        isNull(),
+                        eq(subId),
+                        eq(1),
+                        eq(1L),
+                        eq("value1"),
+                        eq(PurchaseContextFieldConfiguration.Context.SUBSCRIPTION));
     }
 
     @Test
@@ -146,7 +151,7 @@ class PurchaseContextFieldRepositoryTest {
         assertEquals("B", stats.get(1).getName());
         assertEquals(0, stats.get(1).getCount());
         assertEquals(0, stats.get(1).getPercentage());
-        
+
         // case total == 0
         doReturn(Collections.emptyList()).when(repository).getValueStats(1L);
         stats = repository.retrieveStats(1L);
@@ -158,17 +163,23 @@ class PurchaseContextFieldRepositoryTest {
     @Test
     void testFindAdditionalFieldNamesForEvents() throws Exception {
         doReturn(jdbcTemplate).when(repository).getJdbcTemplate();
-        
+
         java.sql.ResultSet rs = mock(java.sql.ResultSet.class);
         when(rs.next()).thenReturn(true, true, false);
         when(rs.getInt(1)).thenReturn(1, 1);
         when(rs.getString(2)).thenReturn("f1", "f2");
-        
+
         doAnswer(invocation -> {
-            org.springframework.jdbc.core.ResultSetExtractor<Map<Integer, Set<String>>> rse = invocation.getArgument(2);
-            return rse.extractData(rs);
-        }).when(jdbcTemplate).query(anyString(), any(org.springframework.jdbc.core.namedparam.SqlParameterSource.class), any(org.springframework.jdbc.core.ResultSetExtractor.class));
-        
+                    org.springframework.jdbc.core.ResultSetExtractor<Map<Integer, Set<String>>> rse =
+                            invocation.getArgument(2);
+                    return rse.extractData(rs);
+                })
+                .when(jdbcTemplate)
+                .query(
+                        anyString(),
+                        any(org.springframework.jdbc.core.namedparam.SqlParameterSource.class),
+                        any(org.springframework.jdbc.core.ResultSetExtractor.class));
+
         Map<Integer, Set<String>> result = repository.findAdditionalFieldNamesForEvents(List.of(1));
         assertEquals(1, result.size());
         assertTrue(result.get(1).containsAll(Set.of("f1", "f2")));

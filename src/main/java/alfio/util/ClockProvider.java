@@ -16,11 +16,10 @@
  */
 package alfio.util;
 
-import org.apache.commons.lang3.Validate;
-
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.Objects;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Provides an application-wide {@link Clock}, which will return the current Instant in the

@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,10 +27,11 @@ public class Extension {
     private final String script;
     private final boolean enabled;
 
-    public Extension(@JsonProperty("path") String path,
-                     @JsonProperty("name") String name,
-                     @JsonProperty("script") String script,
-                     @JsonProperty("enabled") boolean enabled) {
+    public Extension(
+            @JsonProperty("path") String path,
+            @JsonProperty("name") String name,
+            @JsonProperty("script") String script,
+            @JsonProperty("enabled") boolean enabled) {
         this.path = path;
         this.name = name;
         this.script = script;

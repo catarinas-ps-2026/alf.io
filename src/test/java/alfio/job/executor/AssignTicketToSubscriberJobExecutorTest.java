@@ -16,6 +16,9 @@
  */
 package alfio.job.executor;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.AdminReservationRequestManager;
 import alfio.manager.NotificationManager;
 import alfio.manager.system.AdminJobExecutor;
@@ -31,10 +34,6 @@ import alfio.repository.PurchaseContextFieldRepository;
 import alfio.repository.SubscriptionRepository;
 import alfio.repository.TicketCategoryRepository;
 import alfio.util.ClockProvider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -43,9 +42,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class AssignTicketToSubscriberJobExecutorTest {
 
@@ -67,8 +66,14 @@ class AssignTicketToSubscriberJobExecutorTest {
         clockProvider = mock(ClockProvider.class);
         ticketCategoryRepository = mock(TicketCategoryRepository.class);
         purchaseContextFieldRepository = mock(PurchaseContextFieldRepository.class);
-        executor = new AssignTicketToSubscriberJobExecutor(requestManager, configurationManager, subscriptionRepository,
-            eventRepository, clockProvider, ticketCategoryRepository, purchaseContextFieldRepository);
+        executor = new AssignTicketToSubscriberJobExecutor(
+                requestManager,
+                configurationManager,
+                subscriptionRepository,
+                eventRepository,
+                clockProvider,
+                ticketCategoryRepository,
+                purchaseContextFieldRepository);
     }
 
     @Test
@@ -76,24 +81,38 @@ class AssignTicketToSubscriberJobExecutorTest {
         when(subscriptionRepository.loadAvailableSubscriptionsByEvent(1, 2)).thenReturn(Map.of());
 
         assertNull(executor.process(schedule(Map.of(
-            AssignTicketToSubscriberJobExecutor.EVENT_ID, 1,
-            AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, 2
-        ))));
+                AssignTicketToSubscriberJobExecutor.EVENT_ID, 1,
+                AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, 2))));
 
         verify(subscriptionRepository).loadAvailableSubscriptionsByEvent(1, 2);
-        verifyNoInteractions(requestManager, eventRepository, ticketCategoryRepository, purchaseContextFieldRepository, configurationManager);
+        verifyNoInteractions(
+                requestManager,
+                eventRepository,
+                ticketCategoryRepository,
+                purchaseContextFieldRepository,
+                configurationManager);
     }
 
     @Test
     void processCreatesReservationRequestForAvailableSubscriptionWhenForced() {
         var subscriptionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
         var descriptorId = UUID.fromString("22222222-2222-2222-2222-222222222222");
-        var subscription = new AvailableSubscriptionsByEvent(42, 7, subscriptionId, descriptorId, "attendee@example.org",
-            "Jane", "Doe", "en", "buyer@example.org",
-            "[{\"name\":\"company\",\"value\":\"Acme\"},{\"name\":\"ignored\",\"value\":\"Nope\"}]",
-            "[100]");
-        when(subscriptionRepository.loadAvailableSubscriptionsByEvent(42, 7)).thenReturn(Map.of(42, List.of(subscription)));
-        when(purchaseContextFieldRepository.findAdditionalFieldNamesForEvents(Set.of(42))).thenReturn(Map.of(42, Set.of("company")));
+        var subscription = new AvailableSubscriptionsByEvent(
+                42,
+                7,
+                subscriptionId,
+                descriptorId,
+                "attendee@example.org",
+                "Jane",
+                "Doe",
+                "en",
+                "buyer@example.org",
+                "[{\"name\":\"company\",\"value\":\"Acme\"},{\"name\":\"ignored\",\"value\":\"Nope\"}]",
+                "[100]");
+        when(subscriptionRepository.loadAvailableSubscriptionsByEvent(42, 7))
+                .thenReturn(Map.of(42, List.of(subscription)));
+        when(purchaseContextFieldRepository.findAdditionalFieldNamesForEvents(Set.of(42)))
+                .thenReturn(Map.of(42, Set.of("company")));
 
         var event = mock(Event.class);
         when(event.getId()).thenReturn(42);
@@ -110,14 +129,14 @@ class AssignTicketToSubscriberJobExecutorTest {
         when(clockProvider.getClock()).thenReturn(Clock.fixed(Instant.parse("2024-04-10T12:34:56Z"), ZoneId.of("UTC")));
 
         assertNull(executor.process(schedule(Map.of(
-            AssignTicketToSubscriberJobExecutor.EVENT_ID, 42,
-            AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, 7,
-            AssignTicketToSubscriberJobExecutor.FORCE_GENERATION, true
-        ))));
+                AssignTicketToSubscriberJobExecutor.EVENT_ID, 42,
+                AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, 7,
+                AssignTicketToSubscriberJobExecutor.FORCE_GENERATION, true))));
 
         var requestIdCaptor = ArgumentCaptor.forClass(String.class);
         var bodyCaptor = ArgumentCaptor.forClass(AdminReservationModification.class);
-        verify(requestManager).insertRequest(requestIdCaptor.capture(), bodyCaptor.capture(), eq(event), eq(false), eq("admin"));
+        verify(requestManager)
+                .insertRequest(requestIdCaptor.capture(), bodyCaptor.capture(), eq(event), eq(false), eq("admin"));
         assertEquals("AUTO_event_2024-04-10T12:34:56", requestIdCaptor.getValue());
 
         var body = bodyCaptor.getValue();
@@ -138,7 +157,13 @@ class AssignTicketToSubscriberJobExecutorTest {
     }
 
     private static AdminJobSchedule schedule(Map<String, Object> metadata) {
-        return new AdminJobSchedule(1L, AdminJobExecutor.JobName.ASSIGN_TICKETS_TO_SUBSCRIBERS.name(), null,
-            AdminJobSchedule.Status.SCHEDULED, null, metadata, 0);
+        return new AdminJobSchedule(
+                1L,
+                AdminJobExecutor.JobName.ASSIGN_TICKETS_TO_SUBSCRIBERS.name(),
+                null,
+                AdminJobSchedule.Status.SCHEDULED,
+                null,
+                metadata,
+                0);
     }
 }

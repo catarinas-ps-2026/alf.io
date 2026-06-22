@@ -22,12 +22,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.IOException;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.io.IOException;
 
 @Getter
 @JsonSerialize(using = Organization.OrganizationSerializer.class)
@@ -39,12 +38,13 @@ public class Organization {
     private final String externalId;
     private final String slug;
 
-    public Organization(@Column("id") int id,
-                        @Column("name") String name,
-                        @Column("description") String description,
-                        @Column("email") String email,
-                        @Column("name_openid") String externalId,
-                        @Column("slug") String slug) {
+    public Organization(
+            @Column("id") int id,
+            @Column("name") String name,
+            @Column("description") String description,
+            @Column("email") String email,
+            @Column("name_openid") String externalId,
+            @Column("slug") String slug) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -57,22 +57,18 @@ public class Organization {
     public boolean equals(Object o) {
         if (this == o) return true;
 
-        if (! (o instanceof Organization)) {
+        if (!(o instanceof Organization)) {
             return false;
         }
 
         Organization that = (Organization) o;
 
-        return new EqualsBuilder()
-            .append(id, that.id)
-            .isEquals();
+        return new EqualsBuilder().append(id, that.id).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-            .append(id)
-            .toHashCode();
+        return new HashCodeBuilder().append(id).toHashCode();
     }
 
     /**
@@ -97,7 +93,8 @@ public class Organization {
 
     public static class OrganizationSerializer extends JsonSerializer<Organization> {
         @Override
-        public void serialize(Organization value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        public void serialize(Organization value, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
             if (value != null) {
                 gen.writeStartObject();
                 gen.writeNumberField("id", value.getId());
@@ -105,7 +102,7 @@ public class Organization {
                 gen.writeStringField("email", value.getEmail());
                 gen.writeStringField("description", value.getDescription());
                 var authentication = SecurityContextHolder.getContext().getAuthentication();
-                if(RequestUtils.isAdmin(authentication) || RequestUtils.isSystemApiKey(authentication)) {
+                if (RequestUtils.isAdmin(authentication) || RequestUtils.isSystemApiKey(authentication)) {
                     gen.writeStringField("externalId", value.getExternalId());
                     gen.writeStringField("slug", value.getSlug());
                 } else {

@@ -11,7 +11,10 @@ import { I18nService } from '../../shared/i18n.service';
 import { AnalyticsService } from '../../shared/analytics.service';
 import { InfoService } from '../../shared/info.service';
 import type { Event } from '../../model/event';
-import type { ReservationInfo, TicketsByTicketCategory } from '../../model/reservation-info';
+import type {
+    ReservationInfo,
+    TicketsByTicketCategory,
+} from '../../model/reservation-info';
 import type { Ticket } from '../../model/ticket';
 import type { WalletConfiguration } from '../../model/info';
 
@@ -29,7 +32,13 @@ describe('SuccessComponent', () => {
         endDate: '2024-01-01T18:00:00Z',
         enabled: true,
         embeddingConfiguration: { enabled: false, notificationOrigin: '' },
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: true, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: true,
+            enabledItalyEInvoicing: false,
+        },
         localization: {},
         analyticsConfiguration: null,
     } as unknown as Event;
@@ -46,8 +55,22 @@ describe('SuccessComponent', () => {
                 name: 'General',
                 ticketAccessType: 'IN_PERSON',
                 tickets: [
-                    { uuid: 'ticket-1', firstName: 'John', lastName: 'Doe', email: 'john@example.com', locked: false, assigned: true } as Ticket,
-                    { uuid: 'ticket-2', firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', locked: true, assigned: false } as Ticket,
+                    {
+                        uuid: 'ticket-1',
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'john@example.com',
+                        locked: false,
+                        assigned: true,
+                    } as Ticket,
+                    {
+                        uuid: 'ticket-2',
+                        firstName: 'Jane',
+                        lastName: 'Doe',
+                        email: 'jane@example.com',
+                        locked: true,
+                        assigned: false,
+                    } as Ticket,
                 ],
             },
         ],
@@ -140,7 +163,9 @@ describe('SuccessComponent', () => {
     };
 
     const mockInfoService = {
-        getInfo: vi.fn(() => of({ walletConfiguration: mockWalletConfiguration })),
+        getInfo: vi.fn(() =>
+            of({ walletConfiguration: mockWalletConfiguration }),
+        ),
     };
 
     beforeEach(async () => {
@@ -149,7 +174,10 @@ describe('SuccessComponent', () => {
             providers: [
                 { provide: ActivatedRoute, useValue: mockActivatedRoute },
                 { provide: Router, useValue: mockRouter },
-                { provide: ReservationService, useValue: mockReservationService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
                 { provide: EventService, useValue: mockEventService },
                 { provide: TicketService, useValue: mockTicketService },
                 { provide: I18nService, useValue: mockI18nService },
@@ -171,18 +199,27 @@ describe('SuccessComponent', () => {
         it('should load event, info and reservation', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockEventService.getEvent).toHaveBeenCalledWith('test-event');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockEventService.getEvent).toHaveBeenCalledWith(
+                'test-event',
+            );
             expect(mockInfoService.getInfo).toHaveBeenCalled();
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalledWith('res-123');
-            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith('reservation-page-complete.header.title', mockEvent);
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalledWith('res-123');
+            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith(
+                'reservation-page-complete.header.title',
+                mockEvent,
+            );
         });
 
         it('should store wallet configuration', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(component.walletConfiguration).toEqual(mockWalletConfiguration);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(component.walletConfiguration).toEqual(
+                mockWalletConfiguration,
+            );
         });
     });
 
@@ -190,11 +227,13 @@ describe('SuccessComponent', () => {
         it('should load reservation and process info', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.loadReservation();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalled();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalled();
             expect(component.reservationInfo).toBeDefined();
         });
     });
@@ -203,9 +242,12 @@ describe('SuccessComponent', () => {
         it('should set reservationFinalized based on status', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
-            const completingReservation = { ...mockReservationInfo, status: 'FINALIZING' };
+            const completingReservation = {
+                ...mockReservationInfo,
+                status: 'FINALIZING',
+            };
 
             component.processReservationInfo(completingReservation);
 
@@ -215,7 +257,7 @@ describe('SuccessComponent', () => {
         it('should set reservationFinalized to true when complete', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.processReservationInfo(mockReservationInfo);
 
@@ -225,7 +267,7 @@ describe('SuccessComponent', () => {
         it('should count unlocked tickets', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.processReservationInfo(mockReservationInfo);
 
@@ -235,7 +277,7 @@ describe('SuccessComponent', () => {
         it('should check if all tickets are assigned', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.processReservationInfo(mockReservationInfo);
 
@@ -247,12 +289,15 @@ describe('SuccessComponent', () => {
         it('should call ticketService.sendTicketByEmail', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.eventShortName = 'test-event';
             component.sendEmailForTicket('ticket-1');
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockTicketService.sendTicketByEmail).toHaveBeenCalledWith('test-event', 'ticket-1');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockTicketService.sendTicketByEmail).toHaveBeenCalledWith(
+                'test-event',
+                'ticket-1',
+            );
             expect(component.sendEmailForTicketStatus['ticket-1']).toBe(true);
         });
     });
@@ -261,14 +306,16 @@ describe('SuccessComponent', () => {
         it('should call reservationService.reSendReservationEmail', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.eventShortName = 'test-event';
             component.reservationId = 'res-123';
 
             component.reSendReservationEmail();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.reSendReservationEmail).toHaveBeenCalledWith('event', 'test-event', 'res-123', 'en');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.reSendReservationEmail,
+            ).toHaveBeenCalledWith('event', 'test-event', 'res-123', 'en');
             expect(component.reservationMailSent).toBe(true);
         });
     });
@@ -277,7 +324,7 @@ describe('SuccessComponent', () => {
         it('should update ticket and reload reservation', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.ticketsFormControl = {
                 'ticket-1': { value: { firstName: 'John' } } as any,
@@ -286,7 +333,7 @@ describe('SuccessComponent', () => {
 
             component.updateTicket('ticket-1');
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(mockTicketService.updateTicket).toHaveBeenCalled();
         });
     });
@@ -295,34 +342,52 @@ describe('SuccessComponent', () => {
         it('should navigate to event page when single ticket', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.reservationInfo.ticketsByCategory = [
-                { name: 'General', ticketAccessType: 'IN_PERSON', tickets: [{ uuid: 'ticket-1' } as Ticket] },
+                {
+                    name: 'General',
+                    ticketAccessType: 'IN_PERSON',
+                    tickets: [{ uuid: 'ticket-1' } as Ticket],
+                },
             ];
 
             const mockTicket = { uuid: 'ticket-1' } as Ticket;
             component.releaseTicket(mockTicket);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockRouter.navigate).toHaveBeenCalledWith(['event', 'test-event'], { replaceUrl: true });
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockRouter.navigate).toHaveBeenCalledWith(
+                ['event', 'test-event'],
+                { replaceUrl: true },
+            );
         });
 
         it('should reload reservation when multiple tickets', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.reservationInfo.ticketsByCategory = [
-                { name: 'General', ticketAccessType: 'IN_PERSON', tickets: [{ uuid: 'ticket-1' } as Ticket, { uuid: 'ticket-2' } as Ticket] },
+                {
+                    name: 'General',
+                    ticketAccessType: 'IN_PERSON',
+                    tickets: [
+                        { uuid: 'ticket-1' } as Ticket,
+                        { uuid: 'ticket-2' } as Ticket,
+                    ],
+                },
             ];
-            mockReservationService.getReservationInfo.mockReturnValue(of(mockReservationInfo));
+            mockReservationService.getReservationInfo.mockReturnValue(
+                of(mockReservationInfo),
+            );
 
             const mockTicket = { uuid: 'ticket-1' } as Ticket;
             component.releaseTicket(mockTicket);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalled();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalled();
         });
     });
 
@@ -351,7 +416,7 @@ describe('SuccessComponent', () => {
         it('should return true when conditions are met', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.reservationInfo = mockReservationInfo;
 
@@ -361,7 +426,7 @@ describe('SuccessComponent', () => {
         it('should return false when not paid', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.reservationInfo = { ...mockReservationInfo, paid: false };
 
@@ -373,9 +438,11 @@ describe('SuccessComponent', () => {
         it('should return true for ONLINE format', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = { ...mockEvent, format: 'ONLINE' };
-            const category = { ticketAccessType: 'IN_PERSON' } as TicketsByTicketCategory;
+            const category = {
+                ticketAccessType: 'IN_PERSON',
+            } as TicketsByTicketCategory;
 
             expect(component.isOnlineTicket(category)).toBe(true);
         });
@@ -383,9 +450,11 @@ describe('SuccessComponent', () => {
         it('should return true for HYBRID with ONLINE category', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = { ...mockEvent, format: 'HYBRID' };
-            const category = { ticketAccessType: 'ONLINE' } as TicketsByTicketCategory;
+            const category = {
+                ticketAccessType: 'ONLINE',
+            } as TicketsByTicketCategory;
 
             expect(component.isOnlineTicket(category)).toBe(true);
         });
@@ -393,9 +462,11 @@ describe('SuccessComponent', () => {
         it('should return false for HYBRID with IN_PERSON category', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = { ...mockEvent, format: 'HYBRID' };
-            const category = { ticketAccessType: 'IN_PERSON' } as TicketsByTicketCategory;
+            const category = {
+                ticketAccessType: 'IN_PERSON',
+            } as TicketsByTicketCategory;
 
             expect(component.isOnlineTicket(category)).toBe(false);
         });
@@ -405,7 +476,7 @@ describe('SuccessComponent', () => {
         it('should return event title in current language', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             expect(component.purchaseContextTitle).toBe('Test Event');
         });
@@ -415,7 +486,7 @@ describe('SuccessComponent', () => {
         it('should return true when wallet config exists and enabled', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.walletConfiguration = mockWalletConfiguration;
             expect(component.walletIntegrationEnabled).toBe(true);
         });
@@ -423,7 +494,7 @@ describe('SuccessComponent', () => {
         it('should return false when wallet config is null', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.walletConfiguration = null;
             expect(component.walletIntegrationEnabled).toBe(false);
         });
@@ -433,15 +504,19 @@ describe('SuccessComponent', () => {
         it('should call ticketService.openDownloadTicket', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.eventShortName = 'test-event';
             component.walletConfiguration = mockWalletConfiguration;
 
             const mockTicket = { uuid: 'ticket-1' } as Ticket;
             component.downloadTicket(mockTicket);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockTicketService.openDownloadTicket).toHaveBeenCalledWith(mockTicket, 'test-event', mockWalletConfiguration);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockTicketService.openDownloadTicket).toHaveBeenCalledWith(
+                mockTicket,
+                'test-event',
+                mockWalletConfiguration,
+            );
         });
     });
 
@@ -449,7 +524,7 @@ describe('SuccessComponent', () => {
         it('should return true when finalized and not embedded', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
             component.reservationInfo = mockReservationInfo;
 
@@ -459,9 +534,12 @@ describe('SuccessComponent', () => {
         it('should return false when not finalized', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
-            const notFinalizedReservation = { ...mockReservationInfo, status: 'FINALIZING' };
+            const notFinalizedReservation = {
+                ...mockReservationInfo,
+                status: 'FINALIZING',
+            };
             component.processReservationInfo(notFinalizedReservation);
 
             expect(component.showReservationButtons).toBe(false);
@@ -470,9 +548,15 @@ describe('SuccessComponent', () => {
         it('should return false when hideConfirmationButtons is true', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.event = mockEvent;
-            component.reservationInfo = { ...mockReservationInfo, metadata: { ...mockReservationInfo.metadata, hideConfirmationButtons: true } };
+            component.reservationInfo = {
+                ...mockReservationInfo,
+                metadata: {
+                    ...mockReservationInfo.metadata,
+                    hideConfirmationButtons: true,
+                },
+            };
 
             expect(component.showReservationButtons).toBe(false);
         });
@@ -482,10 +566,19 @@ describe('SuccessComponent', () => {
         it('should return additional data for ticket', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const mockTicket = { uuid: 'ticket-1' } as Ticket;
             component.additionalServicesWithData = {
-                'ticket-1': [{ title: { en: 'Supplement' }, itemId: 1, serviceId: 1, ticketUUID: 'ticket-1', ticketFieldConfiguration: [], type: 'SUPPLEMENT' as const }],
+                'ticket-1': [
+                    {
+                        title: { en: 'Supplement' },
+                        itemId: 1,
+                        serviceId: 1,
+                        ticketUUID: 'ticket-1',
+                        ticketFieldConfiguration: [],
+                        type: 'SUPPLEMENT' as const,
+                    },
+                ],
             };
 
             const result = component.getAdditionalData(mockTicket);
@@ -495,7 +588,7 @@ describe('SuccessComponent', () => {
         it('should return empty array when no additional data', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const mockTicket = { uuid: 'ticket-2' } as Ticket;
             component.additionalServicesWithData = {};
 
@@ -508,10 +601,19 @@ describe('SuccessComponent', () => {
         it('should return true when ticket has additional data', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const mockTicket = { uuid: 'ticket-1' } as Ticket;
             component.additionalServicesWithData = {
-                'ticket-1': [{ title: { en: 'Test' }, itemId: 1, serviceId: 1, ticketUUID: 'ticket-1', ticketFieldConfiguration: [], type: 'SUPPLEMENT' as const }],
+                'ticket-1': [
+                    {
+                        title: { en: 'Test' },
+                        itemId: 1,
+                        serviceId: 1,
+                        ticketUUID: 'ticket-1',
+                        ticketFieldConfiguration: [],
+                        type: 'SUPPLEMENT' as const,
+                    },
+                ],
             };
 
             expect(component.hasAdditionalData(mockTicket)).toBe(true);
@@ -520,7 +622,7 @@ describe('SuccessComponent', () => {
         it('should return false when no additional data', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const mockTicket = { uuid: 'ticket-1' } as Ticket;
             component.additionalServicesWithData = {};
 

@@ -22,17 +22,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.fatboyindustrial.gsonjavatime.Converters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import java.io.IOException;
 
 public class Json {
 
     public static final Gson GSON = Converters.registerAll(new GsonBuilder()).create();
-
 
     public static final ObjectMapper OBJECT_MAPPER;
 
@@ -55,7 +52,7 @@ public class Json {
     public static String toJson(Object o) {
         try {
             return OBJECT_MAPPER.writeValueAsString(o);
-        } catch(JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
     }

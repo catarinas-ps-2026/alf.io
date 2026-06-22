@@ -21,13 +21,13 @@ import alfio.model.PurchaseContext;
 import alfio.model.transaction.Capability;
 import alfio.model.transaction.Transaction;
 import alfio.model.transaction.TransactionInitializationToken;
-
 import java.util.List;
 import java.util.Map;
 
 public interface ServerInitiatedTransaction extends Capability {
 
-    TransactionInitializationToken initTransaction(PaymentSpecification paymentSpecification, Map<String, List<String>> params);
+    TransactionInitializationToken initTransaction(
+            PaymentSpecification paymentSpecification, Map<String, List<String>> params);
 
     TransactionInitializationToken errorToken(String errorMessage, boolean reservationStatusChanged);
 

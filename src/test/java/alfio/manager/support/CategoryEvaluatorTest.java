@@ -16,16 +16,16 @@
  */
 package alfio.manager.support;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.model.Ticket;
 import alfio.model.TicketCategory;
 import alfio.repository.TicketCategoryRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class CategoryEvaluatorTest {
 
@@ -40,7 +40,7 @@ public class CategoryEvaluatorTest {
         ticket = mock(Ticket.class);
         category = mock(TicketCategory.class);
         tcr = mock(TicketCategoryRepository.class);
-        
+
         int categoryId = 1;
         when(ticket.getCategoryId()).thenReturn(categoryId);
         when(ticket.getEventId()).thenReturn(eventId);

@@ -48,5 +48,4 @@ public class EmptyWebhookPayload implements TransactionWebhookPayload {
     public Status getStatus() {
         return status;
     }
-
 }

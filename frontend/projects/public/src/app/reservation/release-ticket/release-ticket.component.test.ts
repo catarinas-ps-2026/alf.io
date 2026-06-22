@@ -18,9 +18,7 @@ describe('ReleaseTicketComponent', () => {
         TestBed.configureTestingModule({
             declarations: [ReleaseTicketComponent],
             imports: [NgbModule, TranslateModule.forRoot()],
-            providers: [
-                { provide: NgbActiveModal, useValue: mockActiveModal },
-            ],
+            providers: [{ provide: NgbActiveModal, useValue: mockActiveModal }],
         });
 
         fixture = TestBed.createComponent(ReleaseTicketComponent);

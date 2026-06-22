@@ -16,5 +16,4 @@
  */
 package alfio.controller.api.v2.user.support;
 
-public class ReservationAccessDenied extends RuntimeException {
-}
+public class ReservationAccessDenied extends RuntimeException {}

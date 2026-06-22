@@ -29,15 +29,16 @@ public class HoursRange {
     }
 
     public boolean includes(LocalTime localTime) {
-        return Duration.between(localTime, start).isNegative() && Duration.between(end, localTime).isNegative();
+        return Duration.between(localTime, start).isNegative()
+                && Duration.between(end, localTime).isNegative();
     }
 
     public int getDistanceInHours(LocalTime localTime) {
-        if(includes(localTime)) {
+        if (includes(localTime)) {
             return 0;
         }
         Duration distanceFromStart = Duration.between(localTime, start);
-        if(distanceFromStart.isNegative()) {
+        if (distanceFromStart.isNegative()) {
             return 24 + (int) distanceFromStart.toHours();
         }
         return (int) distanceFromStart.toHours();

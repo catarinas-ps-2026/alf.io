@@ -16,15 +16,14 @@
  */
 package alfio.model.decorator;
 
-import alfio.model.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import alfio.model.*;
+import java.math.BigDecimal;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class AdditionalServiceItemPriceContainerTest {
 
@@ -32,7 +31,6 @@ class AdditionalServiceItemPriceContainerTest {
     private AdditionalService additionalService;
     private Event event;
     private PromoCodeDiscount discount;
-
 
     @BeforeEach
     void setUp() {
@@ -47,14 +45,16 @@ class AdditionalServiceItemPriceContainerTest {
 
     @Test
     void fromWithDiscountCodeNull() {
-        var priceContainer = AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, null);
+        var priceContainer =
+                AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, null);
         assertNotNull(priceContainer);
     }
 
     @Test
     void fromDonation() {
         when(additionalService.type()).thenReturn(AdditionalService.AdditionalServiceType.DONATION);
-        var priceContainer = AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, discount);
+        var priceContainer =
+                AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, discount);
         assertNotNull(priceContainer);
         assertFalse(priceContainer.getDiscount().isPresent());
     }
@@ -64,7 +64,8 @@ class AdditionalServiceItemPriceContainerTest {
         when(additionalService.type()).thenReturn(AdditionalService.AdditionalServiceType.SUPPLEMENT);
         when(discount.getDiscountType()).thenReturn(PromoCodeDiscount.DiscountType.PERCENTAGE);
         when(discount.getCodeType()).thenReturn(PromoCodeDiscount.CodeType.DISCOUNT);
-        var priceContainer = AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, discount);
+        var priceContainer =
+                AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, discount);
         assertNotNull(priceContainer);
         assertTrue(priceContainer.getDiscount().isPresent());
         assertSame(discount, priceContainer.getDiscount().get());
@@ -75,7 +76,8 @@ class AdditionalServiceItemPriceContainerTest {
         when(additionalService.type()).thenReturn(AdditionalService.AdditionalServiceType.SUPPLEMENT);
         when(discount.getDiscountType()).thenReturn(PromoCodeDiscount.DiscountType.FIXED_AMOUNT);
         when(discount.getCodeType()).thenReturn(PromoCodeDiscount.CodeType.DISCOUNT);
-        var priceContainer = AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, discount);
+        var priceContainer =
+                AdditionalServiceItemPriceContainer.from(additionalServiceItem, additionalService, event, discount);
         assertNotNull(priceContainer);
         assertFalse(priceContainer.getDiscount().isPresent());
     }

@@ -16,21 +16,20 @@
  */
 package alfio.manager.payment.saferpay;
 
-import com.google.gson.JsonParser;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import com.google.gson.JsonParser;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 class TransactionCaptureRequestBuilderTest {
 
     @Test
     void transactionCaptureRequestBuilder() throws IOException {
         String json = new TransactionCaptureRequestBuilder("token", 1)
-            .addAuthentication("customerId", "requestId")
-            .build();
+                .addAuthentication("customerId", "requestId")
+                .build();
 
         var parsedJson = JsonParser.parseString(json).getAsJsonObject();
         assertNotNull(parsedJson.get("TransactionReference"));
@@ -41,8 +40,8 @@ class TransactionCaptureRequestBuilderTest {
     @Test
     void transactionInquireRequestBuilder() throws IOException {
         String json = new TransactionInquireRequestBuilder("token", 1)
-            .addAuthentication("customerId", "requestId")
-            .build();
+                .addAuthentication("customerId", "requestId")
+                .build();
 
         var parsedJson = JsonParser.parseString(json).getAsJsonObject();
         assertNotNull(parsedJson.get("TransactionReference"));

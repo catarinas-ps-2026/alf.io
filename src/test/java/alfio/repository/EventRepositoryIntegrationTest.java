@@ -16,6 +16,10 @@
  */
 package alfio.repository;
 
+import static alfio.test.util.IntegrationTestUtil.DESCRIPTION;
+import static alfio.test.util.IntegrationTestUtil.initEvent;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -34,14 +38,6 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
 import ch.digitalfondue.npjt.AffectedRowCountAndKey;
-import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -50,11 +46,13 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import static alfio.test.util.IntegrationTestUtil.DESCRIPTION;
-import static alfio.test.util.IntegrationTestUtil.initEvent;
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, WebSecurityConfig.class, TestConfiguration.class})
@@ -66,94 +64,176 @@ class EventRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private EventStatisticsManager eventStatisticsManager;
+
     @Autowired
     private TicketRepository ticketRepository;
+
     @Autowired
     private TicketReservationRepository ticketReservationRepository;
 
     @BeforeEach
     public void setUp() {
-        //setup hsqldb and make it usable from eventRepository
+        // setup hsqldb and make it usable from eventRepository
         organizationRepository.create(ORG_NAME, "description", "email@pippobaudo.com", null, null);
     }
 
-
     @Test
     public void testJavaInsertedDatesRespectTheirTimeZone() {
-        //these are the values of what we have inserted in the SQL insert script
+        // these are the values of what we have inserted in the SQL insert script
         ZonedDateTime beginEventDate = ZonedDateTime.of(2015, 4, 18, 0, 0, 0, 0, ZoneId.of("America/New_York"));
         ZonedDateTime endEventDate = ZonedDateTime.of(2015, 4, 19, 23, 59, 59, 0, ZoneId.of("America/New_York"));
 
         int orgId = organizationRepository.getIdByName(ORG_NAME);
 
-
-        AffectedRowCountAndKey<Integer> pair = eventRepository.insert("unittest", Event.EventFormat.IN_PERSON, "display Name", "http://localhost:8080/", "http://localhost:8080",
-            "http://localhost:8080", null,null, null, "Lugano", "9", "8", beginEventDate, endEventDate, NEW_YORK_TZ, "CHF", 4, true,
-            new BigDecimal(1), "", "", orgId, 7, PriceContainer.VatStatus.INCLUDED, 0, null, Event.Status.PUBLIC, AlfioMetadata.empty());
+        AffectedRowCountAndKey<Integer> pair = eventRepository.insert(
+                "unittest",
+                Event.EventFormat.IN_PERSON,
+                "display Name",
+                "http://localhost:8080/",
+                "http://localhost:8080",
+                "http://localhost:8080",
+                null,
+                null,
+                null,
+                "Lugano",
+                "9",
+                "8",
+                beginEventDate,
+                endEventDate,
+                NEW_YORK_TZ,
+                "CHF",
+                4,
+                true,
+                new BigDecimal(1),
+                "",
+                "",
+                orgId,
+                7,
+                PriceContainer.VatStatus.INCLUDED,
+                0,
+                null,
+                Event.Status.PUBLIC,
+                AlfioMetadata.empty());
         Event e = eventRepository.findById(pair.getKey());
         assertNotNull(e, "Event not found in DB");
 
         assertEquals(beginEventDate, e.getBegin(), "Begin date is not correct");
         assertEquals(endEventDate, e.getEnd(), "End date is not correct");
 
-        //since when debugging the toString method is used .... and it rely on the system TimeZone, we test it too
+        // since when debugging the toString method is used .... and it rely on the system TimeZone, we test it too
         System.out.println(e.getBegin().toString());
         System.out.println(e.getEnd().toString());
     }
 
     @Test
     public void testCheckInStatistics() {
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, 0,
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                0,
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> pair = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> pair =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         Event event = pair.getKey();
-        TicketCategoryModification tcm = new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, 10,
-            new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-            new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-            DESCRIPTION, BigDecimal.TEN, false, "", true, null, null, null, null, null, 0, null, null, AlfioMetadata.empty());
+        TicketCategoryModification tcm = new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                10,
+                new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                true,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty());
         Result<Integer> result = eventManager.insertCategory(event, tcm, pair.getValue());
         assertTrue(result.isSuccess());
 
-        //initial state
+        // initial state
         CheckInStatistics checkInStatistics = eventRepository.retrieveCheckInStatisticsForEvent(event.getId());
         assertEquals(0, checkInStatistics.getCheckedIn());
         assertEquals(0, checkInStatistics.getTotalAttendees());
 
-        EventWithAdditionalInfo eventWithAdditionalInfo = eventStatisticsManager.getEventWithAdditionalInfo(event.getShortName(), pair.getRight());
-        TicketCategoryWithAdditionalInfo firstCategory = eventWithAdditionalInfo.getTicketCategories().get(0);
-        List<Integer> ids = ticketRepository.selectNotAllocatedTicketsForUpdate(event.getId(), 5, Collections.singletonList(TicketRepository.FREE));
+        EventWithAdditionalInfo eventWithAdditionalInfo =
+                eventStatisticsManager.getEventWithAdditionalInfo(event.getShortName(), pair.getRight());
+        TicketCategoryWithAdditionalInfo firstCategory =
+                eventWithAdditionalInfo.getTicketCategories().get(0);
+        List<Integer> ids = ticketRepository.selectNotAllocatedTicketsForUpdate(
+                event.getId(), 5, Collections.singletonList(TicketRepository.FREE));
         String reservationId = "12345678";
-        ticketReservationRepository.createNewReservation(reservationId, ZonedDateTime.now(ClockProvider.clock()), DateUtils.addDays(new Date(), 1), null, "en", event.getId(), event.getVat(), event.isVatIncluded(), event.getCurrency(), event.getOrganizationId(), null);
-        int reserved = ticketRepository.reserveTickets(reservationId, ids, firstCategory.getTicketCategory(), "it", event.getVatStatus(), i -> null);
+        ticketReservationRepository.createNewReservation(
+                reservationId,
+                ZonedDateTime.now(ClockProvider.clock()),
+                DateUtils.addDays(new Date(), 1),
+                null,
+                "en",
+                event.getId(),
+                event.getVat(),
+                event.isVatIncluded(),
+                event.getCurrency(),
+                event.getOrganizationId(),
+                null);
+        int reserved = ticketRepository.reserveTickets(
+                reservationId, ids, firstCategory.getTicketCategory(), "it", event.getVatStatus(), i -> null);
         assertEquals(5, reserved);
 
         ticketRepository.updateTicketsStatusWithReservationId(reservationId, Ticket.TicketStatus.ACQUIRED.name());
         checkInStatistics = eventRepository.retrieveCheckInStatisticsForEvent(event.getId());
-        //after buying 5 tickets we expect to have them in the total attendees
+        // after buying 5 tickets we expect to have them in the total attendees
         assertEquals(0, checkInStatistics.getCheckedIn());
         assertEquals(5, checkInStatistics.getTotalAttendees());
-        checkInStatistics = eventRepository.retrieveCheckInStatisticsForEvent(event.getId(), List.of(firstCategory.getTicketCategory().getId()));
+        checkInStatistics = eventRepository.retrieveCheckInStatisticsForEvent(
+                event.getId(), List.of(firstCategory.getTicketCategory().getId()));
         assertEquals(0, checkInStatistics.getCheckedIn());
         assertEquals(5, checkInStatistics.getTotalAttendees());
 
         List<Ticket> ticketsInReservation = ticketRepository.findTicketsInReservation(reservationId);
-        ticketRepository.updateTicketStatusWithUUID(ticketsInReservation.get(0).getUuid(), Ticket.TicketStatus.CHECKED_IN.name());
+        ticketRepository.updateTicketStatusWithUUID(
+                ticketsInReservation.get(0).getUuid(), Ticket.TicketStatus.CHECKED_IN.name());
         checkInStatistics = eventRepository.retrieveCheckInStatisticsForEvent(event.getId());
-        //checked in ticket must be taken into account
+        // checked in ticket must be taken into account
         assertEquals(1, checkInStatistics.getCheckedIn());
         assertEquals(5, checkInStatistics.getTotalAttendees());
-        checkInStatistics = eventRepository.retrieveCheckInStatisticsForEvent(event.getId(), List.of(firstCategory.getTicketCategory().getId()));
+        checkInStatistics = eventRepository.retrieveCheckInStatisticsForEvent(
+                event.getId(), List.of(firstCategory.getTicketCategory().getId()));
         assertEquals(1, checkInStatistics.getCheckedIn());
         assertEquals(5, checkInStatistics.getTotalAttendees());
     }

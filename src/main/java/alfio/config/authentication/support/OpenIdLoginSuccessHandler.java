@@ -20,6 +20,9 @@ import alfio.config.support.ContextAwareCookieSerializer;
 import alfio.util.TemplateManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.Authentication;
@@ -27,10 +30,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.session.web.http.CookieSerializer;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
 
 public class OpenIdLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final RequestCache requestCache = new HttpSessionRequestCache();
@@ -43,9 +42,9 @@ public class OpenIdLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(
+            HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            throws IOException {
         String targetPath;
         var savedRequest = this.requestCache.getRequest(request, response);
         if (savedRequest == null || StringUtils.isBlank(savedRequest.getRedirectUrl())) {
@@ -58,10 +57,9 @@ public class OpenIdLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         templateManager.renderHtml(
-            new ClassPathResource("/alfio/templates/openid-redirect.ms"),
-            Map.of("redirectPath", targetPath),
-            response.getWriter()
-        );
+                new ClassPathResource("/alfio/templates/openid-redirect.ms"),
+                Map.of("redirectPath", targetPath),
+                response.getWriter());
         response.flushBuffer();
     }
 }

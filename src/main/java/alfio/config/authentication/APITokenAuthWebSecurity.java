@@ -16,6 +16,8 @@
  */
 package alfio.config.authentication;
 
+import static alfio.config.authentication.support.AuthenticationConstants.*;
+
 import alfio.config.authentication.support.APIKeyAuthFilter;
 import alfio.config.authentication.support.APITokenAuthentication;
 import alfio.config.authentication.support.RequestTypeMatchers;
@@ -26,6 +28,10 @@ import alfio.model.user.User;
 import alfio.repository.user.AuthorityRepository;
 import alfio.repository.user.UserRepository;
 import alfio.util.ClockProvider;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.ZonedDateTime;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -40,13 +46,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.NullSecurityContextRepository;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.ZonedDateTime;
-import java.util.List;
-
-import static alfio.config.authentication.support.AuthenticationConstants.*;
-
 @Configuration(proxyBeanMethods = false)
 public class APITokenAuthWebSecurity {
 
@@ -55,15 +54,16 @@ public class APITokenAuthWebSecurity {
     private final AuthorityRepository authorityRepository;
     private final ConfigurationManager configurationManager;
 
-    public APITokenAuthWebSecurity(UserRepository userRepository,
-                                   AuthorityRepository authorityRepository,
-                                   ConfigurationManager configurationManager) {
+    public APITokenAuthWebSecurity(
+            UserRepository userRepository,
+            AuthorityRepository authorityRepository,
+            ConfigurationManager configurationManager) {
         this.userRepository = userRepository;
         this.authorityRepository = authorityRepository;
         this.configurationManager = configurationManager;
     }
 
-    //https://stackoverflow.com/a/48448901
+    // https://stackoverflow.com/a/48448901
     @Bean
     @Order(Integer.MIN_VALUE) // APIKey Authentication needs to have the highest priority
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
@@ -74,17 +74,21 @@ public class APITokenAuthWebSecurity {
             String apiKey = (String) authentication.getPrincipal();
 
             // check if API Key is system
-            var systemApiKeyOptional = configurationManager.getForSystem(ConfigurationKeys.SYSTEM_API_KEY).getValue();
+            var systemApiKeyOptional = configurationManager
+                    .getForSystem(ConfigurationKeys.SYSTEM_API_KEY)
+                    .getValue();
 
             if (systemApiKeyOptional.isPresent() && apiKeyMatches(apiKey, systemApiKeyOptional.get())) {
                 return new APITokenAuthentication(
-                    authentication.getPrincipal(),
-                    authentication.getCredentials(),
-                    List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT)));
+                        authentication.getPrincipal(),
+                        authentication.getCredentials(),
+                        List.of(new SimpleGrantedAuthority("ROLE_" + SYSTEM_API_CLIENT)));
             }
 
-            //check if user type ->
-            User user = userRepository.findByUsername(apiKey).orElseThrow(() -> new BadCredentialsException(API_KEY + apiKey + " don't exists"));
+            // check if user type ->
+            User user = userRepository
+                    .findByUsername(apiKey)
+                    .orElseThrow(() -> new BadCredentialsException(API_KEY + apiKey + " don't exists"));
             if (!user.isEnabled()) {
                 throw new DisabledException(API_KEY + apiKey + " is disabled");
             }
@@ -96,38 +100,52 @@ public class APITokenAuthWebSecurity {
             }
 
             return new APITokenAuthentication(
-                authentication.getPrincipal(),
-                authentication.getCredentials(),
-                authorityRepository.findRoles(apiKey).stream().map(SimpleGrantedAuthority::new).toList());
+                    authentication.getPrincipal(),
+                    authentication.getCredentials(),
+                    authorityRepository.findRoles(apiKey).stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .toList());
         });
 
         // do NOT attempt to persist context in session
         filter.setSecurityContextRepository(new NullSecurityContextRepository());
 
         return http.securityMatchers(matchers -> matchers.requestMatchers(RequestTypeMatchers::isTokenAuthentication))
-            .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(APITokenAuthWebSecurity::configureMatchers)
-            .addFilter(filter)
-            .build();
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(APITokenAuthWebSecurity::configureMatchers)
+                .addFilter(filter)
+                .build();
     }
 
-    private static void configureMatchers(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
-        auth.requestMatchers(ADMIN_PUBLIC_API + "/system/**").hasRole(SYSTEM_API_CLIENT)
-            .requestMatchers(ADMIN_PUBLIC_API + "/**").hasRole(API_CLIENT)
-            .requestMatchers(ADMIN_API + "/check-in/event/*/attendees").hasRole(SUPERVISOR)
-            .requestMatchers(ADMIN_API + "/check-in/*/label-layout").hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
-            .requestMatchers(ADMIN_API + "/check-in/**").hasAnyRole(OPERATOR, SUPERVISOR)
-            .requestMatchers(HttpMethod.GET, ADMIN_API + "/events").hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
-            .requestMatchers(HttpMethod.GET, ADMIN_API + "/user-type", ADMIN_API + "/user/details").hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
-            .requestMatchers(ADMIN_API + "/**").denyAll()
-            .requestMatchers(HttpMethod.POST, "/api/attendees/sponsor-scan").hasRole(SPONSOR)
-            .requestMatchers(HttpMethod.GET, "/api/attendees/*/ticket/*").hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
-            .requestMatchers("/**").authenticated();
+    private static void configureMatchers(
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth.requestMatchers(ADMIN_PUBLIC_API + "/system/**")
+                .hasRole(SYSTEM_API_CLIENT)
+                .requestMatchers(ADMIN_PUBLIC_API + "/**")
+                .hasRole(API_CLIENT)
+                .requestMatchers(ADMIN_API + "/check-in/event/*/attendees")
+                .hasRole(SUPERVISOR)
+                .requestMatchers(ADMIN_API + "/check-in/*/label-layout")
+                .hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
+                .requestMatchers(ADMIN_API + "/check-in/**")
+                .hasAnyRole(OPERATOR, SUPERVISOR)
+                .requestMatchers(HttpMethod.GET, ADMIN_API + "/events")
+                .hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
+                .requestMatchers(HttpMethod.GET, ADMIN_API + "/user-type", ADMIN_API + "/user/details")
+                .hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
+                .requestMatchers(ADMIN_API + "/**")
+                .denyAll()
+                .requestMatchers(HttpMethod.POST, "/api/attendees/sponsor-scan")
+                .hasRole(SPONSOR)
+                .requestMatchers(HttpMethod.GET, "/api/attendees/*/ticket/*")
+                .hasAnyRole(OPERATOR, SUPERVISOR, SPONSOR)
+                .requestMatchers("/**")
+                .authenticated();
     }
 
     private static boolean apiKeyMatches(String input, String configurationValue) {
-        return MessageDigest.isEqual(input.getBytes(StandardCharsets.UTF_8),
-            configurationValue.getBytes(StandardCharsets.UTF_8));
+        return MessageDigest.isEqual(
+                input.getBytes(StandardCharsets.UTF_8), configurationValue.getBytes(StandardCharsets.UTF_8));
     }
 }

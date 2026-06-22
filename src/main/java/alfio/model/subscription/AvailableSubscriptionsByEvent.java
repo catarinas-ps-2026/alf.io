@@ -20,7 +20,6 @@ import alfio.model.FieldNameAndValue;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -37,17 +36,18 @@ public class AvailableSubscriptionsByEvent {
     private final List<FieldNameAndValue> additionalFields;
     private final List<Integer> compatibleCategoryIds;
 
-    public AvailableSubscriptionsByEvent(@Column("event_id") int eventId,
-                                         @Column("organization_id") int organizationId,
-                                         @Column("subscription_id") UUID subscriptionId,
-                                         @Column("descriptor_id") UUID descriptorId,
-                                         @Column("email_address") String emailAddress,
-                                         @Column("first_name") String firstName,
-                                         @Column("last_name") String lastName,
-                                         @Column("user_language") String userLanguage,
-                                         @Column("reservation_email") String reservationEmail,
-                                         @Column("additional_fields") String additionalFieldsAsString,
-                                         @Column("compatible_categories") String compatibleCategories) {
+    public AvailableSubscriptionsByEvent(
+            @Column("event_id") int eventId,
+            @Column("organization_id") int organizationId,
+            @Column("subscription_id") UUID subscriptionId,
+            @Column("descriptor_id") UUID descriptorId,
+            @Column("email_address") String emailAddress,
+            @Column("first_name") String firstName,
+            @Column("last_name") String lastName,
+            @Column("user_language") String userLanguage,
+            @Column("reservation_email") String reservationEmail,
+            @Column("additional_fields") String additionalFieldsAsString,
+            @Column("compatible_categories") String compatibleCategories) {
         this.eventId = eventId;
         this.organizationId = organizationId;
         this.subscriptionId = subscriptionId;
@@ -62,7 +62,9 @@ public class AvailableSubscriptionsByEvent {
         } else {
             this.additionalFields = List.of();
         }
-        this.compatibleCategoryIds = compatibleCategories != null ? Json.fromJson(compatibleCategories, new TypeReference<>() {}) : List.of();
+        this.compatibleCategoryIds = compatibleCategories != null
+                ? Json.fromJson(compatibleCategories, new TypeReference<>() {})
+                : List.of();
     }
 
     public int getEventId() {

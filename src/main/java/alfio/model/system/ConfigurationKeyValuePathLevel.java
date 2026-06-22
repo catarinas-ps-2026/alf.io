@@ -26,9 +26,10 @@ public class ConfigurationKeyValuePathLevel {
     private final String value;
     private final ConfigurationPathLevel configurationPathLevel;
 
-    public ConfigurationKeyValuePathLevel(@Column("c_key") String key,
-                                          @Column("c_value") String value,
-                                          @Column("configuration_path_level") ConfigurationPathLevel configurationPathLevel) {
+    public ConfigurationKeyValuePathLevel(
+            @Column("c_key") String key,
+            @Column("c_value") String value,
+            @Column("configuration_path_level") ConfigurationPathLevel configurationPathLevel) {
         this.configurationKey = ConfigurationKeys.safeValueOf(key);
         this.value = value;
         this.configurationPathLevel = configurationPathLevel;

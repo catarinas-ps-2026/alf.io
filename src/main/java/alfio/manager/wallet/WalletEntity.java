@@ -23,5 +23,4 @@ public interface WalletEntity {
     public String getId();
 
     public String build(ObjectMapper mapper);
-
 }

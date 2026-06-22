@@ -25,9 +25,16 @@ describe('AdditionalFieldService', () => {
         // Técnicas: Particiones de equivalencia (type: event vs subscription)
         it.each([
             ['event', 'evt-1', '/admin/api/event/evt-1/additional-field'],
-            ['subscription', 'sub-1', '/admin/api/subscription/sub-1/additional-field'],
+            [
+                'subscription',
+                'sub-1',
+                '/admin/api/subscription/sub-1/additional-field',
+            ],
         ])('construye URL para type=%s', async (_type, identifier, expectedUrl) => {
-            const ctx = createPurchaseContext({ type: _type as 'event' | 'subscription', publicIdentifier: identifier });
+            const ctx = createPurchaseContext({
+                type: _type as 'event' | 'subscription',
+                publicIdentifier: identifier,
+            });
             mockFetchJson.mockResolvedValue([]);
 
             await AdditionalFieldService.loadAllByPurchaseContext(ctx);
@@ -39,22 +46,40 @@ describe('AdditionalFieldService', () => {
     describe('deleteField', () => {
         // Técnicas: Mocking con verificación
         it('construye URL DELETE con id', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+            const ctx = createPurchaseContext({
+                type: 'event',
+                publicIdentifier: 'evt-1',
+            });
             mockCallDelete.mockResolvedValue({} as Response);
 
             await AdditionalFieldService.deleteField(ctx, 5);
 
-            expect(mockCallDelete).toHaveBeenCalledWith('/admin/api/event/evt-1/additional-field/5');
+            expect(mockCallDelete).toHaveBeenCalledWith(
+                '/admin/api/event/evt-1/additional-field/5',
+            );
         });
     });
 
     describe('swapFieldPosition', () => {
         // Técnicas: Mocking con verificación + Valores límite
         it.each([
-            ['ids diferentes', 1, 2, '/admin/api/event/evt-1/additional-field/swap-position/1/2'],
-            ['ids iguales', 1, 1, '/admin/api/event/evt-1/additional-field/swap-position/1/1'],
+            [
+                'ids diferentes',
+                1,
+                2,
+                '/admin/api/event/evt-1/additional-field/swap-position/1/2',
+            ],
+            [
+                'ids iguales',
+                1,
+                1,
+                '/admin/api/event/evt-1/additional-field/swap-position/1/1',
+            ],
         ])('construye URL con %s', async (_label, id1, id2, expectedUrl) => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+            const ctx = createPurchaseContext({
+                type: 'event',
+                publicIdentifier: 'evt-1',
+            });
             mockPostJson.mockResolvedValue({} as Response);
 
             await AdditionalFieldService.swapFieldPosition(ctx, id1, id2);
@@ -69,7 +94,10 @@ describe('AdditionalFieldService', () => {
             ['position válida', 5],
             ['position cero', 0],
         ])('envía %s (%d) en body URLSearchParams', async (_label, position) => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+            const ctx = createPurchaseContext({
+                type: 'event',
+                publicIdentifier: 'evt-1',
+            });
             mockPostJson.mockResolvedValue({} as Response);
 
             await AdditionalFieldService.moveField(ctx, 1, position);
@@ -86,7 +114,10 @@ describe('AdditionalFieldService', () => {
     describe('createNewField', () => {
         // Técnicas: Mocking con verificación
         it('envía POST y retorna ValidatedResponse', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+            const ctx = createPurchaseContext({
+                type: 'event',
+                publicIdentifier: 'evt-1',
+            });
             const mockResponse = { success: true, value: { id: 1 } };
             mockPostJson.mockResolvedValue({
                 json: vi.fn().mockResolvedValue(mockResponse),
@@ -115,7 +146,10 @@ describe('AdditionalFieldService', () => {
     describe('saveField', () => {
         // Técnicas: Mocking con verificación
         it('usa field.id en URL', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+            const ctx = createPurchaseContext({
+                type: 'event',
+                publicIdentifier: 'evt-1',
+            });
             mockPostJson.mockResolvedValue({} as Response);
 
             await AdditionalFieldService.saveField(ctx, {
@@ -140,24 +174,34 @@ describe('AdditionalFieldService', () => {
     describe('loadRestrictedValuesStats', () => {
         // Técnicas: Mocking con verificación
         it('construye URL con id de stats', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+            const ctx = createPurchaseContext({
+                type: 'event',
+                publicIdentifier: 'evt-1',
+            });
             mockFetchJson.mockResolvedValue([]);
 
             await AdditionalFieldService.loadRestrictedValuesStats(ctx, 3);
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/event/evt-1/additional-field/3/stats');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/event/evt-1/additional-field/3/stats',
+            );
         });
     });
 
     describe('loadTemplates', () => {
         // Técnicas: Mocking con verificación
         it('construye URL de templates', async () => {
-            const ctx = createPurchaseContext({ type: 'event', publicIdentifier: 'evt-1' });
+            const ctx = createPurchaseContext({
+                type: 'event',
+                publicIdentifier: 'evt-1',
+            });
             mockFetchJson.mockResolvedValue([]);
 
             await AdditionalFieldService.loadTemplates(ctx);
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/event/evt-1/additional-field/templates');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/event/evt-1/additional-field/templates',
+            );
         });
     });
 });

@@ -16,6 +16,11 @@
  */
 package alfio.manager;
 
+import static alfio.manager.testSupport.MaybeConfigurationBuilder.existing;
+import static alfio.manager.testSupport.MaybeConfigurationBuilder.missing;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.EventAndOrganizationId;
@@ -23,17 +28,11 @@ import alfio.model.VatDetail;
 import alfio.model.system.ConfigurationKeys;
 import ch.digitalfondue.vatchecker.EUVatCheckResponse;
 import ch.digitalfondue.vatchecker.EUVatChecker;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
-
-import static alfio.manager.testSupport.MaybeConfigurationBuilder.existing;
-import static alfio.manager.testSupport.MaybeConfigurationBuilder.missing;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class EuVatCheckerTest {
 
@@ -49,26 +48,35 @@ public class EuVatCheckerTest {
         ConfigurationLevel cl = ConfigurationLevel.event(eventAndOrganizationId);
         when(eventAndOrganizationId.getConfigurationLevel()).thenReturn(cl);
         when(configurationManager.getFor(eq(ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE), any(ConfigurationLevel.class)))
-            .thenReturn(existing(ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE, "true"));
+                .thenReturn(existing(ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE, "true"));
         when(configurationManager.getFor(eq(ConfigurationKeys.ENABLE_VIES_VALIDATION), any(ConfigurationLevel.class)))
-            .thenReturn(existing(ConfigurationKeys.ENABLE_VIES_VALIDATION, "true"));
+                .thenReturn(existing(ConfigurationKeys.ENABLE_VIES_VALIDATION, "true"));
         when(configurationManager.getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST))
-            .thenReturn(existing(ConfigurationKeys.EU_COUNTRIES_LIST, "IE"));
+                .thenReturn(existing(ConfigurationKeys.EU_COUNTRIES_LIST, "IE"));
         when(configurationManager.getFor(eq(ConfigurationKeys.COUNTRY_OF_BUSINESS), any(ConfigurationLevel.class)))
-            .thenReturn(existing(ConfigurationKeys.COUNTRY_OF_BUSINESS, "IT"));
-        when(configurationManager.getFor(eq(EnumSet.of(ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE, ConfigurationKeys.COUNTRY_OF_BUSINESS, ConfigurationKeys.ENABLE_REVERSE_CHARGE_ONLINE, ConfigurationKeys.ENABLE_REVERSE_CHARGE_IN_PERSON)), any()))
-            .thenReturn(Map.of(
-                ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE, existing(ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE, "true"),
-                ConfigurationKeys.COUNTRY_OF_BUSINESS, existing(ConfigurationKeys.COUNTRY_OF_BUSINESS, "IT"),
-                ConfigurationKeys.ENABLE_REVERSE_CHARGE_ONLINE, missing(ConfigurationKeys.ENABLE_REVERSE_CHARGE_ONLINE),
-                ConfigurationKeys.ENABLE_REVERSE_CHARGE_IN_PERSON, missing(ConfigurationKeys.ENABLE_REVERSE_CHARGE_IN_PERSON)
-            ));
+                .thenReturn(existing(ConfigurationKeys.COUNTRY_OF_BUSINESS, "IT"));
+        when(configurationManager.getFor(
+                        eq(EnumSet.of(
+                                ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE,
+                                ConfigurationKeys.COUNTRY_OF_BUSINESS,
+                                ConfigurationKeys.ENABLE_REVERSE_CHARGE_ONLINE,
+                                ConfigurationKeys.ENABLE_REVERSE_CHARGE_IN_PERSON)),
+                        any()))
+                .thenReturn(Map.of(
+                        ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE,
+                                existing(ConfigurationKeys.ENABLE_EU_VAT_DIRECTIVE, "true"),
+                        ConfigurationKeys.COUNTRY_OF_BUSINESS, existing(ConfigurationKeys.COUNTRY_OF_BUSINESS, "IT"),
+                        ConfigurationKeys.ENABLE_REVERSE_CHARGE_ONLINE,
+                                missing(ConfigurationKeys.ENABLE_REVERSE_CHARGE_ONLINE),
+                        ConfigurationKeys.ENABLE_REVERSE_CHARGE_IN_PERSON,
+                                missing(ConfigurationKeys.ENABLE_REVERSE_CHARGE_IN_PERSON)));
     }
 
     @Test
     public void performCheckOK() {
         initResponse(true, "Test Corp.", "Address");
-        Optional<VatDetail> result = EuVatChecker.performCheck("1234", "IE", eventAndOrganizationId).apply(configurationManager, client);
+        Optional<VatDetail> result =
+                EuVatChecker.performCheck("1234", "IE", eventAndOrganizationId).apply(configurationManager, client);
         assertTrue(result.isPresent());
         VatDetail vatDetail = result.get();
         assertTrue(vatDetail.isValid());
@@ -83,7 +91,8 @@ public class EuVatCheckerTest {
     @Test
     public void performCheckKO() {
         initResponse(false, "------", "------");
-        Optional<VatDetail> result = EuVatChecker.performCheck("12345", "IE", eventAndOrganizationId).apply(configurationManager, client);
+        Optional<VatDetail> result =
+                EuVatChecker.performCheck("12345", "IE", eventAndOrganizationId).apply(configurationManager, client);
         assertTrue(result.isPresent());
         VatDetail vatDetail = result.get();
         assertFalse(vatDetail.isValid());
@@ -98,13 +107,17 @@ public class EuVatCheckerTest {
     @Test
     public void performCheckRequestFailed() {
         when(client.check(any(String.class), any(String.class))).thenThrow(new IllegalStateException("from test!"));
-        assertThrows(IllegalStateException.class, () -> EuVatChecker.performCheck("1234", "IE", eventAndOrganizationId).apply(configurationManager, client));
+        assertThrows(IllegalStateException.class, () -> EuVatChecker.performCheck("1234", "IE", eventAndOrganizationId)
+                .apply(configurationManager, client));
     }
 
     @Test
     public void testForeignBusinessVATApplied() {
-        when(configurationManager.getFor(eq(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS), any(ConfigurationLevel.class))).thenReturn(existing(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS, "true"));
-        Optional<VatDetail> result = EuVatChecker.performCheck("1234", "UK", eventAndOrganizationId).apply(configurationManager, client);
+        when(configurationManager.getFor(
+                        eq(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS), any(ConfigurationLevel.class)))
+                .thenReturn(existing(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS, "true"));
+        Optional<VatDetail> result =
+                EuVatChecker.performCheck("1234", "UK", eventAndOrganizationId).apply(configurationManager, client);
         assertTrue(result.isPresent());
         VatDetail vatDetail = result.get();
         assertTrue(vatDetail.isValid());
@@ -116,8 +129,11 @@ public class EuVatCheckerTest {
 
     @Test
     public void testForeignBusinessVATNotApplied() {
-        when(configurationManager.getFor(eq(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS), any(ConfigurationLevel.class))).thenReturn(existing(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS, "false"));
-        Optional<VatDetail> result = EuVatChecker.performCheck("1234", "UK", eventAndOrganizationId).apply(configurationManager, client);
+        when(configurationManager.getFor(
+                        eq(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS), any(ConfigurationLevel.class)))
+                .thenReturn(existing(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS, "false"));
+        Optional<VatDetail> result =
+                EuVatChecker.performCheck("1234", "UK", eventAndOrganizationId).apply(configurationManager, client);
         assertTrue(result.isPresent());
         VatDetail vatDetail = result.get();
         assertTrue(vatDetail.isValid());
@@ -129,9 +145,13 @@ public class EuVatCheckerTest {
 
     @Test
     public void testForeignBusinessVATNotAppliedValidationDisabled() {
-        when(configurationManager.getFor(eq(ConfigurationKeys.ENABLE_VIES_VALIDATION), any(ConfigurationLevel.class))).thenReturn(existing(ConfigurationKeys.ENABLE_VIES_VALIDATION, "true"));
-        when(configurationManager.getFor(eq(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS), any(ConfigurationLevel.class))).thenReturn(existing(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS, "false"));
-        Optional<VatDetail> result = EuVatChecker.performCheck("1234", "UK", eventAndOrganizationId).apply(configurationManager, client);
+        when(configurationManager.getFor(eq(ConfigurationKeys.ENABLE_VIES_VALIDATION), any(ConfigurationLevel.class)))
+                .thenReturn(existing(ConfigurationKeys.ENABLE_VIES_VALIDATION, "true"));
+        when(configurationManager.getFor(
+                        eq(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS), any(ConfigurationLevel.class)))
+                .thenReturn(existing(ConfigurationKeys.APPLY_VAT_FOREIGN_BUSINESS, "false"));
+        Optional<VatDetail> result =
+                EuVatChecker.performCheck("1234", "UK", eventAndOrganizationId).apply(configurationManager, client);
         assertTrue(result.isPresent());
         VatDetail vatDetail = result.get();
         assertEquals(VatDetail.Type.EXTRA_EU, vatDetail.getType());
@@ -143,8 +163,10 @@ public class EuVatCheckerTest {
 
     @Test
     public void testEUBusinessVATNotAppliedValidationDisabled() {
-        when(configurationManager.getFor(eq(ConfigurationKeys.ENABLE_VIES_VALIDATION), any(ConfigurationLevel.class))).thenReturn(existing(ConfigurationKeys.ENABLE_VIES_VALIDATION, "false"));
-        Optional<VatDetail> result = EuVatChecker.performCheck("1234", "IE", eventAndOrganizationId).apply(configurationManager, client);
+        when(configurationManager.getFor(eq(ConfigurationKeys.ENABLE_VIES_VALIDATION), any(ConfigurationLevel.class)))
+                .thenReturn(existing(ConfigurationKeys.ENABLE_VIES_VALIDATION, "false"));
+        Optional<VatDetail> result =
+                EuVatChecker.performCheck("1234", "IE", eventAndOrganizationId).apply(configurationManager, client);
         assertTrue(result.isPresent());
         VatDetail vatDetail = result.get();
         assertTrue(vatDetail.isValid());

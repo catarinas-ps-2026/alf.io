@@ -1,4 +1,7 @@
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+    HttpClientTestingModule,
+    HttpTestingController,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ReservationService } from './reservation.service';
 import type { ReservationRequest } from '../model/reservation-request';
@@ -33,13 +36,21 @@ describe('ReservationService', () => {
                 validationResult: null,
             };
 
-            const promise = new Promise<ValidatedResponse<string>>((resolve) => {
-                service.reserveTickets(eventShortName, reservation, lang).subscribe({
-                    next: (res) => resolve(res),
-                });
-            });
+            const promise = new Promise<ValidatedResponse<string>>(
+                (resolve) => {
+                    service
+                        .reserveTickets(eventShortName, reservation, lang)
+                        .subscribe({
+                            next: (res) => resolve(res),
+                        });
+                },
+            );
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/event/${eventShortName}/reserve-tickets`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/event/${eventShortName}/reserve-tickets`,
+                ),
+            );
             expect(req.request.method).toBe('POST');
             expect(req.request.params.get('lang')).toBe(lang);
             req.flush(mockResponse);
@@ -106,10 +117,14 @@ describe('ReservationService', () => {
             };
 
             const promise = new Promise<ReservationInfo>((resolve) => {
-                service.getReservationInfo(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .getReservationInfo(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(`/api/v2/public/reservation/${reservationId}`),
+            );
             expect(req.request.method).toBe('GET');
             req.flush(mockResponse);
 
@@ -123,10 +138,14 @@ describe('ReservationService', () => {
             const reservationId = 'res-123';
 
             const promise = new Promise<boolean>((resolve) => {
-                service.cancelPendingReservation(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .cancelPendingReservation(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(`/api/v2/public/reservation/${reservationId}`),
+            );
             expect(req.request.method).toBe('DELETE');
             req.flush(true);
 
@@ -144,13 +163,26 @@ describe('ReservationService', () => {
                 validationResult: null,
             };
 
-            const promise = new Promise<ValidatedResponse<boolean>>((resolve) => {
-                service.validateToOverview(reservationId, { firstName: 'John' }, 'en', true).subscribe({
-                    next: (res) => resolve(res),
-                });
-            });
+            const promise = new Promise<ValidatedResponse<boolean>>(
+                (resolve) => {
+                    service
+                        .validateToOverview(
+                            reservationId,
+                            { firstName: 'John' },
+                            'en',
+                            true,
+                        )
+                        .subscribe({
+                            next: (res) => resolve(res),
+                        });
+                },
+            );
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/validate-to-overview`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/validate-to-overview`,
+                ),
+            );
             expect(req.request.method).toBe('POST');
             expect(req.request.params.get('lang')).toBe('en');
             expect(req.request.params.get('ignoreWarnings')).toBe('true');
@@ -168,11 +200,19 @@ describe('ReservationService', () => {
                 validationResult: { errors: [] },
             };
 
-            const promise = new Promise<ValidatedResponse<boolean>>((resolve) => {
-                service.validateToOverview(reservationId, {}, 'en', false).subscribe({ next: (res) => resolve(res) });
-            });
+            const promise = new Promise<ValidatedResponse<boolean>>(
+                (resolve) => {
+                    service
+                        .validateToOverview(reservationId, {}, 'en', false)
+                        .subscribe({ next: (res) => resolve(res) });
+                },
+            );
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/validate-to-overview`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/validate-to-overview`,
+                ),
+            );
             expect(req.request.params.get('ignoreWarnings')).toBe('false');
             req.flush(mockResponse);
 
@@ -186,10 +226,16 @@ describe('ReservationService', () => {
             const reservationId = 'res-123';
 
             const promise = new Promise<boolean>((resolve) => {
-                service.backToBooking(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .backToBooking(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/back-to-booking`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/back-to-booking`,
+                ),
+            );
             expect(req.request.method).toBe('POST');
             expect(req.request.body).toEqual({});
             req.flush(true);
@@ -207,13 +253,22 @@ describe('ReservationService', () => {
             const lang = 'en';
 
             const promise = new Promise<boolean>((resolve) => {
-                service.reSendReservationEmail(purchaseContextType, publicIdentifier, reservationId, lang).subscribe({
-                    next: (res) => resolve(res),
-                });
+                service
+                    .reSendReservationEmail(
+                        purchaseContextType,
+                        publicIdentifier,
+                        reservationId,
+                        lang,
+                    )
+                    .subscribe({
+                        next: (res) => resolve(res),
+                    });
             });
 
             const req = httpMock.expectOne((r) =>
-                r.url.includes(`/api/v2/public/${purchaseContextType}/${publicIdentifier}/reservation/${reservationId}/re-send-email`),
+                r.url.includes(
+                    `/api/v2/public/${purchaseContextType}/${publicIdentifier}/reservation/${reservationId}/re-send-email`,
+                ),
             );
             expect(req.request.method).toBe('POST');
             expect(req.request.params.get('lang')).toBe(lang);
@@ -230,10 +285,16 @@ describe('ReservationService', () => {
             const mockToken = { token: 'tok-123', paymentGateway: 'STRIPE' };
 
             const promise = new Promise<any>((resolve) => {
-                service.initPayment(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .initPayment(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/payment/CREDIT_CARD/init`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/payment/CREDIT_CARD/init`,
+                ),
+            );
             expect(req.request.method).toBe('POST');
             req.flush(mockToken);
 
@@ -248,10 +309,16 @@ describe('ReservationService', () => {
             const mockResult = { success: true };
 
             const promise = new Promise<any>((resolve) => {
-                service.getPaymentStatus(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .getPaymentStatus(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/payment/CREDIT_CARD/status`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/payment/CREDIT_CARD/status`,
+                ),
+            );
             expect(req.request.method).toBe('GET');
             req.flush(mockResult);
 
@@ -266,10 +333,16 @@ describe('ReservationService', () => {
             const mockResult = { status: 'PENDING' };
 
             const promise = new Promise<any>((resolve) => {
-                service.forcePaymentStatusCheck(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .forcePaymentStatusCheck(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/transaction/force-check`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/transaction/force-check`,
+                ),
+            );
             expect(req.request.method).toBe('GET');
             req.flush(mockResult);
 
@@ -283,10 +356,16 @@ describe('ReservationService', () => {
             const reservationId = 'res-123';
 
             const promise = new Promise<boolean>((resolve) => {
-                service.removePaymentToken(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .removePaymentToken(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/payment/token`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/payment/token`,
+                ),
+            );
             expect(req.request.method).toBe('DELETE');
             req.flush(true);
 
@@ -300,10 +379,16 @@ describe('ReservationService', () => {
             const reservationId = 'res-123';
 
             const promise = new Promise<boolean>((resolve) => {
-                service.resetPaymentStatus(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .resetPaymentStatus(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/payment`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/payment`,
+                ),
+            );
             expect(req.request.method).toBe('DELETE');
             req.flush(true);
 
@@ -317,10 +402,16 @@ describe('ReservationService', () => {
             const reservationId = 'res-123';
 
             const promise = new Promise<boolean>((resolve) => {
-                service.registerPaymentAttempt(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .registerPaymentAttempt(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/payment`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/payment`,
+                ),
+            );
             expect(req.request.method).toBe('PUT');
             req.flush(true);
 
@@ -336,10 +427,19 @@ describe('ReservationService', () => {
             const mockDiscount = { code: 'DISCOUNT10', value: 10 };
 
             const promise = new Promise<any>((resolve) => {
-                service.checkDynamicDiscountAvailability(eventShortName, reservation).subscribe({ next: (res) => resolve(res) });
+                service
+                    .checkDynamicDiscountAvailability(
+                        eventShortName,
+                        reservation,
+                    )
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/event/${eventShortName}/check-discount`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/event/${eventShortName}/check-discount`,
+                ),
+            );
             expect(req.request.method).toBe('POST');
             req.flush(mockDiscount);
 
@@ -359,13 +459,26 @@ describe('ReservationService', () => {
                 validationResult: null,
             };
 
-            const promise = new Promise<ValidatedResponse<boolean>>((resolve) => {
-                service.applySubscriptionCode(reservationId, code, email).subscribe({ next: (res) => resolve(res) });
-            });
+            const promise = new Promise<ValidatedResponse<boolean>>(
+                (resolve) => {
+                    service
+                        .applySubscriptionCode(reservationId, code, email)
+                        .subscribe({ next: (res) => resolve(res) });
+                },
+            );
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/apply-code`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/apply-code`,
+                ),
+            );
             expect(req.request.method).toBe('POST');
-            expect(req.request.body).toEqual({ code, email, amount: 1, type: 'SUBSCRIPTION' });
+            expect(req.request.body).toEqual({
+                code,
+                email,
+                amount: 1,
+                type: 'SUBSCRIPTION',
+            });
             req.flush(mockResponse);
 
             const result = await promise;
@@ -378,10 +491,16 @@ describe('ReservationService', () => {
             const reservationId = 'res-123';
 
             const promise = new Promise<boolean>((resolve) => {
-                service.removeSubscription(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .removeSubscription(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
-            const req = httpMock.expectOne((r) => r.url.includes(`/api/v2/public/reservation/${reservationId}/remove-code`));
+            const req = httpMock.expectOne((r) =>
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/remove-code`,
+                ),
+            );
             expect(req.request.method).toBe('DELETE');
             expect(req.request.params.get('type')).toBe('SUBSCRIPTION');
             req.flush(true);
@@ -397,11 +516,15 @@ describe('ReservationService', () => {
             const mockMethods = [{ id: 'custom-1', name: 'Custom Method 1' }];
 
             const promise = new Promise<any>((resolve) => {
-                service.getApplicableCustomPaymentMethodDetails(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .getApplicableCustomPaymentMethodDetails(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
             const req = httpMock.expectOne((r) =>
-                r.url.includes(`/api/v2/public/reservation/${reservationId}/applicable-custom-payment-method-details`),
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/applicable-custom-payment-method-details`,
+                ),
             );
             expect(req.request.method).toBe('GET');
             req.flush(mockMethods);
@@ -417,11 +540,15 @@ describe('ReservationService', () => {
             const mockMethod = { id: 'custom-1', name: 'Custom Method 1' };
 
             const promise = new Promise<any>((resolve) => {
-                service.getSelectedCustomPaymentMethodDetails(reservationId).subscribe({ next: (res) => resolve(res) });
+                service
+                    .getSelectedCustomPaymentMethodDetails(reservationId)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
             const req = httpMock.expectOne((r) =>
-                r.url.includes(`/api/v2/public/reservation/${reservationId}/selected-custom-payment-method-details`),
+                r.url.includes(
+                    `/api/v2/public/reservation/${reservationId}/selected-custom-payment-method-details`,
+                ),
             );
             expect(req.request.method).toBe('GET');
             req.flush(mockMethod);

@@ -18,9 +18,8 @@ package alfio.model.modification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
+import lombok.Getter;
 
 @Getter
 public class GroupModification {
@@ -30,13 +29,13 @@ public class GroupModification {
     private final int organizationId;
     private final List<GroupMemberModification> items;
 
-
     @JsonCreator
-    public GroupModification(@JsonProperty("id") Integer id,
-                             @JsonProperty("name") String name,
-                             @JsonProperty("description") String description,
-                             @JsonProperty("organizationId") int organizationId,
-                             @JsonProperty("items") List<GroupMemberModification> items) {
+    public GroupModification(
+            @JsonProperty("id") Integer id,
+            @JsonProperty("name") String name,
+            @JsonProperty("description") String description,
+            @JsonProperty("organizationId") int organizationId,
+            @JsonProperty("items") List<GroupMemberModification> items) {
         this.id = id;
         this.name = name;
         this.description = description;

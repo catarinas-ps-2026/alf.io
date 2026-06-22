@@ -16,6 +16,9 @@
  */
 package alfio.config.challenge;
 
+import static alfio.util.HttpUtils.APPLICATION_JSON;
+import static alfio.util.HttpUtils.CONTENT_TYPE;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.system.ConfigurationKeys;
 import alfio.util.Json;
@@ -24,6 +27,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +38,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.*;
-
-import static alfio.util.HttpUtils.APPLICATION_JSON;
-import static alfio.util.HttpUtils.CONTENT_TYPE;
-
 public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(CFTurnstileVerificationFilter.class);
     private static final URI SITEVERIFY = URI.create("https://challenges.cloudflare.com/turnstile/v0/siteverify");
@@ -46,21 +45,17 @@ public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
     private final RequestMatcher requestMatcher;
     private final RestClient restClient;
 
-
-    public CFTurnstileVerificationFilter(ConfigurationManager configurationManager,
-                                         RequestMatcher requestMatcher) {
+    public CFTurnstileVerificationFilter(ConfigurationManager configurationManager, RequestMatcher requestMatcher) {
         this.configurationManager = configurationManager;
         this.requestMatcher = requestMatcher;
         this.restClient = RestClient.builder()
-            .baseUrl("https://challenges.cloudflare.com")
-            .build();
-
+                .baseUrl("https://challenges.cloudflare.com")
+                .build();
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         if (requestMatcher.matches(request)) {
             log.trace("Request matching. Checking if turnstile is enabled.");
@@ -79,15 +74,18 @@ public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean verifyChallenge(String challenge,
-                                    Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
-                                    HttpServletRequest request) {
+    private boolean verifyChallenge(
+            String challenge,
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
+            HttpServletRequest request) {
 
         boolean challengeEmpty = StringUtils.isBlank(challenge);
         if (challengeEmpty && preClearanceEnabledAndPresent(configuration, request)) {
-            // if pre-clearance is enabled, and we have received the relevant cookie, the request can be considered valid
+            // if pre-clearance is enabled, and we have received the relevant cookie, the request can be considered
+            // valid
             // even if the challenge code is missing.
-            log.trace("Validation is SUCCESSFUL because cf-clearance is enabled and the relevant cookie is present in the request.");
+            log.trace(
+                    "Validation is SUCCESSFUL because cf-clearance is enabled and the relevant cookie is present in the request.");
             return true;
         } else if (challengeEmpty) {
             // if pre-clearance is NOT enabled, we require challenge to be present
@@ -95,7 +93,8 @@ public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
             return false;
         }
 
-        var secret = configuration.get(ConfigurationKeys.CF_TURNSTILE_SECRET_KEY).getRequiredValue();
+        var secret =
+                configuration.get(ConfigurationKeys.CF_TURNSTILE_SECRET_KEY).getRequiredValue();
         Map<String, String> payload = new HashMap<>();
         payload.put("secret", secret);
         payload.put("response", challenge);
@@ -103,12 +102,13 @@ public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
         if (request.getHeader("CF-Connecting-IP") != null) {
             payload.put("remoteip", request.getHeader("CF-Connecting-IP"));
         }
-        var response = restClient.post()
-            .uri(SITEVERIFY)
-            .header(CONTENT_TYPE, APPLICATION_JSON)
-            .body(Json.toJson(payload))
-            .retrieve()
-            .toEntity(TurnstileResponse.class);
+        var response = restClient
+                .post()
+                .uri(SITEVERIFY)
+                .header(CONTENT_TYPE, APPLICATION_JSON)
+                .body(Json.toJson(payload))
+                .retrieve()
+                .toEntity(TurnstileResponse.class);
         log.trace("Received {} response from siteverify", response.getStatusCode());
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.trace("Validation is NOT SUCCESSFUL because response from siteverify is not successful.");
@@ -123,16 +123,18 @@ public class CFTurnstileVerificationFilter extends OncePerRequestFilter {
         return false;
     }
 
-    private boolean preClearanceEnabledAndPresent(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration,
-                                                  HttpServletRequest request) {
+    private boolean preClearanceEnabledAndPresent(
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration, HttpServletRequest request) {
         if (!configuration.get(ConfigurationKeys.CF_TURNSTILE_PRE_CLEARANCE).getValueAsBooleanOrDefault()) {
             return false;
         }
-        return Arrays.stream(request.getCookies()).anyMatch(c -> c.getName().equals("cf_clearance") && StringUtils.isNotBlank(c.getValue()));
+        return Arrays.stream(request.getCookies())
+                .anyMatch(c -> c.getName().equals("cf_clearance") && StringUtils.isNotBlank(c.getValue()));
     }
 
-    record TurnstileResponse(@JsonProperty("success") boolean success,
-                             @JsonProperty("action") String action,
-                             @JsonProperty("cdata") String cdata,
-                             @JsonProperty("error-codes") List<String> errorCodes) {}
+    record TurnstileResponse(
+            @JsonProperty("success") boolean success,
+            @JsonProperty("action") String action,
+            @JsonProperty("cdata") String cdata,
+            @JsonProperty("error-codes") List<String> errorCodes) {}
 }

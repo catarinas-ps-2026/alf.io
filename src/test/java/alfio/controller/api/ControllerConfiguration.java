@@ -20,6 +20,8 @@ import alfio.controller.IndexController;
 import alfio.controller.support.DataPreloaderManager;
 import alfio.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -31,14 +33,10 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.Collections;
-import java.util.List;
-
 @Configuration(proxyBeanMethods = false)
 @ComponentScan(basePackages = {"alfio.controller"})
 @EnableWebMvc
 public class ControllerConfiguration implements WebMvcConfigurer {
-
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -60,10 +58,12 @@ public class ControllerConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public IndexController indexController(EventRepository eventRepository,
-                                           TicketReservationRepository ticketReservationRepository,
-                                           SubscriptionRepository subscriptionRepository,
-                                           DataPreloaderManager dataPreloaderManager) {
-        return new IndexController(eventRepository, ticketReservationRepository, subscriptionRepository, dataPreloaderManager);
+    public IndexController indexController(
+            EventRepository eventRepository,
+            TicketReservationRepository ticketReservationRepository,
+            SubscriptionRepository subscriptionRepository,
+            DataPreloaderManager dataPreloaderManager) {
+        return new IndexController(
+                eventRepository, ticketReservationRepository, subscriptionRepository, dataPreloaderManager);
     }
 }

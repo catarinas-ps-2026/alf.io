@@ -30,9 +30,10 @@ public class FieldNameAndValue {
     private final String value;
 
     @JsonCreator
-    public FieldNameAndValue(@JsonProperty("name") @Column("field_name") String name,
-                             @JsonProperty("value") @Column("field_value") String value) {
-        this.name =name;
+    public FieldNameAndValue(
+            @JsonProperty("name") @Column("field_name") String name,
+            @JsonProperty("value") @Column("field_value") String value) {
+        this.name = name;
         this.value = value;
     }
 }

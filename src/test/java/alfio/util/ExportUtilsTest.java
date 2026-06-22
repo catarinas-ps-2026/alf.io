@@ -16,13 +16,12 @@
  */
 package alfio.util;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletResponse;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 class ExportUtilsTest {
 
@@ -30,13 +29,15 @@ class ExportUtilsTest {
     void exportCsvWritesHeadersBomNoIndexHeaderAndEscapesFormulaLikeValues() throws Exception {
         var response = new MockHttpServletResponse();
 
-        ExportUtils.exportCsv("report.csv", new String[] {"name", "value"}, Stream.of(
-            new String[] {"Alice", "=2+2"},
-            new String[] {"Bob", " safe "}
-        ), response);
+        ExportUtils.exportCsv(
+                "report.csv",
+                new String[] {"name", "value"},
+                Stream.of(new String[] {"Alice", "=2+2"}, new String[] {"Bob", " safe "}),
+                response);
 
         var bytes = response.getContentAsByteArray();
-        assertArrayEquals(new byte[] {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, new byte[] {bytes[0], bytes[1], bytes[2]});
+        assertArrayEquals(
+                new byte[] {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, new byte[] {bytes[0], bytes[1], bytes[2]});
         assertEquals("text/csv;charset=UTF-8", response.getContentType());
         assertEquals("attachment; filename=report.csv", response.getHeader("Content-Disposition"));
         assertEquals("noindex", response.getHeader(ExportUtils.X_ROBOTS_TAG));

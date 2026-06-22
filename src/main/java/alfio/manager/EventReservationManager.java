@@ -22,6 +22,11 @@ import alfio.model.PurchaseContext.PurchaseContextType;
 import alfio.model.ReservationIdAndEventId;
 import alfio.model.system.command.CleanupReservations;
 import alfio.repository.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +35,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class EventReservationManager {
@@ -52,16 +51,17 @@ public class EventReservationManager {
     private final BillingDocumentRepository billingDocumentRepository;
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-
-    public EventReservationManager(SpecialPriceRepository specialPriceRepository,
-                                   GroupManager groupManager,
-                                   TicketRepository ticketRepository,
-                                   AdditionalServiceItemRepository additionalServiceItemRepository,
-                                   AdditionalServiceManager additionalServiceManager,
-                                   TicketReservationRepository ticketReservationRepository,
-                                   EventRepository eventRepository,
-                                   ExtensionManager extensionManager,
-                                   BillingDocumentRepository billingDocumentRepository, NamedParameterJdbcTemplate jdbcTemplate) {
+    public EventReservationManager(
+            SpecialPriceRepository specialPriceRepository,
+            GroupManager groupManager,
+            TicketRepository ticketRepository,
+            AdditionalServiceItemRepository additionalServiceItemRepository,
+            AdditionalServiceManager additionalServiceManager,
+            TicketReservationRepository ticketReservationRepository,
+            EventRepository eventRepository,
+            ExtensionManager extensionManager,
+            BillingDocumentRepository billingDocumentRepository,
+            NamedParameterJdbcTemplate jdbcTemplate) {
         this.specialPriceRepository = specialPriceRepository;
         this.groupManager = groupManager;
         this.ticketRepository = ticketRepository;
@@ -74,30 +74,35 @@ public class EventReservationManager {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
     @EventListener(CleanupReservations.class)
     public void cleanupReservations(CleanupReservations cleanupReservations) {
 
-        if (cleanupReservations.purchaseContext() != null && !cleanupReservations.purchaseContext().ofType(PurchaseContextType.event)) {
+        if (cleanupReservations.purchaseContext() != null
+                && !cleanupReservations.purchaseContext().ofType(PurchaseContextType.event)) {
             return;
         }
         specialPriceRepository.resetToFreeAndCleanupForReservation(cleanupReservations.reservationIds());
         ticketRepository.resetCategoryIdForUnboundedCategories(cleanupReservations.reservationIds());
         if (cleanupReservations.purchaseContext() instanceof Event event) {
             for (String reservationId : cleanupReservations.reservationIds()) {
-                cleanupReferences(cleanupReservations.expired(), reservationId, event, cleanupReservations.afterRelease());
+                cleanupReferences(
+                        cleanupReservations.expired(), reservationId, event, cleanupReservations.afterRelease());
             }
             notifyExtensions(event, cleanupReservations.reservationIds(), cleanupReservations);
         } else {
-            Map<Integer, List<ReservationIdAndEventId>> reservationIdsByEvent = ticketReservationRepository
-                .getReservationIdAndEventId(cleanupReservations.reservationIds())
-                .stream()
-                .collect(Collectors.groupingBy(ReservationIdAndEventId::getEventId));
+            Map<Integer, List<ReservationIdAndEventId>> reservationIdsByEvent =
+                    ticketReservationRepository
+                            .getReservationIdAndEventId(cleanupReservations.reservationIds())
+                            .stream()
+                            .collect(Collectors.groupingBy(ReservationIdAndEventId::getEventId));
             reservationIdsByEvent.forEach((eventId, reservations) -> {
                 Event event = eventRepository.findById(eventId);
-                List<String> reservationIds = reservations.stream().map(ReservationIdAndEventId::getId).toList();
+                List<String> reservationIds = reservations.stream()
+                        .map(ReservationIdAndEventId::getId)
+                        .toList();
                 for (String reservationId : reservationIds) {
-                    cleanupReferences(cleanupReservations.expired(), reservationId, event, cleanupReservations.afterRelease());
+                    cleanupReferences(
+                            cleanupReservations.expired(), reservationId, event, cleanupReservations.afterRelease());
                 }
                 notifyExtensions(event, reservationIds, cleanupReservations);
                 billingDocumentRepository.deleteForReservations(reservationIds, eventId);
@@ -107,27 +112,40 @@ public class EventReservationManager {
 
     private void cleanupReferences(boolean expired, String reservationId, Event event, boolean afterRelease) {
         groupManager.deleteWhitelistedTicketsForReservation(reservationId);
-        int deletedItems = additionalServiceItemRepository.deleteAdditionalServiceItemsByReservationId(event.getId(), reservationId);
-        int updatedItems = additionalServiceItemRepository.revertAdditionalServiceItemsByReservationId(event.getId(), reservationId);
-        log.debug("Deleted {} and updated {} additionalServiceItems for reservation {}", deletedItems, updatedItems, reservationId);
-        int updatedAS = additionalServiceManager.updateStatusForReservationId(event.getId(), reservationId, expired ? AdditionalServiceItem.AdditionalServiceItemStatus.EXPIRED : AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);
+        int deletedItems = additionalServiceItemRepository.deleteAdditionalServiceItemsByReservationId(
+                event.getId(), reservationId);
+        int updatedItems = additionalServiceItemRepository.revertAdditionalServiceItemsByReservationId(
+                event.getId(), reservationId);
+        log.debug(
+                "Deleted {} and updated {} additionalServiceItems for reservation {}",
+                deletedItems,
+                updatedItems,
+                reservationId);
+        int updatedAS = additionalServiceManager.updateStatusForReservationId(
+                event.getId(),
+                reservationId,
+                expired
+                        ? AdditionalServiceItem.AdditionalServiceItemStatus.EXPIRED
+                        : AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);
 
         var batchUpdate = ticketRepository.findTicketIdsInReservation(reservationId).stream()
-            .map(id -> new MapSqlParameterSource("ticketId", id)
-                .addValue("reservationId", reservationId)
-                .addValue("eventId", event.getId())
-                .addValue("newUuid", UUID.randomUUID().toString())
-                .addValue("newPublicUuid", UUID.randomUUID())
-            ).toArray(SqlParameterSource[]::new);
+                .map(id -> new MapSqlParameterSource("ticketId", id)
+                        .addValue("reservationId", reservationId)
+                        .addValue("eventId", event.getId())
+                        .addValue("newUuid", UUID.randomUUID().toString())
+                        .addValue("newPublicUuid", UUID.randomUUID()))
+                .toArray(SqlParameterSource[]::new);
 
-        int updatedTickets = Arrays.stream(jdbcTemplate.batchUpdate(ticketRepository.batchReleaseTickets(), batchUpdate)).sum();
-        Validate.isTrue(afterRelease || updatedTickets  + updatedAS > 0, "no items have been updated");
+        int updatedTickets = Arrays.stream(
+                        jdbcTemplate.batchUpdate(ticketRepository.batchReleaseTickets(), batchUpdate))
+                .sum();
+        Validate.isTrue(afterRelease || updatedTickets + updatedAS > 0, "no items have been updated");
     }
 
     private void notifyExtensions(Event event, List<String> reservationIds, CleanupReservations cleanupReservations) {
         if (cleanupReservations.expired()) {
             extensionManager.handleReservationsExpired(event, reservationIds);
-        } else if(cleanupReservations.creditNoteIssued()) {
+        } else if (cleanupReservations.creditNoteIssued()) {
             extensionManager.handleReservationsCreditNoteIssuedForEvent(event, reservationIds);
         } else {
             extensionManager.handleReservationsCancelled(event, reservationIds);

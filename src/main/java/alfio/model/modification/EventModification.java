@@ -24,14 +24,12 @@ import alfio.model.transaction.PaymentProxy;
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.apache.commons.lang3.ObjectUtils;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-
+import lombok.Getter;
+import org.apache.commons.lang3.ObjectUtils;
 
 @Getter
 public class EventModification {
@@ -73,38 +71,39 @@ public class EventModification {
     private final List<UUID> linkedSubscriptions;
 
     @JsonCreator
-    public EventModification(@JsonProperty("id") Integer id,
-                             @JsonProperty("format") Event.EventFormat format,
-                             @JsonProperty("websiteUrl") String websiteUrl,
-                             @JsonProperty("external") String externalUrl,
-                             @JsonProperty("termsAndConditionsUrl") String termsAndConditionsUrl,
-                             @JsonProperty("privacyPolicyUrl") String privacyPolicyUrl,
-                             @JsonProperty("imageUrl") String imageUrl,
-                             @JsonProperty("fileBlobId") String fileBlobId,
-                             @JsonProperty("shortName") String shortName,
-                             @JsonProperty("displayName") String displayName,
-                             @JsonProperty("organizationId") int organizationId,
-                             @JsonProperty("location") String location,
-                             @JsonProperty("latitude") String latitude,
-                             @JsonProperty("longitude") String longitude,
-                             @JsonProperty("zoneId") String zoneId,
-                             @JsonProperty("description") Map<String, String> description,
-                             @JsonProperty("begin") DateTimeModification begin,
-                             @JsonProperty("end") DateTimeModification end,
-                             @JsonProperty("regularPrice") BigDecimal regularPrice,
-                             @JsonProperty("currency") String currency,
-                             @JsonProperty("availableSeats") Integer availableSeats,
-                             @JsonProperty("vatPercentage") BigDecimal vatPercentage,
-                             @JsonProperty("vatIncluded") boolean vatIncluded,
-                             @JsonProperty("allowedPaymentProxies") List<PaymentProxy> allowedPaymentProxies,
-                             @JsonProperty("ticketCategories") List<TicketCategoryModification> ticketCategories,
-                             @JsonProperty("freeOfCharge") boolean freeOfCharge,
-                             @JsonProperty("geolocation") LocationDescriptor locationDescriptor,
-                             @JsonProperty("locales") int locales,
-                             @JsonProperty("ticketFields") List<AdditionalFieldRequest> ticketFields,
-                             @JsonProperty("additionalServices") List<AdditionalService> additionalServices,
-                             @JsonProperty("metadata") AlfioMetadata metadata,
-                             @JsonProperty("linkedSubscriptions") List<UUID> linkedSubscriptions) {
+    public EventModification(
+            @JsonProperty("id") Integer id,
+            @JsonProperty("format") Event.EventFormat format,
+            @JsonProperty("websiteUrl") String websiteUrl,
+            @JsonProperty("external") String externalUrl,
+            @JsonProperty("termsAndConditionsUrl") String termsAndConditionsUrl,
+            @JsonProperty("privacyPolicyUrl") String privacyPolicyUrl,
+            @JsonProperty("imageUrl") String imageUrl,
+            @JsonProperty("fileBlobId") String fileBlobId,
+            @JsonProperty("shortName") String shortName,
+            @JsonProperty("displayName") String displayName,
+            @JsonProperty("organizationId") int organizationId,
+            @JsonProperty("location") String location,
+            @JsonProperty("latitude") String latitude,
+            @JsonProperty("longitude") String longitude,
+            @JsonProperty("zoneId") String zoneId,
+            @JsonProperty("description") Map<String, String> description,
+            @JsonProperty("begin") DateTimeModification begin,
+            @JsonProperty("end") DateTimeModification end,
+            @JsonProperty("regularPrice") BigDecimal regularPrice,
+            @JsonProperty("currency") String currency,
+            @JsonProperty("availableSeats") Integer availableSeats,
+            @JsonProperty("vatPercentage") BigDecimal vatPercentage,
+            @JsonProperty("vatIncluded") boolean vatIncluded,
+            @JsonProperty("allowedPaymentProxies") List<PaymentProxy> allowedPaymentProxies,
+            @JsonProperty("ticketCategories") List<TicketCategoryModification> ticketCategories,
+            @JsonProperty("freeOfCharge") boolean freeOfCharge,
+            @JsonProperty("geolocation") LocationDescriptor locationDescriptor,
+            @JsonProperty("locales") int locales,
+            @JsonProperty("ticketFields") List<AdditionalFieldRequest> ticketFields,
+            @JsonProperty("additionalServices") List<AdditionalService> additionalServices,
+            @JsonProperty("metadata") AlfioMetadata metadata,
+            @JsonProperty("linkedSubscriptions") List<UUID> linkedSubscriptions) {
         this.id = id;
         this.format = format;
         this.websiteUrl = websiteUrl;
@@ -117,7 +116,7 @@ public class EventModification {
         this.displayName = displayName;
         this.organizationId = organizationId;
         this.location = location;
-        this.latitude= latitude;
+        this.latitude = latitude;
         this.longitude = longitude;
         this.zoneId = zoneId;
         this.description = description;
@@ -144,7 +143,7 @@ public class EventModification {
     }
 
     public PriceContainer.VatStatus getVatStatus() {
-        if(!freeOfCharge) {
+        if (!freeOfCharge) {
             return vatIncluded ? PriceContainer.VatStatus.INCLUDED : PriceContainer.VatStatus.NOT_INCLUDED;
         }
         return PriceContainer.VatStatus.NONE;
@@ -164,9 +163,9 @@ public class EventModification {
 
     public interface WithRestrictedValues extends WithType {
         List<String> getRestrictedValuesAsString();
+
         List<String> getDisabledValuesAsString();
     }
-
 
     public interface WithLinkedCategories extends WithType {
         List<Integer> getLinkedCategoriesIds();
@@ -184,14 +183,15 @@ public class EventModification {
         private final boolean displayAtCheckIn;
 
         @JsonCreator
-        public UpdateAdditionalField(@JsonProperty("type") String type,
-                                     @JsonProperty("required") boolean required,
-                                     @JsonProperty("readOnly") boolean readOnly,
-                                     @JsonProperty("restrictedValues") List<String> restrictedValues,
-                                     @JsonProperty("disabledValues") List<String> disabledValues,
-                                     @JsonProperty("description") Map<String, TicketFieldDescriptionModification> description,
-                                     @JsonProperty("categoryIds") List<Integer> linkedCategoriesIds,
-                                     @JsonProperty("displayAtCheckIn") Boolean displayAtCheckIn) {
+        public UpdateAdditionalField(
+                @JsonProperty("type") String type,
+                @JsonProperty("required") boolean required,
+                @JsonProperty("readOnly") boolean readOnly,
+                @JsonProperty("restrictedValues") List<String> restrictedValues,
+                @JsonProperty("disabledValues") List<String> disabledValues,
+                @JsonProperty("description") Map<String, TicketFieldDescriptionModification> description,
+                @JsonProperty("categoryIds") List<Integer> linkedCategoriesIds,
+                @JsonProperty("displayAtCheckIn") Boolean displayAtCheckIn) {
             this.type = type;
             this.required = required;
             this.readOnly = readOnly;
@@ -218,19 +218,19 @@ public class EventModification {
         }
     }
 
-
     @Getter
     public static class Description {
         private final String label;
         private final String placeholder;
 
-        //restricted value -> description
+        // restricted value -> description
         private final Map<String, String> restrictedValues;
 
         @JsonCreator
-        public Description(@JsonProperty("label") String label,
-                           @JsonProperty("placeholder") String placeholder,
-                           @JsonProperty("restrictedValues") Map<String, String> restrictedValues) {
+        public Description(
+                @JsonProperty("label") String label,
+                @JsonProperty("placeholder") String placeholder,
+                @JsonProperty("restrictedValues") Map<String, String> restrictedValues) {
             this.label = label;
             this.placeholder = placeholder;
             this.restrictedValues = restrictedValues;
@@ -241,6 +241,7 @@ public class EventModification {
     public static class RestrictedValue {
         private final String value;
         private final boolean enabled;
+
         @JsonCreator
         public RestrictedValue(@JsonProperty("value") String value, @JsonProperty("enabled") Boolean enabled) {
             this.value = value;
@@ -271,45 +272,66 @@ public class EventModification {
         private final BigDecimal maxPrice;
 
         @JsonCreator
-        public AdditionalService(@JsonProperty("id") Integer id,
-                                 @JsonProperty("price") BigDecimal price,
-                                 @JsonProperty("fixPrice") boolean fixPrice,
-                                 @JsonProperty("ordinal") int ordinal,
-                                 @JsonProperty("availableQuantity") Integer availableQuantity,
-                                 @JsonProperty("maxQtyPerOrder") int maxQtyPerOrder,
-                                 @JsonProperty("inception") DateTimeModification inception,
-                                 @JsonProperty("expiration") DateTimeModification expiration,
-                                 @JsonProperty("vat") BigDecimal vat,
-                                 @JsonProperty("vatType") alfio.model.AdditionalService.VatType vatType,
-                                 @JsonProperty("additionalServiceFields") List<AdditionalFieldRequest> additionalServiceFields,
-                                 @JsonProperty("title") List<AdditionalServiceText> title,
-                                 @JsonProperty("description") List<AdditionalServiceText> description,
-                                 @JsonProperty("type")alfio.model.AdditionalService.AdditionalServiceType type,
-                                 @JsonProperty("supplementPolicy")alfio.model.AdditionalService.SupplementPolicy supplementPolicy,
-                                 @JsonProperty("minPrice") BigDecimal minPrice,
-                                 @JsonProperty("maxPrice") BigDecimal maxPrice) {
-            this(id, price, fixPrice, ordinal, availableQuantity, maxQtyPerOrder, inception, expiration, vat, vatType, additionalServiceFields, title, description, null, null, type, supplementPolicy, minPrice, maxPrice);
+        public AdditionalService(
+                @JsonProperty("id") Integer id,
+                @JsonProperty("price") BigDecimal price,
+                @JsonProperty("fixPrice") boolean fixPrice,
+                @JsonProperty("ordinal") int ordinal,
+                @JsonProperty("availableQuantity") Integer availableQuantity,
+                @JsonProperty("maxQtyPerOrder") int maxQtyPerOrder,
+                @JsonProperty("inception") DateTimeModification inception,
+                @JsonProperty("expiration") DateTimeModification expiration,
+                @JsonProperty("vat") BigDecimal vat,
+                @JsonProperty("vatType") alfio.model.AdditionalService.VatType vatType,
+                @JsonProperty("additionalServiceFields") List<AdditionalFieldRequest> additionalServiceFields,
+                @JsonProperty("title") List<AdditionalServiceText> title,
+                @JsonProperty("description") List<AdditionalServiceText> description,
+                @JsonProperty("type") alfio.model.AdditionalService.AdditionalServiceType type,
+                @JsonProperty("supplementPolicy") alfio.model.AdditionalService.SupplementPolicy supplementPolicy,
+                @JsonProperty("minPrice") BigDecimal minPrice,
+                @JsonProperty("maxPrice") BigDecimal maxPrice) {
+            this(
+                    id,
+                    price,
+                    fixPrice,
+                    ordinal,
+                    availableQuantity,
+                    maxQtyPerOrder,
+                    inception,
+                    expiration,
+                    vat,
+                    vatType,
+                    additionalServiceFields,
+                    title,
+                    description,
+                    null,
+                    null,
+                    type,
+                    supplementPolicy,
+                    minPrice,
+                    maxPrice);
         }
 
-        private AdditionalService(Integer id,
-                                  BigDecimal price,
-                                  boolean fixPrice,
-                                  int ordinal,
-                                  Integer availableQuantity,
-                                  int maxQtyPerOrder,
-                                  DateTimeModification inception,
-                                  DateTimeModification expiration,
-                                  BigDecimal vat,
-                                  alfio.model.AdditionalService.VatType vatType,
-                                  List<AdditionalFieldRequest> additionalServiceFields,
-                                  List<AdditionalServiceText> title,
-                                  List<AdditionalServiceText> description,
-                                  BigDecimal finalPrice,
-                                  String currencyCode,
-                                  alfio.model.AdditionalService.AdditionalServiceType type,
-                                  alfio.model.AdditionalService.SupplementPolicy supplementPolicy,
-                                  BigDecimal minPrice,
-                                  BigDecimal maxPrice) {
+        private AdditionalService(
+                Integer id,
+                BigDecimal price,
+                boolean fixPrice,
+                int ordinal,
+                Integer availableQuantity,
+                int maxQtyPerOrder,
+                DateTimeModification inception,
+                DateTimeModification expiration,
+                BigDecimal vat,
+                alfio.model.AdditionalService.VatType vatType,
+                List<AdditionalFieldRequest> additionalServiceFields,
+                List<AdditionalServiceText> title,
+                List<AdditionalServiceText> description,
+                BigDecimal finalPrice,
+                String currencyCode,
+                alfio.model.AdditionalService.AdditionalServiceType type,
+                alfio.model.AdditionalService.SupplementPolicy supplementPolicy,
+                BigDecimal minPrice,
+                BigDecimal maxPrice) {
             this.id = id;
             this.price = price;
             this.fixPrice = fixPrice;
@@ -360,8 +382,9 @@ public class EventModification {
 
             public Builder withText(List<alfio.model.AdditionalServiceText> text) {
                 Map<Boolean, List<AdditionalServiceText>> byType = text.stream()
-                    .map(AdditionalServiceText::from)
-                    .collect(Collectors.partitioningBy(ast -> ast.getType() == alfio.model.AdditionalServiceText.TextType.TITLE));
+                        .map(AdditionalServiceText::from)
+                        .collect(Collectors.partitioningBy(
+                                ast -> ast.getType() == alfio.model.AdditionalServiceText.TextType.TITLE));
                 this.title = byType.getOrDefault(true, this.title);
                 this.description = byType.getOrDefault(false, this.description);
                 return this;
@@ -369,13 +392,33 @@ public class EventModification {
 
             public AdditionalService build() {
                 Optional<PriceContainer> optionalPrice = Optional.ofNullable(this.priceContainer);
-                BigDecimal finalPrice = optionalPrice.map(PriceContainer::getFinalPrice).orElse(BigDecimal.ZERO);
-                String currencyCode = optionalPrice.map(PriceContainer::getCurrencyCode).orElse("");
-                return new AdditionalService(src.id(), Optional.ofNullable(src.srcPriceCts()).map(p -> MonetaryUtil.centsToUnit(p, src.currencyCode())).orElse(BigDecimal.ZERO),
-                    src.fixPrice(), src.ordinal(), src.availableQuantity(), src.maxQtyPerOrder(), DateTimeModification.fromZonedDateTime(src.getInception(zoneId)),
-                    DateTimeModification.fromZonedDateTime(src.getExpiration(zoneId)), src.vat(), src.vatType(), additionalServiceFields, title, description, finalPrice, currencyCode, src.type(), src.supplementPolicy(), src.getMinPrice(), src.getMaxPrice());
+                BigDecimal finalPrice =
+                        optionalPrice.map(PriceContainer::getFinalPrice).orElse(BigDecimal.ZERO);
+                String currencyCode =
+                        optionalPrice.map(PriceContainer::getCurrencyCode).orElse("");
+                return new AdditionalService(
+                        src.id(),
+                        Optional.ofNullable(src.srcPriceCts())
+                                .map(p -> MonetaryUtil.centsToUnit(p, src.currencyCode()))
+                                .orElse(BigDecimal.ZERO),
+                        src.fixPrice(),
+                        src.ordinal(),
+                        src.availableQuantity(),
+                        src.maxQtyPerOrder(),
+                        DateTimeModification.fromZonedDateTime(src.getInception(zoneId)),
+                        DateTimeModification.fromZonedDateTime(src.getExpiration(zoneId)),
+                        src.vat(),
+                        src.vatType(),
+                        additionalServiceFields,
+                        title,
+                        description,
+                        finalPrice,
+                        currencyCode,
+                        src.type(),
+                        src.supplementPolicy(),
+                        src.getMinPrice(),
+                        src.getMaxPrice());
             }
-
         }
     }
 
@@ -386,10 +429,11 @@ public class EventModification {
         private final String value;
         private final alfio.model.AdditionalServiceText.TextType type;
 
-        public AdditionalServiceText(@JsonProperty("id") Integer id,
-                                     @JsonProperty("locale") String locale,
-                                     @JsonProperty("value") String value,
-                                     @JsonProperty("type") alfio.model.AdditionalServiceText.TextType type) {
+        public AdditionalServiceText(
+                @JsonProperty("id") Integer id,
+                @JsonProperty("locale") String locale,
+                @JsonProperty("value") String value,
+                @JsonProperty("type") alfio.model.AdditionalServiceText.TextType type) {
             this.id = id;
             this.locale = locale;
             this.value = value;

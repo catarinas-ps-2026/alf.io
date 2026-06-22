@@ -16,6 +16,8 @@
  */
 package alfio.controller.api.admin;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alfio.manager.AccessService;
 import alfio.manager.SpecialPriceManager;
 import alfio.model.SpecialPrice;
@@ -25,6 +27,11 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.Principal;
+import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -32,14 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.Principal;
-import java.util.List;
-import java.util.Objects;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -49,8 +48,7 @@ public class SpecialPriceApiController {
     private final SpecialPriceManager specialPriceManager;
     private final AccessService accessService;
 
-    public SpecialPriceApiController(SpecialPriceManager specialPriceManager,
-                                     AccessService accessService) {
+    public SpecialPriceApiController(SpecialPriceManager specialPriceManager, AccessService accessService) {
         this.specialPriceManager = specialPriceManager;
         this.accessService = accessService;
     }
@@ -59,38 +57,45 @@ public class SpecialPriceApiController {
     @ResponseBody
     public ResponseEntity<String> handleExceptions(Exception e) {
         log.error("Unexpected exception in SpecialPriceApiController", e);
-        if(!(e instanceof IllegalArgumentException)) {
+        if (!(e instanceof IllegalArgumentException)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
     @PostMapping("/events/{eventName}/categories/{categoryId}/link-codes")
-    public ResponseEntity<List<SendCodeModification>> linkAssigneeToCodes(@PathVariable String eventName,
-                                                                         @PathVariable int categoryId,
-                                                                         @RequestBody UploadBase64FileModification file,
-                                                                         Principal principal) throws IOException {
+    public ResponseEntity<List<SendCodeModification>> linkAssigneeToCodes(
+            @PathVariable String eventName,
+            @PathVariable int categoryId,
+            @RequestBody UploadBase64FileModification file,
+            Principal principal)
+            throws IOException {
 
         Validate.isTrue(StringUtils.isNotEmpty(eventName));
         accessService.checkCategoryOwnership(principal, eventName, categoryId);
-        try(InputStreamReader isr = new InputStreamReader(file.getInputStream(), UTF_8)) {
-            MappingIterator<List<String>> iterator = new CsvMapper().readerForListOf(String.class)
-                .with(CsvSchema.emptySchema().withoutHeader())
-                .with(CsvParser.Feature.WRAP_AS_ARRAY)
-                .readValues(isr);
+        try (InputStreamReader isr = new InputStreamReader(file.getInputStream(), UTF_8)) {
+            MappingIterator<List<String>> iterator = new CsvMapper()
+                    .readerForListOf(String.class)
+                    .with(CsvSchema.emptySchema().withoutHeader())
+                    .with(CsvParser.Feature.WRAP_AS_ARRAY)
+                    .readValues(isr);
             var all = iterator.readAll();
             var modificationList = all.stream()
-                .filter(l -> l.size() > 3)
-                .map(list -> new SendCodeModification(StringUtils.trimToNull(list.get(0)), list.get(1), list.get(2), list.get(3))).toList();
-            return ResponseEntity.ok(specialPriceManager.linkAssigneeToCode(modificationList, eventName, categoryId, principal.getName()));
+                    .filter(l -> l.size() > 3)
+                    .map(list -> new SendCodeModification(
+                            StringUtils.trimToNull(list.get(0)), list.get(1), list.get(2), list.get(3)))
+                    .toList();
+            return ResponseEntity.ok(specialPriceManager.linkAssigneeToCode(
+                    modificationList, eventName, categoryId, principal.getName()));
         }
     }
 
     @PostMapping("/events/{eventName}/categories/{categoryId}/send-codes")
-    public boolean sendCodes(@PathVariable String eventName,
-                             @PathVariable int categoryId,
-                             @RequestBody List<SendCodeModification> codes,
-                             Principal principal) {
+    public boolean sendCodes(
+            @PathVariable String eventName,
+            @PathVariable int categoryId,
+            @RequestBody List<SendCodeModification> codes,
+            Principal principal) {
 
         Validate.isTrue(StringUtils.isNotEmpty(eventName));
         Objects.requireNonNull(codes);
@@ -100,18 +105,17 @@ public class SpecialPriceApiController {
     }
 
     @GetMapping("/events/{eventName}/categories/{categoryId}/sent-codes")
-    public List<SpecialPrice> loadSentCodes(@PathVariable String eventName,
-                                            @PathVariable int categoryId,
-                                            Principal principal) {
+    public List<SpecialPrice> loadSentCodes(
+            @PathVariable String eventName, @PathVariable int categoryId, Principal principal) {
         return specialPriceManager.loadSentCodes(eventName, categoryId, principal.getName());
     }
 
     @DeleteMapping("/events/{eventName}/categories/{categoryId}/codes/{codeId}/recipient")
-    public boolean clearRecipientData(@PathVariable String eventName,
-                                      @PathVariable int categoryId,
-                                      @PathVariable int codeId,
-                                      Principal principal) {
+    public boolean clearRecipientData(
+            @PathVariable String eventName,
+            @PathVariable int categoryId,
+            @PathVariable int codeId,
+            Principal principal) {
         return specialPriceManager.clearRecipientData(eventName, categoryId, codeId, principal.getName());
     }
-
 }

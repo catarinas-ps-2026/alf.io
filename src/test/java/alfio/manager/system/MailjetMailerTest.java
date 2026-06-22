@@ -16,16 +16,18 @@
  */
 package alfio.manager.system;
 
+import static alfio.manager.testSupport.MaybeConfigurationBuilder.existing;
+import static alfio.manager.testSupport.MaybeConfigurationBuilder.missing;
+import static alfio.model.system.ConfigurationKeys.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.model.Configurable;
 import alfio.repository.user.OrganizationRepository;
 import alfio.util.HttpUtils;
 import alfio.util.Json;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -36,12 +38,9 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static alfio.manager.testSupport.MaybeConfigurationBuilder.existing;
-import static alfio.manager.testSupport.MaybeConfigurationBuilder.missing;
-import static alfio.model.system.ConfigurationKeys.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class MailjetMailerTest {
 
@@ -56,14 +55,20 @@ class MailjetMailerTest {
         configurable = mock(Configurable.class);
         when(configurable.getConfigurationLevel()).thenReturn(ConfigurationLevel.system());
         var configurationManager = mock(ConfigurationManager.class);
-        when(configurationManager.getFor(eq(EnumSet.of(MAILJET_APIKEY_PUBLIC, MAILJET_APIKEY_PRIVATE, MAILJET_FROM, MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO)), any()))
-            .thenReturn(Map.of(
-                MAILJET_APIKEY_PUBLIC, existing(MAILJET_APIKEY_PUBLIC, "public"),
-                MAILJET_APIKEY_PRIVATE, existing(MAILJET_APIKEY_PRIVATE, "private"),
-                MAILJET_FROM, existing(MAILJET_FROM, "mail_from"),
-                MAIL_REPLY_TO, existing(MAIL_REPLY_TO, "mail_to"),
-                MAIL_SET_ORG_REPLY_TO, missing(MAIL_SET_ORG_REPLY_TO)
-            ));
+        when(configurationManager.getFor(
+                        eq(EnumSet.of(
+                                MAILJET_APIKEY_PUBLIC,
+                                MAILJET_APIKEY_PRIVATE,
+                                MAILJET_FROM,
+                                MAIL_REPLY_TO,
+                                MAIL_SET_ORG_REPLY_TO)),
+                        any()))
+                .thenReturn(Map.of(
+                        MAILJET_APIKEY_PUBLIC, existing(MAILJET_APIKEY_PUBLIC, "public"),
+                        MAILJET_APIKEY_PRIVATE, existing(MAILJET_APIKEY_PRIVATE, "private"),
+                        MAILJET_FROM, existing(MAILJET_FROM, "mail_from"),
+                        MAIL_REPLY_TO, existing(MAIL_REPLY_TO, "mail_to"),
+                        MAIL_SET_ORG_REPLY_TO, missing(MAIL_SET_ORG_REPLY_TO)));
         var organizationRepository = mock(OrganizationRepository.class);
         mailjetMailer = new MailjetMailer(httpClient, configurationManager, organizationRepository);
         requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
@@ -71,12 +76,18 @@ class MailjetMailerTest {
 
     @Test
     void send() throws Exception {
-        var attachment = new Mailer.Attachment("filename", "test".getBytes(StandardCharsets.UTF_8), "text/plain", Map.of("model", "model"), Mailer.AttachmentIdentifier.CALENDAR_ICS);
+        var attachment = new Mailer.Attachment(
+                "filename",
+                "test".getBytes(StandardCharsets.UTF_8),
+                "text/plain",
+                Map.of("model", "model"),
+                Mailer.AttachmentIdentifier.CALENDAR_ICS);
         @SuppressWarnings("unchecked")
         var response = (HttpResponse<Object>) mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(200);
         when(httpClient.send(any(), any())).thenReturn(response);
-        mailjetMailer.send(configurable, "from_name", "to", List.of("cc"), "subject", "text", Optional.of("html"), attachment);
+        mailjetMailer.send(
+                configurable, "from_name", "to", List.of("cc"), "subject", "text", Optional.of("html"), attachment);
         verify(httpClient).send(requestCaptor.capture(), eq(HttpResponse.BodyHandlers.discarding()));
 
         // verify request
@@ -131,11 +142,17 @@ class MailjetMailerTest {
                 var attachment = payload.get("Attachments").get(0);
                 assertEquals("filename", attachment.get("Filename").asText());
                 assertEquals("text/plain", attachment.get("Content-type").asText());
-                assertEquals(Base64.getEncoder().encodeToString("test".getBytes(StandardCharsets.UTF_8)), attachment.get("content").asText());
+                assertEquals(
+                        Base64.getEncoder().encodeToString("test".getBytes(StandardCharsets.UTF_8)),
+                        attachment.get("content").asText());
 
                 var headers = request.headers();
-                assertEquals(HttpUtils.APPLICATION_JSON, headers.firstValue(HttpUtils.CONTENT_TYPE).orElseThrow());
-                assertEquals(HttpUtils.basicAuth("public", "private"), headers.firstValue(HttpUtils.AUTHORIZATION).orElseThrow());
+                assertEquals(
+                        HttpUtils.APPLICATION_JSON,
+                        headers.firstValue(HttpUtils.CONTENT_TYPE).orElseThrow());
+                assertEquals(
+                        HttpUtils.basicAuth("public", "private"),
+                        headers.firstValue(HttpUtils.AUTHORIZATION).orElseThrow());
 
                 semaphore.release();
             }

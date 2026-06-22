@@ -21,7 +21,6 @@ import alfio.model.TicketReservation.TicketReservationStatus;
 import alfio.model.transaction.PaymentProxy;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 public class FinalizeReservation {
@@ -33,12 +32,13 @@ public class FinalizeReservation {
     private final TicketReservationStatus originalStatus;
 
     @JsonCreator
-    public FinalizeReservation(@JsonProperty("paymentSpecification") PaymentSpecification paymentSpecification,
-                               @JsonProperty("paymentProxy") PaymentProxy paymentProxy,
-                               @JsonProperty("sendReservationConfirmationEmail") boolean sendReservationConfirmationEmail,
-                               @JsonProperty("sendTickets") boolean sendTickets,
-                               @JsonProperty("username") String username,
-                               @JsonProperty("originalStatus") TicketReservationStatus originalStatus) {
+    public FinalizeReservation(
+            @JsonProperty("paymentSpecification") PaymentSpecification paymentSpecification,
+            @JsonProperty("paymentProxy") PaymentProxy paymentProxy,
+            @JsonProperty("sendReservationConfirmationEmail") boolean sendReservationConfirmationEmail,
+            @JsonProperty("sendTickets") boolean sendTickets,
+            @JsonProperty("username") String username,
+            @JsonProperty("originalStatus") TicketReservationStatus originalStatus) {
         this.paymentSpecification = paymentSpecification;
         this.paymentProxy = paymentProxy;
         this.sendReservationConfirmationEmail = sendReservationConfirmationEmail;
@@ -78,14 +78,15 @@ public class FinalizeReservation {
         }
         FinalizeReservation that = (FinalizeReservation) o;
         return sendReservationConfirmationEmail == that.sendReservationConfirmationEmail
-            && sendTickets == that.sendTickets
-            && paymentSpecification.equals(that.paymentSpecification)
-            && paymentProxy == that.paymentProxy
-            && Objects.equals(username, that.username);
+                && sendTickets == that.sendTickets
+                && paymentSpecification.equals(that.paymentSpecification)
+                && paymentProxy == that.paymentProxy
+                && Objects.equals(username, that.username);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(paymentSpecification, paymentProxy, sendReservationConfirmationEmail, sendTickets, username);
+        return Objects.hash(
+                paymentSpecification, paymentProxy, sendReservationConfirmationEmail, sendTickets, username);
     }
 }

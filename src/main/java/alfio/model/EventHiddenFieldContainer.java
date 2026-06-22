@@ -18,10 +18,9 @@ package alfio.model;
 
 import alfio.manager.system.ConfigurationLevel;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
+import org.apache.commons.lang3.tuple.Pair;
 
 public interface EventHiddenFieldContainer {
     @JsonIgnore

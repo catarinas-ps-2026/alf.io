@@ -16,18 +16,17 @@
  */
 package alfio.manager.system;
 
+import static alfio.model.system.ConfigurationKeys.MAIL_REPLY_TO;
+import static alfio.model.system.ConfigurationKeys.MAIL_SET_ORG_REPLY_TO;
+
 import alfio.model.Configurable;
 import alfio.repository.user.OrganizationRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static alfio.model.system.ConfigurationKeys.MAIL_REPLY_TO;
-import static alfio.model.system.ConfigurationKeys.MAIL_SET_ORG_REPLY_TO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 class MockMailer extends BaseMailer {
 
@@ -35,33 +34,47 @@ class MockMailer extends BaseMailer {
     private final ConfigurationManager configurationManager;
     private final Environment environment;
 
-    MockMailer(ConfigurationManager configurationManager,
-               Environment environment,
-               OrganizationRepository organizationRepository) {
+    MockMailer(
+            ConfigurationManager configurationManager,
+            Environment environment,
+            OrganizationRepository organizationRepository) {
         super(organizationRepository);
         this.configurationManager = configurationManager;
         this.environment = environment;
     }
 
     @Override
-    public void send(Configurable configurable, String fromName, String to, List<String> cc, String subject, String text, Optional<String> html, Attachment... attachments) {
+    public void send(
+            Configurable configurable,
+            String fromName,
+            String to,
+            List<String> cc,
+            String subject,
+            String text,
+            Optional<String> html,
+            Attachment... attachments) {
 
         subject = decorateSubjectIfDemo(subject, environment);
 
-        String printedAttachments = Optional.ofNullable(attachments)
-            .map(Arrays::asList)
-            .orElse(Collections.emptyList())
-            .stream().map(a -> "{filename:" +a.getFilename() + ", contentType: " + a.getContentType() + "}")
-            .collect(Collectors.joining(", "));
+        String printedAttachments =
+                Optional.ofNullable(attachments).map(Arrays::asList).orElse(Collections.emptyList()).stream()
+                        .map(a -> "{filename:" + a.getFilename() + ", contentType: " + a.getContentType() + "}")
+                        .collect(Collectors.joining(", "));
 
-        var conf = configurationManager.getFor(EnumSet.of(MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO), configurable.getConfigurationLevel());
+        var conf = configurationManager.getFor(
+                EnumSet.of(MAIL_REPLY_TO, MAIL_SET_ORG_REPLY_TO), configurable.getConfigurationLevel());
         var replyTo = new AtomicReference<String>(null);
         setReplyToIfPresent(conf, configurable.getOrganizationId(), replyTo::set);
 
-        log.info("Email: from: {}, replyTo: {}, to: {}, cc: {}, subject: {}, text: {}, html: {}, attachments: {}",
-            fromName,
-            replyTo.get(),
-            to, cc, subject, text,
-            html.orElse("no html"), printedAttachments);
+        log.info(
+                "Email: from: {}, replyTo: {}, to: {}, cc: {}, subject: {}, text: {}, html: {}, attachments: {}",
+                fromName,
+                replyTo.get(),
+                to,
+                cc,
+                subject,
+                text,
+                html.orElse("no html"),
+                printedAttachments);
     }
 }

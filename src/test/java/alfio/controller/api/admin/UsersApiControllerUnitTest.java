@@ -16,11 +16,16 @@
  */
 package alfio.controller.api.admin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
 import alfio.manager.AccessService;
 import alfio.manager.FileUploadManager;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
 import alfio.model.user.User;
+import java.security.Principal;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +34,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.security.Principal;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UsersApiControllerUnitTest {
@@ -66,14 +65,15 @@ class UsersApiControllerUnitTest {
 
     @Test
     void testRetrieveDetails() throws Exception {
-        User mockUser = new User(1, "admin", "Admin", "User", "admin@admin.com", true, User.Type.INTERNAL, null, "Desc");
+        User mockUser =
+                new User(1, "admin", "Admin", "User", "admin@admin.com", true, User.Type.INTERNAL, null, "Desc");
         when(principal.getName()).thenReturn("admin");
         when(userManager.findUserByUsername("admin")).thenReturn(mockUser);
 
         var authentication = org.mockito.Mockito.mock(org.springframework.security.core.Authentication.class);
         var securityContext = org.mockito.Mockito.mock(org.springframework.security.core.context.SecurityContext.class);
-        org.springframework.security.core.authority.SimpleGrantedAuthority authority = 
-            new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_OPERATOR");
+        org.springframework.security.core.authority.SimpleGrantedAuthority authority =
+                new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_OPERATOR");
         java.util.Collection authorities = java.util.Collections.singleton(authority);
         when(authentication.getAuthorities()).thenReturn(authorities);
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -86,7 +86,7 @@ class UsersApiControllerUnitTest {
         assertEquals("User", details.get("lastName"));
         assertEquals("Desc", details.get("description"));
         assertEquals("OPERATOR", details.get("userType"));
-        
+
         org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }
 
@@ -94,10 +94,10 @@ class UsersApiControllerUnitTest {
     void testGetLoggedUserType_Operator() {
         var authentication = org.mockito.Mockito.mock(org.springframework.security.core.Authentication.class);
         var securityContext = org.mockito.Mockito.mock(org.springframework.security.core.context.SecurityContext.class);
-        
-        org.springframework.security.core.authority.SimpleGrantedAuthority authority = 
-            new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_OPERATOR");
-            
+
+        org.springframework.security.core.authority.SimpleGrantedAuthority authority =
+                new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_OPERATOR");
+
         java.util.Collection authorities = java.util.Collections.singleton(authority);
         when(authentication.getAuthorities()).thenReturn(authorities);
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -106,7 +106,7 @@ class UsersApiControllerUnitTest {
         String userType = usersApiController.getLoggedUserType();
 
         assertEquals("OPERATOR", userType);
-        
+
         org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }
 

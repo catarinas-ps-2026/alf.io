@@ -17,10 +17,6 @@
 package alfio.util;
 
 import alfio.config.Initializer;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +25,9 @@ import java.util.Optional;
 import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public final class PasswordGenerator {
 
@@ -44,7 +43,7 @@ public final class PasswordGenerator {
         IntConsumer addToList = c -> chars.add((char) c);
         IntStream.rangeClosed('a', 'z').forEach(addToList);
         IntStream.rangeClosed('A', 'Z').forEach(addToList);
-        IntStream.rangeClosed('0','9').forEach(addToList);
+        IntStream.rangeClosed('0', '9').forEach(addToList);
         chars.add('#');
         chars.add('~');
         chars.add('!');
@@ -60,24 +59,28 @@ public final class PasswordGenerator {
         chars.add('=');
 
         PASSWORD_CHARACTERS = ArrayUtils.toPrimitive(chars.toArray(new Character[0]));
-        DEV_MODE = Arrays.stream(Optional.ofNullable(System.getProperty("spring.profiles.active")).map(p -> p.split(",")).orElse(new String[0]))
-            .map(StringUtils::trim)
-            .anyMatch(Initializer.PROFILE_DEV::equals);
-        VALIDATION_PATTERN = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\p{Punct})(?=\\S+$).{"+MIN_LENGTH+",}$");//source: http://stackoverflow.com/a/3802238
+        DEV_MODE = Arrays.stream(Optional.ofNullable(System.getProperty("spring.profiles.active"))
+                        .map(p -> p.split(","))
+                        .orElse(new String[0]))
+                .map(StringUtils::trim)
+                .anyMatch(Initializer.PROFILE_DEV::equals);
+        VALIDATION_PATTERN = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\p{Punct})(?=\\S+$).{"
+                + MIN_LENGTH + ",}$"); // source: http://stackoverflow.com/a/3802238
     }
 
-    private PasswordGenerator() {
-    }
+    private PasswordGenerator() {}
 
     public static String generateRandomPassword() {
-        if(DEV_MODE) {
+        if (DEV_MODE) {
             return "abcd";
         }
         int length = MIN_LENGTH + RANDOM.nextInt(MAX_LENGTH - MIN_LENGTH + 1);
-        return RandomStringUtils.random(length, 0, PASSWORD_CHARACTERS.length, false, false, PASSWORD_CHARACTERS, RANDOM);
+        return RandomStringUtils.random(
+                length, 0, PASSWORD_CHARACTERS.length, false, false, PASSWORD_CHARACTERS, RANDOM);
     }
 
     public static boolean isValid(String password) {
-        return StringUtils.isNotBlank(password) && VALIDATION_PATTERN.matcher(password).matches();
+        return StringUtils.isNotBlank(password)
+                && VALIDATION_PATTERN.matcher(password).matches();
     }
 }

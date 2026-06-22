@@ -21,10 +21,16 @@ import java.util.Map;
 public interface DateValidity {
 
     String getTimeZone();
+
     DatesWithTimeZoneOffset getDatesWithOffset();
+
     boolean isSameDay();
+
     Map<String, String> getFormattedBeginDate();
+
     Map<String, String> getFormattedBeginTime();
+
     Map<String, String> getFormattedEndDate();
+
     Map<String, String> getFormattedEndTime();
 }

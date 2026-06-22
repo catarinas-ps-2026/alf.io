@@ -16,6 +16,12 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -59,6 +65,14 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.ClockProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,162 +85,238 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class CustomOfflineReservationFlowIntegrationTest extends BaseReservationFlowTest {
     @Autowired
     protected EventManager eventManager;
+
     @Autowired
     protected EventRepository eventRepository;
+
     @Autowired
     protected UserManager userManager;
+
     @Autowired
     protected ClockProvider clockProvider;
+
     @Autowired
     protected ConfigurationRepository configurationRepository;
+
     @Autowired
     protected EventStatisticsManager eventStatisticsManager;
+
     @Autowired
     protected TicketCategoryRepository ticketCategoryRepository;
+
     @Autowired
     protected TicketReservationRepository ticketReservationRepository;
+
     @Autowired
     protected EventApiController eventApiController;
+
     @Autowired
     protected TicketRepository ticketRepository;
+
     @Autowired
     protected PurchaseContextFieldRepository purchaseContextFieldRepository;
+
     @Autowired
     protected AdditionalServiceApiController additionalServiceApiController;
+
     @Autowired
     protected SpecialPriceTokenGenerator specialPriceTokenGenerator;
+
     @Autowired
     protected SpecialPriceRepository specialPriceRepository;
+
     @Autowired
     protected CheckInApiController checkInApiController;
+
     @Autowired
     protected AttendeeApiController attendeeApiController;
+
     @Autowired
     protected UsersApiController usersApiController;
+
     @Autowired
     protected ScanAuditRepository scanAuditRepository;
+
     @Autowired
     protected AuditingRepository auditingRepository;
+
     @Autowired
     protected AdminReservationManager adminReservationManager;
+
     @Autowired
     protected TicketReservationManager ticketReservationManager;
+
     @Autowired
     protected InfoApiController infoApiController;
+
     @Autowired
     protected TranslationsApiController translationsApiController;
+
     @Autowired
     protected EventApiV2Controller eventApiV2Controller;
+
     @Autowired
     protected ReservationApiV2Controller reservationApiV2Controller;
+
     @Autowired
     protected TicketApiV2Controller ticketApiV2Controller;
+
     @Autowired
     protected IndexController indexController;
+
     @Autowired
     protected NamedParameterJdbcTemplate jdbcTemplate;
+
     @Autowired
     protected ExtensionLogRepository extensionLogRepository;
+
     @Autowired
     protected ExtensionService extensionService;
+
     @Autowired
     protected PollRepository pollRepository;
+
     @Autowired
     protected NotificationManager notificationManager;
+
     @Autowired
     protected UserRepository userRepository;
+
     @Autowired
     protected OrganizationDeleter organizationDeleter;
+
     @Autowired
     protected PromoCodeDiscountRepository promoCodeDiscountRepository;
+
     @Autowired
     protected PromoCodeRequestManager promoCodeRequestManager;
+
     @Autowired
     protected StripePaymentWebhookController stripePaymentWebhookController;
+
     @Autowired
     protected ExportManager exportManager;
+
     @Autowired
     protected PurchaseContextFieldManager purchaseContextFieldManager;
+
     @Autowired
     protected ObjectMapper objectMapper;
+
     @Autowired
     protected OrganizationRepository organizationRepository;
+
     @Autowired
     protected CustomOfflineConfigurationManager customOfflineConfigurationManager;
 
     private List<UserDefinedOfflinePaymentMethod> paymentMethods = List.of(
-        new UserDefinedOfflinePaymentMethod(
-            "b059f733-bae7-4ee4-a95a-07941ecffe48",
-            Map.of(
-                "en",
-                new UserDefinedOfflinePaymentMethod.Localization(
-                    "Interac E-Transfer",
-                    "Payments to and from any Canadian bank _account_",
-                    "## Send payments to `payments@org1.org`."
-                )
-            )
-        ),
-        new UserDefinedOfflinePaymentMethod(
-            "8c8027d1-8c67-4443-8dc3-660ac4eb4cbc",
-            Map.of(
-                "en",
-                new UserDefinedOfflinePaymentMethod.Localization(
-                    "Cash App",
-                    "Send instant payments through the Cash App app for Android and IOS",
-                    "Send the full invoiced amount to `org1payments` in the app."
-                )
-            )
-        )
-    );
+            new UserDefinedOfflinePaymentMethod(
+                    "b059f733-bae7-4ee4-a95a-07941ecffe48",
+                    Map.of(
+                            "en",
+                            new UserDefinedOfflinePaymentMethod.Localization(
+                                    "Interac E-Transfer",
+                                    "Payments to and from any Canadian bank _account_",
+                                    "## Send payments to `payments@org1.org`."))),
+            new UserDefinedOfflinePaymentMethod(
+                    "8c8027d1-8c67-4443-8dc3-660ac4eb4cbc",
+                    Map.of(
+                            "en",
+                            new UserDefinedOfflinePaymentMethod.Localization(
+                                    "Cash App",
+                                    "Send instant payments through the Cash App app for Android and IOS",
+                                    "Send the full invoiced amount to `org1payments` in the app."))));
     private PaymentMethod testingPaymentMethod;
 
-    private ReservationFlowContext createContext() throws CustomOfflinePaymentMethodAlreadyExistsException, CustomOfflinePaymentMethodDoesNotExistException {
+    private ReservationFlowContext createContext()
+            throws CustomOfflinePaymentMethodAlreadyExistsException, CustomOfflinePaymentMethodDoesNotExistException {
         List<TicketCategoryModification> categories = Arrays.asList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.ONE, true, "", true, URL_CODE_HIDDEN, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository, null, Event.EventFormat.ONLINE);
+                new TicketCategoryModification(
+                        null,
+                        "default",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        "hidden",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        2,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.ONE,
+                        true,
+                        "",
+                        true,
+                        URL_CODE_HIDDEN,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser = initEvent(
+                categories,
+                organizationRepository,
+                userManager,
+                eventManager,
+                eventRepository,
+                null,
+                Event.EventFormat.ONLINE);
 
         var event = eventAndUser.getLeft();
         var orgId = event.getOrganizationId();
 
-        for(var pm : paymentMethods) {
+        for (var pm : paymentMethods) {
             customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(orgId, pm);
         }
 
         customOfflineConfigurationManager.setAllowedCustomOfflinePaymentMethodsForEvent(
-            event,
-            List.of(paymentMethods.get(1).getPaymentMethodId())
-        );
+                event, List.of(paymentMethods.get(1).getPaymentMethodId()));
 
-        return new ReservationFlowContext(eventAndUser.getLeft(), owner(eventAndUser.getRight()), null, null, null, null, true, false, Map.of(), true);
+        return new ReservationFlowContext(
+                eventAndUser.getLeft(),
+                owner(eventAndUser.getRight()),
+                null,
+                null,
+                null,
+                null,
+                true,
+                false,
+                Map.of(),
+                true);
     }
 
     @Test
@@ -235,8 +325,8 @@ class CustomOfflineReservationFlowIntegrationTest extends BaseReservationFlowTes
         super.testBasicFlow(() -> {
             try {
                 return createContext();
-            } catch (CustomOfflinePaymentMethodAlreadyExistsException |
-                     CustomOfflinePaymentMethodDoesNotExistException e) {
+            } catch (CustomOfflinePaymentMethodAlreadyExistsException
+                    | CustomOfflinePaymentMethodDoesNotExistException e) {
                 return null;
             }
         });
@@ -251,12 +341,19 @@ class CustomOfflineReservationFlowIntegrationTest extends BaseReservationFlowTes
         var ticketReservation = new TicketReservationModification();
         ticketReservation.setQuantity(1);
         var ticketCategoriesResponse = eventApiV2Controller.getTicketCategories(context.event.getShortName(), null);
-        ticketReservation.setTicketCategoryId(ticketCategoriesResponse.getBody().ticketCategories().get(0).getId());
+        ticketReservation.setTicketCategoryId(
+                ticketCategoriesResponse.getBody().ticketCategories().get(0).getId());
         form.setReservation(Collections.singletonList(ticketReservation));
         if (context.applyDiscount) {
             form.setPromoCode(PROMO_CODE);
         }
-        var res = eventApiV2Controller.reserveTickets(context.event.getShortName(), "en", form, new BeanPropertyBindingResult(form, "reservation"), new ServletWebRequest(new MockHttpServletRequest(), new MockHttpServletResponse()), context.getPublicUser());
+        var res = eventApiV2Controller.reserveTickets(
+                context.event.getShortName(),
+                "en",
+                form,
+                new BeanPropertyBindingResult(form, "reservation"),
+                new ServletWebRequest(new MockHttpServletRequest(), new MockHttpServletResponse()),
+                context.getPublicUser());
         assertEquals(HttpStatus.OK, res.getStatusCode());
         var resBody = res.getBody();
         assertNotNull(resBody);
@@ -271,35 +368,33 @@ class CustomOfflineReservationFlowIntegrationTest extends BaseReservationFlowTes
         paymentForm.setSelectedPaymentMethod(testingPaymentMethod);
 
         var handleRes = reservationApiV2Controller.confirmOverview(
-            reservationId,
-            "en",
-            paymentForm,
-            new BeanPropertyBindingResult(paymentForm, "paymentForm"),
-            new MockHttpServletRequest(), context.getPublicUser()
-        );
+                reservationId,
+                "en",
+                paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(),
+                context.getPublicUser());
 
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, handleRes.getStatusCode());
         assertTrue(handleRes.getBody().getValue().isFailure());
     }
 
     @Override
-    protected void performAndValidatePayment(ReservationFlowContext context,
-                                             String reservationId,
-                                             int promoCodeId,
-                                             Runnable cleanupExtensionLog) {
+    protected void performAndValidatePayment(
+            ReservationFlowContext context, String reservationId, int promoCodeId, Runnable cleanupExtensionLog) {
         ReservationInfo reservation;
-        reservation = reservationApiV2Controller.getReservationInfo(reservationId, context.getPublicUser()).getBody();
+        reservation = reservationApiV2Controller
+                .getReservationInfo(reservationId, context.getPublicUser())
+                .getBody();
         var paymentForm = new PaymentForm();
         var handleResError = reservationApiV2Controller.confirmOverview(
-            reservationId,
-            "en",
-            paymentForm,
-            new BeanPropertyBindingResult(paymentForm, "paymentForm"),
-            new MockHttpServletRequest(),
-            context.getPublicUser()
-        );
+                reservationId,
+                "en",
+                paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(),
+                context.getPublicUser());
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, handleResError.getStatusCode());
-
 
         paymentForm.setPrivacyPolicyAccepted(true);
         paymentForm.setTermAndConditionsAccepted(true);
@@ -313,31 +408,31 @@ class CustomOfflineReservationFlowIntegrationTest extends BaseReservationFlowTes
         var promoCodeUsage = promoCodeRequestManager.retrieveDetailedUsage(promoCodeId, context.event.getId());
         assertTrue(promoCodeUsage.isEmpty());
 
-
         var handleRes = reservationApiV2Controller.confirmOverview(
-            reservationId,
-            "en",
-            paymentForm,
-            new BeanPropertyBindingResult(paymentForm, "paymentForm"),
-            new MockHttpServletRequest(),
-            context.getPublicUser()
-        );
+                reservationId,
+                "en",
+                paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(),
+                context.getPublicUser());
 
         assertEquals(HttpStatus.OK, handleRes.getStatusCode());
 
-        checkStatus(reservationId,
-            HttpStatus.OK,
-            true,
-            TicketReservation.TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT,
-            context
-        );
+        checkStatus(
+                reservationId,
+                HttpStatus.OK,
+                true,
+                TicketReservation.TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT,
+                context);
 
         tStatus = reservationApiV2Controller.getTransactionStatus(reservationId, testingPaymentMethod);
         assertEquals(HttpStatus.OK, tStatus.getStatusCode());
         assertNotNull(tStatus.getBody());
         assertFalse(tStatus.getBody().isSuccess());
 
-        reservation = reservationApiV2Controller.getReservationInfo(reservationId, context.getPublicUser()).getBody();
+        reservation = reservationApiV2Controller
+                .getReservationInfo(reservationId, context.getPublicUser())
+                .getBody();
         assertEquals(PaymentProxy.CUSTOM_OFFLINE, reservation.getPaymentProxy());
         assertNotNull(reservation);
         checkOrderSummary(reservation, context);
@@ -350,7 +445,7 @@ class CustomOfflineReservationFlowIntegrationTest extends BaseReservationFlowTes
         assertEventLogged(extLogs, ExtensionEvent.RESERVATION_CONFIRMED, online ? 12 : 10);
         assertEventLogged(extLogs, ExtensionEvent.CONFIRMATION_MAIL_CUSTOM_TEXT, online ? 12 : 10);
         assertEventLogged(extLogs, ExtensionEvent.TICKET_ASSIGNED, online ? 12 : 10);
-        if(online) {
+        if (online) {
             assertEventLogged(extLogs, ExtensionEvent.CUSTOM_ONLINE_JOIN_URL, 12);
         }
         assertEventLogged(extLogs, ExtensionEvent.TICKET_ASSIGNED_GENERATE_METADATA, online ? 12 : 10);

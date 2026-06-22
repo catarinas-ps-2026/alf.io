@@ -18,7 +18,6 @@ package alfio.manager.payment.saferpay;
 
 import java.io.IOException;
 
-
 public class TransactionInquireRequestBuilder {
     private final String transactionId;
     private final int retryIndicator;

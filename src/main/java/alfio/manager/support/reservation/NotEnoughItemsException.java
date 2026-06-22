@@ -16,5 +16,4 @@
  */
 package alfio.manager.support.reservation;
 
-public class NotEnoughItemsException extends RuntimeException {
-}
+public class NotEnoughItemsException extends RuntimeException {}

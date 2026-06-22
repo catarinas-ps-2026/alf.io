@@ -16,13 +16,12 @@
  */
 package alfio.manager.testSupport;
 
-import alfio.model.TicketCategory;
-import org.mockito.Mockito;
+import static org.mockito.Mockito.when;
 
+import alfio.model.TicketCategory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-
-import static org.mockito.Mockito.when;
+import org.mockito.Mockito;
 
 public class TicketCategoryGenerator {
 

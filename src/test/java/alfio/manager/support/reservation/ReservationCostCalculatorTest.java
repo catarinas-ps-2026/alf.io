@@ -16,22 +16,21 @@
  */
 package alfio.manager.support.reservation;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.manager.PurchaseContextManager;
 import alfio.model.*;
 import alfio.repository.*;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class ReservationCostCalculatorTest {
 
@@ -70,14 +69,13 @@ class ReservationCostCalculatorTest {
         var purchaseContextManager = mock(PurchaseContextManager.class);
         when(purchaseContextManager.findByReservationId(anyString())).thenReturn(Optional.of(event));
         calculator = new ReservationCostCalculator(
-            ticketReservationRepository,
-            purchaseContextManager,
-            mock(PromoCodeDiscountRepository.class),
-            mock(SubscriptionRepository.class),
-            ticketRepository,
-            additionalServiceRepository,
-            additionalServiceItemRepository
-        );
+                ticketReservationRepository,
+                purchaseContextManager,
+                mock(PromoCodeDiscountRepository.class),
+                mock(SubscriptionRepository.class),
+                ticketRepository,
+                additionalServiceRepository,
+                additionalServiceItemRepository);
     }
 
     @Test
@@ -85,22 +83,27 @@ class ReservationCostCalculatorTest {
         when(event.isVatIncluded()).thenReturn(true, false);
         when(event.getVat()).thenReturn(BigDecimal.TEN);
         when(eventRepository.findByReservationId(eq(TICKET_RESERVATION_ID))).thenReturn(event);
-        when(ticketReservationRepository.findReservationById(eq(TICKET_RESERVATION_ID))).thenReturn(reservation);
+        when(ticketReservationRepository.findReservationById(eq(TICKET_RESERVATION_ID)))
+                .thenReturn(reservation);
         when(reservation.getId()).thenReturn(TICKET_RESERVATION_ID);
         when(ticket.getSrcPriceCts()).thenReturn(10);
-        when(ticketRepository.findTicketsInReservation(eq(TICKET_RESERVATION_ID))).thenReturn(Collections.singletonList(ticket));
+        when(ticketRepository.findTicketsInReservation(eq(TICKET_RESERVATION_ID)))
+                .thenReturn(Collections.singletonList(ticket));
         AdditionalServiceItemRepository additionalServiceItemRepository = mock(AdditionalServiceItemRepository.class);
-        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID))).thenReturn(Collections.emptyList());
+        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID)))
+                .thenReturn(Collections.emptyList());
 
         when(event.getVatStatus()).thenReturn(PriceContainer.VatStatus.INCLUDED);
-        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount = calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
+        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount =
+                calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
         TotalPrice included = priceAndDiscount.getLeft();
         Assertions.assertTrue(priceAndDiscount.getRight().isEmpty());
         Assertions.assertEquals(10, included.getPriceWithVAT());
         Assertions.assertEquals(1, included.getVAT());
 
         when(event.getVatStatus()).thenReturn(PriceContainer.VatStatus.NOT_INCLUDED);
-        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscountNotIncluded = calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
+        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscountNotIncluded =
+                calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
         TotalPrice notIncluded = priceAndDiscountNotIncluded.getLeft();
         Assertions.assertTrue(priceAndDiscountNotIncluded.getRight().isEmpty());
         Assertions.assertEquals(11, notIncluded.getPriceWithVAT());
@@ -110,8 +113,9 @@ class ReservationCostCalculatorTest {
     @Test
     void calcReservationCostWithASVatIncludedInherited() {
         initReservationWithAdditionalServices(true, AdditionalService.VatType.INHERITED, 10, 10);
-        //first: event price vat included, additional service VAT inherited
-        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount = calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
+        // first: event price vat included, additional service VAT inherited
+        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount =
+                calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
         TotalPrice first = priceAndDiscount.getLeft();
         Assertions.assertTrue(priceAndDiscount.getRight().isEmpty());
         Assertions.assertEquals(20, first.getPriceWithVAT());
@@ -121,8 +125,9 @@ class ReservationCostCalculatorTest {
     @Test
     void calcReservationCostWithASVatIncludedASNoVat() {
         initReservationWithAdditionalServices(true, AdditionalService.VatType.NONE, 10, 10);
-        //second: event price vat included, additional service VAT n/a
-        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount = calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
+        // second: event price vat included, additional service VAT n/a
+        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount =
+                calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
         TotalPrice second = priceAndDiscount.getLeft();
         Assertions.assertTrue(priceAndDiscount.getRight().isEmpty());
         Assertions.assertEquals(20, second.getPriceWithVAT());
@@ -132,8 +137,9 @@ class ReservationCostCalculatorTest {
     @Test
     void calcReservationCostWithASVatNotIncludedASInherited() {
         initReservationWithAdditionalServices(false, AdditionalService.VatType.INHERITED, 10, 10);
-        //third: event price vat not included, additional service VAT inherited
-        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount = calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
+        // third: event price vat not included, additional service VAT inherited
+        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount =
+                calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
         TotalPrice third = priceAndDiscount.getLeft();
         Assertions.assertTrue(priceAndDiscount.getRight().isEmpty());
         Assertions.assertEquals(22, third.getPriceWithVAT());
@@ -143,8 +149,9 @@ class ReservationCostCalculatorTest {
     @Test
     void calcReservationCostWithASVatNotIncludedASNone() {
         initReservationWithAdditionalServices(false, AdditionalService.VatType.NONE, 10, 10);
-        //fourth: event price vat not included, additional service VAT n/a
-        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount = calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
+        // fourth: event price vat not included, additional service VAT n/a
+        Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount =
+                calculator.totalReservationCostWithVAT(TICKET_RESERVATION_ID);
         TotalPrice fourth = priceAndDiscount.getLeft();
         Assertions.assertTrue(priceAndDiscount.getRight().isEmpty());
         Assertions.assertEquals(21, fourth.getPriceWithVAT());
@@ -153,20 +160,28 @@ class ReservationCostCalculatorTest {
 
     private void initReservationWithTicket(int ticketPaidPrice, boolean eventVatIncluded) {
         when(event.isVatIncluded()).thenReturn(eventVatIncluded);
-        when(event.getVatStatus()).thenReturn(eventVatIncluded ? PriceContainer.VatStatus.INCLUDED : PriceContainer.VatStatus.NOT_INCLUDED);
+        when(event.getVatStatus())
+                .thenReturn(
+                        eventVatIncluded ? PriceContainer.VatStatus.INCLUDED : PriceContainer.VatStatus.NOT_INCLUDED);
         when(event.getVat()).thenReturn(BigDecimal.TEN);
         when(event.getId()).thenReturn(1);
         when(eventRepository.findByReservationId(eq(TICKET_RESERVATION_ID))).thenReturn(event);
-        when(ticketReservationRepository.findReservationById(eq(TICKET_RESERVATION_ID))).thenReturn(reservation);
+        when(ticketReservationRepository.findReservationById(eq(TICKET_RESERVATION_ID)))
+                .thenReturn(reservation);
         when(ticket.getSrcPriceCts()).thenReturn(ticketPaidPrice);
         when(ticket.getCategoryId()).thenReturn(1);
-        when(ticketRepository.findTicketsInReservation(eq(TICKET_RESERVATION_ID))).thenReturn(Collections.singletonList(ticket));
+        when(ticketRepository.findTicketsInReservation(eq(TICKET_RESERVATION_ID)))
+                .thenReturn(Collections.singletonList(ticket));
         when(ticketCategoryRepository.getByIdAndActive(eq(1), eq(1))).thenReturn(ticketCategory);
         when(ticketCategoryRepository.getByIdsAndActive(anyCollection(), eq(1))).thenReturn(List.of(ticketCategory));
         when(reservation.getId()).thenReturn(TICKET_RESERVATION_ID);
     }
 
-    private void initReservationWithAdditionalServices(boolean eventVatIncluded, AdditionalService.VatType additionalServiceVatType, int ticketSrcPrice, int asSrcPrice) {
+    private void initReservationWithAdditionalServices(
+            boolean eventVatIncluded,
+            AdditionalService.VatType additionalServiceVatType,
+            int ticketSrcPrice,
+            int asSrcPrice) {
 
         initReservationWithTicket(ticketSrcPrice, eventVatIncluded);
 
@@ -176,18 +191,21 @@ class ReservationCostCalculatorTest {
         when(additionalService.currencyCode()).thenReturn("CHF");
         when(additionalService.id()).thenReturn(1);
 
-        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID))).thenReturn(Collections.singletonList(additionalServiceItem));
+        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID)))
+                .thenReturn(Collections.singletonList(additionalServiceItem));
         when(additionalServiceItem.getAdditionalServiceId()).thenReturn(1);
         when(additionalServiceRepository.loadAllForEvent(eq(1))).thenReturn(List.of(additionalService));
         when(additionalServiceRepository.getById(eq(1), eq(1))).thenReturn(additionalService);
         when(additionalServiceItem.getSrcPriceCts()).thenReturn(asSrcPrice);
         when(additionalService.vatType()).thenReturn(additionalServiceVatType);
         AdditionalServiceItemRepository additionalServiceItemRepository = mock(AdditionalServiceItemRepository.class);
-        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID))).thenReturn(Collections.emptyList());
+        when(additionalServiceItemRepository.findByReservationUuid(anyInt(), eq(TICKET_RESERVATION_ID)))
+                .thenReturn(Collections.emptyList());
         AdditionalServiceText text = mock(AdditionalServiceText.class);
         when(text.getId()).thenReturn(1);
         when(text.getLocale()).thenReturn("en");
-        when(additionalServiceTextRepository.findBestMatchByLocaleAndType(anyInt(), eq("en"), eq(AdditionalServiceText.TextType.TITLE))).thenReturn(text);
+        when(additionalServiceTextRepository.findBestMatchByLocaleAndType(
+                        anyInt(), eq("en"), eq(AdditionalServiceText.TextType.TITLE)))
+                .thenReturn(text);
     }
-
 }

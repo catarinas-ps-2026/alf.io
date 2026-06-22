@@ -32,13 +32,14 @@ public class CustomerName {
         this(fullName, firstName, lastName, mustUseFirstAndLastName, true);
     }
 
-    public CustomerName(String fullName, String firstName, String lastName, boolean mustUseFirstAndLastName, boolean validate) {
+    public CustomerName(
+            String fullName, String firstName, String lastName, boolean mustUseFirstAndLastName, boolean validate) {
         this.firstName = StringUtils.trimToNull(firstName);
         this.lastName = StringUtils.trimToNull(lastName);
         hasFirstAndLastName = mustUseFirstAndLastName;
         fullName = StringUtils.trimToNull(fullName);
-        if(hasFirstAndLastName) {
-            if(validate) {
+        if (hasFirstAndLastName) {
+            if (validate) {
                 Validate.isTrue(this.firstName != null, "firstName must not be null");
                 Validate.isTrue(this.lastName != null, "lastName must not be null");
             }
@@ -54,8 +55,8 @@ public class CustomerName {
 
     @Override
     public String toString() {
-        if(hasFirstAndLastName) {
-            return firstName+ " " + lastName;
+        if (hasFirstAndLastName) {
+            return firstName + " " + lastName;
         } else {
             return fullName;
         }

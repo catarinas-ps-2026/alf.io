@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.support.reservation.ReservationEmailContentHelper;
 import alfio.model.BillingDocument;
@@ -30,18 +33,14 @@ import alfio.repository.*;
 import alfio.repository.user.UserRepository;
 import alfio.util.ClockProvider;
 import alfio.util.TemplateManager;
-import org.apache.commons.lang3.tuple.Triple;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.transaction.PlatformTransactionManager;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.apache.commons.lang3.tuple.Triple;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.transaction.PlatformTransactionManager;
 
 class AdminReservationManagerUnitTest {
 
@@ -110,17 +109,35 @@ class AdminReservationManagerUnitTest {
         accessService = mock(AccessService.class);
 
         adminReservationManager = new AdminReservationManager(
-            purchaseContextManager, eventManager, ticketReservationManager,
-            ticketCategoryRepository, ticketRepository, specialPriceRepository,
-            ticketReservationRepository, eventRepository, transactionManager,
-            specialPriceTokenGenerator, purchaseContextFieldRepository,
-            paymentManager, notificationManager, messageSourceManager,
-            templateManager, additionalServiceItemRepository, auditingRepository,
-            userRepository, extensionManager, billingDocumentRepository,
-            fileUploadManager, promoCodeDiscountRepository, additionalServiceRepository,
-            billingDocumentManager, clockProvider, subscriptionRepository,
-            reservationEmailContentHelper, transactionRepository, accessService
-        );
+                purchaseContextManager,
+                eventManager,
+                ticketReservationManager,
+                ticketCategoryRepository,
+                ticketRepository,
+                specialPriceRepository,
+                ticketReservationRepository,
+                eventRepository,
+                transactionManager,
+                specialPriceTokenGenerator,
+                purchaseContextFieldRepository,
+                paymentManager,
+                notificationManager,
+                messageSourceManager,
+                templateManager,
+                additionalServiceItemRepository,
+                auditingRepository,
+                userRepository,
+                extensionManager,
+                billingDocumentRepository,
+                fileUploadManager,
+                promoCodeDiscountRepository,
+                additionalServiceRepository,
+                billingDocumentManager,
+                clockProvider,
+                subscriptionRepository,
+                reservationEmailContentHelper,
+                transactionRepository,
+                accessService);
     }
 
     @Test
@@ -139,13 +156,16 @@ class AdminReservationManagerUnitTest {
         String reservationId = "resId";
         String publicIdentifier = "pubId";
         List<Integer> expectedIds = List.of(1, 2, 3);
-        when(ticketRepository.findTicketsWithAdditionalData(reservationId, publicIdentifier)).thenReturn(expectedIds);
+        when(ticketRepository.findTicketsWithAdditionalData(reservationId, publicIdentifier))
+                .thenReturn(expectedIds);
 
-        List<Integer> result = adminReservationManager.getTicketIdsWithAdditionalData(PurchaseContextType.event, publicIdentifier, reservationId);
+        List<Integer> result = adminReservationManager.getTicketIdsWithAdditionalData(
+                PurchaseContextType.event, publicIdentifier, reservationId);
         assertEquals(expectedIds, result);
         verify(ticketRepository).findTicketsWithAdditionalData(reservationId, publicIdentifier);
 
-        List<Integer> resultNotEvent = adminReservationManager.getTicketIdsWithAdditionalData(PurchaseContextType.subscription, publicIdentifier, reservationId);
+        List<Integer> resultNotEvent = adminReservationManager.getTicketIdsWithAdditionalData(
+                PurchaseContextType.subscription, publicIdentifier, reservationId);
         assertTrue(resultNotEvent.isEmpty());
         verifyNoMoreInteractions(ticketRepository);
     }
@@ -160,12 +180,15 @@ class AdminReservationManagerUnitTest {
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
         Event event = mock(Event.class);
         when(purchaseContext.event()).thenReturn(Optional.of(event));
-        doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(PurchaseContextType.event, eventName);
+        doReturn(Optional.of(purchaseContext))
+                .when(purchaseContextManager)
+                .findBy(PurchaseContextType.event, eventName);
 
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getId()).thenReturn(reservationId);
         when(reservation.getUserLanguage()).thenReturn("en");
-        when(ticketReservationRepository.findOptionalReservationById(reservationId)).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(reservationId))
+                .thenReturn(Optional.of(reservation));
 
         Ticket ticket = mock(Ticket.class);
         when(ticket.getId()).thenReturn(1);
@@ -186,16 +209,21 @@ class AdminReservationManagerUnitTest {
         String username = "admin";
 
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
-        doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(PurchaseContextType.event, publicIdentifier);
+        doReturn(Optional.of(purchaseContext))
+                .when(purchaseContextManager)
+                .findBy(PurchaseContextType.event, publicIdentifier);
 
         TicketReservation reservation = mock(TicketReservation.class);
-        when(ticketReservationRepository.findOptionalReservationById(reservationId)).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(reservationId))
+                .thenReturn(Optional.of(reservation));
 
         List<Ticket> tickets = List.of(mock(Ticket.class));
         when(ticketRepository.findTicketsInReservation(reservationId)).thenReturn(tickets);
         when(purchaseContextManager.findByReservationId(reservationId)).thenReturn(Optional.of(purchaseContext));
 
-        Result<Triple<TicketReservation, List<Ticket>, PurchaseContext>> result = adminReservationManager.loadReservation(PurchaseContextType.event, publicIdentifier, reservationId, username);
+        Result<Triple<TicketReservation, List<Ticket>, PurchaseContext>> result =
+                adminReservationManager.loadReservation(
+                        PurchaseContextType.event, publicIdentifier, reservationId, username);
         assertTrue(result.isSuccess());
         assertEquals(reservation, result.getData().getLeft());
         assertEquals(tickets, result.getData().getMiddle());
@@ -213,11 +241,14 @@ class AdminReservationManagerUnitTest {
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
         Event event = mock(Event.class);
         when(purchaseContext.event()).thenReturn(Optional.of(event));
-        doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(PurchaseContextType.event, publicIdentifier);
+        doReturn(Optional.of(purchaseContext))
+                .when(purchaseContextManager)
+                .findBy(PurchaseContextType.event, publicIdentifier);
 
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getId()).thenReturn(reservationId);
-        when(ticketReservationRepository.findOptionalReservationById(reservationId)).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(reservationId))
+                .thenReturn(Optional.of(reservation));
 
         Ticket ticket = mock(Ticket.class);
         when(ticket.getId()).thenReturn(1);
@@ -226,10 +257,12 @@ class AdminReservationManagerUnitTest {
         when(ticketRepository.findTicketsInReservation(reservationId)).thenReturn(tickets);
         when(purchaseContextManager.findByReservationId(reservationId)).thenReturn(Optional.of(purchaseContext));
 
-        //for removeTicketsFromReservation
-        when(ticketRepository.batchReleaseTickets(eq(reservationId), eq(ticketIds), eq(event))).thenReturn(new int[]{1});
+        // for removeTicketsFromReservation
+        when(ticketRepository.batchReleaseTickets(eq(reservationId), eq(ticketIds), eq(event)))
+                .thenReturn(new int[] {1});
 
-        Result<Boolean> result = adminReservationManager.removeTickets(publicIdentifier, reservationId, ticketIds, toRefund, true, false, username);
+        Result<Boolean> result = adminReservationManager.removeTickets(
+                publicIdentifier, reservationId, ticketIds, toRefund, true, false, username);
         assertTrue(result.isSuccess(), () -> "Error: " + result.getErrors());
         assertFalse(result.getData());
 
@@ -244,26 +277,32 @@ class AdminReservationManagerUnitTest {
         String username = "admin";
 
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
-        doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(PurchaseContextType.event, publicIdentifier);
+        doReturn(Optional.of(purchaseContext))
+                .when(purchaseContextManager)
+                .findBy(PurchaseContextType.event, publicIdentifier);
 
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getId()).thenReturn(reservationId);
         when(reservation.getPromoCodeDiscountId()).thenReturn(null);
-        when(ticketReservationRepository.findOptionalReservationById(reservationId)).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(reservationId))
+                .thenReturn(Optional.of(reservation));
         when(ticketRepository.findTicketsInReservation(reservationId)).thenReturn(List.of());
         when(purchaseContextManager.findByReservationId(reservationId)).thenReturn(Optional.of(purchaseContext));
 
         BillingDocument billingDocument = mock(BillingDocument.class);
         when(billingDocument.getType()).thenReturn(BillingDocument.Type.INVOICE);
         when(billingDocument.getId()).thenReturn(1L);
-        when(billingDocumentManager.createBillingDocument(eq(purchaseContext), eq(reservation), eq(username), any())).thenReturn(billingDocument);
+        when(billingDocumentManager.createBillingDocument(eq(purchaseContext), eq(reservation), eq(username), any()))
+                .thenReturn(billingDocument);
 
-        Result<Boolean> result = adminReservationManager.regenerateBillingDocument(PurchaseContextType.event, publicIdentifier, reservationId, username);
+        Result<Boolean> result = adminReservationManager.regenerateBillingDocument(
+                PurchaseContextType.event, publicIdentifier, reservationId, username);
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
 
         verify(billingDocumentManager).createBillingDocument(eq(purchaseContext), eq(reservation), eq(username), any());
-        verify(billingDocumentRepository).invalidateAllPreviousDocumentsOfType(BillingDocument.Type.INVOICE, 1L, reservationId);
+        verify(billingDocumentRepository)
+                .invalidateAllPreviousDocumentsOfType(BillingDocument.Type.INVOICE, 1L, reservationId);
     }
 
     @Test
@@ -274,11 +313,13 @@ class AdminReservationManagerUnitTest {
 
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
         TicketReservation reservation = mock(TicketReservation.class);
-        when(ticketReservationRepository.findOptionalReservationById(reservationId)).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(reservationId))
+                .thenReturn(Optional.of(reservation));
         when(ticketRepository.findTicketsInReservation(reservationId)).thenReturn(List.of());
         when(purchaseContextManager.findByReservationId(reservationId)).thenReturn(Optional.of(purchaseContext));
 
-        when(billingDocumentRepository.updateStatus(documentId, BillingDocument.Status.NOT_VALID, reservationId)).thenReturn(1);
+        when(billingDocumentRepository.updateStatus(documentId, BillingDocument.Status.NOT_VALID, reservationId))
+                .thenReturn(1);
         when(userRepository.findIdByUserName(username)).thenReturn(Optional.of(123));
 
         Result<Boolean> result = adminReservationManager.invalidateBillingDocument(reservationId, documentId, username);
@@ -286,6 +327,14 @@ class AdminReservationManagerUnitTest {
         assertTrue(result.getData());
 
         verify(billingDocumentRepository).updateStatus(documentId, BillingDocument.Status.NOT_VALID, reservationId);
-        verify(auditingRepository).insert(eq(reservationId), eq(123), any(PurchaseContext.class), eq(alfio.model.Audit.EventType.BILLING_DOCUMENT_INVALIDATED), any(), eq(alfio.model.Audit.EntityType.RESERVATION), eq("1"));
+        verify(auditingRepository)
+                .insert(
+                        eq(reservationId),
+                        eq(123),
+                        any(PurchaseContext.class),
+                        eq(alfio.model.Audit.EventType.BILLING_DOCUMENT_INVALIDATED),
+                        any(),
+                        eq(alfio.model.Audit.EntityType.RESERVATION),
+                        eq("1"));
     }
 }

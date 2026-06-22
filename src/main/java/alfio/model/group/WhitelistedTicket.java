@@ -28,14 +28,14 @@ public class WhitelistedTicket {
     private final int ticketId;
     private final boolean requiresUniqueValue;
 
-    public WhitelistedTicket(@Column("group_member_id_fk") int groupMemberId,
-                             @Column("group_link_id_fk") int groupLinkId,
-                             @Column("ticket_id_fk") int ticketId,
-                             @Column("requires_unique_value") Boolean requiresUniqueValue) {
+    public WhitelistedTicket(
+            @Column("group_member_id_fk") int groupMemberId,
+            @Column("group_link_id_fk") int groupLinkId,
+            @Column("ticket_id_fk") int ticketId,
+            @Column("requires_unique_value") Boolean requiresUniqueValue) {
         this.groupMemberId = groupMemberId;
         this.groupLinkId = groupLinkId;
         this.ticketId = ticketId;
         this.requiresUniqueValue = ObjectUtils.firstNonNull(requiresUniqueValue, Boolean.FALSE);
     }
-
 }

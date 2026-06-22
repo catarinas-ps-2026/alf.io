@@ -16,6 +16,12 @@
  */
 package alfio.controller.api.admin;
 
+import static alfio.controller.api.admin.EventApiController.FIXED_FIELDS;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
+
 import alfio.controller.api.support.TicketHelper;
 import alfio.controller.support.TemplateProcessor;
 import alfio.manager.*;
@@ -23,32 +29,21 @@ import alfio.manager.i18n.I18nManager;
 import alfio.manager.payment.custom.offline.CustomOfflineConfigurationManager;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
+import alfio.model.BillingDetails;
+import alfio.model.BillingDocument;
 import alfio.model.Event;
 import alfio.model.TicketReservation;
 import alfio.model.TicketReservationInvoicingAdditionalInfo;
-import alfio.model.BillingDetails;
-import alfio.model.BillingDocument;
 import alfio.model.TicketReservationWithTransaction;
 import alfio.model.modification.TicketCategoryModification;
-import alfio.model.result.ValidationResult;
 import alfio.model.system.ConfigurationKeys;
 import alfio.model.transaction.PaymentProxy;
-import alfio.model.user.Organization;
 import alfio.repository.EventDescriptionRepository;
 import alfio.repository.PurchaseContextFieldRepository;
 import alfio.repository.SponsorScanRepository;
 import alfio.repository.TicketCategoryRepository;
 import alfio.util.ClockProvider;
 import alfio.util.TemplateManager;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletResponse;
-
-import static alfio.controller.api.admin.EventApiController.FIXED_FIELDS;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -62,11 +57,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.zip.ZipOutputStream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mockStatic;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 class EventApiControllerUnitTest {
 
@@ -119,25 +114,24 @@ class EventApiControllerUnitTest {
         when(configurationManager.getFor(any(ConfigurationKeys.class), any())).thenReturn(mockConfiguration);
 
         controller = new EventApiController(
-            eventManager,
-            eventStatisticsManager,
-            i18nManager,
-            ticketReservationManager,
-            ticketCategoryRepository,
-            purchaseContextFieldRepository,
-            eventDescriptionRepository,
-            ticketHelper,
-            userManager,
-            sponsorScanRepository,
-            paymentManager,
-            templateManager,
-            fileUploadManager,
-            configurationManager,
-            extensionManager,
-            clockProvider,
-            accessService,
-            customOfflineConfigurationManager
-        );
+                eventManager,
+                eventStatisticsManager,
+                i18nManager,
+                ticketReservationManager,
+                ticketCategoryRepository,
+                purchaseContextFieldRepository,
+                eventDescriptionRepository,
+                ticketHelper,
+                userManager,
+                sponsorScanRepository,
+                paymentManager,
+                templateManager,
+                fileUploadManager,
+                configurationManager,
+                extensionManager,
+                clockProvider,
+                accessService,
+                customOfflineConfigurationManager);
     }
 
     @Test
@@ -153,8 +147,10 @@ class EventApiControllerUnitTest {
         when(eventManager.getOptionalByName(eventName, "admin")).thenReturn(Optional.of(event));
         when(eventStatisticsManager.getFirstReservationConfirmedTimestamp(1)).thenReturn(Optional.empty());
         when(eventStatisticsManager.getFirstReservationCreatedTimestamp(1)).thenReturn(Optional.empty());
-        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
-        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
+        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
         when(clockProvider.getClock()).thenReturn(java.time.Clock.system(ZoneId.of("Europe/Rome")));
 
         var responseEntity = controller.getTicketsStatistics(eventName, "2024-01-01", "2024-01-31", principal);
@@ -176,10 +172,14 @@ class EventApiControllerUnitTest {
         when(event.getZoneId()).thenReturn(ZoneId.of("Europe/Rome"));
 
         when(eventManager.getOptionalByName(eventName, "admin")).thenReturn(Optional.of(event));
-        when(eventStatisticsManager.getFirstReservationConfirmedTimestamp(1)).thenReturn(Optional.of(ZonedDateTime.now()));
-        when(eventStatisticsManager.getFirstReservationCreatedTimestamp(1)).thenReturn(Optional.of(ZonedDateTime.now()));
-        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
-        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
+        when(eventStatisticsManager.getFirstReservationConfirmedTimestamp(1))
+                .thenReturn(Optional.of(ZonedDateTime.now()));
+        when(eventStatisticsManager.getFirstReservationCreatedTimestamp(1))
+                .thenReturn(Optional.of(ZonedDateTime.now()));
+        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
         when(clockProvider.getClock()).thenReturn(java.time.Clock.system(ZoneId.of("Europe/Rome")));
 
         var responseEntity = controller.getTicketsStatistics(eventName, null, null, principal);
@@ -214,10 +214,14 @@ class EventApiControllerUnitTest {
         when(event.getZoneId()).thenReturn(ZoneId.of("Europe/Rome"));
 
         when(eventManager.getOptionalByName(eventName, "admin")).thenReturn(Optional.of(event));
-        when(eventStatisticsManager.getFirstReservationConfirmedTimestamp(1)).thenReturn(Optional.of(ZonedDateTime.now().minusYears(2)));
-        when(eventStatisticsManager.getFirstReservationCreatedTimestamp(1)).thenReturn(Optional.of(ZonedDateTime.now().minusYears(2)));
-        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
-        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
+        when(eventStatisticsManager.getFirstReservationConfirmedTimestamp(1))
+                .thenReturn(Optional.of(ZonedDateTime.now().minusYears(2)));
+        when(eventStatisticsManager.getFirstReservationCreatedTimestamp(1))
+                .thenReturn(Optional.of(ZonedDateTime.now().minusYears(2)));
+        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
         when(clockProvider.getClock()).thenReturn(java.time.Clock.system(ZoneId.of("Europe/Rome")));
 
         var responseEntity = controller.getTicketsStatistics(eventName, null, null, principal);
@@ -239,10 +243,14 @@ class EventApiControllerUnitTest {
         when(event.getZoneId()).thenReturn(ZoneId.of("Europe/Rome"));
 
         when(eventManager.getOptionalByName(eventName, "admin")).thenReturn(Optional.of(event));
-        when(eventStatisticsManager.getFirstReservationConfirmedTimestamp(1)).thenReturn(Optional.of(ZonedDateTime.now().minusMonths(6)));
-        when(eventStatisticsManager.getFirstReservationCreatedTimestamp(1)).thenReturn(Optional.of(ZonedDateTime.now().minusMonths(6)));
-        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
-        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any())).thenReturn(List.of());
+        when(eventStatisticsManager.getFirstReservationConfirmedTimestamp(1))
+                .thenReturn(Optional.of(ZonedDateTime.now().minusMonths(6)));
+        when(eventStatisticsManager.getFirstReservationCreatedTimestamp(1))
+                .thenReturn(Optional.of(ZonedDateTime.now().minusMonths(6)));
+        when(eventStatisticsManager.getTicketSoldStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(eventStatisticsManager.getTicketReservedStatistics(anyInt(), any(), any(), any()))
+                .thenReturn(List.of());
         when(clockProvider.getClock()).thenReturn(java.time.Clock.system(ZoneId.of("Europe/Rome")));
 
         var responseEntity = controller.getTicketsStatistics(eventName, null, null, principal);
@@ -282,7 +290,9 @@ class EventApiControllerUnitTest {
 
         Event event = mock(Event.class);
         when(eventManager.getOptionalByName(eventName, "admin")).thenReturn(Optional.of(event));
-        doThrow(new RuntimeException("Payment failed")).when(ticketReservationManager).validateAndConfirmOfflinePayment(any(), any(), any(), any());
+        doThrow(new RuntimeException("Payment failed"))
+                .when(ticketReservationManager)
+                .validateAndConfirmOfflinePayment(any(), any(), any(), any());
 
         String csvContent = "RES001,100.00\nRES002,200.00";
         var fileModification = new alfio.model.modification.UploadBase64FileModification();
@@ -365,15 +375,17 @@ class EventApiControllerUnitTest {
         BillingDocument document = mock(BillingDocument.class);
         when(document.getType()).thenReturn(BillingDocument.Type.INVOICE);
         when(document.getNumber()).thenReturn("INV-001");
-        when(document.getModel()).thenReturn(Map.of("orderSummary", Map.of(
-            "totalNetPrice", "100.00",
-            "totalVAT", "22.00",
-            "totalPrice", "122.00"
-        )));
+        when(document.getModel())
+                .thenReturn(Map.of(
+                        "orderSummary",
+                        Map.of(
+                                "totalNetPrice", "100.00",
+                                "totalVAT", "22.00",
+                                "totalPrice", "122.00")));
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
+                .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
         controller.getAllDocumentsXls(eventName, response, principal);
@@ -404,8 +416,12 @@ class EventApiControllerUnitTest {
         when(reservation.getUserLanguage()).thenReturn("en");
 
         TicketReservationInvoicingAdditionalInfo italianEInvoicing = new TicketReservationInvoicingAdditionalInfo(
-            new TicketReservationInvoicingAdditionalInfo.ItalianEInvoicing("ABCDEF12GHIJLM12", TicketReservationInvoicingAdditionalInfo.ItalianEInvoicing.ReferenceType.ADDRESSEE_CODE, "ABCDEF", "pec@example.com", true)
-        );
+                new TicketReservationInvoicingAdditionalInfo.ItalianEInvoicing(
+                        "ABCDEF12GHIJLM12",
+                        TicketReservationInvoicingAdditionalInfo.ItalianEInvoicing.ReferenceType.ADDRESSEE_CODE,
+                        "ABCDEF",
+                        "pec@example.com",
+                        true));
 
         BillingDetails billingDetails = mock(BillingDetails.class);
         when(billingDetails.getInvoicingAdditionalInfo()).thenReturn(italianEInvoicing);
@@ -417,15 +433,17 @@ class EventApiControllerUnitTest {
         BillingDocument document = mock(BillingDocument.class);
         when(document.getType()).thenReturn(BillingDocument.Type.INVOICE);
         when(document.getNumber()).thenReturn("INV-001");
-        when(document.getModel()).thenReturn(Map.of("orderSummary", Map.of(
-            "totalNetPrice", "100.00",
-            "totalVAT", "22.00",
-            "totalPrice", "122.00"
-        )));
+        when(document.getModel())
+                .thenReturn(Map.of(
+                        "orderSummary",
+                        Map.of(
+                                "totalNetPrice", "100.00",
+                                "totalVAT", "22.00",
+                                "totalPrice", "122.00")));
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
+                .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
         controller.getAllDocumentsXls(eventName, response, principal);
@@ -462,15 +480,17 @@ class EventApiControllerUnitTest {
         BillingDocument document = mock(BillingDocument.class);
         when(document.getType()).thenReturn(BillingDocument.Type.RECEIPT);
         when(document.getNumber()).thenReturn("RCP-001");
-        when(document.getModel()).thenReturn(Map.of("orderSummary", Map.of(
-            "totalNetPrice", "80.00",
-            "totalVAT", "17.60",
-            "totalPrice", "97.60"
-        )));
+        when(document.getModel())
+                .thenReturn(Map.of(
+                        "orderSummary",
+                        Map.of(
+                                "totalNetPrice", "80.00",
+                                "totalVAT", "17.60",
+                                "totalPrice", "97.60")));
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
+                .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
         controller.getAllDocumentsXls(eventName, response, principal);
@@ -507,15 +527,17 @@ class EventApiControllerUnitTest {
         BillingDocument document = mock(BillingDocument.class);
         when(document.getType()).thenReturn(BillingDocument.Type.CREDIT_NOTE);
         when(document.getNumber()).thenReturn("CN-001");
-        when(document.getModel()).thenReturn(Map.of("orderSummary", Map.of(
-            "totalNetPrice", "-50.00",
-            "totalVAT", "-11.00",
-            "totalPrice", "-61.00"
-        )));
+        when(document.getModel())
+                .thenReturn(Map.of(
+                        "orderSummary",
+                        Map.of(
+                                "totalNetPrice", "-50.00",
+                                "totalVAT", "-11.00",
+                                "totalPrice", "-61.00")));
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
+                .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
         controller.getAllDocumentsXls(eventName, response, principal);
@@ -557,15 +579,17 @@ class EventApiControllerUnitTest {
         BillingDocument document = mock(BillingDocument.class);
         when(document.getType()).thenReturn(BillingDocument.Type.INVOICE);
         when(document.getNumber()).thenReturn("INV-001");
-        when(document.getModel()).thenReturn(Map.of("orderSummary", Map.of(
-            "totalNetPrice", "100.00",
-            "totalVAT", "22.00",
-            "totalPrice", "122.00"
-        )));
+        when(document.getModel())
+                .thenReturn(Map.of(
+                        "orderSummary",
+                        Map.of(
+                                "totalNetPrice", "100.00",
+                                "totalVAT", "22.00",
+                                "totalPrice", "122.00")));
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
+                .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
         controller.getAllDocumentsXls(eventName, response, principal);
@@ -592,8 +616,9 @@ class EventApiControllerUnitTest {
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         try (var mockedTemplateProcessor = mockStatic(TemplateProcessor.class)) {
-            mockedTemplateProcessor.when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
+            mockedTemplateProcessor
+                    .when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (ZipOutputStream zipOS = new ZipOutputStream(baos)) {
@@ -621,8 +646,9 @@ class EventApiControllerUnitTest {
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         try (var mockedTemplateProcessor = mockStatic(TemplateProcessor.class)) {
-            mockedTemplateProcessor.when(() -> TemplateProcessor.buildReceiptPdf(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
+            mockedTemplateProcessor
+                    .when(() -> TemplateProcessor.buildReceiptPdf(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (ZipOutputStream zipOS = new ZipOutputStream(baos)) {
@@ -651,8 +677,9 @@ class EventApiControllerUnitTest {
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         try (var mockedTemplateProcessor = mockStatic(TemplateProcessor.class)) {
-            mockedTemplateProcessor.when(() -> TemplateProcessor.buildCreditNotePdf(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
+            mockedTemplateProcessor
+                    .when(() -> TemplateProcessor.buildCreditNotePdf(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (ZipOutputStream zipOS = new ZipOutputStream(baos)) {
@@ -681,8 +708,9 @@ class EventApiControllerUnitTest {
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         try (var mockedTemplateProcessor = mockStatic(TemplateProcessor.class)) {
-            mockedTemplateProcessor.when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Optional.empty());
+            mockedTemplateProcessor
+                    .when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.empty());
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (ZipOutputStream zipOS = new ZipOutputStream(baos)) {
@@ -697,8 +725,21 @@ class EventApiControllerUnitTest {
         }
     }
 
-    private void invokeAddPdfToZip(EventApiController controller, Event event, ZipOutputStream zipOS, TicketReservation reservation, BillingDocument document) throws Exception {
-        Method f = controller.getClass().getDeclaredMethod("addPdfToZip", Event.class, ZipOutputStream.class, TicketReservation.class, BillingDocument.class);
+    private void invokeAddPdfToZip(
+            EventApiController controller,
+            Event event,
+            ZipOutputStream zipOS,
+            TicketReservation reservation,
+            BillingDocument document)
+            throws Exception {
+        Method f = controller
+                .getClass()
+                .getDeclaredMethod(
+                        "addPdfToZip",
+                        Event.class,
+                        ZipOutputStream.class,
+                        TicketReservation.class,
+                        BillingDocument.class);
         f.setAccessible(true);
         f.invoke(controller, event, zipOS, reservation, document);
     }
@@ -712,7 +753,8 @@ class EventApiControllerUnitTest {
         var eventAndOrgId = mock(alfio.model.EventAndOrganizationId.class);
         when(eventManager.getEventAndOrganizationId(eventName, "admin")).thenReturn(eventAndOrgId);
         when(configurationManager.isItalianEInvoicingEnabled(eventAndOrgId)).thenReturn(false);
-        when(purchaseContextFieldRepository.findFieldsForEvent(eventName)).thenReturn(List.of("custom-field-1", "custom-field-2"));
+        when(purchaseContextFieldRepository.findFieldsForEvent(eventName))
+                .thenReturn(List.of("custom-field-1", "custom-field-2"));
 
         var result = controller.getAllFields(eventName, principal);
 
@@ -757,13 +799,30 @@ class EventApiControllerUnitTest {
         doNothing().when(eventManager).updateCategory(anyInt(), anyInt(), any(), any());
 
         var inception = new alfio.model.modification.DateTimeModification(LocalDate.now(), LocalTime.of(10, 0));
-        var expiration = new alfio.model.modification.DateTimeModification(LocalDate.now().plusDays(5), LocalTime.of(18, 0));
+        var expiration = new alfio.model.modification.DateTimeModification(
+                LocalDate.now().plusDays(5), LocalTime.of(18, 0));
 
         TicketCategoryModification categoryModification = new TicketCategoryModification(
-            categoryId, "Updated Category", alfio.model.TicketCategory.TicketAccessType.INHERIT,
-            100, inception, expiration, Map.of("en", "Description"),
-            BigDecimal.valueOf(50), false, "", true, "", null, null, null, null, null, null, null, null
-        );
+                categoryId,
+                "Updated Category",
+                alfio.model.TicketCategory.TicketAccessType.INHERIT,
+                100,
+                inception,
+                expiration,
+                Map.of("en", "Description"),
+                BigDecimal.valueOf(50),
+                false,
+                "",
+                true,
+                "",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
 
         var errors = mock(org.springframework.validation.BindingResult.class);
         when(errors.hasErrors()).thenReturn(false);
@@ -786,10 +845,26 @@ class EventApiControllerUnitTest {
         when(eventManager.getSingleEventById(eventId, "admin")).thenReturn(event);
 
         TicketCategoryModification categoryModification = new TicketCategoryModification(
-            differentCategoryId, "Category", alfio.model.TicketCategory.TicketAccessType.INHERIT,
-            100, null, null, Map.of("en", "Description"),
-            BigDecimal.valueOf(50), false, "", true, "", null, null, null, null, null, null, null, null
-        );
+                differentCategoryId,
+                "Category",
+                alfio.model.TicketCategory.TicketAccessType.INHERIT,
+                100,
+                null,
+                null,
+                Map.of("en", "Description"),
+                BigDecimal.valueOf(50),
+                false,
+                "",
+                true,
+                "",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
 
         var errors = mock(org.springframework.validation.BindingResult.class);
 
@@ -824,11 +899,12 @@ class EventApiControllerUnitTest {
         when(document.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
+                .thenReturn(java.util.stream.Stream.of(Pair.of(reservationWithTransaction, List.of(document))));
 
         try (var mockedTemplateProcessor = mockStatic(TemplateProcessor.class)) {
-            mockedTemplateProcessor.when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
+            mockedTemplateProcessor
+                    .when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
 
             MockHttpServletResponse response = new MockHttpServletResponse();
             controller.getAllInvoices(eventName, response, principal);
@@ -849,8 +925,7 @@ class EventApiControllerUnitTest {
         when(event.getZoneId()).thenReturn(ZoneId.of("Europe/Rome"));
         when(eventManager.getOptionalByName(eventName, "admin")).thenReturn(Optional.of(event));
 
-        when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.empty());
+        when(ticketReservationManager.streamAllDocumentsFor(anyInt())).thenReturn(java.util.stream.Stream.empty());
 
         MockHttpServletResponse response = new MockHttpServletResponse();
         controller.getAllInvoices(eventName, response, principal);
@@ -898,16 +973,17 @@ class EventApiControllerUnitTest {
         when(receipt.getGenerationTimestamp()).thenReturn(ZonedDateTime.now());
 
         when(ticketReservationManager.streamAllDocumentsFor(anyInt()))
-            .thenReturn(java.util.stream.Stream.of(
-                Pair.of(reservationWithTransaction1, List.of(invoice)),
-                Pair.of(reservationWithTransaction2, List.of(receipt))
-            ));
+                .thenReturn(java.util.stream.Stream.of(
+                        Pair.of(reservationWithTransaction1, List.of(invoice)),
+                        Pair.of(reservationWithTransaction2, List.of(receipt))));
 
         try (var mockedTemplateProcessor = mockStatic(TemplateProcessor.class)) {
-            mockedTemplateProcessor.when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
-            mockedTemplateProcessor.when(() -> TemplateProcessor.buildReceiptPdf(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
+            mockedTemplateProcessor
+                    .when(() -> TemplateProcessor.buildInvoicePdf(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
+            mockedTemplateProcessor
+                    .when(() -> TemplateProcessor.buildReceiptPdf(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.of("PDF content".getBytes(StandardCharsets.UTF_8)));
 
             MockHttpServletResponse response = new MockHttpServletResponse();
             controller.getAllInvoices(eventName, response, principal);

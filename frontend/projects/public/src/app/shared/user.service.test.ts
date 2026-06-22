@@ -1,4 +1,7 @@
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+    HttpClientTestingModule,
+    HttpTestingController,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { UserService } from './user.service';
 import { ANONYMOUS } from '../model/user';
@@ -35,7 +38,9 @@ describe('UserService', () => {
 
             const promise = service.initAuthenticationStatus();
 
-            const authReq = httpMock.expectOne('/api/v2/public/user/authentication-enabled');
+            const authReq = httpMock.expectOne(
+                '/api/v2/public/user/authentication-enabled',
+            );
             authReq.flush(true);
 
             const userReq = httpMock.expectOne('/api/v2/public/user/me');
@@ -48,7 +53,9 @@ describe('UserService', () => {
         it('should resolve true even on error', async () => {
             const promise = service.initAuthenticationStatus();
 
-            const authReq = httpMock.expectOne('/api/v2/public/user/authentication-enabled');
+            const authReq = httpMock.expectOne(
+                '/api/v2/public/user/authentication-enabled',
+            );
             authReq.error(new ErrorEvent('Network error'));
 
             const resolved = await promise;
@@ -58,7 +65,9 @@ describe('UserService', () => {
         it('should set auth status to disabled when not enabled', async () => {
             const promise = service.initAuthenticationStatus();
 
-            const authReq = httpMock.expectOne('/api/v2/public/user/authentication-enabled');
+            const authReq = httpMock.expectOne(
+                '/api/v2/public/user/authentication-enabled',
+            );
             authReq.flush(false);
 
             await promise;
@@ -114,7 +123,9 @@ describe('UserService', () => {
             };
 
             const promise = new Promise<User>((resolve) => {
-                service.getUserIdentity().subscribe({ next: (user) => resolve(user) });
+                service
+                    .getUserIdentity()
+                    .subscribe({ next: (user) => resolve(user) });
             });
 
             const req = httpMock.expectOne('/api/v2/public/user/me');
@@ -126,7 +137,9 @@ describe('UserService', () => {
 
         it('should return ANONYMOUS on 204 status', async () => {
             const promise = new Promise<User>((resolve) => {
-                service.getUserIdentity().subscribe({ next: (user) => resolve(user) });
+                service
+                    .getUserIdentity()
+                    .subscribe({ next: (user) => resolve(user) });
             });
 
             const req = httpMock.expectOne('/api/v2/public/user/me');
@@ -142,7 +155,9 @@ describe('UserService', () => {
             const mockRedirect = { url: '/login' };
 
             const promise = new Promise<any>((resolve) => {
-                service.logout().subscribe({ next: (result) => resolve(result) });
+                service
+                    .logout()
+                    .subscribe({ next: (result) => resolve(result) });
             });
 
             const req = httpMock.expectOne('/api/v2/public/user/logout');
@@ -159,7 +174,9 @@ describe('UserService', () => {
             const mockOrders = [{ id: 'order-1' }, { id: 'order-2' }];
 
             const promise = new Promise<any[]>((resolve) => {
-                service.getOrders().subscribe({ next: (orders) => resolve(orders) });
+                service
+                    .getOrders()
+                    .subscribe({ next: (orders) => resolve(orders) });
             });
 
             const req = httpMock.expectOne('/api/v2/public/user/reservations');
@@ -174,10 +191,16 @@ describe('UserService', () => {
     describe('updateUser', () => {
         it('should POST updated user data', async () => {
             const userData = { firstName: 'Jane', lastName: 'Smith' };
-            const mockResponse = { entity: userData, success: true, validationResult: null };
+            const mockResponse = {
+                entity: userData,
+                success: true,
+                validationResult: null,
+            };
 
             const promise = new Promise<any>((resolve) => {
-                service.updateUser(userData).subscribe({ next: (res) => resolve(res) });
+                service
+                    .updateUser(userData)
+                    .subscribe({ next: (res) => resolve(res) });
             });
 
             const req = httpMock.expectOne('/api/v2/public/user/me');
@@ -194,7 +217,9 @@ describe('UserService', () => {
             const mockRedirect = { url: '/goodbye' };
 
             const promise = new Promise<any>((resolve) => {
-                service.deleteProfile().subscribe({ next: (result) => resolve(result) });
+                service
+                    .deleteProfile()
+                    .subscribe({ next: (result) => resolve(result) });
             });
 
             const req = httpMock.expectOne('/api/v2/public/user/me');
@@ -220,7 +245,9 @@ describe('UserService', () => {
 
             const initPromise = service.initAuthenticationStatus();
 
-            const authReq = httpMock.expectOne('/api/v2/public/user/authentication-enabled');
+            const authReq = httpMock.expectOne(
+                '/api/v2/public/user/authentication-enabled',
+            );
             authReq.flush(true);
 
             const userReq = httpMock.expectOne('/api/v2/public/user/me');

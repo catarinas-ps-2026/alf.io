@@ -18,7 +18,6 @@ package alfio.controller.api.admin;
 
 import alfio.manager.FileUploadManager;
 import alfio.model.modification.UploadBase64FileModification;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;

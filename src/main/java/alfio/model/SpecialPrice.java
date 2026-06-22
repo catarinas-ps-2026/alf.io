@@ -17,15 +17,18 @@
 package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class SpecialPrice {
 
     public enum Status {
-        WAITING, FREE, PENDING, TAKEN, CANCELLED
+        WAITING,
+        FREE,
+        PENDING,
+        TAKEN,
+        CANCELLED
     }
 
     private final int id;
@@ -38,15 +41,16 @@ public class SpecialPrice {
     private final String recipientEmail;
     private final Integer accessCodeId;
 
-    public SpecialPrice(@Column("id") int id,
-                        @Column("code") String code,
-                        @Column("price_cts") int priceInCents,
-                        @Column("ticket_category_id") int ticketCategoryId,
-                        @Column("status") String status,
-                        @Column("sent_ts") ZonedDateTime sentTimestamp,
-                        @Column("recipient_name") String recipientName,
-                        @Column("recipient_email") String recipientEmail,
-                        @Column("access_code_id_fk") Integer accessCodeId) {
+    public SpecialPrice(
+            @Column("id") int id,
+            @Column("code") String code,
+            @Column("price_cts") int priceInCents,
+            @Column("ticket_category_id") int ticketCategoryId,
+            @Column("status") String status,
+            @Column("sent_ts") ZonedDateTime sentTimestamp,
+            @Column("recipient_name") String recipientName,
+            @Column("recipient_email") String recipientEmail,
+            @Column("access_code_id_fk") Integer accessCodeId) {
         this.id = id;
         this.code = code;
         this.priceInCents = priceInCents;
@@ -62,15 +66,12 @@ public class SpecialPrice {
         return sentTimestamp == null;
     }
 
-
     @Getter
     public static class SpecialPriceTicketCategoryId {
         private final int id;
         private final int ticketCategoryId;
 
-
-        public SpecialPriceTicketCategoryId(@Column("id") int id,
-                                            @Column("ticket_category_id") int ticketCategoryId) {
+        public SpecialPriceTicketCategoryId(@Column("id") int id, @Column("ticket_category_id") int ticketCategoryId) {
             this.id = id;
             this.ticketCategoryId = ticketCategoryId;
         }

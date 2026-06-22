@@ -16,17 +16,16 @@
  */
 package alfio.job.executor;
 
-import alfio.manager.TicketReservationManager;
-import alfio.manager.system.AdminJobExecutor;
-import alfio.model.system.AdminJobSchedule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
+
+import alfio.manager.TicketReservationManager;
+import alfio.manager.system.AdminJobExecutor;
+import alfio.model.system.AdminJobSchedule;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class ReservationJobExecutorTest {
 

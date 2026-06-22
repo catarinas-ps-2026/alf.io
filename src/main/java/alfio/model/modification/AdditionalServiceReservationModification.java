@@ -17,10 +17,9 @@
 package alfio.model.modification;
 
 import alfio.model.AdditionalService;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
+import lombok.Data;
 
 @Data
 public class AdditionalServiceReservationModification implements Serializable {
@@ -29,7 +28,7 @@ public class AdditionalServiceReservationModification implements Serializable {
     private Integer quantity = 1;
 
     public boolean isQuantityValid(AdditionalService as, int selectionCount) {
-        if(quantity != null && as.supplementPolicy() != null) {
+        if (quantity != null && as.supplementPolicy() != null) {
             return as.supplementPolicy().isValid(quantity, as, selectionCount);
         } else {
             return true;

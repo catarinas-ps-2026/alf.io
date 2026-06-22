@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { of } from 'rxjs';
 import { PaymentMethodSelectorComponent } from './payment-method-selector.component';
@@ -7,7 +11,10 @@ import { ReservationService } from '../../shared/reservation.service';
 import { I18nService } from '../../shared/i18n.service';
 import type { PurchaseContext } from '../../model/purchase-context';
 import type { ReservationInfo } from '../../model/reservation-info';
-import type { CustomOfflinePayment, PaymentProxyWithParameters } from '../../model/event';
+import type {
+    CustomOfflinePayment,
+    PaymentProxyWithParameters,
+} from '../../model/event';
 
 describe('PaymentMethodSelectorComponent', () => {
     let component: PaymentMethodSelectorComponent;
@@ -31,7 +38,13 @@ describe('PaymentMethodSelectorComponent', () => {
         ticketCategories: [],
         localization: {},
         privacyPolicyUrl: null,
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: false, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: false,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
     } as unknown as PurchaseContext;
 
@@ -79,8 +92,14 @@ describe('PaymentMethodSelectorComponent', () => {
         },
         containsCategoriesLinkedToGroups: false,
         activePaymentMethods: {
-            CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as PaymentProxyWithParameters,
-            PAYPAL: { paymentMethodId: 'PAYPAL', paymentProxy: 'PAYPAL' } as PaymentProxyWithParameters,
+            CREDIT_CARD: {
+                paymentMethodId: 'CREDIT_CARD',
+                paymentProxy: 'STRIPE',
+            } as PaymentProxyWithParameters,
+            PAYPAL: {
+                paymentMethodId: 'PAYPAL',
+                paymentProxy: 'PAYPAL',
+            } as PaymentProxyWithParameters,
         },
         metadata: {
             hideContactData: false,
@@ -107,7 +126,10 @@ describe('PaymentMethodSelectorComponent', () => {
             imports: [ReactiveFormsModule],
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
             providers: [
-                { provide: ReservationService, useValue: mockReservationService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
                 { provide: I18nService, useValue: mockI18nService },
             ],
         });
@@ -130,23 +152,31 @@ describe('PaymentMethodSelectorComponent', () => {
     describe('ngOnInit', () => {
         it('should load custom payment methods', () => {
             component.ngOnInit();
-            expect(mockReservationService.getApplicableCustomPaymentMethodDetails).toHaveBeenCalledWith('res-123');
+            expect(
+                mockReservationService.getApplicableCustomPaymentMethodDetails,
+            ).toHaveBeenCalledWith('res-123');
         });
 
         it('should subscribe to selectedPaymentMethod changes', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            component.overviewForm.get('selectedPaymentMethod').setValue('PAYPAL');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            component.overviewForm
+                .get('selectedPaymentMethod')
+                .setValue('PAYPAL');
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(component.overviewForm.get('paymentProxy').value).toBe('PAYPAL');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(component.overviewForm.get('paymentProxy').value).toBe(
+                'PAYPAL',
+            );
         });
     });
 
     describe('activePaymentMethods', () => {
         it('should return reservation info activePaymentMethods', () => {
-            expect(component.activePaymentMethods).toEqual(mockReservationInfo.activePaymentMethods);
+            expect(component.activePaymentMethods).toEqual(
+                mockReservationInfo.activePaymentMethods,
+            );
         });
     });
 
@@ -168,10 +198,22 @@ describe('PaymentMethodSelectorComponent', () => {
             component.reservationInfo = {
                 ...mockReservationInfo,
                 activePaymentMethods: {
-                    METHOD_1: { paymentMethodId: 'METHOD_1', paymentProxy: 'P1' } as PaymentProxyWithParameters,
-                    METHOD_2: { paymentMethodId: 'METHOD_2', paymentProxy: 'P2' } as PaymentProxyWithParameters,
-                    METHOD_3: { paymentMethodId: 'METHOD_3', paymentProxy: 'P3' } as PaymentProxyWithParameters,
-                    METHOD_4: { paymentMethodId: 'METHOD_4', paymentProxy: 'P4' } as PaymentProxyWithParameters,
+                    METHOD_1: {
+                        paymentMethodId: 'METHOD_1',
+                        paymentProxy: 'P1',
+                    } as PaymentProxyWithParameters,
+                    METHOD_2: {
+                        paymentMethodId: 'METHOD_2',
+                        paymentProxy: 'P2',
+                    } as PaymentProxyWithParameters,
+                    METHOD_3: {
+                        paymentMethodId: 'METHOD_3',
+                        paymentProxy: 'P3',
+                    } as PaymentProxyWithParameters,
+                    METHOD_4: {
+                        paymentMethodId: 'METHOD_4',
+                        paymentProxy: 'P4',
+                    } as PaymentProxyWithParameters,
                 },
             };
             expect(component.verticalLayout).toBe(true);
@@ -181,8 +223,14 @@ describe('PaymentMethodSelectorComponent', () => {
             component.reservationInfo = {
                 ...mockReservationInfo,
                 activePaymentMethods: {
-                    CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as PaymentProxyWithParameters,
-                    PAYPAL: { paymentMethodId: 'PAYPAL', paymentProxy: 'PAYPAL' } as PaymentProxyWithParameters,
+                    CREDIT_CARD: {
+                        paymentMethodId: 'CREDIT_CARD',
+                        paymentProxy: 'STRIPE',
+                    } as PaymentProxyWithParameters,
+                    PAYPAL: {
+                        paymentMethodId: 'PAYPAL',
+                        paymentProxy: 'PAYPAL',
+                    } as PaymentProxyWithParameters,
                 },
             };
             expect(component.verticalLayout).toBe(false);
@@ -218,10 +266,12 @@ describe('PaymentMethodSelectorComponent', () => {
                     es: { paymentName: 'Transferencia Bancaria' },
                 },
             };
-            mockReservationService.getApplicableCustomPaymentMethodDetails.mockReturnValue(of([customMethod]));
+            mockReservationService.getApplicableCustomPaymentMethodDetails.mockReturnValue(
+                of([customMethod]),
+            );
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const details = component.getPaymentMethodDetails('CUSTOM_OFFLINE');
             expect(details.labelKey).toBe('Bank Transfer');
         });
@@ -235,7 +285,9 @@ describe('PaymentMethodSelectorComponent', () => {
     describe('registerCurrentPaymentProvider', () => {
         it('should emit selectedPaymentProvider event', () => {
             let emittedProvider: any = null;
-            component.selectedPaymentProvider.subscribe((p) => (emittedProvider = p));
+            component.selectedPaymentProvider.subscribe(
+                (p) => (emittedProvider = p),
+            );
 
             const mockProvider = { pay: () => of({}) } as any;
             component.registerCurrentPaymentProvider(mockProvider);

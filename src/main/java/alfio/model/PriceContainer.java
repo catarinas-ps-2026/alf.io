@@ -16,17 +16,16 @@
  */
 package alfio.model;
 
+import static alfio.util.MonetaryUtil.*;
+import static java.math.RoundingMode.UNNECESSARY;
+
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
-
-import static alfio.util.MonetaryUtil.*;
-import static java.math.RoundingMode.UNNECESSARY;
 
 public interface PriceContainer {
 
@@ -50,8 +49,7 @@ public interface PriceContainer {
         private final UnaryOperator<BigDecimal> transformer;
         private final BinaryOperator<BigDecimal> extractor;
 
-        VatStatus(BinaryOperator<BigDecimal> extractor,
-                  UnaryOperator<BigDecimal> transformer) {
+        VatStatus(BinaryOperator<BigDecimal> extractor, UnaryOperator<BigDecimal> transformer) {
             this.extractor = extractor;
             this.transformer = transformer;
         }
@@ -65,8 +63,10 @@ public interface PriceContainer {
         }
 
         public static boolean isVatExempt(VatStatus vatStatus) {
-            return vatStatus == INCLUDED_EXEMPT || vatStatus == NOT_INCLUDED_EXEMPT
-                || vatStatus == CUSTOM_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
+            return vatStatus == INCLUDED_EXEMPT
+                    || vatStatus == NOT_INCLUDED_EXEMPT
+                    || vatStatus == CUSTOM_INCLUDED_EXEMPT
+                    || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
         }
 
         public static boolean isVatIncluded(VatStatus vatStatus) {
@@ -79,7 +79,9 @@ public interface PriceContainer {
          * @return true if not included
          */
         public static boolean isVatNotIncluded(VatStatus vatStatus) {
-            return vatStatus == NOT_INCLUDED || vatStatus == NOT_INCLUDED_EXEMPT || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
+            return vatStatus == NOT_INCLUDED
+                    || vatStatus == NOT_INCLUDED_EXEMPT
+                    || vatStatus == CUSTOM_NOT_INCLUDED_EXEMPT;
         }
 
         public static VatStatus forceExempt(VatStatus original) {
@@ -137,7 +139,7 @@ public interface PriceContainer {
      */
     default BigDecimal getFinalPrice() {
         var vatStatus = getVatStatus();
-        if(getSrcPriceCts() == 0 || vatStatus == null) {
+        if (getSrcPriceCts() == 0 || vatStatus == null) {
             return BigDecimal.ZERO;
         }
         final BigDecimal price = centsToUnit(getSrcPriceCts(), getCurrencyCode());
@@ -166,24 +168,29 @@ public interface PriceContainer {
         return getVAT(getTaxablePrice(), getVatStatus(), getVatPercentageOrZero());
     }
 
-
     /**
      * @return the discount applied, if any
      */
     @JsonIgnore
     default BigDecimal getAppliedDiscount() {
         return getDiscount()
-            // do not take into account reservation-level discount or access codes
-            .filter(discount -> discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION && discount.getCodeType() != PromoCodeDiscount.CodeType.ACCESS)
-            .map(discount -> {
-                String currencyCode = getCurrencyCode();
-                final BigDecimal price = centsToUnit(getSrcPriceCts(), currencyCode);
-                if(discount.getFixedAmount()) {
-                    return centsToUnit(Math.min(getSrcPriceCts(), discount.getDiscountAmount()), currencyCode);
-                } else {
-                    return fixScale(price.multiply(new BigDecimal(discount.getDiscountAmount()).divide(HUNDRED, 2, UNNECESSARY)), currencyCode);
-                }
-            }).orElse(BigDecimal.ZERO);
+                // do not take into account reservation-level discount or access codes
+                .filter(discount ->
+                        discount.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION
+                                && discount.getCodeType() != PromoCodeDiscount.CodeType.ACCESS)
+                .map(discount -> {
+                    String currencyCode = getCurrencyCode();
+                    final BigDecimal price = centsToUnit(getSrcPriceCts(), currencyCode);
+                    if (discount.getFixedAmount()) {
+                        return centsToUnit(Math.min(getSrcPriceCts(), discount.getDiscountAmount()), currencyCode);
+                    } else {
+                        return fixScale(
+                                price.multiply(
+                                        new BigDecimal(discount.getDiscountAmount()).divide(HUNDRED, 2, UNNECESSARY)),
+                                currencyCode);
+                    }
+                })
+                .orElse(BigDecimal.ZERO);
     }
 
     /**
@@ -192,13 +199,15 @@ public interface PriceContainer {
     default BigDecimal getNetPrice() {
         var vatStatus = getVatStatus();
         var currencyCode = getCurrencyCode();
-        if(vatStatus == VatStatus.NOT_INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {
+        if (vatStatus == VatStatus.NOT_INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_NOT_INCLUDED_EXEMPT) {
             return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode);
-        } else if(vatStatus == VatStatus.INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_INCLUDED_EXEMPT) {
-            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
+        } else if (vatStatus == VatStatus.INCLUDED_EXEMPT || vatStatus == VatStatus.CUSTOM_INCLUDED_EXEMPT) {
+            var rawVat =
+                    vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
             return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode).add(rawVat);
-        } else if(vatStatus == VatStatus.INCLUDED || vatStatus == VatStatus.INCLUDED_NOT_CHARGED) {
-            var rawVat = vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
+        } else if (vatStatus == VatStatus.INCLUDED || vatStatus == VatStatus.INCLUDED_NOT_CHARGED) {
+            var rawVat =
+                    vatStatus.extractRawVAT(centsToUnit(getSrcPriceCts(), getCurrencyCode()), getVatPercentageOrZero());
             return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode).subtract(rawVat);
         } else {
             return MonetaryUtil.centsToUnit(getSrcPriceCts(), currencyCode);
@@ -208,5 +217,4 @@ public interface PriceContainer {
     static BigDecimal getVAT(BigDecimal price, VatStatus vatStatus, BigDecimal vatPercentage) {
         return vatStatus.extractVat(price, vatPercentage);
     }
-
 }

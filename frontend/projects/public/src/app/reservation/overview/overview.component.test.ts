@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { type ComponentFixture, TestBed } from '@angular/core/testing';
-import { UntypedFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+    UntypedFormBuilder,
+    ReactiveFormsModule,
+    Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
@@ -91,12 +95,21 @@ describe('OverviewComponent', () => {
         ticketCategories: [],
         localization: {},
         privacyPolicyUrl: null,
-        invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: false, enabledItalyEInvoicing: false },
+        invoicingConfiguration: {
+            enabled: false,
+            onlyInvoice: false,
+            vatIncluded: false,
+            userCanDownloadReceiptOrInvoice: false,
+            enabledItalyEInvoicing: false,
+        },
         assignmentConfiguration: { enableAttendeeAutocomplete: true },
     } as unknown as PurchaseContext;
 
     const mockActivatedRoute = {
-        data: of({ type: 'event', publicIdentifierParameter: 'eventShortName' }),
+        data: of({
+            type: 'event',
+            publicIdentifierParameter: 'eventShortName',
+        }),
         params: of({ eventShortName: 'test-event', reservationId: 'res-123' }),
         queryParams: of({}),
         snapshot: {
@@ -105,14 +118,19 @@ describe('OverviewComponent', () => {
         },
     };
 
-const mockRouter = {
+    const mockRouter = {
         navigate: vi.fn(),
     };
 
     const mockReservationService = {
         getReservationInfo: vi.fn(() => of(mockReservationInfo)),
         getApplicableCustomPaymentMethodDetails: vi.fn(() => of([])),
-        confirmOverview: vi.fn(() => of({ success: true, value: { redirect: false, redirectUrl: null } })),
+        confirmOverview: vi.fn(() =>
+            of({
+                success: true,
+                value: { redirect: false, redirectUrl: null },
+            }),
+        ),
         backToBooking: vi.fn(() => of(true)),
         cancelPendingReservation: vi.fn(() => of(true)),
         removePaymentToken: vi.fn(() => of(true)),
@@ -161,8 +179,14 @@ const mockRouter = {
             providers: [
                 { provide: ActivatedRoute, useValue: mockActivatedRoute },
                 { provide: Router, useValue: mockRouter },
-                { provide: ReservationService, useValue: mockReservationService },
-                { provide: PurchaseContextService, useValue: mockPurchaseContextService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
+                {
+                    provide: PurchaseContextService,
+                    useValue: mockPurchaseContextService,
+                },
                 { provide: UntypedFormBuilder, useValue: mockFormBuilder },
                 { provide: I18nService, useValue: mockI18nService },
                 { provide: TranslateService, useValue: mockTranslateService },
@@ -174,7 +198,9 @@ const mockRouter = {
 
         fixture = TestBed.createComponent(OverviewComponent);
         component = fixture.componentInstance;
-        component.subscriptionInput = { nativeElement: { focus: vi.fn(), value: null } } as any;
+        component.subscriptionInput = {
+            nativeElement: { focus: vi.fn(), value: null },
+        } as any;
     });
 
     it('should create', () => {
@@ -185,25 +211,37 @@ const mockRouter = {
         it('should load reservation and context', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith('event', 'test-event');
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalledWith('res-123');
-            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith('reservation-page.header.title', mockPurchaseContext);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+            );
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalledWith('res-123');
+            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith(
+                'reservation-page.header.title',
+                mockPurchaseContext,
+            );
         });
 
         it('should load custom payment methods', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.getApplicableCustomPaymentMethodDetails).toHaveBeenCalledWith('res-123');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.getApplicableCustomPaymentMethodDetails,
+            ).toHaveBeenCalledWith('res-123');
         });
 
         it('should initialize subscription code form', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.subscriptionCodeForm).toBeDefined();
-            expect(component.subscriptionCodeForm.get('subscriptionCode')).toBeDefined();
+            expect(
+                component.subscriptionCodeForm.get('subscriptionCode'),
+            ).toBeDefined();
         });
     });
 
@@ -211,25 +249,37 @@ const mockRouter = {
         it('should load reservation info and setup payment methods', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.loadReservation();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalled();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalled();
             expect(component.reservationInfo).toEqual(mockReservationInfo);
         });
 
         it('should set free payment when order is free', async () => {
-            const freeReservation = { ...mockReservationInfo, orderSummary: { ...mockReservationInfo.orderSummary, free: true } };
-            mockReservationService.getReservationInfo.mockReturnValue(of(freeReservation));
+            const freeReservation = {
+                ...mockReservationInfo,
+                orderSummary: {
+                    ...mockReservationInfo.orderSummary,
+                    free: true,
+                },
+            };
+            mockReservationService.getReservationInfo.mockReturnValue(
+                of(freeReservation),
+            );
 
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.loadReservation();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(component.selectedPaymentProvider).toBeInstanceOf(SimplePaymentProvider);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(component.selectedPaymentProvider).toBeInstanceOf(
+                SimplePaymentProvider,
+            );
         });
     });
 
@@ -237,10 +287,16 @@ const mockRouter = {
         it('should return number of active payment methods', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.activePaymentMethods = {
-                CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as any,
-                PAYPAL: { paymentMethodId: 'PAYPAL', paymentProxy: 'PAYPAL' } as any,
+                CREDIT_CARD: {
+                    paymentMethodId: 'CREDIT_CARD',
+                    paymentProxy: 'STRIPE',
+                } as any,
+                PAYPAL: {
+                    paymentMethodId: 'PAYPAL',
+                    paymentProxy: 'PAYPAL',
+                } as any,
             };
 
             expect(component.paymentMethodsCount()).toBe(2);
@@ -251,9 +307,12 @@ const mockRouter = {
         it('should return first payment method key when only one', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.activePaymentMethods = {
-                CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as any,
+                CREDIT_CARD: {
+                    paymentMethodId: 'CREDIT_CARD',
+                    paymentProxy: 'STRIPE',
+                } as any,
             };
 
             expect(component.getSinglePaymentMethod()).toBe('CREDIT_CARD');
@@ -264,16 +323,21 @@ const mockRouter = {
         it('should navigate to booking page', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.publicIdentifier = 'test-event';
             component.reservationId = 'res-123';
             component.purchaseContextType = 'event';
 
             component.back();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.backToBooking).toHaveBeenCalledWith('res-123');
-            expect(mockRouter.navigate).toHaveBeenCalledWith(['event', 'test-event', 'reservation', 'res-123', 'book'], {});
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockReservationService.backToBooking).toHaveBeenCalledWith(
+                'res-123',
+            );
+            expect(mockRouter.navigate).toHaveBeenCalledWith(
+                ['event', 'test-event', 'reservation', 'res-123', 'book'],
+                {},
+            );
         });
     });
 
@@ -289,11 +353,13 @@ const mockRouter = {
         it('should call removePaymentToken and reload reservation', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.clearToken();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.removePaymentToken).toHaveBeenCalledWith('res-123');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.removePaymentToken,
+            ).toHaveBeenCalledWith('res-123');
         });
     });
 
@@ -301,14 +367,16 @@ const mockRouter = {
         it('should set captcha value in form', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.overviewForm = mockFormBuilder.group({
                 captcha: null,
             });
 
             component.handleRecaptchaResponse('test-captcha-token');
 
-            expect(component.overviewForm.get('captcha').value).toBe('test-captcha-token');
+            expect(component.overviewForm.get('captcha').value).toBe(
+                'test-captcha-token',
+            );
         });
     });
 
@@ -316,7 +384,7 @@ const mockRouter = {
         it('should apply subscription code and reload', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationId = 'res-123';
             component.reservationInfo = mockReservationInfo;
             component.subscriptionCodeForm = mockFormBuilder.group({
@@ -325,8 +393,10 @@ const mockRouter = {
 
             component.applySubscription();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.applySubscriptionCode).toHaveBeenCalledWith('res-123', 'SUB123', 'john@example.com');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.applySubscriptionCode,
+            ).toHaveBeenCalledWith('res-123', 'SUB123', 'john@example.com');
             expect(mockFeedbackService.showSuccess).toHaveBeenCalled();
         });
 
@@ -336,14 +406,17 @@ const mockRouter = {
             component.subscriptionCodeForm = mockFormBuilder.group({
                 subscriptionCode: ['', Validators.required],
             });
-            const control = component.subscriptionCodeForm.get('subscriptionCode');
+            const control =
+                component.subscriptionCodeForm.get('subscriptionCode');
             expect(control?.value).toBe('');
             expect(component.subscriptionCodeForm.valid).toBe(false);
             mockReservationService.applySubscriptionCode.mockClear();
 
             component.applySubscription();
 
-            expect(mockReservationService.applySubscriptionCode).not.toHaveBeenCalled();
+            expect(
+                mockReservationService.applySubscriptionCode,
+            ).not.toHaveBeenCalled();
         });
     });
 
@@ -357,7 +430,9 @@ const mockRouter = {
         });
 
         it('should reset input when hiding form', () => {
-            component.subscriptionInput = { nativeElement: { value: 'previous-value' } } as any;
+            component.subscriptionInput = {
+                nativeElement: { value: 'previous-value' },
+            } as any;
             component.displaySubscriptionForm = true;
 
             component.toggleSubscriptionFormVisible();
@@ -370,7 +445,7 @@ const mockRouter = {
         it('should return true when privacy policy is not required', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.privacyPolicyUrl = null;
             component.overviewForm = mockFormBuilder.group({
                 termAndConditionsAccepted: true,
@@ -383,8 +458,9 @@ const mockRouter = {
         it('should return true when both are accepted', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            component.purchaseContext.privacyPolicyUrl = 'https://example.com/privacy';
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            component.purchaseContext.privacyPolicyUrl =
+                'https://example.com/privacy';
             component.overviewForm = mockFormBuilder.group({
                 termAndConditionsAccepted: true,
                 privacyPolicyAccepted: true,
@@ -396,8 +472,9 @@ const mockRouter = {
         it('should return false when privacy is not accepted', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            component.purchaseContext.privacyPolicyUrl = 'https://example.com/privacy';
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            component.purchaseContext.privacyPolicyUrl =
+                'https://example.com/privacy';
             component.overviewForm = mockFormBuilder.group({
                 termAndConditionsAccepted: true,
                 privacyPolicyAccepted: false,
@@ -411,16 +488,17 @@ const mockRouter = {
         it('should return true when enabled and italianEInvoicing present', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
-                referenceType: 'PEC',
-                fiscalCode: 'RSSMRA85T10A562K',
-                addresseeCode: '',
-                pec: 'test@example.it',
-                reference: 'test@example.it',
-                splitPayment: false,
-            };
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                {
+                    referenceType: 'PEC',
+                    fiscalCode: 'RSSMRA85T10A562K',
+                    addresseeCode: '',
+                    pec: 'test@example.it',
+                    reference: 'test@example.it',
+                    splitPayment: false,
+                };
 
             expect(component.enabledItalyEInvoicing).toBe(true);
         });
@@ -428,9 +506,10 @@ const mockRouter = {
         it('should return false when italianEInvoicing is not present', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = undefined;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                undefined;
 
             expect(component.enabledItalyEInvoicing).toBe(false);
         });
@@ -440,7 +519,7 @@ const mockRouter = {
         it('should return true when invoice requested and taxId present', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.invoiceRequested = true;
             component.reservationInfo.skipVatNr = false;
             component.reservationInfo.billingDetails.taxId = '123456';
@@ -451,7 +530,7 @@ const mockRouter = {
         it('should return false when skipVatNr is true', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.invoiceRequested = true;
             component.reservationInfo.skipVatNr = true;
             component.reservationInfo.billingDetails.taxId = '123456';
@@ -464,7 +543,7 @@ const mockRouter = {
         it('should return false when token is acquired', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.tokenAcquired = true;
 
             expect(component.paymentMethodDeferred).toBe(false);
@@ -473,7 +552,7 @@ const mockRouter = {
         it('should check selectedPaymentProvider when token not acquired', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.tokenAcquired = false;
             component.selectedPaymentProvider = new SimplePaymentProvider();
 
@@ -485,9 +564,16 @@ const mockRouter = {
         it('should return true when subscription is applied', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.orderSummary.summary = [
-                { type: 'APPLIED_SUBSCRIPTION', name: 'Subscription', amount: 1, price: '0', subTotal: '0', taxPercentage: '0' },
+                {
+                    type: 'APPLIED_SUBSCRIPTION',
+                    name: 'Subscription',
+                    amount: 1,
+                    price: '0',
+                    subTotal: '0',
+                    taxPercentage: '0',
+                },
             ];
 
             expect(component.appliedSubscription).toBe(true);
@@ -496,9 +582,16 @@ const mockRouter = {
         it('should return false when no subscription applied', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.orderSummary.summary = [
-                { type: 'TICKET', name: 'Ticket', amount: 1, price: '100', subTotal: '100', taxPercentage: '22' },
+                {
+                    type: 'TICKET',
+                    name: 'Ticket',
+                    amount: 1,
+                    price: '100',
+                    subTotal: '100',
+                    taxPercentage: '22',
+                },
             ];
 
             expect(component.appliedSubscription).toBe(false);
@@ -521,7 +614,7 @@ const mockRouter = {
         it('should return fiscalCode for Italy', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.billingDetails.country = 'IT';
             expect(component.taxIdMessageKey).toBe('invoice-fields.fiscalCode');
         });
@@ -529,7 +622,7 @@ const mockRouter = {
         it('should return tax-id for other countries', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationInfo.billingDetails.country = 'US';
             expect(component.taxIdMessageKey).toBe('invoice-fields.tax-id');
         });
@@ -539,16 +632,17 @@ const mockRouter = {
         it('should return reference when italianEInvoicing is present', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
-                referenceType: 'PEC',
-                fiscalCode: 'RSSMRA85T10A562K',
-                addresseeCode: '',
-                pec: 'test@example.it',
-                reference: 'test-reference',
-                splitPayment: false,
-            };
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                {
+                    referenceType: 'PEC',
+                    fiscalCode: 'RSSMRA85T10A562K',
+                    addresseeCode: '',
+                    pec: 'test@example.it',
+                    reference: 'test-reference',
+                    splitPayment: false,
+                };
 
             expect(component.italyEInvoicingReference).toBe('test-reference');
         });
@@ -556,16 +650,17 @@ const mockRouter = {
         it('should return empty string when not enabled', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = false;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
-                referenceType: 'PEC',
-                fiscalCode: 'RSSMRA85T10A562K',
-                addresseeCode: '',
-                pec: 'test@example.it',
-                reference: 'test-reference',
-                splitPayment: false,
-            };
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                {
+                    referenceType: 'PEC',
+                    fiscalCode: 'RSSMRA85T10A562K',
+                    addresseeCode: '',
+                    pec: 'test@example.it',
+                    reference: 'test-reference',
+                    splitPayment: false,
+                };
 
             expect(component.italyEInvoicingReference).toBe('');
         });
@@ -573,9 +668,10 @@ const mockRouter = {
         it('should return empty string when italianEInvoicing is null', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = null;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                null;
 
             expect(component.italyEInvoicingReference).toBe('');
         });
@@ -585,41 +681,47 @@ const mockRouter = {
         it('should return addressee-code when referenceType is ADDRESSEE_CODE', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
-                referenceType: 'ADDRESSEE_CODE',
-                fiscalCode: '',
-                addresseeCode: 'CODE123',
-                pec: '',
-                reference: '',
-                splitPayment: false,
-            };
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                {
+                    referenceType: 'ADDRESSEE_CODE',
+                    fiscalCode: '',
+                    addresseeCode: 'CODE123',
+                    pec: '',
+                    reference: '',
+                    splitPayment: false,
+                };
 
-            expect(component.italyEInvoicingSelectedAddresseeKey).toBe('invoice-fields.addressee-code');
+            expect(component.italyEInvoicingSelectedAddresseeKey).toBe(
+                'invoice-fields.addressee-code',
+            );
         });
 
         it('should return pec when referenceType is not ADDRESSEE_CODE', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
-                referenceType: 'PEC',
-                fiscalCode: '',
-                addresseeCode: '',
-                pec: 'pec@example.it',
-                reference: '',
-                splitPayment: false,
-            };
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                {
+                    referenceType: 'PEC',
+                    fiscalCode: '',
+                    addresseeCode: '',
+                    pec: 'pec@example.it',
+                    reference: '',
+                    splitPayment: false,
+                };
 
-            expect(component.italyEInvoicingSelectedAddresseeKey).toBe('invoice-fields.pec');
+            expect(component.italyEInvoicingSelectedAddresseeKey).toBe(
+                'invoice-fields.pec',
+            );
         });
 
         it('should return empty string when not enabled', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = false;
 
             expect(component.italyEInvoicingSelectedAddresseeKey).toBe('');
@@ -630,26 +732,30 @@ const mockRouter = {
         it('should return fiscalCode when italianEInvoicing is present', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
-                referenceType: 'PEC',
-                fiscalCode: 'RSSMRA85T10A562K',
-                addresseeCode: '',
-                pec: 'test@example.it',
-                reference: '',
-                splitPayment: false,
-            };
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                {
+                    referenceType: 'PEC',
+                    fiscalCode: 'RSSMRA85T10A562K',
+                    addresseeCode: '',
+                    pec: 'test@example.it',
+                    reference: '',
+                    splitPayment: false,
+                };
 
-            expect(component.italyEInvoicingFiscalCode).toBe('RSSMRA85T10A562K');
+            expect(component.italyEInvoicingFiscalCode).toBe(
+                'RSSMRA85T10A562K',
+            );
         });
 
         it('should return empty string when italianEInvoicing is null', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = true;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = null;
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                null;
 
             expect(component.italyEInvoicingFiscalCode).toBe('');
         });
@@ -657,16 +763,17 @@ const mockRouter = {
         it('should return empty string when not enabled', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.purchaseContext.invoicingConfiguration.enabledItalyEInvoicing = false;
-            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing = {
-                referenceType: 'PEC',
-                fiscalCode: 'RSSMRA85T10A562K',
-                addresseeCode: '',
-                pec: 'test@example.it',
-                reference: '',
-                splitPayment: false,
-            };
+            component.reservationInfo.billingDetails.invoicingAdditionalInfo.italianEInvoicing =
+                {
+                    referenceType: 'PEC',
+                    fiscalCode: 'RSSMRA85T10A562K',
+                    addresseeCode: '',
+                    pec: 'test@example.it',
+                    reference: '',
+                    splitPayment: false,
+                };
 
             expect(component.italyEInvoicingFiscalCode).toBe('');
         });
@@ -676,11 +783,13 @@ const mockRouter = {
         it('should call forcePaymentStatusCheck service', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.forceCheck();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockReservationService.forcePaymentStatusCheck).toHaveBeenCalledWith('res-123');
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(
+                mockReservationService.forcePaymentStatusCheck,
+            ).toHaveBeenCalledWith('res-123');
         });
     });
 
@@ -688,7 +797,7 @@ const mockRouter = {
         it('should open modal and call removeSubscription service on confirm', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationId = 'res-123';
 
             mockModalService.open.mockReturnValue({
@@ -697,9 +806,11 @@ const mockRouter = {
 
             component.removeSubscription({ type: 'SUBSCRIPTION' } as any);
 
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 200));
             expect(mockModalService.open).toHaveBeenCalled();
-            expect(mockReservationService.removeSubscription).toHaveBeenCalledWith('res-123');
+            expect(
+                mockReservationService.removeSubscription,
+            ).toHaveBeenCalledWith('res-123');
             expect(mockFeedbackService.showInfo).toHaveBeenCalled();
         });
     });
@@ -708,10 +819,16 @@ const mockRouter = {
         it('should return matching payment method id', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.activePaymentMethods = {
-                CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as any,
-                PAYPAL: { paymentMethodId: 'PAYPAL', paymentProxy: 'PAYPAL' } as any,
+                CREDIT_CARD: {
+                    paymentMethodId: 'CREDIT_CARD',
+                    paymentProxy: 'STRIPE',
+                } as any,
+                PAYPAL: {
+                    paymentMethodId: 'PAYPAL',
+                    paymentProxy: 'PAYPAL',
+                } as any,
             };
 
             const result = component['getPaymentMethodMatchingProxy']('STRIPE');
@@ -721,12 +838,16 @@ const mockRouter = {
         it('should return null when no matching proxy', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.activePaymentMethods = {
-                CREDIT_CARD: { paymentMethodId: 'CREDIT_CARD', paymentProxy: 'STRIPE' } as any,
+                CREDIT_CARD: {
+                    paymentMethodId: 'CREDIT_CARD',
+                    paymentProxy: 'STRIPE',
+                } as any,
             };
 
-            const result = component['getPaymentMethodMatchingProxy']('UNKNOWN');
+            const result =
+                component['getPaymentMethodMatchingProxy']('UNKNOWN');
             expect(result).toBeNull();
         });
     });
@@ -734,7 +855,7 @@ const mockRouter = {
     describe('confirm', () => {
         it('should return early if form is invalid', async () => {
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.overviewForm = mockFormBuilder.group({
                 termAndConditionsAccepted: false,
             });
@@ -748,7 +869,7 @@ const mockRouter = {
 
         it('should return early if no payment provider selected', async () => {
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.overviewForm = mockFormBuilder.group({
                 termAndConditionsAccepted: true,
                 selectedPaymentMethod: null,
@@ -763,7 +884,7 @@ const mockRouter = {
 
         it('should handle successful payment with redirect', async () => {
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationId = 'res-123';
             component.purchaseContextType = 'event';
             component.publicIdentifier = 'test-event';
@@ -780,26 +901,33 @@ const mockRouter = {
 
             const mockPaymentProvider = {
                 statusNotifications: vi.fn(() => of(null)),
-                pay: vi.fn(() => of({ success: true, gatewayToken: 'token-123' })),
+                pay: vi.fn(() =>
+                    of({ success: true, gatewayToken: 'token-123' }),
+                ),
             } as any;
 
             component.selectedPaymentProvider = mockPaymentProvider;
 
-            mockReservationService.confirmOverview.mockReturnValue(of({
-                success: true,
-                value: { redirect: true, redirectUrl: 'https://payment.example.com' },
-            }));
+            mockReservationService.confirmOverview.mockReturnValue(
+                of({
+                    success: true,
+                    value: {
+                        redirect: true,
+                        redirectUrl: 'https://payment.example.com',
+                    },
+                }),
+            );
 
             component.confirm();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(mockPaymentProvider.pay).toHaveBeenCalled();
             expect(mockReservationService.confirmOverview).toHaveBeenCalled();
         });
 
         it('should handle successful payment without redirect', async () => {
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationId = 'res-123';
             component.purchaseContextType = 'event';
             component.publicIdentifier = 'test-event';
@@ -818,19 +946,23 @@ const mockRouter = {
 
             const mockPaymentProvider = {
                 statusNotifications: vi.fn(() => of(null)),
-                pay: vi.fn(() => of({ success: true, gatewayToken: 'token-123' })),
+                pay: vi.fn(() =>
+                    of({ success: true, gatewayToken: 'token-123' }),
+                ),
             } as any;
 
             component.selectedPaymentProvider = mockPaymentProvider;
 
-            mockReservationService.confirmOverview.mockReturnValue(of({
-                success: true,
-                value: { redirect: false, redirectUrl: null },
-            }));
+            mockReservationService.confirmOverview.mockReturnValue(
+                of({
+                    success: true,
+                    value: { redirect: false, redirectUrl: null },
+                }),
+            );
 
             component.confirm();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(mockRouter.navigate).toHaveBeenCalledWith(
                 ['event', 'test-event', 'reservation', 'res-123', 'success'],
                 expect.any(Object),
@@ -839,7 +971,7 @@ const mockRouter = {
 
         it('should handle confirmOverview failure with validation errors', async () => {
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationId = 'res-123';
             component.overviewForm = mockFormBuilder.group({
                 termAndConditionsAccepted: true,
@@ -854,26 +986,36 @@ const mockRouter = {
 
             const mockPaymentProvider = {
                 statusNotifications: vi.fn(() => of(null)),
-                pay: vi.fn(() => of({ success: true, gatewayToken: 'token-123' })),
+                pay: vi.fn(() =>
+                    of({ success: true, gatewayToken: 'token-123' }),
+                ),
             } as any;
 
             component.selectedPaymentProvider = mockPaymentProvider;
 
-            mockReservationService.confirmOverview.mockReturnValue(of({
-                success: false,
-                validationErrors: [{ fieldName: 'email', code: 'error.invalid', arguments: {} }],
-            }));
+            mockReservationService.confirmOverview.mockReturnValue(
+                of({
+                    success: false,
+                    validationErrors: [
+                        {
+                            fieldName: 'email',
+                            code: 'error.invalid',
+                            arguments: {},
+                        },
+                    ],
+                }),
+            );
 
             component.confirm();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.submitting).toBe(false);
             expect(component.globalErrors).toBeDefined();
         });
 
         it('should handle payment error from pay()', async () => {
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationId = 'res-123';
             component.overviewForm = mockFormBuilder.group({
                 termAndConditionsAccepted: true,
@@ -888,14 +1030,16 @@ const mockRouter = {
 
             const mockPaymentProvider = {
                 statusNotifications: vi.fn(() => of(null)),
-                pay: vi.fn(() => throwError(() => ({ message: 'Payment failed' }))),
+                pay: vi.fn(() =>
+                    throwError(() => ({ message: 'Payment failed' })),
+                ),
             } as any;
 
             component.selectedPaymentProvider = mockPaymentProvider;
 
             component.confirm();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.submitting).toBe(false);
             expect(component.globalErrors).toBeDefined();
         });
@@ -913,7 +1057,7 @@ const mockRouter = {
 
             component.handleExpired(true);
 
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise((resolve) => setTimeout(resolve, 50));
             expect(mockModalService.open).toHaveBeenCalledWith(
                 ReservationExpiredComponent,
                 expect.objectContaining({ centered: true, backdrop: 'static' }),
@@ -933,16 +1077,18 @@ const mockRouter = {
     describe('forceCheck error handling', () => {
         it('should handle forceCheck error', async () => {
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             component.reservationId = 'res-123';
             component.reservationInfo = mockReservationInfo;
             component.purchaseContext = mockPurchaseContext;
 
-            mockReservationService.forcePaymentStatusCheck.mockReturnValue(throwError(() => ({ message: 'Check failed' })));
+            mockReservationService.forcePaymentStatusCheck.mockReturnValue(
+                throwError(() => ({ message: 'Check failed' })),
+            );
 
             component.forceCheck();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.forceCheckInProgress).toBe(true);
         });
     });

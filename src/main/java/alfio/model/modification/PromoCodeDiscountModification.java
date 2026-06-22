@@ -21,14 +21,13 @@ import alfio.model.PromoCodeDiscount.DiscountType;
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
 @Getter
 public class PromoCodeDiscountModification {
@@ -49,24 +48,23 @@ public class PromoCodeDiscountModification {
     private final PromoCodeDiscount.CodeType codeType;
     private final Integer hiddenCategoryId;
 
-
     @JsonCreator
     public PromoCodeDiscountModification(
-        @JsonProperty("organizationId") Integer organizationId,
-        @JsonProperty("eventId") Integer eventId,
-        @JsonProperty("promoCode") String promoCode,
-        @JsonProperty("start") DateTimeModification start,
-        @JsonProperty("end") DateTimeModification end,
-        @JsonProperty("discountAmount") BigDecimal discountAmount,
-        @JsonProperty("currencyCode") String currencyCode,
-        @JsonProperty("discountType") DiscountType discountType,
-        @JsonProperty("categories") List<Integer> categories,
-        @JsonProperty("utcOffset") Integer utcOffset,
-        @JsonProperty("maxUsage") Integer maxUsage,
-        @JsonProperty("description") String description,
-        @JsonProperty("emailReference") String emailReference,
-        @JsonProperty("codeType") PromoCodeDiscount.CodeType codeType,
-        @JsonProperty("hiddenCategoryId") Integer hiddenCategoryId) {
+            @JsonProperty("organizationId") Integer organizationId,
+            @JsonProperty("eventId") Integer eventId,
+            @JsonProperty("promoCode") String promoCode,
+            @JsonProperty("start") DateTimeModification start,
+            @JsonProperty("end") DateTimeModification end,
+            @JsonProperty("discountAmount") BigDecimal discountAmount,
+            @JsonProperty("currencyCode") String currencyCode,
+            @JsonProperty("discountType") DiscountType discountType,
+            @JsonProperty("categories") List<Integer> categories,
+            @JsonProperty("utcOffset") Integer utcOffset,
+            @JsonProperty("maxUsage") Integer maxUsage,
+            @JsonProperty("description") String description,
+            @JsonProperty("emailReference") String emailReference,
+            @JsonProperty("codeType") PromoCodeDiscount.CodeType codeType,
+            @JsonProperty("hiddenCategoryId") Integer hiddenCategoryId) {
 
         this.organizationId = organizationId;
         this.eventId = eventId;
@@ -76,7 +74,9 @@ public class PromoCodeDiscountModification {
         this.discountAmount = discountAmount;
         this.currencyCode = currencyCode;
         this.discountType = discountType;
-        this.categories = Optional.ofNullable(categories).map(l -> l.stream().filter(Objects::nonNull).collect(Collectors.toList())).orElse(Collections.emptyList());
+        this.categories = Optional.ofNullable(categories)
+                .map(l -> l.stream().filter(Objects::nonNull).collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
         this.utcOffset = utcOffset;
         this.maxUsage = maxUsage;
         this.description = description;
@@ -84,20 +84,20 @@ public class PromoCodeDiscountModification {
         this.codeType = Optional.ofNullable(codeType).orElse(PromoCodeDiscount.CodeType.DISCOUNT);
         this.hiddenCategoryId = hiddenCategoryId;
     }
-    
+
     private int getDiscountAsPercent() {
         return Optional.ofNullable(discountAmount).map(BigDecimal::intValue).orElse(0);
     }
-    
+
     private int getDiscountInCents(String currencyCode) {
         return MonetaryUtil.unitToCents(discountAmount, currencyCode);
     }
 
     public int getDiscountValue() {
-        if(codeType != PromoCodeDiscount.CodeType.DISCOUNT) {
+        if (codeType != PromoCodeDiscount.CodeType.DISCOUNT) {
             return 0;
         }
-        if(discountType == DiscountType.PERCENTAGE) {
+        if (discountType == DiscountType.PERCENTAGE) {
             return getDiscountAsPercent();
         }
         return getDiscountInCents(currencyCode);

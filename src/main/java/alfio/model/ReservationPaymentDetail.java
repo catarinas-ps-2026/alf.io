@@ -18,7 +18,6 @@ package alfio.model;
 
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
@@ -34,16 +33,17 @@ public class ReservationPaymentDetail {
     private final String transactionNotes;
     private final String invoiceNumber;
 
-    public ReservationPaymentDetail(@Column("tr_id") String id,
-                                    @Column("tr_first_name") String firstName,
-                                    @Column("tr_last_name") String lastName,
-                                    @Column("tr_email_address") String email,
-                                    @Column("tr_payment_method") String paymentMethod,
-                                    @Column("bt_price_cts") Integer paidAmount,
-                                    @Column("bt_currency") String currencyCode,
-                                    @Column("bt_t_timestamp") ZonedDateTime transactionTimestamp,
-                                    @Column("bt_notes") String transactionNotes,
-                                    @Column("tr_invoice_number") String invoiceNumber) {
+    public ReservationPaymentDetail(
+            @Column("tr_id") String id,
+            @Column("tr_first_name") String firstName,
+            @Column("tr_last_name") String lastName,
+            @Column("tr_email_address") String email,
+            @Column("tr_payment_method") String paymentMethod,
+            @Column("bt_price_cts") Integer paidAmount,
+            @Column("bt_currency") String currencyCode,
+            @Column("bt_t_timestamp") ZonedDateTime transactionTimestamp,
+            @Column("bt_notes") String transactionNotes,
+            @Column("tr_invoice_number") String invoiceNumber) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;

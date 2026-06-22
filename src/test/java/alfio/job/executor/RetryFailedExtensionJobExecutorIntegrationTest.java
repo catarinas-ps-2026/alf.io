@@ -16,6 +16,11 @@
  */
 package alfio.job.executor;
 
+import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
+import static alfio.test.util.IntegrationTestUtil.initEvent;
+import static java.util.Objects.requireNonNull;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -39,13 +44,6 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.ClockProvider;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -56,11 +54,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
-import static alfio.test.util.IntegrationTestUtil.initEvent;
-import static java.util.Objects.requireNonNull;
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -80,14 +79,15 @@ class RetryFailedExtensionJobExecutorIntegrationTest {
     private final AdminJobManager adminJobManager;
 
     @Autowired
-    RetryFailedExtensionJobExecutorIntegrationTest(EventManager eventManager,
-                                        UserManager userManager,
-                                        ExtensionService extensionService,
-                                        ConfigurationRepository configurationRepository,
-                                        OrganizationRepository organizationRepository,
-                                        EventRepository eventRepository,
-                                        AdminJobQueueRepository adminJobQueueRepository,
-                                        AdminJobManager adminJobManager) {
+    RetryFailedExtensionJobExecutorIntegrationTest(
+            EventManager eventManager,
+            UserManager userManager,
+            ExtensionService extensionService,
+            ConfigurationRepository configurationRepository,
+            OrganizationRepository organizationRepository,
+            EventRepository eventRepository,
+            AdminJobQueueRepository adminJobQueueRepository,
+            AdminJobManager adminJobManager) {
         this.eventManager = eventManager;
         this.userManager = userManager;
         this.configurationRepository = configurationRepository;
@@ -127,8 +127,10 @@ class RetryFailedExtensionJobExecutorIntegrationTest {
 
         var invoker = new AdminJobManagerInvoker(adminJobManager);
         // try to run the jobs, this should still fail
-        var expectedDate = ZonedDateTime.now(ClockProvider.clock()).plusSeconds(4).minus(100, ChronoUnit.MILLIS);
-        invoker.invokeProcessPendingExtensionRetry(ZonedDateTime.now(ClockProvider.clock()).plus(2001L, ChronoUnit.MILLIS));
+        var expectedDate =
+                ZonedDateTime.now(ClockProvider.clock()).plusSeconds(4).minus(100, ChronoUnit.MILLIS);
+        invoker.invokeProcessPendingExtensionRetry(
+                ZonedDateTime.now(ClockProvider.clock()).plus(2001L, ChronoUnit.MILLIS));
         jobs = adminJobQueueRepository.loadAll();
         job = jobs.get(0);
         assertEquals(2, job.getAttempts());
@@ -150,22 +152,66 @@ class RetryFailedExtensionJobExecutorIntegrationTest {
     private void buildEvent() {
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
         List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.ONE, true, "", true, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, FIRST_CATEGORY_NAME, TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
+                new TicketCategoryModification(
+                        null,
+                        "hidden",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        2,
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).minusDays(1),
+                                LocalTime.now(ClockProvider.clock())),
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                        DESCRIPTION,
+                        BigDecimal.ONE,
+                        true,
+                        "",
+                        true,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        FIRST_CATEGORY_NAME,
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).minusDays(1),
+                                LocalTime.now(ClockProvider.clock())),
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
         initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
     }
 
     private void registerExtension(String fileName, String extensionName, boolean override) throws Exception {
-        try (var extensionInputStream = requireNonNull(getClass().getResourceAsStream("/retry-extension/" + fileName))) {
-            var extensionStream = String.join("\n", IOUtils.readLines(new InputStreamReader(extensionInputStream, StandardCharsets.UTF_8)));
-            extensionService.createOrUpdate(override ? "-" : null, override ? extensionName : null, new Extension("-", extensionName, extensionStream, true));
+        try (var extensionInputStream =
+                requireNonNull(getClass().getResourceAsStream("/retry-extension/" + fileName))) {
+            var extensionStream = String.join(
+                    "\n", IOUtils.readLines(new InputStreamReader(extensionInputStream, StandardCharsets.UTF_8)));
+            extensionService.createOrUpdate(
+                    override ? "-" : null,
+                    override ? extensionName : null,
+                    new Extension("-", extensionName, extensionStream, true));
         }
     }
 }

@@ -16,6 +16,10 @@
  */
 package alfio.manager;
 
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -45,6 +49,13 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,18 +67,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.context.request.ServletWebRequest;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static alfio.model.system.ConfigurationKeys.*;
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -89,17 +88,18 @@ class ReverseChargeManagerIntegrationTest extends BaseIntegrationTest {
     private Event event;
 
     @Autowired
-    public ReverseChargeManagerIntegrationTest(ClockProvider clockProvider,
-                                               OrganizationRepository organizationRepository,
-                                               UserManager userManager,
-                                               EventManager eventManager,
-                                               EventRepository eventRepository,
-                                               ConfigurationManager configurationManager,
-                                               ConfigurationRepository configurationRepository,
-                                               EventApiV2Controller eventApiV2Controller,
-                                               ReservationApiV2Controller reservationApiV2Controller,
-                                               TicketCategoryRepository ticketCategoryRepository,
-                                               TicketRepository ticketRepository) {
+    public ReverseChargeManagerIntegrationTest(
+            ClockProvider clockProvider,
+            OrganizationRepository organizationRepository,
+            UserManager userManager,
+            EventManager eventManager,
+            EventRepository eventRepository,
+            ConfigurationManager configurationManager,
+            ConfigurationRepository configurationRepository,
+            EventApiV2Controller eventApiV2Controller,
+            ReservationApiV2Controller reservationApiV2Controller,
+            TicketCategoryRepository ticketCategoryRepository,
+            TicketRepository ticketRepository) {
         this.clockProvider = clockProvider;
         this.organizationRepository = organizationRepository;
         this.userManager = userManager;
@@ -117,16 +117,64 @@ class ReverseChargeManagerIntegrationTest extends BaseIntegrationTest {
     void setUp() {
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
         List<TicketCategoryModification> categories = Arrays.asList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.IN_PERSON, AVAILABLE_SEATS - 10,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, "online", TicketCategory.TicketAccessType.ONLINE, -1,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.ONE, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository, null, Event.EventFormat.HYBRID);
+                new TicketCategoryModification(
+                        null,
+                        "default",
+                        TicketCategory.TicketAccessType.IN_PERSON,
+                        AVAILABLE_SEATS - 10,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        "online",
+                        TicketCategory.TicketAccessType.ONLINE,
+                        -1,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.ONE,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser = initEvent(
+                categories,
+                organizationRepository,
+                userManager,
+                eventManager,
+                eventRepository,
+                null,
+                Event.EventFormat.HYBRID);
         event = eventAndUser.getLeft();
         configurationManager.saveConfig(Configuration.from(event, ENABLE_EU_VAT_DIRECTIVE), "true");
         configurationManager.saveConfig(Configuration.from(event, COUNTRY_OF_BUSINESS), "IT");
@@ -160,10 +208,16 @@ class ReverseChargeManagerIntegrationTest extends BaseIntegrationTest {
     void disableTaxForOneTicketCategory() {
         configurationManager.saveConfig(Configuration.from(event, ENABLE_EU_VAT_DIRECTIVE), "false");
         var inPersonCategory = ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()
-            .filter(tc -> tc.getTicketAccessType() == TicketCategory.TicketAccessType.ONLINE)
-            .findFirst()
-            .orElseThrow();
-        configurationRepository.insertTicketCategoryLevel(event.getOrganizationId(), event.getId(), inPersonCategory.getId(), APPLY_TAX_TO_CATEGORY.name(), "false", "");
+                .filter(tc -> tc.getTicketAccessType() == TicketCategory.TicketAccessType.ONLINE)
+                .findFirst()
+                .orElseThrow();
+        configurationRepository.insertTicketCategoryLevel(
+                event.getOrganizationId(),
+                event.getId(),
+                inPersonCategory.getId(),
+                APPLY_TAX_TO_CATEGORY.name(),
+                "false",
+                "");
 
         var reservation = createReservation();
         var summary = reservation.getOrderSummary();
@@ -251,8 +305,14 @@ class ReverseChargeManagerIntegrationTest extends BaseIntegrationTest {
 
         var reservationId = id;
 
-        if(reservationId == null) {
-            var res = eventApiV2Controller.reserveTickets(event.getShortName(), "en", form, new BeanPropertyBindingResult(form, "reservation"), new ServletWebRequest(new MockHttpServletRequest(), new MockHttpServletResponse()), null);
+        if (reservationId == null) {
+            var res = eventApiV2Controller.reserveTickets(
+                    event.getShortName(),
+                    "en",
+                    form,
+                    new BeanPropertyBindingResult(form, "reservation"),
+                    new ServletWebRequest(new MockHttpServletRequest(), new MockHttpServletResponse()),
+                    null);
             assertEquals(HttpStatus.OK, res.getStatusCode());
             var resBody = res.getBody();
             assertNotNull(resBody);
@@ -261,7 +321,6 @@ class ReverseChargeManagerIntegrationTest extends BaseIntegrationTest {
 
             reservationId = resBody.getValue();
         }
-
 
         // enter billing data
 
@@ -274,7 +333,7 @@ class ReverseChargeManagerIntegrationTest extends BaseIntegrationTest {
         contactForm.setEmail("test@test.com");
         contactForm.setAddCompanyBillingDetails(requestInvoice);
         contactForm.setInvoiceRequested(requestInvoice);
-        if(requestInvoice) {
+        if (requestInvoice) {
             contactForm.setBillingAddressLine1("Piazza della Riforma");
             contactForm.setBillingAddressCity("Lugano");
             contactForm.setBillingAddressZip("6900");
@@ -282,16 +341,24 @@ class ReverseChargeManagerIntegrationTest extends BaseIntegrationTest {
             contactForm.setVatNr("123456789");
         }
 
-        var tickets = ticketRepository.findTicketsInReservation(reservationId).stream().map(t -> {
+        var tickets = ticketRepository.findTicketsInReservation(reservationId).stream()
+                .map(t -> {
                     var ticketForm = new UpdateTicketOwnerForm();
                     ticketForm.setFirstName("ticketfull");
                     ticketForm.setLastName("ticketname");
                     ticketForm.setEmail("tickettest@test.com");
                     return Map.entry(t.getPublicUuid().toString(), ticketForm);
-        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         contactForm.setTickets(tickets);
-        var overviewRes = reservationApiV2Controller.validateToOverview(reservationId, "en", false, contactForm, new BeanPropertyBindingResult(contactForm, "paymentForm"), null);
+        var overviewRes = reservationApiV2Controller.validateToOverview(
+                reservationId,
+                "en",
+                false,
+                contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"),
+                null);
         assertEquals(HttpStatus.OK, overviewRes.getStatusCode());
 
         var resInfoRes = reservationApiV2Controller.getReservationInfo(reservationId, null);

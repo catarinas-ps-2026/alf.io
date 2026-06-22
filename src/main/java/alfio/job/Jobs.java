@@ -20,6 +20,8 @@ import alfio.config.Initializer;
 import alfio.manager.*;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.manager.system.AdminJobManager;
+import java.util.Date;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,9 +31,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.Map;
 
 /**
  * <p>Scheduled jobs. Important: all the jobs must be able to run on multiple instance at the same time.</p>
@@ -60,8 +59,7 @@ public class Jobs {
     private final WaitingQueueSubscriptionProcessor waitingQueueSubscriptionProcessor;
     private final AdminJobManager adminJobManager;
 
-
-    //cron each minute: "0 0/1 * * * ?"
+    // cron each minute: "0 0/1 * * * ?"
 
     @Scheduled(fixedRate = ONE_MINUTE * 60)
     public void cleanupUnreferencedBlobFiles() {
@@ -73,7 +71,6 @@ public class Jobs {
         }
     }
 
-
     @Scheduled(fixedRate = THIRTY_SECONDS)
     public void generateSpecialPriceCodes() {
         log.trace("running job generateSpecialPriceCodes");
@@ -84,8 +81,7 @@ public class Jobs {
         }
     }
 
-
-    //run each hour
+    // run each hour
     @Scheduled(cron = EVERY_HOUR)
     public void sendOfflinePaymentReminderToEventOrganizers() {
         log.trace("running job sendOfflinePaymentReminderToEventOrganizers");
@@ -106,7 +102,6 @@ public class Jobs {
         }
     }
 
-
     @Scheduled(fixedRate = FIVE_SECONDS)
     public void sendEmails() {
         log.trace("running job sendEmails");
@@ -124,13 +119,16 @@ public class Jobs {
             long start = System.currentTimeMillis();
             Pair<Integer, Integer> result = adminReservationRequestManager.processPendingReservations();
             if (result.getLeft() > 0 || result.getRight() > 0) {
-                log.info("ProcessReservationRequests: got {} success and {} failures. Elapsed {} ms", result.getLeft(), result.getRight(), System.currentTimeMillis() - start);
+                log.info(
+                        "ProcessReservationRequests: got {} success and {} failures. Elapsed {} ms",
+                        result.getLeft(),
+                        result.getRight(),
+                        System.currentTimeMillis() - start);
             }
         } finally {
             log.trace("end job processReservationRequests");
         }
     }
-
 
     @Scheduled(fixedRate = THIRTY_MINUTES)
     public void sendOfflinePaymentReminder() {
@@ -152,12 +150,12 @@ public class Jobs {
         }
     }
 
-
     @Scheduled(fixedRate = THIRTY_SECONDS)
     public void cleanupExpiredPendingReservation() {
         log.trace("running job cleanupExpiredPendingReservation");
         try {
-            //cleanup reservation that have a expiration older than "now minus 10 minutes": this give some additional slack.
+            // cleanup reservation that have a expiration older than "now minus 10 minutes": this give some additional
+            // slack.
             final Date expirationDate = DateUtils.addMinutes(new Date(), -10);
             ticketReservationManager.cleanupExpiredReservations(expirationDate);
             ticketReservationManager.cleanupExpiredOfflineReservations(expirationDate);
@@ -166,7 +164,6 @@ public class Jobs {
             log.trace("end job cleanupExpiredPendingReservation");
         }
     }
-
 
     @Scheduled(fixedRate = THIRTY_SECONDS)
     public void processReleasedTickets() {

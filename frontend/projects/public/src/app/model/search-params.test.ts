@@ -4,7 +4,10 @@ import { SearchParams } from './search-params';
 describe('SearchParams', () => {
     describe('constructor', () => {
         it('should create instance with all parameters', () => {
-            const params = new SearchParams('sub-123', 'org-456', 'my-org', ['tag1', 'tag2']);
+            const params = new SearchParams('sub-123', 'org-456', 'my-org', [
+                'tag1',
+                'tag2',
+            ]);
             expect(params).toBeDefined();
         });
     });
@@ -18,7 +21,10 @@ describe('SearchParams', () => {
             };
             const pathParams = { organizerSlug: 'my-slug' };
 
-            const searchParams = SearchParams.fromQueryAndPathParams(queryParams, pathParams);
+            const searchParams = SearchParams.fromQueryAndPathParams(
+                queryParams,
+                pathParams,
+            );
 
             expect(searchParams).toBeDefined();
         });
@@ -27,7 +33,10 @@ describe('SearchParams', () => {
             const queryParams = {};
             const pathParams = {};
 
-            const searchParams = SearchParams.fromQueryAndPathParams(queryParams, pathParams);
+            const searchParams = SearchParams.fromQueryAndPathParams(
+                queryParams,
+                pathParams,
+            );
 
             expect(searchParams).toBeDefined();
         });
@@ -36,7 +45,10 @@ describe('SearchParams', () => {
             const queryParams = { subscription: 'sub-123' };
             const pathParams = { organizerSlug: 'my-slug' };
 
-            const searchParams = SearchParams.fromQueryAndPathParams(queryParams, pathParams);
+            const searchParams = SearchParams.fromQueryAndPathParams(
+                queryParams,
+                pathParams,
+            );
 
             expect(searchParams).toBeDefined();
         });
@@ -44,7 +56,9 @@ describe('SearchParams', () => {
 
     describe('toHttpParams', () => {
         it('should return HttpParams from object', () => {
-            const params = new SearchParams('sub-123', 'org-456', 'my-org', ['tag1']);
+            const params = new SearchParams('sub-123', 'org-456', 'my-org', [
+                'tag1',
+            ]);
             const httpParams = params.toHttpParams();
 
             expect(httpParams).toBeDefined();
@@ -68,7 +82,9 @@ describe('SearchParams', () => {
 
     describe('toParams', () => {
         it('should return plain params object', () => {
-            const params = new SearchParams('sub-123', 'org-456', 'my-org', ['tag1']);
+            const params = new SearchParams('sub-123', 'org-456', 'my-org', [
+                'tag1',
+            ]);
             const result = params.toParams();
 
             expect(result).toBeDefined();
@@ -96,7 +112,10 @@ describe('SearchParams', () => {
             };
             const pathParams = { organizerSlug: 'my-slug' };
 
-            const result = SearchParams.transformParams(queryParams, pathParams);
+            const result = SearchParams.transformParams(
+                queryParams,
+                pathParams,
+            );
 
             expect(result).toBeDefined();
             expect(result.subscription).toBe('sub-123');

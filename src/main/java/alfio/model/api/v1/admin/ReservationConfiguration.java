@@ -25,9 +25,10 @@ public class ReservationConfiguration {
     private final boolean lockEmailEdit;
 
     @JsonCreator
-    public ReservationConfiguration(@JsonProperty("hideContactData") Boolean hideContactData,
-                                    @JsonProperty("hideConfirmationButtons") Boolean hideConfirmationButtons,
-                                    @JsonProperty("lockEmailEdit") Boolean lockEmailEdit) {
+    public ReservationConfiguration(
+            @JsonProperty("hideContactData") Boolean hideContactData,
+            @JsonProperty("hideConfirmationButtons") Boolean hideConfirmationButtons,
+            @JsonProperty("lockEmailEdit") Boolean lockEmailEdit) {
         this.hideContactData = Boolean.TRUE.equals(hideContactData);
         this.hideConfirmationButtons = Boolean.TRUE.equals(hideConfirmationButtons);
         this.lockEmailEdit = Boolean.TRUE.equals(lockEmailEdit);

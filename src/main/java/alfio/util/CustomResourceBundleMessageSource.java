@@ -16,13 +16,12 @@
  */
 package alfio.util;
 
-import org.springframework.context.support.ResourceBundleMessageSource;
-
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
+import org.springframework.context.support.ResourceBundleMessageSource;
 
 /**
  * Custom resource bundle that expose all the defined keys

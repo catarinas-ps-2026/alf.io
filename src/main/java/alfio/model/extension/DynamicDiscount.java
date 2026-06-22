@@ -17,9 +17,8 @@
 package alfio.model.extension;
 
 import alfio.model.PromoCodeDiscount;
-import lombok.Data;
-
 import java.util.Arrays;
+import lombok.Data;
 
 @Data
 public class DynamicDiscount {
@@ -28,11 +27,10 @@ public class DynamicDiscount {
     private String type;
     private String code;
 
-
     public PromoCodeDiscount.DiscountType getDiscountType() {
         return Arrays.stream(PromoCodeDiscount.DiscountType.values())
-            .filter(v -> v.name().equalsIgnoreCase(type))
-            .findFirst()
-            .orElse(PromoCodeDiscount.DiscountType.NONE);
+                .filter(v -> v.name().equalsIgnoreCase(type))
+                .findFirst()
+                .orElse(PromoCodeDiscount.DiscountType.NONE);
     }
 }

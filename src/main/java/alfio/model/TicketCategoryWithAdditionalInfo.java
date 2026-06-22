@@ -23,16 +23,15 @@ import alfio.model.system.Configuration;
 import alfio.util.ClockProvider;
 import alfio.util.MonetaryUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Delegate;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Delegate;
 
 @AllArgsConstructor
 @Getter
@@ -54,7 +53,7 @@ public class TicketCategoryWithAdditionalInfo implements StatisticsContainer, Pr
 
     private final AlfioMetadata metadata;
 
-    //TODO: to remove it
+    // TODO: to remove it
     @Deprecated
     private final List<TicketWithStatistic> tickets = Collections.emptyList();
 
@@ -73,7 +72,6 @@ public class TicketCategoryWithAdditionalInfo implements StatisticsContainer, Pr
         return ticketCategoryStatisticView;
     }
 
-
     public String getFormattedInception() {
         return getInception(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER);
     }
@@ -83,24 +81,34 @@ public class TicketCategoryWithAdditionalInfo implements StatisticsContainer, Pr
     }
 
     public String getFormattedValidCheckInFrom() {
-        return getValidCheckInFrom() != null ? getValidCheckInFrom(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER) : null;
+        return getValidCheckInFrom() != null
+                ? getValidCheckInFrom(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER)
+                : null;
     }
 
     public String getFormattedValidCheckInTo() {
-        return getValidCheckInTo() != null ? getValidCheckInTo(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER) : null;
+        return getValidCheckInTo() != null
+                ? getValidCheckInTo(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER)
+                : null;
     }
 
     public String getFormattedTicketValidityStart() {
-        return getTicketValidityStart() != null ? getTicketValidityStart(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER) : null;
+        return getTicketValidityStart() != null
+                ? getTicketValidityStart(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER)
+                : null;
     }
 
     public String getFormattedTicketValidityEnd() {
-        return getTicketValidityEnd() != null ? getTicketValidityEnd(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER) : null;
+        return getTicketValidityEnd() != null
+                ? getTicketValidityEnd(event.getZoneId()).format(EventStatistic.JSON_DATE_FORMATTER)
+                : null;
     }
 
     private static BigDecimal calcSoldTicketsPercent(TicketCategory ticketCategory, int soldTickets) {
         int maxTickets = Math.max(1, ticketCategory.getMaxTickets());
-        return BigDecimal.valueOf(soldTickets).divide(BigDecimal.valueOf(maxTickets), 2, RoundingMode.HALF_UP).multiply(MonetaryUtil.HUNDRED);
+        return BigDecimal.valueOf(soldTickets)
+                .divide(BigDecimal.valueOf(maxTickets), 2, RoundingMode.HALF_UP)
+                .multiply(MonetaryUtil.HUNDRED);
     }
 
     public BigDecimal getSoldTicketsPercent() {

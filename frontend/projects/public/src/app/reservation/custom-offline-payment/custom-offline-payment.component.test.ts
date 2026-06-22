@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -107,14 +111,26 @@ describe('CustomOfflinePaymentComponent', () => {
         paymentMethodName: 'Custom Bank Transfer',
         paymentProxy: 'CUSTOM_OFFLINE',
         localizations: {
-            en: { paymentName: 'Custom Bank Transfer', instructions: 'Pay to account XYZ' },
-            es: { paymentName: 'Transferencia Bancaria Custom', instructions: 'Pagar a cuenta XYZ' },
-            it: { paymentName: 'Bonifico Bancario Custom', instructions: 'Pagare sul conto XYZ' },
+            en: {
+                paymentName: 'Custom Bank Transfer',
+                instructions: 'Pay to account XYZ',
+            },
+            es: {
+                paymentName: 'Transferencia Bancaria Custom',
+                instructions: 'Pagar a cuenta XYZ',
+            },
+            it: {
+                paymentName: 'Bonifico Bancario Custom',
+                instructions: 'Pagare sul conto XYZ',
+            },
         },
     };
 
     const mockActivatedRoute = {
-        data: of({ type: 'event', publicIdentifierParameter: 'eventShortName' }),
+        data: of({
+            type: 'event',
+            publicIdentifierParameter: 'eventShortName',
+        }),
         params: of({ eventShortName: 'test-event', reservationId: 'res-123' }),
     };
 
@@ -124,7 +140,9 @@ describe('CustomOfflinePaymentComponent', () => {
 
     const mockReservationService = {
         getReservationInfo: vi.fn(() => of(mockReservationInfo)),
-        getSelectedCustomPaymentMethodDetails: vi.fn(() => of(mockCustomPaymentMethod)),
+        getSelectedCustomPaymentMethodDetails: vi.fn(() =>
+            of(mockCustomPaymentMethod),
+        ),
     };
 
     const mockPurchaseContextService = {
@@ -149,8 +167,14 @@ describe('CustomOfflinePaymentComponent', () => {
             providers: [
                 { provide: ActivatedRoute, useValue: mockActivatedRoute },
                 { provide: TranslateService, useValue: mockTranslateService },
-                { provide: ReservationService, useValue: mockReservationService },
-                { provide: PurchaseContextService, useValue: mockPurchaseContextService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
+                {
+                    provide: PurchaseContextService,
+                    useValue: mockPurchaseContextService,
+                },
                 { provide: I18nService, useValue: mockI18nService },
                 { provide: AnalyticsService, useValue: mockAnalyticsService },
             ],
@@ -172,42 +196,59 @@ describe('CustomOfflinePaymentComponent', () => {
         it('should load purchase context, reservation and custom payment method', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith('event', 'test-event');
-            expect(mockReservationService.getReservationInfo).toHaveBeenCalledWith('res-123');
-            expect(mockReservationService.getSelectedCustomPaymentMethodDetails).toHaveBeenCalledWith('res-123');
-            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith('reservation-page-waiting.header.title', mockPurchaseContext);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(mockPurchaseContextService.getContext).toHaveBeenCalledWith(
+                'event',
+                'test-event',
+            );
+            expect(
+                mockReservationService.getReservationInfo,
+            ).toHaveBeenCalledWith('res-123');
+            expect(
+                mockReservationService.getSelectedCustomPaymentMethodDetails,
+            ).toHaveBeenCalledWith('res-123');
+            expect(mockI18nService.setPageTitle).toHaveBeenCalledWith(
+                'reservation-page-waiting.header.title',
+                mockPurchaseContext,
+            );
             expect(mockAnalyticsService.pageView).toHaveBeenCalled();
         });
 
         it('should set paymentReason with shortId', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.paymentReason).toContain('ABC123');
         });
 
         it('should store customPaymentMethodDetails', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(component.customPaymentMethodDetails).toEqual(mockCustomPaymentMethod);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            expect(component.customPaymentMethodDetails).toEqual(
+                mockCustomPaymentMethod,
+            );
         });
 
         it('should set reservationFinalized to true when status is not OFFLINE_FINALIZING', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.reservationFinalized).toBe(true);
         });
 
         it('should set reservationFinalized to false and poll when status is OFFLINE_FINALIZING', async () => {
-            const finalizingReservation = { ...mockReservationInfo, status: 'OFFLINE_FINALIZING' };
-            mockReservationService.getReservationInfo.mockReturnValueOnce(of(finalizingReservation));
+            const finalizingReservation = {
+                ...mockReservationInfo,
+                status: 'OFFLINE_FINALIZING',
+            };
+            mockReservationService.getReservationInfo.mockReturnValueOnce(
+                of(finalizingReservation),
+            );
 
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(component.reservationFinalized).toBe(false);
             expect(pollReservationStatus).toHaveBeenCalledWith(
                 'res-123',
@@ -217,17 +258,28 @@ describe('CustomOfflinePaymentComponent', () => {
         });
 
         it('should call callback and set reservationFinalized to true when poll returns COMPLETE', async () => {
-            const finalizingReservation = { ...mockReservationInfo, status: 'OFFLINE_FINALIZING' };
-            const completedReservation = { ...mockReservationInfo, status: 'COMPLETE' };
-            mockReservationService.getReservationInfo.mockReturnValueOnce(of(finalizingReservation));
+            const finalizingReservation = {
+                ...mockReservationInfo,
+                status: 'OFFLINE_FINALIZING',
+            };
+            const completedReservation = {
+                ...mockReservationInfo,
+                status: 'COMPLETE',
+            };
+            mockReservationService.getReservationInfo.mockReturnValueOnce(
+                of(finalizingReservation),
+            );
 
-            let capturedCallback: ((res: ReservationInfo) => void) | null = null;
-            (pollReservationStatus as ReturnType<typeof vi.fn>).mockImplementation((_, __, callback) => {
+            let capturedCallback: ((res: ReservationInfo) => void) | null =
+                null;
+            (
+                pollReservationStatus as ReturnType<typeof vi.fn>
+            ).mockImplementation((_, __, callback) => {
                 capturedCallback = callback;
             });
 
             component.ngOnInit();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             expect(component.reservationFinalized).toBe(false);
 
@@ -271,7 +323,10 @@ describe('CustomOfflinePaymentComponent', () => {
         it('should return false when invoiceNumber is null', () => {
             component.reservationFinalized = true;
             component.purchaseContext = mockPurchaseContext;
-            component.reservationInfo = { ...mockReservationInfo, invoiceNumber: null };
+            component.reservationInfo = {
+                ...mockReservationInfo,
+                invoiceNumber: null,
+            };
             expect(component.invoiceAvailable).toBe(false);
         });
     });
@@ -285,7 +340,7 @@ describe('CustomOfflinePaymentComponent', () => {
         it('should return english localization when current lang is not available', async () => {
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const result = component.translatedLocalization;
             expect(result).not.toBeNull();
             expect(result.paymentName).toBe('Custom Bank Transfer');
@@ -295,7 +350,7 @@ describe('CustomOfflinePaymentComponent', () => {
             mockI18nService.getCurrentLang.mockReturnValue('es');
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const result = component.translatedLocalization;
             expect(result.paymentName).toBe('Transferencia Bancaria Custom');
         });
@@ -304,7 +359,7 @@ describe('CustomOfflinePaymentComponent', () => {
             mockI18nService.getCurrentLang.mockReturnValue('fr');
             component.ngOnInit();
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const result = component.translatedLocalization;
             expect(result).not.toBeNull();
         });

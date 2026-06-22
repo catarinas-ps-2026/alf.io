@@ -16,19 +16,16 @@
  */
 package alfio.manager.payment;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 class MetadataBuilder {
 
-
     static final String RESERVATION_ID = "reservationId";
 
-    private MetadataBuilder() {
-    }
+    private MetadataBuilder() {}
 
     static Map<String, String> buildMetadata(PaymentSpecification spec, Map<String, String> base) {
         Map<String, String> initialMetadata = new HashMap<>(base);
@@ -36,9 +33,9 @@ class MetadataBuilder {
         initialMetadata.put("email", spec.getEmail());
         initialMetadata.put("fullName", spec.getCustomerName().getFullName());
         if (StringUtils.isNotBlank(spec.getBillingAddress())) {
-            initialMetadata.put("billingAddress", spec.getBillingAddress().lines().collect(Collectors.joining(",")));
+            initialMetadata.put(
+                    "billingAddress", spec.getBillingAddress().lines().collect(Collectors.joining(",")));
         }
         return initialMetadata;
     }
-
 }

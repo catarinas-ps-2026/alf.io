@@ -17,10 +17,9 @@
 package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-
 import java.util.UUID;
 
-public record DescriptorIdAndReservationId(@Column("descriptor_id") UUID descriptorId,
-                                           @Column("reservation_id") String reservationId,
-                                           @Column("max_available") int maxAvailable) {
-}
+public record DescriptorIdAndReservationId(
+        @Column("descriptor_id") UUID descriptorId,
+        @Column("reservation_id") String reservationId,
+        @Column("max_available") int maxAvailable) {}

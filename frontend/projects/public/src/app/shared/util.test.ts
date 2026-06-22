@@ -17,7 +17,9 @@ import type { PurchaseContext } from '../model/purchase-context';
 describe('util.ts', () => {
     describe('DELETE_ACCOUNT_CONFIRMATION', () => {
         it('should export constant', () => {
-            expect(DELETE_ACCOUNT_CONFIRMATION).toBe('alfio.delete-account.confirmation');
+            expect(DELETE_ACCOUNT_CONFIRMATION).toBe(
+                'alfio.delete-account.confirmation',
+            );
         });
     });
 
@@ -49,11 +51,15 @@ describe('util.ts', () => {
             it('should handle sessionStorage errors gracefully', () => {
                 Object.defineProperty(window, 'sessionStorage', {
                     value: {
-                        setItem: () => { throw new Error('Storage disabled'); },
+                        setItem: () => {
+                            throw new Error('Storage disabled');
+                        },
                     },
                     configurable: true,
                 });
-                expect(() => writeToSessionStorage('key', 'value')).not.toThrow();
+                expect(() =>
+                    writeToSessionStorage('key', 'value'),
+                ).not.toThrow();
             });
         });
 
@@ -70,7 +76,9 @@ describe('util.ts', () => {
             it('should handle sessionStorage errors gracefully', () => {
                 Object.defineProperty(window, 'sessionStorage', {
                     value: {
-                        getItem: () => { throw new Error('Storage disabled'); },
+                        getItem: () => {
+                            throw new Error('Storage disabled');
+                        },
                     },
                     configurable: true,
                 });
@@ -88,7 +96,9 @@ describe('util.ts', () => {
             it('should handle sessionStorage errors gracefully', () => {
                 Object.defineProperty(window, 'sessionStorage', {
                     value: {
-                        removeItem: () => { throw new Error('Storage disabled'); },
+                        removeItem: () => {
+                            throw new Error('Storage disabled');
+                        },
                     },
                     configurable: true,
                 });
@@ -128,12 +138,21 @@ describe('util.ts', () => {
                 endDate: '',
                 enabled: true,
                 analyticsConfiguration: null,
-                embeddingConfiguration: { enabled: true, notificationOrigin: 'https://origin.com' },
+                embeddingConfiguration: {
+                    enabled: true,
+                    notificationOrigin: 'https://origin.com',
+                },
                 additionalCategories: [],
                 ticketCategories: [],
                 localization: {},
                 privacyPolicyUrl: null,
-                invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: false, enabledItalyEInvoicing: false },
+                invoicingConfiguration: {
+                    enabled: false,
+                    onlyInvoice: false,
+                    vatIncluded: false,
+                    userCanDownloadReceiptOrInvoice: false,
+                    enabledItalyEInvoicing: false,
+                },
                 assignmentConfiguration: { enableAttendeeAutocomplete: true },
             } as unknown as PurchaseContext;
 
@@ -145,7 +164,16 @@ describe('util.ts', () => {
                 email: 'john@example.com',
                 validity: 900,
                 ticketsByCategory: [],
-                orderSummary: { summary: [], totalPrice: '100', free: false, displayVat: true, priceInCents: 10000, descriptionForPayment: 'Test', totalVAT: '22', vatPercentage: '22%' },
+                orderSummary: {
+                    summary: [],
+                    totalPrice: '100',
+                    free: false,
+                    displayVat: true,
+                    priceInCents: 10000,
+                    descriptionForPayment: 'Test',
+                    totalVAT: '22',
+                    vatPercentage: '22%',
+                },
                 status: 'PENDING',
                 validatedBookingInformation: true,
                 formattedExpirationDate: {},
@@ -159,25 +187,57 @@ describe('util.ts', () => {
                 customerReference: '',
                 skipVatNr: false,
                 billingAddress: '',
-                billingDetails: { companyName: '', addressLine1: '', addressLine2: '', zip: '', city: '', state: '', country: 'US', taxId: '', invoicingAdditionalInfo: {} },
+                billingDetails: {
+                    companyName: '',
+                    addressLine1: '',
+                    addressLine2: '',
+                    zip: '',
+                    city: '',
+                    state: '',
+                    country: 'US',
+                    taxId: '',
+                    invoicingAdditionalInfo: {},
+                },
                 containsCategoriesLinkedToGroups: false,
                 activePaymentMethods: {},
-                metadata: { hideContactData: false, lockEmailEdit: false, hideConfirmationButtons: false, readyForConfirmation: false, finalized: false },
+                metadata: {
+                    hideContactData: false,
+                    lockEmailEdit: false,
+                    hideConfirmationButtons: false,
+                    readyForConfirmation: false,
+                    finalized: false,
+                },
             };
 
             postMessageSpy = vi.fn();
-            Object.defineProperty(window, 'parent', { value: { postMessage: postMessageSpy }, configurable: true });
+            Object.defineProperty(window, 'parent', {
+                value: { postMessage: postMessageSpy },
+                configurable: true,
+            });
         });
 
         it('should do nothing when embedded is false', () => {
-            Object.defineProperty(window, 'parent', { value: window, configurable: true });
-            notifyPaymentErrorToParent(mockPurchaseContext, mockReservationInfo, 'res-123', new Error('test error'));
+            Object.defineProperty(window, 'parent', {
+                value: window,
+                configurable: true,
+            });
+            notifyPaymentErrorToParent(
+                mockPurchaseContext,
+                mockReservationInfo,
+                'res-123',
+                new Error('test error'),
+            );
             expect(postMessageSpy).not.toHaveBeenCalled();
         });
 
         it('should do nothing when embedding is not enabled', () => {
             mockPurchaseContext.embeddingConfiguration.enabled = false;
-            notifyPaymentErrorToParent(mockPurchaseContext, mockReservationInfo, 'res-123', new Error('test error'));
+            notifyPaymentErrorToParent(
+                mockPurchaseContext,
+                mockReservationInfo,
+                'res-123',
+                new Error('test error'),
+            );
             expect(postMessageSpy).not.toHaveBeenCalled();
         });
     });
@@ -193,8 +253,24 @@ describe('util.ts', () => {
 
         it('should group items by serviceId', () => {
             const data = [
-                { serviceId: 1, itemId: 'item1', title: 'Service 1', ticketUUID: 'ticket1', ticketFieldConfiguration: ['field1'], count: 1, price: 10 },
-                { serviceId: 2, itemId: 'item2', title: 'Service 2', ticketUUID: 'ticket2', ticketFieldConfiguration: ['field2'], count: 1, price: 20 },
+                {
+                    serviceId: 1,
+                    itemId: 'item1',
+                    title: 'Service 1',
+                    ticketUUID: 'ticket1',
+                    ticketFieldConfiguration: ['field1'],
+                    count: 1,
+                    price: 10,
+                },
+                {
+                    serviceId: 2,
+                    itemId: 'item2',
+                    title: 'Service 2',
+                    ticketUUID: 'ticket2',
+                    ticketFieldConfiguration: ['field2'],
+                    count: 1,
+                    price: 20,
+                },
             ];
             const result = groupAdditionalData(data);
             expect(result).toHaveLength(2);
@@ -204,13 +280,32 @@ describe('util.ts', () => {
 
         it('should increment count for items with same serviceId', () => {
             const data = [
-                { serviceId: 1, itemId: 'item1', title: 'Service 1', ticketUUID: 'ticket1', ticketFieldConfiguration: ['field1'], count: 1, price: 10 },
-                { serviceId: 1, itemId: 'item2', title: 'Service 1', ticketUUID: 'ticket2', ticketFieldConfiguration: ['field2'], count: 1, price: 15 },
+                {
+                    serviceId: 1,
+                    itemId: 'item1',
+                    title: 'Service 1',
+                    ticketUUID: 'ticket1',
+                    ticketFieldConfiguration: ['field1'],
+                    count: 1,
+                    price: 10,
+                },
+                {
+                    serviceId: 1,
+                    itemId: 'item2',
+                    title: 'Service 1',
+                    ticketUUID: 'ticket2',
+                    ticketFieldConfiguration: ['field2'],
+                    count: 1,
+                    price: 15,
+                },
             ];
             const result = groupAdditionalData(data);
             expect(result).toHaveLength(1);
             expect(result[0].count).toBe(2);
-            expect(result[0].ticketFieldConfiguration).toEqual(['field1', 'field2']);
+            expect(result[0].ticketFieldConfiguration).toEqual([
+                'field1',
+                'field2',
+            ]);
         });
     });
 

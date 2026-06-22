@@ -16,16 +16,15 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
-import alfio.model.Event;
-import org.mockito.Mockito;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import static org.mockito.Mockito.when;
 
+import alfio.model.Event;
 import java.security.Principal;
 import java.util.Map;
 import java.util.UUID;
-
-import static org.mockito.Mockito.when;
+import org.mockito.Mockito;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 
 public class ReservationFlowContext {
     final Event event;
@@ -48,18 +47,46 @@ public class ReservationFlowContext {
         this(event, userId, subscriptionId, subscriptionPin, null, null, true, false, Map.of(), true);
     }
 
-    ReservationFlowContext(Event event, String userId, UUID subscriptionId, String subscriptionPin, String publicUsername, Integer publicUserId, boolean checkInStationsEnabled, boolean applyDiscount) {
-        this(event, userId, subscriptionId, subscriptionPin, publicUsername, publicUserId, checkInStationsEnabled, applyDiscount, Map.of(), true);
+    ReservationFlowContext(
+            Event event,
+            String userId,
+            UUID subscriptionId,
+            String subscriptionPin,
+            String publicUsername,
+            Integer publicUserId,
+            boolean checkInStationsEnabled,
+            boolean applyDiscount) {
+        this(
+                event,
+                userId,
+                subscriptionId,
+                subscriptionPin,
+                publicUsername,
+                publicUserId,
+                checkInStationsEnabled,
+                applyDiscount,
+                Map.of(),
+                true);
     }
 
-    ReservationFlowContext(Event event, String userId, UUID subscriptionId, String subscriptionPin, String publicUsername, Integer publicUserId, boolean checkInStationsEnabled, boolean applyDiscount, Map<String, String> additionalParams, boolean vatIncluded) {
+    ReservationFlowContext(
+            Event event,
+            String userId,
+            UUID subscriptionId,
+            String subscriptionPin,
+            String publicUsername,
+            Integer publicUserId,
+            boolean checkInStationsEnabled,
+            boolean applyDiscount,
+            Map<String, String> additionalParams,
+            boolean vatIncluded) {
         this.event = event;
         this.userId = userId;
         this.subscriptionId = subscriptionId;
         this.subscriptionPin = subscriptionPin;
         this.publicUsername = publicUsername;
         this.publicUserId = publicUserId;
-        if(publicUsername != null && publicUserId != null) {
+        if (publicUsername != null && publicUserId != null) {
             var authentication = Mockito.mock(OAuth2AuthenticationToken.class);
             when(authentication.getName()).thenReturn(publicUsername);
             this.authentication = authentication;

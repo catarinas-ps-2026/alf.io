@@ -19,6 +19,12 @@ package alfio.manager;
 import alfio.model.FileBlobMetadata;
 import alfio.model.modification.UploadBase64FileModification;
 import alfio.repository.FileUploadRepository;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -30,13 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 @Component
 public class FileUploadManager {
@@ -50,6 +49,7 @@ public class FileUploadManager {
      * Maximum allowed file size is 400kb
      */
     private static final int MAXIMUM_ALLOWED_SIZE = 1024 * 400;
+
     private static final MimeType IMAGE_TYPE = MimeType.valueOf("image/*");
     private final FileUploadRepository repository;
     private final FileBlobCacheManager fileBlobCacheManager;
@@ -75,7 +75,7 @@ public class FileUploadManager {
         Assert.isTrue(IS_HEX.matcher(id).matches(), "id must be an hex value");
         try (var fis = ensureFilePresence(id)) {
             fis.transferTo(out);
-        } catch(EOFException ex){
+        } catch (EOFException ex) {
             // this happens when the browser closes the stream on its end.
             log.trace("got EOFException", ex);
         } catch (IOException e) {
@@ -133,7 +133,12 @@ public class FileUploadManager {
             // resize only if the image is bigger than the target size on either side
             if (image.getWidth() > IMAGE_THUMB_MAX_WIDTH_PX || image.getHeight() > IMAGE_THUMB_MAX_HEIGHT_PX) {
                 UploadBase64FileModification resized = new UploadBase64FileModification();
-                BufferedImage thumbImg = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.AUTOMATIC, IMAGE_THUMB_MAX_WIDTH_PX, IMAGE_THUMB_MAX_HEIGHT_PX);
+                BufferedImage thumbImg = Scalr.resize(
+                        image,
+                        Scalr.Method.ULTRA_QUALITY,
+                        Scalr.Mode.AUTOMATIC,
+                        IMAGE_THUMB_MAX_WIDTH_PX,
+                        IMAGE_THUMB_MAX_HEIGHT_PX);
                 try (final var baos = new ByteArrayOutputStream()) {
                     ImageIO.write(thumbImg, mimeType.getSubtype(), baos);
                     resized.setFile(baos.toByteArray());

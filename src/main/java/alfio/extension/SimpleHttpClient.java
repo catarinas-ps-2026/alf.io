@@ -17,9 +17,6 @@
 package alfio.extension;
 
 import alfio.util.HttpUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -30,6 +27,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleHttpClient {
 
@@ -62,7 +61,6 @@ public class SimpleHttpClient {
         return doRequest(url, headers, "GET", null);
     }
 
-
     public SimpleHttpClientResponse head(String url) throws IOException {
         return head(url, Collections.emptyMap());
     }
@@ -87,36 +85,45 @@ public class SimpleHttpClient {
         return doRequest(url, headers, "POST", body);
     }
 
-    public SimpleHttpClientResponse postForm(String url, Map<String, String> headers, Map<String, String> params) throws IOException {
+    public SimpleHttpClientResponse postForm(String url, Map<String, String> headers, Map<String, String> params)
+            throws IOException {
         HttpRequest request = buildUrlAndHeader(url, headers, HttpUtils.APPLICATION_FORM_URLENCODED)
-            .POST(HttpUtils.ofFormUrlEncodedBody(params))
-            .build();
+                .POST(HttpUtils.ofFormUrlEncodedBody(params))
+                .build();
         return callRemote(request);
     }
 
-    public SimpleHttpClientCachedResponse postFileAndSaveResponse(String url, Map<String, String> headers, String file, String filename, String contentType) throws IOException {
+    public SimpleHttpClientCachedResponse postFileAndSaveResponse(
+            String url, Map<String, String> headers, String file, String filename, String contentType)
+            throws IOException {
         Path resolved = Path.of(file).normalize().toAbsolutePath();
         if (!resolved.startsWith(ALLOWED_TMP_FILE_DIR)) {
-            throw new SecurityException("File access outside allowed base directory ("+ALLOWED_TMP_FILE_DIR+")");
+            throw new SecurityException("File access outside allowed base directory (" + ALLOWED_TMP_FILE_DIR + ")");
         }
         var mpb = new HttpUtils.MultiPartBodyPublisher();
-        mpb.addPart("file", () -> {
-            try {
-                return new FileInputStream(file);
-            } catch (FileNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
-        }, filename, contentType);
-        HttpRequest request = buildUrlAndHeader(url, headers, HttpUtils.MULTIPART_FORM_DATA+";boundary=\""+mpb.getBoundary()+"\"")
-            .POST(mpb.build())
-            .build();
+        mpb.addPart(
+                "file",
+                () -> {
+                    try {
+                        return new FileInputStream(file);
+                    } catch (FileNotFoundException e) {
+                        throw new IllegalStateException(e);
+                    }
+                },
+                filename,
+                contentType);
+        HttpRequest request = buildUrlAndHeader(
+                        url, headers, HttpUtils.MULTIPART_FORM_DATA + ";boundary=\"" + mpb.getBoundary() + "\"")
+                .POST(mpb.build())
+                .build();
         return callRemoteAndSaveResponse(request);
     }
 
-    public SimpleHttpClientCachedResponse postBodyAndSaveResponse(String url, Map<String, String> headers, String content, String contentType) throws IOException {
+    public SimpleHttpClientCachedResponse postBodyAndSaveResponse(
+            String url, Map<String, String> headers, String content, String contentType) throws IOException {
         HttpRequest request = buildUrlAndHeader(url, headers, contentType)
-            .POST(HttpRequest.BodyPublishers.ofString(content))
-            .build();
+                .POST(HttpRequest.BodyPublishers.ofString(content))
+                .build();
         return callRemoteAndSaveResponse(request);
     }
 
@@ -132,7 +139,6 @@ public class SimpleHttpClient {
         return doRequest(url, headers, "DELETE", body);
     }
 
-
     public SimpleHttpClientResponse put(String url) throws IOException {
         return put(url, Collections.emptyMap());
     }
@@ -144,7 +150,6 @@ public class SimpleHttpClient {
     public SimpleHttpClientResponse put(String url, Map<String, String> headers, Object body) throws IOException {
         return doRequest(url, headers, "PUT", body);
     }
-
 
     public SimpleHttpClientResponse patch(String url) throws IOException {
         return patch(url, Collections.emptyMap());
@@ -158,14 +163,17 @@ public class SimpleHttpClient {
         return doRequest(url, headers, "PATCH", body);
     }
 
-    public SimpleHttpClientResponse method(String method, String url, Map<String, String> headers, Object body) throws IOException {
+    public SimpleHttpClientResponse method(String method, String url, Map<String, String> headers, Object body)
+            throws IOException {
         return doRequest(url, headers, method, body);
     }
 
-    private SimpleHttpClientResponse doRequest(String url, Map<String, String> headers, String method, Object requestBody) throws IOException {
-        HttpRequest request = buildUrlAndHeader(url, headers, NULL_REQUEST_BODY.contains(method) ? null : HttpUtils.APPLICATION_JSON)
-            .method(method, buildRequestBody(requestBody))
-            .build();
+    private SimpleHttpClientResponse doRequest(
+            String url, Map<String, String> headers, String method, Object requestBody) throws IOException {
+        HttpRequest request = buildUrlAndHeader(
+                        url, headers, NULL_REQUEST_BODY.contains(method) ? null : HttpUtils.APPLICATION_JSON)
+                .method(method, buildRequestBody(requestBody))
+                .build();
         return callRemote(request);
     }
 
@@ -179,10 +187,10 @@ public class SimpleHttpClient {
         }
         if (response != null) {
             return new SimpleHttpClientResponse(
-                HttpUtils.callSuccessful(response),
-                response.statusCode(),
-                response.headers().map(),
-                response.body());
+                    HttpUtils.callSuccessful(response),
+                    response.statusCode(),
+                    response.headers().map(),
+                    response.body());
         } else {
             return new SimpleHttpClientResponse(false, 0, Map.of(), "");
         }
@@ -212,10 +220,10 @@ public class SimpleHttpClient {
             }
         }
         return new SimpleHttpClientCachedResponse(
-            HttpUtils.callSuccessful(response),
-            response.statusCode(),
-            response.headers().map(),
-            tempFile != null ? tempFile.toAbsolutePath().toString() : null);
+                HttpUtils.callSuccessful(response),
+                response.statusCode(),
+                response.headers().map(),
+                tempFile != null ? tempFile.toAbsolutePath().toString() : null);
     }
 
     // Thanks to: https://stackoverflow.com/questions/54208945/java-11-httpclient-not-sending-basic-authentication
@@ -236,7 +244,8 @@ public class SimpleHttpClient {
     }
 
     private static HttpRequest.BodyPublisher buildRequestBody(Object body) {
-        return body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(ExtensionUtils.convertToJson(body));
+        return body == null
+                ? HttpRequest.BodyPublishers.noBody()
+                : HttpRequest.BodyPublishers.ofString(ExtensionUtils.convertToJson(body));
     }
-
 }

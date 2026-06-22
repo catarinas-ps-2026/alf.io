@@ -20,28 +20,29 @@ import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-
 import java.util.Collections;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class PurchaseContextFieldDescription {
 
-    public static final PurchaseContextFieldDescription MISSING_FIELD = new PurchaseContextFieldDescription(-1, "", "{\"label\" : \"MISSING_DESCRIPTION\"}", "");
+    public static final PurchaseContextFieldDescription MISSING_FIELD =
+            new PurchaseContextFieldDescription(-1, "", "{\"label\" : \"MISSING_DESCRIPTION\"}", "");
 
     private final long fieldConfigurationId;
     private final String locale;
     private final Map<String, Object> description;
     private final String fieldName;
 
-    public PurchaseContextFieldDescription(@Column("field_configuration_id_fk") long fieldConfigurationId,
-                                           @Column("field_locale") String locale,
-                                           @Column("description") String description,
-                                           @Column("field_name") String fieldName) {
+    public PurchaseContextFieldDescription(
+            @Column("field_configuration_id_fk") long fieldConfigurationId,
+            @Column("field_locale") String locale,
+            @Column("description") String description,
+            @Column("field_name") String fieldName) {
         this.locale = locale;
         this.fieldConfigurationId = fieldConfigurationId;
-        this.description = Json.GSON.fromJson(description, new TypeToken<Map<String, Object>>(){}.getType());
+        this.description = Json.GSON.fromJson(description, new TypeToken<Map<String, Object>>() {}.getType());
         this.fieldName = fieldName;
     }
 
@@ -57,7 +58,9 @@ public class PurchaseContextFieldDescription {
 
     @JsonIgnore
     public String getPlaceholderDescription() {
-        return isPlaceholderDescriptionDefined() ? description.get("placeholder").toString() : null;
+        return isPlaceholderDescriptionDefined()
+                ? description.get("placeholder").toString()
+                : null;
     }
 
     @JsonIgnore

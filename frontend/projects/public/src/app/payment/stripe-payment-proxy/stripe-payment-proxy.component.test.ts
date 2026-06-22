@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { type ComponentFixture, TestBed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core/testing';
+import {
+    type ComponentFixture,
+    TestBed,
+    CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { StripePaymentProxyComponent } from './stripe-payment-proxy.component';
@@ -16,11 +20,21 @@ describe('StripePaymentProxyComponent', () => {
     };
 
     const mockReservationService = {
-        initPayment: vi.fn(() => of({ success: true, clientSecret: 'secret123', reservationStatusChanged: false })),
+        initPayment: vi.fn(() =>
+            of({
+                success: true,
+                clientSecret: 'secret123',
+                reservationStatusChanged: false,
+            }),
+        ),
         getPaymentStatus: vi.fn(() => of({ success: true })),
     };
 
-    const createComponent = (method: string = 'CREDIT_CARD', proxy: string = 'STRIPE', parameters: { [key: string]: any } = {}) => {
+    const createComponent = (
+        method: string = 'CREDIT_CARD',
+        proxy: string = 'STRIPE',
+        parameters: { [key: string]: any } = {},
+    ) => {
         component.method = method as any;
         component.proxy = proxy as any;
         component.parameters = parameters;
@@ -36,7 +50,10 @@ describe('StripePaymentProxyComponent', () => {
             declarations: [StripePaymentProxyComponent],
             providers: [
                 { provide: TranslateService, useValue: mockTranslateService },
-                { provide: ReservationService, useValue: mockReservationService },
+                {
+                    provide: ReservationService,
+                    useValue: mockReservationService,
+                },
             ],
             imports: [TranslateModule.forRoot()],
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -79,7 +96,9 @@ describe('StripePaymentProxyComponent', () => {
     describe('ngOnChanges', () => {
         it('should emit paymentProvider when method changes and proxy matches (non-SCA)', () => {
             const emittedProviders: any[] = [];
-            component.paymentProvider.subscribe((p) => emittedProviders.push(p));
+            component.paymentProvider.subscribe((p) =>
+                emittedProviders.push(p),
+            );
 
             component.method = 'CREDIT_CARD' as any;
             component.proxy = 'STRIPE' as any;
@@ -87,7 +106,9 @@ describe('StripePaymentProxyComponent', () => {
             component.purchaseContext = mockPurchaseContext;
             component.reservation = mockReservationInfo;
 
-            component.ngOnChanges({ method: { currentValue: 'CREDIT_CARD' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'CREDIT_CARD' },
+            } as any);
 
             expect(emittedProviders.length).toBe(1);
         });
@@ -102,7 +123,9 @@ describe('StripePaymentProxyComponent', () => {
             component.purchaseContext = mockPurchaseContext;
             component.reservation = mockReservationInfo;
 
-            component.ngOnChanges({ method: { currentValue: 'PAYPAL' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'PAYPAL' },
+            } as any);
 
             expect(emitCount).toBe(0);
         });
@@ -125,7 +148,9 @@ describe('StripePaymentProxyComponent', () => {
             component.purchaseContext = mockPurchaseContext;
             component.reservation = mockReservationInfo;
 
-            component.ngOnChanges({ method: { currentValue: 'CREDIT_CARD' } } as any);
+            component.ngOnChanges({
+                method: { currentValue: 'CREDIT_CARD' },
+            } as any);
 
             expect(unloadSpy).toHaveBeenCalled();
         });

@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -49,6 +53,14 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,19 +74,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -82,33 +81,45 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private ClockProvider clockProvider;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private TicketCategoryRepository ticketCategoryRepository;
+
     @Autowired
     private EventApiV2Controller eventApiV2Controller;
+
     @Autowired
     private ReservationApiV2Controller reservationApiV2Controller;
+
     @Autowired
     private BillingDocumentRepository billingDocumentRepository;
+
     @Autowired
     private TicketReservationManager ticketReservationManager;
+
     @Autowired
     private AdminReservationManager adminReservationManager;
+
     @Autowired
     private TicketRepository ticketRepository;
+
     @Autowired
     private AdminReservationApiController adminReservationApiController;
-
 
     private Event event;
     private String username;
@@ -116,13 +127,37 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-        List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.IN_PERSON, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository, null, Event.EventFormat.HYBRID);
+        List<TicketCategoryModification> categories = List.of(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.IN_PERSON,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
+                new DateTimeModification(
+                        LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser = initEvent(
+                categories,
+                organizationRepository,
+                userManager,
+                eventManager,
+                eventRepository,
+                null,
+                Event.EventFormat.HYBRID);
         event = eventAndUser.getLeft();
         username = eventAndUser.getRight();
     }
@@ -188,7 +223,14 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
         });
         assertNotNull(reservationId);
         confirmPaymentForReservation(reservationId);
-        adminReservationManager.removeReservation(PurchaseContext.PurchaseContextType.event, event.getShortName(), reservationId, false, false, true, username);
+        adminReservationManager.removeReservation(
+                PurchaseContext.PurchaseContextType.event,
+                event.getShortName(),
+                reservationId,
+                false,
+                false,
+                true,
+                username);
 
         var billingDocuments = billingDocumentRepository.findAllByReservationId(reservationId);
         assertEquals(3, billingDocuments.size());
@@ -207,7 +249,8 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
             form.setBillingAddressZip("ZIP");
         });
         assertNotNull(reservationId);
-        adminReservationManager.creditReservation(PurchaseContext.PurchaseContextType.event, event.getShortName(), reservationId, false, false, username);
+        adminReservationManager.creditReservation(
+                PurchaseContext.PurchaseContextType.event, event.getShortName(), reservationId, false, false, username);
 
         var billingDocuments = billingDocumentRepository.findAllByReservationId(reservationId);
         assertEquals(2, billingDocuments.size());
@@ -230,12 +273,10 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
         var ticketIds = tickets.stream().map(Ticket::getId).collect(Collectors.toList());
         var principal = Mockito.mock(Principal.class);
         when(principal.getName()).thenReturn(owner(username));
-        var modification = new AdminReservationApiController.RemoveTicketsModification(
-            ticketIds,
-            Map.of(),
-            false,
-            true);
-        var result = adminReservationApiController.removeTickets(event.getShortName(), reservationId, modification,principal);
+        var modification =
+                new AdminReservationApiController.RemoveTicketsModification(ticketIds, Map.of(), false, true);
+        var result = adminReservationApiController.removeTickets(
+                event.getShortName(), reservationId, modification, principal);
         assertTrue(result.isSuccess());
         assertTrue(result.getData().isCreditNoteGenerated());
         var billingDocuments = billingDocumentRepository.findAllByReservationId(reservationId);
@@ -244,7 +285,15 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
         assertTrue(billingDocuments.stream().allMatch(bd -> bd.getStatus() == BillingDocument.Status.VALID));
 
         //
-        assertEquals(2, billingDocumentRepository.findByIdsAndEvent(billingDocuments.stream().map(BillingDocument::getId).collect(Collectors.toList()), event.getId()).size());
+        assertEquals(
+                2,
+                billingDocumentRepository
+                        .findByIdsAndEvent(
+                                billingDocuments.stream()
+                                        .map(BillingDocument::getId)
+                                        .collect(Collectors.toList()),
+                                event.getId())
+                        .size());
 
         assertEquals(BillingDocument.Type.CREDIT_NOTE, billingDocuments.get(0).getType());
     }
@@ -258,7 +307,13 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
         ticketReservation.setQuantity(1);
         ticketReservation.setTicketCategoryId(categoryId);
         form.setReservation(List.of(ticketReservation));
-        var res = eventApiV2Controller.reserveTickets(event.getShortName(), "en", form, new BeanPropertyBindingResult(form, "reservation"), new ServletWebRequest(new MockHttpServletRequest(), new MockHttpServletResponse()), null);
+        var res = eventApiV2Controller.reserveTickets(
+                event.getShortName(),
+                "en",
+                form,
+                new BeanPropertyBindingResult(form, "reservation"),
+                new ServletWebRequest(new MockHttpServletRequest(), new MockHttpServletResponse()),
+                null);
         assertEquals(HttpStatus.OK, res.getStatusCode());
         var resBody = res.getBody();
         assertNotNull(resBody);
@@ -293,7 +348,13 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
 
         contactForm.setTickets(Map.of(ticket.getUuid(), ticketForm1));
 
-        var success = reservationApiV2Controller.validateToOverview(reservationId, "en", false, contactForm, new BeanPropertyBindingResult(contactForm, "paymentForm"), null);
+        var success = reservationApiV2Controller.validateToOverview(
+                reservationId,
+                "en",
+                false,
+                contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"),
+                null);
         assertEquals(HttpStatus.OK, success.getStatusCode());
 
         var paymentForm = new PaymentForm();
@@ -302,8 +363,13 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
         paymentForm.setPaymentProxy(PaymentProxy.OFFLINE);
         paymentForm.setSelectedPaymentMethod(StaticPaymentMethods.BANK_TRANSFER);
 
-        var handleRes = reservationApiV2Controller.confirmOverview(reservationId, "en", paymentForm, new BeanPropertyBindingResult(paymentForm, "paymentForm"),
-            new MockHttpServletRequest(), null);
+        var handleRes = reservationApiV2Controller.confirmOverview(
+                reservationId,
+                "en",
+                paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(),
+                null);
         assertEquals(HttpStatus.OK, handleRes.getStatusCode());
 
         return reservationId;
@@ -323,7 +389,8 @@ class BillingDocumentCreationIntegrationTest extends BaseIntegrationTest {
 
         billingDocuments = billingDocumentRepository.findAllByReservationId(reservationId);
         assertEquals(2, billingDocuments.size());
-        var documentsByStatus = billingDocuments.stream().collect(Collectors.partitioningBy(bd -> bd.getStatus() == BillingDocument.Status.VALID));
+        var documentsByStatus = billingDocuments.stream()
+                .collect(Collectors.partitioningBy(bd -> bd.getStatus() == BillingDocument.Status.VALID));
         var activeList = documentsByStatus.get(true);
         assertNotNull(activeList);
         assertEquals(2, activeList.size());

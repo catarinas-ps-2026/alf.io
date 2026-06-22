@@ -23,14 +23,12 @@ import alfio.model.Ticket;
 import alfio.model.TicketCategory;
 import alfio.repository.EventRepository;
 import alfio.repository.TicketCategoryRepository;
+import java.util.*;
+import java.util.function.Supplier;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
-import java.util.function.Supplier;
-
 public class TicketCheckInUtil {
-
 
     public static final String CUSTOM_CHECK_IN_URL = "customCheckInUrl";
     public static final String ONLINE_CHECK_IN_URL = "onlineCheckInUrl";
@@ -40,36 +38,43 @@ public class TicketCheckInUtil {
     private TicketCheckInUtil() {}
 
     public static String ticketOnlineCheckInUrl(Event event, Ticket ticket, String baseUrl) {
-        var ticketCode = DigestUtils.sha256Hex(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()));
-        return StringUtils.removeEnd(baseUrl, "/")
-            + "/event/" + event.getShortName() + "/ticket/" + ticket.getPublicUuid() + "/check-in/"+ticketCode;
+        var ticketCode =
+                DigestUtils.sha256Hex(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()));
+        return StringUtils.removeEnd(baseUrl, "/") + "/event/" + event.getShortName() + "/ticket/"
+                + ticket.getPublicUuid() + "/check-in/" + ticketCode;
     }
 
-    public static Map<String, String> getOnlineCheckInInfo(ExtensionManager extensionManager,
-                                                           EventRepository eventRepository,
-                                                           TicketCategoryRepository ticketCategoryRepository,
-                                                           ConfigurationManager configurationManager,
-                                                           Event event,
-                                                           Locale ticketLanguage,
-                                                           Ticket ticket,
-                                                           TicketCategory ticketCategory,
-                                                           Map<String, List<String>> ticketAdditionalInfo) {
+    public static Map<String, String> getOnlineCheckInInfo(
+            ExtensionManager extensionManager,
+            EventRepository eventRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            ConfigurationManager configurationManager,
+            Event event,
+            Locale ticketLanguage,
+            Ticket ticket,
+            TicketCategory ticketCategory,
+            Map<String, List<String>> ticketAdditionalInfo) {
         var result = new HashMap<String, String>();
         var customMetadataOptional = extensionManager.handleCustomOnlineJoinUrl(event, ticket, ticketAdditionalInfo);
         result.put(CUSTOM_CHECK_IN_URL, Boolean.toString(customMetadataOptional.isPresent()));
-        if(customMetadataOptional.isPresent()) {
+        if (customMetadataOptional.isPresent()) {
             var ticketMetadata = customMetadataOptional.get();
             var joinLink = ticketMetadata.getJoinLink();
             result.put(ONLINE_CHECK_IN_URL, joinLink.getLink());
-            if(joinLink.hasLinkText()) {
+            if (joinLink.hasLinkText()) {
                 result.put(CUSTOM_CHECK_IN_URL_TEXT, joinLink.getLocalizedText(ticketLanguage.getLanguage(), event));
             }
             var linkDescription = ticketMetadata.getLocalizedDescription(ticketLanguage.getLanguage(), event);
             result.put(CUSTOM_CHECK_IN_URL_DESCRIPTION, linkDescription);
             result.put("prerequisites", "");
         } else {
-            Supplier<Optional<String>> eventMetadata = () -> Optional.ofNullable(eventRepository.getMetadataForEvent(event.getId()).getRequirementsDescriptions()).flatMap(m -> Optional.ofNullable(m.get(ticketLanguage.getLanguage())));
-            var categoryMetadata = Optional.ofNullable(ticketCategoryRepository.getMetadata(event.getId(), ticketCategory.getId()).getRequirementsDescriptions()).flatMap(m -> Optional.ofNullable(m.get(ticketLanguage.getLanguage())));
+            Supplier<Optional<String>> eventMetadata = () -> Optional.ofNullable(
+                            eventRepository.getMetadataForEvent(event.getId()).getRequirementsDescriptions())
+                    .flatMap(m -> Optional.ofNullable(m.get(ticketLanguage.getLanguage())));
+            var categoryMetadata = Optional.ofNullable(ticketCategoryRepository
+                            .getMetadata(event.getId(), ticketCategory.getId())
+                            .getRequirementsDescriptions())
+                    .flatMap(m -> Optional.ofNullable(m.get(ticketLanguage.getLanguage())));
             result.put(ONLINE_CHECK_IN_URL, ticketOnlineCheckInUrl(event, ticket, configurationManager.baseUrl(event)));
             result.put("prerequisites", categoryMetadata.or(eventMetadata).orElse(""));
         }

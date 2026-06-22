@@ -14,24 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.controller.api.admin;
-
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import alfio.manager.AccessService;
 import alfio.manager.EventManager;
@@ -44,6 +33,15 @@ import alfio.model.modification.GroupModification;
 import alfio.model.modification.LinkedGroupModification;
 import alfio.model.result.ErrorCode;
 import alfio.model.result.Result;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class GroupApiControllerTest {
@@ -104,13 +102,7 @@ class GroupApiControllerTest {
 
     @Test
     void loadDetail_withValidListId_returnsGroupModification() {
-        GroupModification modification = new GroupModification(
-                                                1,
-                                                "Test Group",
-                                                "Test Description",
-                                                1,
-                                                List.of()
-                                            );
+        GroupModification modification = new GroupModification(1, "Test Group", "Test Description", 1, List.of());
         when(groupManager.loadComplete(1)).thenReturn(Optional.of(modification));
 
         var result = controller.loadDetail(1, 1, principal);
@@ -131,13 +123,7 @@ class GroupApiControllerTest {
 
     @Test
     void updateGroup_withValidData_updatesAndReturns() {
-        GroupModification modification = new GroupModification(
-                                                1,
-                                                "Test Group",
-                                                "Test Description",
-                                                1,
-                                                List.of()
-                                            );
+        GroupModification modification = new GroupModification(1, "Test Group", "Test Description", 1, List.of());
         when(groupManager.update(1, modification)).thenReturn(Optional.of(modification));
 
         var result = controller.updateGroup(1, 1, modification, principal);
@@ -149,13 +135,7 @@ class GroupApiControllerTest {
 
     @Test
     void updateGroup_withNonExistentGroup_returnsNotFound() {
-        GroupModification modification = new GroupModification(
-                                                1,
-                                                "Test Group",
-                                                "Test Description",
-                                                1,
-                                                List.of()
-                                            );
+        GroupModification modification = new GroupModification(1, "Test Group", "Test Description", 1, List.of());
         when(groupManager.update(1, modification)).thenReturn(Optional.empty());
 
         var result = controller.updateGroup(1, 1, modification, principal);
@@ -165,13 +145,7 @@ class GroupApiControllerTest {
 
     @Test
     void createNew_withMatchingOrganizationId_succeeds() {
-        GroupModification request = new GroupModification(
-                                                1,
-                                                null,
-                                                null,
-                                                1,
-                                                List.of()
-                                            );
+        GroupModification request = new GroupModification(1, null, null, 1, List.of());
         Result<Integer> successResult = Result.success(1);
         when(groupManager.createNew(request)).thenReturn(successResult);
 
@@ -185,13 +159,7 @@ class GroupApiControllerTest {
 
     @Test
     void createNew_withMismatchingOrganizationId_returnsBadRequest() {
-        GroupModification request = new GroupModification(
-                                                1,
-                                                null,
-                                                null,
-                                                2,
-                                                List.of()
-                                            );
+        GroupModification request = new GroupModification(1, null, null, 2, List.of());
 
         var result = controller.createNew(1, request, principal);
 
@@ -201,18 +169,9 @@ class GroupApiControllerTest {
 
     @Test
     void createNew_withDuplicateError_returnsBadRequestWithMessage() {
-        GroupModification request = new GroupModification(
-                                                1,
-                                                null,
-                                                null,
-                                                1,
-                                                List.of()
-                                            );
+        GroupModification request = new GroupModification(1, null, null, 1, List.of());
 
-        ErrorCode error = ErrorCode.custom(
-                                    "value.duplicate",
-                                    "Duplicate value"
-                                );
+        ErrorCode error = ErrorCode.custom("value.duplicate", "Duplicate value");
         Result<Integer> failResult = Result.error(error);
         when(groupManager.createNew(request)).thenReturn(failResult);
 
@@ -224,13 +183,7 @@ class GroupApiControllerTest {
 
     @Test
     void createNew_withOtherError_returnsBadRequest() {
-        GroupModification request = new GroupModification(
-                                                1,
-                                                null,
-                                                null,
-                                                1,
-                                                List.of()
-                                            );
+        GroupModification request = new GroupModification(1, null, null, 1, List.of());
 
         ErrorCode error = ErrorCode.custom("other.error", "Some error");
         Result<Integer> failResult = Result.error(error);
@@ -246,7 +199,7 @@ class GroupApiControllerTest {
         when(principal.getName()).thenReturn("user");
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.of(event));
+                .thenReturn(Optional.of(event));
         List<LinkedGroup> linkedGroups = new ArrayList<>();
         when(groupManager.getLinksForEvent(1)).thenReturn(linkedGroups);
 
@@ -261,7 +214,7 @@ class GroupApiControllerTest {
     void findLinked_withNonExistentEvent_returnsNotFound() {
         when(principal.getName()).thenReturn("user");
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         var result = controller.findLinked("event-name", principal);
 
@@ -273,16 +226,9 @@ class GroupApiControllerTest {
         when(principal.getName()).thenReturn("user");
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.of(event));
-        LinkedGroup linkedGroup = new LinkedGroup(
-                                    1,
-                                    1,
-                                    1,
-                                    null,
-                                    LinkedGroup.Type.UNLIMITED,
-                                    LinkedGroup.MatchType.FULL,
-                                    null
-                                );
+                .thenReturn(Optional.of(event));
+        LinkedGroup linkedGroup =
+                new LinkedGroup(1, 1, 1, null, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupManager.getLinksForEvent(1)).thenReturn(List.of(linkedGroup));
 
         var result = controller.findActiveGroup("event-name", principal);
@@ -296,7 +242,7 @@ class GroupApiControllerTest {
         when(principal.getName()).thenReturn("user");
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.of(event));
+                .thenReturn(Optional.of(event));
         when(groupManager.getLinksForEvent(1)).thenReturn(new ArrayList<>());
 
         var result = controller.findActiveGroup("event-name", principal);
@@ -308,7 +254,7 @@ class GroupApiControllerTest {
     void findActiveGroup_withNonExistentEvent_returnsNotFound() {
         when(principal.getName()).thenReturn("user");
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         var result = controller.findActiveGroup("event-name", principal);
 
@@ -320,16 +266,9 @@ class GroupApiControllerTest {
         when(principal.getName()).thenReturn("user");
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.of(event));
-        LinkedGroup linkedGroup = new LinkedGroup(
-                                            1,
-                                            1,
-                                            1,
-                                            5,
-                                            LinkedGroup.Type.UNLIMITED,
-                                            LinkedGroup.MatchType.FULL,
-                                            null
-                                        );
+                .thenReturn(Optional.of(event));
+        LinkedGroup linkedGroup =
+                new LinkedGroup(1, 1, 1, 5, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupManager.findLinks(1, 5)).thenReturn(List.of(linkedGroup));
 
         var result = controller.findActiveGroup("event-name", 5, principal);
@@ -343,7 +282,7 @@ class GroupApiControllerTest {
         when(principal.getName()).thenReturn("user");
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.of(event));
+                .thenReturn(Optional.of(event));
         when(groupManager.findLinks(1, 5)).thenReturn(new ArrayList<>());
 
         var result = controller.findActiveGroup("event-name", 5, principal);
@@ -355,7 +294,7 @@ class GroupApiControllerTest {
     void findActiveGroup_withCategoryAndNonExistentEvent_returnsNotFound() {
         when(principal.getName()).thenReturn("user");
         when(eventManager.getOptionalEventAndOrganizationIdByName("event-name", "user"))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         var result = controller.findActiveGroup("event-name", 5, principal);
 
@@ -364,28 +303,13 @@ class GroupApiControllerTest {
 
     @Test
     void linkGroup_withMatchingGroupId_createsNewLink() {
-        LinkedGroupModification body = new LinkedGroupModification(
-                                                null,
-                                                1,
-                                                1,
-                                                null,
-                                                null,
-                                                null,
-                                                null
-                                            );
-        
+        LinkedGroupModification body = new LinkedGroupModification(null, 1, 1, null, null, null, null);
+
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(accessService.checkEventOwnership(principal, 1)).thenReturn(event);
         when(groupManager.getLinksForEvent(1)).thenReturn(new ArrayList<>());
-        LinkedGroup linkedGroup = new LinkedGroup(
-                                        1,
-                                        1,
-                                        1,
-                                        null,
-                                        LinkedGroup.Type.UNLIMITED,
-                                        LinkedGroup.MatchType.FULL,
-                                        null
-                                    );
+        LinkedGroup linkedGroup =
+                new LinkedGroup(1, 1, 1, null, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupManager.createLink(1, 1, body)).thenReturn(linkedGroup);
 
         var result = controller.linkGroup(1, body, principal);
@@ -396,15 +320,7 @@ class GroupApiControllerTest {
 
     @Test
     void linkGroup_withMismatchingGroupId_returnsBadRequest() {
-        LinkedGroupModification body = new LinkedGroupModification(
-                                            null,
-                                            2,
-                                            0,
-                                            null,
-                                            null,
-                                            null,
-                                            null
-                                        );
+        LinkedGroupModification body = new LinkedGroupModification(null, 2, 0, null, null, null, null);
 
         var result = controller.linkGroup(1, body, principal);
 
@@ -421,27 +337,12 @@ class GroupApiControllerTest {
 
     @Test
     void linkGroup_withExistingLink_updatesLink() {
-        LinkedGroupModification body = new LinkedGroupModification(
-                                            null,
-                                            1,
-                                            1,
-                                            5,
-                                            null,
-                                            null,
-                                            null
-                                        );
-        
+        LinkedGroupModification body = new LinkedGroupModification(null, 1, 1, 5, null, null, null);
+
         EventAndOrganizationId event = new EventAndOrganizationId(1, 1);
         when(accessService.checkCategoryOwnership(principal, 1, 5)).thenReturn(event);
-        LinkedGroup existingLink = new LinkedGroup(
-                                            10,
-                                            1,
-                                            1,
-                                            5,
-                                            LinkedGroup.Type.UNLIMITED,
-                                            LinkedGroup.MatchType.FULL,
-                                            null
-                                        );
+        LinkedGroup existingLink =
+                new LinkedGroup(10, 1, 1, 5, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
 
         when(groupManager.getLinksForEvent(1)).thenReturn(List.of(existingLink));
         when(groupManager.updateLink(10, body)).thenReturn(existingLink);

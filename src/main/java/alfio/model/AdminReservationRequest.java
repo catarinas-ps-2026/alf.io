@@ -25,11 +25,14 @@ import lombok.Getter;
 public class AdminReservationRequest {
 
     public enum RequestType {
-        ADMIN, IMPORT
+        ADMIN,
+        IMPORT
     }
 
     public enum Status {
-        PENDING, SUCCESS, ERROR
+        PENDING,
+        SUCCESS,
+        ERROR
     }
 
     private final long id;
@@ -42,15 +45,16 @@ public class AdminReservationRequest {
     private final AdminReservationModification body;
     private final String failureCode;
 
-    public AdminReservationRequest(@Column("id") long id,
-                                   @Column("request_id") String requestId,
-                                   @Column("user_id") long userId,
-                                   @Column("event_id") long eventId,
-                                   @Column("reservation_id") String reservationId,
-                                   @Column("request_type") RequestType requestType,
-                                   @Column("status") Status status,
-                                   @Column("body") String body,
-                                   @Column("failure_code") String failureCode) {
+    public AdminReservationRequest(
+            @Column("id") long id,
+            @Column("request_id") String requestId,
+            @Column("user_id") long userId,
+            @Column("event_id") long eventId,
+            @Column("reservation_id") String reservationId,
+            @Column("request_type") RequestType requestType,
+            @Column("status") Status status,
+            @Column("body") String body,
+            @Column("failure_code") String failureCode) {
         this.id = id;
         this.requestId = requestId;
         this.userId = userId;
@@ -61,5 +65,4 @@ public class AdminReservationRequest {
         this.body = Json.fromJson(body, AdminReservationModification.class);
         this.failureCode = failureCode;
     }
-
 }

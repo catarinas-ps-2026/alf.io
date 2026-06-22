@@ -20,14 +20,12 @@ import alfio.model.system.Configuration;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 
 @Getter
 public class TicketCategoryStatisticView {
-
 
     private final int id;
     private final int maxTickets;
@@ -44,20 +42,21 @@ public class TicketCategoryStatisticView {
     private final boolean containsStuckTickets;
     private final List<Configuration> configuration;
 
-    public TicketCategoryStatisticView(@Column("ticket_category_id") int id,
-                                       @Column("max_tickets") int maxTickets,
-                                       @Column("bounded") boolean bounded,
-                                       @Column("is_expired") boolean expired,
-                                       @Column("event_id") int eventId,
-                                       @Column("pending_count") int pendingCount,
-                                       @Column("checked_in_count") int checkedInCount,
-                                       @Column("sold_tickets_count") int soldTicketsCount,
-                                       @Column("not_sold_tickets") int notSoldTicketsCount,
-                                       @Column("released_count") int releasedCount,
-                                       @Column("stuck_count") int stuckCount,
-                                       @Column("is_containing_orphan_tickets") boolean containsOrphanTickets,
-                                       @Column("is_containing_stuck_tickets") boolean containsStuckTickets,
-                                       @Column("category_configuration") String configurationJson) {
+    public TicketCategoryStatisticView(
+            @Column("ticket_category_id") int id,
+            @Column("max_tickets") int maxTickets,
+            @Column("bounded") boolean bounded,
+            @Column("is_expired") boolean expired,
+            @Column("event_id") int eventId,
+            @Column("pending_count") int pendingCount,
+            @Column("checked_in_count") int checkedInCount,
+            @Column("sold_tickets_count") int soldTicketsCount,
+            @Column("not_sold_tickets") int notSoldTicketsCount,
+            @Column("released_count") int releasedCount,
+            @Column("stuck_count") int stuckCount,
+            @Column("is_containing_orphan_tickets") boolean containsOrphanTickets,
+            @Column("is_containing_stuck_tickets") boolean containsStuckTickets,
+            @Column("category_configuration") String configurationJson) {
         this.id = id;
         this.maxTickets = maxTickets;
         this.bounded = bounded;
@@ -71,10 +70,12 @@ public class TicketCategoryStatisticView {
         this.containsOrphanTickets = containsOrphanTickets;
         this.containsStuckTickets = containsStuckTickets;
         this.releasedTicketsCount = releasedCount;
-        this.configuration = Json.fromJson(Objects.requireNonNullElse(configurationJson, "[]"), new TypeReference<>() {});
+        this.configuration =
+                Json.fromJson(Objects.requireNonNullElse(configurationJson, "[]"), new TypeReference<>() {});
     }
 
     public static TicketCategoryStatisticView empty(int ticketCategoryId, int eventId) {
-        return new TicketCategoryStatisticView(ticketCategoryId, 0, false, false, eventId, 0, 0, 0, 0, 0, 0, false, false, null);
+        return new TicketCategoryStatisticView(
+                ticketCategoryId, 0, false, false, eventId, 0, 0, 0, 0, 0, 0, false, false, null);
     }
 }

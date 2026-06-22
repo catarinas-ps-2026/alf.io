@@ -26,32 +26,27 @@ import alfio.util.Json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 public class BaseConfiguration {
 
     @Bean
-    ConfigurationManager configurationManager(ConfigurationRepository configurationRepository,
-                                              UserManager userManager,
-                                              EventRepository eventRepository,
-                                              ExternalConfiguration externalConfiguration,
-                                              Environment environment) {
-        Cache<Set<ConfigurationKeys>, Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> cache = Caffeine.newBuilder()
-            .expireAfterWrite(Duration.ofMinutes(1))
-            .build();
-        return new ConfigurationManager(configurationRepository,
-            userManager,
-            eventRepository,
-            externalConfiguration,
-            environment,
-            cache);
+    ConfigurationManager configurationManager(
+            ConfigurationRepository configurationRepository,
+            UserManager userManager,
+            EventRepository eventRepository,
+            ExternalConfiguration externalConfiguration,
+            Environment environment) {
+        Cache<Set<ConfigurationKeys>, Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> cache =
+                Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(1)).build();
+        return new ConfigurationManager(
+                configurationRepository, userManager, eventRepository, externalConfiguration, environment, cache);
     }
 
     @Bean

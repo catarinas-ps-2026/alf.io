@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { of } from 'rxjs';
-import { PaymentResult, PaymentStatusNotification, SimplePaymentProvider, PaymentProvider } from './payment-provider';
+import {
+    PaymentResult,
+    PaymentStatusNotification,
+    SimplePaymentProvider,
+    PaymentProvider,
+} from './payment-provider';
 
 describe('PaymentResult', () => {
     it('should create with success=true and gatewayToken', () => {
@@ -28,7 +33,12 @@ describe('PaymentResult', () => {
     });
 
     it('should allow all parameters', () => {
-        const result = new PaymentResult(false, 'tok-456', 'Error message', true);
+        const result = new PaymentResult(
+            false,
+            'tok-456',
+            'Error message',
+            true,
+        );
         expect(result.success).toBe(false);
         expect(result.gatewayToken).toBe('tok-456');
         expect(result.reason).toBe('Error message');

@@ -18,13 +18,11 @@ package alfio.model.api.v1.admin;
 
 import alfio.model.TicketReservation;
 import alfio.model.api.v1.admin.subscription.Owner;
-
 import java.util.List;
 
-public record ReservationDetail(String id,
-                                TicketReservation.TicketReservationStatus status,
-                                ReservationUser user,
-                                List<AttendeesByCategory> tickets,
-                                List<Owner> subscriptionOwners) {
-
-}
+public record ReservationDetail(
+        String id,
+        TicketReservation.TicketReservationStatus status,
+        ReservationUser user,
+        List<AttendeesByCategory> tickets,
+        List<Owner> subscriptionOwners) {}

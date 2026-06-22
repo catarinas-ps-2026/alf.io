@@ -33,12 +33,13 @@ public class OrganizationModification {
     private final String slug;
 
     @JsonCreator
-    public OrganizationModification(@JsonProperty("id") Integer id,
-                                    @JsonProperty("name") String name,
-                                    @JsonProperty("email") String email,
-                                    @JsonProperty("description") String description,
-                                    @JsonProperty("externalId") String externalId,
-                                    @JsonProperty("slug") String slug) {
+    public OrganizationModification(
+            @JsonProperty("id") Integer id,
+            @JsonProperty("name") String name,
+            @JsonProperty("email") String email,
+            @JsonProperty("description") String description,
+            @JsonProperty("externalId") String externalId,
+            @JsonProperty("slug") String slug) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -50,8 +51,8 @@ public class OrganizationModification {
     @JsonIgnore
     public boolean isValid(boolean create) {
         return (create || (id != null && id > 0))
-            && StringUtils.isNotEmpty(name)
-            && StringUtils.isNotEmpty(email)
-            && StringUtils.isNotEmpty(description);
+                && StringUtils.isNotEmpty(name)
+                && StringUtils.isNotEmpty(email)
+                && StringUtils.isNotEmpty(description);
     }
 }

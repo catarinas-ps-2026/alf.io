@@ -16,9 +16,19 @@
  */
 package alfio.manager.system;
 
+import static alfio.model.system.ConfigurationKeys.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alfio.model.Configurable;
 import alfio.model.system.ConfigurationKeys;
 import alfio.repository.user.OrganizationRepository;
+import jakarta.activation.FileTypeMap;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,39 +41,43 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
-import jakarta.activation.FileTypeMap;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.internet.MimeMessage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-
-import static alfio.model.system.ConfigurationKeys.*;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 class SmtpMailer extends BaseMailer {
 
     private static final Logger log = LoggerFactory.getLogger(SmtpMailer.class);
     private final ConfigurationManager configurationManager;
 
-    SmtpMailer(ConfigurationManager configurationManager,
-               OrganizationRepository organizationRepository) {
+    SmtpMailer(ConfigurationManager configurationManager, OrganizationRepository organizationRepository) {
         super(organizationRepository);
         this.configurationManager = configurationManager;
     }
 
     @Override
-    public void send(Configurable configurable, String fromName, String to, List<String> cc, String subject, String text,
-                     Optional<String> html, Attachment... attachments) {
+    public void send(
+            Configurable configurable,
+            String fromName,
+            String to,
+            List<String> cc,
+            String subject,
+            String text,
+            Optional<String> html,
+            Attachment... attachments) {
 
-        var conf = configurationManager.getFor(Set.of(SMTP_FROM_EMAIL, MAIL_REPLY_TO,
-            MAIL_SET_ORG_REPLY_TO, SMTP_HOST, SMTP_PORT, SMTP_PROTOCOL,
-            SMTP_USERNAME, SMTP_PASSWORD, SMTP_PROPERTIES), configurable.getConfigurationLevel());
+        var conf = configurationManager.getFor(
+                Set.of(
+                        SMTP_FROM_EMAIL,
+                        MAIL_REPLY_TO,
+                        MAIL_SET_ORG_REPLY_TO,
+                        SMTP_HOST,
+                        SMTP_PORT,
+                        SMTP_PROTOCOL,
+                        SMTP_USERNAME,
+                        SMTP_PASSWORD,
+                        SMTP_PROPERTIES),
+                configurable.getConfigurationLevel());
 
         MimeMessagePreparator preparator = mimeMessage -> {
-
-            MimeMessageHelper message = html.isPresent() || !ArrayUtils.isEmpty(attachments) ? new MimeMessageHelper(mimeMessage, true, UTF_8.name())
+            MimeMessageHelper message = html.isPresent() || !ArrayUtils.isEmpty(attachments)
+                    ? new MimeMessageHelper(mimeMessage, true, UTF_8.name())
                     : new MimeMessageHelper(mimeMessage, UTF_8.name());
             message.setSubject(subject);
             message.setFrom(conf.get(SMTP_FROM_EMAIL).getRequiredValue(), fromName);
@@ -75,7 +89,7 @@ class SmtpMailer extends BaseMailer {
                 }
             });
             message.setTo(to);
-            if(cc != null && !cc.isEmpty()){
+            if (cc != null && !cc.isEmpty()) {
                 message.setCc(cc.toArray(new String[0]));
             }
             if (html.isPresent()) {
@@ -89,13 +103,13 @@ class SmtpMailer extends BaseMailer {
                     message.addAttachment(a.getFilename(), new ByteArrayResource(a.getSource()), a.getContentType());
                 }
             }
-            
+
             message.getMimeMessage().saveChanges();
             message.getMimeMessage().removeHeader("Message-ID");
         };
         toMailSender(conf).send(preparator);
     }
-    
+
     private static JavaMailSender toMailSender(Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf) {
         JavaMailSenderImpl r = new CustomJavaMailSenderImpl();
         r.setDefaultEncoding(UTF_8.name());
@@ -110,8 +124,8 @@ class SmtpMailer extends BaseMailer {
 
         if (properties != null) {
             try {
-                Properties prop = PropertiesLoaderUtils.loadProperties(new EncodedResource(new ByteArrayResource(
-                        properties.getBytes(UTF_8)), UTF_8.name()));
+                Properties prop = PropertiesLoaderUtils.loadProperties(
+                        new EncodedResource(new ByteArrayResource(properties.getBytes(UTF_8)), UTF_8.name()));
                 r.setJavaMailProperties(prop);
             } catch (IOException e) {
                 log.warn("error while setting the mail sender properties", e);
@@ -119,9 +133,9 @@ class SmtpMailer extends BaseMailer {
         }
         return r;
     }
-    
+
     static class CustomMimeMessage extends MimeMessage {
-        
+
         private String defaultEncoding;
         private FileTypeMap defaultFileTypeMap;
 
@@ -134,7 +148,7 @@ class SmtpMailer extends BaseMailer {
         CustomMimeMessage(Session session, InputStream contentStream) throws MessagingException {
             super(session, contentStream);
         }
-        
+
         public final String getDefaultEncoding() {
             return this.defaultEncoding;
         }
@@ -142,35 +156,33 @@ class SmtpMailer extends BaseMailer {
         public final FileTypeMap getDefaultFileTypeMap() {
             return this.defaultFileTypeMap;
         }
-        
+
         @Override
         protected void updateMessageID() throws MessagingException {
             removeHeader("Message-Id");
         }
-        
+
         @Override
         public void setHeader(String name, String value) throws MessagingException {
-            if(!"Message-Id".equals(name)) {
+            if (!"Message-Id".equals(name)) {
                 super.setHeader(name, value);
             }
         }
     }
-    
+
     static class CustomJavaMailSenderImpl extends JavaMailSenderImpl {
         @Override
         public MimeMessage createMimeMessage() {
             return new CustomMimeMessage(getSession(), getDefaultEncoding(), getDefaultFileTypeMap());
         }
-        
+
         @Override
         public MimeMessage createMimeMessage(InputStream contentStream) {
             try {
                 return new CustomMimeMessage(getSession(), contentStream);
-            }
-            catch (MessagingException ex) {
+            } catch (MessagingException ex) {
                 throw new MailParseException("Could not parse raw MIME content", ex);
             }
         }
     }
-
 }

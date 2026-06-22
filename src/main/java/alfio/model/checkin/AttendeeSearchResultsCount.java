@@ -22,8 +22,7 @@ public class AttendeeSearchResultsCount {
     private final int total;
     private final int checkedIn;
 
-    public AttendeeSearchResultsCount(@Column("total") int total,
-                                      @Column("checked_in") int checkedIn) {
+    public AttendeeSearchResultsCount(@Column("total") int total, @Column("checked_in") int checkedIn) {
         this.total = total;
         this.checkedIn = checkedIn;
     }

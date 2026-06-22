@@ -19,10 +19,9 @@ package alfio.model.modification;
 import alfio.model.CustomerName;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public class AttendeeData {
     private final String firstName;
@@ -34,22 +33,24 @@ public class AttendeeData {
     private final AttendeeResources resources;
 
     @JsonCreator
-    public AttendeeData(@JsonProperty("firstName") String firstName,
-                        @JsonProperty("lastName") String lastName,
-                        @JsonProperty("email") String email,
-                        @JsonProperty("externalReference") String externalReference,
-                        @JsonProperty("metadata") Map<String, String> metadata,
-                        @JsonProperty("additional") Map<String, List<String>> additional) {
+    public AttendeeData(
+            @JsonProperty("firstName") String firstName,
+            @JsonProperty("lastName") String lastName,
+            @JsonProperty("email") String email,
+            @JsonProperty("externalReference") String externalReference,
+            @JsonProperty("metadata") Map<String, String> metadata,
+            @JsonProperty("additional") Map<String, List<String>> additional) {
         this(firstName, lastName, email, externalReference, metadata, additional, AttendeeResources.empty());
     }
 
-    public AttendeeData(String firstName,
-                        String lastName,
-                        String email,
-                        String externalReference,
-                        Map<String, String> metadata,
-                        Map<String, List<String>> additional,
-                        AttendeeResources resources) {
+    public AttendeeData(
+            String firstName,
+            String lastName,
+            String email,
+            String externalReference,
+            Map<String, String> metadata,
+            Map<String, List<String>> additional,
+            AttendeeResources resources) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -95,9 +96,7 @@ public class AttendeeData {
     }
 
     public boolean hasContactData() {
-        return StringUtils.isNotBlank(firstName)
-            || StringUtils.isNotBlank(lastName)
-            || StringUtils.isNotBlank(email);
+        return StringUtils.isNotBlank(firstName) || StringUtils.isNotBlank(lastName) || StringUtils.isNotBlank(email);
     }
 
     public AttendeeResources getResources() {

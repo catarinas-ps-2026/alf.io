@@ -16,33 +16,30 @@
  */
 package alfio.manager;
 
+import static alfio.model.system.ConfigurationKeys.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.controller.form.ContactAndTicketsForm;
 import alfio.controller.support.CustomBindingResult;
+import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
-import alfio.manager.system.ConfigurationLevel;
 import alfio.model.*;
 import alfio.model.PurchaseContext.PurchaseContextType;
 import alfio.model.extension.CustomTaxPolicy;
+import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.model.system.ConfigurationKeys;
 import alfio.model.system.ConfigurationPathLevel;
-import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.repository.*;
+import java.math.BigDecimal;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
-
-import java.math.BigDecimal;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static alfio.model.system.ConfigurationKeys.*;
 
 public class ReverseChargeManagerTest {
 
@@ -88,29 +85,39 @@ public class ReverseChargeManagerTest {
                 ticketReservationManager,
                 ticketRepository,
                 subscriptionRepository,
-                auditingRepository
-        );
+                auditingRepository);
     }
 
     private MaybeConfiguration mockConfig(ConfigurationKeys key, String value) {
-        ConfigurationKeyValuePathLevel kv = new ConfigurationKeyValuePathLevel(key.name(), value, ConfigurationPathLevel.SYSTEM);
+        ConfigurationKeyValuePathLevel kv =
+                new ConfigurationKeyValuePathLevel(key.name(), value, ConfigurationPathLevel.SYSTEM);
         return new MaybeConfiguration(key, kv);
     }
 
     private void mockReverseChargeConfig(boolean enabled, String countryOfBusiness, boolean inPerson, boolean online) {
         Map<ConfigurationKeys, MaybeConfiguration> configMap = new HashMap<>();
         configMap.put(ENABLE_EU_VAT_DIRECTIVE, mockConfig(ENABLE_EU_VAT_DIRECTIVE, String.valueOf(enabled)));
-        configMap.put(COUNTRY_OF_BUSINESS, countryOfBusiness == null ? new MaybeConfiguration(COUNTRY_OF_BUSINESS) : mockConfig(COUNTRY_OF_BUSINESS, countryOfBusiness));
-        configMap.put(ENABLE_REVERSE_CHARGE_IN_PERSON, mockConfig(ENABLE_REVERSE_CHARGE_IN_PERSON, String.valueOf(inPerson)));
+        configMap.put(
+                COUNTRY_OF_BUSINESS,
+                countryOfBusiness == null
+                        ? new MaybeConfiguration(COUNTRY_OF_BUSINESS)
+                        : mockConfig(COUNTRY_OF_BUSINESS, countryOfBusiness));
+        configMap.put(
+                ENABLE_REVERSE_CHARGE_IN_PERSON, mockConfig(ENABLE_REVERSE_CHARGE_IN_PERSON, String.valueOf(inPerson)));
         configMap.put(ENABLE_REVERSE_CHARGE_ONLINE, mockConfig(ENABLE_REVERSE_CHARGE_ONLINE, String.valueOf(online)));
 
-        when(configurationManager.getFor(eq(Set.of(ENABLE_EU_VAT_DIRECTIVE,
-                COUNTRY_OF_BUSINESS,
-                ENABLE_REVERSE_CHARGE_IN_PERSON,
-                ENABLE_REVERSE_CHARGE_ONLINE)), any())).thenReturn(configMap);
+        when(configurationManager.getFor(
+                        eq(Set.of(
+                                ENABLE_EU_VAT_DIRECTIVE,
+                                COUNTRY_OF_BUSINESS,
+                                ENABLE_REVERSE_CHARGE_IN_PERSON,
+                                ENABLE_REVERSE_CHARGE_ONLINE)),
+                        any()))
+                .thenReturn(configMap);
     }
 
-    private PurchaseContext mockPurchaseContext(PurchaseContextType type, String currency, PriceContainer.VatStatus vatStatus, BigDecimal vatPercentage) {
+    private PurchaseContext mockPurchaseContext(
+            PurchaseContextType type, String currency, PriceContainer.VatStatus vatStatus, BigDecimal vatPercentage) {
         PurchaseContext context;
         if (type == PurchaseContextType.event) {
             Event event = mock(Event.class);
@@ -151,7 +158,8 @@ public class ReverseChargeManagerTest {
     @Test
     public void testCheckAndApplyVATRules_ReverseChargeDisabled() {
         mockReverseChargeConfig(false, "IT", true, true);
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.empty());
 
         ContactAndTicketsForm form = new ContactAndTicketsForm();
@@ -168,9 +176,11 @@ public class ReverseChargeManagerTest {
     @Test
     public void testCheckAndApplyVATRules_ReverseChargeEnabled_MissingVatNrForEU() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.empty());
 
         ContactAndTicketsForm form = new ContactAndTicketsForm();
@@ -188,9 +198,11 @@ public class ReverseChargeManagerTest {
     @Test
     public void testCheckAndApplyVATRules_ReverseChargeEnabled_NonEUCountry() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.empty());
 
         ContactAndTicketsForm form = new ContactAndTicketsForm();
@@ -206,9 +218,11 @@ public class ReverseChargeManagerTest {
     @Test
     public void testCheckAndApplyVATRules_VatCheckerFailure() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.of(reservation));
         when(ticketCategoryRepository.findCategoriesInReservation("resId")).thenReturn(List.of());
@@ -231,9 +245,11 @@ public class ReverseChargeManagerTest {
     @Test
     public void testCheckAndApplyVATRules_VatDetailInvalid() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.of(reservation));
         when(ticketCategoryRepository.findCategoriesInReservation("resId")).thenReturn(List.of());
@@ -251,15 +267,18 @@ public class ReverseChargeManagerTest {
         reverseChargeManager.checkAndApplyVATRules(context, "resId", form, bindingResult);
         assertTrue(bindingResult.hasErrors());
         assertNotNull(bindingResult.getFieldError("vatNr"));
-        assertEquals("error.STEP_2_INVALID_VAT", bindingResult.getFieldError("vatNr").getCode());
+        assertEquals(
+                "error.STEP_2_INVALID_VAT", bindingResult.getFieldError("vatNr").getCode());
     }
 
     @Test
     public void testCheckAndApplyVATRules_Success_Event_ReverseChargeBothEnabled() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.of(reservation));
 
@@ -282,10 +301,12 @@ public class ReverseChargeManagerTest {
         when(ticketReservationManager.findById("resId")).thenReturn(Optional.of(reservation));
         when(ticketReservationManager.findTicketsInReservation("resId")).thenReturn(List.of());
         when(subscriptionRepository.findSubscriptionsByReservationId("resId")).thenReturn(List.of());
-        when(subscriptionRepository.findAppliedSubscriptionByReservationId("resId")).thenReturn(Optional.empty());
+        when(subscriptionRepository.findAppliedSubscriptionByReservationId("resId"))
+                .thenReturn(Optional.empty());
 
         when(ticketRepository.updateTicketPriceForCategoryInReservation()).thenReturn("UPDATE...");
-        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1});
 
         BindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
 
@@ -294,27 +315,29 @@ public class ReverseChargeManagerTest {
 
         verify(ticketRepository).updateVatStatusForReservation("resId", PriceContainer.VatStatus.INCLUDED_EXEMPT);
         verify(jdbcTemplate).batchUpdate(eq("UPDATE..."), any(MapSqlParameterSource[].class));
-        verify(ticketReservationRepository).updateBillingData(
-                eq(PriceContainer.VatStatus.INCLUDED_EXEMPT),
-                eq(1000),
-                anyInt(),
-                anyInt(),
-                anyInt(),
-                eq("USD"),
-                eq("DE123456"),
-                eq("DE"),
-                eq(true),
-                eq("resId")
-        );
+        verify(ticketReservationRepository)
+                .updateBillingData(
+                        eq(PriceContainer.VatStatus.INCLUDED_EXEMPT),
+                        eq(1000),
+                        anyInt(),
+                        anyInt(),
+                        anyInt(),
+                        eq("USD"),
+                        eq("DE123456"),
+                        eq("DE"),
+                        eq(true),
+                        eq("resId"));
         verify(vatChecker).logSuccessfulValidation(validDetail, "resId", context);
     }
 
     @Test
     public void testCheckAndApplyVATRules_Success_Event_SplitReverseCharge() {
         mockReverseChargeConfig(true, "IT", true, false); // inPerson=true, online=false
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         Event event = (Event) context;
         when(event.getFormat()).thenReturn(Event.EventFormat.HYBRID);
 
@@ -331,7 +354,8 @@ public class ReverseChargeManagerTest {
         when(categoryOnline.getSrcPriceCts()).thenReturn(500);
         when(categoryOnline.getTicketAccessType()).thenReturn(TicketCategory.TicketAccessType.ONLINE);
 
-        when(ticketCategoryRepository.findCategoriesInReservation("resId")).thenReturn(List.of(categoryInPerson, categoryOnline));
+        when(ticketCategoryRepository.findCategoriesInReservation("resId"))
+                .thenReturn(List.of(categoryInPerson, categoryOnline));
         when(configurationManager.getCategoriesWithNoTaxes(anyList())).thenReturn(List.of());
 
         ContactAndTicketsForm form = new ContactAndTicketsForm();
@@ -347,7 +371,8 @@ public class ReverseChargeManagerTest {
         when(ticketReservationManager.findTicketsInReservation("resId")).thenReturn(List.of());
 
         when(ticketRepository.updateTicketPriceForCategoryInReservation()).thenReturn("UPDATE...");
-        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1});
 
         BindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
 
@@ -357,26 +382,28 @@ public class ReverseChargeManagerTest {
         // For split reverse charge, ticketRepository.updateVatStatusForReservation is NOT called.
         verify(ticketRepository, never()).updateVatStatusForReservation(anyString(), any());
         verify(jdbcTemplate).batchUpdate(eq("UPDATE..."), any(MapSqlParameterSource[].class));
-        verify(ticketReservationRepository).updateBillingData(
-                eq(PriceContainer.VatStatus.INCLUDED), // original vat status used
-                eq(1000),
-                anyInt(),
-                anyInt(),
-                anyInt(),
-                eq("USD"),
-                eq("DE123456"),
-                eq("DE"),
-                eq(false),
-                eq("resId")
-        );
+        verify(ticketReservationRepository)
+                .updateBillingData(
+                        eq(PriceContainer.VatStatus.INCLUDED), // original vat status used
+                        eq(1000),
+                        anyInt(),
+                        anyInt(),
+                        anyInt(),
+                        eq("USD"),
+                        eq("DE123456"),
+                        eq("DE"),
+                        eq(false),
+                        eq("resId"));
     }
 
     @Test
     public void testCheckAndApplyVATRules_Success_Subscription() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.subscription, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.subscription, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.of(reservation));
 
@@ -398,26 +425,28 @@ public class ReverseChargeManagerTest {
 
         verify(ticketRepository, never()).updateVatStatusForReservation(anyString(), any());
         verify(jdbcTemplate, never()).batchUpdate(anyString(), any(MapSqlParameterSource[].class));
-        verify(ticketReservationRepository).updateBillingData(
-                eq(PriceContainer.VatStatus.INCLUDED_EXEMPT),
-                eq(1000),
-                anyInt(),
-                anyInt(),
-                anyInt(),
-                eq("USD"),
-                eq("DE123456"),
-                eq("DE"),
-                eq(false),
-                eq("resId")
-        );
+        verify(ticketReservationRepository)
+                .updateBillingData(
+                        eq(PriceContainer.VatStatus.INCLUDED_EXEMPT),
+                        eq(1000),
+                        anyInt(),
+                        anyInt(),
+                        anyInt(),
+                        eq("USD"),
+                        eq("DE123456"),
+                        eq("DE"),
+                        eq(false),
+                        eq("resId"));
     }
 
     @Test
     public void testCheckAndApplyVATRules_ItalySplitPayment() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.of(reservation));
         when(ticketCategoryRepository.findCategoriesInReservation("resId")).thenReturn(List.of());
@@ -436,26 +465,28 @@ public class ReverseChargeManagerTest {
         reverseChargeManager.checkAndApplyVATRules(context, "resId", form, bindingResult);
         assertFalse(bindingResult.hasErrors());
 
-        verify(ticketReservationRepository).updateBillingData(
-                eq(PriceContainer.VatStatus.INCLUDED_NOT_CHARGED),
-                eq(1000),
-                anyInt(),
-                anyInt(),
-                anyInt(),
-                eq("USD"),
-                eq("IT123456789"),
-                eq("IT"),
-                eq(false),
-                eq("resId")
-        );
+        verify(ticketReservationRepository)
+                .updateBillingData(
+                        eq(PriceContainer.VatStatus.INCLUDED_NOT_CHARGED),
+                        eq(1000),
+                        anyInt(),
+                        anyInt(),
+                        anyInt(),
+                        eq("USD"),
+                        eq("IT123456789"),
+                        eq("IT"),
+                        eq(false),
+                        eq("resId"));
     }
 
     @Test
     public void testCheckAndApplyVATRules_NoTaxCategories() {
         mockReverseChargeConfig(true, "IT", true, true);
-        when(configurationManager.getForSystem(EU_COUNTRIES_LIST)).thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
+        when(configurationManager.getForSystem(EU_COUNTRIES_LIST))
+                .thenReturn(mockConfig(EU_COUNTRIES_LIST, "IT,DE,FR"));
 
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationRepository.findOptionalReservationById("resId")).thenReturn(Optional.of(reservation));
 
@@ -475,7 +506,8 @@ public class ReverseChargeManagerTest {
         when(ticketReservationManager.findTicketsInReservation("resId")).thenReturn(List.of());
 
         when(ticketRepository.updateTicketPriceForCategoryInReservation()).thenReturn("UPDATE...");
-        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1});
 
         BindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
 
@@ -483,23 +515,24 @@ public class ReverseChargeManagerTest {
         assertFalse(bindingResult.hasErrors());
 
         verify(jdbcTemplate).batchUpdate(eq("UPDATE..."), any(MapSqlParameterSource[].class));
-        verify(ticketReservationRepository).updateBillingData(
-                eq(PriceContainer.VatStatus.INCLUDED),
-                eq(1000),
-                anyInt(),
-                anyInt(),
-                anyInt(),
-                eq("USD"),
-                eq("DE123456"),
-                eq("DE"),
-                eq(false),
-                eq("resId")
-        );
+        verify(ticketReservationRepository)
+                .updateBillingData(
+                        eq(PriceContainer.VatStatus.INCLUDED),
+                        eq(1000),
+                        anyInt(),
+                        anyInt(),
+                        anyInt(),
+                        eq("USD"),
+                        eq("DE123456"),
+                        eq("DE"),
+                        eq(false),
+                        eq("resId"));
     }
 
     @Test
     public void testApplyCustomTaxPolicy_ThrowsIfNotEvent() {
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.subscription, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.subscription, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         CustomTaxPolicy policy = new CustomTaxPolicy(List.of());
         ContactAndTicketsForm form = new ContactAndTicketsForm();
         CustomBindingResult bindingResult = new CustomBindingResult(new BeanPropertyBindingResult(form, "form"));
@@ -511,14 +544,14 @@ public class ReverseChargeManagerTest {
 
     @Test
     public void testApplyCustomTaxPolicy_TicketNotInReservation() {
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationManager.findById("resId")).thenReturn(Optional.of(reservation));
         when(ticketRepository.findTicketsInReservation("resId")).thenReturn(List.of()); // empty reservation tickets
 
-        CustomTaxPolicy policy = new CustomTaxPolicy(List.of(
-                new CustomTaxPolicy.TicketTaxPolicy("uuid-1", PriceContainer.VatStatus.INCLUDED_EXEMPT)
-        ));
+        CustomTaxPolicy policy = new CustomTaxPolicy(
+                List.of(new CustomTaxPolicy.TicketTaxPolicy("uuid-1", PriceContainer.VatStatus.INCLUDED_EXEMPT)));
         ContactAndTicketsForm form = new ContactAndTicketsForm();
         CustomBindingResult bindingResult = new CustomBindingResult(new BeanPropertyBindingResult(form, "form"));
 
@@ -529,7 +562,8 @@ public class ReverseChargeManagerTest {
 
     @Test
     public void testApplyCustomTaxPolicy_Success() {
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationManager.findById("resId")).thenReturn(Optional.of(reservation));
 
@@ -546,36 +580,46 @@ public class ReverseChargeManagerTest {
         when(ticketReservationManager.findTicketsInReservation("resId")).thenReturn(List.of(ticket));
 
         CustomTaxPolicy policy = new CustomTaxPolicy(List.of(
-                new CustomTaxPolicy.TicketTaxPolicy(publicUuid.toString(), PriceContainer.VatStatus.INCLUDED_EXEMPT)
-        ));
+                new CustomTaxPolicy.TicketTaxPolicy(publicUuid.toString(), PriceContainer.VatStatus.INCLUDED_EXEMPT)));
         ContactAndTicketsForm form = new ContactAndTicketsForm();
         CustomBindingResult bindingResult = new CustomBindingResult(new BeanPropertyBindingResult(form, "form"));
 
         when(ticketRepository.bulkUpdateTicketPrice()).thenReturn("UPDATE...");
-        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1});
 
         reverseChargeManager.applyCustomTaxPolicy(context, policy, "resId", form, bindingResult);
         assertFalse(bindingResult.hasErrors());
 
-        verify(auditingRepository).insert(eq("resId"), any(), eq(context), eq(Audit.EventType.VAT_CUSTOM_CONFIGURATION_APPLIED), any(), any(), eq("resId"), any());
+        verify(auditingRepository)
+                .insert(
+                        eq("resId"),
+                        any(),
+                        eq(context),
+                        eq(Audit.EventType.VAT_CUSTOM_CONFIGURATION_APPLIED),
+                        any(),
+                        any(),
+                        eq("resId"),
+                        any());
         verify(jdbcTemplate).batchUpdate(eq("UPDATE..."), any(MapSqlParameterSource[].class));
-        verify(ticketReservationRepository).updateBillingData(
-                eq(PriceContainer.VatStatus.INCLUDED),
-                eq(1000),
-                anyInt(),
-                anyInt(),
-                anyInt(),
-                eq("USD"),
-                any(),
-                any(),
-                eq(false),
-                eq("resId")
-        );
+        verify(ticketReservationRepository)
+                .updateBillingData(
+                        eq(PriceContainer.VatStatus.INCLUDED),
+                        eq(1000),
+                        anyInt(),
+                        anyInt(),
+                        anyInt(),
+                        eq("USD"),
+                        any(),
+                        any(),
+                        eq(false),
+                        eq("resId"));
     }
 
     @Test
     public void testResetVat_Event() {
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.event, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
         TicketReservation reservation = mockTicketReservation();
         when(ticketReservationRepository.findReservationById("resId")).thenReturn(reservation);
 
@@ -585,7 +629,8 @@ public class ReverseChargeManagerTest {
         when(ticketCategoryRepository.findCategoriesInReservation("resId")).thenReturn(List.of(category));
 
         when(ticketRepository.updateTicketPriceForCategoryInReservation()).thenReturn("UPDATE...");
-        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(anyString(), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1});
 
         reverseChargeManager.resetVat(context, "resId");
 
@@ -595,7 +640,8 @@ public class ReverseChargeManagerTest {
 
     @Test
     public void testResetVat_Subscription() {
-        PurchaseContext context = mockPurchaseContext(PurchaseContextType.subscription, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
+        PurchaseContext context = mockPurchaseContext(
+                PurchaseContextType.subscription, "USD", PriceContainer.VatStatus.INCLUDED, BigDecimal.TEN);
 
         reverseChargeManager.resetVat(context, "resId");
 

@@ -94,7 +94,13 @@ export const mockEvent: Event = {
     endDate: '2024-01-01T18:00:00Z',
     enabled: true,
     embeddingConfiguration: { enabled: false, notificationOrigin: '' },
-    invoicingConfiguration: { enabled: false, onlyInvoice: false, vatIncluded: false, userCanDownloadReceiptOrInvoice: true, enabledItalyEInvoicing: false },
+    invoicingConfiguration: {
+        enabled: false,
+        onlyInvoice: false,
+        vatIncluded: false,
+        userCanDownloadReceiptOrInvoice: true,
+        enabledItalyEInvoicing: false,
+    },
     localization: {},
     analyticsConfiguration: null,
 } as unknown as Event;
@@ -120,15 +126,15 @@ export const mockCustomOfflinePayments: CustomOfflinePayment[] = [
     {
         paymentMethodId: 'CUSTOM_OFFLINE_1',
         localizations: {
-            'en': { paymentDescription: 'Bank Transfer - English' },
-            'es': { paymentDescription: 'Trasferencia Bancaria - Español' },
+            en: { paymentDescription: 'Bank Transfer - English' },
+            es: { paymentDescription: 'Trasferencia Bancaria - Español' },
         },
     },
     {
         paymentMethodId: 'CUSTOM_OFFLINE_2',
         localizations: {
-            'en': { paymentDescription: 'Credit Card - English' },
-            'es': { paymentDescription: 'Tarjeta de Crédito - Español' },
+            en: { paymentDescription: 'Credit Card - English' },
+            es: { paymentDescription: 'Tarjeta de Crédito - Español' },
         },
     },
 ];

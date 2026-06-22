@@ -16,6 +16,11 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.testSupport.StripeUtils.completeStripeConfiguration;
+import static alfio.model.system.ConfigurationKeys.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.support.PaymentWebhookResult;
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
@@ -33,20 +38,14 @@ import alfio.test.util.TestUtil;
 import com.stripe.model.Charge;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.RequestOptions;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.core.env.Environment;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.util.*;
-
-import static alfio.manager.testSupport.StripeUtils.completeStripeConfiguration;
-import static alfio.model.system.ConfigurationKeys.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.core.env.Environment;
 
 class StripeWebhookPaymentManagerTest {
 
@@ -70,9 +69,8 @@ class StripeWebhookPaymentManagerTest {
     private BaseStripeManager baseStripeManager;
 
     private static final String SK_LIVE = "sk_live_";
-    private static final MaybeConfiguration STRIPE_SECRET_KEY_CONF =
-        new MaybeConfiguration(ConfigurationKeys.STRIPE_SECRET_KEY,
-            new ConfigurationKeyValuePathLevel(null, SK_LIVE, null));
+    private static final MaybeConfiguration STRIPE_SECRET_KEY_CONF = new MaybeConfiguration(
+            ConfigurationKeys.STRIPE_SECRET_KEY, new ConfigurationKeyValuePathLevel(null, SK_LIVE, null));
 
     @BeforeEach
     void setup() {
@@ -96,16 +94,31 @@ class StripeWebhookPaymentManagerTest {
         when(eventRepository.findByReservationId(eq(RESERVATION_ID))).thenReturn(event);
         baseStripeManager = mock(BaseStripeManager.class);
         when(baseStripeManager.getSecretKey(any())).thenReturn(SK_LIVE);
-        when(baseStripeManager.options(any())).thenReturn(Optional.of(RequestOptions.builder().build()));
-        stripeWebhookPaymentManager = new StripeWebhookPaymentManager(configurationManager, ticketRepository, transactionRepository, configurationRepository, ticketReservationRepository, eventRepository, auditingRepository, environment, TestUtil.clockProvider());
+        when(baseStripeManager.options(any()))
+                .thenReturn(Optional.of(RequestOptions.builder().build()));
+        stripeWebhookPaymentManager = new StripeWebhookPaymentManager(
+                configurationManager,
+                ticketRepository,
+                transactionRepository,
+                configurationRepository,
+                ticketReservationRepository,
+                eventRepository,
+                auditingRepository,
+                environment,
+                TestUtil.clockProvider());
     }
 
     @Test
     void ignoreNotRelevantTypes() {
         var transactionWebhookPayload = mock(TransactionWebhookPayload.class);
-        when(transactionWebhookPayload.getType()).thenReturn("charge.captured", "charge.expired", "payment_intent.amount_capturable_updated");
-        for (int i=0; i < 4; i++) {
-            assertEquals(PaymentWebhookResult.Type.NOT_RELEVANT, stripeWebhookPaymentManager.processWebhook(transactionWebhookPayload, transaction, null).getType());
+        when(transactionWebhookPayload.getType())
+                .thenReturn("charge.captured", "charge.expired", "payment_intent.amount_capturable_updated");
+        for (int i = 0; i < 4; i++) {
+            assertEquals(
+                    PaymentWebhookResult.Type.NOT_RELEVANT,
+                    stripeWebhookPaymentManager
+                            .processWebhook(transactionWebhookPayload, transaction, null)
+                            .getType());
         }
     }
 
@@ -121,20 +134,60 @@ class StripeWebhookPaymentManagerTest {
         when(paymentIntent.getLatestCharge()).thenReturn(CHARGE_ID);
         when(baseStripeManager.retrieveCharge(eq(CHARGE_ID), any())).thenReturn(charge);
         when(charge.getId()).thenReturn(CHARGE_ID);
-        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID))).thenReturn(Optional.of(ticketReservation));
-        when(ticketReservation.getStatus()).thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
+        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID)))
+                .thenReturn(Optional.of(ticketReservation));
+        when(ticketReservation.getStatus())
+                .thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
         var paymentContext = mock(PaymentContext.class);
         when(paymentContext.getPurchaseContext()).thenReturn(event);
         when(configurationManager.getFor(eq(STRIPE_SECRET_KEY), any())).thenReturn(STRIPE_SECRET_KEY_CONF);
-        when(configurationManager.getFor(eq(PLATFORM_MODE_ENABLED), any())).thenReturn(MaybeConfigurationBuilder.missing(PLATFORM_MODE_ENABLED));
+        when(configurationManager.getFor(eq(PLATFORM_MODE_ENABLED), any()))
+                .thenReturn(MaybeConfigurationBuilder.missing(PLATFORM_MODE_ENABLED));
         when(paymentIntent.getLivemode()).thenReturn(true);
-        when(transactionRepository.updateIfStatus(eq(TRANSACTION_ID), eq(CHARGE_ID), eq(PAYMENT_ID), any(), eq(0L), eq(0L), eq(Transaction.Status.COMPLETE), eq(Map.of()), eq(Transaction.Status.PENDING))).thenReturn(1);
-        var customWebHookPaymentManager = new StripeWebhookPaymentManager(configurationManager, transactionRepository, ticketReservationRepository, eventRepository, auditingRepository, TestUtil.clockProvider(), baseStripeManager);
-        var paymentWebhookResult = customWebHookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
+        when(transactionRepository.updateIfStatus(
+                        eq(TRANSACTION_ID),
+                        eq(CHARGE_ID),
+                        eq(PAYMENT_ID),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.COMPLETE),
+                        eq(Map.of()),
+                        eq(Transaction.Status.PENDING)))
+                .thenReturn(1);
+        var customWebHookPaymentManager = new StripeWebhookPaymentManager(
+                configurationManager,
+                transactionRepository,
+                ticketReservationRepository,
+                eventRepository,
+                auditingRepository,
+                TestUtil.clockProvider(),
+                baseStripeManager);
+        var paymentWebhookResult =
+                customWebHookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
         assertEquals(PaymentWebhookResult.Type.SUCCESSFUL, paymentWebhookResult.getType());
-        verify(transactionRepository).updateIfStatus(eq(TRANSACTION_ID), eq(CHARGE_ID), eq(PAYMENT_ID), any(), eq(0L), eq(0L), eq(Transaction.Status.COMPLETE), eq(Map.of()), eq(Transaction.Status.PENDING));
+        verify(transactionRepository)
+                .updateIfStatus(
+                        eq(TRANSACTION_ID),
+                        eq(CHARGE_ID),
+                        eq(PAYMENT_ID),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.COMPLETE),
+                        eq(Map.of()),
+                        eq(Transaction.Status.PENDING));
         Map<String, Object> changes = Map.of("paymentId", CHARGE_ID, "paymentMethod", "stripe");
-        verify(auditingRepository).insert(eq(RESERVATION_ID), isNull(), eq(event), eq(Audit.EventType.PAYMENT_CONFIRMED), any(), eq(Audit.EntityType.RESERVATION), eq(RESERVATION_ID), eq(List.of(changes)));
+        verify(auditingRepository)
+                .insert(
+                        eq(RESERVATION_ID),
+                        isNull(),
+                        eq(event),
+                        eq(Audit.EventType.PAYMENT_CONFIRMED),
+                        any(),
+                        eq(Audit.EntityType.RESERVATION),
+                        eq(RESERVATION_ID),
+                        eq(List.of(changes)));
     }
 
     @Test
@@ -148,20 +201,60 @@ class StripeWebhookPaymentManagerTest {
         var charge = mock(Charge.class);
         when(paymentIntent.getLatestCharge()).thenReturn(CHARGE_ID);
         when(baseStripeManager.retrieveCharge(eq(CHARGE_ID), any())).thenReturn(charge);
-        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID))).thenReturn(Optional.of(ticketReservation));
-        when(ticketReservation.getStatus()).thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
+        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID)))
+                .thenReturn(Optional.of(ticketReservation));
+        when(ticketReservation.getStatus())
+                .thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
         var paymentContext = mock(PaymentContext.class);
         when(paymentContext.getPurchaseContext()).thenReturn(event);
         when(configurationManager.getFor(eq(STRIPE_SECRET_KEY), any())).thenReturn(STRIPE_SECRET_KEY_CONF);
-        when(configurationManager.getFor(eq(PLATFORM_MODE_ENABLED), any())).thenReturn(MaybeConfigurationBuilder.missing(PLATFORM_MODE_ENABLED));
+        when(configurationManager.getFor(eq(PLATFORM_MODE_ENABLED), any()))
+                .thenReturn(MaybeConfigurationBuilder.missing(PLATFORM_MODE_ENABLED));
         when(paymentIntent.getLivemode()).thenReturn(true);
-        when(transactionRepository.updateIfStatus(eq(TRANSACTION_ID), eq(CHARGE_ID), eq(PAYMENT_ID), any(), eq(0L), eq(0L), eq(Transaction.Status.COMPLETE), eq(Map.of()), eq(Transaction.Status.PENDING))).thenReturn(0);
-        var customWebHookPaymentManager = new StripeWebhookPaymentManager(configurationManager, transactionRepository, ticketReservationRepository, eventRepository, auditingRepository, TestUtil.clockProvider(), baseStripeManager);
-        var paymentWebhookResult = customWebHookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
+        when(transactionRepository.updateIfStatus(
+                        eq(TRANSACTION_ID),
+                        eq(CHARGE_ID),
+                        eq(PAYMENT_ID),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.COMPLETE),
+                        eq(Map.of()),
+                        eq(Transaction.Status.PENDING)))
+                .thenReturn(0);
+        var customWebHookPaymentManager = new StripeWebhookPaymentManager(
+                configurationManager,
+                transactionRepository,
+                ticketReservationRepository,
+                eventRepository,
+                auditingRepository,
+                TestUtil.clockProvider(),
+                baseStripeManager);
+        var paymentWebhookResult =
+                customWebHookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
         assertEquals(PaymentWebhookResult.Type.SUCCESSFUL, paymentWebhookResult.getType());
-        verify(transactionRepository).updateIfStatus(eq(TRANSACTION_ID), eq(CHARGE_ID), eq(PAYMENT_ID), any(), eq(0L), eq(0L), eq(Transaction.Status.COMPLETE), eq(Map.of()), eq(Transaction.Status.PENDING));
+        verify(transactionRepository)
+                .updateIfStatus(
+                        eq(TRANSACTION_ID),
+                        eq(CHARGE_ID),
+                        eq(PAYMENT_ID),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.COMPLETE),
+                        eq(Map.of()),
+                        eq(Transaction.Status.PENDING));
         Map<String, Object> changes = Map.of("paymentId", CHARGE_ID, "paymentMethod", "stripe");
-        verify(auditingRepository).insert(eq(RESERVATION_ID), isNull(), eq(event), eq(Audit.EventType.PAYMENT_ALREADY_CONFIRMED), any(), eq(Audit.EntityType.RESERVATION), eq(RESERVATION_ID), eq(List.of(changes)));
+        verify(auditingRepository)
+                .insert(
+                        eq(RESERVATION_ID),
+                        isNull(),
+                        eq(event),
+                        eq(Audit.EventType.PAYMENT_ALREADY_CONFIRMED),
+                        any(),
+                        eq(Audit.EntityType.RESERVATION),
+                        eq(RESERVATION_ID),
+                        eq(List.of(changes)));
     }
 
     @Test
@@ -173,20 +266,33 @@ class StripeWebhookPaymentManagerTest {
         when(paymentIntent.getMetadata()).thenReturn(Map.of(MetadataBuilder.RESERVATION_ID, RESERVATION_ID));
         when(paymentIntent.getStatus()).thenReturn("requires_source");
 
-        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID))).thenReturn(Optional.of(ticketReservation));
-        when(ticketReservation.getStatus()).thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
+        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID)))
+                .thenReturn(Optional.of(ticketReservation));
+        when(ticketReservation.getStatus())
+                .thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
 
         var paymentContext = mock(PaymentContext.class);
         when(paymentContext.getPurchaseContext()).thenReturn(event);
         when(configurationManager.getFor(eq(STRIPE_SECRET_KEY), any())).thenReturn(STRIPE_SECRET_KEY_CONF);
         when(paymentIntent.getLivemode()).thenReturn(true);
 
-        var paymentWebhookResult = stripeWebhookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
+        var paymentWebhookResult =
+                stripeWebhookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
         assertEquals(PaymentWebhookResult.Type.FAILED, paymentWebhookResult.getType());
         assertTrue(StringUtils.isNotBlank(paymentWebhookResult.getReason()));
-        verify(transactionRepository, never()).updateStatusForReservation(eq(RESERVATION_ID), eq(Transaction.Status.FAILED));
+        verify(transactionRepository, never())
+                .updateStatusForReservation(eq(RESERVATION_ID), eq(Transaction.Status.FAILED));
         Map<String, Object> changes = Map.of("paymentId", PAYMENT_ID, "paymentMethod", "stripe");
-        verify(auditingRepository).insert(eq(RESERVATION_ID), isNull(), eq(event), eq(Audit.EventType.PAYMENT_FAILED), any(), eq(Audit.EntityType.RESERVATION), eq(RESERVATION_ID), eq(List.of(changes)));
+        verify(auditingRepository)
+                .insert(
+                        eq(RESERVATION_ID),
+                        isNull(),
+                        eq(event),
+                        eq(Audit.EventType.PAYMENT_FAILED),
+                        any(),
+                        eq(Audit.EntityType.RESERVATION),
+                        eq(RESERVATION_ID),
+                        eq(List.of(changes)));
     }
 
     @Test
@@ -200,71 +306,147 @@ class StripeWebhookPaymentManagerTest {
         var charge = mock(Charge.class);
         when(paymentIntent.getLatestChargeObject()).thenReturn(charge);
         when(charge.getId()).thenReturn(CHARGE_ID);
-        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID))).thenReturn(Optional.of(ticketReservation));
-        when(ticketReservation.getStatus()).thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
+        when(ticketReservationRepository.findOptionalReservationById(eq(RESERVATION_ID)))
+                .thenReturn(Optional.of(ticketReservation));
+        when(ticketReservation.getStatus())
+                .thenReturn(TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT);
         var paymentContext = mock(PaymentContext.class);
         when(paymentContext.getPurchaseContext()).thenReturn(event);
         when(configurationManager.getFor(eq(STRIPE_SECRET_KEY), any())).thenReturn(STRIPE_SECRET_KEY_CONF);
         when(paymentIntent.getLivemode()).thenReturn(false);
-        var paymentWebhookResult = stripeWebhookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
+        var paymentWebhookResult =
+                stripeWebhookPaymentManager.processWebhook(transactionWebhookPayload, transaction, paymentContext);
         assertEquals(PaymentWebhookResult.Type.NOT_RELEVANT, paymentWebhookResult.getType());
-        verify(transactionRepository, never()).update(eq(TRANSACTION_ID), eq(CHARGE_ID), eq(PAYMENT_ID), any(), eq(0L), eq(0L), eq(Transaction.Status.COMPLETE), eq(Map.of()));
-        verify(auditingRepository, never()).insert(eq(RESERVATION_ID), isNull(), eq(EVENT_ID), eq(Audit.EventType.PAYMENT_CONFIRMED), any(), eq(Audit.EntityType.RESERVATION), eq(RESERVATION_ID), anyList());
+        verify(transactionRepository, never())
+                .update(
+                        eq(TRANSACTION_ID),
+                        eq(CHARGE_ID),
+                        eq(PAYMENT_ID),
+                        any(),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.COMPLETE),
+                        eq(Map.of()));
+        verify(auditingRepository, never())
+                .insert(
+                        eq(RESERVATION_ID),
+                        isNull(),
+                        eq(EVENT_ID),
+                        eq(Audit.EventType.PAYMENT_CONFIRMED),
+                        any(),
+                        eq(Audit.EntityType.RESERVATION),
+                        eq(RESERVATION_ID),
+                        anyList());
     }
 
     @Test
     void stripeConfigurationIncompletePlatformModeOff() {
         var configuration = new HashMap<>(completeStripeConfiguration(true));
-        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID));// missing config
+        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID)); // missing config
         configuration.put(PLATFORM_MODE_ENABLED, new MaybeConfiguration(PLATFORM_MODE_ENABLED));
         configuration.put(STRIPE_WEBHOOK_PAYMENT_KEY, new MaybeConfiguration(STRIPE_WEBHOOK_PAYMENT_KEY));
 
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(STRIPE_ENABLE_SCA, BASE_URL, STRIPE_WEBHOOK_PAYMENT_KEY, STRIPE_CC_ENABLED, PLATFORM_MODE_ENABLED, STRIPE_CONNECTED_ID), configurationLevel))
-            .thenReturn(configuration);
-        assertFalse(stripeWebhookPaymentManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                STRIPE_ENABLE_SCA,
+                                BASE_URL,
+                                STRIPE_WEBHOOK_PAYMENT_KEY,
+                                STRIPE_CC_ENABLED,
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CONNECTED_ID),
+                        configurationLevel))
+                .thenReturn(configuration);
+        assertFalse(stripeWebhookPaymentManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
     void stripeConfigurationCompletePlatformModeOff() {
         var configuration = new HashMap<>(completeStripeConfiguration(true));
-        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID));// missing config
+        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID)); // missing config
         configuration.put(PLATFORM_MODE_ENABLED, new MaybeConfiguration(PLATFORM_MODE_ENABLED));
 
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(STRIPE_ENABLE_SCA, BASE_URL, STRIPE_WEBHOOK_PAYMENT_KEY, STRIPE_CC_ENABLED, PLATFORM_MODE_ENABLED, STRIPE_CONNECTED_ID), configurationLevel))
-            .thenReturn(configuration);
-        assertTrue(stripeWebhookPaymentManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                STRIPE_ENABLE_SCA,
+                                BASE_URL,
+                                STRIPE_WEBHOOK_PAYMENT_KEY,
+                                STRIPE_CC_ENABLED,
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CONNECTED_ID),
+                        configurationLevel))
+                .thenReturn(configuration);
+        assertTrue(stripeWebhookPaymentManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
     void stripeConfigurationIncompletePlatformModeOn() {
         var configuration = new HashMap<>(completeStripeConfiguration(true));
-        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID));// missing config
+        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID)); // missing config
 
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(STRIPE_ENABLE_SCA, BASE_URL, STRIPE_WEBHOOK_PAYMENT_KEY, STRIPE_CC_ENABLED, PLATFORM_MODE_ENABLED, STRIPE_CONNECTED_ID), configurationLevel))
-            .thenReturn(configuration);
-        assertFalse(stripeWebhookPaymentManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                STRIPE_ENABLE_SCA,
+                                BASE_URL,
+                                STRIPE_WEBHOOK_PAYMENT_KEY,
+                                STRIPE_CC_ENABLED,
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CONNECTED_ID),
+                        configurationLevel))
+                .thenReturn(configuration);
+        assertFalse(stripeWebhookPaymentManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
     void doNotConsiderConnectedIdIfConfigurationLevelIsSystem() {
         var configuration = new HashMap<>(completeStripeConfiguration(true));
-        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID));// missing config
+        configuration.put(STRIPE_CONNECTED_ID, new MaybeConfiguration(STRIPE_CONNECTED_ID)); // missing config
 
         var configurationLevel = ConfigurationLevel.system();
-        when(configurationManager.getFor(EnumSet.of(STRIPE_ENABLE_SCA, BASE_URL, STRIPE_WEBHOOK_PAYMENT_KEY, STRIPE_CC_ENABLED, PLATFORM_MODE_ENABLED, STRIPE_CONNECTED_ID), configurationLevel))
-            .thenReturn(configuration);
-        assertTrue(stripeWebhookPaymentManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                STRIPE_ENABLE_SCA,
+                                BASE_URL,
+                                STRIPE_WEBHOOK_PAYMENT_KEY,
+                                STRIPE_CC_ENABLED,
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CONNECTED_ID),
+                        configurationLevel))
+                .thenReturn(configuration);
+        assertTrue(stripeWebhookPaymentManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
     void stripeConfigurationCompletePlatformModeOn() {
         var configurationLevel = ConfigurationLevel.organization(1);
-        when(configurationManager.getFor(EnumSet.of(STRIPE_ENABLE_SCA, BASE_URL, STRIPE_WEBHOOK_PAYMENT_KEY, STRIPE_CC_ENABLED, PLATFORM_MODE_ENABLED, STRIPE_CONNECTED_ID), configurationLevel))
-            .thenReturn(completeStripeConfiguration(true));
-        assertTrue(stripeWebhookPaymentManager.accept(StaticPaymentMethods.CREDIT_CARD, new PaymentContext(null, configurationLevel), TransactionRequest.empty()));
+        when(configurationManager.getFor(
+                        EnumSet.of(
+                                STRIPE_ENABLE_SCA,
+                                BASE_URL,
+                                STRIPE_WEBHOOK_PAYMENT_KEY,
+                                STRIPE_CC_ENABLED,
+                                PLATFORM_MODE_ENABLED,
+                                STRIPE_CONNECTED_ID),
+                        configurationLevel))
+                .thenReturn(completeStripeConfiguration(true));
+        assertTrue(stripeWebhookPaymentManager.accept(
+                StaticPaymentMethods.CREDIT_CARD,
+                new PaymentContext(null, configurationLevel),
+                TransactionRequest.empty()));
     }
 
     @Test
@@ -295,5 +477,4 @@ class StripeWebhookPaymentManagerTest {
         var paymentContextOptional = stripeWebhookPaymentManager.detectPaymentContext("invalid json");
         assertTrue(paymentContextOptional.isEmpty());
     }
-
 }

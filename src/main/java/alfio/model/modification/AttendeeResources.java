@@ -16,41 +16,41 @@
  */
 package alfio.model.modification;
 
+import static alfio.controller.Constants.*;
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.PurchaseContext;
 import alfio.model.Ticket;
 import alfio.model.system.ConfigurationKeys;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.Map;
 import org.springframework.web.util.UriTemplate;
 
-import java.util.Map;
-
-import static alfio.controller.Constants.*;
-import static alfio.model.system.ConfigurationKeys.*;
-
 public record AttendeeResources(
-    @JsonInclude(Include.NON_NULL) String ticketPdf,
-    @JsonInclude(Include.NON_NULL) String ticketQrCode,
-    @JsonInclude(Include.NON_NULL) String googleWallet,
-    @JsonInclude(Include.NON_NULL) String applePass,
-    @JsonInclude(Include.NON_NULL) Boolean ready
-) {
+        @JsonInclude(Include.NON_NULL) String ticketPdf,
+        @JsonInclude(Include.NON_NULL) String ticketQrCode,
+        @JsonInclude(Include.NON_NULL) String googleWallet,
+        @JsonInclude(Include.NON_NULL) String applePass,
+        @JsonInclude(Include.NON_NULL) Boolean ready) {
 
     public static AttendeeResources empty() {
         return new AttendeeResources(null, null, null, null, null);
     }
 
-    public static AttendeeResources fromTicket(Ticket ticket,
-                                               PurchaseContext purchaseContext,
-                                               Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf) {
+    public static AttendeeResources fromTicket(
+            Ticket ticket,
+            PurchaseContext purchaseContext,
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf) {
         return fromTicket(ticket, purchaseContext, conf, false);
     }
 
-    public static AttendeeResources fromTicket(Ticket ticket,
-                                               PurchaseContext purchaseContext,
-                                               Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf,
-                                               boolean allowPendingTickets) {
+    public static AttendeeResources fromTicket(
+            Ticket ticket,
+            PurchaseContext purchaseContext,
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf,
+            boolean allowPendingTickets) {
         if (ticket.getStatus() == Ticket.TicketStatus.PENDING && !allowPendingTickets) {
             return AttendeeResources.empty();
         }
@@ -64,24 +64,25 @@ public record AttendeeResources(
                 expandUriTemplate(qrCodeTemplate, purchaseContext, ticket),
                 generateGoogleWalletUrl(walletUriTemplate, conf, purchaseContext, ticket),
                 generatePasskitUrl(passUriTemplate, conf, purchaseContext, ticket),
-                ticket.getAssigned()
-        );
+                ticket.getAssigned());
     }
 
-    private static String generateGoogleWalletUrl(UriTemplate walletUriTemplate,
-                                                  Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf,
-                                                  PurchaseContext purchaseContext,
-                                                  Ticket ticket) {
+    private static String generateGoogleWalletUrl(
+            UriTemplate walletUriTemplate,
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf,
+            PurchaseContext purchaseContext,
+            Ticket ticket) {
         if (conf.get(ENABLE_WALLET).getValueAsBooleanOrDefault()) {
             return expandUriTemplate(walletUriTemplate, purchaseContext, ticket);
         }
         return null;
     }
 
-    private static String generatePasskitUrl(UriTemplate passkitUriTemplate,
-                                             Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf,
-                                             PurchaseContext purchaseContext,
-                                             Ticket ticket) {
+    private static String generatePasskitUrl(
+            UriTemplate passkitUriTemplate,
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> conf,
+            PurchaseContext purchaseContext,
+            Ticket ticket) {
         if (conf.get(ENABLE_PASS).getValueAsBooleanOrDefault()) {
             return expandUriTemplate(passkitUriTemplate, purchaseContext, ticket);
         }
@@ -89,7 +90,9 @@ public record AttendeeResources(
     }
 
     private static String expandUriTemplate(UriTemplate template, PurchaseContext purchaseContext, Ticket ticket) {
-        return template.expand(purchaseContext.getPublicIdentifier(), ticket.getPublicUuid().toString())
-            .toString();
+        return template.expand(
+                        purchaseContext.getPublicIdentifier(),
+                        ticket.getPublicUuid().toString())
+                .toString();
     }
 }

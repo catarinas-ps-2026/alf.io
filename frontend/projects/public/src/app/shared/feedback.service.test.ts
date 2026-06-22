@@ -12,12 +12,14 @@ describe('FeedbackService', () => {
     describe('showSuccess', () => {
         it('should emit SUCCESS feedback', async () => {
             const promise = new Promise<void>((resolve) => {
-                service.displayNotification().subscribe((notification: FeedbackContent) => {
-                    expect(notification.active).toBe(true);
-                    expect(notification.message).toBe('success.message');
-                    expect(notification.type).toBe('SUCCESS');
-                    resolve();
-                });
+                service
+                    .displayNotification()
+                    .subscribe((notification: FeedbackContent) => {
+                        expect(notification.active).toBe(true);
+                        expect(notification.message).toBe('success.message');
+                        expect(notification.type).toBe('SUCCESS');
+                        resolve();
+                    });
             });
 
             service.showSuccess('success.message');
@@ -28,12 +30,14 @@ describe('FeedbackService', () => {
     describe('showError', () => {
         it('should emit ERROR feedback', async () => {
             const promise = new Promise<void>((resolve) => {
-                service.displayNotification().subscribe((notification: FeedbackContent) => {
-                    expect(notification.active).toBe(true);
-                    expect(notification.message).toBe('error.message');
-                    expect(notification.type).toBe('ERROR');
-                    resolve();
-                });
+                service
+                    .displayNotification()
+                    .subscribe((notification: FeedbackContent) => {
+                        expect(notification.active).toBe(true);
+                        expect(notification.message).toBe('error.message');
+                        expect(notification.type).toBe('ERROR');
+                        resolve();
+                    });
             });
 
             service.showError('error.message');
@@ -44,12 +48,14 @@ describe('FeedbackService', () => {
     describe('showInfo', () => {
         it('should emit INFO feedback', async () => {
             const promise = new Promise<void>((resolve) => {
-                service.displayNotification().subscribe((notification: FeedbackContent) => {
-                    expect(notification.active).toBe(true);
-                    expect(notification.message).toBe('info.message');
-                    expect(notification.type).toBe('INFO');
-                    resolve();
-                });
+                service
+                    .displayNotification()
+                    .subscribe((notification: FeedbackContent) => {
+                        expect(notification.active).toBe(true);
+                        expect(notification.message).toBe('info.message');
+                        expect(notification.type).toBe('INFO');
+                        resolve();
+                    });
             });
 
             service.showInfo('info.message');
@@ -60,10 +66,12 @@ describe('FeedbackService', () => {
     describe('hide', () => {
         it('should emit inactive feedback', async () => {
             const promise = new Promise<void>((resolve) => {
-                service.displayNotification().subscribe((notification: FeedbackContent) => {
-                    expect(notification.active).toBe(false);
-                    resolve();
-                });
+                service
+                    .displayNotification()
+                    .subscribe((notification: FeedbackContent) => {
+                        expect(notification.active).toBe(false);
+                        resolve();
+                    });
             });
 
             service.hide();
@@ -81,15 +89,17 @@ describe('FeedbackService', () => {
             const emissions: FeedbackContent[] = [];
 
             const promise = new Promise<void>((resolve) => {
-                service.displayNotification().subscribe((notification: FeedbackContent) => {
-                    emissions.push(notification);
-                    if (emissions.length === 3) {
-                        expect(emissions[0].type).toBe('SUCCESS');
-                        expect(emissions[1].type).toBe('ERROR');
-                        expect(emissions[2].type).toBe('INFO');
-                        resolve();
-                    }
-                });
+                service
+                    .displayNotification()
+                    .subscribe((notification: FeedbackContent) => {
+                        emissions.push(notification);
+                        if (emissions.length === 3) {
+                            expect(emissions[0].type).toBe('SUCCESS');
+                            expect(emissions[1].type).toBe('ERROR');
+                            expect(emissions[2].type).toBe('INFO');
+                            resolve();
+                        }
+                    });
             });
 
             service.showSuccess('msg1');

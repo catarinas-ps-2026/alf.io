@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -24,17 +27,13 @@ import alfio.manager.i18n.MessageSourceManager;
 import alfio.model.ContentLanguage;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.BaseIntegrationTest;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
@@ -43,13 +42,11 @@ class I18nManagerIntegrationTest extends BaseIntegrationTest {
 
     private static final ZonedDateTime DATE = ZonedDateTime.of(1999, 2, 3, 4, 5, 6, 7, ZoneId.of("Europe/Zurich"));
 
-
     @Autowired
     private MessageSourceManager messageSourceManager;
 
     @Autowired
     private I18nManager i18nManager;
-
 
     /**
      * Check for all the patterns
@@ -58,7 +55,7 @@ class I18nManagerIntegrationTest extends BaseIntegrationTest {
     void testDateFormattingCorrectness() {
 
         for (ContentLanguage cl : i18nManager.getAvailableLanguages()) {
-            formatDateWith(cl); //<- will launch an exception if the format is not valid
+            formatDateWith(cl); // <- will launch an exception if the format is not valid
             assertTrue(true);
         }
     }

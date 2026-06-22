@@ -16,35 +16,29 @@
  */
 package alfio.manager.system;
 
-import alfio.manager.system.ExternalConfiguration;
-import alfio.manager.user.UserManager;
-import alfio.model.system.ConfigurationKeys;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
+import alfio.manager.user.UserManager;
+import alfio.model.EventAndOrganizationId;
+import alfio.model.system.Configuration.ConfigurationPathKey;
+import alfio.model.system.Configuration.EventConfigurationPath;
+import alfio.model.system.Configuration.OrganizationConfigurationPath;
+import alfio.model.system.Configuration.SystemConfigurationPath;
+import alfio.model.system.ConfigurationKeyValuePathLevel;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.user.User;
 import alfio.repository.EventRepository;
 import alfio.repository.system.ConfigurationRepository;
 import com.github.benmanes.caffeine.cache.Cache;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.core.env.Environment;
-
-import alfio.model.user.User;
-import alfio.model.EventAndOrganizationId;
-
-import alfio.model.system.Configuration.ConfigurationPathKey;
-import alfio.model.system.Configuration.SystemConfigurationPath;
-import alfio.model.system.Configuration.OrganizationConfigurationPath;
-import alfio.model.system.Configuration.EventConfigurationPath;
-import alfio.model.system.Configuration.TicketCategoryConfigurationPath;
-import alfio.model.system.Configuration.SubscriptionDescriptorConfigurationPath;
-import alfio.model.system.ConfigurationKeyValuePathLevel;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.core.env.Environment;
 
 class ConfigurationManagerUnitTest {
 
@@ -67,7 +61,13 @@ class ConfigurationManagerUnitTest {
         environment = mock(Environment.class);
         oneMinuteCache = mock(Cache.class);
 
-        configurationManager = new ConfigurationManager(configurationRepository, userManager, eventRepository, externalConfiguration, environment, oneMinuteCache);
+        configurationManager = new ConfigurationManager(
+                configurationRepository,
+                userManager,
+                eventRepository,
+                externalConfiguration,
+                environment,
+                oneMinuteCache);
     }
 
     @Test
@@ -88,7 +88,7 @@ class ConfigurationManagerUnitTest {
         // System
         ConfigurationPathKey systemPathKey = new ConfigurationPathKey(new SystemConfigurationPath(), key);
         configurationManager.saveConfig(systemPathKey, value);
-        verify(configurationRepository, times(1)).insert(key.getValue(), value, "Base application url"); 
+        verify(configurationRepository, times(1)).insert(key.getValue(), value, "Base application url");
 
         // Organization
         ConfigurationPathKey orgPathKey = new ConfigurationPathKey(new OrganizationConfigurationPath(1), key);
@@ -173,7 +173,8 @@ class ConfigurationManagerUnitTest {
         ConfigurationKeyValuePathLevel config = mock(ConfigurationKeyValuePathLevel.class);
         when(config.getValue()).thenReturn(value);
         when(config.getConfigurationKey()).thenReturn(key);
-        when(configurationRepository.findByKeysAtSystemLevel(anyCollection())).thenReturn(Collections.singletonList(config));
+        when(configurationRepository.findByKeysAtSystemLevel(anyCollection()))
+                .thenReturn(Collections.singletonList(config));
 
         MaybeConfiguration result = configurationManager.getForSystem(key);
 
@@ -189,7 +190,8 @@ class ConfigurationManagerUnitTest {
         ConfigurationKeyValuePathLevel config = mock(ConfigurationKeyValuePathLevel.class);
         when(config.getValue()).thenReturn(value);
         when(config.getConfigurationKey()).thenReturn(key);
-        when(configurationRepository.findByOrganizationAndKeys(eq(orgId), anyCollection())).thenReturn(Collections.singletonList(config));
+        when(configurationRepository.findByOrganizationAndKeys(eq(orgId), anyCollection()))
+                .thenReturn(Collections.singletonList(config));
 
         MaybeConfiguration result = configurationManager.getFor(key, ConfigurationLevel.organization(orgId));
 
@@ -200,7 +202,7 @@ class ConfigurationManagerUnitTest {
     @Test
     void testMaybeConfigurationDefaults() {
         ConfigurationKeys key = ConfigurationKeys.HTTPS_FORCE_REDIRECT;
-        
+
         MaybeConfiguration maybe = new MaybeConfiguration(key);
         Assertions.assertFalse(maybe.isPresent());
         Assertions.assertFalse(maybe.getValueAsBooleanOrDefault()); // default is false

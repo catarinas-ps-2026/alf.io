@@ -16,6 +16,10 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import alfio.model.Audit;
 import alfio.model.Ticket;
 import alfio.model.group.Group;
@@ -29,17 +33,11 @@ import alfio.repository.AuditingRepository;
 import alfio.repository.GroupRepository;
 import alfio.repository.TicketRepository;
 import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 public class GroupManagerTest {
 
@@ -65,13 +63,18 @@ public class GroupManagerTest {
 
     @Test
     public void testCreateNewSuccess() {
-        GroupModification input = new GroupModification(null, "Test Group", "Test Description", 1,
+        GroupModification input = new GroupModification(
+                null,
+                "Test Group",
+                "Test Description",
+                1,
                 Collections.singletonList(new GroupMemberModification(null, "member1@test.com", "Member 1")));
 
         Group mockGroup = new Group(42, "Test Group", "Test Description", 1, true);
-        when(groupRepository.insert(anyString(), anyString(), anyInt())).thenReturn(new AffectedRowCountAndKey<>(1, 42));
+        when(groupRepository.insert(anyString(), anyString(), anyInt()))
+                .thenReturn(new AffectedRowCountAndKey<>(1, 42));
         when(groupRepository.getById(42)).thenReturn(mockGroup);
-        when(groupRepository.insert(eq(42), anyList())).thenReturn(new int[]{1});
+        when(groupRepository.insert(eq(42), anyList())).thenReturn(new int[] {1});
 
         Result<Integer> result = groupManager.createNew(input);
         assertTrue(result.isSuccess());
@@ -83,12 +86,12 @@ public class GroupManagerTest {
     public void testCreateNewDuplicateMembers() {
         List<GroupMemberModification> members = Arrays.asList(
                 new GroupMemberModification(null, "dup@test.com", "Member 1"),
-                new GroupMemberModification(null, "dup@test.com", "Member 2")
-        );
+                new GroupMemberModification(null, "dup@test.com", "Member 2"));
         GroupModification input = new GroupModification(null, "Test Group", "Test Description", 1, members);
 
         Group mockGroup = new Group(42, "Test Group", "Test Description", 1, true);
-        when(groupRepository.insert(anyString(), anyString(), anyInt())).thenReturn(new AffectedRowCountAndKey<>(1, 42));
+        when(groupRepository.insert(anyString(), anyString(), anyInt()))
+                .thenReturn(new AffectedRowCountAndKey<>(1, 42));
         when(groupRepository.getById(42)).thenReturn(mockGroup);
 
         Result<Integer> result = groupManager.createNew(input);
@@ -98,7 +101,8 @@ public class GroupManagerTest {
 
     @Test
     public void testCreateLinkGroupNotFound() {
-        LinkedGroupModification modification = new LinkedGroupModification(null, 1, 10, null, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                null, 1, 10, null, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupRepository.getById(1)).thenReturn(null);
 
         NullPointerException exception = assertThrows(NullPointerException.class, () -> {
@@ -109,7 +113,8 @@ public class GroupManagerTest {
 
     @Test
     public void testCreateLinkMissingMaxAllocation() {
-        LinkedGroupModification modification = new LinkedGroupModification(null, 1, 10, null, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                null, 1, 10, null, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, null);
         Group mockGroup = new Group(1, "Group Name", "Description", 1, true);
         when(groupRepository.getById(1)).thenReturn(mockGroup);
 
@@ -121,14 +126,17 @@ public class GroupManagerTest {
 
     @Test
     public void testCreateLinkSuccess() {
-        LinkedGroupModification modification = new LinkedGroupModification(null, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                null, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
         Group mockGroup = new Group(1, "Group Name", "Description", 1, true);
         when(groupRepository.getById(1)).thenReturn(mockGroup);
 
-        when(groupRepository.createConfiguration(1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5))
+        when(groupRepository.createConfiguration(
+                        1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5))
                 .thenReturn(new AffectedRowCountAndKey<>(1, 100));
 
-        LinkedGroup mockLinkedGroup = new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
+        LinkedGroup mockLinkedGroup =
+                new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
         when(groupRepository.getConfiguration(100)).thenReturn(mockLinkedGroup);
 
         LinkedGroup result = groupManager.createLink(1, 10, modification);
@@ -138,11 +146,15 @@ public class GroupManagerTest {
 
     @Test
     public void testUpdateLinkCleanStateNotRequired() {
-        LinkedGroupModification modification = new LinkedGroupModification(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
-        LinkedGroup original = new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup original =
+                new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
 
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(original);
-        when(groupRepository.updateConfiguration(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null)).thenReturn(1);
+        when(groupRepository.updateConfiguration(
+                        100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null))
+                .thenReturn(1);
         when(groupRepository.getConfiguration(100)).thenReturn(original);
 
         LinkedGroup result = groupManager.updateLink(100, modification);
@@ -152,12 +164,16 @@ public class GroupManagerTest {
     @Test
     public void testUpdateLinkCleanStateRequiredAndNoConfirmedTickets() {
         // Original has UNLIMITED, modification has LIMITED_QUANTITY -> requires clean state
-        LinkedGroupModification modification = new LinkedGroupModification(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
-        LinkedGroup original = new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
+        LinkedGroup original =
+                new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
 
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(original);
         when(groupRepository.countWhitelistedTicketsForConfiguration(100)).thenReturn(0);
-        when(groupRepository.updateConfiguration(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5)).thenReturn(1);
+        when(groupRepository.updateConfiguration(
+                        100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5))
+                .thenReturn(1);
         when(groupRepository.getConfiguration(100)).thenReturn(original);
 
         LinkedGroup result = groupManager.updateLink(100, modification);
@@ -167,8 +183,10 @@ public class GroupManagerTest {
     @Test
     public void testUpdateLinkCleanStateRequiredAndHasConfirmedTickets() {
         // Original has UNLIMITED, modification has LIMITED_QUANTITY -> requires clean state
-        LinkedGroupModification modification = new LinkedGroupModification(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
-        LinkedGroup original = new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
+        LinkedGroup original =
+                new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
 
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(original);
         when(groupRepository.countWhitelistedTicketsForConfiguration(100)).thenReturn(3);
@@ -181,12 +199,16 @@ public class GroupManagerTest {
 
     @Test
     public void testUpdateLinkCleanStateRequiredDueToGroupIdChange() {
-        LinkedGroupModification modification = new LinkedGroupModification(100, 2, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
-        LinkedGroup original = new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                100, 2, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup original =
+                new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
 
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(original);
         when(groupRepository.countWhitelistedTicketsForConfiguration(100)).thenReturn(0);
-        when(groupRepository.updateConfiguration(100, 2, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null)).thenReturn(1);
+        when(groupRepository.updateConfiguration(
+                        100, 2, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null))
+                .thenReturn(1);
         when(groupRepository.getConfiguration(100)).thenReturn(original);
 
         LinkedGroup result = groupManager.updateLink(100, modification);
@@ -195,12 +217,16 @@ public class GroupManagerTest {
 
     @Test
     public void testUpdateLinkCleanStateRequiredDueToMaxAllocationDecrease() {
-        LinkedGroupModification modification = new LinkedGroupModification(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
-        LinkedGroup original = new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 10);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5);
+        LinkedGroup original =
+                new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 10);
 
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(original);
         when(groupRepository.countWhitelistedTicketsForConfiguration(100)).thenReturn(0);
-        when(groupRepository.updateConfiguration(100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5)).thenReturn(1);
+        when(groupRepository.updateConfiguration(
+                        100, 1, 10, 20, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 5))
+                .thenReturn(1);
         when(groupRepository.getConfiguration(100)).thenReturn(original);
 
         LinkedGroup result = groupManager.updateLink(100, modification);
@@ -209,11 +235,15 @@ public class GroupManagerTest {
 
     @Test
     public void testUpdateLinkFailureOnUpdateCount() {
-        LinkedGroupModification modification = new LinkedGroupModification(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
-        LinkedGroup original = new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroupModification modification = new LinkedGroupModification(
+                100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup original =
+                new LinkedGroup(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
 
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(original);
-        when(groupRepository.updateConfiguration(100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null)).thenReturn(0);
+        when(groupRepository.updateConfiguration(
+                        100, 1, 10, 20, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null))
+                .thenReturn(0);
 
         assertThrows(IllegalArgumentException.class, () -> {
             groupManager.updateLink(100, modification);
@@ -225,7 +255,8 @@ public class GroupManagerTest {
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.emptyList());
         assertFalse(groupManager.isGroupLinked(1, 2));
 
-        LinkedGroup mockLinkedGroup = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup mockLinkedGroup =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(mockLinkedGroup));
         assertTrue(groupManager.isGroupLinked(1, 2));
     }
@@ -276,7 +307,7 @@ public class GroupManagerTest {
 
         assertTrue(groupManager.findById(1, 10).isPresent());
         assertFalse(groupManager.findById(1, 20).isPresent());
-        
+
         when(groupRepository.getOptionalById(2)).thenReturn(Optional.empty());
         assertFalse(groupManager.findById(2, 10).isPresent());
     }
@@ -288,7 +319,8 @@ public class GroupManagerTest {
         assertTrue(groupManager.isAllowed("member@test.com", 1, 2));
 
         // Link exists but matching member not found
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
         when(groupRepository.findItemByValueExactMatch(1, "member@test.com")).thenReturn(Optional.empty());
         assertFalse(groupManager.isAllowed("member@test.com", 1, 2));
@@ -323,9 +355,11 @@ public class GroupManagerTest {
         when(ticket.getCategoryId()).thenReturn(2);
         when(ticket.getEmail()).thenReturn("nonexistent@test.com");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
-        when(groupRepository.findItemByValueExactMatch(1, "nonexistent@test.com")).thenReturn(Optional.empty());
+        when(groupRepository.findItemByValueExactMatch(1, "nonexistent@test.com"))
+                .thenReturn(Optional.empty());
 
         assertFalse(groupManager.acquireMemberForTicket(ticket));
     }
@@ -337,9 +371,10 @@ public class GroupManagerTest {
         when(ticket.getCategoryId()).thenReturn(2);
         when(ticket.getEmail()).thenReturn("member@test.com");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.FULL, null);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
-        
+
         GroupMember member = new GroupMember(10, 1, "member@test.com", "Member");
         when(groupRepository.findItemByValueExactMatch(1, "member@test.com")).thenReturn(Optional.of(member));
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(configuration);
@@ -355,7 +390,8 @@ public class GroupManagerTest {
         when(ticket.getCategoryId()).thenReturn(2);
         when(ticket.getEmail()).thenReturn("member@test.com");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 3);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.FULL, 3);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
 
         GroupMember member = new GroupMember(10, 1, "member@test.com", "Member");
@@ -373,16 +409,18 @@ public class GroupManagerTest {
         when(ticket.getCategoryId()).thenReturn(2);
         when(ticket.getEmail()).thenReturn("user@example.com");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.EMAIL_DOMAIN, 3);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.EMAIL_DOMAIN, 3);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
 
         // Exact match not found, but ends with matches
         when(groupRepository.findItemByValueExactMatch(1, "user@example.com")).thenReturn(Optional.empty());
         GroupMember member = new GroupMember(10, 1, "example.com", "Domain Member");
         when(groupRepository.findItemEndsWith(100, 1, "%@example.com")).thenReturn(Optional.of(member));
-        
+
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(configuration);
-        when(ticketRepository.countByEmailAddressAndCategory("user@example.com", 2)).thenReturn(4);
+        when(ticketRepository.countByEmailAddressAndCategory("user@example.com", 2))
+                .thenReturn(4);
 
         assertFalse(groupManager.acquireMemberForTicket(ticket));
     }
@@ -396,7 +434,8 @@ public class GroupManagerTest {
         when(ticket.getEmail()).thenReturn("user@example.com");
         when(ticket.getTicketsReservationId()).thenReturn("resId");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.EMAIL_DOMAIN, 3);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.LIMITED_QUANTITY, LinkedGroup.MatchType.EMAIL_DOMAIN, 3);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
 
         when(groupRepository.findItemByValueExactMatch(1, "user@example.com")).thenReturn(Optional.empty());
@@ -404,11 +443,21 @@ public class GroupManagerTest {
         when(groupRepository.findItemEndsWith(100, 1, "%@example.com")).thenReturn(Optional.of(member));
 
         when(groupRepository.getConfigurationForUpdate(100)).thenReturn(configuration);
-        when(ticketRepository.countByEmailAddressAndCategory("user@example.com", 2)).thenReturn(2);
+        when(ticketRepository.countByEmailAddressAndCategory("user@example.com", 2))
+                .thenReturn(2);
 
         assertTrue(groupManager.acquireMemberForTicket(ticket));
         verify(groupRepository).insertWhitelistedTicket(10, 100, 500, null);
-        verify(auditingRepository).insert(eq("resId"), isNull(), eq(1), eq(Audit.EventType.GROUP_MEMBER_ACQUIRED), any(Date.class), eq(Audit.EntityType.TICKET), eq("500"), anyList());
+        verify(auditingRepository)
+                .insert(
+                        eq("resId"),
+                        isNull(),
+                        eq(1),
+                        eq(Audit.EventType.GROUP_MEMBER_ACQUIRED),
+                        any(Date.class),
+                        eq(Audit.EntityType.TICKET),
+                        eq("500"),
+                        anyList());
     }
 
     @Test
@@ -420,7 +469,8 @@ public class GroupManagerTest {
         when(ticket.getEmail()).thenReturn("member@test.com");
         when(ticket.getTicketsReservationId()).thenReturn("resId");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.ONCE_PER_VALUE, LinkedGroup.MatchType.FULL, null);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
 
         GroupMember member = new GroupMember(10, 1, "member@test.com", "Member");
@@ -430,7 +480,16 @@ public class GroupManagerTest {
 
         assertTrue(groupManager.acquireMemberForTicket(ticket));
         verify(groupRepository).insertWhitelistedTicket(10, 100, 500, Boolean.TRUE);
-        verify(auditingRepository).insert(eq("resId"), isNull(), eq(1), eq(Audit.EventType.GROUP_MEMBER_ACQUIRED), any(Date.class), eq(Audit.EntityType.TICKET), eq("500"), anyList());
+        verify(auditingRepository)
+                .insert(
+                        eq("resId"),
+                        isNull(),
+                        eq(1),
+                        eq(Audit.EventType.GROUP_MEMBER_ACQUIRED),
+                        any(Date.class),
+                        eq(Audit.EntityType.TICKET),
+                        eq("500"),
+                        anyList());
     }
 
     @Test
@@ -442,7 +501,8 @@ public class GroupManagerTest {
         when(ticket.getEmail()).thenReturn("member@test.com");
         when(ticket.getTicketsReservationId()).thenReturn("resId");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.FULL, null);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
 
         GroupMember member = new GroupMember(10, 1, "member@test.com", "Member");
@@ -450,7 +510,16 @@ public class GroupManagerTest {
 
         assertTrue(groupManager.acquireMemberForTicket(ticket));
         verify(groupRepository).insertWhitelistedTicket(10, 100, 500, null);
-        verify(auditingRepository).insert(eq("resId"), isNull(), eq(1), eq(Audit.EventType.GROUP_MEMBER_ACQUIRED), any(Date.class), eq(Audit.EntityType.TICKET), eq("500"), anyList());
+        verify(auditingRepository)
+                .insert(
+                        eq("resId"),
+                        isNull(),
+                        eq(1),
+                        eq(Audit.EventType.GROUP_MEMBER_ACQUIRED),
+                        any(Date.class),
+                        eq(Audit.EntityType.TICKET),
+                        eq("500"),
+                        anyList());
     }
 
     @Test
@@ -460,7 +529,8 @@ public class GroupManagerTest {
         when(ticket.getCategoryId()).thenReturn(2);
         when(ticket.getEmail()).thenReturn("invalidemail");
 
-        LinkedGroup configuration = new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.EMAIL_DOMAIN, null);
+        LinkedGroup configuration =
+                new LinkedGroup(100, 1, 1, 2, LinkedGroup.Type.UNLIMITED, LinkedGroup.MatchType.EMAIL_DOMAIN, null);
         when(groupRepository.findActiveConfigurationsFor(1, 2)).thenReturn(Collections.singletonList(configuration));
 
         when(groupRepository.findItemByValueExactMatch(1, "invalidemail")).thenReturn(Optional.empty());
@@ -501,13 +571,17 @@ public class GroupManagerTest {
     public void testUpdateEmpty() {
         // Group not found
         when(groupRepository.getOptionalById(1)).thenReturn(Optional.empty());
-        Optional<GroupModification> res1 = groupManager.update(1, new GroupModification(1, "Name", "Desc", 10, Collections.singletonList(mock(GroupMemberModification.class))));
+        Optional<GroupModification> res1 = groupManager.update(
+                1,
+                new GroupModification(
+                        1, "Name", "Desc", 10, Collections.singletonList(mock(GroupMemberModification.class))));
         assertFalse(res1.isPresent());
 
         // Modification items empty
         Group group = new Group(1, "Name", "Desc", 10, true);
         when(groupRepository.getOptionalById(1)).thenReturn(Optional.of(group));
-        Optional<GroupModification> res2 = groupManager.update(1, new GroupModification(1, "Name", "Desc", 10, Collections.emptyList()));
+        Optional<GroupModification> res2 =
+                groupManager.update(1, new GroupModification(1, "Name", "Desc", 10, Collections.emptyList()));
         assertFalse(res2.isPresent());
     }
 
@@ -515,12 +589,13 @@ public class GroupManagerTest {
     public void testUpdateSuccessNoNewItems() {
         Group group = new Group(1, "Name", "Desc", 10, true);
         when(groupRepository.getOptionalById(1)).thenReturn(Optional.of(group));
-        
+
         List<String> existingValues = Collections.singletonList("member@test.com");
         when(groupRepository.getAllValuesIncludingNotActive(1)).thenReturn(existingValues);
 
         GroupMemberModification item = new GroupMemberModification(10, "member@test.com", "Member");
-        GroupModification modification = new GroupModification(1, "New Name", "New Desc", 10, Collections.singletonList(item));
+        GroupModification modification =
+                new GroupModification(1, "New Name", "New Desc", 10, Collections.singletonList(item));
 
         when(groupRepository.update(1, "New Name", "New Desc")).thenReturn(1);
         when(groupRepository.getItems(1)).thenReturn(Collections.emptyList());
@@ -538,9 +613,10 @@ public class GroupManagerTest {
         when(groupRepository.getAllValuesIncludingNotActive(1)).thenReturn(Collections.emptyList());
 
         GroupMemberModification item = new GroupMemberModification(null, "newmember@test.com", "New Member");
-        GroupModification modification = new GroupModification(1, "New Name", "New Desc", 10, Collections.singletonList(item));
+        GroupModification modification =
+                new GroupModification(1, "New Name", "New Desc", 10, Collections.singletonList(item));
 
-        when(groupRepository.insert(eq(1), anyList())).thenReturn(new int[]{1});
+        when(groupRepository.insert(eq(1), anyList())).thenReturn(new int[] {1});
         when(groupRepository.update(1, "New Name", "New Desc")).thenReturn(1);
         when(groupRepository.getItems(1)).thenReturn(Collections.emptyList());
 
@@ -559,7 +635,8 @@ public class GroupManagerTest {
         GroupMemberModification item1 = new CustomGroupMemberModification(null, "dup@test.com", "Desc 1", 1);
         GroupMemberModification item2 = new CustomGroupMemberModification(null, "dup@test.com", "Desc 2", 2);
 
-        GroupModification modification = new GroupModification(1, "New Name", "New Desc", 10, Arrays.asList(item1, item2));
+        GroupModification modification =
+                new GroupModification(1, "New Name", "New Desc", 10, Arrays.asList(item1, item2));
 
         assertThrows(GroupManager.DuplicateGroupItemException.class, () -> {
             groupManager.update(1, modification);

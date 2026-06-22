@@ -16,23 +16,22 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
+import static alfio.model.system.ConfigurationKeys.ON_SITE_ENABLED;
+import static alfio.model.system.ConfigurationKeys.RECAPTCHA_API_KEY;
+
 import alfio.manager.support.PaymentResult;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.system.ConfigurationPathLevel;
 import alfio.model.transaction.*;
 import alfio.repository.TransactionRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
-import static alfio.model.system.ConfigurationKeys.ON_SITE_ENABLED;
-import static alfio.model.system.ConfigurationKeys.RECAPTCHA_API_KEY;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @AllArgsConstructor
@@ -43,7 +42,8 @@ public class OnSiteManager implements PaymentProvider {
     private final TransactionRepository transactionRepository;
 
     @Override
-    public Set<? extends PaymentMethod> getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
+    public Set<? extends PaymentMethod> getSupportedPaymentMethods(
+            PaymentContext paymentContext, TransactionRequest transactionRequest) {
         return EnumSet.of(StaticPaymentMethods.ON_SITE);
     }
 
@@ -69,8 +69,11 @@ public class OnSiteManager implements PaymentProvider {
 
     @Override
     public boolean isActive(PaymentContext paymentContext) {
-        return configurationManager.getFor(ON_SITE_ENABLED, paymentContext.getConfigurationLevel()).getValueAsBooleanOrDefault()
-            && (paymentContext.getConfigurationLevel().getPathLevel() != ConfigurationPathLevel.PURCHASE_CONTEXT || !paymentContext.isOnline());
+        return configurationManager
+                        .getFor(ON_SITE_ENABLED, paymentContext.getConfigurationLevel())
+                        .getValueAsBooleanOrDefault()
+                && (paymentContext.getConfigurationLevel().getPathLevel() != ConfigurationPathLevel.PURCHASE_CONTEXT
+                        || !paymentContext.isOnline());
     }
 
     @Override
@@ -82,10 +85,16 @@ public class OnSiteManager implements PaymentProvider {
     @Override
     public Map<String, ?> getModelOptions(PaymentContext context) {
         Map<String, Object> model = new HashMap<>();
-        boolean recaptchaEnabled = configurationManager.isRecaptchaForOfflinePaymentAndFreeEnabled(context.getConfigurationLevel());
+        boolean recaptchaEnabled =
+                configurationManager.isRecaptchaForOfflinePaymentAndFreeEnabled(context.getConfigurationLevel());
         model.put("captchaRequestedForOffline", recaptchaEnabled);
-        if(recaptchaEnabled) {
-            model.put("recaptchaApiKey", configurationManager.getForSystem(RECAPTCHA_API_KEY).getValue().orElse(null));
+        if (recaptchaEnabled) {
+            model.put(
+                    "recaptchaApiKey",
+                    configurationManager
+                            .getForSystem(RECAPTCHA_API_KEY)
+                            .getValue()
+                            .orElse(null));
         }
         return model;
     }

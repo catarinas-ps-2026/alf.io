@@ -18,19 +18,22 @@ package alfio.manager.support;
 
 import alfio.model.Ticket;
 import alfio.repository.TicketCategoryRepository;
-
 import java.util.function.Function;
 
 public final class CategoryEvaluator {
-    private CategoryEvaluator() {
+    private CategoryEvaluator() {}
+
+    public static Function<Ticket, Boolean> ticketCancellationAvailabilityChecker(
+            TicketCategoryRepository ticketCategoryRepository) {
+        return ticket -> ticket.getStatus() == Ticket.TicketStatus.ACQUIRED
+                && (!ticketCategoryRepository
+                                .getByIdAndActive(ticket.getCategoryId(), ticket.getEventId())
+                                .isAccessRestricted()
+                        || ticketCategoryRepository.countUnboundedCategoriesByEventId(ticket.getEventId()) > 0);
     }
 
-    public static Function<Ticket, Boolean> ticketCancellationAvailabilityChecker(TicketCategoryRepository ticketCategoryRepository) {
-        return ticket -> ticket.getStatus() == Ticket.TicketStatus.ACQUIRED && (!ticketCategoryRepository.getByIdAndActive(ticket.getCategoryId(), ticket.getEventId()).isAccessRestricted()
-                         || ticketCategoryRepository.countUnboundedCategoriesByEventId(ticket.getEventId()) > 0);
-    }
-
-    public static boolean isTicketCancellationAvailable(TicketCategoryRepository ticketCategoryRepository, Ticket ticket) {
+    public static boolean isTicketCancellationAvailable(
+            TicketCategoryRepository ticketCategoryRepository, Ticket ticket) {
         return ticketCancellationAvailabilityChecker(ticketCategoryRepository).apply(ticket);
     }
 }

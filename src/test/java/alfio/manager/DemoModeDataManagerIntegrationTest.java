@@ -16,6 +16,11 @@
  */
 package alfio.manager;
 
+import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
+import static alfio.test.util.IntegrationTestUtil.initEvent;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -30,6 +35,13 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,21 +51,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import static alfio.test.util.IntegrationTestUtil.AVAILABLE_SEATS;
-import static alfio.test.util.IntegrationTestUtil.initEvent;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @SpringJUnitConfig(classes = {DataSourceConfiguration.class, TestConfiguration.class})
-@ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST, Initializer.PROFILE_DEMO})
+@ActiveProfiles({
+    Initializer.PROFILE_DEV,
+    Initializer.PROFILE_DISABLE_JOBS,
+    Initializer.PROFILE_INTEGRATION_TEST,
+    Initializer.PROFILE_DEMO
+})
 @Transactional
 class DemoModeDataManagerIntegrationTest extends BaseIntegrationTest {
     private final ConfigurationRepository configurationRepository;
@@ -65,13 +69,14 @@ class DemoModeDataManagerIntegrationTest extends BaseIntegrationTest {
     private final DemoModeDataManager demoModeDataManager;
 
     @Autowired
-    DemoModeDataManagerIntegrationTest(ConfigurationRepository configurationRepository,
-                                       OrganizationRepository organizationRepository,
-                                       UserManager userManager,
-                                       NamedParameterJdbcTemplate jdbcTemplate,
-                                       EventManager eventManager,
-                                       EventRepository eventRepository,
-                                       DemoModeDataManager demoModeDataManager) {
+    DemoModeDataManagerIntegrationTest(
+            ConfigurationRepository configurationRepository,
+            OrganizationRepository organizationRepository,
+            UserManager userManager,
+            NamedParameterJdbcTemplate jdbcTemplate,
+            EventManager eventManager,
+            EventRepository eventRepository,
+            DemoModeDataManager demoModeDataManager) {
         this.configurationRepository = configurationRepository;
         this.organizationRepository = organizationRepository;
         this.userManager = userManager;
@@ -88,36 +93,66 @@ class DemoModeDataManagerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void deleteExpiredUsersAndEvents() {
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-                Map.of("en", "desc"), BigDecimal.TEN, false, "", false, null,
-                null, null, null, null, 0, null, null, AlfioMetadata.empty()));
+                Map.of("en", "desc"),
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
 
         var eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         var event = eventAndUser.getLeft();
         var expirationDate = DateUtils.addDays(new Date(), -30);
-        int updateResult = jdbcTemplate.update("update ba_user set user_type = 'DEMO', user_creation_time = :date where username = :username", Map.of("date", expirationDate, "username", eventAndUser.getRight()));
+        int updateResult = jdbcTemplate.update(
+                "update ba_user set user_type = 'DEMO', user_creation_time = :date where username = :username",
+                Map.of("date", expirationDate, "username", eventAndUser.getRight()));
         assertEquals(1, updateResult);
         demoModeDataManager.cleanupForDemoMode();
         assertTrue(eventRepository.findOptionalById(event.getId()).isEmpty());
-
     }
 
     @Test
     void doNotDeleteNewUsers() {
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
                 new DateTimeModification(LocalDate.now(ClockProvider.clock()), LocalTime.now(ClockProvider.clock())),
-                Map.of("en", "desc"), BigDecimal.TEN, false, "", false, null,
-                null, null, null, null, 0, null, null, AlfioMetadata.empty()));
+                Map.of("en", "desc"),
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
 
         var eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         var event = eventAndUser.getLeft();
         demoModeDataManager.cleanupForDemoMode();
         assertTrue(eventRepository.findOptionalById(event.getId()).isPresent());
     }
-
 }

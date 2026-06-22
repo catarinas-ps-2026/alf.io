@@ -16,6 +16,9 @@
  */
 package alfio.model.api.v1.admin;
 
+import static alfio.util.LocaleUtil.atZone;
+import static java.util.Objects.requireNonNullElse;
+
 import alfio.model.PriceContainer;
 import alfio.model.api.v1.admin.subscription.CustomPeriodTerm;
 import alfio.model.api.v1.admin.subscription.EntryBasedTerm;
@@ -32,10 +35,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -44,9 +43,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static alfio.util.LocaleUtil.atZone;
-import static java.util.Objects.requireNonNullElse;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SubscriptionDescriptorModificationRequest {
 
@@ -78,39 +77,41 @@ public class SubscriptionDescriptorModificationRequest {
     private final List<PaymentProxy> paymentMethods;
     private final List<AdditionalInfoRequest> additionalInfo;
 
-
-
-
     @JsonCreator
-    public SubscriptionDescriptorModificationRequest(@JsonProperty("usageType") SubscriptionUsageType usageType,
-                                                     @JsonProperty("termType") String termType,
-                                                     @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "termType")
-                                                     @JsonSubTypes({
-                                                         // if termType is "standard", then we expect an instance of StandardPeriodTerm
-                                                         @JsonSubTypes.Type(value = StandardPeriodTerm.class, name = TERM_STANDARD),
-                                                         // if termType is "numEntries", then we expect an instance of EntryBasedTerm
-                                                         @JsonSubTypes.Type(value = EntryBasedTerm.class, name = TERM_NUM_ENTRIES),
-                                                         // if termType is "custom", then we expect an instance of CustomPeriodTerm
-                                                         @JsonSubTypes.Type(value = CustomPeriodTerm.class, name = TERM_CUSTOM)
-                                                     })
-                                                     @JsonProperty("term") SubscriptionTerm term,
-                                                     @JsonProperty("title") List<DescriptionRequest> title,
-                                                     @JsonProperty("description") List<DescriptionRequest> description,
-                                                     @JsonProperty("maxAvailable") Integer maxAvailable,
-                                                     @JsonProperty("onSaleFrom") LocalDateTime onSaleFrom,
-                                                     @JsonProperty("onSaleTo") LocalDateTime onSaleTo,
-                                                     @JsonProperty("price") BigDecimal price,
-                                                     @JsonProperty("taxPercentage") BigDecimal taxPercentage,
-                                                     @JsonProperty("taxPolicy") PriceContainer.VatStatus taxPolicy,
-                                                     @JsonProperty("currencyCode") String currencyCode,
-                                                     @JsonProperty("isPublic") Boolean isPublic,
-                                                     @JsonProperty("imageUrl") String imageUrl,
-                                                     @JsonProperty("termsAndConditionsUrl") String termsAndConditionsUrl,
-                                                     @JsonProperty("privacyPolicyUrl") String privacyPolicyUrl,
-                                                     @JsonProperty("timezone") String timezone,
-                                                     @JsonProperty("supportsTicketsGeneration") Boolean supportsTicketsGeneration,
-                                                     @JsonProperty("paymentMethods") List<PaymentProxy> paymentMethods,
-                                                     @JsonProperty("additionalInfo") List<AdditionalInfoRequest> additionalInfo) {
+    public SubscriptionDescriptorModificationRequest(
+            @JsonProperty("usageType") SubscriptionUsageType usageType,
+            @JsonProperty("termType") String termType,
+            @JsonTypeInfo(
+                            use = JsonTypeInfo.Id.NAME,
+                            include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
+                            property = "termType")
+                    @JsonSubTypes({
+                        // if termType is "standard", then we expect an instance of StandardPeriodTerm
+                        @JsonSubTypes.Type(value = StandardPeriodTerm.class, name = TERM_STANDARD),
+                        // if termType is "numEntries", then we expect an instance of EntryBasedTerm
+                        @JsonSubTypes.Type(value = EntryBasedTerm.class, name = TERM_NUM_ENTRIES),
+                        // if termType is "custom", then we expect an instance of CustomPeriodTerm
+                        @JsonSubTypes.Type(value = CustomPeriodTerm.class, name = TERM_CUSTOM)
+                    })
+                    @JsonProperty("term")
+                    SubscriptionTerm term,
+            @JsonProperty("title") List<DescriptionRequest> title,
+            @JsonProperty("description") List<DescriptionRequest> description,
+            @JsonProperty("maxAvailable") Integer maxAvailable,
+            @JsonProperty("onSaleFrom") LocalDateTime onSaleFrom,
+            @JsonProperty("onSaleTo") LocalDateTime onSaleTo,
+            @JsonProperty("price") BigDecimal price,
+            @JsonProperty("taxPercentage") BigDecimal taxPercentage,
+            @JsonProperty("taxPolicy") PriceContainer.VatStatus taxPolicy,
+            @JsonProperty("currencyCode") String currencyCode,
+            @JsonProperty("isPublic") Boolean isPublic,
+            @JsonProperty("imageUrl") String imageUrl,
+            @JsonProperty("termsAndConditionsUrl") String termsAndConditionsUrl,
+            @JsonProperty("privacyPolicyUrl") String privacyPolicyUrl,
+            @JsonProperty("timezone") String timezone,
+            @JsonProperty("supportsTicketsGeneration") Boolean supportsTicketsGeneration,
+            @JsonProperty("paymentMethods") List<PaymentProxy> paymentMethods,
+            @JsonProperty("additionalInfo") List<AdditionalInfoRequest> additionalInfo) {
         this.usageType = usageType;
         this.termType = termType;
         this.term = term;
@@ -133,50 +134,57 @@ public class SubscriptionDescriptorModificationRequest {
         this.additionalInfo = requireNonNullElse(additionalInfo, List.of());
     }
 
-    public Result<SubscriptionDescriptorModification> toDescriptorModification(UUID id, int organizationId, String fileBlobId) {
+    public Result<SubscriptionDescriptorModification> toDescriptorModification(
+            UUID id, int organizationId, String fileBlobId) {
         var zoneIdOptional = getZoneId();
         return new Result.Builder<SubscriptionDescriptorModification>()
-            .checkPrecondition(zoneIdOptional::isPresent, ErrorCode.custom("timezone", "Timezone is mandatory"))
-            .checkPrecondition(() -> usageType != null, ErrorCode.custom("usageType", "UsageType is mandatory"))
-            .checkPrecondition(() -> term != null && term.validate(), ErrorCode.custom("term", "Term is not valid"))
-            .build(() -> {
-                var zoneId = zoneIdOptional.orElseThrow();
-                return new SubscriptionDescriptorModification(
-                    id,
-                    title.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody)),
-                    description.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody)),
-                    requireNonNullElse(maxAvailable, -1),
-                    atZone(onSaleFrom, zoneId),
-                    atZone(onSaleTo, zoneId),
-                    price,
-                    taxPercentage,
-                    taxPolicy,
-                    currencyCode,
-                    Boolean.TRUE.equals(isPublic),
-                    organizationId,
-                    requireNonNullElse(term.getNumEntries(), -1),
-                    getValidityType(),
-                    term.getTimeUnit(),
-                    term.getUnits(),
-                    atZone(term.getValidityFrom(), zoneId),
-                    atZone(term.getValidityTo(), zoneId),
-                    usageType,
-                    termsAndConditionsUrl,
-                    privacyPolicyUrl,
-                    fileBlobId,
-                    paymentMethods,
-                    zoneId,
-                    Boolean.TRUE.equals(supportsTicketsGeneration)
-                );
-            });
+                .checkPrecondition(zoneIdOptional::isPresent, ErrorCode.custom("timezone", "Timezone is mandatory"))
+                .checkPrecondition(() -> usageType != null, ErrorCode.custom("usageType", "UsageType is mandatory"))
+                .checkPrecondition(() -> term != null && term.validate(), ErrorCode.custom("term", "Term is not valid"))
+                .build(() -> {
+                    var zoneId = zoneIdOptional.orElseThrow();
+                    return new SubscriptionDescriptorModification(
+                            id,
+                            title.stream()
+                                    .collect(
+                                            Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody)),
+                            description.stream()
+                                    .collect(
+                                            Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody)),
+                            requireNonNullElse(maxAvailable, -1),
+                            atZone(onSaleFrom, zoneId),
+                            atZone(onSaleTo, zoneId),
+                            price,
+                            taxPercentage,
+                            taxPolicy,
+                            currencyCode,
+                            Boolean.TRUE.equals(isPublic),
+                            organizationId,
+                            requireNonNullElse(term.getNumEntries(), -1),
+                            getValidityType(),
+                            term.getTimeUnit(),
+                            term.getUnits(),
+                            atZone(term.getValidityFrom(), zoneId),
+                            atZone(term.getValidityTo(), zoneId),
+                            usageType,
+                            termsAndConditionsUrl,
+                            privacyPolicyUrl,
+                            fileBlobId,
+                            paymentMethods,
+                            zoneId,
+                            Boolean.TRUE.equals(supportsTicketsGeneration));
+                });
     }
 
     public Result<List<AdditionalFieldRequest>> toAdditionalFieldsRequest() {
         return new Result.Builder<List<AdditionalFieldRequest>>()
-            .checkPrecondition(() -> additionalInfo.isEmpty() || additionalInfo.stream().allMatch(AdditionalInfoRequest::isValid), ErrorCode.custom("additionalInfo", "Additional info not valid"))
-            .build(() -> IntStream.range(0, additionalInfo.size())
-                    .mapToObj(i -> additionalInfo.get(i).toAdditionalField(i+1))
-                    .collect(Collectors.toList()));
+                .checkPrecondition(
+                        () -> additionalInfo.isEmpty()
+                                || additionalInfo.stream().allMatch(AdditionalInfoRequest::isValid),
+                        ErrorCode.custom("additionalInfo", "Additional info not valid"))
+                .build(() -> IntStream.range(0, additionalInfo.size())
+                        .mapToObj(i -> additionalInfo.get(i).toAdditionalField(i + 1))
+                        .collect(Collectors.toList()));
     }
 
     private Optional<ZoneId> getZoneId() {
@@ -185,18 +193,18 @@ public class SubscriptionDescriptorModificationRequest {
         }
         try {
             return Optional.of(ZoneId.of(timezone));
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             log.warn("Error while parsing timezone", ex);
             return Optional.empty();
         }
     }
 
     private SubscriptionDescriptor.SubscriptionValidityType getValidityType() {
-        if(TERM_STANDARD.equals(termType)) {
+        if (TERM_STANDARD.equals(termType)) {
             return SubscriptionDescriptor.SubscriptionValidityType.STANDARD;
-        } else if(TERM_CUSTOM.equals(termType)) {
+        } else if (TERM_CUSTOM.equals(termType)) {
             return SubscriptionDescriptor.SubscriptionValidityType.CUSTOM;
-        } else if(TERM_NUM_ENTRIES.equals(termType)) {
+        } else if (TERM_NUM_ENTRIES.equals(termType)) {
             return SubscriptionDescriptor.SubscriptionValidityType.NOT_SET;
         }
         return null;

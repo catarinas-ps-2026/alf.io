@@ -16,6 +16,11 @@
  */
 package alfio.controller.form;
 
+import static alfio.model.PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE;
+import static alfio.model.PurchaseContextFieldConfiguration.Context.ATTENDEE;
+import static alfio.util.ErrorsCode.*;
+import static alfio.util.Validator.validateFieldConfiguration;
+
 import alfio.controller.support.CustomBindingResult;
 import alfio.manager.ExtensionManager;
 import alfio.manager.SameCountryValidator;
@@ -31,22 +36,16 @@ import alfio.model.system.ConfigurationKeys;
 import alfio.util.ErrorsCode;
 import alfio.util.ItalianTaxIdValidator;
 import alfio.util.Validator;
-import lombok.Data;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.ValidationUtils;
-
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static alfio.model.PurchaseContextFieldConfiguration.Context.ADDITIONAL_SERVICE;
-import static alfio.model.PurchaseContextFieldConfiguration.Context.ATTENDEE;
-import static alfio.util.ErrorsCode.*;
-import static alfio.util.Validator.validateFieldConfiguration;
+import lombok.Data;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ValidationUtils;
 
 // step 2 : contact/claim tickets
 //
@@ -91,44 +90,58 @@ public class ContactAndTicketsForm implements Serializable {
 
     //
 
-    private static void rejectIfOverLength(BindingResult bindingResult, String field, String errorCode,
-            String value, int maxLength) {
+    private static void rejectIfOverLength(
+            BindingResult bindingResult, String field, String errorCode, String value, int maxLength) {
         if (value != null && value.length() > maxLength) {
             bindingResult.rejectValue(field, errorCode, new Object[] {maxLength}, null);
         }
     }
 
+    public void validate(
+            CustomBindingResult bindingResult,
+            PurchaseContext purchaseContext,
+            SameCountryValidator vatValidator,
+            Map<ConfigurationKeys, Boolean> formValidationParameters,
+            Optional<Validator.AdditionalFieldsFilterer> additionalFieldsFilterer,
+            boolean reservationRequiresPayment,
+            ExtensionManager extensionManager,
+            Supplier<List<AdditionalServiceItem>> additionalServiceItemsSupplier) {
 
-
-    public void validate(CustomBindingResult bindingResult,
-                         PurchaseContext purchaseContext,
-                         SameCountryValidator vatValidator,
-                         Map<ConfigurationKeys, Boolean> formValidationParameters,
-                         Optional<Validator.AdditionalFieldsFilterer> additionalFieldsFilterer,
-                         boolean reservationRequiresPayment,
-                         ExtensionManager extensionManager,
-                         Supplier<List<AdditionalServiceItem>> additionalServiceItemsSupplier) {
-
-
-        formalValidation(bindingResult, formValidationParameters.getOrDefault(ConfigurationKeys.ENABLE_ITALY_E_INVOICING, false), reservationRequiresPayment);
+        formalValidation(
+                bindingResult,
+                formValidationParameters.getOrDefault(ConfigurationKeys.ENABLE_ITALY_E_INVOICING, false),
+                reservationRequiresPayment);
 
         var fieldsFilterer = additionalFieldsFilterer.orElseThrow();
         purchaseContext.event().ifPresent(event -> {
-            checkAdditionalServiceItemsLink(event, bindingResult, additionalServiceItemsSupplier, vatValidator, fieldsFilterer);
-            if(!postponeAssignment) {
+            checkAdditionalServiceItemsLink(
+                    event, bindingResult, additionalServiceItemsSupplier, vatValidator, fieldsFilterer);
+            if (!postponeAssignment) {
                 Optional<List<ValidationResult>> validationResults = Optional.ofNullable(tickets)
-                    .filter(m -> !m.isEmpty())
-                    .map(m -> m.entrySet().stream().map(e -> {
-                        var filteredForTicket = fieldsFilterer.getFieldsForTicket(UUID.fromString(e.getKey()), EnumSet.of(ATTENDEE));
-                        return Validator.validateTicketAssignment(e.getValue(), filteredForTicket, Optional.of(bindingResult), event, "tickets[" + e.getKey() + "]", vatValidator, extensionManager);
-                    }))
-                    .map(s -> s.collect(Collectors.toList()));
+                        .filter(m -> !m.isEmpty())
+                        .map(m -> m.entrySet().stream().map(e -> {
+                            var filteredForTicket = fieldsFilterer.getFieldsForTicket(
+                                    UUID.fromString(e.getKey()), EnumSet.of(ATTENDEE));
+                            return Validator.validateTicketAssignment(
+                                    e.getValue(),
+                                    filteredForTicket,
+                                    Optional.of(bindingResult),
+                                    event,
+                                    "tickets[" + e.getKey() + "]",
+                                    vatValidator,
+                                    extensionManager);
+                        }))
+                        .map(s -> s.collect(Collectors.toList()));
 
                 boolean success = validationResults
-                    .filter(l -> l.stream().allMatch(ValidationResult::isSuccess))
-                    .isPresent();
-                if(!success) {
-                    String errorCode = validationResults.filter(this::containsVatValidationError).isPresent() ? STEP_2_INVALID_VAT : STEP_2_MISSING_ATTENDEE_DATA;
+                        .filter(l -> l.stream().allMatch(ValidationResult::isSuccess))
+                        .isPresent();
+                if (!success) {
+                    String errorCode = validationResults
+                                    .filter(this::containsVatValidationError)
+                                    .isPresent()
+                            ? STEP_2_INVALID_VAT
+                            : STEP_2_MISSING_ATTENDEE_DATA;
                     bindingResult.reject(errorCode);
                 }
             }
@@ -136,51 +149,65 @@ public class ContactAndTicketsForm implements Serializable {
 
         if (purchaseContext.ofType(PurchaseContextType.subscription)) {
             if (differentSubscriptionOwner) {
-                ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "subscriptionOwner.firstName", ErrorsCode.STEP_2_EMPTY_FIRSTNAME);
-                ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "subscriptionOwner.lastName", ErrorsCode.STEP_2_EMPTY_LASTNAME);
-                ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "subscriptionOwner.email", ErrorsCode.STEP_2_EMPTY_EMAIL);
+                ValidationUtils.rejectIfEmptyOrWhitespace(
+                        bindingResult, "subscriptionOwner.firstName", ErrorsCode.STEP_2_EMPTY_FIRSTNAME);
+                ValidationUtils.rejectIfEmptyOrWhitespace(
+                        bindingResult, "subscriptionOwner.lastName", ErrorsCode.STEP_2_EMPTY_LASTNAME);
+                ValidationUtils.rejectIfEmptyOrWhitespace(
+                        bindingResult, "subscriptionOwner.email", ErrorsCode.STEP_2_EMPTY_EMAIL);
             }
 
-            for(PurchaseContextFieldConfiguration fieldConf : fieldsFilterer.getFieldsForSubscription()) {
-                validateFieldConfiguration(subscriptionOwner, vatValidator, bindingResult, "subscriptionOwner.", fieldConf);
+            for (PurchaseContextFieldConfiguration fieldConf : fieldsFilterer.getFieldsForSubscription()) {
+                validateFieldConfiguration(
+                        subscriptionOwner, vatValidator, bindingResult, "subscriptionOwner.", fieldConf);
             }
         }
-
     }
 
-    private void checkAdditionalServiceItemsLink(Event event,
-                                                 BindingResult bindingResult,
-                                                 Supplier<List<AdditionalServiceItem>> additionalServiceItemsCount,
-                                                 SameCountryValidator vatValidator,
-                                                 Validator.AdditionalFieldsFilterer additionalFieldsFilterer) {
+    private void checkAdditionalServiceItemsLink(
+            Event event,
+            BindingResult bindingResult,
+            Supplier<List<AdditionalServiceItem>> additionalServiceItemsCount,
+            SameCountryValidator vatValidator,
+            Validator.AdditionalFieldsFilterer additionalFieldsFilterer) {
         if (!event.supportsLinkedAdditionalServices()) {
             return;
         }
         Map<String, List<AdditionalServiceLinkForm>> form = Objects.requireNonNullElseGet(additionalServices, Map::of);
         var additionalServiceItems = additionalServiceItemsCount.get();
-        if (additionalServiceItems.size() != form.values().stream().mapToInt(List::size).sum()
-            || form.values().stream().anyMatch(v -> v.stream().anyMatch(Predicate.not(AdditionalServiceLinkForm::isValid)))) {
+        if (additionalServiceItems.size()
+                        != form.values().stream().mapToInt(List::size).sum()
+                || form.values().stream()
+                        .anyMatch(v -> v.stream().anyMatch(Predicate.not(AdditionalServiceLinkForm::isValid)))) {
             bindingResult.reject(STEP_2_ADDITIONAL_ITEMS_NOT_ASSIGNED);
         }
         var result = ValidationResult.success();
         for (var ticketAndFields : form.entrySet()) {
-            var filteredForTicket = additionalFieldsFilterer.getFieldsForTicket(UUID.fromString(ticketAndFields.getKey()), EnumSet.of(ADDITIONAL_SERVICE));
+            var filteredForTicket = additionalFieldsFilterer.getFieldsForTicket(
+                    UUID.fromString(ticketAndFields.getKey()), EnumSet.of(ADDITIONAL_SERVICE));
             var fieldForms = ticketAndFields.getValue();
             for (int i = 0; i < fieldForms.size(); i++) {
-                result = result.or(Validator.validateAdditionalItemFieldsForTicket(fieldForms.get(i), filteredForTicket, bindingResult, "additionalServices["+ticketAndFields.getKey()+"]["+i+"]", vatValidator, fieldForms, additionalServiceItems));
+                result = result.or(Validator.validateAdditionalItemFieldsForTicket(
+                        fieldForms.get(i),
+                        filteredForTicket,
+                        bindingResult,
+                        "additionalServices[" + ticketAndFields.getKey() + "][" + i + "]",
+                        vatValidator,
+                        fieldForms,
+                        additionalServiceItems));
             }
         }
 
         boolean success = result.isSuccess();
-        if(!success) {
-            String errorCode = containsVatValidationError(List.of(result)) ? STEP_2_INVALID_VAT : STEP_2_MISSING_ATTENDEE_DATA;
+        if (!success) {
+            String errorCode =
+                    containsVatValidationError(List.of(result)) ? STEP_2_INVALID_VAT : STEP_2_MISSING_ATTENDEE_DATA;
             bindingResult.reject(errorCode);
         }
     }
 
-    public void formalValidation(CustomBindingResult bindingResult,
-                                 boolean italianEInvoicingEnabled,
-                                 boolean reservationRequiresPayment) {
+    public void formalValidation(
+            CustomBindingResult bindingResult, boolean italianEInvoicingEnabled, boolean reservationRequiresPayment) {
         email = StringUtils.trim(email);
 
         fullName = StringUtils.trim(fullName);
@@ -192,14 +219,12 @@ public class ContactAndTicketsForm implements Serializable {
         ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "email", ErrorsCode.STEP_2_EMPTY_EMAIL);
         rejectIfOverLength(bindingResult, "email", ErrorsCode.STEP_2_MAX_LENGTH_EMAIL, email, 255);
 
-
         ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "firstName", ErrorsCode.STEP_2_EMPTY_FIRSTNAME);
         rejectIfOverLength(bindingResult, "firstName", ErrorsCode.STEP_2_MAX_LENGTH_FIRSTNAME, fullName, 255);
         ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "lastName", ErrorsCode.STEP_2_EMPTY_LASTNAME);
         rejectIfOverLength(bindingResult, "lastName", ErrorsCode.STEP_2_MAX_LENGTH_LASTNAME, fullName, 255);
 
-
-        if(invoiceRequested) {
+        if (invoiceRequested) {
             ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "billingAddressLine1", ErrorsCode.EMPTY_FIELD);
             rejectIfOverLength(bindingResult, "billingAddressLine1", "error.tooLong", billingAddressLine1, 256);
 
@@ -213,10 +238,9 @@ public class ContactAndTicketsForm implements Serializable {
 
             ValidationUtils.rejectIfEmpty(bindingResult, "vatCountryCode", ErrorsCode.EMPTY_FIELD);
 
-            if(StringUtils.trimToNull(billingAddressCompany) != null && !canSkipVatNrCheck()) {
+            if (StringUtils.trimToNull(billingAddressCompany) != null && !canSkipVatNrCheck()) {
                 ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "vatNr", ErrorsCode.EMPTY_FIELD);
             }
-
         }
 
         // https://github.com/alfio-event/alf.io/issues/573
@@ -224,15 +248,18 @@ public class ContactAndTicketsForm implements Serializable {
         if (italianEInvoicingEnabled && StringUtils.isNotEmpty(vatCountryCode) && reservationRequiresPayment) {
             // mandatory
             ValidationUtils.rejectIfEmpty(bindingResult, "italyEInvoicingFiscalCode", ErrorsCode.EMPTY_FIELD);
-            rejectIfOverLength(bindingResult, "italyEInvoicingFiscalCode", "error.tooLong", italyEInvoicingFiscalCode, 28);
+            rejectIfOverLength(
+                    bindingResult, "italyEInvoicingFiscalCode", "error.tooLong", italyEInvoicingFiscalCode, 28);
         }
 
         if (italianEInvoicingEnabled && "IT".equals(vatCountryCode) && reservationRequiresPayment) {
             //
-            ValidationUtils.rejectIfEmpty(bindingResult, "italyEInvoicingReferenceType", "error.italyEInvoicingReferenceTypeSelectValue");
+            ValidationUtils.rejectIfEmpty(
+                    bindingResult, "italyEInvoicingReferenceType", "error.italyEInvoicingReferenceTypeSelectValue");
             //
             if (ItalianEInvoicing.ReferenceType.ADDRESSEE_CODE == italyEInvoicingReferenceType) {
-                ValidationUtils.rejectIfEmpty(bindingResult, "italyEInvoicingReferenceAddresseeCode", ErrorsCode.EMPTY_FIELD);
+                ValidationUtils.rejectIfEmpty(
+                        bindingResult, "italyEInvoicingReferenceAddresseeCode", ErrorsCode.EMPTY_FIELD);
                 italyEInvoicingReferenceAddresseeCode = StringUtils.trim(italyEInvoicingReferenceAddresseeCode);
                 if (italyEInvoicingReferenceAddresseeCode != null) {
                     if (italyEInvoicingReferenceAddresseeCode.length() != 7) {
@@ -248,30 +275,31 @@ public class ContactAndTicketsForm implements Serializable {
                 ValidationUtils.rejectIfEmpty(bindingResult, "italyEInvoicingReferencePEC", ErrorsCode.EMPTY_FIELD);
             }
 
-            if(billingAddressState == null || billingAddressState.strip().length() != 2) {
-                bindingResult.rejectValue("billingAddressState", "error.length", new Object[] { 2 }, null);
-            } else if(!StringUtils.isAlpha(billingAddressState)) {
+            if (billingAddressState == null || billingAddressState.strip().length() != 2) {
+                bindingResult.rejectValue("billingAddressState", "error.length", new Object[] {2}, null);
+            } else if (!StringUtils.isAlpha(billingAddressState)) {
                 bindingResult.rejectValue("billingAddressState", "error.restrictedValue");
             }
 
-            if(StringUtils.isNotEmpty(vatNr) && !ItalianTaxIdValidator.validateVatId(vatNr)) {
+            if (StringUtils.isNotEmpty(vatNr) && !ItalianTaxIdValidator.validateVatId(vatNr)) {
                 bindingResult.rejectValue("vatNr", "error.STEP_2_INVALID_VAT");
             }
 
             boolean companyRegistration = StringUtils.trimToNull(billingAddressCompany) != null;
-            boolean fiscalCodeValid = ItalianTaxIdValidator.validateFiscalCode(italyEInvoicingFiscalCode, companyRegistration);
-            if(!fiscalCodeValid) {
+            boolean fiscalCodeValid =
+                    ItalianTaxIdValidator.validateFiscalCode(italyEInvoicingFiscalCode, companyRegistration);
+            if (!fiscalCodeValid) {
                 bindingResult.rejectValue("italyEInvoicingFiscalCode", "error.restrictedValue");
-            } else if(!ItalianTaxIdValidator.fiscalCodeMatchesWithName(firstName, lastName, italyEInvoicingFiscalCode, companyRegistration)) {
+            } else if (!ItalianTaxIdValidator.fiscalCodeMatchesWithName(
+                    firstName, lastName, italyEInvoicingFiscalCode, companyRegistration)) {
                 bindingResult.addWarning("warning.fiscal-code-name-mismatch");
             }
 
-            if(StringUtils.length(StringUtils.trimToNull(billingAddressZip)) != 5) {
-                bindingResult.rejectValue("billingAddressZip", "error.length", new Object[] { 5 }, null);
-            } else if(!StringUtils.isNumeric(billingAddressZip)) {
+            if (StringUtils.length(StringUtils.trimToNull(billingAddressZip)) != 5) {
+                bindingResult.rejectValue("billingAddressZip", "error.length", new Object[] {5}, null);
+            } else if (!StringUtils.isNumeric(billingAddressZip)) {
                 bindingResult.rejectValue("billingAddressZip", "error.restrictedValue");
             }
-
         }
 
         if (email != null && !bindingResult.hasFieldErrors("email")) {
@@ -284,7 +312,10 @@ public class ContactAndTicketsForm implements Serializable {
     }
 
     private boolean containsVatValidationError(List<ValidationResult> l) {
-        return l.stream().anyMatch(v -> !v.isSuccess() && v.getErrorDescriptors().stream().anyMatch(ed -> ed.getCode().equals(STEP_2_INVALID_VAT)));
+        return l.stream()
+                .anyMatch(v -> !v.isSuccess()
+                        && v.getErrorDescriptors().stream()
+                                .anyMatch(ed -> ed.getCode().equals(STEP_2_INVALID_VAT)));
     }
 
     public boolean canSkipVatNrCheck() {

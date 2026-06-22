@@ -20,9 +20,10 @@ import alfio.model.modification.AdminReservationModification.Notification;
 import alfio.model.modification.AdminReservationModification.TransactionDetails;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record ReservationConfirmationRequest(@JsonProperty("transaction") TransactionDetails transaction,
-                                             @JsonProperty("notification") Notification notification,
-                                             @JsonProperty("billingData") ReservationBillingData reservationBillingData) {
+public record ReservationConfirmationRequest(
+        @JsonProperty("transaction") TransactionDetails transaction,
+        @JsonProperty("notification") Notification notification,
+        @JsonProperty("billingData") ReservationBillingData reservationBillingData) {
     @Override
     public Notification notification() {
         return Notification.orEmpty(notification);

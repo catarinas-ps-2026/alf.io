@@ -18,7 +18,9 @@ describe('dispatchFeedback', () => {
         };
 
         let receivedEvent: CustomEvent<AlfioFeedbackEvent> | null = null;
-        src.addEventListener('alfio-feedback', ((e: CustomEvent<AlfioFeedbackEvent>) => {
+        src.addEventListener('alfio-feedback', ((
+            e: CustomEvent<AlfioFeedbackEvent>,
+        ) => {
             receivedEvent = e;
         }) as EventListener);
 
@@ -30,10 +32,15 @@ describe('dispatchFeedback', () => {
 
     it('dispatches event with bubbles=true', () => {
         const src = createMockLitElement();
-        const payload: AlfioFeedbackEvent = { type: 'neutral', message: 'test' };
+        const payload: AlfioFeedbackEvent = {
+            type: 'neutral',
+            message: 'test',
+        };
 
         let receivedEvent: CustomEvent<AlfioFeedbackEvent> | null = null;
-        src.addEventListener('alfio-feedback', ((e: CustomEvent<AlfioFeedbackEvent>) => {
+        src.addEventListener('alfio-feedback', ((
+            e: CustomEvent<AlfioFeedbackEvent>,
+        ) => {
             receivedEvent = e;
         }) as EventListener);
 
@@ -44,10 +51,15 @@ describe('dispatchFeedback', () => {
 
     it('dispatches event with composed=true', () => {
         const src = createMockLitElement();
-        const payload: AlfioFeedbackEvent = { type: 'warning', message: 'test' };
+        const payload: AlfioFeedbackEvent = {
+            type: 'warning',
+            message: 'test',
+        };
 
         let receivedEvent: CustomEvent<AlfioFeedbackEvent> | null = null;
-        src.addEventListener('alfio-feedback', ((e: CustomEvent<AlfioFeedbackEvent>) => {
+        src.addEventListener('alfio-feedback', ((
+            e: CustomEvent<AlfioFeedbackEvent>,
+        ) => {
             receivedEvent = e;
         }) as EventListener);
 
@@ -57,14 +69,24 @@ describe('dispatchFeedback', () => {
     });
 
     it('works with all feedback types', () => {
-        const types: AlfioFeedbackEvent['type'][] = ['neutral', 'success', 'warning', 'danger'];
+        const types: AlfioFeedbackEvent['type'][] = [
+            'neutral',
+            'success',
+            'warning',
+            'danger',
+        ];
 
         for (const type of types) {
             const src = createMockLitElement();
-            const payload: AlfioFeedbackEvent = { type, message: `test ${type}` };
+            const payload: AlfioFeedbackEvent = {
+                type,
+                message: `test ${type}`,
+            };
 
             let receivedEvent: CustomEvent<AlfioFeedbackEvent> | null = null;
-            src.addEventListener('alfio-feedback', ((e: CustomEvent<AlfioFeedbackEvent>) => {
+            src.addEventListener('alfio-feedback', ((
+                e: CustomEvent<AlfioFeedbackEvent>,
+            ) => {
                 receivedEvent = e;
             }) as EventListener);
 

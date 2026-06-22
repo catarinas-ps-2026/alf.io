@@ -20,13 +20,12 @@ import alfio.model.transaction.PaymentProxy;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 public class TicketReservation implements PriceContainer {
@@ -73,8 +72,10 @@ public class TicketReservation implements PriceContainer {
     private final String userLanguage;
     private final boolean directAssignmentRequested;
     private final String invoiceNumber;
+
     @JsonIgnore
     private final String invoiceModel;
+
     private final PriceContainer.VatStatus vatStatus;
     private final String vatNr;
     private final String vatCountryCode;
@@ -85,46 +86,45 @@ public class TicketReservation implements PriceContainer {
     private final String customerReference;
     private final ZonedDateTime registrationTimestamp;
 
-
     private final int srcPriceCts;
     private final int finalPriceCts;
     private final int vatCts;
     private final int discountCts;
     private final String currencyCode;
 
-
-    public TicketReservation(@Column("id") String id,
-                             @Column("validity") Date validity,
-                             @Column("status") TicketReservationStatus status,
-                             @Column("full_name") String fullName,
-                             @Column("first_name") String firstName,
-                             @Column("last_name") String lastName,
-                             @Column("email_address") String email,
-                             @Column("billing_address") String billingAddress,
-                             @Column("confirmation_ts") ZonedDateTime confirmationTimestamp,
-                             @Column("latest_reminder_ts") ZonedDateTime latestReminder,
-                             @Column("payment_method") PaymentProxy paymentMethod,
-                             @Column("offline_payment_reminder_sent") Boolean reminderSent,
-                             @Column("promo_code_id_fk") Integer promoCodeDiscountId,
-                             @Column("automatic") boolean automatic,
-                             @Column("user_language") String userLanguage,
-                             @Column("direct_assignment") boolean directAssignmentRequested,
-                             @Column("invoice_number") String invoiceNumber,
-                             @Column("invoice_model") String invoiceModel,
-                             @Column("vat_status") PriceContainer.VatStatus vatStatus,
-                             @Column("vat_nr") String vatNr,
-                             @Column("vat_country") String vatCountryCode,
-                             @Column("invoice_requested") boolean invoiceRequested,
-                             @Column("used_vat_percent") BigDecimal usedVatPercent,
-                             @Column("vat_included") Boolean vatIncluded,
-                             @Column("creation_ts") ZonedDateTime creationTimestamp,
-                             @Column("customer_reference") String customerReference,
-                             @Column("registration_ts") ZonedDateTime registrationTimestamp,
-                             @Column("src_price_cts") Integer srcPriceCts,
-                             @Column("final_price_cts") Integer finalPriceCts,
-                             @Column("vat_cts") Integer vatCts,
-                             @Column("discount_cts") Integer discountCts,
-                             @Column("currency_code") String currencyCode) {
+    public TicketReservation(
+            @Column("id") String id,
+            @Column("validity") Date validity,
+            @Column("status") TicketReservationStatus status,
+            @Column("full_name") String fullName,
+            @Column("first_name") String firstName,
+            @Column("last_name") String lastName,
+            @Column("email_address") String email,
+            @Column("billing_address") String billingAddress,
+            @Column("confirmation_ts") ZonedDateTime confirmationTimestamp,
+            @Column("latest_reminder_ts") ZonedDateTime latestReminder,
+            @Column("payment_method") PaymentProxy paymentMethod,
+            @Column("offline_payment_reminder_sent") Boolean reminderSent,
+            @Column("promo_code_id_fk") Integer promoCodeDiscountId,
+            @Column("automatic") boolean automatic,
+            @Column("user_language") String userLanguage,
+            @Column("direct_assignment") boolean directAssignmentRequested,
+            @Column("invoice_number") String invoiceNumber,
+            @Column("invoice_model") String invoiceModel,
+            @Column("vat_status") PriceContainer.VatStatus vatStatus,
+            @Column("vat_nr") String vatNr,
+            @Column("vat_country") String vatCountryCode,
+            @Column("invoice_requested") boolean invoiceRequested,
+            @Column("used_vat_percent") BigDecimal usedVatPercent,
+            @Column("vat_included") Boolean vatIncluded,
+            @Column("creation_ts") ZonedDateTime creationTimestamp,
+            @Column("customer_reference") String customerReference,
+            @Column("registration_ts") ZonedDateTime registrationTimestamp,
+            @Column("src_price_cts") Integer srcPriceCts,
+            @Column("final_price_cts") Integer finalPriceCts,
+            @Column("vat_cts") Integer vatCts,
+            @Column("discount_cts") Integer discountCts,
+            @Column("currency_code") String currencyCode) {
         this.id = id;
         this.validity = validity;
         this.status = status;
@@ -189,7 +189,8 @@ public class TicketReservation implements PriceContainer {
     }
 
     public boolean getHasBeenPaid() {
-        return status == TicketReservationStatus.COMPLETE && !EnumSet.of(PaymentProxy.NONE, PaymentProxy.ADMIN).contains(paymentMethod);
+        return status == TicketReservationStatus.COMPLETE
+                && !EnumSet.of(PaymentProxy.NONE, PaymentProxy.ADMIN).contains(paymentMethod);
     }
 
     public boolean getHasVatNumber() {
@@ -197,7 +198,7 @@ public class TicketReservation implements PriceContainer {
     }
 
     public List<String> getLineSplittedBillingAddress() {
-        if(billingAddress == null) {
+        if (billingAddress == null) {
             return Collections.emptyList();
         }
         return Arrays.asList(StringUtils.split(billingAddress, '\n'));
@@ -208,7 +209,7 @@ public class TicketReservation implements PriceContainer {
     }
 
     public String getPaidAmount() {
-        if(finalPriceCts > 0) {
+        if (finalPriceCts > 0) {
             return MonetaryUtil.formatCents(finalPriceCts, currencyCode);
         }
         return null;
@@ -221,42 +222,43 @@ public class TicketReservation implements PriceContainer {
 
     public boolean isPendingOfflinePayment() {
         return status == TicketReservationStatus.OFFLINE_PAYMENT
-            || status == TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT
-            || status == TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
+                || status == TicketReservationStatus.CUSTOM_OFFLINE_PAYMENT
+                || status == TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
     }
 
     public TicketReservation withVatStatus(VatStatus vatStatus) {
-        return new TicketReservation(id,
-            validity,
-            status,
-            fullName,
-            firstName,
-            lastName,
-            email,
-            billingAddress,
-            confirmationTimestamp,
-            latestReminder,
-            paymentMethod,
-            reminderSent,
-            promoCodeDiscountId,
-            automatic,
-            userLanguage,
-            directAssignmentRequested,
-            invoiceNumber,
-            invoiceModel,
-            vatStatus,
-            vatNr,
-            vatCountryCode,
-            invoiceRequested,
-            usedVatPercent,
-            vatIncluded,
-            creationTimestamp,
-            customerReference,
-            registrationTimestamp,
-            srcPriceCts,
-            finalPriceCts,
-            vatCts,
-            discountCts,
-            currencyCode);
+        return new TicketReservation(
+                id,
+                validity,
+                status,
+                fullName,
+                firstName,
+                lastName,
+                email,
+                billingAddress,
+                confirmationTimestamp,
+                latestReminder,
+                paymentMethod,
+                reminderSent,
+                promoCodeDiscountId,
+                automatic,
+                userLanguage,
+                directAssignmentRequested,
+                invoiceNumber,
+                invoiceModel,
+                vatStatus,
+                vatNr,
+                vatCountryCode,
+                invoiceRequested,
+                usedVatPercent,
+                vatIncluded,
+                creationTimestamp,
+                customerReference,
+                registrationTimestamp,
+                srcPriceCts,
+                finalPriceCts,
+                vatCts,
+                discountCts,
+                currencyCode);
     }
 }
