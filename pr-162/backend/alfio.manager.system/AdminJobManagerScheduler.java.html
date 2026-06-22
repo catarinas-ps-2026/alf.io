@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminJobManagerScheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.system</a> &gt; <span class="el_source">AdminJobManagerScheduler.java</span></div><h1>AdminJobManagerScheduler.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.system;
+
+import alfio.config.Initializer;
+import alfio.util.ClockProvider;
+import java.time.ZonedDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+@Component
+@Profile(&quot;!&quot; + Initializer.PROFILE_DISABLE_JOBS)
+public class AdminJobManagerScheduler {
+
+<span class="nc" id="L32">    private static final Logger log = LoggerFactory.getLogger(AdminJobManagerScheduler.class);</span>
+    private final AdminJobManager adminJobManager;
+    private final ClockProvider clockProvider;
+
+<span class="nc" id="L36">    public AdminJobManagerScheduler(AdminJobManager adminJobManager, ClockProvider clockProvider) {</span>
+<span class="nc" id="L37">        this.adminJobManager = adminJobManager;</span>
+<span class="nc" id="L38">        this.clockProvider = clockProvider;</span>
+<span class="nc" id="L39">    }</span>
+
+    @Scheduled(fixedDelay = 1000L)
+    void processPendingExtensionRetry() {
+<span class="nc" id="L43">        log.trace(&quot;Processing pending extensions retry&quot;);</span>
+<span class="nc" id="L44">        adminJobManager.processPendingExtensionRetry(ZonedDateTime.now(clockProvider.getClock()));</span>
+<span class="nc" id="L45">        log.trace(&quot;done processing pending extensions retry&quot;);</span>
+<span class="nc" id="L46">    }</span>
+
+    @Scheduled(fixedDelay = 1000L)
+    void processPendingReservationsRetry() {
+<span class="nc" id="L50">        log.trace(&quot;Processing pending reservations retry&quot;);</span>
+<span class="nc" id="L51">        adminJobManager.processPendingReservationsRetry(ZonedDateTime.now(clockProvider.getClock()));</span>
+<span class="nc" id="L52">        log.trace(&quot;done processing pending reservations retry&quot;);</span>
+<span class="nc" id="L53">    }</span>
+
+    @Scheduled(fixedDelay = 60 * 1000)
+    void processPendingRequests() {
+<span class="nc" id="L57">        log.trace(&quot;Processing pending requests&quot;);</span>
+<span class="nc" id="L58">        adminJobManager.processPendingRequests();</span>
+<span class="nc" id="L59">        log.trace(&quot;done processing pending requests&quot;);</span>
+<span class="nc" id="L60">    }</span>
+
+    @Scheduled(cron = &quot;#{environment.acceptsProfiles('dev') ? '0 * * * * *' : '0 0 0 * * *'}&quot;)
+    void cleanupExpiredRequests() {
+<span class="nc" id="L64">        adminJobManager.cleanupExpiredRequests();</span>
+<span class="nc" id="L65">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
