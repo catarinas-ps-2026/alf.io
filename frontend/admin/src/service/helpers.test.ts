@@ -273,12 +273,10 @@ describe('performRequest (via postJson/putJson/callDelete)', () => {
     let fetchMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-        fetchMock = vi
-            .fn()
-            .mockResolvedValue({
-                ok: true,
-                json: async () => ({}),
-            } as Response);
+        fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({}),
+        } as Response);
         vi.stubGlobal('fetch', fetchMock);
         const metaHeader = document.createElement('meta');
         metaHeader.setAttribute('name', '_csrf_header');
