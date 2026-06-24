@@ -16,6 +16,9 @@
  */
 package alfio.config;
 
+import static alfio.config.Initializer.API_V2_PUBLIC_PATH;
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
+
 import alfio.config.support.HeaderPublisherFilter;
 import alfio.manager.system.ConfigurationManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +26,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -53,28 +60,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
-
-import static alfio.config.Initializer.API_V2_PUBLIC_PATH;
-import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
-
-
 @Configuration(proxyBeanMethods = false)
 @ComponentScan(basePackages = {"alfio.controller", "alfio.config"})
 @EnableWebMvc
-@EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 4 * 60 * 60, tableName = "ALFIO_SPRING_SESSION") //4h
+@EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 4 * 60 * 60, tableName = "ALFIO_SPRING_SESSION") // 4h
 public class MvcConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
     private final String alfioVersion;
     private final ObjectMapper objectMapper;
 
-    public MvcConfiguration(Environment environment,
-                            @Value("${alfio.version}") String alfioVersion,
-                            ObjectMapper objectMapper) {
+    public MvcConfiguration(
+            Environment environment, @Value("${alfio.version}") String alfioVersion, ObjectMapper objectMapper) {
         this.environment = environment;
         this.alfioVersion = alfioVersion;
         this.objectMapper = objectMapper;
@@ -85,70 +82,68 @@ public class MvcConfiguration implements WebMvcConfigurer {
         boolean isLive = environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_LIVE));
         int cacheMinutes = isLive ? 15 : 0;
 
-        var defaultCacheControl = CacheControl.maxAge(Duration.ofDays(isLive ? 10 : 0)).mustRevalidate();
+        var defaultCacheControl =
+                CacheControl.maxAge(Duration.ofDays(isLive ? 10 : 0)).mustRevalidate();
         var alfioVersionPath = "/" + alfioVersion;
-        
-        registry
-            .addResourceHandler("/robots.txt")
-            .addResourceLocations("classpath:/public/robots.txt");
+
+        registry.addResourceHandler("/robots.txt").addResourceLocations("classpath:/public/robots.txt");
 
         registry.addResourceHandler("/resources/font/*", alfioVersionPath + "/resources/font/*")
-            .addResourceLocations("classpath:/font/")
-            .setCachePeriod(cacheMinutes * 60)
-            .setCacheControl(defaultCacheControl);
+                .addResourceLocations("classpath:/font/")
+                .setCachePeriod(cacheMinutes * 60)
+                .setCacheControl(defaultCacheControl);
 
         registry.addResourceHandler("/resources/images/**", alfioVersionPath + "/resources/images/**")
-            .addResourceLocations("classpath:/images/")
-            .setCachePeriod(cacheMinutes * 60)
-            .setCacheControl(defaultCacheControl);
+                .addResourceLocations("classpath:/images/")
+                .setCachePeriod(cacheMinutes * 60)
+                .setCacheControl(defaultCacheControl);
 
         registry.addResourceHandler(alfioVersionPath + "/resources/**")
-            .addResourceLocations("classpath:/alfio-admin-v1/")
-            .setCachePeriod(cacheMinutes * 60)
-            .setCacheControl(defaultCacheControl);
+                .addResourceLocations("classpath:/alfio-admin-v1/")
+                .setCachePeriod(cacheMinutes * 60)
+                .setCacheControl(defaultCacheControl);
 
         registry.addResourceHandler("/frontend-public/**")
-            .addResourceLocations("classpath:/resources/alfio-public-frontend/")
-            .setCachePeriod(cacheMinutes * 60)
-            .setCacheControl(CacheControl.maxAge(Duration.ofDays(60)));
+                .addResourceLocations("classpath:/resources/alfio-public-frontend/")
+                .setCachePeriod(cacheMinutes * 60)
+                .setCacheControl(CacheControl.maxAge(Duration.ofDays(60)));
 
         registry.addResourceHandler(alfioVersionPath + "/frontend-admin/**")
-            .addResourceLocations("classpath:/resources/alfio-admin-frontend/")
-            .setCachePeriod(cacheMinutes * 60)
-            .setCacheControl(CacheControl.maxAge(Duration.ofDays(60)));
+                .addResourceLocations("classpath:/resources/alfio-admin-frontend/")
+                .setCachePeriod(cacheMinutes * 60)
+                .setCacheControl(CacheControl.maxAge(Duration.ofDays(60)));
     }
 
     // see https://github.com/spring-projects/spring-session/issues/244#issuecomment-296605144
     @Order(SessionRepositoryFilter.DEFAULT_ORDER - 1)
     public static class ExcludeSessionRepositoryFilter extends OncePerRequestFilter {
 
-
         private final RequestMatcher staticContentToIgnore;
 
         ExcludeSessionRepositoryFilter(String alfioVersion) {
             var methodMatcher = RequestMatchers.anyOf(
-                antMatcher(HttpMethod.GET),
-                antMatcher(HttpMethod.HEAD),
-                antMatcher(HttpMethod.TRACE),
-                antMatcher(HttpMethod.OPTIONS)
-            );
+                    antMatcher(HttpMethod.GET),
+                    antMatcher(HttpMethod.HEAD),
+                    antMatcher(HttpMethod.TRACE),
+                    antMatcher(HttpMethod.OPTIONS));
             var urlMatcher = RequestMatchers.anyOf(
-                antMatcher("/favicon.*"),
-                antMatcher("/resources/**"),
-                antMatcher("/" + alfioVersion + "/resources/**"),
-                antMatcher("/frontend-public/**"),
-                antMatcher("/" + alfioVersion + "/frontend-admin/**"),
-                antMatcher("/file/**"),
-                antMatcher("/payment/paypal/redirect/*")
-            );
+                    antMatcher("/favicon.*"),
+                    antMatcher("/resources/**"),
+                    antMatcher("/" + alfioVersion + "/resources/**"),
+                    antMatcher("/frontend-public/**"),
+                    antMatcher("/" + alfioVersion + "/frontend-admin/**"),
+                    antMatcher("/file/**"),
+                    antMatcher("/payment/paypal/redirect/*"));
             this.staticContentToIgnore = RequestMatchers.allOf(methodMatcher, urlMatcher);
         }
 
         @Override
-        protected void doFilterInternal(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-                                        FilterChain filterChain) throws ServletException, IOException {
+        protected void doFilterInternal(
+                HttpServletRequest httpRequest, HttpServletResponse httpResponse, FilterChain filterChain)
+                throws ServletException, IOException {
             if (staticContentToIgnore.matches(httpRequest)) {
-                httpRequest.setAttribute("org.springframework.session.web.http.SessionRepositoryFilter.FILTERED", Boolean.TRUE);
+                httpRequest.setAttribute(
+                        "org.springframework.session.web.http.SessionRepositoryFilter.FILTERED", Boolean.TRUE);
             }
             filterChain.doFilter(httpRequest, httpResponse);
         }
@@ -186,7 +181,8 @@ public class MvcConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public SpringSessionBackedSessionRegistry<?> sessionRegistry(FindByIndexNameSessionRepository<?> sessionRepository) {
+    public SpringSessionBackedSessionRegistry<?> sessionRegistry(
+            FindByIndexNameSessionRepository<?> sessionRepository) {
         return new SpringSessionBackedSessionRegistry<>(sessionRepository);
     }
 
@@ -201,7 +197,8 @@ public class MvcConfiguration implements WebMvcConfigurer {
             public List<String> resolveSessionIds(HttpServletRequest request) {
                 if (isPublic(request)) {
                     var resolvedIds = headerSessionIdResolver.resolveSessionIds(request).stream()
-                        .filter(StringUtils::isNotBlank).toList();
+                            .filter(StringUtils::isNotBlank)
+                            .toList();
                     if (!resolvedIds.isEmpty()) {
                         return resolvedIds;
                     }

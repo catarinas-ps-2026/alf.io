@@ -16,14 +16,13 @@
  */
 package alfio.manager;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.net.http.HttpClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.net.http.HttpClient;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 @WireMockTest
 class FileDownloadManagerIntegrationTest {
@@ -33,8 +32,7 @@ class FileDownloadManagerIntegrationTest {
     @Test
     void testFileDownloadSuccess(WireMockRuntimeInfo wmRuntimeInfo) {
         stubFor(get("/test.txt")
-            .willReturn(ok("Hello World!")
-                .withHeader("Content-Type", "text/plain; charset=utf-8")));
+                .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain; charset=utf-8")));
 
         var file = new FileDownloadManager(httpClient).downloadFile(wmRuntimeInfo.getHttpBaseUrl() + "/test.txt");
         Assertions.assertEquals("text/plain; charset=utf-8", file.getType());
@@ -44,8 +42,7 @@ class FileDownloadManagerIntegrationTest {
 
     @Test
     void testFileDownloadNotFound(WireMockRuntimeInfo wmRuntimeInfo) {
-        stubFor(get("/404")
-            .willReturn(notFound()));
+        stubFor(get("/404").willReturn(notFound()));
 
         var res = new FileDownloadManager(httpClient).downloadFile(wmRuntimeInfo.getHttpBaseUrl() + "/404");
         Assertions.assertNull(res);

@@ -16,6 +16,8 @@
  */
 package alfio.controller.api.admin;
 
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+
 import alfio.config.authentication.support.AuthenticationConstants;
 import alfio.manager.AccessService;
 import alfio.manager.FileUploadManager;
@@ -36,6 +38,19 @@ import alfio.util.Json;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.security.Principal;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -59,22 +74,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.security.Principal;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-
 @RestController
 @RequestMapping("/admin/api")
 public class UsersApiController {
@@ -87,7 +86,11 @@ public class UsersApiController {
     private final AccessService accessService;
     private final FileUploadManager fileUploadManager;
 
-    public UsersApiController(UserManager userManager, ConfigurationManager configurationManager, AccessService accessService, FileUploadManager fileUploadManager) {
+    public UsersApiController(
+            UserManager userManager,
+            ConfigurationManager configurationManager,
+            AccessService accessService,
+            FileUploadManager fileUploadManager) {
         this.userManager = userManager;
         this.configurationManager = configurationManager;
         this.accessService = accessService;
@@ -104,7 +107,9 @@ public class UsersApiController {
 
     @GetMapping("/roles")
     public Collection<RoleDescriptor> getAllRoles(Principal principal) {
-        return userManager.getAvailableRoles(principal.getName()).stream().map(RoleDescriptor::new).toList();
+        return userManager.getAvailableRoles(principal.getName()).stream()
+                .map(RoleDescriptor::new)
+                .toList();
     }
 
     /**
@@ -113,12 +118,9 @@ public class UsersApiController {
      */
     @GetMapping("/user-type")
     public String getLoggedUserType() {
-        var authorities = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getAuthorities()
-            .stream()
-            .map(ga -> StringUtils.substringAfter(ga.getAuthority(), "ROLE_"))
-            .collect(Collectors.toSet());
+        var authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .map(ga -> StringUtils.substringAfter(ga.getAuthority(), "ROLE_"))
+                .collect(Collectors.toSet());
         if (authorities.contains(AuthenticationConstants.SPONSOR)) {
             return AuthenticationConstants.SPONSOR;
         } else if (authorities.contains(AuthenticationConstants.SUPERVISOR)) {
@@ -134,7 +136,7 @@ public class UsersApiController {
         Map<String, String> result = new HashMap<>();
         boolean isApiKey = user.getType() == User.Type.API_KEY;
         result.put(isApiKey ? "apiKey" : "username", user.getUsername());
-        if(!isApiKey) {
+        if (!isApiKey) {
             result.put("firstName", user.getFirstName());
             result.put("lastName", user.getLastName());
         }
@@ -194,64 +196,93 @@ public class UsersApiController {
 
     @PostMapping("/users/check")
     public ValidationResult validateUser(@RequestBody UserModification userModification, Principal principal) {
-        if(userModification.getType() == User.Type.API_KEY) {
+        if (userModification.getType() == User.Type.API_KEY) {
             return ValidationResult.success();
         } else {
             if (userModification.getId() != null) {
                 accessService.checkAccessToUser(principal, userModification.getId());
             }
-            return userManager.validateUser(userModification.getId(), userModification.getUsername(),
-                    userModification.getFirstName(), userModification.getLastName(), userModification.getEmailAddress());
+            return userManager.validateUser(
+                    userModification.getId(),
+                    userModification.getUsername(),
+                    userModification.getFirstName(),
+                    userModification.getLastName(),
+                    userModification.getEmailAddress());
         }
     }
 
     @PostMapping("/users/edit")
     public String editUser(@RequestBody UserModification userModification, Principal principal) {
         accessService.checkAccessToUser(principal, userModification.getId());
-        userManager.editUser(userModification.getId(), userModification.getOrganizationId(),
-            userModification.getUsername(), userModification.getFirstName(), userModification.getLastName(),
-            userModification.getEmailAddress(), userModification.getDescription(),
-            Role.valueOf(userModification.getRole()), principal);
+        userManager.editUser(
+                userModification.getId(),
+                userModification.getOrganizationId(),
+                userModification.getUsername(),
+                userModification.getFirstName(),
+                userModification.getLastName(),
+                userModification.getEmailAddress(),
+                userModification.getDescription(),
+                Role.valueOf(userModification.getRole()),
+                principal);
         return OK;
     }
 
     @PostMapping("/users/new")
-    public UserWithPasswordAndQRCode insertUser(@RequestBody UserModification userModification, @RequestParam("baseUrl") String baseUrl, Principal principal) {
+    public UserWithPasswordAndQRCode insertUser(
+            @RequestBody UserModification userModification,
+            @RequestParam("baseUrl") String baseUrl,
+            Principal principal) {
         accessService.checkOrganizationOwnership(principal, userModification.getOrganizationId());
         Role requested = Role.valueOf(userModification.getRole());
-        Validate.isTrue(userManager.getAvailableRoles(principal.getName()).stream().anyMatch(requested::equals), String.format("Requested role %s is not available for current user", userModification.getRole()));
+        Validate.isTrue(
+                userManager.getAvailableRoles(principal.getName()).stream().anyMatch(requested::equals),
+                String.format("Requested role %s is not available for current user", userModification.getRole()));
         User.Type type = userModification.getType();
-        UserWithPassword userWithPassword = userManager.insertUser(userModification.getOrganizationId(), userModification.getUsername(),
-            userModification.getFirstName(), userModification.getLastName(),
-            userModification.getEmailAddress(), requested,
-            type == null ? User.Type.INTERNAL : type,
-            userModification.getValidToAsDateTime(), userModification.getDescription(), principal);
-        String qrCode = type != User.Type.API_KEY ? Base64.getEncoder().encodeToString(generateQRCode(userWithPassword, baseUrl)) : null;
+        UserWithPassword userWithPassword = userManager.insertUser(
+                userModification.getOrganizationId(),
+                userModification.getUsername(),
+                userModification.getFirstName(),
+                userModification.getLastName(),
+                userModification.getEmailAddress(),
+                requested,
+                type == null ? User.Type.INTERNAL : type,
+                userModification.getValidToAsDateTime(),
+                userModification.getDescription(),
+                principal);
+        String qrCode = type != User.Type.API_KEY
+                ? Base64.getEncoder().encodeToString(generateQRCode(userWithPassword, baseUrl))
+                : null;
         return new UserWithPasswordAndQRCode(userWithPassword, qrCode);
     }
 
     @GetMapping("/api-keys/organization/{organizationId}/all")
-    public void getAllApiKeys(@PathVariable int organizationId, HttpServletResponse response, Principal principal) throws IOException {
+    public void getAllApiKeys(@PathVariable int organizationId, HttpServletResponse response, Principal principal)
+            throws IOException {
         accessService.checkOrganizationOwnership(principal, organizationId);
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=apiKeys.zip");
 
-        String baseUrl = configurationManager.getForSystem(ConfigurationKeys.BASE_URL).getRequiredValue();
-        try(OutputStream os = response.getOutputStream(); ZipOutputStream zipOS = new ZipOutputStream(os)) {
+        String baseUrl =
+                configurationManager.getForSystem(ConfigurationKeys.BASE_URL).getRequiredValue();
+        try (OutputStream os = response.getOutputStream();
+                ZipOutputStream zipOS = new ZipOutputStream(os)) {
             for (User user : userManager.findAllApiKeysFor(organizationId)) {
                 Pair<String, byte[]> result = generateApiKeyQRCode(user, baseUrl, fileUploadManager);
-                zipOS.putNextEntry(new ZipEntry(user.getType().name() + "-" +result.getLeft()+".png"));
+                zipOS.putNextEntry(new ZipEntry(user.getType().name() + "-" + result.getLeft() + ".png"));
                 StreamUtils.copy(result.getRight(), zipOS);
             }
         }
     }
 
-    private static Pair<String, byte[]> generateApiKeyQRCode(User user, String baseUrl, FileUploadManager fileUploadManager) {
+    private static Pair<String, byte[]> generateApiKeyQRCode(
+            User user, String baseUrl, FileUploadManager fileUploadManager) {
         Map<String, String> info = new HashMap<>();
         info.put("apiKey", user.getUsername());
         info.put("baseUrl", baseUrl);
         String description = Objects.toString(trimToNull(user.getDescription()), user.getUsername());
-        return Pair.of(description, ImageUtil.createQRCodeWithDescription(Json.GSON.toJson(info), description, fileUploadManager));
+        return Pair.of(
+                description,
+                ImageUtil.createQRCodeWithDescription(Json.GSON.toJson(info), description, fileUploadManager));
     }
 
     private static byte[] generateQRCode(UserWithPassword userWithPassword, String baseUrl) {
@@ -278,36 +309,64 @@ public class UsersApiController {
     public UserModification loadUser(@PathVariable("id") int userId, Principal principal) {
         User user = userManager.findUser(userId, principal);
         List<Organization> userOrganizations = userManager.findUserOrganizations(user.getUsername());
-        return new UserModification(user.getId(), userOrganizations.get(0).getId(), userManager.getUserRole(user).name(),
-            user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmailAddress(),
-            user.getType(), user.getValidToEpochSecond(), user.getDescription());
+        return new UserModification(
+                user.getId(),
+                userOrganizations.get(0).getId(),
+                userManager.getUserRole(user).name(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmailAddress(),
+                user.getType(),
+                user.getValidToEpochSecond(),
+                user.getDescription());
     }
 
     @GetMapping("/users/current")
     public UserModification loadCurrentUser(Principal principal) {
         User user = userManager.findUserByUsername(principal.getName());
-        Optional<Organization> userOrganization = userManager.findUserOrganizations(user.getUsername()).stream().findFirst();
-        return new UserModification(user.getId(), userOrganization.map(Organization::getId).orElse(-1),
-            userManager.getUserRole(user).name(), user.getUsername(), user.getFirstName(), user.getLastName(),
-            user.getEmailAddress(), user.getType(), user.getValidToEpochSecond(), user.getDescription());
+        Optional<Organization> userOrganization =
+                userManager.findUserOrganizations(user.getUsername()).stream().findFirst();
+        return new UserModification(
+                user.getId(),
+                userOrganization.map(Organization::getId).orElse(-1),
+                userManager.getUserRole(user).name(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmailAddress(),
+                user.getType(),
+                user.getValidToEpochSecond(),
+                user.getDescription());
     }
 
     @PostMapping("/users/current/update-password")
-    public ValidationResult updateCurrentUserPassword(@RequestBody PasswordModification passwordModification, Principal principal) {
-        return userManager.validateNewPassword(principal.getName(), passwordModification.oldPassword, passwordModification.newPassword, passwordModification.newPasswordConfirm)
-            .ifSuccess(() -> userManager.updateCurrentUserPassword(passwordModification.newPassword, principal));
+    public ValidationResult updateCurrentUserPassword(
+            @RequestBody PasswordModification passwordModification, Principal principal) {
+        return userManager
+                .validateNewPassword(
+                        principal.getName(),
+                        passwordModification.oldPassword,
+                        passwordModification.newPassword,
+                        passwordModification.newPasswordConfirm)
+                .ifSuccess(() -> userManager.updateCurrentUserPassword(passwordModification.newPassword, principal));
     }
 
     @PostMapping("/users/current/edit")
     public void updateCurrentUser(@RequestBody UserModification userModification, Principal principal) {
-        userManager.updateCurrentUserContactInfo(userModification.getFirstName(), userModification.getLastName(), userModification.getEmailAddress(), principal);
-
+        userManager.updateCurrentUserContactInfo(
+                userModification.getFirstName(),
+                userModification.getLastName(),
+                userModification.getEmailAddress(),
+                principal);
     }
 
     @PutMapping("/users/{id}/reset-password")
-    public UserWithPasswordAndQRCode resetPassword(@PathVariable("id") int userId, @RequestParam("baseUrl") String baseUrl, Principal principal) {
+    public UserWithPasswordAndQRCode resetPassword(
+            @PathVariable("id") int userId, @RequestParam("baseUrl") String baseUrl, Principal principal) {
         UserWithPassword userWithPassword = userManager.resetPassword(userId, principal);
-        return new UserWithPasswordAndQRCode(userWithPassword, Base64.getEncoder().encodeToString(generateQRCode(userWithPassword, baseUrl)));
+        return new UserWithPasswordAndQRCode(
+                userWithPassword, Base64.getEncoder().encodeToString(generateQRCode(userWithPassword, baseUrl)));
     }
 
     @Getter
@@ -336,8 +395,8 @@ public class UsersApiController {
             return role.getDescription();
         }
 
-        public List<String> getTarget() { 
-            return role.getTarget().stream().map(RoleTarget::name).toList(); 
+        public List<String> getTarget() {
+            return role.getTarget().stream().map(RoleTarget::name).toList();
         }
     }
 
@@ -348,9 +407,10 @@ public class UsersApiController {
         private final String newPasswordConfirm;
 
         @JsonCreator
-        private PasswordModification(@JsonProperty("oldPassword") String oldPassword,
-                                     @JsonProperty("newPassword") String newPassword,
-                                     @JsonProperty("newPasswordConfirm") String newPasswordConfirm) {
+        private PasswordModification(
+                @JsonProperty("oldPassword") String oldPassword,
+                @JsonProperty("newPassword") String newPassword,
+                @JsonProperty("newPasswordConfirm") String newPasswordConfirm) {
             this.oldPassword = oldPassword;
             this.newPassword = newPassword;
             this.newPasswordConfirm = newPasswordConfirm;
@@ -364,9 +424,10 @@ public class UsersApiController {
         private final List<String> descriptions;
 
         @JsonCreator
-        private BulkApiKeyCreation(@JsonProperty("organizationId") int organizationId,
-                                   @JsonProperty("role") Role role,
-                                   @JsonProperty("descriptions") List<String> descriptions) {
+        private BulkApiKeyCreation(
+                @JsonProperty("organizationId") int organizationId,
+                @JsonProperty("role") Role role,
+                @JsonProperty("descriptions") List<String> descriptions) {
             this.organizationId = organizationId;
             this.role = role;
             this.descriptions = descriptions;

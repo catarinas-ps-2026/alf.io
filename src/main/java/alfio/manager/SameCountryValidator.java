@@ -21,12 +21,10 @@ import alfio.model.PurchaseContext;
 import alfio.model.VatDetail;
 import ch.digitalfondue.vatchecker.EUVatCheckResponse;
 import ch.digitalfondue.vatchecker.EUVatChecker;
+import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.function.Predicate;
-
 
 public class SameCountryValidator implements Predicate<String> {
 
@@ -38,7 +36,12 @@ public class SameCountryValidator implements Predicate<String> {
     private final EuVatChecker checker;
     private final EUVatChecker client = new EUVatChecker();
 
-    public SameCountryValidator(ConfigurationManager configurationManager, ExtensionManager extensionManager, PurchaseContext purchaseContext, String ticketReservationId, EuVatChecker checker) {
+    public SameCountryValidator(
+            ConfigurationManager configurationManager,
+            ExtensionManager extensionManager,
+            PurchaseContext purchaseContext,
+            String ticketReservationId,
+            EuVatChecker checker) {
         this.configurationManager = configurationManager;
         this.extensionManager = extensionManager;
         this.purchaseContext = purchaseContext;
@@ -49,14 +52,17 @@ public class SameCountryValidator implements Predicate<String> {
     @Override
     public boolean test(String vatNr) {
 
-        if(StringUtils.isEmpty(vatNr)) {
+        if (StringUtils.isEmpty(vatNr)) {
             log.warn("empty VAT number received for organizationId {}", purchaseContext.getOrganizationId());
         }
 
         String organizerCountry = EuVatChecker.organizerCountry(configurationManager, purchaseContext);
 
-        if(!EuVatChecker.validationEnabled(configurationManager, purchaseContext)) {
-            log.warn("VAT checking is not enabled for organizationId {} or country not defined ({})", purchaseContext.getOrganizationId(), organizerCountry);
+        if (!EuVatChecker.validationEnabled(configurationManager, purchaseContext)) {
+            log.warn(
+                    "VAT checking is not enabled for organizationId {} or country not defined ({})",
+                    purchaseContext.getOrganizationId(),
+                    organizerCountry);
             return false;
         }
 
@@ -64,11 +70,18 @@ public class SameCountryValidator implements Predicate<String> {
         boolean validStrict = result != null && result.isValid();
         boolean valid = validStrict;
 
-        if(!valid && StringUtils.isNotBlank(vatNr)) {
+        if (!valid && StringUtils.isNotBlank(vatNr)) {
             valid = extensionManager.handleTaxIdValidation(purchaseContext, vatNr, organizerCountry);
         }
-        if(valid && StringUtils.isNotEmpty(ticketReservationId)) {
-            VatDetail detail = new VatDetail(vatNr, organizerCountry, true, "", "", validStrict ? VatDetail.Type.VIES : VatDetail.Type.FORMAL, false);
+        if (valid && StringUtils.isNotEmpty(ticketReservationId)) {
+            VatDetail detail = new VatDetail(
+                    vatNr,
+                    organizerCountry,
+                    true,
+                    "",
+                    "",
+                    validStrict ? VatDetail.Type.VIES : VatDetail.Type.FORMAL,
+                    false);
             checker.logSuccessfulValidation(detail, ticketReservationId, purchaseContext);
         }
         return valid;

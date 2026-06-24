@@ -18,21 +18,25 @@ package alfio.model;
 
 import alfio.util.LocaleUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
 import java.util.Locale;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class WaitingQueueSubscription {
 
     public enum Status {
-        WAITING, PENDING, ACQUIRED, EXPIRED, CANCELLED
+        WAITING,
+        PENDING,
+        ACQUIRED,
+        EXPIRED,
+        CANCELLED
     }
 
     public enum Type {
-        PRE_SALES, SOLD_OUT
+        PRE_SALES,
+        SOLD_OUT
     }
 
     private final int id;
@@ -48,18 +52,19 @@ public class WaitingQueueSubscription {
     private final Integer selectedCategoryId;
     private final Type subscriptionType;
 
-    public WaitingQueueSubscription(@Column("id") int id,
-                                    @Column("creation") ZonedDateTime creation,
-                                    @Column("event_id") int eventId,
-                                    @Column("status") String status,
-                                    @Column("full_name") String fullName,
-                                    @Column("first_name") String firstName,
-                                    @Column("last_name") String lastName,
-                                    @Column("email_address") String emailAddress,
-                                    @Column("ticket_reservation_id") String reservationId,
-                                    @Column("user_language") String userLanguage,
-                                    @Column("selected_category_id") Integer selectedCategoryId,
-                                    @Column("subscription_type") Type subscriptionType) {
+    public WaitingQueueSubscription(
+            @Column("id") int id,
+            @Column("creation") ZonedDateTime creation,
+            @Column("event_id") int eventId,
+            @Column("status") String status,
+            @Column("full_name") String fullName,
+            @Column("first_name") String firstName,
+            @Column("last_name") String lastName,
+            @Column("email_address") String emailAddress,
+            @Column("ticket_reservation_id") String reservationId,
+            @Column("user_language") String userLanguage,
+            @Column("selected_category_id") Integer selectedCategoryId,
+            @Column("subscription_type") Type subscriptionType) {
         this.id = id;
         this.creation = creation;
         this.eventId = eventId;
@@ -79,24 +84,25 @@ public class WaitingQueueSubscription {
     }
 
     public boolean isPreSales() {
-        return Optional.ofNullable(subscriptionType).map(s -> s == Type.PRE_SALES).orElse(false);
+        return Optional.ofNullable(subscriptionType)
+                .map(s -> s == Type.PRE_SALES)
+                .orElse(false);
     }
 
     @Override
     public String toString() {
-        return "WaitingQueueSubscription(" +
-            "id=" + id +
-            ", creation=" + creation +
-            ", eventId=" + eventId +
-            ", status=" + status +
-            ", fullName=" + fullName +
-            ", firstName=" + firstName +
-            ", lastName=" + lastName +
-            ", emailAddress=" + emailAddress +
-            ", reservationId=" + reservationId +
-            ", userLanguage=" + userLanguage +
-            ", selectedCategoryId=" + selectedCategoryId +
-            ", subscriptionType=" + subscriptionType +
-            ')';
+        return "WaitingQueueSubscription(" + "id="
+                + id + ", creation="
+                + creation + ", eventId="
+                + eventId + ", status="
+                + status + ", fullName="
+                + fullName + ", firstName="
+                + firstName + ", lastName="
+                + lastName + ", emailAddress="
+                + emailAddress + ", reservationId="
+                + reservationId + ", userLanguage="
+                + userLanguage + ", selectedCategoryId="
+                + selectedCategoryId + ", subscriptionType="
+                + subscriptionType + ')';
     }
 }

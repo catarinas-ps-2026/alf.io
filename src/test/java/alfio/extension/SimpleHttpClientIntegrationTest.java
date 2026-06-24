@@ -16,33 +16,31 @@
  */
 package alfio.extension;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 @WireMockTest
 class SimpleHttpClientIntegrationTest {
 
-    private final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+    private final HttpClient httpClient =
+            HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     private final SimpleHttpClient simpleHttpClient = new SimpleHttpClient(httpClient);
 
     @Test
     void testSimpleGet(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(get("/simple-get-1")
-            .willReturn(ok("ok")
-                .withHeader("Content-Type", "text/plain")));
+        stubFor(get("/simple-get-1").willReturn(ok("ok").withHeader("Content-Type", "text/plain")));
 
         var res = simpleHttpClient.get(wmRuntimeInfo.getHttpBaseUrl() + "/simple-get-1");
 
@@ -57,14 +55,16 @@ class SimpleHttpClientIntegrationTest {
 
     @Test
     void testSimpleGetWithHeaders(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(get("/simple-get-header").withHeader("Custom-Header", equalTo("Custom-Value"))
-            .willReturn(ok("ok").withHeader("Content-Type", "text/plain")));
+        stubFor(get("/simple-get-header")
+                .withHeader("Custom-Header", equalTo("Custom-Value"))
+                .willReturn(ok("ok").withHeader("Content-Type", "text/plain")));
 
         var missingHeader = simpleHttpClient.get(wmRuntimeInfo.getHttpBaseUrl() + "/simple-get-header", Map.of());
         assertFalse(missingHeader.isSuccessful());
         Assertions.assertEquals(404, missingHeader.getCode());
 
-        var res = simpleHttpClient.get(wmRuntimeInfo.getHttpBaseUrl() + "/simple-get-header", Map.of("Custom-Header", "Custom-Value"));
+        var res = simpleHttpClient.get(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-get-header", Map.of("Custom-Header", "Custom-Value"));
         assertTrue(res.isSuccessful());
         assertEquals(200, res.getCode());
     }
@@ -72,7 +72,7 @@ class SimpleHttpClientIntegrationTest {
     @Test
     void testJsonBody(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
         stubFor(get("/simple-get-json")
-            .willReturn(ok("{\"key\": \"value\"}").withHeader("Content-Type", "application/json")));
+                .willReturn(ok("{\"key\": \"value\"}").withHeader("Content-Type", "application/json")));
 
         var res = simpleHttpClient.get(wmRuntimeInfo.getHttpBaseUrl() + "/simple-get-json");
 
@@ -99,79 +99,100 @@ class SimpleHttpClientIntegrationTest {
 
     @Test
     void testHeadWithHeaders(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(head(urlEqualTo("/simple-head-header")).withHeader("Custom-Header", equalTo("Custom-Value"))
-            .willReturn(ok()));
+        stubFor(head(urlEqualTo("/simple-head-header"))
+                .withHeader("Custom-Header", equalTo("Custom-Value"))
+                .willReturn(ok()));
 
         var noHeader = simpleHttpClient.head(wmRuntimeInfo.getHttpBaseUrl() + "/simple-head-header");
         assertFalse(noHeader.isSuccessful());
         Assertions.assertEquals(404, noHeader.getCode());
 
-        var res = simpleHttpClient.head(wmRuntimeInfo.getHttpBaseUrl() + "/simple-head-header", Map.of("Custom-Header", "Custom-Value"));
+        var res = simpleHttpClient.head(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-head-header", Map.of("Custom-Header", "Custom-Value"));
         assertTrue(res.isSuccessful());
         Assertions.assertEquals(200, res.getCode());
     }
 
     @Test
     void testPost(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(post("/simple-post").willReturn(ok("Hello World!")
-                .withHeader("Content-Type", "text/plain")));
+        stubFor(post("/simple-post").willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
 
         var res = simpleHttpClient.post(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post");
         assertTrue(res.isSuccessful());
         Assertions.assertEquals(200, res.getCode());
         Assertions.assertEquals("Hello World!", res.getBody());
         assertTrue(res.getHeaders().containsKey("Content-Type"));
-        Assertions.assertEquals("text/plain", res.getHeaders().get("Content-Type").get(0));
+        Assertions.assertEquals(
+                "text/plain", res.getHeaders().get("Content-Type").get(0));
         Assertions.assertEquals("text/plain", res.getHeader("Content-Type"));
     }
 
     @Test
     void testPostWithHeaders(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(post("/simple-post-header").withHeader("Custom-Header", equalTo("Custom-Value"))
-            .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
+        stubFor(post("/simple-post-header")
+                .withHeader("Custom-Header", equalTo("Custom-Value"))
+                .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
 
-        assertFalse(simpleHttpClient.post(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-header").isSuccessful());
+        assertFalse(simpleHttpClient
+                .post(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-header")
+                .isSuccessful());
 
-        assertTrue(simpleHttpClient.post(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-header", Map.of("Custom-Header", "Custom-Value")).isSuccessful());
+        assertTrue(simpleHttpClient
+                .post(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-header", Map.of("Custom-Header", "Custom-Value"))
+                .isSuccessful());
     }
 
     @Test
     void testPostJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(post("/simple-post-json").withRequestBody(equalToJson("{\"key\": \"value\"}"))
-            .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
+        stubFor(post("/simple-post-json")
+                .withRequestBody(equalToJson("{\"key\": \"value\"}"))
+                .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
 
-        var resNok = simpleHttpClient.post(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-json", Map.of(), Map.of("not", "correct"));
+        var resNok = simpleHttpClient.post(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-json", Map.of(), Map.of("not", "correct"));
         assertFalse(resNok.isSuccessful());
         Assertions.assertEquals(404, resNok.getCode());
 
-        var res = simpleHttpClient.post(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-json", Map.of(), Map.of("key", "value"));
+        var res = simpleHttpClient.post(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-json", Map.of(), Map.of("key", "value"));
         assertTrue(res.isSuccessful());
         Assertions.assertEquals(200, res.getCode());
 
-        var res2 = simpleHttpClient.postJSON(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-json", Map.of(), Map.of("key", "value"));
+        var res2 = simpleHttpClient.postJSON(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-json", Map.of(), Map.of("key", "value"));
         assertTrue(res2.isSuccessful());
         Assertions.assertEquals(200, res2.getCode());
     }
 
     @Test
     void testPostForm(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(post("/simple-post-form").withRequestBody(containing("k1=v1")).withRequestBody(containing("k2=v2"))
-            .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
+        stubFor(post("/simple-post-form")
+                .withRequestBody(containing("k1=v1"))
+                .withRequestBody(containing("k2=v2"))
+                .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
 
-        var res = simpleHttpClient.postForm(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-form", Map.of(), Map.of("k1", "v1", "k2", "v2"));
+        var res = simpleHttpClient.postForm(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-form", Map.of(), Map.of("k1", "v1", "k2", "v2"));
         assertTrue(res.isSuccessful());
         Assertions.assertEquals(200, res.getCode());
     }
 
     @Test
     void testPostFile(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-        stubFor(post("/simple-post-file").withRequestBody(containing("content"))
-            .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
+        stubFor(post("/simple-post-file")
+                .withRequestBody(containing("content"))
+                .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
 
-        File tmp = Files.createTempFile(SimpleHttpClient.ALLOWED_TMP_FILE_DIR, "test", "test").toFile();
+        File tmp = Files.createTempFile(SimpleHttpClient.ALLOWED_TMP_FILE_DIR, "test", "test")
+                .toFile();
         FileUtils.write(tmp, "content", StandardCharsets.UTF_8.toString());
 
-        var res = simpleHttpClient.postFileAndSaveResponse(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-file", Map.of(), tmp.getAbsolutePath(), tmp.getName(), "text/plain");
+        var res = simpleHttpClient.postFileAndSaveResponse(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-file",
+                Map.of(),
+                tmp.getAbsolutePath(),
+                tmp.getName(),
+                "text/plain");
         assertTrue(res.isSuccessful());
         Assertions.assertEquals(200, res.getCode());
         assertNotNull(res.getTempFilePath());
@@ -185,11 +206,12 @@ class SimpleHttpClientIntegrationTest {
     @Test
     void testPostBody(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
         stubFor(post("/simple-post-body")
-            .withHeader("Content-Type", containing("text/plain"))
-            .withRequestBody(equalTo("content"))
-            .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
+                .withHeader("Content-Type", containing("text/plain"))
+                .withRequestBody(equalTo("content"))
+                .willReturn(ok("Hello World!").withHeader("Content-Type", "text/plain")));
 
-        var res = simpleHttpClient.postBodyAndSaveResponse(wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-body", Map.of(), "content", "text/plain");
+        var res = simpleHttpClient.postBodyAndSaveResponse(
+                wmRuntimeInfo.getHttpBaseUrl() + "/simple-post-body", Map.of(), "content", "text/plain");
         assertTrue(res.isSuccessful());
         Assertions.assertEquals(200, res.getCode());
         assertNotNull(res.getTempFilePath());

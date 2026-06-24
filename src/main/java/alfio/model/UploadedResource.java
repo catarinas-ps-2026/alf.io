@@ -16,15 +16,13 @@
  */
 package alfio.model;
 
-
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class UploadedResource {
@@ -37,13 +35,14 @@ public class UploadedResource {
     private final Date creationTime;
     private final Map<String, String> attributes;
 
-    public UploadedResource(@Column("name") String name,
-                            @Column("organization_id_fk") Integer organizationId,
-                            @Column("event_id_fk") Integer eventId,
-                            @Column("content_type") String contentType,
-                            @Column("content_size") int contentSize,
-                            @Column("creation_time") Date creationTime,
-                            @Column("attributes") String attributes) {
+    public UploadedResource(
+            @Column("name") String name,
+            @Column("organization_id_fk") Integer organizationId,
+            @Column("event_id_fk") Integer eventId,
+            @Column("content_type") String contentType,
+            @Column("content_size") int contentSize,
+            @Column("creation_time") Date creationTime,
+            @Column("attributes") String attributes) {
         this.name = name;
         this.organizationId = organizationId;
         this.eventId = eventId;

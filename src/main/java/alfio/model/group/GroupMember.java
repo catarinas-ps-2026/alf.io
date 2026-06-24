@@ -27,11 +27,11 @@ public class GroupMember {
     private final String value;
     private final String description;
 
-
-    public GroupMember(@Column("id") int id,
-                       @Column("a_group_id_fk") int groupId,
-                       @Column("value") String value,
-                       @Column("description") String description) {
+    public GroupMember(
+            @Column("id") int id,
+            @Column("a_group_id_fk") int groupId,
+            @Column("value") String value,
+            @Column("description") String description) {
         this.id = id;
         this.groupId = groupId;
         this.value = value;

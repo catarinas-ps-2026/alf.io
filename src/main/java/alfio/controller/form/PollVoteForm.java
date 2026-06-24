@@ -16,9 +16,8 @@
  */
 package alfio.controller.form;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class PollVoteForm implements Serializable {

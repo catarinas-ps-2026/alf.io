@@ -17,14 +17,13 @@
 package alfio.config;
 
 import alfio.util.DefaultExceptionHandler;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SpringBootLauncher {
 
@@ -39,14 +38,14 @@ public class SpringBootLauncher {
         String profiles = System.getProperty("spring.profiles.active", "");
 
         SpringApplication application = new SpringApplication(
-            SpringBootInitializer.class,
-            BaseConfiguration.class,
-            DataSourceConfiguration.class,
-            WebSecurityConfig.class,
-            MvcConfiguration.class);
+                SpringBootInitializer.class,
+                BaseConfiguration.class,
+                DataSourceConfiguration.class,
+                WebSecurityConfig.class,
+                MvcConfiguration.class);
         List<String> additionalProfiles = new ArrayList<>();
         additionalProfiles.add(Initializer.PROFILE_SPRING_BOOT);
-        if("true".equals(System.getenv("ALFIO_DEMO_ENABLED"))) {
+        if ("true".equals(System.getenv("ALFIO_DEMO_ENABLED"))) {
             additionalProfiles.add(Initializer.PROFILE_DEMO);
         }
         application.setAdditionalProfiles(additionalProfiles.toArray(new String[0]));

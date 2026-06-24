@@ -16,25 +16,23 @@
  */
 package alfio.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.EmptyResultDataAccessException;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 public class Wrappers {
 
     private static final Logger log = LoggerFactory.getLogger(Wrappers.class);
 
-    private Wrappers() {
-    }
+    private Wrappers() {}
 
     public static <I> void voidTransactionWrapper(Consumer<I> consumer, I input) {
         try {
             consumer.accept(input);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             log.error("Unexpected exception", ex);
         }
     }

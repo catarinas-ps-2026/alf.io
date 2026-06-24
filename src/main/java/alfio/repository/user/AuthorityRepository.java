@@ -21,13 +21,11 @@ import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
 import ch.digitalfondue.npjt.QueryType;
-
 import java.util.List;
 import java.util.Set;
 
 @QueryRepository
 public interface AuthorityRepository {
-
 
     @Query("select exists(select * from authority where username = :username and role in (:roles)) as res")
     boolean checkRole(@Bind("username") String username, @Bind("roles") Set<String> roles);

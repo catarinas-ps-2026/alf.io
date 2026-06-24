@@ -16,16 +16,15 @@
  */
 package alfio.model.metadata;
 
+import static java.util.Objects.requireNonNullElse;
+
 import alfio.model.LocalizedContent;
 import alfio.util.EventUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.Map;
 import java.util.Objects;
-
-import static java.util.Objects.requireNonNullElse;
+import lombok.Getter;
 
 @Getter
 public class TicketMetadata {
@@ -48,9 +47,10 @@ public class TicketMetadata {
     private final Map<String, String> attributes;
 
     @JsonCreator
-    public TicketMetadata(@JsonProperty("joinLink") JoinLink joinLink,
-                          @JsonProperty("joinMessages") Map<String, String> linkDescription,
-                          @JsonProperty("attributes") Map<String, String> attributes) {
+    public TicketMetadata(
+            @JsonProperty("joinLink") JoinLink joinLink,
+            @JsonProperty("joinMessages") Map<String, String> linkDescription,
+            @JsonProperty("attributes") Map<String, String> attributes) {
         this.joinLink = joinLink;
         this.attributes = requireNonNullElse(attributes, Map.of());
         this.linkDescription = requireNonNullElse(linkDescription, Map.of());
@@ -69,7 +69,9 @@ public class TicketMetadata {
             return false;
         }
         TicketMetadata that = (TicketMetadata) o;
-        return Objects.equals(joinLink, that.joinLink) && linkDescription.equals(that.linkDescription) && attributes.equals(that.attributes);
+        return Objects.equals(joinLink, that.joinLink)
+                && linkDescription.equals(that.linkDescription)
+                && attributes.equals(that.attributes);
     }
 
     @Override
@@ -80,6 +82,7 @@ public class TicketMetadata {
     public static TicketMetadata empty() {
         return new TicketMetadata(null, null, Map.of());
     }
+
     public TicketMetadata withAttributes(Map<String, String> attributes) {
         return new TicketMetadata(joinLink, Map.copyOf(linkDescription), Map.copyOf(attributes));
     }

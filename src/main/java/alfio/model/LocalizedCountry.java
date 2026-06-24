@@ -16,5 +16,4 @@
  */
 package alfio.model;
 
-public record LocalizedCountry(String isoCode, String name) {
-}
+public record LocalizedCountry(String isoCode, String name) {}

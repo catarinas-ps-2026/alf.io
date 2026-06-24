@@ -19,20 +19,22 @@ package alfio.model;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class BillingDocument {
 
     public enum Type {
-        INVOICE, RECEIPT, CREDIT_NOTE
+        INVOICE,
+        RECEIPT,
+        CREDIT_NOTE
     }
 
     public enum Status {
-        VALID, NOT_VALID
+        VALID,
+        NOT_VALID
     }
 
     private final long id;
@@ -45,22 +47,22 @@ public class BillingDocument {
     private final Status status;
     private final String externalId;
 
-    public BillingDocument(@Column("id") long id,
-                           @Column("event_id_fk") Integer eventId,
-                           @Column("reservation_id_fk") String reservationId,
-                           @Column("number") String number,
-                           @Column("type") Type type,
-                           @Column("model") String model,
-                           @Column("generation_ts") ZonedDateTime generationTimestamp,
-                           @Column("status") Status status,
-                           @Column("external_id") String externalId) {
+    public BillingDocument(
+            @Column("id") long id,
+            @Column("event_id_fk") Integer eventId,
+            @Column("reservation_id_fk") String reservationId,
+            @Column("number") String number,
+            @Column("type") Type type,
+            @Column("model") String model,
+            @Column("generation_ts") ZonedDateTime generationTimestamp,
+            @Column("status") Status status,
+            @Column("external_id") String externalId) {
         this.id = id;
         this.eventId = eventId;
         this.number = number;
         this.reservationId = reservationId;
         this.type = type;
-        this.model = Json.fromJson(model, new TypeReference<>() {
-        });
+        this.model = Json.fromJson(model, new TypeReference<>() {});
         this.generationTimestamp = generationTimestamp;
         this.status = status;
         this.externalId = externalId;

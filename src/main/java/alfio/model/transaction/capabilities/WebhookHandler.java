@@ -23,7 +23,6 @@ import alfio.model.transaction.Capability;
 import alfio.model.transaction.PaymentContext;
 import alfio.model.transaction.Transaction;
 import alfio.model.transaction.TransactionWebhookPayload;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,11 +32,14 @@ public interface WebhookHandler extends Capability {
         return null;
     }
 
-    Optional<TransactionWebhookPayload> parseTransactionPayload(String body, String signature, Map<String, String> additionalInfo, PaymentContext paymentContext);
+    Optional<TransactionWebhookPayload> parseTransactionPayload(
+            String body, String signature, Map<String, String> additionalInfo, PaymentContext paymentContext);
 
-    PaymentWebhookResult processWebhook(TransactionWebhookPayload payload, Transaction transaction, PaymentContext paymentContext);
+    PaymentWebhookResult processWebhook(
+            TransactionWebhookPayload payload, Transaction transaction, PaymentContext paymentContext);
 
-    PaymentWebhookResult forceTransactionCheck(TicketReservation reservation, Transaction transaction, PaymentContext paymentContext);
+    PaymentWebhookResult forceTransactionCheck(
+            TicketReservation reservation, Transaction transaction, PaymentContext paymentContext);
 
     default boolean requiresSignedBody() {
         return true;
@@ -46,5 +48,4 @@ public interface WebhookHandler extends Capability {
     default Optional<PaymentContext> detectPaymentContext(String payload) {
         return Optional.empty();
     }
-
 }

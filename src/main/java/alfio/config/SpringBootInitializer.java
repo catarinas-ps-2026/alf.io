@@ -20,6 +20,8 @@ import alfio.config.support.ContextAwareCookieSerializer;
 import alfio.util.ClockProvider;
 import com.openhtmltopdf.util.XRLog;
 import jakarta.servlet.Filter;
+import java.time.Clock;
+import java.util.logging.Level;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
@@ -28,18 +30,17 @@ import org.springframework.core.env.Environment;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import java.time.Clock;
-import java.util.logging.Level;
-
-@EnableAutoConfiguration(exclude = {org.springframework.boot.autoconfigure.mustache.MustacheAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.web.servlet.HttpEncodingAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.session.SessionAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration.class
-})
+@EnableAutoConfiguration(
+        exclude = {
+            org.springframework.boot.autoconfigure.mustache.MustacheAutoConfiguration.class,
+            org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration.class,
+            org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration.class,
+            org.springframework.boot.autoconfigure.web.servlet.HttpEncodingAutoConfiguration.class,
+            org.springframework.boot.autoconfigure.session.SessionAutoConfiguration.class,
+            org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration.class,
+            org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration.class,
+            org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration.class
+        })
 @Configuration(proxyBeanMethods = false)
 public class SpringBootInitializer {
 

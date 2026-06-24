@@ -16,23 +16,22 @@
  */
 package alfio.manager;
 
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import alfio.model.Event;
 import alfio.model.TicketCategory;
 import alfio.repository.SpecialPriceRepository;
 import alfio.repository.SubscriptionRepository;
 import alfio.repository.TicketRepository;
 import alfio.test.util.TestUtil;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("EventManager: handle Token modifications")
 class EventManagerHandleTokenModificationTest {
@@ -43,7 +42,6 @@ class EventManagerHandleTokenModificationTest {
     private EventManager eventManager;
     private final int eventId = 10;
 
-
     @BeforeEach
     void init() {
         original = mock(TicketCategory.class);
@@ -52,8 +50,30 @@ class EventManagerHandleTokenModificationTest {
         Event event = mock(Event.class);
         TicketRepository ticketRepository = mock(TicketRepository.class);
         when(event.getId()).thenReturn(eventId);
-        eventManager = new EventManager(null, null, null, null,
-            null, ticketRepository, specialPriceRepository, null, null, null, null, null, null, null, null, null, null, null, null, null, TestUtil.clockProvider(), mock(SubscriptionRepository.class), null);
+        eventManager = new EventManager(
+                null,
+                null,
+                null,
+                null,
+                null,
+                ticketRepository,
+                specialPriceRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                TestUtil.clockProvider(),
+                mock(SubscriptionRepository.class),
+                null);
         when(original.getId()).thenReturn(20);
         when(updated.getId()).thenReturn(30);
         when(original.getSrcPriceCts()).thenReturn(1000);
@@ -62,7 +82,6 @@ class EventManagerHandleTokenModificationTest {
         when(updated.getMaxTickets()).thenReturn(11);
         when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
     }
-
 
     @Test
     @DisplayName("do nothing if both categories are not 'access restricted'")

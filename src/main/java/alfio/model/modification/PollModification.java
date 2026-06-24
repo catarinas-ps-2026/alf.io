@@ -20,14 +20,13 @@ import alfio.model.poll.Poll;
 import alfio.model.poll.PollWithOptions;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 
 @Getter
 public class PollModification {
@@ -40,15 +39,15 @@ public class PollModification {
     private final boolean accessRestricted;
     private final Poll.PollStatus status;
 
-
     @JsonCreator
-    public PollModification(@JsonProperty("id") Long id,
-                            @JsonProperty("title") Map<String, String> title,
-                            @JsonProperty("description") Map<String, String> description,
-                            @JsonProperty("order") Integer order,
-                            @JsonProperty("options") List<PollOptionModification> options,
-                            @JsonProperty("accessRestricted") Boolean accessRestricted,
-                            @JsonProperty("status") Poll.PollStatus status) {
+    public PollModification(
+            @JsonProperty("id") Long id,
+            @JsonProperty("title") Map<String, String> title,
+            @JsonProperty("description") Map<String, String> description,
+            @JsonProperty("order") Integer order,
+            @JsonProperty("options") List<PollOptionModification> options,
+            @JsonProperty("accessRestricted") Boolean accessRestricted,
+            @JsonProperty("status") Poll.PollStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -61,31 +60,36 @@ public class PollModification {
     public boolean isValid() {
         return isValid(null);
     }
+
     public boolean isValid(Long pollId) {
         return Objects.equals(pollId, id)
-            && MapUtils.isNotEmpty(title)
-            && CollectionUtils.isNotEmpty(options)
-            && options.stream().allMatch(p -> p.isValid(pollId != null && p.getId() != null));
+                && MapUtils.isNotEmpty(title)
+                && CollectionUtils.isNotEmpty(options)
+                && options.stream().allMatch(p -> p.isValid(pollId != null && p.getId() != null));
     }
 
     public static PollModification from(Poll poll) {
-        return new PollModification(poll.id(),
-            poll.title(),
-            poll.description(),
-            poll.order(),
-            List.of(),
-            !poll.allowedTags().isEmpty(),
-            poll.status());
+        return new PollModification(
+                poll.id(),
+                poll.title(),
+                poll.description(),
+                poll.order(),
+                List.of(),
+                !poll.allowedTags().isEmpty(),
+                poll.status());
     }
 
     public static PollModification from(PollWithOptions pollWithOptions) {
         var poll = pollWithOptions.getPoll();
-        return new PollModification(poll.id(),
-            poll.title(),
-            poll.description(),
-            poll.order(),
-            pollWithOptions.getOptions().stream().map(PollOptionModification::from).collect(Collectors.toList()),
-            !poll.allowedTags().isEmpty(),
-            poll.status());
+        return new PollModification(
+                poll.id(),
+                poll.title(),
+                poll.description(),
+                poll.order(),
+                pollWithOptions.getOptions().stream()
+                        .map(PollOptionModification::from)
+                        .collect(Collectors.toList()),
+                !poll.allowedTags().isEmpty(),
+                poll.status());
     }
 }

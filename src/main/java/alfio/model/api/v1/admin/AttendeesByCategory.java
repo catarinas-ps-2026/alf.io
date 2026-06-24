@@ -20,7 +20,6 @@ import alfio.model.modification.AttendeeData;
 import alfio.model.modification.ReservationRequest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Map;
 
@@ -33,10 +32,11 @@ public class AttendeesByCategory implements ReservationRequest {
     private final List<Map<String, String>> metadata;
 
     @JsonCreator
-    public AttendeesByCategory(@JsonProperty("ticketCategoryId") Integer ticketCategoryId,
-                               @JsonProperty("quantity") Integer quantity,
-                               @JsonProperty("attendees") List<AttendeeData> attendees,
-                               @JsonProperty("metadata") List<Map<String, String>> metadata) {
+    public AttendeesByCategory(
+            @JsonProperty("ticketCategoryId") Integer ticketCategoryId,
+            @JsonProperty("quantity") Integer quantity,
+            @JsonProperty("attendees") List<AttendeeData> attendees,
+            @JsonProperty("metadata") List<Map<String, String>> metadata) {
         this.ticketCategoryId = ticketCategoryId;
         this.quantity = quantity;
         this.attendees = attendees;

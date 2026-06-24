@@ -16,21 +16,9 @@
  */
 package alfio.manager.payment;
 
+import static alfio.test.util.TestUtil.clockProvider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
@@ -56,7 +44,17 @@ import alfio.repository.system.ConfigurationRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
-import static alfio.test.util.TestUtil.clockProvider;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -64,16 +62,22 @@ import static alfio.test.util.TestUtil.clockProvider;
 class CustomOfflinePaymentManagerIntegrationTest {
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private TicketReservationRepository ticketReservationRepository;
+
     @Autowired
     private TransactionRepository transactionRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private CustomOfflineConfigurationManager customOfflineConfigurationManager;
 
@@ -88,54 +92,42 @@ class CustomOfflinePaymentManagerIntegrationTest {
         String organizationName = UUID.randomUUID().toString();
         String username = UUID.randomUUID().toString();
 
-        var organizationModification = new OrganizationModification(
-            null,
-            organizationName,
-            "email@example.com",
-            "org",
-            null,
-            null
-        );
+        var organizationModification =
+                new OrganizationModification(null, organizationName, "email@example.com", "org", null, null);
         userManager.createOrganization(organizationModification, null);
         organization = organizationRepository.findByName(organizationName).orElseThrow();
         userManager.insertUser(
-            organization.getId(),
-            username,
-            "test",
-            "test",
-            "test@example.com",
-            Role.OWNER,
-            User.Type.INTERNAL,
-            null
-        );
+                organization.getId(),
+                username,
+                "test",
+                "test",
+                "test@example.com",
+                Role.OWNER,
+                User.Type.INTERNAL,
+                null);
 
         this.mockPrincipal = Mockito.mock(Principal.class);
         Mockito.when(mockPrincipal.getName()).thenReturn(username);
 
         paymentMethods = List.of(
-            new UserDefinedOfflinePaymentMethod(
-                "15146df3-2436-4d2e-90b9-0d6cb273e291",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Interac E-Transfer",
-                        "Instant bank transfer from any Canadian account.",
-                        "Send the payment to `payments@example.com`."
-                    )
-                )
-            ),
-            new UserDefinedOfflinePaymentMethod(
-                "ec6c5268-4122-4b27-98ee-fa070df11c5b",
-                Map.of(
-                    "en", new UserDefinedOfflinePaymentMethod.Localization(
-                        "Venmo",
-                        "Instant money transfers via the Venmo app.",
-                        "Send the payment to user `exampleco` on Venmo."
-                    )
-                )
-            )
-        );
+                new UserDefinedOfflinePaymentMethod(
+                        "15146df3-2436-4d2e-90b9-0d6cb273e291",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Interac E-Transfer",
+                                        "Instant bank transfer from any Canadian account.",
+                                        "Send the payment to `payments@example.com`."))),
+                new UserDefinedOfflinePaymentMethod(
+                        "ec6c5268-4122-4b27-98ee-fa070df11c5b",
+                        Map.of(
+                                "en",
+                                new UserDefinedOfflinePaymentMethod.Localization(
+                                        "Venmo",
+                                        "Instant money transfers via the Venmo app.",
+                                        "Send the payment to user `exampleco` on Venmo."))));
 
-        for(var pm : paymentMethods) {
+        for (var pm : paymentMethods) {
             customOfflineConfigurationManager.createOrganizationCustomOfflinePaymentMethod(organization.getId(), pm);
         }
     }
@@ -143,12 +135,11 @@ class CustomOfflinePaymentManagerIntegrationTest {
     @Test
     void supportedPaymentMethodsReturnsExpected() {
         CustomOfflinePaymentManager paymentManager = new CustomOfflinePaymentManager(
-            clockProvider(),
-            ticketReservationRepository,
-            transactionRepository,
-            eventRepository,
-            customOfflineConfigurationManager
-        );
+                clockProvider(),
+                ticketReservationRepository,
+                transactionRepository,
+                eventRepository,
+                customOfflineConfigurationManager);
 
         var event = Mockito.mock(Event.class);
         var configLevel = ConfigurationLevel.organization(organization.getId());
@@ -158,33 +149,24 @@ class CustomOfflinePaymentManagerIntegrationTest {
         var supportedMethods = paymentManager.getSupportedPaymentMethods(paymentContext, transactionRequest);
 
         assertEquals(
-            supportedMethods.size(),
-            paymentMethods.size(),
-            "supportedMethods length does not match example methods."
-        );
+                supportedMethods.size(),
+                paymentMethods.size(),
+                "supportedMethods length does not match example methods.");
 
         assertTrue(
-            supportedMethods
-                .stream()
-                .allMatch(spm ->
-                    paymentMethods
-                        .stream()
-                        .anyMatch(pm -> spm.getPaymentMethodId().equals(pm.getPaymentMethodId()))
-                )
-            ,
-            "Supported offline payment methods do not match example methods."
-        );
+                supportedMethods.stream().allMatch(spm -> paymentMethods.stream()
+                        .anyMatch(pm -> spm.getPaymentMethodId().equals(pm.getPaymentMethodId()))),
+                "Supported offline payment methods do not match example methods.");
     }
 
     @Test
     void supportedPaymentMethodsNoOrgReturnsEmpty() {
         CustomOfflinePaymentManager paymentManager = new CustomOfflinePaymentManager(
-            clockProvider(),
-            ticketReservationRepository,
-            transactionRepository,
-            eventRepository,
-            customOfflineConfigurationManager
-        );
+                clockProvider(),
+                ticketReservationRepository,
+                transactionRepository,
+                eventRepository,
+                customOfflineConfigurationManager);
 
         var event = Mockito.mock(Event.class);
         var configLevel = ConfigurationLevel.system();
@@ -194,26 +176,20 @@ class CustomOfflinePaymentManagerIntegrationTest {
         var supportedMethods = paymentManager.getSupportedPaymentMethods(paymentContext, transactionRequest);
 
         assertEquals(
-            Set.of(),
-            supportedMethods,
-            "In the event of no orgId available, supported methods should be empty."
-        );
+                Set.of(), supportedMethods, "In the event of no orgId available, supported methods should be empty.");
     }
 
     @Test
     void supportedPaymentMethodsNoOfflinePaymentsKeyReturnsEmpty() {
         configurationRepository.deleteOrganizationLevelByKey(
-            ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(),
-            organization.getId()
-        );
+                ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.name(), organization.getId());
 
         CustomOfflinePaymentManager paymentManager = new CustomOfflinePaymentManager(
-            clockProvider(),
-            ticketReservationRepository,
-            transactionRepository,
-            eventRepository,
-            customOfflineConfigurationManager
-        );
+                clockProvider(),
+                ticketReservationRepository,
+                transactionRepository,
+                eventRepository,
+                customOfflineConfigurationManager);
 
         var event = Mockito.mock(Event.class);
         var configLevel = ConfigurationLevel.organization(organization.getId());
@@ -223,9 +199,8 @@ class CustomOfflinePaymentManagerIntegrationTest {
         var supportedMethods = paymentManager.getSupportedPaymentMethods(paymentContext, transactionRequest);
 
         assertEquals(
-            Set.of(),
-            supportedMethods,
-            "In the event of no CUSTOM_OFFLINE_PAYMENTS config key, supported methods should be empty."
-        );
+                Set.of(),
+                supportedMethods,
+                "In the event of no CUSTOM_OFFLINE_PAYMENTS config key, supported methods should be empty.");
     }
 }

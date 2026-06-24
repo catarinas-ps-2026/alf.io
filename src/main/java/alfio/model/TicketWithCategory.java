@@ -18,7 +18,8 @@ package alfio.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public record TicketWithCategory(@JsonIgnore Ticket ticket, @JsonIgnore TicketCategory category) implements TicketInfoContainer {
+public record TicketWithCategory(@JsonIgnore Ticket ticket, @JsonIgnore TicketCategory category)
+        implements TicketInfoContainer {
 
     public String getCategoryName() {
         return category != null ? category.getName() : null;

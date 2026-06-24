@@ -17,7 +17,6 @@
 package alfio.model;
 
 import alfio.util.MonetaryUtil;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -27,9 +26,10 @@ public interface SummaryPriceContainer extends PriceContainer {
 
     static int getSummaryPriceBeforeVatCts(List<? extends PriceContainer> elements) {
         var currencyCode = !elements.isEmpty() ? elements.get(0).getCurrencyCode() : null;
-        return elements.stream().map(PriceContainer::getNetPrice)
-            .reduce(BigDecimal::add)
-            .map(p -> MonetaryUtil.unitToCents(p, currencyCode))
-            .orElse(0);
+        return elements.stream()
+                .map(PriceContainer::getNetPrice)
+                .reduce(BigDecimal::add)
+                .map(p -> MonetaryUtil.unitToCents(p, currencyCode))
+                .orElse(0);
     }
 }

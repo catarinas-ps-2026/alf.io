@@ -16,8 +16,9 @@
  */
 package alfio.util;
 
-import alfio.model.BillingDocument;
+import static alfio.util.ExportUtils.markAsNoIndex;
 
+import alfio.model.BillingDocument;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -25,41 +26,45 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
-import static alfio.util.ExportUtils.markAsNoIndex;
-
 public class FileUtil {
-    public static boolean sendPdf(byte[] res, HttpServletResponse response, String eventName, String reservationId, BillingDocument billingDocument) {
-        return Optional.ofNullable(res).map(pdf -> {
-            try {
-                sendHeaders(response, eventName, reservationId, billingDocument);
-                response.getOutputStream().write(pdf);
-                return true;
-            } catch(IOException e) {
-                return false;
-            }
-        }).orElse(false);
+    public static boolean sendPdf(
+            byte[] res,
+            HttpServletResponse response,
+            String eventName,
+            String reservationId,
+            BillingDocument billingDocument) {
+        return Optional.ofNullable(res)
+                .map(pdf -> {
+                    try {
+                        sendHeaders(response, eventName, reservationId, billingDocument);
+                        response.getOutputStream().write(pdf);
+                        return true;
+                    } catch (IOException e) {
+                        return false;
+                    }
+                })
+                .orElse(false);
     }
 
-
-    public static void sendHeaders(HttpServletResponse response, String eventName, String reservationId, BillingDocument billingDocument) {
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + getBillingDocumentFileName(eventName, reservationId, billingDocument) + "\"");
+    public static void sendHeaders(
+            HttpServletResponse response, String eventName, String reservationId, BillingDocument billingDocument) {
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=\"" + getBillingDocumentFileName(eventName, reservationId, billingDocument)
+                        + "\"");
         response.setContentType("application/pdf");
         markAsNoIndex(response);
     }
 
-    public static String getBillingDocumentFileName(String eventShortName, String reservationId, BillingDocument document) {
-        if(document.getType() != BillingDocument.Type.RECEIPT) {
+    public static String getBillingDocumentFileName(
+            String eventShortName, String reservationId, BillingDocument document) {
+        if (document.getType() != BillingDocument.Type.RECEIPT) {
             Map<String, Object> reservationModel = document.getModel();
             ZonedDateTime invoiceDate = ZonedDateTime.parse((String) reservationModel.get("confirmationDate"));
             String formattedDate = invoiceDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss"));
-            return eventShortName +
-                "-" + formattedDate +
-                "-" + document.getNumber() +
-                "-" + document.getId()+
-                ".pdf";
+            return eventShortName + "-" + formattedDate + "-" + document.getNumber() + "-" + document.getId() + ".pdf";
         } else {
             return "receipt-" + eventShortName + "-" + reservationId + ".pdf";
         }
     }
-
 }

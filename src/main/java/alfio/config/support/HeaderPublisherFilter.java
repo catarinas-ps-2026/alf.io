@@ -20,7 +20,6 @@ import alfio.manager.system.ConfigurationManager;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
 /**
@@ -36,14 +35,15 @@ public class HeaderPublisherFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest,
-                         ServletResponse servletResponse,
-                         FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+            throws IOException, ServletException {
         var httpServletRequest = (HttpServletRequest) servletRequest;
         var httpServletResponse = (HttpServletResponse) servletResponse;
 
-        if (httpServletRequest.getMethod().equals("GET") && httpServletRequest.getRequestURI().startsWith("/api/v2")) {
-            httpServletResponse.setHeader("Alfio-OpenId-Enabled", Boolean.toString(configurationManager.isPublicOpenIdEnabled()));
+        if (httpServletRequest.getMethod().equals("GET")
+                && httpServletRequest.getRequestURI().startsWith("/api/v2")) {
+            httpServletResponse.setHeader(
+                    "Alfio-OpenId-Enabled", Boolean.toString(configurationManager.isPublicOpenIdEnabled()));
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }

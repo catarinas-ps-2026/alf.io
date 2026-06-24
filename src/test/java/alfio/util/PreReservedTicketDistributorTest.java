@@ -16,18 +16,17 @@
  */
 package alfio.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.model.TicketCategoryStatisticView;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class PreReservedTicketDistributorTest {
 
@@ -53,7 +52,8 @@ public class PreReservedTicketDistributorTest {
     @Test
     @DisplayName("include all the categories (42 tickets requested)")
     void includeAllCategories42() {
-        List<Pair<Integer, TicketCategoryStatisticView>> pairs = data.stream().collect(new PreReservedTicketDistributor(42));
+        List<Pair<Integer, TicketCategoryStatisticView>> pairs =
+                data.stream().collect(new PreReservedTicketDistributor(42));
         assertEquals(3, pairs.size());
         assertEquals(Pair.of(cat1Capacity, cat1), pairs.get(0));
         assertEquals(Pair.of(cat2Capacity, cat2), pairs.get(1));
@@ -63,7 +63,8 @@ public class PreReservedTicketDistributorTest {
     @Test
     @DisplayName("include all the categories (43 tickets requested)")
     void includeAllCategories43() {
-        List<Pair<Integer, TicketCategoryStatisticView>> pairs = data.stream().collect(new PreReservedTicketDistributor(43));
+        List<Pair<Integer, TicketCategoryStatisticView>> pairs =
+                data.stream().collect(new PreReservedTicketDistributor(43));
         assertEquals(3, pairs.size());
         assertEquals(Pair.of(cat1Capacity, cat1), pairs.get(0));
         assertEquals(Pair.of(cat2Capacity, cat2), pairs.get(1));
@@ -73,7 +74,8 @@ public class PreReservedTicketDistributorTest {
     @Test
     @DisplayName("include only the first category (1 ticket requested)")
     void includeOnlyFirst() {
-        List<Pair<Integer, TicketCategoryStatisticView>> pairs = data.stream().collect(new PreReservedTicketDistributor(1));
+        List<Pair<Integer, TicketCategoryStatisticView>> pairs =
+                data.stream().collect(new PreReservedTicketDistributor(1));
         assertEquals(1, pairs.size());
         assertEquals(Pair.of(1, cat1), pairs.get(0));
     }
@@ -81,7 +83,8 @@ public class PreReservedTicketDistributorTest {
     @Test
     @DisplayName("include only the first two categories (20 tickets requested)")
     void includeFirstTwoCategories() {
-        List<Pair<Integer, TicketCategoryStatisticView>> pairs = data.stream().collect(new PreReservedTicketDistributor(20));
+        List<Pair<Integer, TicketCategoryStatisticView>> pairs =
+                data.stream().collect(new PreReservedTicketDistributor(20));
         assertEquals(2, pairs.size());
         assertEquals(Pair.of(cat1Capacity, cat1), pairs.get(0));
         assertEquals(Pair.of(10, cat2), pairs.get(1));
@@ -90,7 +93,8 @@ public class PreReservedTicketDistributorTest {
     @Test
     @DisplayName("include all the categories (23 tickets requested)")
     void includeAllCategories() {
-        List<Pair<Integer, TicketCategoryStatisticView>> pairs = data.stream().collect(new PreReservedTicketDistributor(23));
+        List<Pair<Integer, TicketCategoryStatisticView>> pairs =
+                data.stream().collect(new PreReservedTicketDistributor(23));
         assertEquals(3, pairs.size());
         assertEquals(Pair.of(cat1Capacity, cat1), pairs.get(0));
         assertEquals(Pair.of(cat2Capacity, cat2), pairs.get(1));

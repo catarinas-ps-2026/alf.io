@@ -16,8 +16,11 @@
  */
 package alfio.config.support;
 
+import static alfio.config.authentication.support.UserProvidedClientRegistrationRepository.OPENID_CALLBACK_PATH;
+
 import alfio.config.Initializer;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +32,6 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
-
-import java.util.List;
-
-import static alfio.config.authentication.support.UserProvidedClientRegistrationRepository.OPENID_CALLBACK_PATH;
 
 public class ContextAwareCookieSerializer implements CookieSerializer {
 
@@ -64,9 +63,7 @@ public class ContextAwareCookieSerializer implements CookieSerializer {
         }
         this.defaultCookieSerializer = serializer;
         this.authenticationRequestMatcher = new OrRequestMatcher(
-            new AntPathRequestMatcher("/callback"),
-            new AntPathRequestMatcher(OPENID_CALLBACK_PATH)
-        );
+                new AntPathRequestMatcher("/callback"), new AntPathRequestMatcher(OPENID_CALLBACK_PATH));
     }
 
     @Override
@@ -77,7 +74,9 @@ public class ContextAwareCookieSerializer implements CookieSerializer {
     @Override
     public List<String> readCookieValues(HttpServletRequest request) {
         List<String> result = defaultCookieSerializer.readCookieValues(request);
-        if (CollectionUtils.isEmpty(result) && preAuthCookieSerializer != null && authenticationRequestMatcher.matches(request)) {
+        if (CollectionUtils.isEmpty(result)
+                && preAuthCookieSerializer != null
+                && authenticationRequestMatcher.matches(request)) {
             log.trace("Cannot load session cookie. Trying with PreAuth cookie.");
             result = preAuthCookieSerializer.readCookieValues(request);
             if (log.isTraceEnabled()) {

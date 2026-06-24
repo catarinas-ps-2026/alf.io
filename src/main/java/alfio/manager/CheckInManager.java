@@ -16,6 +16,15 @@
  */
 package alfio.manager;
 
+import static alfio.manager.AccessService.MEMBERSHIP_ROLES;
+import static alfio.manager.support.CheckInStatus.*;
+import static alfio.model.Audit.EventType.*;
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+import static alfio.util.Wrappers.optionally;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+
 import alfio.manager.support.*;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.*;
@@ -32,23 +41,6 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
 import alfio.util.*;
 import com.google.gson.reflect.TypeToken;
-import lombok.AllArgsConstructor;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
@@ -61,15 +53,22 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static alfio.manager.AccessService.MEMBERSHIP_ROLES;
-import static alfio.manager.support.CheckInStatus.*;
-import static alfio.model.Audit.EventType.*;
-import static alfio.model.system.ConfigurationKeys.*;
-import static alfio.util.MiscUtils.removeTabsAndNewlines;
-import static alfio.util.Wrappers.optionally;
-import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import lombok.AllArgsConstructor;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional
@@ -96,14 +95,17 @@ public class CheckInManager {
     private final ClockProvider clockProvider;
     private final AccessService accessService;
 
-
     private void checkIn(String uuid, Event event) {
         Ticket ticket = ticketRepository.findByUUID(uuid);
         Validate.isTrue(ticket.getStatus() == TicketStatus.ACQUIRED);
         ticketRepository.updateTicketStatusWithUUID(uuid, TicketStatus.CHECKED_IN.toString());
         ticketRepository.toggleTicketLocking(ticket.getId(), ticket.getCategoryId(), true);
         if (event.supportsLinkedAdditionalServices()) {
-            int n = additionalServiceItemRepository.updateItemsStatusWithTicketId(event.getId(), ticket.getTicketsReservationId(), ticket.getId(), AdditionalServiceItem.AdditionalServiceItemStatus.CHECKED_IN);
+            int n = additionalServiceItemRepository.updateItemsStatusWithTicketId(
+                    event.getId(),
+                    ticket.getTicketsReservationId(),
+                    ticket.getId(),
+                    AdditionalServiceItem.AdditionalServiceItemStatus.CHECKED_IN);
             if (n > 0 && log.isDebugEnabled()) {
                 log.debug("Checked in {} additional services for ticket {}", n, removeTabsAndNewlines(uuid));
             }
@@ -115,7 +117,8 @@ public class CheckInManager {
         Ticket ticket = ticketRepository.findByUUID(uuid);
         Validate.isTrue(ticket.getStatus() == TicketStatus.TO_BE_PAID);
         ticketRepository.updateTicketStatusWithUUID(uuid, TicketStatus.ACQUIRED.toString());
-        ticketReservationManager.registerAlfioTransactionForOnsitePayment(eventRepository.findById(ticket.getEventId()), ticket.getTicketsReservationId());
+        ticketReservationManager.registerAlfioTransactionForOnsitePayment(
+                eventRepository.findById(ticket.getEventId()), ticket.getTicketsReservationId());
     }
 
     public AttendeeSearchResults searchAttendees(Event event, String query, int page, Principal principal) {
@@ -125,25 +128,35 @@ public class CheckInManager {
         }
         int eventId = event.getId();
         var search = "%" + query + "%";
-        var results = ticketRepository.searchAttendees(eventId, search, SEARCH_ATTENDEES_LIMIT, SEARCH_ATTENDEES_LIMIT * page);
+        var results = ticketRepository.searchAttendees(
+                eventId, search, SEARCH_ATTENDEES_LIMIT, SEARCH_ATTENDEES_LIMIT * page);
         var statistics = ticketRepository.countSearchResults(eventId, search);
-        var attendees = results.stream().map(fi -> {
-            var ticket = fi.getTicket();
-            var reservation = fi.getTicketReservation();
-            String amountToPay = null;
-            if (reservation.getPaymentMethod() == PaymentProxy.ON_SITE) {
-                var priceContainer = TicketPriceContainer.from(ticket, reservation.getVatStatus(), reservation.getVAT(), event.getVatStatus(), reservation.getDiscount().orElse(null));
-                amountToPay = event.getCurrency() + " " + MonetaryUtil.formatUnit(priceContainer.getFinalPrice(), event.getCurrency());
-            }
-            return new AttendeeSearchResults.AttendeeResult(ticket.getUuid(),
-                ticket.getPublicUuid(),
-                ticket.getFirstName(),
-                ticket.getLastName(),
-                fi.getTicketCategory().getName(),
-                fi.getTicketAdditionalInfo(),
-                ticket.getStatus(),
-                amountToPay);
-        }).collect(Collectors.toList());
+        var attendees = results.stream()
+                .map(fi -> {
+                    var ticket = fi.getTicket();
+                    var reservation = fi.getTicketReservation();
+                    String amountToPay = null;
+                    if (reservation.getPaymentMethod() == PaymentProxy.ON_SITE) {
+                        var priceContainer = TicketPriceContainer.from(
+                                ticket,
+                                reservation.getVatStatus(),
+                                reservation.getVAT(),
+                                event.getVatStatus(),
+                                reservation.getDiscount().orElse(null));
+                        amountToPay = event.getCurrency() + " "
+                                + MonetaryUtil.formatUnit(priceContainer.getFinalPrice(), event.getCurrency());
+                    }
+                    return new AttendeeSearchResults.AttendeeResult(
+                            ticket.getUuid(),
+                            ticket.getPublicUuid(),
+                            ticket.getFirstName(),
+                            ticket.getLastName(),
+                            fi.getTicketCategory().getName(),
+                            fi.getTicketAdditionalInfo(),
+                            ticket.getStatus(),
+                            amountToPay);
+                })
+                .collect(Collectors.toList());
         int totalPages = (int) Math.ceil((statistics.getTotal() / (double) SEARCH_ATTENDEES_LIMIT));
         return new AttendeeSearchResults(statistics.getTotal(), statistics.getCheckedIn(), totalPages, page, attendees);
     }
@@ -157,16 +170,23 @@ public class CheckInManager {
      */
     public CheckInStatus performCheckinForOnlineEvent(Ticket ticket, EventCheckInInfo event, TicketCategory tc) {
         Validate.isTrue(EventUtil.isAccessOnline(tc, event));
-        if(!tc.hasValidCheckIn(event.now(clockProvider), event.getZoneId())) {
+        if (!tc.hasValidCheckIn(event.now(clockProvider), event.getZoneId())) {
             return INVALID_TICKET_CATEGORY_CHECK_IN_DATE;
         }
-        if(ticket.isCheckedIn()) {
-            //ticket is already checked in, there's no reason to attempt an update of the record.
+        if (ticket.isCheckedIn()) {
+            // ticket is already checked in, there's no reason to attempt an update of the record.
             return ALREADY_CHECK_IN;
         }
         int affectedCount = ticketRepository.performCheckIn(ticket.getUuid(), event.getId());
-        if(affectedCount == 1) {
-            auditingRepository.insert(ticket.getTicketsReservationId(), null, event.getId(), CHECK_IN, new Date(), Audit.EntityType.TICKET, Integer.toString(ticket.getId()));
+        if (affectedCount == 1) {
+            auditingRepository.insert(
+                    ticket.getTicketsReservationId(),
+                    null,
+                    event.getId(),
+                    CHECK_IN,
+                    new Date(),
+                    Audit.EntityType.TICKET,
+                    Integer.toString(ticket.getId()));
             extensionManager.handleTicketCheckedIn(ticket);
             return SUCCESS;
         }
@@ -174,58 +194,112 @@ public class CheckInManager {
         return ERROR;
     }
 
-    public TicketAndCheckInResult confirmOnSitePayment(String eventName, String ticketIdentifier, Optional<String> ticketCode, String username, String auditUser) {
-        return eventRepository.findOptionalByShortName(eventName)
-            .filter(EventManager.checkOwnership(username, organizationRepository))
-            .flatMap(e -> confirmOnSitePayment(ticketIdentifier).map((String s) -> Pair.of(s, e)))
-            .map(p -> checkIn(p.getRight().getId(), ticketIdentifier, ticketCode, auditUser))
-            .orElseGet(() -> new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.TICKET_NOT_FOUND, "")));
+    public TicketAndCheckInResult confirmOnSitePayment(
+            String eventName, String ticketIdentifier, Optional<String> ticketCode, String username, String auditUser) {
+        return eventRepository
+                .findOptionalByShortName(eventName)
+                .filter(EventManager.checkOwnership(username, organizationRepository))
+                .flatMap(e -> confirmOnSitePayment(ticketIdentifier).map((String s) -> Pair.of(s, e)))
+                .map(p -> checkIn(p.getRight().getId(), ticketIdentifier, ticketCode, auditUser))
+                .orElseGet(() ->
+                        new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.TICKET_NOT_FOUND, "")));
     }
 
     public Optional<String> confirmOnSitePayment(String ticketIdentifier) {
         Optional<String> uuid = findAndLockTicket(ticketIdentifier)
-            .filter(t -> t.getStatus() == TicketStatus.TO_BE_PAID)
-            .map(Ticket::getUuid);
+                .filter(t -> t.getStatus() == TicketStatus.TO_BE_PAID)
+                .map(Ticket::getUuid);
 
         uuid.ifPresent(this::acquire);
         return uuid;
     }
 
-    public TicketAndCheckInResult checkIn(String eventShortName, String ticketIdentifier, Optional<String> ticketCode, String username, String auditUser,
-                                          boolean automaticallyConfirmOnSitePayment) {
-        return eventRepository.findOptionalByShortName(eventShortName)
-            .filter(EventManager.checkOwnership(username, organizationRepository))
-            .map(e -> {
-                if (automaticallyConfirmOnSitePayment && CheckInStatus.MUST_PAY == evaluateTicketStatus(eventShortName, ticketIdentifier, ticketCode).getResult().getStatus()) {
-                    log.info("in event {} automaticallyConfirmOnSitePayment for {}", eventShortName, ticketIdentifier);
-                    confirmOnSitePayment(eventShortName, ticketIdentifier, ticketCode, username, auditUser);
-                }
-                return checkIn(e.getId(), ticketIdentifier, ticketCode, auditUser);
-            })
-            .orElseGet(() -> new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.EVENT_NOT_FOUND, "event not found")));
+    public TicketAndCheckInResult checkIn(
+            String eventShortName,
+            String ticketIdentifier,
+            Optional<String> ticketCode,
+            String username,
+            String auditUser,
+            boolean automaticallyConfirmOnSitePayment) {
+        return eventRepository
+                .findOptionalByShortName(eventShortName)
+                .filter(EventManager.checkOwnership(username, organizationRepository))
+                .map(e -> {
+                    if (automaticallyConfirmOnSitePayment
+                            && CheckInStatus.MUST_PAY
+                                    == evaluateTicketStatus(eventShortName, ticketIdentifier, ticketCode)
+                                            .getResult()
+                                            .getStatus()) {
+                        log.info(
+                                "in event {} automaticallyConfirmOnSitePayment for {}",
+                                eventShortName,
+                                ticketIdentifier);
+                        confirmOnSitePayment(eventShortName, ticketIdentifier, ticketCode, username, auditUser);
+                    }
+                    return checkIn(e.getId(), ticketIdentifier, ticketCode, auditUser);
+                })
+                .orElseGet(() -> new TicketAndCheckInResult(
+                        null, new DefaultCheckInResult(CheckInStatus.EVENT_NOT_FOUND, "event not found")));
     }
 
-    public TicketAndCheckInResult checkIn(String shortName, String ticketIdentifier, Optional<String> ticketCode, String username, String auditUser) {
+    public TicketAndCheckInResult checkIn(
+            String shortName, String ticketIdentifier, Optional<String> ticketCode, String username, String auditUser) {
         return checkIn(shortName, ticketIdentifier, ticketCode, username, auditUser, false);
     }
 
-    public TicketAndCheckInResult checkIn(int eventId, String ticketIdentifier, Optional<String> ticketCode, String user) {
+    public TicketAndCheckInResult checkIn(
+            int eventId, String ticketIdentifier, Optional<String> ticketCode, String user) {
         var optionalEvent = eventRepository.findOptionalById(eventId);
-        TicketAndCheckInResult descriptor = extractStatus(eventId, ticketRepository.findByUUIDForUpdate(ticketIdentifier), ticketIdentifier, ticketCode);
+        TicketAndCheckInResult descriptor = extractStatus(
+                eventId, ticketRepository.findByUUIDForUpdate(ticketIdentifier), ticketIdentifier, ticketCode);
         var checkInStatus = descriptor.getResult().getStatus();
-        if(checkInStatus == OK_READY_TO_BE_CHECKED_IN) {
+        if (checkInStatus == OK_READY_TO_BE_CHECKED_IN) {
             var event = optionalEvent.orElseThrow();
             checkIn(ticketIdentifier, event);
             TicketWithCategory ticket = descriptor.getTicket();
-            scanAuditRepository.insert(ticketIdentifier, eventId, ZonedDateTime.now(clockProvider.getClock()), user, SUCCESS, ScanAudit.Operation.SCAN);
-            auditingRepository.insert(ticket.getTicketsReservationId(), userRepository.findIdByUserName(user).orElse(null), eventId, CHECK_IN, new Date(), Audit.EntityType.TICKET, Integer.toString(descriptor.getTicket().getId()));
+            scanAuditRepository.insert(
+                    ticketIdentifier,
+                    eventId,
+                    ZonedDateTime.now(clockProvider.getClock()),
+                    user,
+                    SUCCESS,
+                    ScanAudit.Operation.SCAN);
+            auditingRepository.insert(
+                    ticket.getTicketsReservationId(),
+                    userRepository.findIdByUserName(user).orElse(null),
+                    eventId,
+                    CHECK_IN,
+                    new Date(),
+                    Audit.EntityType.TICKET,
+                    Integer.toString(descriptor.getTicket().getId()));
             // return also additional items and any additional info to display.
-            return new SuccessfulCheckIn(ticket, getAdditionalServicesForTicket(ticket, event), purchaseContextFieldRepository.findValuesForTicketAtCheckIn(ticket.getId()), loadBoxColor(ticket));
-        } else if(checkInStatus == BADGE_SCAN_ALREADY_DONE || checkInStatus == OK_READY_FOR_BADGE_SCAN) {
+            return new SuccessfulCheckIn(
+                    ticket,
+                    getAdditionalServicesForTicket(ticket, event),
+                    purchaseContextFieldRepository.findValuesForTicketAtCheckIn(ticket.getId()),
+                    loadBoxColor(ticket));
+        } else if (checkInStatus == BADGE_SCAN_ALREADY_DONE || checkInStatus == OK_READY_FOR_BADGE_SCAN) {
             var auditingStatus = checkInStatus == OK_READY_FOR_BADGE_SCAN ? BADGE_SCAN_SUCCESS : checkInStatus;
-            scanAuditRepository.insert(ticketIdentifier, eventId, ZonedDateTime.now(clockProvider.getClock()), user, auditingStatus, ScanAudit.Operation.SCAN);
-            auditingRepository.insert(descriptor.getTicket().getTicketsReservationId(), userRepository.findIdByUserName(user).orElse(null), eventId, BADGE_SCAN, new Date(), Audit.EntityType.TICKET, Integer.toString(descriptor.getTicket().getId()));
-            return new TicketAndCheckInResult(null, new DefaultCheckInResult(auditingStatus, checkInStatus == OK_READY_FOR_BADGE_SCAN ? "scan successful" : "already scanned"));
+            scanAuditRepository.insert(
+                    ticketIdentifier,
+                    eventId,
+                    ZonedDateTime.now(clockProvider.getClock()),
+                    user,
+                    auditingStatus,
+                    ScanAudit.Operation.SCAN);
+            auditingRepository.insert(
+                    descriptor.getTicket().getTicketsReservationId(),
+                    userRepository.findIdByUserName(user).orElse(null),
+                    eventId,
+                    BADGE_SCAN,
+                    new Date(),
+                    Audit.EntityType.TICKET,
+                    Integer.toString(descriptor.getTicket().getId()));
+            return new TicketAndCheckInResult(
+                    null,
+                    new DefaultCheckInResult(
+                            auditingStatus,
+                            checkInStatus == OK_READY_FOR_BADGE_SCAN ? "scan successful" : "already scanned"));
         }
         return descriptor;
     }
@@ -234,92 +308,164 @@ public class CheckInManager {
 
         Optional<Ticket> ticket = findAndLockTicket(ticketIdentifier);
         return ticket.map(t -> {
+                    if (t.getStatus() == TicketStatus.TO_BE_PAID) {
+                        acquire(ticketIdentifier);
+                    }
 
-            if(t.getStatus() == TicketStatus.TO_BE_PAID) {
-                acquire(ticketIdentifier);
-            }
-
-            checkIn(ticketIdentifier, eventRepository.findById(t.getEventId()));
-            scanAuditRepository.insert(ticketIdentifier, eventId, ZonedDateTime.now(clockProvider.getClock()), user, SUCCESS, ScanAudit.Operation.SCAN);
-            auditingRepository.insert(t.getTicketsReservationId(), userRepository.findIdByUserName(user).orElse(null), eventId, Audit.EventType.MANUAL_CHECK_IN, new Date(), Audit.EntityType.TICKET, Integer.toString(t.getId()));
-            return true;
-        }).orElse(false);
+                    checkIn(ticketIdentifier, eventRepository.findById(t.getEventId()));
+                    scanAuditRepository.insert(
+                            ticketIdentifier,
+                            eventId,
+                            ZonedDateTime.now(clockProvider.getClock()),
+                            user,
+                            SUCCESS,
+                            ScanAudit.Operation.SCAN);
+                    auditingRepository.insert(
+                            t.getTicketsReservationId(),
+                            userRepository.findIdByUserName(user).orElse(null),
+                            eventId,
+                            Audit.EventType.MANUAL_CHECK_IN,
+                            new Date(),
+                            Audit.EntityType.TICKET,
+                            Integer.toString(t.getId()));
+                    return true;
+                })
+                .orElse(false);
     }
 
     public boolean revertCheckIn(int eventId, String ticketIdentifier, String user) {
-        return findAndLockTicket(ticketIdentifier).map(t -> {
-            if(t.getStatus() == TicketStatus.CHECKED_IN) {
-                TicketReservation reservation = ticketReservationRepository.findReservationById(t.getTicketsReservationId());
-                boolean onSitePayment = reservation.getPaymentMethod() == PaymentProxy.ON_SITE;
-                TicketStatus revertedStatus = onSitePayment ? TicketStatus.TO_BE_PAID : TicketStatus.ACQUIRED;
-                ticketRepository.updateTicketStatusWithUUID(ticketIdentifier, revertedStatus.toString());
-                var event = eventRepository.findById(eventId);
-                if (event.supportsLinkedAdditionalServices()) {
-                    additionalServiceItemRepository.updateItemsStatusWithTicketId(t.getEventId(), t.getTicketsReservationId(), t.getId(), onSitePayment ? AdditionalServiceItem.AdditionalServiceItemStatus.TO_BE_PAID : AdditionalServiceItem.AdditionalServiceItemStatus.ACQUIRED);
-                }
-                scanAuditRepository.insert(ticketIdentifier, eventId, ZonedDateTime.now(clockProvider.getClock()), user, OK_READY_TO_BE_CHECKED_IN, ScanAudit.Operation.REVERT);
-                auditingRepository.insert(t.getTicketsReservationId(), userRepository.findIdByUserName(user).orElse(null), eventId, Audit.EventType.REVERT_CHECK_IN, new Date(), Audit.EntityType.TICKET, Integer.toString(t.getId()));
-                extensionManager.handleTicketRevertCheckedIn(ticketRepository.findByUUID(ticketIdentifier));
-                return true;
-            }
-            return false;
-        }).orElse(false);
+        return findAndLockTicket(ticketIdentifier)
+                .map(t -> {
+                    if (t.getStatus() == TicketStatus.CHECKED_IN) {
+                        TicketReservation reservation =
+                                ticketReservationRepository.findReservationById(t.getTicketsReservationId());
+                        boolean onSitePayment = reservation.getPaymentMethod() == PaymentProxy.ON_SITE;
+                        TicketStatus revertedStatus = onSitePayment ? TicketStatus.TO_BE_PAID : TicketStatus.ACQUIRED;
+                        ticketRepository.updateTicketStatusWithUUID(ticketIdentifier, revertedStatus.toString());
+                        var event = eventRepository.findById(eventId);
+                        if (event.supportsLinkedAdditionalServices()) {
+                            additionalServiceItemRepository.updateItemsStatusWithTicketId(
+                                    t.getEventId(),
+                                    t.getTicketsReservationId(),
+                                    t.getId(),
+                                    onSitePayment
+                                            ? AdditionalServiceItem.AdditionalServiceItemStatus.TO_BE_PAID
+                                            : AdditionalServiceItem.AdditionalServiceItemStatus.ACQUIRED);
+                        }
+                        scanAuditRepository.insert(
+                                ticketIdentifier,
+                                eventId,
+                                ZonedDateTime.now(clockProvider.getClock()),
+                                user,
+                                OK_READY_TO_BE_CHECKED_IN,
+                                ScanAudit.Operation.REVERT);
+                        auditingRepository.insert(
+                                t.getTicketsReservationId(),
+                                userRepository.findIdByUserName(user).orElse(null),
+                                eventId,
+                                Audit.EventType.REVERT_CHECK_IN,
+                                new Date(),
+                                Audit.EntityType.TICKET,
+                                Integer.toString(t.getId()));
+                        extensionManager.handleTicketRevertCheckedIn(ticketRepository.findByUUID(ticketIdentifier));
+                        return true;
+                    }
+                    return false;
+                })
+                .orElse(false);
     }
 
     private Optional<Ticket> findAndLockTicket(String uuid) {
         return ticketRepository.findByUUIDForUpdate(uuid);
     }
 
-    public TicketAndCheckInResult evaluateTicketStatus(int eventId, String ticketIdentifier, Optional<String> ticketCode) {
-        return extractStatus(eventRepository.findOptionalById(eventId), ticketRepository.findOptionalByUUID(ticketIdentifier), ticketIdentifier, ticketCode);
+    public TicketAndCheckInResult evaluateTicketStatus(
+            int eventId, String ticketIdentifier, Optional<String> ticketCode) {
+        return extractStatus(
+                eventRepository.findOptionalById(eventId),
+                ticketRepository.findOptionalByUUID(ticketIdentifier),
+                ticketIdentifier,
+                ticketCode);
     }
 
-    public TicketAndCheckInResult evaluateTicketStatus(String eventName, String ticketIdentifier, Optional<String> ticketCode) {
-        return extractStatus(eventRepository.findOptionalByShortName(eventName), ticketRepository.findOptionalByUUID(ticketIdentifier), ticketIdentifier, ticketCode);
+    public TicketAndCheckInResult evaluateTicketStatus(
+            String eventName, String ticketIdentifier, Optional<String> ticketCode) {
+        return extractStatus(
+                eventRepository.findOptionalByShortName(eventName),
+                ticketRepository.findOptionalByUUID(ticketIdentifier),
+                ticketIdentifier,
+                ticketCode);
     }
 
     public TicketCheckInStatusResult retrieveTicketStatus(String ticketIdentifier) {
         var ticket = ticketRepository.findByUUID(ticketIdentifier);
-        return new TicketCheckInStatusResult(ticket.getUuid(), ticket.getFirstName(), ticket.getLastName(), ticket.getStatus() == TicketStatus.CHECKED_IN ? ALREADY_CHECK_IN : OK_READY_TO_BE_CHECKED_IN, ticket.getTags());
+        return new TicketCheckInStatusResult(
+                ticket.getUuid(),
+                ticket.getFirstName(),
+                ticket.getLastName(),
+                ticket.getStatus() == TicketStatus.CHECKED_IN ? ALREADY_CHECK_IN : OK_READY_TO_BE_CHECKED_IN,
+                ticket.getTags());
     }
 
-    private TicketAndCheckInResult extractStatus(int eventId, Optional<Ticket> maybeTicket, String ticketIdentifier, Optional<String> ticketCode) {
+    private TicketAndCheckInResult extractStatus(
+            int eventId, Optional<Ticket> maybeTicket, String ticketIdentifier, Optional<String> ticketCode) {
         return extractStatus(eventRepository.findOptionalById(eventId), maybeTicket, ticketIdentifier, ticketCode);
     }
 
-    private TicketAndCheckInResult extractStatus(Optional<? extends EventCheckInInfo> maybeEvent, Optional<Ticket> maybeTicket, String ticketIdentifier, Optional<String> ticketCode) {
+    private TicketAndCheckInResult extractStatus(
+            Optional<? extends EventCheckInInfo> maybeEvent,
+            Optional<Ticket> maybeTicket,
+            String ticketIdentifier,
+            Optional<String> ticketCode) {
 
         if (maybeEvent.isEmpty()) {
             return new TicketAndCheckInResult(null, new DefaultCheckInResult(EVENT_NOT_FOUND, "Event not found"));
         }
 
         if (maybeTicket.isEmpty()) {
-            return new TicketAndCheckInResult(null, new DefaultCheckInResult(TICKET_NOT_FOUND, "Ticket with uuid " + ticketIdentifier + " not found"));
+            return new TicketAndCheckInResult(
+                    null,
+                    new DefaultCheckInResult(TICKET_NOT_FOUND, "Ticket with uuid " + ticketIdentifier + " not found"));
         }
 
         Ticket ticket = maybeTicket.get();
-        if(ticket.getCategoryId() == null) {
-            return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(INVALID_TICKET_STATE, "Invalid ticket state"));
+        if (ticket.getCategoryId() == null) {
+            return new TicketAndCheckInResult(
+                    new TicketWithCategory(ticket, null),
+                    new DefaultCheckInResult(INVALID_TICKET_STATE, "Invalid ticket state"));
         }
 
         TicketCategory tc = ticketCategoryRepository.getById(ticket.getCategoryId());
 
         EventCheckInInfo event = maybeEvent.get();
-        if(ticketCode.filter(StringUtils::isNotBlank).isEmpty()) {
-            if(ticket.isCheckedIn() && tc.getTicketCheckInStrategy() == TicketCategory.TicketCheckInStrategy.ONCE_PER_DAY) {
-                if(!isBadgeValidNow(tc, event)) {
+        if (ticketCode.filter(StringUtils::isNotBlank).isEmpty()) {
+            if (ticket.isCheckedIn()
+                    && tc.getTicketCheckInStrategy() == TicketCategory.TicketCheckInStrategy.ONCE_PER_DAY) {
+                if (!isBadgeValidNow(tc, event)) {
                     // if the badge is not currently valid, we give an error
-                    return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(INVALID_TICKET_CATEGORY_CHECK_IN_DATE, "Not allowed to check in at this time."));
+                    return new TicketAndCheckInResult(
+                            new TicketWithCategory(ticket, null),
+                            new DefaultCheckInResult(
+                                    INVALID_TICKET_CATEGORY_CHECK_IN_DATE, "Not allowed to check in at this time."));
                 }
                 var ticketsReservationId = ticket.getTicketsReservationId();
                 var now = event.now(clockProvider);
                 var startOfDay = Date.from(now.toInstant().truncatedTo(ChronoUnit.DAYS));
-                var endOfDay = Date.from(now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
-                int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(ticketsReservationId, Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()), startOfDay, endOfDay);
-                if(previousScan > 0) {
-                    return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(BADGE_SCAN_ALREADY_DONE, "Badge scan already done"));
+                var endOfDay =
+                        Date.from(now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+                int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(
+                        ticketsReservationId,
+                        Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()),
+                        startOfDay,
+                        endOfDay);
+                if (previousScan > 0) {
+                    return new TicketAndCheckInResult(
+                            new TicketWithCategory(ticket, null),
+                            new DefaultCheckInResult(BADGE_SCAN_ALREADY_DONE, "Badge scan already done"));
                 }
-                return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(OK_READY_FOR_BADGE_SCAN, "Badge scan already done"));
+                return new TicketAndCheckInResult(
+                        new TicketWithCategory(ticket, null),
+                        new DefaultCheckInResult(OK_READY_FOR_BADGE_SCAN, "Badge scan already done"));
             }
             return new TicketAndCheckInResult(null, new DefaultCheckInResult(EMPTY_TICKET_CODE, "Missing ticket code"));
         }
@@ -327,55 +473,80 @@ public class CheckInManager {
         String code = ticketCode.get();
 
         ZonedDateTime now = event.now(clockProvider);
-        if(!tc.hasValidCheckIn(now, event.getZoneId())) {
+        if (!tc.hasValidCheckIn(now, event.getZoneId())) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy - hh:mm");
-            String from = tc.getValidCheckInFrom() == null ? ".." : formatter.format(tc.getValidCheckInFrom(event.getZoneId()));
-            String to = tc.getValidCheckInTo() == null ? ".." : formatter.format(tc.getValidCheckInTo(event.getZoneId()));
+            String from = tc.getValidCheckInFrom() == null
+                    ? ".."
+                    : formatter.format(tc.getValidCheckInFrom(event.getZoneId()));
+            String to =
+                    tc.getValidCheckInTo() == null ? ".." : formatter.format(tc.getValidCheckInTo(event.getZoneId()));
             String formattedNow = formatter.format(now);
-            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(INVALID_TICKET_CATEGORY_CHECK_IN_DATE,
-                String.format("Invalid check-in date: valid range for category %s is from %s to %s, current time is: %s",
-                    tc.getName(), from, to, formattedNow)));
+            return new TicketAndCheckInResult(
+                    new TicketWithCategory(ticket, tc),
+                    new DefaultCheckInResult(
+                            INVALID_TICKET_CATEGORY_CHECK_IN_DATE,
+                            String.format(
+                                    "Invalid check-in date: valid range for category %s is from %s to %s, current time is: %s",
+                                    tc.getName(), from, to, formattedNow)));
         }
 
         if (!code.equals(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()))) {
-            return new TicketAndCheckInResult(null, new DefaultCheckInResult(INVALID_TICKET_CODE, "Ticket qr code does not match"));
+            return new TicketAndCheckInResult(
+                    null, new DefaultCheckInResult(INVALID_TICKET_CODE, "Ticket qr code does not match"));
         }
 
         final TicketStatus ticketStatus = ticket.getStatus();
 
         if (ticketStatus == TicketStatus.TO_BE_PAID) {
-            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new OnSitePaymentResult(MUST_PAY, "Must pay for ticket", MonetaryUtil.centsToUnit(ticket.getFinalPriceCts(), ticket.getCurrencyCode()), ticket.getCurrencyCode()));
+            return new TicketAndCheckInResult(
+                    new TicketWithCategory(ticket, tc),
+                    new OnSitePaymentResult(
+                            MUST_PAY,
+                            "Must pay for ticket",
+                            MonetaryUtil.centsToUnit(ticket.getFinalPriceCts(), ticket.getCurrencyCode()),
+                            ticket.getCurrencyCode()));
         }
 
         if (ticketStatus == TicketStatus.CHECKED_IN) {
-            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(ALREADY_CHECK_IN, "Error: already checked in"));
+            return new TicketAndCheckInResult(
+                    new TicketWithCategory(ticket, tc),
+                    new DefaultCheckInResult(ALREADY_CHECK_IN, "Error: already checked in"));
         }
 
         if (ticket.getStatus() != TicketStatus.ACQUIRED) {
-            return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(INVALID_TICKET_STATE, "Invalid ticket state, expected ACQUIRED state, received " + ticket.getStatus()));
+            return new TicketAndCheckInResult(
+                    new TicketWithCategory(ticket, tc),
+                    new DefaultCheckInResult(
+                            INVALID_TICKET_STATE,
+                            "Invalid ticket state, expected ACQUIRED state, received " + ticket.getStatus()));
         }
 
-        return new TicketAndCheckInResult(new TicketWithCategory(ticket, tc), new DefaultCheckInResult(OK_READY_TO_BE_CHECKED_IN, "Ready to be checked in"));
+        return new TicketAndCheckInResult(
+                new TicketWithCategory(ticket, tc),
+                new DefaultCheckInResult(OK_READY_TO_BE_CHECKED_IN, "Ready to be checked in"));
     }
 
     private static boolean isBadgeValidNow(TicketCategory tc, EventCheckInInfo event) {
         var zoneId = event.getZoneId();
         var now = ZonedDateTime.now(ClockProvider.clock().withZone(zoneId));
         return now.isAfter(toZoneIdIfNotNull(tc.getValidCheckInFrom(), zoneId).orElse(event.getBegin()))
-            && now.isAfter(toZoneIdIfNotNull(tc.getTicketValidityStart(), zoneId).orElse(event.getBegin()))
-            && now.isBefore(toZoneIdIfNotNull(tc.getTicketValidityEnd(), zoneId).orElse(event.getEnd()));
+                && now.isAfter(
+                        toZoneIdIfNotNull(tc.getTicketValidityStart(), zoneId).orElse(event.getBegin()))
+                && now.isBefore(
+                        toZoneIdIfNotNull(tc.getTicketValidityEnd(), zoneId).orElse(event.getEnd()));
     }
 
     private static Optional<ZonedDateTime> toZoneIdIfNotNull(ZonedDateTime in, ZoneId zoneId) {
         return Optional.ofNullable(in).map(d -> d.withZoneSameInstant(zoneId));
     }
 
-    static Pair<Cipher, SecretKeySpec>  getCypher(String key) {
+    static Pair<Cipher, SecretKeySpec> getCypher(String key) {
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
             int iterations = 1000;
             int keyLength = 256;
-            PBEKeySpec spec = new PBEKeySpec(key.toCharArray(), key.getBytes(StandardCharsets.UTF_8), iterations, keyLength);
+            PBEKeySpec spec =
+                    new PBEKeySpec(key.toCharArray(), key.getBytes(StandardCharsets.UTF_8), iterations, keyLength);
             SecretKey secretKey = factory.generateSecret(spec);
             SecretKeySpec secret = new SecretKeySpec(secretKey.getEncoded(), "AES");
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -385,7 +556,7 @@ public class CheckInManager {
         }
     }
 
-    public static String encrypt(String key, String payload)  {
+    public static String encrypt(String key, String payload) {
         try {
             Pair<Cipher, SecretKeySpec> cipherAndSecret = getCypher(key);
             Cipher cipher = cipherAndSecret.getKey();
@@ -400,141 +571,184 @@ public class CheckInManager {
 
     public List<Integer> getAttendeesIdentifiers(EventAndOrganizationId ev, Date changedSince, String username) {
         return Optional.ofNullable(ev)
-            .filter(EventManager.checkOwnership(username, organizationRepository))
-            .filter(isOfflineCheckInEnabled())
-            .map(event -> ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))
-            .orElseGet(Collections::emptyList);
+                .filter(EventManager.checkOwnership(username, organizationRepository))
+                .filter(isOfflineCheckInEnabled())
+                .map(event -> ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))
+                .orElseGet(Collections::emptyList);
     }
 
     public List<Integer> getAttendeesIdentifiers(int eventId, Date changedSince, String username) {
-        return eventRepository.findOptionalById(eventId)
-            .filter(EventManager.checkOwnership(username, organizationRepository))
-            .map(event -> ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))
-            .orElse(Collections.emptyList());
+        return eventRepository
+                .findOptionalById(eventId)
+                .filter(EventManager.checkOwnership(username, organizationRepository))
+                .map(event -> ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))
+                .orElse(Collections.emptyList());
     }
 
     public List<FullTicketInfo> getAttendeesInformation(int eventId, List<Integer> ids, String username) {
-        return eventRepository.findOptionalById(eventId)
-            .filter(EventManager.checkOwnership(username, organizationRepository))
-            .map(event -> ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids))
-            .orElse(Collections.emptyList());
+        return eventRepository
+                .findOptionalById(eventId)
+                .filter(EventManager.checkOwnership(username, organizationRepository))
+                .map(event -> ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids))
+                .orElse(Collections.emptyList());
     }
 
     public Predicate<EventAndOrganizationId> isOfflineCheckInEnabled() {
-        return configurationManager.areBooleanSettingsEnabledForEvent(ALFIO_PI_INTEGRATION_ENABLED, OFFLINE_CHECKIN_ENABLED);
+        return configurationManager.areBooleanSettingsEnabledForEvent(
+                ALFIO_PI_INTEGRATION_ENABLED, OFFLINE_CHECKIN_ENABLED);
     }
 
     public Predicate<EventAndOrganizationId> isOfflineCheckInAndLabelPrintingEnabled() {
-        return isOfflineCheckInEnabled().and(configurationManager.areBooleanSettingsEnabledForEvent(LABEL_PRINTING_ENABLED));
+        return isOfflineCheckInEnabled()
+                .and(configurationManager.areBooleanSettingsEnabledForEvent(LABEL_PRINTING_ENABLED));
     }
 
-    public Map<String,String> getEncryptedAttendeesInformation(Event ev, Set<String> additionalFields, List<Integer> ids) {
+    public Map<String, String> getEncryptedAttendeesInformation(
+            Event ev, Set<String> additionalFields, List<Integer> ids) {
 
-        return Optional.ofNullable(ev).filter(isOfflineCheckInEnabled()).map(event -> {
-            boolean caseInsensitiveQRCode = ev.supportsQRCodeCaseInsensitive();
-            Map<Integer, TicketCategory> categories = ticketCategoryRepository.findByEventIdAsMap(event.getId());
-            String eventKey = event.getPrivateKey();
+        return Optional.ofNullable(ev)
+                .filter(isOfflineCheckInEnabled())
+                .map(event -> {
+                    boolean caseInsensitiveQRCode = ev.supportsQRCodeCaseInsensitive();
+                    Map<Integer, TicketCategory> categories =
+                            ticketCategoryRepository.findByEventIdAsMap(event.getId());
+                    String eventKey = event.getPrivateKey();
 
-            Function<FullTicketInfo, String> hashedHMAC = ticket -> DigestUtils.sha256Hex(ticket.hmacTicketInfo(eventKey, caseInsensitiveQRCode));
-            var outputColorConfiguration = getOutputColorConfiguration(event, configurationManager);
+                    Function<FullTicketInfo, String> hashedHMAC =
+                            ticket -> DigestUtils.sha256Hex(ticket.hmacTicketInfo(eventKey, caseInsensitiveQRCode));
+                    var outputColorConfiguration = getOutputColorConfiguration(event, configurationManager);
 
-            // fetch polls for event, in order to determine if we have to print PIN or not
-            var polls = pollRepository.findAllForEvent(event.getId());
-            boolean hasPolls = !polls.isEmpty();
-            var allowedTags = hasPolls ? polls.stream().flatMap(p -> p.allowedTags().stream()).toList() : List.<String>of();
+                    // fetch polls for event, in order to determine if we have to print PIN or not
+                    var polls = pollRepository.findAllForEvent(event.getId());
+                    boolean hasPolls = !polls.isEmpty();
+                    var allowedTags = hasPolls
+                            ? polls.stream()
+                                    .flatMap(p -> p.allowedTags().stream())
+                                    .toList()
+                            : List.<String>of();
 
-            Function<FullTicketInfo, String> encryptedBody = ticket -> {
-                Map<String, String> info = new HashMap<>();
-                info.put("firstName", ticket.getFirstName());
-                info.put("lastName", ticket.getLastName());
-                info.put("fullName", ticket.getFullName());
-                info.put("email", ticket.getEmail());
-                info.put("status", ticket.getStatus().toString());
-                info.put("uuid", ticket.getUuid());
-                if(hasPolls && (allowedTags.isEmpty() || CollectionUtils.containsAny(allowedTags, ticket.getTags()))) {
-                    info.put("pin", PinGenerator.uuidToPin(ticket.getUuid()));
-                }
-                info.put("category", ticket.getTicketCategory().getName());
-                if(outputColorConfiguration != null) {
-                    info.put("boxColor", detectBoxColor(outputColorConfiguration, ticket.getCategoryId()));
-                }
+                    Function<FullTicketInfo, String> encryptedBody = ticket -> {
+                        Map<String, String> info = new HashMap<>();
+                        info.put("firstName", ticket.getFirstName());
+                        info.put("lastName", ticket.getLastName());
+                        info.put("fullName", ticket.getFullName());
+                        info.put("email", ticket.getEmail());
+                        info.put("status", ticket.getStatus().toString());
+                        info.put("uuid", ticket.getUuid());
+                        if (hasPolls
+                                && (allowedTags.isEmpty()
+                                        || CollectionUtils.containsAny(allowedTags, ticket.getTags()))) {
+                            info.put("pin", PinGenerator.uuidToPin(ticket.getUuid()));
+                        }
+                        info.put("category", ticket.getTicketCategory().getName());
+                        if (outputColorConfiguration != null) {
+                            info.put("boxColor", detectBoxColor(outputColorConfiguration, ticket.getCategoryId()));
+                        }
 
-                if (!additionalFields.isEmpty()) {
-                    Map<String, String> fields = new HashMap<>();
-                    fields.put("company", trimToEmpty(ticket.getBillingDetails().getCompanyName()));
-                    fields.put("category", ticket.getTicketCategory().getName());
-                    fields.putAll(purchaseContextFieldRepository.findValueForTicketId(ticket.getId(), additionalFields).stream()
-                        .map(vd -> {
-                            try {
-                                if(StringUtils.isNotBlank(vd.getDescription())) {
-                                    Map<String, Object> description = Json.GSON.fromJson(vd.getDescription(), new TypeToken<Map<String, Object>>(){}.getType());
-                                    Object rv = description.get("restrictedValues");
-                                    if(rv instanceof Map) {
-                                        @SuppressWarnings("unchecked")
-                                        Map<String, String> restrictedValues = (Map<String, String>) rv;
-                                        return Pair.of(vd.getName(), restrictedValues.getOrDefault(vd.getValue(), vd.getValue()));
-                                    }
-                                }
-                            } catch (Exception e) {
-                                log.error("cannot deserialize restricted values", e);
-                            }
-                            return Pair.of(vd.getName(), vd.getValue());
-                        })
-                        .collect(toMap(Pair::getLeft, Pair::getRight)));
-                    info.put("additionalInfoJson", Json.toJson(fields));
-                }
+                        if (!additionalFields.isEmpty()) {
+                            Map<String, String> fields = new HashMap<>();
+                            fields.put(
+                                    "company",
+                                    trimToEmpty(ticket.getBillingDetails().getCompanyName()));
+                            fields.put("category", ticket.getTicketCategory().getName());
+                            fields.putAll(
+                                    purchaseContextFieldRepository
+                                            .findValueForTicketId(ticket.getId(), additionalFields)
+                                            .stream()
+                                            .map(vd -> {
+                                                try {
+                                                    if (StringUtils.isNotBlank(vd.getDescription())) {
+                                                        Map<String, Object> description = Json.GSON.fromJson(
+                                                                vd.getDescription(),
+                                                                new TypeToken<Map<String, Object>>() {}.getType());
+                                                        Object rv = description.get("restrictedValues");
+                                                        if (rv instanceof Map) {
+                                                            @SuppressWarnings("unchecked")
+                                                            Map<String, String> restrictedValues =
+                                                                    (Map<String, String>) rv;
+                                                            return Pair.of(
+                                                                    vd.getName(),
+                                                                    restrictedValues.getOrDefault(
+                                                                            vd.getValue(), vd.getValue()));
+                                                        }
+                                                    }
+                                                } catch (Exception e) {
+                                                    log.error("cannot deserialize restricted values", e);
+                                                }
+                                                return Pair.of(vd.getName(), vd.getValue());
+                                            })
+                                            .collect(toMap(Pair::getLeft, Pair::getRight)));
+                            info.put("additionalInfoJson", Json.toJson(fields));
+                        }
 
-                //
-                TicketCategory tc = categories.get(ticket.getCategoryId());
-                if (tc.getValidCheckInFrom() != null) {
-                    info.put("validCheckInFrom", Long.toString(tc.getValidCheckInFrom(event.getZoneId()).toEpochSecond()));
-                }
-                if (tc.getValidCheckInTo() != null) {
-                    info.put("validCheckInTo", Long.toString(tc.getValidCheckInTo(event.getZoneId()).toEpochSecond()));
-                }
-                if (tc.getTicketValidityStart() != null) {
-                    info.put("ticketValidityStart", Long.toString(tc.getTicketValidityStart(event.getZoneId()).toEpochSecond()));
-                }
-                if (tc.getTicketValidityEnd() != null) {
-                    info.put("ticketValidityEnd", Long.toString(tc.getTicketValidityEnd(event.getZoneId()).toEpochSecond()));
-                }
-                info.put("categoryCheckInStrategy", tc.getTicketCheckInStrategy().name());
-                //
+                        //
+                        TicketCategory tc = categories.get(ticket.getCategoryId());
+                        if (tc.getValidCheckInFrom() != null) {
+                            info.put(
+                                    "validCheckInFrom",
+                                    Long.toString(tc.getValidCheckInFrom(event.getZoneId())
+                                            .toEpochSecond()));
+                        }
+                        if (tc.getValidCheckInTo() != null) {
+                            info.put(
+                                    "validCheckInTo",
+                                    Long.toString(tc.getValidCheckInTo(event.getZoneId())
+                                            .toEpochSecond()));
+                        }
+                        if (tc.getTicketValidityStart() != null) {
+                            info.put(
+                                    "ticketValidityStart",
+                                    Long.toString(tc.getTicketValidityStart(event.getZoneId())
+                                            .toEpochSecond()));
+                        }
+                        if (tc.getTicketValidityEnd() != null) {
+                            info.put(
+                                    "ticketValidityEnd",
+                                    Long.toString(tc.getTicketValidityEnd(event.getZoneId())
+                                            .toEpochSecond()));
+                        }
+                        info.put(
+                                "categoryCheckInStrategy",
+                                tc.getTicketCheckInStrategy().name());
+                        //
 
-                var additionalServicesInfo = getAdditionalServicesForTicket(ticket, event);
-                if(!additionalServicesInfo.isEmpty()) {
-                    info.put("additionalServicesInfoJson", Json.toJson(additionalServicesInfo));
-                }
-                String key = ticket.ticketCode(eventKey, caseInsensitiveQRCode);
-                return encrypt(key, Json.toJson(info));
-            };
-            return ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids)
-                .stream()
-                .collect(toMap(hashedHMAC, encryptedBody));
-
-        }).orElseGet(Collections::emptyMap);
+                        var additionalServicesInfo = getAdditionalServicesForTicket(ticket, event);
+                        if (!additionalServicesInfo.isEmpty()) {
+                            info.put("additionalServicesInfoJson", Json.toJson(additionalServicesInfo));
+                        }
+                        String key = ticket.ticketCode(eventKey, caseInsensitiveQRCode);
+                        return encrypt(key, Json.toJson(info));
+                    };
+                    return ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids).stream()
+                            .collect(toMap(hashedHMAC, encryptedBody));
+                })
+                .orElseGet(Collections::emptyMap);
     }
 
-    static CheckInOutputColorConfiguration getOutputColorConfiguration(EventAndOrganizationId event, ConfigurationManager configurationManager) {
-        return configurationManager.getFor(CHECK_IN_COLOR_CONFIGURATION, event.getConfigurationLevel()).getValue()
-            .flatMap(str -> optionally(() -> Json.fromJson(str, CheckInOutputColorConfiguration.class)))
-            .orElse(null);
+    static CheckInOutputColorConfiguration getOutputColorConfiguration(
+            EventAndOrganizationId event, ConfigurationManager configurationManager) {
+        return configurationManager
+                .getFor(CHECK_IN_COLOR_CONFIGURATION, event.getConfigurationLevel())
+                .getValue()
+                .flatMap(str -> optionally(() -> Json.fromJson(str, CheckInOutputColorConfiguration.class)))
+                .orElse(null);
     }
 
     private String loadBoxColor(TicketInfoContainer ticket) {
         var eventAndOrganizationId = eventRepository.findEventAndOrganizationIdById(ticket.getEventId());
-        return detectBoxColor(getOutputColorConfiguration(eventAndOrganizationId, configurationManager), ticket.getCategoryId());
+        return detectBoxColor(
+                getOutputColorConfiguration(eventAndOrganizationId, configurationManager), ticket.getCategoryId());
     }
 
     private static String detectBoxColor(CheckInOutputColorConfiguration outputColorConfiguration, Integer categoryId) {
-        if(outputColorConfiguration == null) {
+        if (outputColorConfiguration == null) {
             return null;
         }
         return outputColorConfiguration.getConfigurations().stream()
-            .filter(cc -> cc.getCategories().contains(categoryId))
-            .map(CheckInOutputColorConfiguration.ColorConfiguration::getColorName)
-            .findFirst()
-            .orElse(outputColorConfiguration.getDefaultColorName());
+                .filter(cc -> cc.getCategories().contains(categoryId))
+                .map(CheckInOutputColorConfiguration.ColorConfiguration::getColorName)
+                .findFirst()
+                .orElse(outputColorConfiguration.getDefaultColorName());
     }
 
     List<AdditionalServiceInfo> getAdditionalServicesForTicket(TicketInfoContainer ticket, Event event) {
@@ -542,48 +756,61 @@ public class CheckInManager {
         String ticketsReservationId = ticket.getTicketsReservationId();
         if (!event.supportsLinkedAdditionalServices()) {
             // return a result only for the first ticket if event does not support linked additional service
-            int firstId = ticketRepository.findFirstTicketIdInReservation(ticketsReservationId).orElseThrow();
-            if(ticket.getId() != firstId) {
+            int firstId = ticketRepository
+                    .findFirstTicketIdInReservation(ticketsReservationId)
+                    .orElseThrow();
+            if (ticket.getId() != firstId) {
                 return List.of();
             }
         }
 
         List<BookedAdditionalService> additionalServices;
         if (event.supportsLinkedAdditionalServices()) {
-            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForTicket(ticketsReservationId, ticket.getId(), ticket.getUserLanguage(), ticket.getEventId());
+            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForTicket(
+                    ticketsReservationId, ticket.getId(), ticket.getUserLanguage(), ticket.getEventId());
         } else {
-            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForReservation(ticketsReservationId, ticket.getUserLanguage(), ticket.getEventId());
+            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForReservation(
+                    ticketsReservationId, ticket.getUserLanguage(), ticket.getEventId());
         }
         boolean additionalServicesEmpty = additionalServices.isEmpty();
-        if(!additionalServicesEmpty) {
-            List<Integer> additionalServiceIds = additionalServices.stream().map(BookedAdditionalService::getAdditionalServiceId).collect(Collectors.toList());
-            Map<Integer, List<AdditionalServiceFieldValue>> fields = purchaseContextFieldRepository.loadTicketFieldsForAdditionalService(ticket.getId(), additionalServiceIds)
-                .stream().collect(Collectors.groupingBy(AdditionalServiceFieldValue::getAdditionalServiceId));
+        if (!additionalServicesEmpty) {
+            List<Integer> additionalServiceIds = additionalServices.stream()
+                    .map(BookedAdditionalService::getAdditionalServiceId)
+                    .collect(Collectors.toList());
+            Map<Integer, List<AdditionalServiceFieldValue>> fields =
+                    purchaseContextFieldRepository
+                            .loadTicketFieldsForAdditionalService(ticket.getId(), additionalServiceIds)
+                            .stream()
+                            .collect(Collectors.groupingBy(AdditionalServiceFieldValue::getAdditionalServiceId));
 
             return additionalServices.stream()
-                .map(as -> new AdditionalServiceInfo(as.getAdditionalServiceName(), as.getCount(), fields.get(as.getAdditionalServiceId())))
-                .collect(Collectors.toList());
+                    .map(as -> new AdditionalServiceInfo(
+                            as.getAdditionalServiceName(), as.getCount(), fields.get(as.getAdditionalServiceId())))
+                    .collect(Collectors.toList());
         }
         return List.of();
     }
 
     public CheckInStatistics getStatistics(String eventName, List<Integer> categories, String username) {
-        return eventRepository.findOptionalByShortName(eventName)
-            .filter(this::areStatsEnabled)
-            .filter(EventManager.checkOwnership(username, organizationRepository))
-            .map(event -> eventRepository.retrieveCheckInStatisticsForEvent(event.getId(), categories))
-            .orElse(null);
+        return eventRepository
+                .findOptionalByShortName(eventName)
+                .filter(this::areStatsEnabled)
+                .filter(EventManager.checkOwnership(username, organizationRepository))
+                .map(event -> eventRepository.retrieveCheckInStatisticsForEvent(event.getId(), categories))
+                .orElse(null);
     }
 
     public List<CheckInLogEntry> retrieveLogEntries(String eventName, String username) {
-        return eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)
-            .filter(EventManager.checkOwnership(username, organizationRepository))
-            .map(event -> scanAuditRepository.loadEntries(event.getId()))
-            .orElse(List.of());
+        return eventRepository
+                .findOptionalEventAndOrganizationIdByShortName(eventName)
+                .filter(EventManager.checkOwnership(username, organizationRepository))
+                .map(event -> scanAuditRepository.loadEntries(event.getId()))
+                .orElse(List.of());
     }
 
     private boolean areStatsEnabled(EventAndOrganizationId event) {
-        return configurationManager.getFor(CHECK_IN_STATS, event.getConfigurationLevel()).getValueAsBooleanOrDefault();
+        return configurationManager
+                .getFor(CHECK_IN_STATS, event.getConfigurationLevel())
+                .getValueAsBooleanOrDefault();
     }
-
 }

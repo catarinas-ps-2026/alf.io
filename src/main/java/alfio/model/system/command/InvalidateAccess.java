@@ -19,7 +19,6 @@ package alfio.model.system.command;
 import alfio.model.Event;
 import alfio.model.Ticket;
 import alfio.model.metadata.TicketMetadataContainer;
-
 import java.util.Objects;
 
 /**

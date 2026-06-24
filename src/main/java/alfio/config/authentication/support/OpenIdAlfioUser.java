@@ -18,19 +18,18 @@ package alfio.config.authentication.support;
 
 import alfio.model.user.Role;
 import alfio.model.user.User;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
 public record OpenIdAlfioUser(
-    String idToken,
-    String subject,
-    String email,
-    User.Type userType,
-    Set<Role> alfioRoles,
-    Map<String, Set<String>> alfioOrganizationAuthorizations
-) implements Serializable {
+        String idToken,
+        String subject,
+        String email,
+        User.Type userType,
+        Set<Role> alfioRoles,
+        Map<String, Set<String>> alfioOrganizationAuthorizations)
+        implements Serializable {
 
     public boolean isAdmin() {
         return userType == User.Type.INTERNAL && alfioRoles.contains(Role.ADMIN);

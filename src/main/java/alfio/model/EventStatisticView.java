@@ -22,17 +22,18 @@ import lombok.Getter;
 @Getter
 public class EventStatisticView {
 
-    public EventStatisticView(@Column("is_containing_orphan_tickets") boolean containsOrphanTickets,
-                              @Column("is_containing_stuck_tickets_count") boolean containsStuckReservations,
-                              @Column("available_seats") int availableSeats,
-                              @Column("not_sold_tickets") int notSoldTickets,
-                              @Column("sold_tickets") int soldTickets,
-                              @Column("checked_in_tickets") int checkedInTickets,
-                              @Column("not_allocated_tickets") int notAllocatedTickets,
-                              @Column("pending_tickets") int pendingTickets,
-                              @Column("released_tickets") int releasedTickets,
-                              @Column("dynamic_allocation") int dynamicAllocation,
-                              @Column("id") int eventId) {
+    public EventStatisticView(
+            @Column("is_containing_orphan_tickets") boolean containsOrphanTickets,
+            @Column("is_containing_stuck_tickets_count") boolean containsStuckReservations,
+            @Column("available_seats") int availableSeats,
+            @Column("not_sold_tickets") int notSoldTickets,
+            @Column("sold_tickets") int soldTickets,
+            @Column("checked_in_tickets") int checkedInTickets,
+            @Column("not_allocated_tickets") int notAllocatedTickets,
+            @Column("pending_tickets") int pendingTickets,
+            @Column("released_tickets") int releasedTickets,
+            @Column("dynamic_allocation") int dynamicAllocation,
+            @Column("id") int eventId) {
         this.eventId = eventId;
         this.containsOrphanTickets = containsOrphanTickets;
         this.containsStuckReservations = containsStuckReservations;
@@ -70,5 +71,4 @@ public class EventStatisticView {
             }
         };
     }
-
 }

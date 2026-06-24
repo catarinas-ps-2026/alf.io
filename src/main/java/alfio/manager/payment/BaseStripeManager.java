@@ -16,6 +16,8 @@
  */
 package alfio.manager.payment;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.support.FeeCalculator;
 import alfio.manager.support.PaymentResult;
 import alfio.manager.system.ConfigurationManager;
@@ -42,17 +44,14 @@ import com.stripe.model.Charge;
 import com.stripe.model.Refund;
 import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
-
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-
-import static alfio.model.system.ConfigurationKeys.*;
 
 @AllArgsConstructor
 class BaseStripeManager {
@@ -67,19 +66,20 @@ class BaseStripeManager {
     private final Environment environment;
 
     private final Map<Class<? extends StripeException>, StripeExceptionHandler> handlers = Map.of(
-        CardException.class, this::handleCardException,
-        InvalidRequestException.class, this::handleInvalidRequestException,
-        AuthenticationException.class, this::handleAuthenticationException,
-        ApiConnectionException.class, this::handleApiConnectionException,
-        StripeException.class, this::handleGenericException
-    );
+            CardException.class, this::handleCardException,
+            InvalidRequestException.class, this::handleInvalidRequestException,
+            AuthenticationException.class, this::handleAuthenticationException,
+            ApiConnectionException.class, this::handleApiConnectionException,
+            StripeException.class, this::handleGenericException);
 
     static {
         Stripe.setAppInfo("Alf.io", "2.x", "https://alf.io");
     }
 
     String getSecretKey(Configurable configurable) {
-        return configurationManager.getFor(STRIPE_SECRET_KEY, configurable.getConfigurationLevel()).getRequiredValue();
+        return configurationManager
+                .getFor(STRIPE_SECRET_KEY, configurable.getConfigurationLevel())
+                .getRequiredValue();
     }
 
     String getWebhookSignatureKey() {
@@ -87,21 +87,29 @@ class BaseStripeManager {
     }
 
     String getPublicKey(PaymentContext context) {
-        if(isConnectEnabled(context)) {
+        if (isConnectEnabled(context)) {
             return configurationManager.getForSystem(STRIPE_PUBLIC_KEY).getRequiredValue();
         }
-        return configurationManager.getFor(STRIPE_PUBLIC_KEY, context.getConfigurationLevel()).getRequiredValue();
+        return configurationManager
+                .getFor(STRIPE_PUBLIC_KEY, context.getConfigurationLevel())
+                .getRequiredValue();
     }
 
     Map<String, ?> getModelOptions(PaymentContext context) {
         Map<String, Object> options = new HashMap<>();
-        options.put("enableSCA", configurationManager.getFor(STRIPE_ENABLE_SCA, context.getConfigurationLevel()).getValueAsBooleanOrDefault());
+        options.put(
+                "enableSCA",
+                configurationManager
+                        .getFor(STRIPE_ENABLE_SCA, context.getConfigurationLevel())
+                        .getValueAsBooleanOrDefault());
         options.put("stripe_p_key", getPublicKey(context));
         return options;
     }
 
     private boolean isConnectEnabled(PaymentContext context) {
-        return configurationManager.getFor(PLATFORM_MODE_ENABLED, context.getConfigurationLevel()).getValueAsBooleanOrDefault();
+        return configurationManager
+                .getFor(PLATFORM_MODE_ENABLED, context.getConfigurationLevel())
+                .getValueAsBooleanOrDefault();
     }
 
     String getSystemSecretKey() {
@@ -111,8 +119,9 @@ class BaseStripeManager {
     Optional<Boolean> processWebhookEvent(String body, String signature) {
         try {
             com.stripe.model.Event event = Webhook.constructEvent(body, signature, getWebhookSignatureKey());
-            if("account.application.deauthorized".equals(event.getType())
-                && Boolean.TRUE.equals(event.getLivemode()) == environment.acceptsProfiles(Profiles.of("dev", "test", "demo"))) {
+            if ("account.application.deauthorized".equals(event.getType())
+                    && Boolean.TRUE.equals(event.getLivemode())
+                            == environment.acceptsProfiles(Profiles.of("dev", "test", "demo"))) {
                 return Optional.of(revokeToken(event.getAccount()));
             }
             return Optional.of(true);
@@ -125,7 +134,7 @@ class BaseStripeManager {
     private boolean revokeToken(String accountId) {
         String key = ConfigurationKeys.STRIPE_CONNECTED_ID.getValue();
         Optional<Integer> optional = configurationRepository.findOrganizationIdByKeyAndValue(key, accountId);
-        if(optional.isPresent()) {
+        if (optional.isPresent()) {
             Integer organizationId = optional.get();
             log.warn("revoking access token {} for organization {}", accountId, organizationId);
             configurationManager.deleteOrganizationLevelByKey(key, organizationId, UserManager.ADMIN_USERNAME);
@@ -147,12 +156,12 @@ class BaseStripeManager {
     Optional<Charge> chargeCreditCard(PaymentSpecification spec) throws StripeException {
         var chargeParams = createParams(spec, Map.of());
         chargeParams.put("card", spec.getGatewayToken().getToken());
-        return charge(spec, chargeParams );
+        return charge(spec, chargeParams);
     }
 
     protected Map<String, Object> createParams(PaymentSpecification spec, Map<String, String> baseMetadata) {
         final int items;
-        if(spec.getPurchaseContext().getType() == PurchaseContextType.event) {
+        if (spec.getPurchaseContext().getType() == PurchaseContextType.event) {
             items = ticketRepository.countTicketsInReservation(spec.getReservationId());
         } else {
             items = 1;
@@ -161,27 +170,30 @@ class BaseStripeManager {
         chargeParams.put("amount", spec.getPriceWithVAT());
         var purchaseContext = spec.getPurchaseContext();
         FeeCalculator.getCalculator(purchaseContext, configurationManager, spec.getCurrencyCode())
-            .apply(items, (long) spec.getPriceWithVAT())
-            .filter(l -> l > 0)
-            .ifPresent(fee -> chargeParams.put("application_fee_amount", fee));
+                .apply(items, (long) spec.getPriceWithVAT())
+                .filter(l -> l > 0)
+                .ifPresent(fee -> chargeParams.put("application_fee_amount", fee));
         chargeParams.put("currency", purchaseContext.getCurrency());
         var description = purchaseContext.ofType(PurchaseContextType.event) ? "ticket(s) for event" : "x subscription";
-        chargeParams.put("description", String.format("%d %s %s", items, description, purchaseContext.getDisplayName()));
+        chargeParams.put(
+                "description", String.format("%d %s %s", items, description, purchaseContext.getDisplayName()));
         chargeParams.put("metadata", MetadataBuilder.buildMetadata(spec, baseMetadata));
         return chargeParams;
     }
 
-    protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams ) throws StripeException {
-        Optional<RequestOptions> opt = options(spec.getPurchaseContext(), builder -> builder.setIdempotencyKey(spec.getReservationId()));
-        if(opt.isEmpty()) {
+    protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams)
+            throws StripeException {
+        Optional<RequestOptions> opt =
+                options(spec.getPurchaseContext(), builder -> builder.setIdempotencyKey(spec.getReservationId()));
+        if (opt.isEmpty()) {
             return Optional.empty();
         }
         RequestOptions options = opt.get();
         Charge charge = Charge.create(chargeParams, options);
-        if(charge.getBalanceTransactionObject() == null) {
+        if (charge.getBalanceTransactionObject() == null) {
             try {
                 charge.setBalanceTransactionObject(retrieveBalanceTransaction(charge.getBalanceTransaction(), options));
-            } catch(Exception e) {
+            } catch (Exception e) {
                 log.warn("can't retrieve balance transaction", e);
             }
         }
@@ -189,13 +201,14 @@ class BaseStripeManager {
     }
 
     PaymentResult getToken(PaymentSpecification spec) {
-        if(spec.getGatewayToken() != null && spec.getGatewayToken().getPaymentProvider() == PaymentProxy.STRIPE) {
+        if (spec.getGatewayToken() != null && spec.getGatewayToken().getPaymentProvider() == PaymentProxy.STRIPE) {
             return PaymentResult.initialized(spec.getGatewayToken().getToken());
         }
         return PaymentResult.failed(ErrorsCode.STEP_2_MISSING_STRIPE_TOKEN);
     }
 
-    BalanceTransaction retrieveBalanceTransaction(String balanceTransaction, RequestOptions options) throws StripeException {
+    BalanceTransaction retrieveBalanceTransaction(String balanceTransaction, RequestOptions options)
+            throws StripeException {
         return BalanceTransaction.retrieve(balanceTransaction, options);
     }
 
@@ -207,22 +220,28 @@ class BaseStripeManager {
         return options(purchaseContext, UnaryOperator.identity());
     }
 
-    Optional<RequestOptions> options(PurchaseContext purchaseContext, UnaryOperator<RequestOptions.RequestOptionsBuilder> optionsBuilderConfigurer) {
+    Optional<RequestOptions> options(
+            PurchaseContext purchaseContext,
+            UnaryOperator<RequestOptions.RequestOptionsBuilder> optionsBuilderConfigurer) {
         RequestOptions.RequestOptionsBuilder builder = optionsBuilderConfigurer.apply(RequestOptions.builder());
-        if(isConnectEnabled(new PaymentContext(purchaseContext))) {
-            return configurationManager.getFor(STRIPE_CONNECTED_ID, purchaseContext.getConfigurationLevel()).getValue()
-                .map(connectedId -> {
-                    //connected stripe account
-                    builder.setStripeAccount(connectedId);
-                    return builder.setApiKey(getSystemSecretKey()).build();
-                });
+        if (isConnectEnabled(new PaymentContext(purchaseContext))) {
+            return configurationManager
+                    .getFor(STRIPE_CONNECTED_ID, purchaseContext.getConfigurationLevel())
+                    .getValue()
+                    .map(connectedId -> {
+                        // connected stripe account
+                        builder.setStripeAccount(connectedId);
+                        return builder.setApiKey(getSystemSecretKey()).build();
+                    });
         }
         return Optional.of(builder.setApiKey(getSecretKey(purchaseContext)).build());
     }
 
     Optional<String> getConnectedAccount(PaymentContext paymentContext) {
-        if(isConnectEnabled(paymentContext)) {
-            return configurationManager.getFor(STRIPE_CONNECTED_ID, paymentContext.getConfigurationLevel()).getValue();
+        if (isConnectEnabled(paymentContext)) {
+            return configurationManager
+                    .getFor(STRIPE_CONNECTED_ID, paymentContext.getConfigurationLevel())
+                    .getValue();
         }
         return Optional.empty();
     }
@@ -230,13 +249,19 @@ class BaseStripeManager {
     Optional<PaymentInformation> getInfo(Transaction transaction, PurchaseContext purchaseContext) {
         try {
             Optional<RequestOptions> requestOptionsOptional = options(purchaseContext);
-            if(requestOptionsOptional.isPresent()) {
+            if (requestOptionsOptional.isPresent()) {
                 RequestOptions options = requestOptionsOptional.get();
                 Charge charge = retrieveCharge(transaction.getTransactionId(), options);
                 String paidAmount = MonetaryUtil.formatCents(charge.getAmount(), charge.getCurrency());
                 String refundedAmount = MonetaryUtil.formatCents(charge.getAmountRefunded(), charge.getCurrency());
-                List<BalanceTransaction.FeeDetail> fees = retrieveBalanceTransaction(charge.getBalanceTransaction(), options).getFeeDetails();
-                return Optional.of(new PaymentInformation(paidAmount, refundedAmount, getFeeAmount(fees, "stripe_fee"), getFeeAmount(fees, "application_fee")));
+                List<BalanceTransaction.FeeDetail> fees = retrieveBalanceTransaction(
+                                charge.getBalanceTransaction(), options)
+                        .getFeeDetails();
+                return Optional.of(new PaymentInformation(
+                        paidAmount,
+                        refundedAmount,
+                        getFeeAmount(fees, "stripe_fee"),
+                        getFeeAmount(fees, "application_fee")));
             }
             return Optional.empty();
         } catch (StripeException e) {
@@ -246,11 +271,11 @@ class BaseStripeManager {
 
     static String getFeeAmount(List<BalanceTransaction.FeeDetail> fees, String feeType) {
         return fees.stream()
-            .filter(f -> f.getType().equals(feeType))
-            .findFirst()
-            .map(BalanceTransaction.FeeDetail::getAmount)
-            .map(String::valueOf)
-            .orElse(null);
+                .filter(f -> f.getType().equals(feeType))
+                .findFirst()
+                .map(BalanceTransaction.FeeDetail::getAmount)
+                .map(String::valueOf)
+                .orElse(null);
     }
 
     // https://stripe.com/docs/api#create_refund
@@ -258,25 +283,33 @@ class BaseStripeManager {
         Optional<Integer> amount = Optional.ofNullable(amountToRefund);
         String chargeId = transaction.getTransactionId();
         try {
-            String amountOrFull = amount.map(p -> MonetaryUtil.formatCents(p, transaction.getCurrency())).orElse("full");
+            String amountOrFull = amount.map(p -> MonetaryUtil.formatCents(p, transaction.getCurrency()))
+                    .orElse("full");
             log.info("Stripe: trying to do a refund for payment {} with amount: {}", chargeId, amountOrFull);
             Map<String, Object> params = new HashMap<>();
             params.put("charge", chargeId);
             amount.ifPresent(a -> params.put("amount", a));
-            if(transaction.getPlatformFee() > 0 && isConnectEnabled(new PaymentContext(purchaseContext))) {
+            if (transaction.getPlatformFee() > 0 && isConnectEnabled(new PaymentContext(purchaseContext))) {
                 params.put("refund_application_fee", true);
             }
 
             Optional<RequestOptions> requestOptionsOptional = options(purchaseContext);
-            if(requestOptionsOptional.isPresent()) {
+            if (requestOptionsOptional.isPresent()) {
                 RequestOptions options = requestOptionsOptional.get();
                 Refund r = Refund.create(params, options);
                 boolean pending = PENDING.equals(r.getStatus());
-                if(SUCCEEDED.equals(r.getStatus()) || pending) {
-                    log.info("Stripe: refund for payment {} {} for amount: {}", chargeId, pending ? "registered": "executed with success", amountOrFull);
+                if (SUCCEEDED.equals(r.getStatus()) || pending) {
+                    log.info(
+                            "Stripe: refund for payment {} {} for amount: {}",
+                            chargeId,
+                            pending ? "registered" : "executed with success",
+                            amountOrFull);
                     return true;
                 } else {
-                    log.warn("Stripe: was not able to refund payment with id {}, returned status is not 'succeded' but {}", chargeId, r.getStatus());
+                    log.warn(
+                            "Stripe: was not able to refund payment with id {}, returned status is not 'succeded' but {}",
+                            chargeId,
+                            r.getStatus());
                     return false;
                 }
             }
@@ -287,22 +320,26 @@ class BaseStripeManager {
         }
     }
 
-    boolean accept(PaymentMethod paymentMethod, PaymentContext context,
-                   EnumSet<ConfigurationKeys> additionalKeys,
-                   Predicate<Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> subValidator) {
-        return paymentMethod == StaticPaymentMethods.CREDIT_CARD
-            && isActive(context, additionalKeys, subValidator);
+    boolean accept(
+            PaymentMethod paymentMethod,
+            PaymentContext context,
+            EnumSet<ConfigurationKeys> additionalKeys,
+            Predicate<Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> subValidator) {
+        return paymentMethod == StaticPaymentMethods.CREDIT_CARD && isActive(context, additionalKeys, subValidator);
     }
 
-    boolean isActive(PaymentContext context,
-                     EnumSet<ConfigurationKeys> additionalKeys,
-                     Predicate<Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> subValidator) {
+    boolean isActive(
+            PaymentContext context,
+            EnumSet<ConfigurationKeys> additionalKeys,
+            Predicate<Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration>> subValidator) {
         var optionsToLoad = EnumSet.copyOf(additionalKeys);
         optionsToLoad.addAll(EnumSet.of(STRIPE_CC_ENABLED, PLATFORM_MODE_ENABLED, STRIPE_CONNECTED_ID));
         var configuration = configurationManager.getFor(optionsToLoad, context.getConfigurationLevel());
         return configuration.get(STRIPE_CC_ENABLED).getValueAsBooleanOrDefault()
-            && (!configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault() || context.getConfigurationLevel().getPathLevel() == ConfigurationPathLevel.SYSTEM || configuration.get(STRIPE_CONNECTED_ID).isPresent())
-            && subValidator.test(configuration);
+                && (!configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()
+                        || context.getConfigurationLevel().getPathLevel() == ConfigurationPathLevel.SYSTEM
+                        || configuration.get(STRIPE_CONNECTED_ID).isPresent())
+                && subValidator.test(configuration);
     }
 
     String handleException(StripeException exc) {
@@ -311,7 +348,7 @@ class BaseStripeManager {
 
     private StripeExceptionHandler findExceptionHandler(StripeException exc) {
         final Optional<StripeExceptionHandler> eh = Optional.ofNullable(handlers.get(exc.getClass()));
-        if(eh.isEmpty()) {
+        if (eh.isEmpty()) {
             log.warn("cannot find an ExceptionHandler for {}. Falling back to the default one.", exc.getClass());
         }
         return eh.orElseGet(() -> handlers.get(StripeException.class));
@@ -326,7 +363,7 @@ class BaseStripeManager {
      * @return the code
      */
     private String handleCardException(StripeException e) {
-        CardException ce = (CardException)e;
+        CardException ce = (CardException) e;
         return "error.STEP2_STRIPE_" + ce.getCode();
     }
 
@@ -336,7 +373,7 @@ class BaseStripeManager {
      * @return message code
      */
     private String handleInvalidRequestException(StripeException e) {
-        InvalidRequestException ire = (InvalidRequestException)e;
+        InvalidRequestException ire = (InvalidRequestException) e;
         return "error.STEP2_STRIPE_invalid_" + ire.getParam();
     }
 
@@ -374,5 +411,4 @@ class BaseStripeManager {
     private interface StripeExceptionHandler {
         String handle(StripeException exc);
     }
-
 }

@@ -41,7 +41,6 @@ La estrategia de integración adoptada es **Big Bang incremental**: primero se i
 - **Estrategia Big Bang incremental:** Estrategia de integración donde los módulos se van conectando en grupos lógicos (de infraestructura a negocio) antes de integrar el sistema completo.
 - **Smoke Test:** Conjunto mínimo de pruebas de integración que verifica que el sistema arranca y sus flujos principales funcionan, sin entrar en todos los casos de borde.
 - **API Contract:** Acuerdo implícito sobre la forma (endpoints, schemas JSON, códigos HTTP) de la API REST. Las pruebas de integración validan su cumplimiento.
-- **End-to-End parcial (E2E parcial):** Flujo que atraviesa varias capas reales (Controller → Manager → Repository → DB) sin involucrar la interfaz de usuario.
 
 ---
 
@@ -56,7 +55,7 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - **Técnica:** `@SpringBootTest` con Testcontainers (PostgreSQL).
 - **Foco:** Migraciones de esquema, configuración de datasource, inicialización de beans críticos.
 
-#### Subproceso 2 – Integración de Capas de Negocio (Backend E2E parcial)
+#### Subproceso 2 – Integración de Capas de Negocio
 - **Objetivo:** Validar que los flujos de negocio completos (Controller → Manager → Repository → DB) funcionan correctamente de extremo a extremo en el backend.
 - **Técnica:** Tests `@SpringBootTest` con `MockMvc` o `TestRestTemplate` contra un PostgreSQL real en contenedor.
 - **Foco:**
@@ -93,7 +92,7 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - Flujos completos Controller → Manager → Repository → DB para los módulos críticos.
 - Contrato de la API REST: códigos HTTP, schemas JSON, manejo de errores.
 - Integración del sistema de autenticación (SSO/OIDC) con el contexto de Spring Security.
-- Envío de correos transaccionales (con servidor simulado).
+- Envío de correos transaccionales.
 - Comunicación entre el frontend Angular y los endpoints del backend.
 
 #### Elementos Excluidos
@@ -101,7 +100,7 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - **Pruebas E2E con navegador (Selenium/Playwright):** Quedan fuera del alcance de este plan.
 - **Transacciones reales con pasarelas de pago (Stripe, PayPal):** Solo se usan ambientes sandbox o mocks de alto nivel.
 - **Pruebas de seguridad avanzadas (Penetration Testing):** No se auditan vulnerabilidades de red ni inyección SQL.
-- **Pruebas de aceptación del usuario (UAT):** Son responsabilidad del docente y quedan para la validación final académica.
+- **Pruebas de aceptación del usuario (UAT):** Quedan para la validación final académica.
 
 ### Suposiciones y Restricciones
 
@@ -109,10 +108,10 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - Existe un entorno con Docker disponible para levantar contenedores de Testcontainers.
 - Las pruebas unitarias ya están aprobadas y con cobertura ≥ 85% antes de iniciar la integración.
 - El esquema de base de datos se crea exclusivamente vía Flyway (sin scripts manuales).
-- El servidor SMTP de pruebas puede reemplazarse por un servicio simulado (MailHog o modo log).
+- Se tiene un servidor SMTP disponible para su uso en el entorno de pruebas.
 
 **Restricciones**
-- Cada suite de integración debe completarse en menos de 15 minutos en el pipeline de CI.
+- Las suites de integración deben completarse en menos de 15 minutos en el pipeline de CI.
 - Las pruebas de integración deben ser reproducibles: no deben depender de datos preexistentes en la base de datos.
 - Cada test debe limpiar su estado al finalizar (uso de `@Transactional` con rollback o truncado de tablas).
 
@@ -137,10 +136,8 @@ Se mantiene el mismo esquema de comunicación definido en el [[Plan-de-Pruebas-U
 | Punto de Comunicación | Propósito | Frecuencia | Responsable |
 | :--- | :--- | :--- | :--- |
 | Sprint Planning | Planificar pruebas de integración del sprint | Inicio de sprint | Tech Lead |
-| Daily Standup | Sincronización de avances y bloqueos | Diario | Desarrollador |
 | Sprint Review | Demostrar pruebas y resultados al docente | Fin de sprint | Tech Lead |
 | Reporte de defectos | Reportar fallos de integración encontrados | Al encontrarse | Desarrollador |
-| Reunión con docente | Validar avances y recibir feedback | 2 veces por semana | Tech Lead |
 
 ### Participantes del Equipo
 
@@ -215,7 +212,7 @@ public abstract class BaseIntegrationTest {
 
 ### Estrategia de Integración
 
-Se adopta la estrategia **Big Bang incremental por módulos**, dividida en tres fases:
+Se adopta la estrategia incremental por módulos, dividida en tres fases:
 
 | Fase | Descripción | Módulos Involucrados |
 | :--- | :--- | :--- |
@@ -228,7 +225,6 @@ Las fases son **secuenciales**: la Fase 2 solo comienza cuando la Fase 1 pasa al
 ### Entregables de Prueba
 
 - **Reporte de Ejecución de Pruebas de Integración:** Resultados generados por JUnit / GitHub Actions con detalle por test y suite.
-- **Reporte de Cobertura de Integración:** Evidencia de la cobertura alcanzada en los flujos integrados (JaCoCo).
 - **Matriz de Trazabilidad de Integración:** Documento que vincula cada prueba de integración con el flujo de negocio o requisito funcional que valida.
 - **Registro de Defectos de Integración:** Lista de bugs encontrados durante la integración, con severidad, estado y responsable de corrección.
 
@@ -243,7 +239,7 @@ Las fases son **secuenciales**: la Fase 2 solo comienza cuando la Fase 1 pasa al
 
 El proceso de pruebas de integración se dará por concluido cuando:
 
-1. **Todas las fases aprobadas:** Las tres fases de la estrategia Big Bang incremental pasan al 100% en el pipeline de CI.
+1. **Todas las fases aprobadas:** Las tres fases de la estrategia incremental pasan al 100% en el pipeline de CI.
 2. **Sin defectos críticos abiertos:** No existen bugs de integración con severidad ≥ 12 (según la fórmula Probabilidad × Impacto) sin resolver.
 3. **Entregables completos:** El reporte de ejecución, el reporte de cobertura y la matriz de trazabilidad están publicados en la Wiki.
 4. **Aprobación del Tech Lead:** Cada suite debe estar revisada y aprobada mediante Pull Request por Christian Mestas.
@@ -253,11 +249,9 @@ El proceso de pruebas de integración se dará por concluido cuando:
 
 | Métrica | Descripción | Objetivo |
 | :--- | :--- | :--- |
-| Cobertura de flujos de negocio | % de flujos de negocio críticos cubiertos por al menos una prueba de integración | ≥ 90% |
 | Tasa de éxito de pruebas | % de pruebas que pasan en el pipeline de CI | 100% en rama `main` |
 | Tiempo de ejecución de suite | Tiempo total de ejecución de todas las pruebas de integración en CI | ≤ 15 min |
-| Defectos de integración encontrados | Número de bugs identificados por fase | Monitoreo continuo |
-| Flaky tests | Número de pruebas con resultados inconsistentes | 0 tolerados en `main` |
+| Flaky tests | Número de pruebas con resultados inconsistentes (fallan entre ejecuciones) | 0 en `main` |
 
 ### Requisitos del Entorno de Pruebas
 
@@ -299,15 +293,32 @@ Matriz RACI para las actividades de pruebas de integración:
 
 ## Cronograma
 
-El cronograma de las pruebas de integración se gestiona mediante el Roadmap de GitHub del equipo, en continuidad con el cronograma del plan de pruebas unitarias. Las fases se ejecutan de manera secuencial dentro del sprint activo:
+El cronograma de las pruebas de integración se extiende durante 1 sprint de 2 semanas (del 11 al 24 de junio de 2026), en continuidad con el cronograma del plan de pruebas unitarias. Las fases se ejecutan de manera secuencial: la Fase 2 solo comienza cuando la Fase 1 tiene el pipeline verde, y la Fase 3 cuando la Fase 2 ha sido aprobada. El detalle de las 20 tareas planificadas es el siguiente:
 
-| Semana | Fase | Actividades |
-| :--- | :--- | :--- |
-| Semana 1 | Fase 1 – Infraestructura | Configuración de Testcontainers, validación de Flyway y arranque de Spring Context. |
-| Semana 1–2 | Fase 2 – Negocio Core | Implementación de pruebas de flujos de reserva, pago y check-in. |
-| Semana 2 | Fase 3 – API y Frontend | Pruebas de contrato REST e integración Frontend–Backend. Consolidación de reportes. |
+| N° | Semana | Fecha Entrega | Fase | Tarea | Asignado(s) |
+| :---: | :--- | :--- | :--- | :--- | :--- |
+| 1 | Semana 1 | 11 jun | Fase 1 | Configurar `BaseIntegrationTest` con Testcontainers (PostgreSQL 15) y `@DynamicPropertySource` | Christian Mestas |
+| 2 | Semana 1 | 11 jun | Fase 1 | Configurar pipeline de GitHub Actions para suites de integración (jobs paralelos, caché de Docker) | Christian Mestas |
+| 3 | Semana 1 | 12 jun | Fase 1 | Validar aplicación de las 195 migraciones Flyway (V1–V206) sobre contenedor PostgreSQL real | Mariel Jara |
+| 4 | Semana 1 | 12 jun | Fase 1 | Verificar arranque del contexto Spring Boot (`@SpringBootTest`) con datasource de Testcontainers | Mariel Jara |
+| 5 | Semana 1 | 13 jun | Fase 1 | Test `EventRepository` y `TicketRepository` – CRUD y queries contra PostgreSQL real | Gustavo Sequeiros |
+| 6 | Semana 1 | 13 jun | Fase 1 | Test `TicketReservationRepository` y `ConfigurationRepository` – persistencia y paginación | Gustavo Sequeiros |
+| 7 | Semana 1 | 16 jun | Fase 1 | Test `AdditionalServiceRepository` y `PromoCodeDiscountRepository` – datos complementarios | Mathias Barrios |
+| 8 | Semana 1 | 16 jun | Fase 1 | Validar scripts de post-migración (afterMigrateApplied__000–__018) y vistas de estadísticas | Mathias Barrios |
+| 9 | Semana 1 | 17 jun | Fase 1 | Test de integridad referencial: foreign keys y constraints entre tablas principales | Rodrigo Fernandez |
+| 10 | Semana 1 | 17 jun | Fase 1 | Test `UserRepository` y `OrganizationRepository` – operaciones de usuarios y organizaciones | Alvaro Quispe |
+| 11 | Semana 2 | 18 jun | Fase 2 | Test `EventManager` – flujo completo de creación y configuración de eventos | Mariel Jara |
+| 12 | Semana 2 | 18 jun | Fase 2 | Test `TicketReservationManager` – flujo de reserva con cálculo de precios e impuestos | Rodrigo Fernandez |
+| 13 | Semana 2 | 19 jun | Fase 2 | Test `PaymentManager` – orquestación de pago con stubs de Stripe/PayPal | Rodrigo Fernandez |
+| 14 | Semana 2 | 19 jun | Fase 2 | Test `NotificationManager` y `CheckInManager` – emails transaccionales y check-in | Alvaro Quispe |
+| 15 | Semana 2 | 20 jun | Fase 2 | Test `SubscriptionManager`, `PromoCodeRequestManager` y `GroupManager` – suscripciones, descuentos y grupos | Gustavo Sequeiros |
+| 16 | Semana 2 | 20 jun | Fase 2 | Test E2E `NormalFlowE2ETest` – flujo completo reserva→pago→email→check-in | Christian Mestas |
+| 17 | Semana 2 | 23 jun | Fase 3 | Test contrato API admin: `EventApiController`, `ConfigurationApiController`, `AdminReservationApiController` | Mariel Jara |
+| 18 | Semana 2 | 23 jun | Fase 3 | Test webhooks de pago: `StripePaymentWebhookController`, `PayPalCallbackController`, `MolliePaymentWebhookController` | Alvaro Quispe |
+| 19 | Semana 2 | 24 jun | Fase 3 | Test contrato API pública: `EventApiV2Controller`, `ReservationApiV2Controller`, `TicketApiV2Controller` | Mathias Barrios |
+| 20 | Semana 2 | 24 jun | Fase 3 | Test integración frontend Angular (reserva/pago) + Lit admin + consolidación de reportes y Wiki | Christian Mestas, Mariel Jara |
 
 > [!IMPORTANT]
-> Las Fases son secuenciales. No se inicia la Fase 2 hasta que la Fase 1 tenga el pipeline verde. El reporte final debe estar publicado en la Wiki antes del cierre académico del sprint.
+> Las Fases son secuenciales. No se inicia la Fase 2 hasta que la Fase 1 tenga el pipeline verde. No se inicia la Fase 3 hasta que la Fase 2 haya sido aprobada. El reporte final debe estar publicado en la Wiki antes del 24 de junio (cierre del sprint).
 
 

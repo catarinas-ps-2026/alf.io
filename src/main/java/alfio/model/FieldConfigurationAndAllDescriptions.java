@@ -16,13 +16,12 @@
  */
 package alfio.model;
 
-import lombok.Getter;
-import lombok.experimental.Delegate;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.experimental.Delegate;
 
 @Getter
 public class FieldConfigurationAndAllDescriptions {
@@ -32,10 +31,11 @@ public class FieldConfigurationAndAllDescriptions {
 
     private final Map<String, PurchaseContextFieldDescription> description;
 
-
-    public FieldConfigurationAndAllDescriptions(PurchaseContextFieldConfiguration purchaseContextFieldConfiguration,
-                                                List<PurchaseContextFieldDescription> descriptions) {
+    public FieldConfigurationAndAllDescriptions(
+            PurchaseContextFieldConfiguration purchaseContextFieldConfiguration,
+            List<PurchaseContextFieldDescription> descriptions) {
         this.purchaseContextFieldConfiguration = purchaseContextFieldConfiguration;
-        this.description = descriptions.stream().collect(Collectors.toMap(PurchaseContextFieldDescription::getLocale, Function.identity()));
+        this.description = descriptions.stream()
+                .collect(Collectors.toMap(PurchaseContextFieldDescription::getLocale, Function.identity()));
     }
 }

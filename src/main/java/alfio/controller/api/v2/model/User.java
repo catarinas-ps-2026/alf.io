@@ -26,11 +26,7 @@ public class User {
     private final Type type;
     private final PublicUserProfile profile;
 
-    public User(String firstName,
-                String lastName,
-                String emailAddress,
-                Type type,
-                PublicUserProfile profile) {
+    public User(String firstName, String lastName, String emailAddress, Type type, PublicUserProfile profile) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.emailAddress = emailAddress;

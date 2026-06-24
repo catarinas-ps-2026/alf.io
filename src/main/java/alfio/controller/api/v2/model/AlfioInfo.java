@@ -16,18 +16,14 @@
  */
 package alfio.controller.api.v2.model;
 
-
 public record AlfioInfo(
-    boolean demoModeEnabled,
-    boolean devModeEnabled,
-    boolean prodModeEnabled,
-    AnalyticsConfiguration analyticsConfiguration,
-    String globalPrivacyPolicyUrl,
-    String globalTermsUrl,
-    InvoicingConfiguration invoicingConfiguration,
-    String announcementBannerContentHTML,
-    WalletConfiguration walletConfiguration,
-    ChallengeConfiguration challengeConfiguration
-) {
-
-}
+        boolean demoModeEnabled,
+        boolean devModeEnabled,
+        boolean prodModeEnabled,
+        AnalyticsConfiguration analyticsConfiguration,
+        String globalPrivacyPolicyUrl,
+        String globalTermsUrl,
+        InvoicingConfiguration invoicingConfiguration,
+        String announcementBannerContentHTML,
+        WalletConfiguration walletConfiguration,
+        ChallengeConfiguration challengeConfiguration) {}

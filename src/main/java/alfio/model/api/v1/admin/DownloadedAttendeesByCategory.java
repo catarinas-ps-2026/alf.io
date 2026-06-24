@@ -17,9 +17,8 @@
 package alfio.model.api.v1.admin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
-public record DownloadedAttendeesByCategory(@JsonProperty("ticketCategoryId") Integer ticketCategoryId,
-                                            @JsonProperty("attendees") List<DownloadedAttendeeData> attendees) {
-}
+public record DownloadedAttendeesByCategory(
+        @JsonProperty("ticketCategoryId") Integer ticketCategoryId,
+        @JsonProperty("attendees") List<DownloadedAttendeeData> attendees) {}

@@ -16,9 +16,8 @@
  */
 package alfio.controller.api.support;
 
-import lombok.Getter;
-
 import java.beans.ConstructorProperties;
+import lombok.Getter;
 
 @Getter
 public class CurrencyDescriptor {

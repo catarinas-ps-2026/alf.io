@@ -18,12 +18,12 @@ package alfio.model.api.v1.admin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record ReservationBillingData(@JsonProperty("fullName") String fullName,
-                                     @JsonProperty("company") String company,
-                                     @JsonProperty("line1") String line1,
-                                     @JsonProperty("line2") String line2,
-                                     @JsonProperty("zip") String zip,
-                                     @JsonProperty("city") String city,
-                                     @JsonProperty("state") String state,
-                                     @JsonProperty("countryCode") String countryCode) {
-}
+public record ReservationBillingData(
+        @JsonProperty("fullName") String fullName,
+        @JsonProperty("company") String company,
+        @JsonProperty("line1") String line1,
+        @JsonProperty("line2") String line2,
+        @JsonProperty("zip") String zip,
+        @JsonProperty("city") String city,
+        @JsonProperty("state") String state,
+        @JsonProperty("countryCode") String countryCode) {}

@@ -21,9 +21,8 @@ import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
+import lombok.Getter;
 
 @Getter
 public class ScanAudit {
@@ -40,11 +39,12 @@ public class ScanAudit {
     private final Operation operation;
 
     @JsonCreator
-    public ScanAudit(@JsonProperty("ticketUuid") @Column("ticket_uuid") String ticketUuid,
-                     @JsonProperty("scanTimestamp") @Column("scan_ts") LocalDateTime scanTimestamp,
-                     @JsonProperty("username") @Column("username") String username,
-                     @JsonProperty("checkInStatus") @Column("check_in_status") CheckInStatus checkInStatus,
-                     @JsonProperty("operation") @Column("operation") Operation operation) {
+    public ScanAudit(
+            @JsonProperty("ticketUuid") @Column("ticket_uuid") String ticketUuid,
+            @JsonProperty("scanTimestamp") @Column("scan_ts") LocalDateTime scanTimestamp,
+            @JsonProperty("username") @Column("username") String username,
+            @JsonProperty("checkInStatus") @Column("check_in_status") CheckInStatus checkInStatus,
+            @JsonProperty("operation") @Column("operation") Operation operation) {
         this.ticketUuid = ticketUuid;
         this.scanTimestamp = scanTimestamp;
         this.username = username;

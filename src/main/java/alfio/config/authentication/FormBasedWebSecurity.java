@@ -21,6 +21,7 @@ import alfio.manager.RecaptchaService;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.user.UserManager;
 import alfio.util.TemplateManager;
+import javax.sql.DataSource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
@@ -30,36 +31,36 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.session.web.http.CookieSerializer;
 
-import javax.sql.DataSource;
-
 /**
  * Default form based configuration.
  */
-@Profile("!"+ Initializer.PROFILE_OPENID)
+@Profile("!" + Initializer.PROFILE_OPENID)
 @Configuration(proxyBeanMethods = false)
 @Order(100)
 public class FormBasedWebSecurity extends AbstractFormBasedWebSecurity {
-    public FormBasedWebSecurity(Environment environment,
-                                UserManager userManager,
-                                RecaptchaService recaptchaService,
-                                ConfigurationManager configurationManager,
-                                CsrfTokenRepository csrfTokenRepository,
-                                DataSource dataSource,
-                                PasswordEncoder passwordEncoder,
-                                SpringSessionBackedSessionRegistry<?> sessionRegistry,
-                                OpenIdUserSynchronizer openIdUserSynchronizer,
-                                CookieSerializer cookieSerializer,
-                                TemplateManager templateManager) {
-        super(environment,
-            userManager,
-            recaptchaService,
-            configurationManager,
-            csrfTokenRepository,
-            dataSource,
-            passwordEncoder,
-            sessionRegistry,
-            openIdUserSynchronizer,
-            cookieSerializer,
-            templateManager);
+    public FormBasedWebSecurity(
+            Environment environment,
+            UserManager userManager,
+            RecaptchaService recaptchaService,
+            ConfigurationManager configurationManager,
+            CsrfTokenRepository csrfTokenRepository,
+            DataSource dataSource,
+            PasswordEncoder passwordEncoder,
+            SpringSessionBackedSessionRegistry<?> sessionRegistry,
+            OpenIdUserSynchronizer openIdUserSynchronizer,
+            CookieSerializer cookieSerializer,
+            TemplateManager templateManager) {
+        super(
+                environment,
+                userManager,
+                recaptchaService,
+                configurationManager,
+                csrfTokenRepository,
+                dataSource,
+                passwordEncoder,
+                sessionRegistry,
+                openIdUserSynchronizer,
+                cookieSerializer,
+                templateManager);
     }
 }

@@ -1,5 +1,3 @@
-import type { LitElement } from 'lit';
-
 export type AlfioDialogClosed = CustomEvent<{ success: boolean }>;
 export type AlfioFeedback = CustomEvent<AlfioFeedbackEvent>;
 
@@ -9,13 +7,13 @@ export interface AlfioFeedbackEvent {
 }
 
 /**
- * Despacha un CustomEvent 'alfio-feedback' desde un LitElement.
+ * Despacha un CustomEvent 'alfio-feedback' desde un EventTarget (usualmente un LitElement).
  * El evento tiene bubbles: true y composed: true para propagación
  * a través del shadow DOM.
  */
 export function dispatchFeedback(
     payload: AlfioFeedbackEvent,
-    src: LitElement,
+    src: EventTarget,
 ): void {
     src.dispatchEvent(
         new CustomEvent<AlfioFeedbackEvent>('alfio-feedback', {

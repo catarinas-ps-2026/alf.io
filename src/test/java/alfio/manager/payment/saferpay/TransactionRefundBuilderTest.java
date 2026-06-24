@@ -16,30 +16,27 @@
  */
 package alfio.manager.payment.saferpay;
 
-import com.google.gson.JsonParser;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.google.gson.JsonParser;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 class TransactionRefundBuilderTest {
 
     @Test
     void build() throws IOException {
         var json = new TransactionRefundBuilder("captureId", 1)
-            .addAuthentication("customerId", "requestId")
-            .build("100", "CHF");
+                .addAuthentication("customerId", "requestId")
+                .build("100", "CHF");
 
         var parsedJson = JsonParser.parseString(json).getAsJsonObject();
-        var amount = parsedJson.get("Refund").getAsJsonObject()
-            .get("Amount").getAsJsonObject();
+        var amount = parsedJson.get("Refund").getAsJsonObject().get("Amount").getAsJsonObject();
         assertEquals("100", amount.get("Value").getAsString());
         assertEquals("CHF", amount.get("CurrencyCode").getAsString());
 
         var captureReference = parsedJson.get("CaptureReference").getAsJsonObject();
 
         assertEquals("captureId", captureReference.get("CaptureId").getAsString());
-
     }
 }

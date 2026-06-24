@@ -19,16 +19,12 @@ package alfio.model.metadata;
 import alfio.manager.support.extension.ExtensionEvent;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.*;
 
 public class TicketMetadataContainer {
 
     public static final String GENERAL = "general";
-    private static final Set<String> ALLOWED_KEYS = Set.of(
-        GENERAL,
-        ExtensionEvent.CUSTOM_ONLINE_JOIN_URL.name()
-    );
+    private static final Set<String> ALLOWED_KEYS = Set.of(GENERAL, ExtensionEvent.CUSTOM_ONLINE_JOIN_URL.name());
 
     private final Map<String, TicketMetadata> metadataMap;
 
@@ -64,7 +60,7 @@ public class TicketMetadataContainer {
      * @return {@code true} if key was accepted, otherwise {@code false}
      */
     public boolean putMetadata(String key, TicketMetadata value) {
-        if(ALLOWED_KEYS.contains(key)) {
+        if (ALLOWED_KEYS.contains(key)) {
             metadataMap.put(key, value);
             return true;
         }

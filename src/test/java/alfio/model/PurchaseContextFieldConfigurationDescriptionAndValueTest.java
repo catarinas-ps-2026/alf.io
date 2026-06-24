@@ -16,6 +16,13 @@
  */
 package alfio.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,14 +30,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class PurchaseContextFieldConfigurationDescriptionAndValueTest {
 
@@ -44,11 +43,7 @@ class PurchaseContextFieldConfigurationDescriptionAndValueTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "input:text",
-        "input:tel",
-        "textarea",
-        "vat:eu"})
+    @ValueSource(strings = {"input:text", "input:tel", "textarea", "vat:eu"})
     void getValueDescriptionForTextField(String type) {
         var field = new FieldConfigurationDescriptionAndValue(configuration, description, 1, "simple value");
         when(configuration.getType()).thenReturn(type);
@@ -68,7 +63,8 @@ class PurchaseContextFieldConfigurationDescriptionAndValueTest {
     @ParameterizedTest
     @ArgumentsSource(CheckboxArgumentProvider.class)
     void getValueDescriptionForMultipleOptionsField(String value, String expectedResult) {
-        when(description.getRestrictedValuesDescription()).thenReturn(Map.of("value1", "first value", "value2", "second value"));
+        when(description.getRestrictedValuesDescription())
+                .thenReturn(Map.of("value1", "first value", "value2", "second value"));
         when(configuration.getRestrictedValues()).thenReturn(List.of("value1", "value2"));
         var field = new FieldConfigurationDescriptionAndValue(configuration, description, 1, value);
         when(configuration.getType()).thenReturn("checkbox");
@@ -80,11 +76,10 @@ class PurchaseContextFieldConfigurationDescriptionAndValueTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                Arguments.of("[\"value1\",\"value2\"]", "first value, second value"),
-                Arguments.of("[\"value1\"]", "first value"),
-                Arguments.of("[\"value2\"]", "second value"),
-                Arguments.of("[\"value1\",\"null\",\"value2\"]", "first value, second value")
-            );
+                    Arguments.of("[\"value1\",\"value2\"]", "first value, second value"),
+                    Arguments.of("[\"value1\"]", "first value"),
+                    Arguments.of("[\"value2\"]", "second value"),
+                    Arguments.of("[\"value1\",\"null\",\"value2\"]", "first value, second value"));
         }
     }
 }

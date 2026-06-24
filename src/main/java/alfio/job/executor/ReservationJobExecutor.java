@@ -16,15 +16,14 @@
  */
 package alfio.job.executor;
 
+import static alfio.manager.system.AdminJobExecutor.JobName.*;
+
 import alfio.manager.TicketReservationManager;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.model.system.AdminJobSchedule;
-import org.springframework.stereotype.Component;
-
 import java.util.EnumSet;
 import java.util.Set;
-
-import static alfio.manager.system.AdminJobExecutor.JobName.*;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ReservationJobExecutor implements AdminJobExecutor {
@@ -38,16 +37,15 @@ public class ReservationJobExecutor implements AdminJobExecutor {
     @Override
     public Set<JobName> getJobNames() {
         return EnumSet.of(
-            CHECK_OFFLINE_PAYMENTS,
-            SEND_TICKET_ASSIGNMENT_REMINDER,
-            SEND_OFFLINE_PAYMENT_REMINDER,
-            SEND_OFFLINE_PAYMENT_TO_ORGANIZER
-        );
+                CHECK_OFFLINE_PAYMENTS,
+                SEND_TICKET_ASSIGNMENT_REMINDER,
+                SEND_OFFLINE_PAYMENT_REMINDER,
+                SEND_OFFLINE_PAYMENT_TO_ORGANIZER);
     }
 
     @Override
     public String process(AdminJobSchedule schedule) {
-        switch(schedule.getJobName()) {
+        switch (schedule.getJobName()) {
             case CHECK_OFFLINE_PAYMENTS:
                 ticketReservationManager.checkOfflinePaymentsStatus();
                 break;

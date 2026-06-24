@@ -16,6 +16,11 @@
  */
 package alfio;
 
+import static alfio.BaseTestConfiguration.POSTGRES_DB;
+import static java.util.Map.entry;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Map;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +31,6 @@ import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.PullPolicy;
 
-import java.util.Map;
-
-import static alfio.BaseTestConfiguration.POSTGRES_DB;
-import static java.util.Map.entry;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 class MigrationValidatorTest {
 
     private static final Logger log = LoggerFactory.getLogger(MigrationValidatorTest.class);
@@ -39,13 +38,12 @@ class MigrationValidatorTest {
     private PostgreSQLContainer<?> postgres;
     private final Network network = Network.SHARED;
     private final Map<String, String> envVariables = Map.ofEntries(
-        entry("POSTGRES_PORT_5432_TCP_PORT", "5432"),
-        entry("POSTGRES_PORT_5432_TCP_ADDR", DB_ALIAS),
-        entry("POSTGRES_ENV_POSTGRES_DB", POSTGRES_DB),
-        entry("POSTGRES_ENV_POSTGRES_USERNAME", "alfio_user"),
-        entry("POSTGRES_ENV_POSTGRES_PASSWORD", "password"),
-        entry("SPRING_PROFILES_ACTIVE", "jdbc-session")
-    );
+            entry("POSTGRES_PORT_5432_TCP_PORT", "5432"),
+            entry("POSTGRES_PORT_5432_TCP_ADDR", DB_ALIAS),
+            entry("POSTGRES_ENV_POSTGRES_DB", POSTGRES_DB),
+            entry("POSTGRES_ENV_POSTGRES_USERNAME", "alfio_user"),
+            entry("POSTGRES_ENV_POSTGRES_PASSWORD", "password"),
+            entry("SPRING_PROFILES_ACTIVE", "jdbc-session"));
 
     @BeforeAll
     static void beforeAll() {
@@ -55,10 +53,10 @@ class MigrationValidatorTest {
     @BeforeEach
     void setUp() {
         postgres = new PostgreSQLContainer<>("postgres:10")
-            .withDatabaseName(POSTGRES_DB)
-            .withNetwork(network)
-            .withNetworkAliases(DB_ALIAS)
-            .withInitScript("init-db-user.sql");
+                .withDatabaseName(POSTGRES_DB)
+                .withNetwork(network)
+                .withNetworkAliases(DB_ALIAS)
+                .withInitScript("init-db-user.sql");
         postgres.start();
     }
 
@@ -74,31 +72,34 @@ class MigrationValidatorTest {
         // attempting to start alf.io
         assertNotNull(postgres);
         try (var alfioLatest = new GenericContainer<>("alfio/alf.io:latest");
-             var alfioCurrent = new GenericContainer<>("ghcr.io/alfio-event/alf.io/dev-main:latest")) {
+                var alfioCurrent = new GenericContainer<>("ghcr.io/alfio-event/alf.io/dev-main:latest")) {
 
             log.info("starting stable version");
-            alfioLatest.withEnv(envVariables)
-                .withImagePullPolicy(PullPolicy.alwaysPull())
-                .withNetwork(network)
-                .withExposedPorts(8080)
-                .waitingFor(Wait.forHttp("/healthz").forStatusCode(200))
-                .withStartupAttempts(1)
-                .start();
+            alfioLatest
+                    .withEnv(envVariables)
+                    .withImagePullPolicy(PullPolicy.alwaysPull())
+                    .withNetwork(network)
+                    .withExposedPorts(8080)
+                    .waitingFor(Wait.forHttp("/healthz").forStatusCode(200))
+                    .withStartupAttempts(1)
+                    .start();
 
             log.info("started and healthy");
 
             // start alfio current
             log.info("starting dev version");
             try {
-                alfioCurrent.withEnv(envVariables)
-                    .withImagePullPolicy(PullPolicy.alwaysPull())
-                    .withExposedPorts(8080)
-                    .withNetwork(network)
-                    .waitingFor(Wait.forHttp("/healthz").forStatusCode(200))
-                    .withStartupAttempts(1)
-                    .start();
+                alfioCurrent
+                        .withEnv(envVariables)
+                        .withImagePullPolicy(PullPolicy.alwaysPull())
+                        .withExposedPorts(8080)
+                        .withNetwork(network)
+                        .waitingFor(Wait.forHttp("/healthz").forStatusCode(200))
+                        .withStartupAttempts(1)
+                        .start();
             } catch (Exception e) {
-                throw new IllegalStateException("cannot start alf.io dev. Message from container: \n" + alfioCurrent.getLogs(OutputFrame.OutputType.STDOUT));
+                throw new IllegalStateException("cannot start alf.io dev. Message from container: \n"
+                        + alfioCurrent.getLogs(OutputFrame.OutputType.STDOUT));
             }
             log.info("started and healthy");
         }

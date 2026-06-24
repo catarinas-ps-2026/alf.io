@@ -22,7 +22,6 @@ import alfio.model.support.JSONData;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.util.List;
 
 public class CheckInLogEntry {
@@ -30,9 +29,10 @@ public class CheckInLogEntry {
     private final AttendeeData attendeeData;
     private final List<ScanAudit> audit;
 
-    public CheckInLogEntry(@Column("t_uuid") String ticketId,
-                           @Column("attendee_data") @JSONData AttendeeData attendeeData,
-                           @Column("scans") String scansAsString) {
+    public CheckInLogEntry(
+            @Column("t_uuid") String ticketId,
+            @Column("attendee_data") @JSONData AttendeeData attendeeData,
+            @Column("scans") String scansAsString) {
         this.ticketId = ticketId;
         this.attendeeData = attendeeData;
         this.audit = Json.fromJson(scansAsString, new TypeReference<>() {});

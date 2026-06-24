@@ -16,34 +16,37 @@
  */
 package alfio.manager.testSupport;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.model.system.ConfigurationKeys;
 import alfio.model.system.ConfigurationPathLevel;
-
 import java.util.Map;
-
-import static alfio.model.system.ConfigurationKeys.*;
 
 public abstract class StripeUtils {
 
-    public static Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> completeStripeConfiguration(boolean enableSCA) {
+    public static Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> completeStripeConfiguration(
+            boolean enableSCA) {
         return Map.of(
-            STRIPE_ENABLE_SCA, maybeConfiguration(STRIPE_ENABLE_SCA, String.valueOf(enableSCA), ConfigurationPathLevel.SYSTEM),
-            BASE_URL, maybeConfiguration(BASE_URL, "xxx", ConfigurationPathLevel.SYSTEM),
-            STRIPE_WEBHOOK_PAYMENT_KEY, maybeConfiguration(BASE_URL, "xxx", ConfigurationPathLevel.SYSTEM),
-            STRIPE_CC_ENABLED, maybeConfiguration(STRIPE_CC_ENABLED, "true", ConfigurationPathLevel.SYSTEM),
-            PLATFORM_MODE_ENABLED, maybeConfiguration(PLATFORM_MODE_ENABLED, "true", ConfigurationPathLevel.SYSTEM),
-            STRIPE_CONNECTED_ID, maybeConfiguration(STRIPE_CONNECTED_ID, "123456", ConfigurationPathLevel.ORGANIZATION),
-            STRIPE_SECRET_KEY, maybeConfiguration(STRIPE_SECRET_KEY, "abcd", ConfigurationPathLevel.ORGANIZATION),
-            STRIPE_PUBLIC_KEY, maybeConfiguration(STRIPE_PUBLIC_KEY, "abcd", ConfigurationPathLevel.ORGANIZATION)
-        );
+                STRIPE_ENABLE_SCA,
+                        maybeConfiguration(STRIPE_ENABLE_SCA, String.valueOf(enableSCA), ConfigurationPathLevel.SYSTEM),
+                BASE_URL, maybeConfiguration(BASE_URL, "xxx", ConfigurationPathLevel.SYSTEM),
+                STRIPE_WEBHOOK_PAYMENT_KEY, maybeConfiguration(BASE_URL, "xxx", ConfigurationPathLevel.SYSTEM),
+                STRIPE_CC_ENABLED, maybeConfiguration(STRIPE_CC_ENABLED, "true", ConfigurationPathLevel.SYSTEM),
+                PLATFORM_MODE_ENABLED, maybeConfiguration(PLATFORM_MODE_ENABLED, "true", ConfigurationPathLevel.SYSTEM),
+                STRIPE_CONNECTED_ID,
+                        maybeConfiguration(STRIPE_CONNECTED_ID, "123456", ConfigurationPathLevel.ORGANIZATION),
+                STRIPE_SECRET_KEY, maybeConfiguration(STRIPE_SECRET_KEY, "abcd", ConfigurationPathLevel.ORGANIZATION),
+                STRIPE_PUBLIC_KEY, maybeConfiguration(STRIPE_PUBLIC_KEY, "abcd", ConfigurationPathLevel.ORGANIZATION));
     }
 
-    public static ConfigurationManager.MaybeConfiguration maybeConfiguration(ConfigurationKeys key, String value, ConfigurationPathLevel level) {
-        if(value == null) {
+    public static ConfigurationManager.MaybeConfiguration maybeConfiguration(
+            ConfigurationKeys key, String value, ConfigurationPathLevel level) {
+        if (value == null) {
             return new ConfigurationManager.MaybeConfiguration(key);
         }
-        return new ConfigurationManager.MaybeConfiguration(key, new ConfigurationKeyValuePathLevel(key.getValue(), value, level));
+        return new ConfigurationManager.MaybeConfiguration(
+                key, new ConfigurationKeyValuePathLevel(key.getValue(), value, level));
     }
 }

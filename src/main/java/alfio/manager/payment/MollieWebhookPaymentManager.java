@@ -16,6 +16,13 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.payment.PaymentManagerUtils.invalidateExistingTransactions;
+import static alfio.model.TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT;
+import static alfio.model.TicketReservation.TicketReservationStatus.WAITING_EXTERNAL_CONFIRMATION;
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.MonetaryUtil.formatCents;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alfio.manager.PurchaseContextManager;
 import alfio.manager.support.FeeCalculator;
 import alfio.manager.support.PaymentResult;
@@ -41,15 +48,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -61,13 +59,14 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.*;
-
-import static alfio.manager.payment.PaymentManagerUtils.invalidateExistingTransactions;
-import static alfio.model.TicketReservation.TicketReservationStatus.EXTERNAL_PROCESSING_PAYMENT;
-import static alfio.model.TicketReservation.TicketReservationStatus.WAITING_EXTERNAL_CONFIRMATION;
-import static alfio.model.system.ConfigurationKeys.*;
-import static alfio.util.MonetaryUtil.formatCents;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @AllArgsConstructor
@@ -75,44 +74,44 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
 
     private static final Logger log = LoggerFactory.getLogger(MollieWebhookPaymentManager.class);
     public static final String WEBHOOK_URL_TEMPLATE = "/api/payment/webhook/mollie/reservation/{reservationId}";
-    private static final Set<PaymentMethod> EMPTY_METHODS = Collections.unmodifiableSet(EnumSet.noneOf(StaticPaymentMethods.class));
+    private static final Set<PaymentMethod> EMPTY_METHODS =
+            Collections.unmodifiableSet(EnumSet.noneOf(StaticPaymentMethods.class));
     static final Map<String, StaticPaymentMethods> SUPPORTED_METHODS = Map.of(
-        "ideal", StaticPaymentMethods.IDEAL,
-        "creditcard", StaticPaymentMethods.CREDIT_CARD,
-        "applepay", StaticPaymentMethods.APPLE_PAY,
-        "bancontact", StaticPaymentMethods.BANCONTACT,
-        "inghomepay", StaticPaymentMethods.ING_HOME_PAY,
-        "belfius", StaticPaymentMethods.BELFIUS,
-        "przelewy24", StaticPaymentMethods.PRZELEWY_24,
-        "kbc", StaticPaymentMethods.KBC
-        /*
-            other available:
-            banktransfer, paypal, sofort, klarnapaylater, klarnasliceit, giftcard, giropay, eps
-        */
-    );
+            "ideal", StaticPaymentMethods.IDEAL,
+            "creditcard", StaticPaymentMethods.CREDIT_CARD,
+            "applepay", StaticPaymentMethods.APPLE_PAY,
+            "bancontact", StaticPaymentMethods.BANCONTACT,
+            "inghomepay", StaticPaymentMethods.ING_HOME_PAY,
+            "belfius", StaticPaymentMethods.BELFIUS,
+            "przelewy24", StaticPaymentMethods.PRZELEWY_24,
+            "kbc", StaticPaymentMethods.KBC
+            /*
+                other available:
+                banktransfer, paypal, sofort, klarnapaylater, klarnasliceit, giftcard, giropay, eps
+            */
+            );
     protected static final Set<ConfigurationKeys> ALL_OPTIONS = EnumSet.of(
-        MOLLIE_CC_ENABLED,
-        PLATFORM_MODE_ENABLED,
-        BASE_URL,
-        MOLLIE_CONNECT_PROFILE_ID,
-        MOLLIE_API_KEY,
-        MOLLIE_CONNECT_LIVE_MODE,
-        MOLLIE_CONNECT_CLIENT_ID,
-        MOLLIE_CONNECT_CLIENT_SECRET,
-        MOLLIE_CONNECT_REFRESH_TOKEN,
-        MOLLIE_CONNECT_CALLBACK
-    );
+            MOLLIE_CC_ENABLED,
+            PLATFORM_MODE_ENABLED,
+            BASE_URL,
+            MOLLIE_CONNECT_PROFILE_ID,
+            MOLLIE_API_KEY,
+            MOLLIE_CONNECT_LIVE_MODE,
+            MOLLIE_CONNECT_CLIENT_ID,
+            MOLLIE_CONNECT_CLIENT_SECRET,
+            MOLLIE_CONNECT_REFRESH_TOKEN,
+            MOLLIE_CONNECT_CALLBACK);
     private static final String MOLLIE_ENDPOINT = "https://api.mollie.com/v2/";
-    private static final String PAYMENTS_ENDPOINT = MOLLIE_ENDPOINT+"payments";
-    private static final String METHODS_ENDPOINT = MOLLIE_ENDPOINT+"methods";
+    private static final String PAYMENTS_ENDPOINT = MOLLIE_ENDPOINT + "payments";
+    private static final String METHODS_ENDPOINT = MOLLIE_ENDPOINT + "methods";
     private static final String AMOUNT = "amount";
     private static final String VALUE = "value";
     private static final String CURRENCY = "currency";
     private static final String STATUS_FAILED = "failed";
-    private final Cache<MethodCacheKey, Set<? extends PaymentMethod>> methodsCache = Caffeine.newBuilder()
-        .expireAfterAccess(Duration.ofMinutes(5)).build();
-    private final Cache<Integer, String> accessTokenCache = Caffeine.newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(45)).build(); // token lifetime is 1h
+    private final Cache<MethodCacheKey, Set<? extends PaymentMethod>> methodsCache =
+            Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(5)).build();
+    private final Cache<Integer, String> accessTokenCache =
+            Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(45)).build(); // token lifetime is 1h
 
     private final HttpClient client;
     private final ConfigurationManager configurationManager;
@@ -123,28 +122,40 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
     private final ClockProvider clockProvider;
     private final PurchaseContextManager purchaseContextManager;
 
-    private HttpRequest.Builder requestFor(String url, Map<ConfigurationKeys, MaybeConfiguration> configuration, ConfigurationLevel configurationLevel) {
+    private HttpRequest.Builder requestFor(
+            String url,
+            Map<ConfigurationKeys, MaybeConfiguration> configuration,
+            ConfigurationLevel configurationLevel) {
         // check if platform mode is active
-        boolean platformMode = configurationLevel.getOrganizationId().isPresent() && configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault();
+        boolean platformMode = configurationLevel.getOrganizationId().isPresent()
+                && configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault();
         var requestBuilder = HttpRequest.newBuilder().uri(URI.create(url));
-        if(platformMode) {
-            return requestBuilder.header("Authorization", "Bearer " + accessTokenCache.get(configurationLevel.getOrganizationId().orElseThrow(), org -> {
-                var accessTokenResponseDetails = mollieConnectManager.refreshAccessToken(configuration);
-                if(accessTokenResponseDetails.isSuccess()) {
-                    return accessTokenResponseDetails.getAccessToken();
-                }
-                throw new IllegalStateException("cannot refresh access token");
-            }));
+        if (platformMode) {
+            return requestBuilder.header(
+                    "Authorization",
+                    "Bearer "
+                            + accessTokenCache.get(
+                                    configurationLevel.getOrganizationId().orElseThrow(), org -> {
+                                        var accessTokenResponseDetails =
+                                                mollieConnectManager.refreshAccessToken(configuration);
+                                        if (accessTokenResponseDetails.isSuccess()) {
+                                            return accessTokenResponseDetails.getAccessToken();
+                                        }
+                                        throw new IllegalStateException("cannot refresh access token");
+                                    }));
         }
-        String mollieAPIKey = configuration.get(ConfigurationKeys.MOLLIE_API_KEY).getRequiredValue();
+        String mollieAPIKey =
+                configuration.get(ConfigurationKeys.MOLLIE_API_KEY).getRequiredValue();
         return requestBuilder.header("Authorization", "Bearer " + mollieAPIKey);
     }
 
     @Override
-    public Set<? extends PaymentMethod> getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
+    public Set<? extends PaymentMethod> getSupportedPaymentMethods(
+            PaymentContext paymentContext, TransactionRequest transactionRequest) {
         var configuration = getConfiguration(paymentContext.getConfigurationLevel());
         if (checkIfActive(configuration) && isPlatformConfigurationPresent(configuration)) {
-            return retrieveAvailablePaymentMethods(transactionRequest, configuration, paymentContext.getConfigurationLevel());
+            return retrieveAvailablePaymentMethods(
+                    transactionRequest, configuration, paymentContext.getConfigurationLevel());
         } else {
             return Set.of();
         }
@@ -157,69 +168,81 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
 
     @Override
     public boolean accept(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-        if(!SUPPORTED_METHODS.containsValue(paymentMethod)) {
+        if (!SUPPORTED_METHODS.containsValue(paymentMethod)) {
             return false;
         }
         var configuration = getConfiguration(context.getConfigurationLevel());
         return checkIfActive(configuration)
-            && isPlatformConfigurationPresent(configuration)
-            && retrieveAvailablePaymentMethods(transactionRequest, configuration, context.getConfigurationLevel()).contains(paymentMethod);
+                && isPlatformConfigurationPresent(configuration)
+                && retrieveAvailablePaymentMethods(transactionRequest, configuration, context.getConfigurationLevel())
+                        .contains(paymentMethod);
     }
 
     private boolean isPlatformConfigurationPresent(Map<ConfigurationKeys, MaybeConfiguration> configuration) {
-        return !configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault() || (configuration.get(MOLLIE_CONNECT_REFRESH_TOKEN).isPresent() && configuration.get(MOLLIE_CONNECT_PROFILE_ID).isPresent());
+        return !configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()
+                || (configuration.get(MOLLIE_CONNECT_REFRESH_TOKEN).isPresent()
+                        && configuration.get(MOLLIE_CONNECT_PROFILE_ID).isPresent());
     }
 
     private Map<ConfigurationKeys, MaybeConfiguration> getConfiguration(ConfigurationLevel configurationLevel) {
         return configurationManager.getFor(ALL_OPTIONS, configurationLevel);
     }
 
-    private Set<? extends PaymentMethod> retrieveAvailablePaymentMethods(TransactionRequest transactionRequest, Map<ConfigurationKeys, MaybeConfiguration> configuration, ConfigurationLevel configurationLevel) {
+    private Set<? extends PaymentMethod> retrieveAvailablePaymentMethods(
+            TransactionRequest transactionRequest,
+            Map<ConfigurationKeys, MaybeConfiguration> configuration,
+            ConfigurationLevel configurationLevel) {
         try {
-            return methodsCache.get(MethodCacheKey.from(transactionRequest, configuration),
-                key -> fetchAvailablePaymentMethods(key, configuration, configurationLevel));
-        } catch(Exception ex) {
+            return methodsCache.get(
+                    MethodCacheKey.from(transactionRequest, configuration),
+                    key -> fetchAvailablePaymentMethods(key, configuration, configurationLevel));
+        } catch (Exception ex) {
             log.warn("cannot fetch payment methods", ex);
             return EMPTY_METHODS;
         }
     }
 
-    private Set<? extends PaymentMethod> fetchAvailablePaymentMethods(MethodCacheKey key, Map<ConfigurationKeys, MaybeConfiguration> configuration, ConfigurationLevel configurationLevel) {
+    private Set<? extends PaymentMethod> fetchAvailablePaymentMethods(
+            MethodCacheKey key,
+            Map<ConfigurationKeys, MaybeConfiguration> configuration,
+            ConfigurationLevel configurationLevel) {
 
         var params = new ArrayList<String>();
-        if(key.amount != null) {
-            params.add("amount[value]="+key.amount.getValue());
-            params.add("amount[currency]="+key.amount.getCurrency());
+        if (key.amount != null) {
+            params.add("amount[value]=" + key.amount.getValue());
+            params.add("amount[currency]=" + key.amount.getCurrency());
         }
 
-        if(key.billingCountry != null) {
-            params.add("billingCountry="+key.billingCountry);
+        if (key.billingCountry != null) {
+            params.add("billingCountry=" + key.billingCountry);
         }
 
-        if(configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
-            params.add("testmode="+ key.testMode);
-            params.add("profileId="+configuration.get(MOLLIE_CONNECT_PROFILE_ID).getRequiredValue());
+        if (configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
+            params.add("testmode=" + key.testMode);
+            params.add(
+                    "profileId=" + configuration.get(MOLLIE_CONNECT_PROFILE_ID).getRequiredValue());
         }
 
-        HttpRequest request = requestFor(METHODS_ENDPOINT + "?" + String.join("&", params), configuration, configurationLevel)
-            .GET()
-            .build();
+        HttpRequest request = requestFor(
+                        METHODS_ENDPOINT + "?" + String.join("&", params), configuration, configurationLevel)
+                .GET()
+                .build();
 
         try {
             var response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            if(!HttpUtils.callSuccessful(response)) {
-                throw new IllegalStateException("fetch was unsuccessful (HTTP "+response.statusCode()+")");
+            if (!HttpUtils.callSuccessful(response)) {
+                throw new IllegalStateException("fetch was unsuccessful (HTTP " + response.statusCode() + ")");
             }
             try (var reader = new InputStreamReader(response.body(), UTF_8)) {
                 var body = JsonParser.parseReader(reader).getAsJsonObject();
                 int count = body.get("count").getAsInt();
-                if(count == 0) {
+                if (count == 0) {
                     return EMPTY_METHODS;
                 }
                 var methodsObj = body.getAsJsonObject("_embedded").getAsJsonArray("methods");
                 var rejectedMethods = new ArrayList<String>();
                 Set<StaticPaymentMethods> result = EnumSet.noneOf(StaticPaymentMethods.class);
-                for(int i = 0; i < count; i++) {
+                for (int i = 0; i < count; i++) {
                     var methodId = methodsObj.get(i).getAsJsonObject().get("id").getAsString();
                     var parsed = SUPPORTED_METHODS.get(methodId);
                     if (parsed != null) {
@@ -228,7 +251,7 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
                         rejectedMethods.add(methodId);
                     }
                 }
-                if(rejectedMethods.isEmpty()) {
+                if (rejectedMethods.isEmpty()) {
                     return result;
                 } else {
                     log.warn("Unsupported payment methods found: {}. Please check configuration", rejectedMethods);
@@ -261,13 +284,16 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
             var reservation = ticketReservationRepository.findReservationById(reservationId);
             String baseUrl = StringUtils.removeEnd(configuration.get(BASE_URL).getRequiredValue(), "/");
 
-            var existingTransaction = transactionRepository.loadOptionalByReservationId(reservationId)
-                .filter(t -> t.getPaymentProxy() == PaymentProxy.MOLLIE && StringUtils.isNotEmpty(t.getPaymentId()));
+            var existingTransaction = transactionRepository
+                    .loadOptionalByReservationId(reservationId)
+                    .filter(t ->
+                            t.getPaymentProxy() == PaymentProxy.MOLLIE && StringUtils.isNotEmpty(t.getPaymentId()));
 
-            if(existingTransaction.isEmpty()) {
+            if (existingTransaction.isEmpty()) {
                 return initPayment(reservation, spec, baseUrl, configuration);
             } else {
-                return tryToReuseExistingTransaction(existingTransaction.get(), reservation, spec, baseUrl, configuration);
+                return tryToReuseExistingTransaction(
+                        existingTransaction.get(), reservation, spec, baseUrl, configuration);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -279,17 +305,23 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         }
     }
 
-    private PaymentResult tryToReuseExistingTransaction(Transaction transaction,
-                                                        TicketReservation reservation,
-                                                        PaymentSpecification spec,
-                                                        String baseUrl,
-                                                        Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration) throws IOException, InterruptedException {
-        var getPaymentResponse = callGetPayment(transaction.getPaymentId(), configuration, spec.getPurchaseContext().getConfigurationLevel());
-        if(HttpUtils.callSuccessful(getPaymentResponse)) {
+    private PaymentResult tryToReuseExistingTransaction(
+            Transaction transaction,
+            TicketReservation reservation,
+            PaymentSpecification spec,
+            String baseUrl,
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration)
+            throws IOException, InterruptedException {
+        var getPaymentResponse = callGetPayment(
+                transaction.getPaymentId(),
+                configuration,
+                spec.getPurchaseContext().getConfigurationLevel());
+        if (HttpUtils.callSuccessful(getPaymentResponse)) {
             try (var responseReader = new InputStreamReader(getPaymentResponse.body(), UTF_8)) {
-                var body = new MolliePaymentDetails(JsonParser.parseReader(responseReader).getAsJsonObject());
+                var body = new MolliePaymentDetails(
+                        JsonParser.parseReader(responseReader).getAsJsonObject());
                 var status = body.getStatus();
-                if(status.equals("open")) {
+                if (status.equals("open")) {
                     return PaymentResult.redirect(body.getCheckoutLink());
                 } else if (status.equals("pending")) {
                     return PaymentResult.pending(transaction.getPaymentId());
@@ -302,58 +334,106 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         return initPayment(reservation, spec, baseUrl, configuration);
     }
 
-    private PaymentResult initPayment(TicketReservation reservation,
-                                      PaymentSpecification spec,
-                                      String baseUrl,
-                                      Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration) throws IOException, InterruptedException {
+    private PaymentResult initPayment(
+            TicketReservation reservation,
+            PaymentSpecification spec,
+            String baseUrl,
+            Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> configuration)
+            throws IOException, InterruptedException {
         var purchaseContext = spec.getPurchaseContext();
         var purchaseContextUrlComponent = purchaseContext.getType().getUrlComponent();
         var publicIdentifier = purchaseContext.getPublicIdentifier();
         var reservationId = reservation.getId();
-        String bookUrl = baseUrl + "/" + purchaseContextUrlComponent + "/" + publicIdentifier + "/reservation/" + reservationId + "/book";
+        String bookUrl = baseUrl + "/" + purchaseContextUrlComponent + "/" + publicIdentifier + "/reservation/"
+                + reservationId + "/book";
         final int items;
-        if(spec.getPurchaseContext().getType() == PurchaseContext.PurchaseContextType.event) {
+        if (spec.getPurchaseContext().getType() == PurchaseContext.PurchaseContextType.event) {
             items = ticketRepository.countTicketsInReservation(spec.getReservationId());
         } else {
             items = 1;
         }
 
         Map<String, Object> payload = new HashMap<>();
-        payload.put(AMOUNT, Map.of(VALUE, spec.getOrderSummary().getTotalPrice(), CURRENCY, spec.getPurchaseContext().getCurrency()));
-        var description = purchaseContext.ofType(PurchaseContext.PurchaseContextType.event) ? "ticket(s) for event" : "x subscription";
-        payload.put("description", String.format("%s - %d %s %s", configurationManager.getShortReservationID(spec.getPurchaseContext(), reservation), items, description, spec.getPurchaseContext().getDisplayName()));
+        payload.put(
+                AMOUNT,
+                Map.of(
+                        VALUE,
+                        spec.getOrderSummary().getTotalPrice(),
+                        CURRENCY,
+                        spec.getPurchaseContext().getCurrency()));
+        var description = purchaseContext.ofType(PurchaseContext.PurchaseContextType.event)
+                ? "ticket(s) for event"
+                : "x subscription";
+        payload.put(
+                "description",
+                String.format(
+                        "%s - %d %s %s",
+                        configurationManager.getShortReservationID(spec.getPurchaseContext(), reservation),
+                        items,
+                        description,
+                        spec.getPurchaseContext().getDisplayName()));
         payload.put("redirectUrl", bookUrl);
-        payload.put("webhookUrl", baseUrl + UriComponentsBuilder.fromPath(WEBHOOK_URL_TEMPLATE).buildAndExpand(reservationId).toUriString());
+        payload.put(
+                "webhookUrl",
+                baseUrl
+                        + UriComponentsBuilder.fromPath(WEBHOOK_URL_TEMPLATE)
+                                .buildAndExpand(reservationId)
+                                .toUriString());
         payload.put("metadata", MetadataBuilder.buildMetadata(spec, Map.of()));
 
-        if(configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
-            payload.put("profileId", configuration.get(MOLLIE_CONNECT_PROFILE_ID).getRequiredValue());
+        if (configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
+            payload.put(
+                    "profileId", configuration.get(MOLLIE_CONNECT_PROFILE_ID).getRequiredValue());
             payload.put("testmode", !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault());
             String currencyCode = spec.getCurrencyCode();
-            FeeCalculator.getCalculator(spec.getPurchaseContext(), configurationManager, currencyCode).apply(items, (long) spec.getPriceWithVAT())
-                .filter(fee -> fee > 1L) //minimum fee for Mollie is 0.01
-                .map(fee -> MonetaryUtil.formatCents(fee, currencyCode))
-                .ifPresent(fee -> payload.put("applicationFee", Map.of(AMOUNT, Map.of(CURRENCY, currencyCode, VALUE, fee), "description", "Reservation" + reservationId)));
+            FeeCalculator.getCalculator(spec.getPurchaseContext(), configurationManager, currencyCode)
+                    .apply(items, (long) spec.getPriceWithVAT())
+                    .filter(fee -> fee > 1L) // minimum fee for Mollie is 0.01
+                    .map(fee -> MonetaryUtil.formatCents(fee, currencyCode))
+                    .ifPresent(fee -> payload.put(
+                            "applicationFee",
+                            Map.of(
+                                    AMOUNT,
+                                    Map.of(CURRENCY, currencyCode, VALUE, fee),
+                                    "description",
+                                    "Reservation" + reservationId)));
         }
 
-        HttpRequest request = requestFor(PAYMENTS_ENDPOINT, configuration, spec.getPurchaseContext().getConfigurationLevel())
-            .header(HttpUtils.CONTENT_TYPE, HttpUtils.APPLICATION_JSON)
-            .POST(HttpRequest.BodyPublishers.ofString(Json.GSON.toJson(payload)))
-            .build();
+        HttpRequest request = requestFor(
+                        PAYMENTS_ENDPOINT,
+                        configuration,
+                        spec.getPurchaseContext().getConfigurationLevel())
+                .header(HttpUtils.CONTENT_TYPE, HttpUtils.APPLICATION_JSON)
+                .POST(HttpRequest.BodyPublishers.ofString(Json.GSON.toJson(payload)))
+                .build();
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        if(HttpUtils.callSuccessful(response)) {
+        if (HttpUtils.callSuccessful(response)) {
             try (var responseReader = new InputStreamReader(response.body(), UTF_8)) {
-                var body = new MolliePaymentDetails(JsonParser.parseReader(responseReader).getAsJsonObject());
+                var body = new MolliePaymentDetails(
+                        JsonParser.parseReader(responseReader).getAsJsonObject());
                 var paymentId = body.getPaymentId();
                 var checkoutLink = body.getCheckoutLink();
-                var expiration = body.getExpiresAt().orElseThrow().plusMinutes(5); // we give an additional slack to process the payment
-                ticketReservationRepository.updateReservationStatus(reservationId, EXTERNAL_PROCESSING_PAYMENT.toString());
+                var expiration = body.getExpiresAt()
+                        .orElseThrow()
+                        .plusMinutes(5); // we give an additional slack to process the payment
+                ticketReservationRepository.updateReservationStatus(
+                        reservationId, EXTERNAL_PROCESSING_PAYMENT.toString());
                 ticketReservationRepository.updateValidity(reservationId, Date.from(expiration.toInstant()));
                 invalidateExistingTransactions(reservationId, transactionRepository);
-                transactionRepository.insert(paymentId, paymentId,
-                    reservationId, ZonedDateTime.now(clockProvider.withZone(spec.getPurchaseContext().getZoneId())),
-                    spec.getPriceWithVAT(), spec.getPurchaseContext().getCurrency(), "Mollie Payment",
-                    PaymentProxy.MOLLIE.name(), 0L,0L, Transaction.Status.PENDING, Map.of());
+                transactionRepository.insert(
+                        paymentId,
+                        paymentId,
+                        reservationId,
+                        ZonedDateTime.now(
+                                clockProvider.withZone(spec.getPurchaseContext().getZoneId())),
+                        spec.getPriceWithVAT(),
+                        spec.getPurchaseContext().getCurrency(),
+                        "Mollie Payment",
+                        PaymentProxy.MOLLIE.name(),
+                        0L,
+                        0L,
+                        Transaction.Status.PENDING,
+                        Map.of());
                 return PaymentResult.redirect(checkoutLink);
             }
         } else {
@@ -379,16 +459,17 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
 
     private boolean checkIfActive(Map<ConfigurationKeys, MaybeConfiguration> configuration) {
         return configuration.get(MOLLIE_CC_ENABLED).getValueAsBooleanOrDefault()
-            && configuration.get(BASE_URL).isPresent()
-            && configuration.get(MOLLIE_API_KEY).isPresent()
-            && connectOptionsPresent(configuration);
+                && configuration.get(BASE_URL).isPresent()
+                && configuration.get(MOLLIE_API_KEY).isPresent()
+                && connectOptionsPresent(configuration);
     }
 
     private boolean connectOptionsPresent(Map<ConfigurationKeys, MaybeConfiguration> configuration) {
-        if(!configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
+        if (!configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
             return true;
         }
-        return configuration.get(MOLLIE_CONNECT_CLIENT_ID).isPresent() && configuration.get(MOLLIE_CONNECT_CLIENT_SECRET).isPresent();
+        return configuration.get(MOLLIE_CONNECT_CLIENT_ID).isPresent()
+                && configuration.get(MOLLIE_CONNECT_CLIENT_SECRET).isPresent();
     }
 
     public static final String ADDITIONAL_INFO_PURCHASE_CONTEXT_TYPE = "purchaseContextType";
@@ -396,19 +477,19 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
     public static final String ADDITIONAL_INFO_RESERVATION_ID = "reservationId";
 
     @Override
-    public Optional<TransactionWebhookPayload> parseTransactionPayload(String body,
-                                                                       String signature,
-                                                                       Map<String, String> additionalInfo,
-                                                                       PaymentContext paymentContext) {
-        try(var reader = new StringReader(body)) {
+    public Optional<TransactionWebhookPayload> parseTransactionPayload(
+            String body, String signature, Map<String, String> additionalInfo, PaymentContext paymentContext) {
+        try (var reader = new StringReader(body)) {
             Properties properties = new Properties();
             properties.load(reader);
             return Optional.ofNullable(StringUtils.trimToNull(properties.getProperty("id")))
-                .map(paymentId -> new MollieWebhookPayload(paymentId, PurchaseContext.PurchaseContextType.from(
-                    additionalInfo.get(ADDITIONAL_INFO_PURCHASE_CONTEXT_TYPE)),
-                    additionalInfo.get(ADDITIONAL_INFO_PURCHASE_IDENTIFIER),
-                    additionalInfo.get(ADDITIONAL_INFO_RESERVATION_ID)));
-        } catch(Exception e) {
+                    .map(paymentId -> new MollieWebhookPayload(
+                            paymentId,
+                            PurchaseContext.PurchaseContextType.from(
+                                    additionalInfo.get(ADDITIONAL_INFO_PURCHASE_CONTEXT_TYPE)),
+                            additionalInfo.get(ADDITIONAL_INFO_PURCHASE_IDENTIFIER),
+                            additionalInfo.get(ADDITIONAL_INFO_RESERVATION_ID)));
+        } catch (Exception e) {
             log.warn("got exception while trying to decode Mollie Webhook Payload", e);
         }
         return Optional.empty();
@@ -420,84 +501,121 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
     }
 
     @Override
-    public PaymentWebhookResult processWebhook(TransactionWebhookPayload payload,
-                                               Transaction transaction,
-                                               PaymentContext paymentContext) {
+    public PaymentWebhookResult processWebhook(
+            TransactionWebhookPayload payload, Transaction transaction, PaymentContext paymentContext) {
 
-        var molliePayload = (MollieWebhookPayload)payload;
+        var molliePayload = (MollieWebhookPayload) payload;
         var paymentId = molliePayload.getPaymentId();
-        var optionalPurchaseContext = purchaseContextManager.findBy(molliePayload.getPurchaseContextType(), molliePayload.getPurchaseContextIdentifier());
-        if(optionalPurchaseContext.isEmpty()) {
+        var optionalPurchaseContext = purchaseContextManager.findBy(
+                molliePayload.getPurchaseContextType(), molliePayload.getPurchaseContextIdentifier());
+        if (optionalPurchaseContext.isEmpty()) {
             return PaymentWebhookResult.notRelevant("event");
         }
         var purchaseContext = optionalPurchaseContext.get();
         return validateRemotePayment(transaction, paymentContext, paymentId, purchaseContext);
     }
 
-    private PaymentWebhookResult validateRemotePayment(Transaction transaction, PaymentContext paymentContext, String paymentId, PurchaseContext purchaseContext) {
+    private PaymentWebhookResult validateRemotePayment(
+            Transaction transaction, PaymentContext paymentContext, String paymentId, PurchaseContext purchaseContext) {
         try {
             var configuration = getConfiguration(purchaseContext.getConfigurationLevel());
-            HttpResponse<InputStream> response = callGetPayment(paymentId, configuration, paymentContext.getConfigurationLevel());
-            if(HttpUtils.callSuccessful(response)) {
+            HttpResponse<InputStream> response =
+                    callGetPayment(paymentId, configuration, paymentContext.getConfigurationLevel());
+            if (HttpUtils.callSuccessful(response)) {
                 return processRemotePayment(transaction, paymentId, purchaseContext, configuration, response);
             } else {
-                if(response.statusCode() == 404) {
-                    log.warn("Received suspicious call for non-existent payment id "+paymentId);
+                if (response.statusCode() == 404) {
+                    log.warn("Received suspicious call for non-existent payment id " + paymentId);
                     return PaymentWebhookResult.notRelevant("");
                 }
-                log.warn("was not able to get payment id " + paymentId + " for purchaseContext of type " + purchaseContext.getType() + " with public identifier " + purchaseContext.getPublicIdentifier());
+                log.warn("was not able to get payment id " + paymentId + " for purchaseContext of type "
+                        + purchaseContext.getType() + " with public identifier "
+                        + purchaseContext.getPublicIdentifier());
                 return PaymentWebhookResult.error("internal error");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn("Request interrupted while processing Mollie Payment "+paymentId, e);
+            log.warn("Request interrupted while processing Mollie Payment " + paymentId, e);
             return PaymentWebhookResult.error(e.getMessage());
-        } catch(Exception ex) {
-            log.error("got exception while trying to process Mollie Payment "+paymentId, ex);
+        } catch (Exception ex) {
+            log.error("got exception while trying to process Mollie Payment " + paymentId, ex);
             return PaymentWebhookResult.error(ex.getMessage());
         }
     }
 
-    private PaymentWebhookResult processRemotePayment(Transaction transaction,
-                                                      String paymentId,
-                                                      PurchaseContext purchaseContext,
-                                                      Map<ConfigurationKeys, MaybeConfiguration> configuration,
-                                                      HttpResponse<InputStream> response) throws IOException {
+    private PaymentWebhookResult processRemotePayment(
+            Transaction transaction,
+            String paymentId,
+            PurchaseContext purchaseContext,
+            Map<ConfigurationKeys, MaybeConfiguration> configuration,
+            HttpResponse<InputStream> response)
+            throws IOException {
         try (var reader = new InputStreamReader(response.body(), UTF_8)) {
             var body = new MolliePaymentDetails(JsonParser.parseReader(reader).getAsJsonObject());
-            if(configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()
-                && configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault() != body.isLiveMode()) {
+            if (configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()
+                    && configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault() != body.isLiveMode()) {
                 return PaymentWebhookResult.notRelevant("liveMode");
             }
             Validate.isTrue(body.getPaymentId().equals(paymentId));
             Validate.isTrue(transaction.getPaymentId().equals(paymentId));
             var status = body.getStatus();
             var reservationId = body.getReservationId();
-            var optionalReservation = ticketReservationRepository.findOptionalStatusAndValidationById(reservationId)
-                .filter(reservation -> (reservation.getStatus() == EXTERNAL_PROCESSING_PAYMENT || reservation.getStatus() == WAITING_EXTERNAL_CONFIRMATION));
-            if(optionalReservation.isEmpty()) {
+            var optionalReservation = ticketReservationRepository
+                    .findOptionalStatusAndValidationById(reservationId)
+                    .filter(reservation -> (reservation.getStatus() == EXTERNAL_PROCESSING_PAYMENT
+                            || reservation.getStatus() == WAITING_EXTERNAL_CONFIRMATION));
+            if (optionalReservation.isEmpty()) {
                 return PaymentWebhookResult.error("reservation not found");
             }
 
-            //see statuses: https://www.mollie.com/en/docs/status
+            // see statuses: https://www.mollie.com/en/docs/status
 
             var transactionMetadata = transaction.getMetadata();
             switch (status) {
                 case "paid":
-                    transactionMetadata.put("paymentMethod", Objects.requireNonNull(body.getPaymentMethod()).name());
+                    transactionMetadata.put(
+                            "paymentMethod",
+                            Objects.requireNonNull(body.getPaymentMethod()).name());
 
-                    transactionRepository.update(transaction.getId(), paymentId, paymentId, body.getConfirmationTimestamp().orElseThrow(),
-                        0L, 0L, Transaction.Status.COMPLETE, transaction.getMetadata());
+                    transactionRepository.update(
+                            transaction.getId(),
+                            paymentId,
+                            paymentId,
+                            body.getConfirmationTimestamp().orElseThrow(),
+                            0L,
+                            0L,
+                            Transaction.Status.COMPLETE,
+                            transaction.getMetadata());
                     return PaymentWebhookResult.successful(new MollieToken(paymentId, body.getPaymentMethod()));
                 case STATUS_FAILED:
                 case "expired":
-                    transactionMetadata.put("paymentMethod", Optional.ofNullable(body.getPaymentMethod()).map(PaymentMethod::name).orElse(null));
-                    transactionRepository.update(transaction.getId(), paymentId, paymentId, purchaseContext.now(clockProvider),
-                        transaction.getPlatformFee(), transaction.getGatewayFee(), transaction.getStatus(), transactionMetadata);
-                    return status.equals(STATUS_FAILED) ? PaymentWebhookResult.failed(STATUS_FAILED) : PaymentWebhookResult.cancelled();
+                    transactionMetadata.put(
+                            "paymentMethod",
+                            Optional.ofNullable(body.getPaymentMethod())
+                                    .map(PaymentMethod::name)
+                                    .orElse(null));
+                    transactionRepository.update(
+                            transaction.getId(),
+                            paymentId,
+                            paymentId,
+                            purchaseContext.now(clockProvider),
+                            transaction.getPlatformFee(),
+                            transaction.getGatewayFee(),
+                            transaction.getStatus(),
+                            transactionMetadata);
+                    return status.equals(STATUS_FAILED)
+                            ? PaymentWebhookResult.failed(STATUS_FAILED)
+                            : PaymentWebhookResult.cancelled();
                 case "canceled":
-                    transactionRepository.update(transaction.getId(), paymentId, paymentId, purchaseContext.now(clockProvider),
-                        0L, 0L, Transaction.Status.CANCELLED, transaction.getMetadata());
+                    transactionRepository.update(
+                            transaction.getId(),
+                            paymentId,
+                            paymentId,
+                            purchaseContext.now(clockProvider),
+                            0L,
+                            0L,
+                            Transaction.Status.CANCELLED,
+                            transaction.getMetadata());
                     return PaymentWebhookResult.cancelled();
                 case "open":
                     return PaymentWebhookResult.redirect(body.getCheckoutLink());
@@ -508,16 +626,25 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
     }
 
     @Override
-    public PaymentWebhookResult forceTransactionCheck(TicketReservation reservation, Transaction transaction, PaymentContext paymentContext) {
-        return validateRemotePayment(transaction, paymentContext, transaction.getPaymentId(), paymentContext.getPurchaseContext());
+    public PaymentWebhookResult forceTransactionCheck(
+            TicketReservation reservation, Transaction transaction, PaymentContext paymentContext) {
+        return validateRemotePayment(
+                transaction, paymentContext, transaction.getPaymentId(), paymentContext.getPurchaseContext());
     }
 
-    private HttpResponse<InputStream> callGetPayment(String paymentId, Map<ConfigurationKeys, MaybeConfiguration> configuration, ConfigurationLevel configurationLevel) throws IOException, InterruptedException {
-        var paymentResourceUrl = PAYMENTS_ENDPOINT+"/"+paymentId;
-        if(configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
-            paymentResourceUrl += ("?testmode=" + !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault());
+    private HttpResponse<InputStream> callGetPayment(
+            String paymentId,
+            Map<ConfigurationKeys, MaybeConfiguration> configuration,
+            ConfigurationLevel configurationLevel)
+            throws IOException, InterruptedException {
+        var paymentResourceUrl = PAYMENTS_ENDPOINT + "/" + paymentId;
+        if (configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
+            paymentResourceUrl +=
+                    ("?testmode=" + !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault());
         }
-        HttpRequest request = requestFor(paymentResourceUrl, configuration, configurationLevel).GET().build();
+        HttpRequest request = requestFor(paymentResourceUrl, configuration, configurationLevel)
+                .GET()
+                .build();
         return client.send(request, HttpResponse.BodyHandlers.ofInputStream());
     }
 
@@ -525,8 +652,8 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
     public boolean refund(Transaction transaction, PurchaseContext purchaseContext, Integer amount) {
         var currencyCode = transaction.getCurrency();
         var amountToRefund = Optional.ofNullable(amount)
-            .map(a -> MonetaryUtil.formatCents(a, currencyCode))
-            .orElseGet(transaction::getFormattedAmount);
+                .map(a -> MonetaryUtil.formatCents(a, currencyCode))
+                .orElseGet(transaction::getFormattedAmount);
         log.trace("Attempting to refund {} for reservation {}", amountToRefund, transaction.getReservationId());
         var configurationLevel = purchaseContext.getConfigurationLevel();
         var configuration = getConfiguration(configurationLevel);
@@ -534,24 +661,28 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         var parameters = new HashMap<String, Object>();
         parameters.put("amount[currency]", currencyCode);
         parameters.put("amount[value]", amountToRefund);
-        if(configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
-            log.trace("Platform mode is active. Setting testmode to {}", !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault());
-            parameters.put("testmode", !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault());
+        if (configuration.get(PLATFORM_MODE_ENABLED).getValueAsBooleanOrDefault()) {
+            log.trace(
+                    "Platform mode is active. Setting testmode to {}",
+                    !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault());
+            parameters.put(
+                    "testmode", !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault());
         }
 
-        var request = requestFor(PAYMENTS_ENDPOINT+"/"+ paymentId +"/refunds", configuration, configurationLevel)
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .POST(HttpUtils.ofFormUrlEncodedBody(parameters))
-            .build();
+        var request = requestFor(PAYMENTS_ENDPOINT + "/" + paymentId + "/refunds", configuration, configurationLevel)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpUtils.ofFormUrlEncodedBody(parameters))
+                .build();
 
         try {
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if(HttpUtils.callSuccessful(response)) {
+            if (HttpUtils.callSuccessful(response)) {
                 log.trace("Received a successful response from Mollie. Body is {}", response.body());
                 // we ignore the answer, for now
                 return true;
             } else {
-                log.warn("got {} response while calling refund API for payment ID {}", response.statusCode(), paymentId);
+                log.warn(
+                        "got {} response while calling refund API for payment ID {}", response.statusCode(), paymentId);
                 log.trace("detailed reply from mollie: {}", response.body());
                 return false;
             }
@@ -571,11 +702,13 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         var configuration = getConfiguration(configurationLevel);
         try {
             var getPaymentResponse = callGetPayment(transaction.getPaymentId(), configuration, configurationLevel);
-            if(HttpUtils.callSuccessful(getPaymentResponse)) {
+            if (HttpUtils.callSuccessful(getPaymentResponse)) {
                 try (var responseReader = new InputStreamReader(getPaymentResponse.body(), UTF_8)) {
-                    var body = new MolliePaymentDetails(JsonParser.parseReader(responseReader).getAsJsonObject());
+                    var body = new MolliePaymentDetails(
+                            JsonParser.parseReader(responseReader).getAsJsonObject());
                     var paidAmount = body.getPaidAmount();
-                    var refundAmount = body.getRefundAmount().map(PaymentAmount::getValue).orElse(null);
+                    var refundAmount =
+                            body.getRefundAmount().map(PaymentAmount::getValue).orElse(null);
                     return Optional.of(new PaymentInformation(paidAmount.getValue(), refundAmount, null, null));
                 }
             }
@@ -594,17 +727,19 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         private final String billingCountry;
         private final boolean testMode;
 
-        private static MethodCacheKey from(TransactionRequest transactionRequest,
-                                           Map<ConfigurationKeys, MaybeConfiguration> configuration) {
+        private static MethodCacheKey from(
+                TransactionRequest transactionRequest, Map<ConfigurationKeys, MaybeConfiguration> configuration) {
 
             String billingCountry = null;
-            if(transactionRequest.getBillingDetails() != null) {
-                billingCountry = StringUtils.trimToNull(transactionRequest.getBillingDetails().getCountry());
+            if (transactionRequest.getBillingDetails() != null) {
+                billingCountry = StringUtils.trimToNull(
+                        transactionRequest.getBillingDetails().getCountry());
             }
             PaymentAmount amount = null;
-            if(transactionRequest.getPrice() != null) {
+            if (transactionRequest.getPrice() != null) {
                 String currencyCode = transactionRequest.getPrice().getCurrencyCode();
-                amount = new PaymentAmount(formatCents(transactionRequest.getPrice().getPriceWithVAT(), currencyCode), currencyCode);
+                amount = new PaymentAmount(
+                        formatCents(transactionRequest.getPrice().getPriceWithVAT(), currencyCode), currencyCode);
             }
             boolean testMode = !configuration.get(MOLLIE_CONNECT_LIVE_MODE).getValueAsBooleanOrDefault();
             return new MethodCacheKey(amount, billingCountry, testMode);
@@ -622,8 +757,9 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         private final JsonObject body;
 
         String getReservationId() {
-            return Objects.requireNonNull(body.getAsJsonObject("metadata").get(MetadataBuilder.RESERVATION_ID), "reservation id")
-                .getAsString();
+            return Objects.requireNonNull(
+                            body.getAsJsonObject("metadata").get(MetadataBuilder.RESERVATION_ID), "reservation id")
+                    .getAsString();
         }
 
         String getPaymentId() {
@@ -635,12 +771,13 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         }
 
         String getCheckoutLink() {
-            return Optional.ofNullable(body.getAsJsonObject("_links").getAsJsonObject("checkout")).map(c -> c.get("href").getAsString()).orElse("");
+            return Optional.ofNullable(body.getAsJsonObject("_links").getAsJsonObject("checkout"))
+                    .map(c -> c.get("href").getAsString())
+                    .orElse("");
         }
 
         Optional<ZonedDateTime> getExpiresAt() {
-            return Optional.ofNullable(body.get("expiresAt"))
-                .map(at -> ZonedDateTime.parse(at.getAsString()));
+            return Optional.ofNullable(body.get("expiresAt")).map(at -> ZonedDateTime.parse(at.getAsString()));
         }
 
         boolean isLiveMode() {
@@ -648,8 +785,7 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         }
 
         Optional<ZonedDateTime> getConfirmationTimestamp() {
-            return Optional.ofNullable(body.get("paidAt"))
-                .map(at -> ZonedDateTime.parse(at.getAsString()));
+            return Optional.ofNullable(body.get("paidAt")).map(at -> ZonedDateTime.parse(at.getAsString()));
         }
 
         boolean hasPaymentMethod() {
@@ -657,7 +793,7 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
         }
 
         PaymentMethod getPaymentMethod() {
-            if(!hasPaymentMethod()) {
+            if (!hasPaymentMethod()) {
                 return null;
             }
             return SUPPORTED_METHODS.get(body.get("method").getAsString());
@@ -665,18 +801,21 @@ public class MollieWebhookPaymentManager implements PaymentProvider, WebhookHand
 
         Optional<String> applicationFee() {
             return Optional.ofNullable(body.getAsJsonObject("applicationFee"))
-                .map(feeObj -> feeObj.getAsJsonObject(AMOUNT))
-                .map(fee -> fee.get(VALUE).getAsString());
+                    .map(feeObj -> feeObj.getAsJsonObject(AMOUNT))
+                    .map(fee -> fee.get(VALUE).getAsString());
         }
 
         PaymentAmount getPaidAmount() {
             var amount = body.getAsJsonObject(AMOUNT);
-            return new PaymentAmount(amount.get(VALUE).getAsString(), amount.get(CURRENCY).getAsString());
+            return new PaymentAmount(
+                    amount.get(VALUE).getAsString(), amount.get(CURRENCY).getAsString());
         }
 
         Optional<PaymentAmount> getRefundAmount() {
             return Optional.ofNullable(body.getAsJsonObject("amountRefunded"))
-                .map(refund -> new PaymentAmount(refund.get(VALUE).getAsString(), refund.get(CURRENCY).getAsString()));
+                    .map(refund -> new PaymentAmount(
+                            refund.get(VALUE).getAsString(),
+                            refund.get(CURRENCY).getAsString()));
         }
     }
 }

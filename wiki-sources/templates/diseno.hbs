@@ -1,0 +1,132 @@
+# {{design_doc.title}}
+
+## Índice
+{{#each design_doc.sections}}
+- [{{title}}](#{{anchor}})
+{{/each}}
+- [7. Diseño de Casos de Prueba](#7-diseño-de-casos-de-prueba)
+- [8. Matriz de Trazabilidad](#8-matriz-de-trazabilidad)
+- [9. Métodos y Herramientas](#9-métodos-y-herramientas)
+- [10. Conclusiones](#10-conclusiones)
+
+{{#each design_doc.sections}}
+## {{title}}
+
+{{{content}}}
+
+{{#if subsections}}
+{{#each subsections}}
+### {{title}}
+
+{{{content}}}
+{{/each}}
+{{/if}}
+
+{{/each}}
+## 7. Diseño de Casos de Prueba
+
+{{#each test_suites}}
+{{level}} {{title}}
+| ID | {{cases.[0].id}} |
+| :--- | :--- |
+| **Funcionalidad** | {{{cases.[0].functionality}}} |
+| **Descripción** | {{{cases.[0].description}}} |
+| **Requisito Asociado** | {{{cases.[0].requirement}}} |
+| **Precondiciones** | {{{cases.[0].preconditions}}} |
+| **Datos de Entrada** | {{{cases.[0].inputs}}} |
+| **Pasos de Ejecución** | {{#each cases.[0].steps}}{{math @index "+" 1}}. {{{this}}} {{/each}}|
+| **Técnicas de Pruebas** | {{#each cases.[0].techniques}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}} |
+| **Prioridad** | {{{cases.[0].priority}}} |
+
+**Análisis de Técnicas**
+
+{{#if cases.[0].analysis.equivalency_partitions}}
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+{{#each cases.[0].analysis.equivalency_partitions}}
+| {{{field}}} | {{{valid}}} | {{{invalid}}} |
+{{/each}}
+{{/if}}
+
+{{#if cases.[0].analysis.boundary_values}}
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+{{#each cases.[0].analysis.boundary_values}}
+| {{{field}}} | {{{min_valid}}} | {{{min_invalid}}} | {{{max_valid}}} | {{{max_invalid}}} |
+{{/each}}
+{{/if}}
+
+{{#if cases.[0].analysis.decision_tables}}
+{{#each cases.[0].analysis.decision_tables}}
+{{#if raw}}
+**Tabla de Decisión: {{title}}**
+{{{raw}}}
+{{else}}
+**Tabla de Decisión: {{title}}**
+| {{header}} | {{#each columns}}{{this}}{{#unless @last}} | {{/unless}}{{/each}} |
+| :--- | {{#each columns}}:---{{#unless @last}} | {{/unless}}{{/each}} |
+{{#each conditions}}
+| {{{name}}} | {{#each values}}{{{this}}}{{#unless @last}} | {{/unless}}{{/each}} |
+{{/each}}
+{{#if outputs}}
+{{#each outputs}}
+{{#if @last}}| **{{{name}}}** | {{#each values}}**{{{this}}}**{{#unless @last}} | {{/unless}}{{/each}} |
+{{else}}| {{{name}}} | {{#each values}}{{{this}}}{{#unless @last}} | {{/unless}}{{/each}} |
+{{/if}}
+{{/each}}
+{{else}}
+| **{{action_name}}** | {{#each actions}}**{{{this}}}**{{#unless @last}} | {{/unless}}{{/each}} |
+{{/if}}
+{{/if}}
+{{/each}}
+{{/if}}
+
+{{#if cases.[0].analysis.state_transitions}}
+**Transición de Estados**
+
+{{#each cases.[0].analysis.state_transitions}}
+{{#if raw}}
+{{{raw}}}
+{{else}}
+![{{alt}}]({{image}})
+{{/if}}
+{{/each}}
+{{/if}}
+
+**Catálogo de Pruebas**
+| #CP | {{catalog_header}} | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+{{#each cases.[0].catalog}}
+| {{cp_id}} | {{{inputs}}} | {{{expected}}} | {{{obs}}} |
+{{/each}}
+
+{{/each}}
+## 8. Matriz de Trazabilidad
+
+En esta sección se relacionan los requisitos funcionales con los casos de prueba que los verifican:
+
+| Requisito Funcional | Casos de Prueba Asociados |
+| :--- | :--- |
+{{#each traceability_matrix}}
+| **{{requirement}}:** {{{description}}} | {{{cases}}} |
+{{/each}}
+
+## 9. Métodos y Herramientas
+
+### 9.1 Gestión y Planificación
+
+- **Gestión de tareas, casos de prueba y defectos:** GitHub Issues (empleando templates estandarizados) y GitHub Projects para visualización en tablero Kanban.
+- **Documentación de Pruebas:** GitHub Wiki del repositorio para el mantenimiento de este plan de pruebas y documentación relacionada.
+
+### 9.2 Automatización e Integración Continua
+
+- **CI/CD:** GitHub Actions para ejecución automática de pruebas unitarias en cada Pull Request.
+- **Reportes de Cobertura:** Herramientas como JaCoCo (backend) y herramientas de cobertura de Vitest (frontend) integradas en el pipeline de GitHub Actions.
+
+## 10. Conclusiones
+
+Las técnicas de caja negra aplicadas al diseño de casos de prueba para alf.io permiten estructurar una validación eficiente y exhaustiva, orientada a descubrir errores de lógica en la gestión de eventos, reservas y pagos, así como defectos en la interacción con el usuario. Al combinar partición por equivalencia, análisis de valores límite, pruebas de casos de uso y tablas de decisión, se optimiza la selección de casos de prueba para cubrir amplios escenarios de entrada sin redundancias innecesarias.
+
+La organización del diseño en casos de prueba estandarizados y la matriz de trazabilidad proporcionan una visión clara del cubrimiento funcional, facilitando la ejecución, el seguimiento y la mejora continua del proceso de pruebas.

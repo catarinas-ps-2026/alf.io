@@ -17,14 +17,13 @@
 package alfio.util;
 
 import alfio.model.Ticket;
+import java.util.*;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.ReflectionUtils;
-
-import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Replace https://github.com/SQiShER/java-object-diff . As our use case is way more restricted and limited.
@@ -39,7 +38,8 @@ public class ObjectDiffUtil {
         return propertyNameBefore + k + propertyNameAfter;
     }
 
-    private static List<Change> diffUntyped(Map<String, ?> before, Map<String, ?> after, String propertyNameBefore, String propertyNameAfter) {
+    private static List<Change> diffUntyped(
+            Map<String, ?> before, Map<String, ?> after, String propertyNameBefore, String propertyNameAfter) {
         var removed = new HashSet<>(before.keySet());
         removed.removeAll(after.keySet());
 
@@ -52,13 +52,26 @@ public class ObjectDiffUtil {
 
         var changes = new ArrayList<Change>();
 
-        removed.stream().map(k -> new Change(formatPropertyName(k, propertyNameBefore, propertyNameAfter), State.REMOVED, before.get(k), null)).forEach(changes::add);
-        added.stream().map(k -> new Change(formatPropertyName(k, propertyNameBefore, propertyNameAfter), State.ADDED, null, after.get(k))).forEach(changes::add);
+        removed.stream()
+                .map(k -> new Change(
+                        formatPropertyName(k, propertyNameBefore, propertyNameAfter),
+                        State.REMOVED,
+                        before.get(k),
+                        null))
+                .forEach(changes::add);
+        added.stream()
+                .map(k -> new Change(
+                        formatPropertyName(k, propertyNameBefore, propertyNameAfter), State.ADDED, null, after.get(k)))
+                .forEach(changes::add);
         changedOrUntouched.forEach(k -> {
             var beforeValue = before.get(k);
             var afterValue = after.get(k);
-            if(!Objects.equals(beforeValue, afterValue)) {
-                changes.add(new Change(formatPropertyName(k, propertyNameBefore, propertyNameAfter), State.CHANGED, beforeValue, afterValue));
+            if (!Objects.equals(beforeValue, afterValue)) {
+                changes.add(new Change(
+                        formatPropertyName(k, propertyNameBefore, propertyNameAfter),
+                        State.CHANGED,
+                        beforeValue,
+                        afterValue));
             }
         });
         changes.sort(Change::compareTo);
@@ -94,10 +107,11 @@ public class ObjectDiffUtil {
         @Override
         public int compareTo(Change change) {
             return new CompareToBuilder()
-                .append(propertyName, change.propertyName)
-                .append(state.ordinal(), change.state.ordinal())
-                .append(oldValue, change.oldValue)
-                .append(newValue, change.newValue).toComparison();
+                    .append(propertyName, change.propertyName)
+                    .append(state.ordinal(), change.state.ordinal())
+                    .append(oldValue, change.oldValue)
+                    .append(newValue, change.newValue)
+                    .toComparison();
         }
     }
 

@@ -19,7 +19,6 @@ package alfio.controller.api.support;
 import alfio.model.Event;
 import alfio.model.EventDescription;
 import alfio.util.EventUtil;
-
 import java.time.Clock;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +37,9 @@ public class EventListItem {
     }
 
     public String getImageUrl() {
-        return event.getFileBlobIdIsPresent() ? requestContextPath + "/file/" + event.getFileBlobId() : event.getImageUrl();
+        return event.getFileBlobIdIsPresent()
+                ? requestContextPath + "/file/" + event.getFileBlobId()
+                : event.getImageUrl();
     }
 
     public String getUrl() {
@@ -54,7 +55,9 @@ public class EventListItem {
     }
 
     public List<PublicEventDescription> getDescriptions() {
-        return eventDescriptions.stream().map(PublicEventDescription::fromEventDescription).collect(Collectors.toList());
+        return eventDescriptions.stream()
+                .map(PublicEventDescription::fromEventDescription)
+                .collect(Collectors.toList());
     }
 
     public boolean isOneDay() {
@@ -62,11 +65,15 @@ public class EventListItem {
     }
 
     public String getBegin() {
-        return event.getBegin().withZoneSameInstant(Clock.systemUTC().getZone()).format(EventUtil.JSON_DATETIME_FORMATTER);
+        return event.getBegin()
+                .withZoneSameInstant(Clock.systemUTC().getZone())
+                .format(EventUtil.JSON_DATETIME_FORMATTER);
     }
 
     public String getEnd() {
-        return event.getEnd().withZoneSameInstant(Clock.systemUTC().getZone()).format(EventUtil.JSON_DATETIME_FORMATTER);
+        return event.getEnd()
+                .withZoneSameInstant(Clock.systemUTC().getZone())
+                .format(EventUtil.JSON_DATETIME_FORMATTER);
     }
 
     public String getLocation() {
@@ -88,5 +95,4 @@ public class EventListItem {
     public int getApiVersion() {
         return API_VERSION;
     }
-
 }

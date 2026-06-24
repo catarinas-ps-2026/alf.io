@@ -16,6 +16,10 @@
  */
 package alfio.manager;
 
+import static alfio.manager.support.extension.ExtensionCapability.*;
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -40,6 +44,15 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,20 +64,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.StreamUtils;
 
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static alfio.manager.support.extension.ExtensionCapability.*;
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
@@ -72,26 +71,37 @@ class ExtensionManagerIntegrationTest {
 
     @Autowired
     private ExtensionManager extensionManager;
+
     @Autowired
     private ExtensionService extensionService;
+
     @Autowired
     private ExtensionRepository extensionRepository;
+
     @Autowired
     private ConfigurationRepository configurationRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private AuthorityRepository authorityRepository;
+
     @Autowired
     private FileUploadManager fileUploadManager;
+
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -107,19 +117,38 @@ class ExtensionManagerIntegrationTest {
         toInsert.setType("image/gif");
         fileUploadManager.insertFile(toInsert);
 
-        //create test event
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        // create test event
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
 
         event = eventAndUser.getLeft();
 
         // insert extension
         String script;
-        try(var input = getClass().getResourceAsStream("/rhino-scripts/capabilities.js")) {
+        try (var input = getClass().getResourceAsStream("/rhino-scripts/capabilities.js")) {
             script = StreamUtils.copyToString(input, StandardCharsets.UTF_8);
         }
         extensionService.createOrUpdate(null, null, new Extension("-", "test", script, true));
@@ -128,7 +157,9 @@ class ExtensionManagerIntegrationTest {
     @Test
     void capabilitiesSaved() {
         var extension = extensionRepository.getSingle("-", "test").orElseThrow();
-        assertEquals(List.of(CREATE_VIRTUAL_ROOM.name(), CREATE_GUEST_LINK.name()), extension.getExtensionMetadata().getCapabilities());
+        assertEquals(
+                List.of(CREATE_VIRTUAL_ROOM.name(), CREATE_GUEST_LINK.name()),
+                extension.getExtensionMetadata().getCapabilities());
         assertFalse(extension.getExtensionMetadata().getCapabilityDetails().isEmpty());
         var results = jdbcTemplate.queryForList("select * from extension_capabilities", Map.of());
         assertEquals(2, results.size());
@@ -148,15 +179,20 @@ class ExtensionManagerIntegrationTest {
     @Test
     void requestSupportedCapabilities() {
         var requested = Set.of(CREATE_VIRTUAL_ROOM, CREATE_ANONYMOUS_GUEST_LINK, CREATE_GUEST_LINK);
-        assertEquals(Set.of(CREATE_VIRTUAL_ROOM, CREATE_GUEST_LINK), extensionManager.getSupportedCapabilities(requested, event).stream().map(ExtensionCapabilitySummary::getCapability).collect(Collectors.toSet()));
+        assertEquals(
+                Set.of(CREATE_VIRTUAL_ROOM, CREATE_GUEST_LINK),
+                extensionManager.getSupportedCapabilities(requested, event).stream()
+                        .map(ExtensionCapabilitySummary::getCapability)
+                        .collect(Collectors.toSet()));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "room1", "room2" })
+    @ValueSource(strings = {"room1", "room2"})
     void executeCapability(String selector) {
-        var optionalResult = extensionManager.executeCapability(CREATE_VIRTUAL_ROOM, Map.of("selector", selector), event, String.class);
+        var optionalResult = extensionManager.executeCapability(
+                CREATE_VIRTUAL_ROOM, Map.of("selector", selector), event, String.class);
         assertTrue(optionalResult.isPresent());
-        assertEquals("https://alf.io/"+selector, optionalResult.get());
+        assertEquals("https://alf.io/" + selector, optionalResult.get());
     }
 
     @Test
@@ -164,7 +200,7 @@ class ExtensionManagerIntegrationTest {
         var params = Map.of("firstName", "testName", "lastName", "testLastName", "email", "testEmail");
         var optionalResult = extensionManager.executeCapability(CREATE_GUEST_LINK, params, event, String.class);
         assertTrue(optionalResult.isPresent());
-        var expectedParams = ExtensionUtils.base64UrlSafe("testName"+";"+"testLastName"+";"+"testEmail");
-        assertEquals("https://alf.io?user="+expectedParams, optionalResult.get());
+        var expectedParams = ExtensionUtils.base64UrlSafe("testName" + ";" + "testLastName" + ";" + "testEmail");
+        assertEquals("https://alf.io?user=" + expectedParams, optionalResult.get());
     }
 }

@@ -19,13 +19,6 @@ package alfio.manager;
 import alfio.model.UploadedResource;
 import alfio.model.modification.UploadBase64FileModification;
 import alfio.repository.UploadedResourceRepository;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,6 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.imageio.ImageIO;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional
@@ -74,7 +73,6 @@ public class UploadedResourceManager {
         return uploadedResourceRepository.get(organizationId, eventId, name);
     }
 
-
     public void outputResource(String name, OutputStream out) {
         uploadedResourceRepository.fileContent(name, out);
     }
@@ -108,7 +106,8 @@ public class UploadedResourceManager {
             uploadedResourceRepository.delete(organizationId, eventId, file.getName());
         }
 
-        return Optional.ofNullable(uploadedResourceRepository.upload(organizationId, eventId, file, getAttributes(file)));
+        return Optional.ofNullable(
+                uploadedResourceRepository.upload(organizationId, eventId, file, getAttributes(file)));
     }
 
     public void deleteResource(String name) {
@@ -154,7 +153,7 @@ public class UploadedResourceManager {
 
     public Optional<byte[]> findCascading(int organizationId, Integer eventId, String savedName) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        if(eventId != null && hasResource(organizationId, eventId, savedName)) {
+        if (eventId != null && hasResource(organizationId, eventId, savedName)) {
             outputResource(organizationId, eventId, savedName, baos);
             return Optional.of(baos.toByteArray());
         } else if (hasResource(organizationId, savedName)) {

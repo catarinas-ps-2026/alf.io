@@ -21,22 +21,35 @@ import alfio.util.MonetaryUtil;
 import alfio.util.checkin.NameNormalizer;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.ZonedDateTime;
+import java.util.*;
 import lombok.Getter;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.ZonedDateTime;
-import java.util.*;
-
 @Getter
 public class Ticket implements TicketInfoContainer {
 
     public enum TicketStatus {
-        FREE, PENDING, TO_BE_PAID, ACQUIRED, CANCELLED, CHECKED_IN, EXPIRED, INVALIDATED, RELEASED, PRE_RESERVED
+        FREE,
+        PENDING,
+        TO_BE_PAID,
+        ACQUIRED,
+        CANCELLED,
+        CHECKED_IN,
+        EXPIRED,
+        INVALIDATED,
+        RELEASED,
+        PRE_RESERVED
     }
 
-    private static final Set<TicketStatus> SOLD_STATUSES = EnumSet.of(TicketStatus.TO_BE_PAID, TicketStatus.ACQUIRED, TicketStatus.CANCELLED, TicketStatus.CHECKED_IN, TicketStatus.RELEASED);
+    private static final Set<TicketStatus> SOLD_STATUSES = EnumSet.of(
+            TicketStatus.TO_BE_PAID,
+            TicketStatus.ACQUIRED,
+            TicketStatus.CANCELLED,
+            TicketStatus.CHECKED_IN,
+            TicketStatus.RELEASED);
 
     private final int id;
     private final String uuid;
@@ -64,29 +77,30 @@ public class Ticket implements TicketInfoContainer {
     private final UUID subscriptionId;
     private final PriceContainer.VatStatus vatStatus;
 
-    public Ticket(@JsonProperty("id") @Column("id") int id,
-                  @JsonProperty("uuid") @Column("uuid") String uuid,
-                  @JsonProperty("publicUuid") @Column("public_uuid") UUID publicUuid,
-                  @JsonProperty("creation") @Column("creation") ZonedDateTime creation,
-                  @JsonProperty("categoryId") @Column("category_id") Integer categoryId,
-                  @JsonProperty("status") @Column("status") String status,
-                  @JsonProperty("eventId") @Column("event_id") int eventId,
-                  @JsonProperty("ticketsReservationId") @Column("tickets_reservation_id") String ticketsReservationId,
-                  @JsonProperty("fullName") @Column("full_name") String fullName,
-                  @JsonProperty("firstName") @Column("first_name") String firstName,
-                  @JsonProperty("lastName") @Column("last_name") String lastName,
-                  @JsonProperty("email") @Column("email_address") String email,
-                  @JsonProperty("lockedAssignment") @Column("locked_assignment") boolean lockedAssignment,
-                  @JsonProperty("userLanguage") @Column("user_language") String userLanguage,
-                  @JsonProperty("srcPriceCts") @Column("src_price_cts") int srcPriceCts,
-                  @JsonProperty("finalPriceCts") @Column("final_price_cts") int finalPriceCts,
-                  @JsonProperty("vatCts") @Column("vat_cts") int vatCts,
-                  @JsonProperty("discountCts") @Column("discount_cts") int discountCts,
-                  @JsonProperty("extReference") @Column("ext_reference") String extReference,
-                  @JsonProperty("currencyCode") @Column("currency_code") String currencyCode,
-                  @JsonProperty("tags") @Column("tags") @Array List<String> tags,
-                  @JsonProperty("subscriptionId") @Column("subscription_id_fk") UUID subscriptionId,
-                  @JsonProperty("vatStatus") @Column("vat_status") PriceContainer.VatStatus vatStatus) {
+    public Ticket(
+            @JsonProperty("id") @Column("id") int id,
+            @JsonProperty("uuid") @Column("uuid") String uuid,
+            @JsonProperty("publicUuid") @Column("public_uuid") UUID publicUuid,
+            @JsonProperty("creation") @Column("creation") ZonedDateTime creation,
+            @JsonProperty("categoryId") @Column("category_id") Integer categoryId,
+            @JsonProperty("status") @Column("status") String status,
+            @JsonProperty("eventId") @Column("event_id") int eventId,
+            @JsonProperty("ticketsReservationId") @Column("tickets_reservation_id") String ticketsReservationId,
+            @JsonProperty("fullName") @Column("full_name") String fullName,
+            @JsonProperty("firstName") @Column("first_name") String firstName,
+            @JsonProperty("lastName") @Column("last_name") String lastName,
+            @JsonProperty("email") @Column("email_address") String email,
+            @JsonProperty("lockedAssignment") @Column("locked_assignment") boolean lockedAssignment,
+            @JsonProperty("userLanguage") @Column("user_language") String userLanguage,
+            @JsonProperty("srcPriceCts") @Column("src_price_cts") int srcPriceCts,
+            @JsonProperty("finalPriceCts") @Column("final_price_cts") int finalPriceCts,
+            @JsonProperty("vatCts") @Column("vat_cts") int vatCts,
+            @JsonProperty("discountCts") @Column("discount_cts") int discountCts,
+            @JsonProperty("extReference") @Column("ext_reference") String extReference,
+            @JsonProperty("currencyCode") @Column("currency_code") String currencyCode,
+            @JsonProperty("tags") @Column("tags") @Array List<String> tags,
+            @JsonProperty("subscriptionId") @Column("subscription_id_fk") UUID subscriptionId,
+            @JsonProperty("vatStatus") @Column("vat_status") PriceContainer.VatStatus vatStatus) {
         this.id = id;
         this.uuid = uuid;
         this.publicUuid = publicUuid;
@@ -112,21 +126,23 @@ public class Ticket implements TicketInfoContainer {
         this.subscriptionId = subscriptionId;
         this.vatStatus = vatStatus;
     }
-    
+
     @Override
     public boolean getAssigned() {
-        return (StringUtils.isNotBlank(fullName) || (StringUtils.isNotBlank(firstName) && StringUtils.isNotBlank(lastName))) && StringUtils.isNotBlank(email);
+        return (StringUtils.isNotBlank(fullName)
+                        || (StringUtils.isNotBlank(firstName) && StringUtils.isNotBlank(lastName)))
+                && StringUtils.isNotBlank(email);
     }
-    
+
     public boolean getLockedAssignment() {
         return lockedAssignment;
     }
 
     /**
      * The code is composed with:
-     * 
+     *
      * <pre>uuid + '/' + hmac_sha256_base64((ticketsReservationId + '/' + uuid + '/' + fullName + '/' + email), eventKey)</pre>
-     * 
+     *
      * @param eventKey
      * @return
      */
@@ -147,14 +163,22 @@ public class Ticket implements TicketInfoContainer {
         return status == TicketStatus.CHECKED_IN;
     }
 
-    static String generateHmacTicketInfo(String eventKey, boolean caseInsensitive, String fullName, String email, String ticketsReservationId, String uuid) {
+    static String generateHmacTicketInfo(
+            String eventKey,
+            boolean caseInsensitive,
+            String fullName,
+            String email,
+            String ticketsReservationId,
+            String uuid) {
         var attendeeName = fullName;
         var attendeeEmail = email;
         if (caseInsensitive) {
             attendeeName = NameNormalizer.normalize(attendeeName);
             attendeeEmail = email.toLowerCase(Locale.ROOT);
         }
-        return hmacSHA256Base64(eventKey, StringUtils.join(new String[]{ticketsReservationId , uuid, attendeeName, attendeeEmail}, '/'));
+        return hmacSHA256Base64(
+                eventKey,
+                StringUtils.join(new String[] {ticketsReservationId, uuid, attendeeName, attendeeEmail}, '/'));
     }
 
     public static String hmacSHA256Base64(String key, String code) {
@@ -175,29 +199,28 @@ public class Ticket implements TicketInfoContainer {
 
     public Ticket withVatStatus(PriceContainer.VatStatus newVatStatus) {
         return new Ticket(
-            id,
-            uuid,
-            publicUuid,
-            creation,
-            categoryId,
-            status.name(),
-            eventId,
-            ticketsReservationId,
-            fullName,
-            firstName,
-            lastName,
-            email,
-            lockedAssignment,
-            userLanguage,
-            srcPriceCts,
-            finalPriceCts,
-            vatCts,
-            discountCts,
-            extReference,
-            currencyCode,
-            tags,
-            subscriptionId,
-            newVatStatus
-        );
+                id,
+                uuid,
+                publicUuid,
+                creation,
+                categoryId,
+                status.name(),
+                eventId,
+                ticketsReservationId,
+                fullName,
+                firstName,
+                lastName,
+                email,
+                lockedAssignment,
+                userLanguage,
+                srcPriceCts,
+                finalPriceCts,
+                vatCts,
+                discountCts,
+                extReference,
+                currencyCode,
+                tags,
+                subscriptionId,
+                newVatStatus);
     }
 }

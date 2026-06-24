@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.experimental.Delegate;
 import org.apache.commons.lang3.tuple.Pair;
 
-public final class SerializablePair<L,R> {
+public final class SerializablePair<L, R> {
     @Delegate
     @JsonIgnore
     private final Pair<L, R> pair;
@@ -29,11 +29,11 @@ public final class SerializablePair<L,R> {
         this.pair = pair;
     }
 
-    static <L,R> SerializablePair<L,R> fromPair(Pair<L,R> pair) {
+    static <L, R> SerializablePair<L, R> fromPair(Pair<L, R> pair) {
         return new SerializablePair<>(pair);
     }
 
-    static <L,R> SerializablePair<L,R> of(L left, R right) {
+    static <L, R> SerializablePair<L, R> of(L left, R right) {
         return new SerializablePair<>(Pair.of(left, right));
     }
 }

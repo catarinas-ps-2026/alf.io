@@ -16,14 +16,14 @@
  */
 package alfio.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.config.support.PlatformProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DataSourceConfigurationTest {
 
@@ -34,7 +34,6 @@ public class DataSourceConfigurationTest {
     void init() {
         environment = mock(Environment.class);
     }
-
 
     @Test
     public void selectOpenShift() {

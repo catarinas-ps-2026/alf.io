@@ -25,5 +25,4 @@ import alfio.model.transaction.Capability;
 public interface RefundRequest extends Capability {
 
     boolean refund(alfio.model.transaction.Transaction transaction, PurchaseContext purchaseContext, Integer amount);
-
 }

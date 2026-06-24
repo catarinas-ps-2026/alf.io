@@ -16,23 +16,22 @@
  */
 package alfio.model.api.v1.admin;
 
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+
 import alfio.model.modification.AdditionalFieldRequest;
 import alfio.model.modification.EventModification;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @Getter
 @AllArgsConstructor
@@ -50,11 +49,10 @@ public class AdditionalInfoRequest {
 
     public boolean isValid() {
         return StringUtils.isNotBlank(name)
-            && type != null
-            && CollectionUtils.isNotEmpty(label)
-            && label.stream().allMatch(DescriptionRequest::isValid);
+                && type != null
+                && CollectionUtils.isNotEmpty(label)
+                && label.stream().allMatch(DescriptionRequest::isValid);
     }
-
 
     public AdditionalFieldRequest toAdditionalField(int ordinal) {
         int position = this.ordinal != null ? this.ordinal : ordinal;
@@ -63,50 +61,61 @@ public class AdditionalInfoRequest {
         Integer maxLength = contentLength != null ? contentLength.max : null;
         List<EventModification.RestrictedValue> restrictedValueList = null;
         if (!isEmpty(this.restrictedValues)) {
-            restrictedValueList = this.restrictedValues.stream().map(rv -> new EventModification.RestrictedValue(rv.getValue(), rv.getEnabled())).collect(Collectors.toList());
+            restrictedValueList = this.restrictedValues.stream()
+                    .map(rv -> new EventModification.RestrictedValue(rv.getValue(), rv.getEnabled()))
+                    .collect(Collectors.toList());
         }
 
         return new AdditionalFieldRequest(
-            position,
-            null,
-            name,
-            code,
-            Boolean.TRUE.equals(required),
-            false,
-            minLength,
-            maxLength,
-            restrictedValueList,
-            toDescriptionMap(EventCreationRequest.orEmpty(label), EventCreationRequest.orEmpty(placeholder), EventCreationRequest.orEmpty(this.restrictedValues)),
-            null,
-            null,
-            displayAtCheckIn
-            );
+                position,
+                null,
+                name,
+                code,
+                Boolean.TRUE.equals(required),
+                false,
+                minLength,
+                maxLength,
+                restrictedValueList,
+                toDescriptionMap(
+                        EventCreationRequest.orEmpty(label),
+                        EventCreationRequest.orEmpty(placeholder),
+                        EventCreationRequest.orEmpty(this.restrictedValues)),
+                null,
+                null,
+                displayAtCheckIn);
     }
 
-    private static Map<String, EventModification.Description> toDescriptionMap(List<DescriptionRequest> label,
-                                                                               List<DescriptionRequest> placeholder,
-                                                                               List<RestrictedValueRequest> restrictedValues) {
-        Map<String, String> labelsByLang = label.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));
-        Map<String, String> placeholdersByLang = placeholder.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));
+    private static Map<String, EventModification.Description> toDescriptionMap(
+            List<DescriptionRequest> label,
+            List<DescriptionRequest> placeholder,
+            List<RestrictedValueRequest> restrictedValues) {
+        Map<String, String> labelsByLang =
+                label.stream().collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));
+        Map<String, String> placeholdersByLang = placeholder.stream()
+                .collect(Collectors.toMap(DescriptionRequest::getLang, DescriptionRequest::getBody));
         Map<String, List<Triple<String, String, String>>> valuesByLang = restrictedValues.stream()
-            .flatMap(rv -> rv.getDescriptions().stream().map(rvd -> Triple.of(rvd.getLang(), rv.getValue(), rvd.getBody())))
-            .collect(Collectors.groupingBy(Triple::getLeft));
-
+                .flatMap(rv -> rv.getDescriptions().stream()
+                        .map(rvd -> Triple.of(rvd.getLang(), rv.getValue(), rvd.getBody())))
+                .collect(Collectors.groupingBy(Triple::getLeft));
 
         Set<String> keys = new HashSet<>(labelsByLang.keySet());
         keys.addAll(placeholdersByLang.keySet());
         keys.addAll(valuesByLang.keySet());
 
         return keys.stream()
-            .map(lang -> {
-                Map<String, String> rvsMap = valuesByLang.getOrDefault(lang, emptyList()).stream().collect(Collectors.toMap(Triple::getMiddle, Triple::getRight));
-                return Pair.of(lang, new EventModification.Description(labelsByLang.get(lang), placeholdersByLang.get(lang), rvsMap));
-            }).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+                .map(lang -> {
+                    Map<String, String> rvsMap = valuesByLang.getOrDefault(lang, emptyList()).stream()
+                            .collect(Collectors.toMap(Triple::getMiddle, Triple::getRight));
+                    return Pair.of(
+                            lang,
+                            new EventModification.Description(
+                                    labelsByLang.get(lang), placeholdersByLang.get(lang), rvsMap));
+                })
+                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     }
 
     @Getter
     public enum AdditionalInfoType {
-
         GENERIC_TEXT("input:text"),
         PHONE_NUMBER("input:tel"),
         MULTI_LINE_TEXT("textarea"),
@@ -122,10 +131,10 @@ public class AdditionalInfoRequest {
         AdditionalInfoType(String code) {
             this.code = code;
         }
-
     }
 
-    public static final Set<String> WITH_RESTRICTED_VALUES = Set.of(AdditionalInfoType.LIST_BOX.code, AdditionalInfoType.CHECKBOX.code, AdditionalInfoType.RADIO.code);
+    public static final Set<String> WITH_RESTRICTED_VALUES =
+            Set.of(AdditionalInfoType.LIST_BOX.code, AdditionalInfoType.CHECKBOX.code, AdditionalInfoType.RADIO.code);
 
     @Getter
     @AllArgsConstructor
@@ -141,6 +150,5 @@ public class AdditionalInfoRequest {
         private String value;
         private Boolean enabled;
         private List<DescriptionRequest> descriptions;
-
     }
 }

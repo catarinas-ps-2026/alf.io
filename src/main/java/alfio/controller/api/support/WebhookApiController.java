@@ -18,12 +18,11 @@ package alfio.controller.api.support;
 
 import alfio.manager.payment.StripeCreditCardManager;
 import alfio.util.RequestUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/webhook")
@@ -33,16 +32,16 @@ public class WebhookApiController {
     private final StripeCreditCardManager stripeCreditCardManager;
 
     @PostMapping("/mollie/event/{eventName}/reservation/{reservationId}")
-    public void handleMollie(@PathVariable String eventName, @PathVariable String reservationId) {
-    }
+    public void handleMollie(@PathVariable String eventName, @PathVariable String reservationId) {}
 
     @PostMapping("/stripe/notification")
-    public ResponseEntity<Boolean> handleStripeMessage(@RequestHeader(value = "Stripe-Signature", required = false) String stripeSignature, HttpServletRequest request) {
+    public ResponseEntity<Boolean> handleStripeMessage(
+            @RequestHeader(value = "Stripe-Signature", required = false) String stripeSignature,
+            HttpServletRequest request) {
         return RequestUtils.readRequest(request)
-            .flatMap(b -> stripeCreditCardManager.processWebhookEvent(b, stripeSignature))
-            .filter(b -> b)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+                .flatMap(b -> stripeCreditCardManager.processWebhookEvent(b, stripeSignature))
+                .filter(b -> b)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
-
 }

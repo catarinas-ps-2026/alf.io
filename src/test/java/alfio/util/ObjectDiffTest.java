@@ -16,33 +16,72 @@
  */
 package alfio.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.model.PriceContainer;
 import alfio.model.Ticket;
 import alfio.test.util.TestUtil;
-import org.junit.jupiter.api.Test;
-
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class ObjectDiffTest {
 
     ZonedDateTime now = ZonedDateTime.now(TestUtil.clockProvider().getClock());
     UUID publicUUID = UUID.randomUUID();
 
-    Ticket preUpdateTicket = new Ticket(42, "42", publicUUID, now, 1, Ticket.TicketStatus.ACQUIRED.name(), 42,
-        "42", "full name", "full", "name", "email@email.com",
-        false, "en",
-        0,  0, 0, 0, null, null, List.of(), null, PriceContainer.VatStatus.INCLUDED);
+    Ticket preUpdateTicket = new Ticket(
+            42,
+            "42",
+            publicUUID,
+            now,
+            1,
+            Ticket.TicketStatus.ACQUIRED.name(),
+            42,
+            "42",
+            "full name",
+            "full",
+            "name",
+            "email@email.com",
+            false,
+            "en",
+            0,
+            0,
+            0,
+            0,
+            null,
+            null,
+            List.of(),
+            null,
+            PriceContainer.VatStatus.INCLUDED);
 
-    Ticket postUpdateTicket = new Ticket(42, "42", publicUUID, now, 1, Ticket.TicketStatus.CANCELLED.name(), 42,
-        "42", "full name", "full", "name", "email@email.com",
-        false, "en",
-        0,  0, 0, 0, null, null, List.of(), null, PriceContainer.VatStatus.INCLUDED);
+    Ticket postUpdateTicket = new Ticket(
+            42,
+            "42",
+            publicUUID,
+            now,
+            1,
+            Ticket.TicketStatus.CANCELLED.name(),
+            42,
+            "42",
+            "full name",
+            "full",
+            "name",
+            "email@email.com",
+            false,
+            "en",
+            0,
+            0,
+            0,
+            0,
+            null,
+            null,
+            List.of(),
+            null,
+            PriceContainer.VatStatus.INCLUDED);
 
     @Test
     public void diffMapTest() {
@@ -71,7 +110,6 @@ public class ObjectDiffTest {
         assertEquals("changed", changedElem.get(0).getNewValue());
         assertEquals("element", changedElem.get(0).getOldValue());
         assertEquals(ObjectDiffUtil.State.CHANGED, changedElem.get(0).getState());
-
 
         var untouchedElem = ObjectDiffUtil.diff(newElement, new HashMap<>(newElement));
         assertEquals(0, untouchedElem.size());

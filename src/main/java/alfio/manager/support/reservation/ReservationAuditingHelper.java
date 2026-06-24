@@ -16,20 +16,19 @@
  */
 package alfio.manager.support.reservation;
 
+import static alfio.model.Audit.EntityType.TICKET;
+
 import alfio.model.Audit;
 import alfio.model.Ticket;
 import alfio.model.metadata.TicketMetadataContainer;
 import alfio.repository.AuditingRepository;
 import alfio.util.ObjectDiffUtil;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static alfio.model.Audit.EntityType.TICKET;
 
 public class ReservationAuditingHelper {
 
@@ -39,29 +38,51 @@ public class ReservationAuditingHelper {
         this.auditingRepository = auditingRepository;
     }
 
-    public void auditUpdateMetadata(String reservationId,
-                                     int ticketId,
-                                     int eventId,
-                                     TicketMetadataContainer newMetadata,
-                                     TicketMetadataContainer oldMetadata) {
-        List<Map<String, Object>> changes = ObjectDiffUtil.diff(oldMetadata, newMetadata, TicketMetadataContainer.class).stream()
-            .map(this::processChange)
-            .collect(Collectors.toList());
+    public void auditUpdateMetadata(
+            String reservationId,
+            int ticketId,
+            int eventId,
+            TicketMetadataContainer newMetadata,
+            TicketMetadataContainer oldMetadata) {
+        List<Map<String, Object>> changes =
+                ObjectDiffUtil.diff(oldMetadata, newMetadata, TicketMetadataContainer.class).stream()
+                        .map(this::processChange)
+                        .collect(Collectors.toList());
 
-        auditingRepository.insert(reservationId, null, eventId, Audit.EventType.UPDATE_TICKET_METADATA, new Date(),
-            TICKET, Integer.toString(ticketId), changes);
+        auditingRepository.insert(
+                reservationId,
+                null,
+                eventId,
+                Audit.EventType.UPDATE_TICKET_METADATA,
+                new Date(),
+                TICKET,
+                Integer.toString(ticketId),
+                changes);
     }
 
-    public void auditUpdateTicket(Ticket preUpdateTicket, Map<String, List<String>> preUpdateTicketFields, Ticket postUpdateTicket, Map<String, List<String>> postUpdateTicketFields, int eventId) {
+    public void auditUpdateTicket(
+            Ticket preUpdateTicket,
+            Map<String, List<String>> preUpdateTicketFields,
+            Ticket postUpdateTicket,
+            Map<String, List<String>> postUpdateTicketFields,
+            int eventId) {
         List<ObjectDiffUtil.Change> diffTicket = ObjectDiffUtil.diff(preUpdateTicket, postUpdateTicket);
-        List<ObjectDiffUtil.Change> diffTicketFields = ObjectDiffUtil.diff(preUpdateTicketFields, postUpdateTicketFields);
+        List<ObjectDiffUtil.Change> diffTicketFields =
+                ObjectDiffUtil.diff(preUpdateTicketFields, postUpdateTicketFields);
 
         List<Map<String, Object>> changes = Stream.concat(diffTicket.stream(), diffTicketFields.stream())
-            .map(this::processChange)
-            .collect(Collectors.toList());
+                .map(this::processChange)
+                .collect(Collectors.toList());
 
-        auditingRepository.insert(preUpdateTicket.getTicketsReservationId(), null, eventId,
-            Audit.EventType.UPDATE_TICKET, new Date(), TICKET, Integer.toString(preUpdateTicket.getId()), changes);
+        auditingRepository.insert(
+                preUpdateTicket.getTicketsReservationId(),
+                null,
+                eventId,
+                Audit.EventType.UPDATE_TICKET,
+                new Date(),
+                TICKET,
+                Integer.toString(preUpdateTicket.getId()),
+                changes);
     }
 
     private HashMap<String, Object> processChange(ObjectDiffUtil.Change change) {

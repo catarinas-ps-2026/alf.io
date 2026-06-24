@@ -32,15 +32,17 @@ public class BillingDetails {
     private final String taxId;
     private final TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo;
 
-    public BillingDetails(@Column("billing_address_company") String companyName,
-                          @Column("billing_address_line1") String addressLine1,
-                          @Column("billing_address_line2") String addressLine2,
-                          @Column("billing_address_zip") String zip,
-                          @Column("billing_address_city") String city,
-                          @Column("billing_address_state") String state,
-                          @Column("vat_country") String country,
-                          @Column("vat_nr") String taxId,
-                          @Column("invoicing_additional_information") @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo) {
+    public BillingDetails(
+            @Column("billing_address_company") String companyName,
+            @Column("billing_address_line1") String addressLine1,
+            @Column("billing_address_line2") String addressLine2,
+            @Column("billing_address_zip") String zip,
+            @Column("billing_address_city") String city,
+            @Column("billing_address_state") String state,
+            @Column("vat_country") String country,
+            @Column("vat_nr") String taxId,
+            @Column("invoicing_additional_information") @JSONData
+                    TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo) {
 
         this.companyName = companyName;
         this.addressLine1 = addressLine1;
@@ -56,5 +58,4 @@ public class BillingDetails {
     public boolean getHasTaxId() {
         return taxId != null && !taxId.isEmpty();
     }
-
 }

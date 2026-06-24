@@ -32,9 +32,6 @@ import alfio.repository.TicketRepository;
 import alfio.repository.user.UserRepository;
 import alfio.util.ClockProvider;
 import alfio.util.EventUtil;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -42,6 +39,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
@@ -57,60 +56,80 @@ public class AttendeeManager {
     private final AdditionalServiceItemRepository additionalServiceItemRepository;
     private final ClockProvider clockProvider;
 
-    public TicketAndCheckInResult registerSponsorScan(String eventShortName,
-                                                      String ticketUid,
-                                                      String notes,
-                                                      SponsorScan.LeadStatus leadStatus,
-                                                      String username,
-                                                      String operatorId,
-                                                      Long timestamp) {
+    public TicketAndCheckInResult registerSponsorScan(
+            String eventShortName,
+            String ticketUid,
+            String notes,
+            SponsorScan.LeadStatus leadStatus,
+            String username,
+            String operatorId,
+            Long timestamp) {
         int userId = userRepository.getByUsername(username).getId();
-        Optional<EventAndOrganizationId> maybeEvent = eventRepository.findOptionalEventAndOrganizationIdByShortName(eventShortName);
-        if(maybeEvent.isEmpty()) {
-            return new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.EVENT_NOT_FOUND, "event not found"));
+        Optional<EventAndOrganizationId> maybeEvent =
+                eventRepository.findOptionalEventAndOrganizationIdByShortName(eventShortName);
+        if (maybeEvent.isEmpty()) {
+            return new TicketAndCheckInResult(
+                    null, new DefaultCheckInResult(CheckInStatus.EVENT_NOT_FOUND, "event not found"));
         }
         EventAndOrganizationId event = maybeEvent.get();
         Optional<Ticket> maybeTicket = ticketRepository.findOptionalByUUID(ticketUid);
-        if(maybeTicket.isEmpty()) {
-            return new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.TICKET_NOT_FOUND, "ticket not found"));
+        if (maybeTicket.isEmpty()) {
+            return new TicketAndCheckInResult(
+                    null, new DefaultCheckInResult(CheckInStatus.TICKET_NOT_FOUND, "ticket not found"));
         }
         Ticket ticket = maybeTicket.get();
-        if(ticket.getStatus() != Ticket.TicketStatus.CHECKED_IN || ticket.getEventId() != event.getId()) {
-            return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(CheckInStatus.INVALID_TICKET_STATE, "not checked-in"));
+        if (ticket.getStatus() != Ticket.TicketStatus.CHECKED_IN || ticket.getEventId() != event.getId()) {
+            return new TicketAndCheckInResult(
+                    new TicketWithCategory(ticket, null),
+                    new DefaultCheckInResult(CheckInStatus.INVALID_TICKET_STATE, "not checked-in"));
         }
         var operator = Objects.requireNonNullElse(operatorId, DEFAULT_OPERATOR_ID);
-        Optional<ZonedDateTime> existingRegistration = sponsorScanRepository.getRegistrationTimestamp(userId, event.getId(), ticket.getId(), operator);
-        if(existingRegistration.isEmpty()) {
+        Optional<ZonedDateTime> existingRegistration =
+                sponsorScanRepository.getRegistrationTimestamp(userId, event.getId(), ticket.getId(), operator);
+        if (existingRegistration.isEmpty()) {
             ZoneId eventZoneId = eventRepository.getZoneIdByEventId(event.getId());
-            var creation = timestamp != null ? Instant.ofEpochMilli(timestamp).atZone(eventZoneId) : ZonedDateTime.now(clockProvider.withZone(eventZoneId));
+            var creation = timestamp != null
+                    ? Instant.ofEpochMilli(timestamp).atZone(eventZoneId)
+                    : ZonedDateTime.now(clockProvider.withZone(eventZoneId));
             sponsorScanRepository.insert(userId, creation, event.getId(), ticket.getId(), notes, leadStatus, operator);
         } else {
-            sponsorScanRepository.updateNotesAndLeadStatus(userId, event.getId(), ticket.getId(), notes, leadStatus, operator);
+            sponsorScanRepository.updateNotesAndLeadStatus(
+                    userId, event.getId(), ticket.getId(), notes, leadStatus, operator);
         }
-        return new TicketAndCheckInResult(new TicketWithCategory(ticket, null), new DefaultCheckInResult(CheckInStatus.SUCCESS, "success"));
+        return new TicketAndCheckInResult(
+                new TicketWithCategory(ticket, null), new DefaultCheckInResult(CheckInStatus.SUCCESS, "success"));
     }
 
     public Result<TicketWithAdditionalFields> retrieveTicket(String eventShortName, String ticketUid, String username) {
-        Optional<Event> maybeEvent = eventRepository.findOptionalByShortName(eventShortName)
-            .filter(e -> userManager.findUserOrganizations(username).stream().anyMatch(o -> o.getId() == e.getOrganizationId()));
+        Optional<Event> maybeEvent = eventRepository
+                .findOptionalByShortName(eventShortName)
+                .filter(e -> userManager.findUserOrganizations(username).stream()
+                        .anyMatch(o -> o.getId() == e.getOrganizationId()));
 
-        if(maybeEvent.isEmpty()) {
+        if (maybeEvent.isEmpty()) {
             return Result.error(ErrorCode.EventError.NOT_FOUND);
         }
 
         Event event = maybeEvent.get();
-        Optional<Ticket> maybeTicket = ticketRepository.findOptionalByUUID(ticketUid).filter(t -> t.getEventId() == event.getId());
+        Optional<Ticket> maybeTicket =
+                ticketRepository.findOptionalByUUID(ticketUid).filter(t -> t.getEventId() == event.getId());
 
         return new Result.Builder<TicketWithAdditionalFields>()
-            .checkPrecondition(maybeTicket::isPresent, ErrorCode.custom("ticket_not_found", "ticket not found"))
-            .build(() -> {
-                var ticket = maybeTicket.orElseThrow();
-                var descriptionAndValues = EventUtil.retrieveFieldValues(ticketRepository, purchaseContextFieldManager, additionalServiceItemRepository, true).apply(ticket, event);
-                return new TicketWithAdditionalFields(ticket, descriptionAndValues);
-            });
+                .checkPrecondition(maybeTicket::isPresent, ErrorCode.custom("ticket_not_found", "ticket not found"))
+                .build(() -> {
+                    var ticket = maybeTicket.orElseThrow();
+                    var descriptionAndValues = EventUtil.retrieveFieldValues(
+                                    ticketRepository,
+                                    purchaseContextFieldManager,
+                                    additionalServiceItemRepository,
+                                    true)
+                            .apply(ticket, event);
+                    return new TicketWithAdditionalFields(ticket, descriptionAndValues);
+                });
     }
 
-    public Optional<List<SponsorAttendeeData>> retrieveScannedAttendees(String eventShortName, String username, ZonedDateTime start) {
+    public Optional<List<SponsorAttendeeData>> retrieveScannedAttendees(
+            String eventShortName, String username, ZonedDateTime start) {
         int userId = userRepository.getByUsername(username).getId();
         Optional<Event> maybeEvent = eventRepository.findOptionalByShortName(eventShortName);
         return maybeEvent.map(event -> loadAttendeesData(event, userId, start));
@@ -118,12 +137,15 @@ public class AttendeeManager {
 
     private List<SponsorAttendeeData> loadAttendeesData(EventAndOrganizationId event, int userId, ZonedDateTime start) {
         return sponsorScanRepository.loadSponsorData(event.getId(), userId, start).stream()
-            .map(scan -> {
-                Ticket ticket = scan.getTicket();
-                return new SponsorAttendeeData(ticket.getUuid(), scan.getSponsorScan().getTimestamp().format(EventUtil.JSON_DATETIME_FORMATTER), ticket.getFullName(), ticket.getEmail());
-            })
-            .distinct()
-            .collect(Collectors.toList());
+                .map(scan -> {
+                    Ticket ticket = scan.getTicket();
+                    return new SponsorAttendeeData(
+                            ticket.getUuid(),
+                            scan.getSponsorScan().getTimestamp().format(EventUtil.JSON_DATETIME_FORMATTER),
+                            ticket.getFullName(),
+                            ticket.getEmail());
+                })
+                .distinct()
+                .collect(Collectors.toList());
     }
-
 }

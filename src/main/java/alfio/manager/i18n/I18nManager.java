@@ -18,12 +18,11 @@ package alfio.manager.i18n;
 
 import alfio.model.ContentLanguage;
 import alfio.repository.EventRepository;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Transactional(readOnly = true)
@@ -40,16 +39,16 @@ public class I18nManager {
     }
 
     public List<ContentLanguage> getEventLanguages(String eventName) {
-        return eventRepository.findLocalesByShortName(eventName)
-            .map(this::getEventLanguages)
-            .orElse(Collections.emptyList());
+        return eventRepository
+                .findLocalesByShortName(eventName)
+                .map(this::getEventLanguages)
+                .orElse(Collections.emptyList());
     }
 
     public List<ContentLanguage> getEventLanguages(int eventLocales) {
         List<ContentLanguage> system = getAvailableLanguages();
-        return ContentLanguage.findAllFor(eventLocales)
-            .stream()
-            .filter(system::contains)
-            .collect(Collectors.toList());
+        return ContentLanguage.findAllFor(eventLocales).stream()
+                .filter(system::contains)
+                .collect(Collectors.toList());
     }
 }

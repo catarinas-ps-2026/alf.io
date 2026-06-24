@@ -16,6 +16,10 @@
  */
 package alfio.controller;
 
+import static alfio.controller.Constants.*;
+import static alfio.model.system.ConfigurationKeys.BASE_URL;
+import static alfio.model.system.ConfigurationKeys.SHOW_PROJECT_BANNER;
+
 import alfio.config.authentication.support.OpenIdPrincipal;
 import alfio.controller.support.CSPConfigurer;
 import alfio.manager.i18n.I18nManager;
@@ -28,6 +32,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samskivert.mustache.Mustache;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -38,22 +48,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static alfio.controller.Constants.*;
-import static alfio.model.system.ConfigurationKeys.BASE_URL;
-import static alfio.model.system.ConfigurationKeys.SHOW_PROJECT_BANNER;
-
 @Controller
 public class AdminIndexController {
 
-    public record ManifestEntry(List<String> css, String file) {
-    }
+    public record ManifestEntry(List<String> css, String file) {}
 
     private final ConfigurationManager configurationManager;
     private final Environment environment;
@@ -62,12 +60,14 @@ public class AdminIndexController {
     private final ManifestEntry manifestEntry;
     private final I18nManager i18nManager;
 
-    public AdminIndexController(ConfigurationManager configurationManager,
-                                Environment environment,
-                                CSPConfigurer cspConfigurer,
-                                TemplateManager templateManager,
-                                ObjectMapper objectMapper,
-                                I18nManager i18nManager) throws IOException {
+    public AdminIndexController(
+            ConfigurationManager configurationManager,
+            Environment environment,
+            CSPConfigurer cspConfigurer,
+            TemplateManager templateManager,
+            ObjectMapper objectMapper,
+            I18nManager i18nManager)
+            throws IOException {
         this.configurationManager = configurationManager;
         this.environment = environment;
         this.cspConfigurer = cspConfigurer;
@@ -76,7 +76,9 @@ public class AdminIndexController {
         var cpr = new ClassPathResource("/resources/alfio-admin-frontend/.vite/manifest.json");
         if (cpr.exists()) {
             try (var descriptor = cpr.getInputStream()) {
-                this.manifestEntry = objectMapper.readValue(descriptor, new TypeReference<Map<String, ManifestEntry>>() {}).get("src/main.ts");
+                this.manifestEntry = objectMapper
+                        .readValue(descriptor, new TypeReference<Map<String, ManifestEntry>>() {})
+                        .get("src/main.ts");
             }
         } else {
             manifestEntry = null;
@@ -84,14 +86,20 @@ public class AdminIndexController {
     }
 
     @GetMapping({"/admin", "/admin/"})
-    public void adminHome(Model model, @Value("${alfio.version}") String version, HttpServletRequest request, HttpServletResponse response, Principal principal) throws IOException {
+    public void adminHome(
+            Model model,
+            @Value("${alfio.version}") String version,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Principal principal)
+            throws IOException {
         model.addAttribute("alfioVersion", version);
         model.addAttribute("basicConfigurationNeeded", configurationManager.isBasicConfigurationNeeded());
 
         boolean isDBAuthentication = !(principal instanceof OAuth2AuthenticationToken);
         model.addAttribute("isDBAuthentication", isDBAuthentication);
         if (!isDBAuthentication) {
-            var openIdPrincipal = ((OpenIdPrincipal)((OAuth2AuthenticationToken) principal).getPrincipal());
+            var openIdPrincipal = ((OpenIdPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal());
             String idpLogoutRedirectionUrl = openIdPrincipal.idpLogoutRedirectionUrl();
             model.addAttribute("idpLogoutRedirectionUrl", idpLogoutRedirectionUrl);
             model.addAttribute("username", openIdPrincipal.user().email());
@@ -100,8 +108,10 @@ public class AdminIndexController {
             model.addAttribute("username", principal.getName());
         }
 
-        Collection<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-            .stream().map(GrantedAuthority::getAuthority).toList();
+        Collection<String> authorities =
+                SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList();
 
         boolean isAdmin = authorities.contains(Role.ADMIN.getRoleName());
         model.addAttribute("isOwner", isAdmin || authorities.contains(Role.OWNER.getRoleName()));
@@ -109,8 +119,14 @@ public class AdminIndexController {
         model.addAttribute("supportedLanguages", i18nManager.getAvailableLanguages());
         //
         addCommonModelAttributes(model, request, version, environment);
-        model.addAttribute("displayProjectBanner", isAdmin && configurationManager.getForSystem(SHOW_PROJECT_BANNER).getValueAsBooleanOrDefault());
-        model.addAttribute("baseUrl", configurationManager.getForSystem(BASE_URL).getValueOrDefault(""));
+        model.addAttribute(
+                "displayProjectBanner",
+                isAdmin
+                        && configurationManager
+                                .getForSystem(SHOW_PROJECT_BANNER)
+                                .getValueAsBooleanOrDefault());
+        model.addAttribute(
+                "baseUrl", configurationManager.getForSystem(BASE_URL).getValueOrDefault(""));
         //
 
         model.addAttribute("litAdminStatic", manifestEntry != null);

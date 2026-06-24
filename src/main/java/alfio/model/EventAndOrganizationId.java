@@ -26,8 +26,7 @@ public class EventAndOrganizationId implements Configurable {
     protected final int id;
     protected final int organizationId;
 
-    public EventAndOrganizationId(@Column("id") int id,
-                                  @Column("org_id") int organizationId) {
+    public EventAndOrganizationId(@Column("id") int id, @Column("org_id") int organizationId) {
         this.id = id;
         this.organizationId = organizationId;
     }

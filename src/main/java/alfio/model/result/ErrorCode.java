@@ -17,11 +17,10 @@
 package alfio.model.result;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.function.Supplier;
 import lombok.Getter;
 
-import java.util.function.Supplier;
-
-@JsonSerialize(using=ErrorCodeSerializer.class)
+@JsonSerialize(using = ErrorCodeSerializer.class)
 public interface ErrorCode {
 
     String DUPLICATE = "duplicate";
@@ -31,17 +30,22 @@ public interface ErrorCode {
     }
 
     String getCode();
-    String getDescription();
-    Object[] getArguments();
 
+    String getDescription();
+
+    Object[] getArguments();
 
     @Getter
     enum CategoryError implements ErrorCode {
         NOT_FOUND("not_found", "Category not found"),
         NOT_ENOUGH_SEATS("not_enough_tickets", "Not enough seats"),
-        ALL_TICKETS_ASSIGNED("all_tickets_assigned", "All the tickets have already been assigned to a category. Try increasing the total seats number."),
+        ALL_TICKETS_ASSIGNED(
+                "all_tickets_assigned",
+                "All the tickets have already been assigned to a category. Try increasing the total seats number."),
         EXPIRATION_AFTER_EVENT_END("expiration_after_event_end", "expiration must be before the end of the event"),
-        NOT_ENOUGH_FREE_TOKEN_FOR_SHRINK("not_enough_free_token_for_shrink", "Cannot downsize this category: not enough free token can be removed");
+        NOT_ENOUGH_FREE_TOKEN_FOR_SHRINK(
+                "not_enough_free_token_for_shrink",
+                "Cannot downsize this category: not enough free token can be removed");
 
         private final String code;
         private final String description;
@@ -50,7 +54,6 @@ public interface ErrorCode {
             this.code = code;
             this.description = description;
         }
-
 
         @Override
         public String toString() {
@@ -62,7 +65,6 @@ public interface ErrorCode {
             return null;
         }
     }
-
 
     @Getter
     enum EventError implements ErrorCode {
@@ -77,7 +79,6 @@ public interface ErrorCode {
             this.description = description;
         }
 
-
         @Override
         public String toString() {
             return description;
@@ -88,7 +89,6 @@ public interface ErrorCode {
             return null;
         }
     }
-
 
     @Getter
     enum ReservationError implements ErrorCode {
@@ -103,7 +103,6 @@ public interface ErrorCode {
             this.code = code;
             this.description = description;
         }
-
 
         @Override
         public String toString() {
@@ -161,7 +160,7 @@ public interface ErrorCode {
             }
 
             private synchronized ErrorCode get() {
-                if(delegate != null) {
+                if (delegate != null) {
                     return delegate;
                 }
                 delegate = supplier.get();

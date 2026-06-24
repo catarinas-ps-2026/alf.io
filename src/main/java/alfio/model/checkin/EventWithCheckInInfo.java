@@ -16,22 +16,22 @@
  */
 package alfio.model.checkin;
 
+import static ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
+
 import alfio.model.*;
 import alfio.model.metadata.AlfioMetadata;
 import alfio.model.support.JSONData;
 import alfio.util.EventUtil;
-import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-
-import static ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
+import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Getter
-public class EventWithCheckInInfo extends EventAndOrganizationId implements EventHiddenFieldContainer, EventCheckInInfo, LocalizedContent {
+public class EventWithCheckInInfo extends EventAndOrganizationId
+        implements EventHiddenFieldContainer, EventCheckInInfo, LocalizedContent {
 
     private final Event.EventFormat format;
     private final String shortName;
@@ -44,19 +44,19 @@ public class EventWithCheckInInfo extends EventAndOrganizationId implements Even
     private final List<ContentLanguage> contentLanguages;
     private final String version;
 
-
-    public EventWithCheckInInfo(@Column("id") int id,
-                                @Column("format") Event.EventFormat format,
-                                @Column("short_name") String shortName,
-                                @Column("display_name") String displayName,
-                                @Column("start_ts") ZonedDateTime startTs,
-                                @Column("end_ts") ZonedDateTime endTs,
-                                @Column("time_zone") String timezone,
-                                @Column("private_key") String privateKey,
-                                @Column("org_id") int organizationId,
-                                @Column("metadata") @JSONData AlfioMetadata metadata,
-                                @Column("locales") int locales,
-                                @Column("version") String version) {
+    public EventWithCheckInInfo(
+            @Column("id") int id,
+            @Column("format") Event.EventFormat format,
+            @Column("short_name") String shortName,
+            @Column("display_name") String displayName,
+            @Column("start_ts") ZonedDateTime startTs,
+            @Column("end_ts") ZonedDateTime endTs,
+            @Column("time_zone") String timezone,
+            @Column("private_key") String privateKey,
+            @Column("org_id") int organizationId,
+            @Column("metadata") @JSONData AlfioMetadata metadata,
+            @Column("locales") int locales,
+            @Column("version") String version) {
         super(id, organizationId);
         this.zoneId = ZoneId.of(timezone);
         this.format = format;

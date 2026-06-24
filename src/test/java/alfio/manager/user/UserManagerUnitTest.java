@@ -16,6 +16,9 @@
  */
 package alfio.manager.user;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.AccessService;
 import alfio.model.user.Organization;
 import alfio.model.user.User;
@@ -24,18 +27,14 @@ import alfio.repository.user.AuthorityRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
 import alfio.repository.user.join.UserOrganizationRepository;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.session.FindByIndexNameSessionRepository;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class UserManagerUnitTest {
 
@@ -61,10 +60,14 @@ class UserManagerUnitTest {
         accessService = mock(AccessService.class);
 
         userManager = new UserManager(
-            authorityRepository, organizationRepository, userOrganizationRepository,
-            userRepository, passwordEncoder, invoiceSequencesRepository,
-            sessionsByPrincipalFinder, accessService
-        );
+                authorityRepository,
+                organizationRepository,
+                userOrganizationRepository,
+                userRepository,
+                passwordEncoder,
+                invoiceSequencesRepository,
+                sessionsByPrincipalFinder,
+                accessService);
     }
 
     @Test
@@ -72,54 +75,59 @@ class UserManagerUnitTest {
         String username = "user";
         Organization org = mock(Organization.class);
         when(organizationRepository.findAllForUser(username)).thenReturn(Collections.singletonList(org));
-        
+
         var result = userManager.findUserOrganizations(username);
-        
+
         assertEquals(1, result.size());
         assertEquals(org, result.get(0));
     }
 
     @Test
     void testCreateOrganization() {
-        alfio.model.modification.OrganizationModification om = new alfio.model.modification.OrganizationModification(null, "name", "email", "desc", "extId", "slug");
-        
+        alfio.model.modification.OrganizationModification om =
+                new alfio.model.modification.OrganizationModification(null, "name", "email", "desc", "extId", "slug");
+
         Authentication principal = mock(Authentication.class);
         when(principal.getName()).thenReturn("admin");
         GrantedAuthority authority = mock(GrantedAuthority.class);
         when(authority.getAuthority()).thenReturn("ROLE_ADMIN");
         doReturn(Collections.singletonList(authority)).when(principal).getAuthorities();
-        
+
         User user = mock(User.class);
         when(user.getUsername()).thenReturn("admin");
         when(userRepository.findEnabledByUsername("admin")).thenReturn(Optional.of(user));
-        when(authorityRepository.checkRole("admin", Collections.singleton("ROLE_ADMIN"))).thenReturn(true);
-        
-        ch.digitalfondue.npjt.AffectedRowCountAndKey<Integer> arcak = mock(ch.digitalfondue.npjt.AffectedRowCountAndKey.class);
+        when(authorityRepository.checkRole("admin", Collections.singleton("ROLE_ADMIN")))
+                .thenReturn(true);
+
+        ch.digitalfondue.npjt.AffectedRowCountAndKey<Integer> arcak =
+                mock(ch.digitalfondue.npjt.AffectedRowCountAndKey.class);
         when(arcak.getKey()).thenReturn(1);
-        when(organizationRepository.create(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(arcak);
+        when(organizationRepository.create(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(arcak);
         when(invoiceSequencesRepository.initFor(1)).thenReturn(2);
 
         int result = userManager.createOrganization(om, principal);
-        
+
         assertEquals(1, result);
         verify(organizationRepository).create("name", "desc", "email", "extId", "slug");
     }
 
     @Test
     void testUpdateOrganization() {
-        alfio.model.modification.OrganizationModification om = new alfio.model.modification.OrganizationModification(10, "name", "email", "desc", "extId", "slug");
-        
+        alfio.model.modification.OrganizationModification om =
+                new alfio.model.modification.OrganizationModification(10, "name", "email", "desc", "extId", "slug");
+
         Authentication principal = mock(Authentication.class);
         when(principal.getName()).thenReturn("admin");
         GrantedAuthority authority = mock(GrantedAuthority.class);
         when(authority.getAuthority()).thenReturn("ROLE_ADMIN");
         doReturn(Collections.singletonList(authority)).when(principal).getAuthorities();
-        
+
         Organization existing = mock(Organization.class);
         when(organizationRepository.getById(10)).thenReturn(existing);
 
         userManager.updateOrganization(om, principal);
-        
+
         verify(organizationRepository).update(eq(10), eq("name"), eq("desc"), eq("email"), eq("extId"), eq("slug"));
     }
 }

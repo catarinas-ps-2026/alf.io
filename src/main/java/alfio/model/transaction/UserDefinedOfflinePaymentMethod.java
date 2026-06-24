@@ -16,13 +16,11 @@
  */
 package alfio.model.transaction;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
 
 /**
@@ -44,26 +42,23 @@ public class UserDefinedOfflinePaymentMethod implements UserDefinedPaymentMethod
 
     @JsonCreator
     public UserDefinedOfflinePaymentMethod(
-        @JsonProperty("paymentMethodId") String paymentMethodId,
-        @JsonProperty("localizations") Map<String, Localization> localizations
-    ) {
+            @JsonProperty("paymentMethodId") String paymentMethodId,
+            @JsonProperty("localizations") Map<String, Localization> localizations) {
         this.paymentMethodId = paymentMethodId == null ? UUID.randomUUID().toString() : paymentMethodId;
         this.localizations = localizations;
     }
 
     @Override
     public String name() {
-        if(this.localizations.containsKey("en")) {
+        if (this.localizations.containsKey("en")) {
             return this.localizations.get("en").paymentName();
         }
 
-        return this.localizations
-            .values()
-            .stream()
-            .map(locale -> locale.paymentName())
-            .sorted()
-            .findFirst()
-            .orElseThrow();
+        return this.localizations.values().stream()
+                .map(locale -> locale.paymentName())
+                .sorted()
+                .findFirst()
+                .orElseThrow();
     }
 
     public Localization getLocaleByKey(String key) {
@@ -81,10 +76,9 @@ public class UserDefinedOfflinePaymentMethod implements UserDefinedPaymentMethod
     public record Localization(String paymentName, String paymentDescription, String paymentInstructions) {
         @JsonCreator
         public Localization(
-            @JsonProperty("paymentName") String paymentName,
-            @JsonProperty("paymentDescription") String paymentDescription,
-            @JsonProperty("paymentInstructions") String paymentInstructions
-        ) {
+                @JsonProperty("paymentName") String paymentName,
+                @JsonProperty("paymentDescription") String paymentDescription,
+                @JsonProperty("paymentInstructions") String paymentInstructions) {
             this.paymentName = paymentName;
             this.paymentDescription = paymentDescription;
             this.paymentInstructions = paymentInstructions;

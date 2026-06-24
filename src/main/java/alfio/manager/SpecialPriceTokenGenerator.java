@@ -25,6 +25,7 @@ import alfio.model.system.ConfigurationKeys;
 import alfio.repository.EventRepository;
 import alfio.repository.SpecialPriceRepository;
 import alfio.repository.TicketCategoryRepository;
+import java.security.SecureRandom;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.text.RandomStringGenerator;
 import org.slf4j.Logger;
@@ -32,8 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.security.SecureRandom;
 
 /**
  * Class SpecialPriceTokenGenerator.
@@ -46,27 +45,28 @@ public class SpecialPriceTokenGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(SpecialPriceTokenGenerator.class);
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final char[] ADMITTED_CHARACTERS = new char[]{
-            'A', 'B', 'C', 'D', 'E', 'F',
-            'G', 'H', 'J', 'K', 'M', 'N',
-            'P', 'Q', 'R', 'S', 'T', 'W',
-            'X', 'Y', 'Z', '2', '3', '4',
-            '5', '6', '7', '8', '9'
+    private static final char[] ADMITTED_CHARACTERS = new char[] {
+        'A', 'B', 'C', 'D', 'E', 'F',
+        'G', 'H', 'J', 'K', 'M', 'N',
+        'P', 'Q', 'R', 'S', 'T', 'W',
+        'X', 'Y', 'Z', '2', '3', '4',
+        '5', '6', '7', '8', '9'
     };
     private static final RandomStringGenerator RANDOM_STRING_GENERATOR = new RandomStringGenerator.Builder()
-        .selectFrom(ADMITTED_CHARACTERS)
-        .usingRandom(RANDOM::nextInt)
-        .get();
+            .selectFrom(ADMITTED_CHARACTERS)
+            .usingRandom(RANDOM::nextInt)
+            .get();
 
     private final SpecialPriceRepository specialPriceRepository;
     private final TicketCategoryRepository ticketCategoryRepository;
     private final EventRepository eventRepository;
     private final ConfigurationManager configurationManager;
 
-    public SpecialPriceTokenGenerator(ConfigurationManager configurationManager,
-                                      SpecialPriceRepository specialPriceRepository,
-                                      TicketCategoryRepository ticketCategoryRepository,
-                                      EventRepository eventRepository) {
+    public SpecialPriceTokenGenerator(
+            ConfigurationManager configurationManager,
+            SpecialPriceRepository specialPriceRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            EventRepository eventRepository) {
         this.specialPriceRepository = specialPriceRepository;
         this.configurationManager = configurationManager;
         this.ticketCategoryRepository = ticketCategoryRepository;
@@ -88,9 +88,15 @@ public class SpecialPriceTokenGenerator {
 
     private void generateCode(SpecialPrice.SpecialPriceTicketCategoryId specialPrice) {
 
-        TicketCategory ticketCategory = ticketCategoryRepository.getByIdAndActive(specialPrice.getTicketCategoryId()).orElseThrow(IllegalStateException::new);
+        TicketCategory ticketCategory = ticketCategoryRepository
+                .getByIdAndActive(specialPrice.getTicketCategoryId())
+                .orElseThrow(IllegalStateException::new);
         EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(ticketCategory.getEventId());
-        int maxLength = configurationManager.getFor(ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH, ConfigurationLevel.ticketCategory(event, ticketCategory.getId())).getValueAsIntOrDefault(6);
+        int maxLength = configurationManager
+                .getFor(
+                        ConfigurationKeys.SPECIAL_PRICE_CODE_LENGTH,
+                        ConfigurationLevel.ticketCategory(event, ticketCategory.getId()))
+                .getValueAsIntOrDefault(6);
 
         while (true) {
             try {
@@ -116,6 +122,4 @@ public class SpecialPriceTokenGenerator {
     private String generateRandomCode(int maxLength) {
         return RANDOM_STRING_GENERATOR.generate(maxLength);
     }
-
-
 }

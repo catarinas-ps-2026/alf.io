@@ -18,12 +18,11 @@ package alfio.model.api.v1.admin.subscription;
 
 import alfio.controller.form.ReadOnlyAdditionalFieldsContainer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.collections4.MapUtils;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import org.apache.commons.collections4.MapUtils;
 
 public class Owner implements ReadOnlyAdditionalFieldsContainer {
 
@@ -34,12 +33,13 @@ public class Owner implements ReadOnlyAdditionalFieldsContainer {
     private final String email;
     private final Map<String, String> metadata;
 
-    public Owner(@JsonProperty("additional") Map<String, List<String>> additional,
-                 @JsonProperty("subscriptionId") UUID subscriptionId,
-                 @JsonProperty("firstName") String firstName,
-                 @JsonProperty("lastName") String lastName,
-                 @JsonProperty("email") String email,
-                 @JsonProperty("metadata") Map<String, String> metadata) {
+    public Owner(
+            @JsonProperty("additional") Map<String, List<String>> additional,
+            @JsonProperty("subscriptionId") UUID subscriptionId,
+            @JsonProperty("firstName") String firstName,
+            @JsonProperty("lastName") String lastName,
+            @JsonProperty("email") String email,
+            @JsonProperty("metadata") Map<String, String> metadata) {
         this.additional = additional;
         this.subscriptionId = subscriptionId;
         this.firstName = firstName;

@@ -32,11 +32,17 @@ public class SummaryRow {
     private final PriceContainer.VatStatus vatStatus;
 
     public enum SummaryType {
-        TICKET, SUBSCRIPTION, PROMOTION_CODE, DYNAMIC_DISCOUNT, ADDITIONAL_SERVICE, APPLIED_SUBSCRIPTION, TAX_DETAIL
+        TICKET,
+        SUBSCRIPTION,
+        PROMOTION_CODE,
+        DYNAMIC_DISCOUNT,
+        ADDITIONAL_SERVICE,
+        APPLIED_SUBSCRIPTION,
+        TAX_DETAIL
     }
 
     public String getDescriptionForPayment() {
-        if(name != null) {
+        if (name != null) {
             return amount + " x " + name;
         }
         return "";

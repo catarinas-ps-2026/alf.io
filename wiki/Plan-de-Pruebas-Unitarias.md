@@ -153,11 +153,8 @@ En esta sección se explican las pautas para comunicar de manera efectiva durant
 | Punto de Comunicación | Propósito | Frecuencia | Medios | Responsable | Audiencia |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Sprint Planning | Planificar pruebas del sprint, definir prioridades | Inicio de cada sprint | Meet + GitHub Projects | Tech Lead | Equipo de desarrollo |
-| Daily Standup | sincronización diaria de avances y bloqueos | Diario | WhatsApp | Desarrollador | Equipo de desarrollo |
 | Sprint Review | Demostrar pruebas completadas y resultados | Fin de cada sprint | Meet | Tech Lead | Equipo + Docente |
 | Sprint Retrospective | Evaluar qué mejorar en el proceso | Fin de cada sprint | Meet | Tech Lead | Equipo de desarrollo |
-| Reporte de defectos | Reporte de bugs encontrados en pruebas | Cuando se encuentre | GitHub Issues | Desarrollador | Tech Lead |
-| Reunión con docente | Validar avances y recibir feedback | 2 veces en la semana | Meet + Documento de avances | Tech Lead | Docente |
 
 > [!IMPORTANT]
 > Todos los acuerdos relevantes se documentan en la wiki del proyecto en GitHub. Se fomenta la comunicación asertiva y la colaboración proactiva. Los defectos se reportan como issues en GitHub con etiquetas de prioridad, y el estado de las pruebas se actualiza en GitHub Projects (columnas: Backlog, Ready, In Progress, In Review, Done). Se utiliza Scrum como metodología de trabajo, con sprints que incluyen planificación, revisión y retrospectiva.

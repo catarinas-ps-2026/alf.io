@@ -31,7 +31,9 @@ describe('EventService', () => {
 
             await EventService.load('evt-1');
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/events/evt-1');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/events/evt-1',
+            );
         });
     });
 });
@@ -48,7 +50,9 @@ describe('SubscriptionDescriptorService', () => {
 
             await SubscriptionDescriptorService.load('sub-1', 1);
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/organization/1/subscription/sub-1');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/organization/1/subscription/sub-1',
+            );
         });
     });
 });
@@ -66,7 +70,10 @@ describe('ConfigurationService', () => {
 
             await ConfigurationService.update(kv);
 
-            expect(mockPostJson).toHaveBeenCalledWith('/admin/api/configuration/update', kv);
+            expect(mockPostJson).toHaveBeenCalledWith(
+                '/admin/api/configuration/update',
+                kv,
+            );
         });
     });
 });
@@ -103,9 +110,15 @@ describe('PurchaseContextService', () => {
             const mockEvent = { event: { id: 1 }, organization: { id: 1 } };
             mockFetchJson.mockResolvedValue(mockEvent);
 
-            const result = await PurchaseContextService.load('evt-1', 'event', 1);
+            const result = await PurchaseContextService.load(
+                'evt-1',
+                'event',
+                1,
+            );
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/events/evt-1');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/events/evt-1',
+            );
             expect(result).toEqual({ eventWithOrganization: mockEvent });
         });
 
@@ -113,9 +126,15 @@ describe('PurchaseContextService', () => {
             const mockSub = { id: 1, type: 'subscription' };
             mockFetchJson.mockResolvedValue(mockSub);
 
-            const result = await PurchaseContextService.load('sub-1', 'subscription', 1);
+            const result = await PurchaseContextService.load(
+                'sub-1',
+                'subscription',
+                1,
+            );
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/organization/1/subscription/sub-1');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/organization/1/subscription/sub-1',
+            );
             expect(result).toEqual({ subscriptionDescriptor: mockSub });
         });
 
@@ -124,7 +143,9 @@ describe('PurchaseContextService', () => {
 
             await PurchaseContextService.load('evt-1', 'event', 999);
 
-            expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/events/evt-1');
+            expect(mockFetchJson).toHaveBeenCalledWith(
+                '/admin/api/events/evt-1',
+            );
         });
     });
 });
@@ -142,7 +163,9 @@ describe('LocalizationService', () => {
         const service = new LocalizationService();
         await service.getEventsSupportedLanguages();
 
-        expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/events-supported-languages');
+        expect(mockFetchJson).toHaveBeenCalledWith(
+            '/admin/api/events-supported-languages',
+        );
     });
 });
 
@@ -153,17 +176,23 @@ describe('CustomPaymentMethodsService', () => {
     });
 
     it('construye URL con organizationId', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockFetchJson.mockResolvedValue([]);
 
         const service = new CustomPaymentMethodsService();
         await service.getPaymentMethodsForOrganization(1);
 
-        expect(mockFetchJson).toHaveBeenCalledWith('/admin/api/configuration/organizations/1/payment-method');
+        expect(mockFetchJson).toHaveBeenCalledWith(
+            '/admin/api/configuration/organizations/1/payment-method',
+        );
     });
 
     it('envía POST con paymentMethod', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockPostJson.mockResolvedValue({} as Response);
 
         const service = new CustomPaymentMethodsService();
@@ -177,7 +206,9 @@ describe('CustomPaymentMethodsService', () => {
     });
 
     it('envía POST con array de ids', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockPostJson.mockResolvedValue({} as Response);
 
         const service = new CustomPaymentMethodsService();
@@ -190,7 +221,9 @@ describe('CustomPaymentMethodsService', () => {
     });
 
     it('construye URL con ids de evento y categoría', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockFetchJson.mockResolvedValue([]);
 
         const service = new CustomPaymentMethodsService();
@@ -202,7 +235,9 @@ describe('CustomPaymentMethodsService', () => {
     });
 
     it('envía PUT para actualizar método de pago', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockPutJson.mockResolvedValue({} as Response);
 
         const service = new CustomPaymentMethodsService();
@@ -216,7 +251,9 @@ describe('CustomPaymentMethodsService', () => {
     });
 
     it('envía DELETE para eliminar método de pago', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockCallDelete.mockResolvedValue({} as Response);
 
         const service = new CustomPaymentMethodsService();
@@ -228,7 +265,9 @@ describe('CustomPaymentMethodsService', () => {
     });
 
     it('construye URL de métodos permitidos para evento', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockFetchJson.mockResolvedValue([]);
 
         const service = new CustomPaymentMethodsService();
@@ -240,7 +279,9 @@ describe('CustomPaymentMethodsService', () => {
     });
 
     it('envía POST para establecer métodos denegados en categoría', async () => {
-        const { CustomPaymentMethodsService } = await import('./custom-payment-methods.ts');
+        const { CustomPaymentMethodsService } = await import(
+            './custom-payment-methods.ts'
+        );
         mockPostJson.mockResolvedValue({} as Response);
 
         const service = new CustomPaymentMethodsService();

@@ -34,15 +34,15 @@ public class ExtensionSupport {
     private final String script;
     private final ExtensionMetadata extensionMetadata;
 
-
-    public ExtensionSupport(@Column("es_id") Integer id,
-                            @Column("path") String path,
-                            @Column("name") String name,
-                            @Column("hash") String hash,
-                            @Column("enabled") boolean enabled,
-                            @Column("async") boolean async,
-                            @Column("script") String script,
-                            @Column("metadata") @JSONData ExtensionMetadata extensionMetadata) {
+    public ExtensionSupport(
+            @Column("es_id") Integer id,
+            @Column("path") String path,
+            @Column("name") String name,
+            @Column("hash") String hash,
+            @Column("enabled") boolean enabled,
+            @Column("async") boolean async,
+            @Column("script") String script,
+            @Column("metadata") @JSONData ExtensionMetadata extensionMetadata) {
         this.id = id;
         this.path = path;
         this.name = name;
@@ -53,16 +53,14 @@ public class ExtensionSupport {
         this.extensionMetadata = extensionMetadata;
     }
 
-
     @Getter
     public static class ScriptPathNameHash {
         private final String path;
         private final String name;
         private final String hash;
 
-        public ScriptPathNameHash(@Column("path") String path,
-                                  @Column("name") String name,
-                                  @Column("hash") String hash) {
+        public ScriptPathNameHash(
+                @Column("path") String path, @Column("name") String name, @Column("hash") String hash) {
             this.path = path;
             this.name = name;
             this.hash = hash;
@@ -76,10 +74,11 @@ public class ExtensionSupport {
         private final String configurationPath;
         private final String configurationValue;
 
-        public ExtensionParameterKeyValue(@Column("ecm_name") String name,
-                                          @Column("ecm_configuration_level") String configurationLevel,
-                                          @Column("conf_path") String configurationPath,
-                                          @Column("conf_value") String configurationValue) {
+        public ExtensionParameterKeyValue(
+                @Column("ecm_name") String name,
+                @Column("ecm_configuration_level") String configurationLevel,
+                @Column("conf_path") String configurationPath,
+                @Column("conf_value") String configurationValue) {
             this.name = name;
             this.configurationLevel = configurationLevel;
             this.configurationPath = configurationPath;
@@ -102,19 +101,19 @@ public class ExtensionSupport {
         private final String configurationPath;
         private final String configurationValue;
 
-
-        public ExtensionParameterMetadataAndValue(@Column("ecm_id") int id,
-                                                  @Column("ecm_name") String name,
-                                                  @Column("ecm_configuration_level") String configurationLevel,
-                                                  @Column("ecm_description") String description,
-                                                  @Column("ecm_type") String type,
-                                                  @Column("ecm_mandatory") boolean mandatory,
-                                                  @Column("path") String path,
-                                                  @Column("es_id") int extensionId,
-                                                  @Column("name") String extensionName,
-                                                  @Column("display_name") String extensionDisplayName,
-                                                  @Column("conf_path") String configurationPath,
-                                                  @Column("conf_value") String configurationValue) {
+        public ExtensionParameterMetadataAndValue(
+                @Column("ecm_id") int id,
+                @Column("ecm_name") String name,
+                @Column("ecm_configuration_level") String configurationLevel,
+                @Column("ecm_description") String description,
+                @Column("ecm_type") String type,
+                @Column("ecm_mandatory") boolean mandatory,
+                @Column("path") String path,
+                @Column("es_id") int extensionId,
+                @Column("name") String extensionName,
+                @Column("display_name") String extensionDisplayName,
+                @Column("conf_path") String configurationPath,
+                @Column("conf_value") String configurationValue) {
             this.id = id;
             this.name = name;
             this.configurationLevel = configurationLevel;
@@ -129,7 +128,7 @@ public class ExtensionSupport {
             this.configurationValue = configurationValue;
         }
 
-        //for compatibility
+        // for compatibility
         public String getComponentType() {
             return type;
         }
@@ -150,14 +149,12 @@ public class ExtensionSupport {
         private final String value;
     }
 
-
     @Getter
     public static class NameAndValue {
         private final String name;
         private final String value;
 
-        public NameAndValue(@Column("ecm_name") String name,
-                            @Column("conf_value") String value) {
+        public NameAndValue(@Column("ecm_name") String name, @Column("conf_value") String value) {
             this.name = name;
             this.value = value;
         }
@@ -168,8 +165,7 @@ public class ExtensionSupport {
         private final int id;
         private final String name;
 
-        public ExtensionMetadataIdAndName(@Column("ecm_id") int id,
-                                          @Column("ecm_name") String name) {
+        public ExtensionMetadataIdAndName(@Column("ecm_id") int id, @Column("ecm_name") String name) {
             this.id = id;
             this.name = name;
         }

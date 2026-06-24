@@ -16,10 +16,9 @@
  */
 package alfio.model.api.v1.admin;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Arrays;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 public enum ApiKeyType {
     API_CLIENT,
@@ -32,7 +31,8 @@ public enum ApiKeyType {
     }
 
     public static Optional<ApiKeyType> safeValueOf(String in) {
-        return Arrays.stream(values()).filter(t -> t.name().equals(StringUtils.toRootUpperCase(in)))
-            .findFirst();
+        return Arrays.stream(values())
+                .filter(t -> t.name().equals(StringUtils.toRootUpperCase(in)))
+                .findFirst();
     }
 }

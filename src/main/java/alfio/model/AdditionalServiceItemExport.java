@@ -17,9 +17,8 @@
 package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class AdditionalServiceItemExport {
@@ -40,20 +39,21 @@ public class AdditionalServiceItemExport {
     private final Integer vatCts;
     private final Integer discountCts;
 
-    public AdditionalServiceItemExport(@Column("ai_uuid") String uuid,
-                                       @Column("ai_creation") ZonedDateTime utcCreation,
-                                       @Column("ai_last_modified") ZonedDateTime utcLastModified,
-                                       @Column("tr_uuid") String ticketsReservationUuid,
-                                       @Column("tr_first_name") String firstName,
-                                       @Column("tr_last_name") String lastName,
-                                       @Column("tr_email_address") String emailAddress,
-                                       @Column("as_title") String additionalServiceTitle,
-                                       @Column("as_type") AdditionalService.AdditionalServiceType additionalServiceType,
-                                       @Column("ai_final_price_cts") Integer finalPriceCts,
-                                       @Column("ai_currency_code") String currencyCode,
-                                       @Column("ai_vat_cts") Integer vatCts,
-                                       @Column("ai_discount_cts") Integer discountCts,
-                                       @Column("ai_status") AdditionalServiceItem.AdditionalServiceItemStatus additionalServiceItemStatus) {
+    public AdditionalServiceItemExport(
+            @Column("ai_uuid") String uuid,
+            @Column("ai_creation") ZonedDateTime utcCreation,
+            @Column("ai_last_modified") ZonedDateTime utcLastModified,
+            @Column("tr_uuid") String ticketsReservationUuid,
+            @Column("tr_first_name") String firstName,
+            @Column("tr_last_name") String lastName,
+            @Column("tr_email_address") String emailAddress,
+            @Column("as_title") String additionalServiceTitle,
+            @Column("as_type") AdditionalService.AdditionalServiceType additionalServiceType,
+            @Column("ai_final_price_cts") Integer finalPriceCts,
+            @Column("ai_currency_code") String currencyCode,
+            @Column("ai_vat_cts") Integer vatCts,
+            @Column("ai_discount_cts") Integer discountCts,
+            @Column("ai_status") AdditionalServiceItem.AdditionalServiceItemStatus additionalServiceItemStatus) {
         this.uuid = uuid;
         this.utcCreation = utcCreation;
         this.utcLastModified = utcLastModified;

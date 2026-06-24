@@ -16,7 +16,6 @@
  */
 package alfio.repository;
 
-
 import alfio.model.Audit;
 import alfio.model.Event;
 import alfio.model.PurchaseContext;
@@ -25,8 +24,6 @@ import alfio.util.Json;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
-
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -35,70 +32,115 @@ import java.util.Map;
 @QueryRepository
 public interface AuditingRepository {
 
-    @Query("""
+    @Query(
+            """
         insert into auditing(reservation_id, user_id, event_id, event_type, event_time, entity_type, entity_id, modifications) \
          values (:reservationId, :userId, :eventId, :eventType, :eventTime, :entityType, :entityId, :modifications)\
         """)
-    int insert(@Bind("reservationId") String reservationId, @Bind("userId") Integer userId,
-               @Bind("eventId") Integer eventId,
-               @Bind("eventType") Audit.EventType eventType, @Bind("eventTime") Date eventTime,
-               @Bind("entityType") Audit.EntityType entityType, @Bind("entityId") String entityId,
-               @Bind("modifications") String modifications);
+    int insert(
+            @Bind("reservationId") String reservationId,
+            @Bind("userId") Integer userId,
+            @Bind("eventId") Integer eventId,
+            @Bind("eventType") Audit.EventType eventType,
+            @Bind("eventTime") Date eventTime,
+            @Bind("entityType") Audit.EntityType entityType,
+            @Bind("entityId") String entityId,
+            @Bind("modifications") String modifications);
 
-
-    default int insert(String reservationId, Integer userId, Integer eventId, Audit.EventType eventType, Date eventTime, Audit.EntityType entityType,
-                       String entityId) {
+    default int insert(
+            String reservationId,
+            Integer userId,
+            Integer eventId,
+            Audit.EventType eventType,
+            Date eventTime,
+            Audit.EntityType entityType,
+            String entityId) {
         return this.insert(reservationId, userId, eventId, eventType, eventTime, entityType, entityId, (String) null);
     }
 
-    default int insert(String reservationId, Integer userId, Integer eventId, Audit.EventType eventType, Date eventTime, Audit.EntityType entityType,
-                       String entityId, List<Map<String, Object>> modifications) {
+    default int insert(
+            String reservationId,
+            Integer userId,
+            Integer eventId,
+            Audit.EventType eventType,
+            Date eventTime,
+            Audit.EntityType entityType,
+            String entityId,
+            List<Map<String, Object>> modifications) {
         String modificationJson = modifications == null ? null : Json.toJson(modifications);
-        return this.insert(reservationId, userId, eventId, eventType, eventTime, entityType, entityId, modificationJson);
+        return this.insert(
+                reservationId, userId, eventId, eventType, eventTime, entityType, entityId, modificationJson);
     }
 
-    default int insert(String reservationId, Integer userId, PurchaseContext p, Audit.EventType eventType, Date eventTime, Audit.EntityType entityType,
-                       String entityId) {
+    default int insert(
+            String reservationId,
+            Integer userId,
+            PurchaseContext p,
+            Audit.EventType eventType,
+            Date eventTime,
+            Audit.EntityType entityType,
+            String entityId) {
         var eventId = p.event().map(Event::getId).orElse(null);
         return this.insert(reservationId, userId, eventId, eventType, eventTime, entityType, entityId, (String) null);
     }
 
-    default int insert(String reservationId, Integer userId, PurchaseContext p, Audit.EventType eventType, Date eventTime, Audit.EntityType entityType,
-                       String entityId, List<Map<String, Object>> modifications) {
+    default int insert(
+            String reservationId,
+            Integer userId,
+            PurchaseContext p,
+            Audit.EventType eventType,
+            Date eventTime,
+            Audit.EntityType entityType,
+            String entityId,
+            List<Map<String, Object>> modifications) {
         var eventId = p.event().map(Event::getId).orElse(null);
         return insert(reservationId, userId, eventId, eventType, eventTime, entityType, entityId, modifications);
     }
-
 
     @Query("select * from auditing_user where reservation_id = :reservationId order by event_time asc")
     List<Audit> findAllForReservation(@Bind("reservationId") String reservationId);
 
     @Query("select count(*) from auditing_user where reservation_id = :reservationId and event_type = :eventType")
-    Integer countAuditsOfTypeForReservation(@Bind("reservationId") String reservationId, @Bind("eventType") Audit.EventType eventType);
+    Integer countAuditsOfTypeForReservation(
+            @Bind("reservationId") String reservationId, @Bind("eventType") Audit.EventType eventType);
 
-    @Query("select count(*) from auditing_user where reservation_id = :reservationId and entity_id = :ticketId::text and event_type = :eventType")
-    Integer countAuditsOfTypeForTicket(@Bind("reservationId") String reservationId,
-                                       @Bind("ticketId") int ticketId,
-                                       @Bind("eventType") Audit.EventType eventType);
+    @Query(
+            "select count(*) from auditing_user where reservation_id = :reservationId and entity_id = :ticketId::text and event_type = :eventType")
+    Integer countAuditsOfTypeForTicket(
+            @Bind("reservationId") String reservationId,
+            @Bind("ticketId") int ticketId,
+            @Bind("eventType") Audit.EventType eventType);
 
-    @Query("select count(*) from auditing_user where reservation_id = :reservationId and event_type in (:eventTypes) and event_time >= :startOfDay and event_time < :endOfDay")
-    Integer countAuditsOfTypesInTheSameDay(@Bind("reservationId") String reservationId, @Bind("eventTypes") Collection<String> eventTypes, @Bind("startOfDay") Date startOfDay, @Bind("endOfDay") Date endOfDay);
+    @Query(
+            "select count(*) from auditing_user where reservation_id = :reservationId and event_type in (:eventTypes) and event_time >= :startOfDay and event_time < :endOfDay")
+    Integer countAuditsOfTypesInTheSameDay(
+            @Bind("reservationId") String reservationId,
+            @Bind("eventTypes") Collection<String> eventTypes,
+            @Bind("startOfDay") Date startOfDay,
+            @Bind("endOfDay") Date endOfDay);
 
-    @Query("""
+    @Query(
+            """
         insert into auditing(reservation_id, user_id, event_id, event_type, event_time, entity_type, entity_id, modifications) \
          select tickets_reservation_id, null, event_id, 'UPDATE_TICKET_CATEGORY', current_timestamp, 'TICKET', concat('', id), null from ticket where category_id = :ticketCategoryId and tickets_reservation_id is not null\
         """)
     int insertUpdateTicketInCategoryId(@Bind("ticketCategoryId") int id);
 
-    @Query("""
+    @Query(
+            """
         insert into auditing(reservation_id, user_id, event_id, event_type, event_time, entity_type, entity_id, modifications) \
          select tickets_reservation_id, null, event_id, 'TAG_TICKET', current_timestamp, 'TICKET', concat('', id), :modifications from ticket where id in (:ticketIds)\
         """)
-    int registerTicketTag(@Bind("ticketIds") List<Integer> ids, @Bind("modifications")  @JSONData List<Map<String, Object>> modifications);
+    int registerTicketTag(
+            @Bind("ticketIds") List<Integer> ids,
+            @Bind("modifications") @JSONData List<Map<String, Object>> modifications);
 
-    @Query("""
+    @Query(
+            """
         insert into auditing(reservation_id, user_id, event_id, event_type, event_time, entity_type, entity_id, modifications) \
          select tickets_reservation_id, null, event_id, 'UNTAG_TICKET', current_timestamp, 'TICKET', concat('', id), :modifications from ticket where id in (:ticketIds)\
         """)
-    int registerTicketUntag(@Bind("ticketIds") List<Integer> ids, @Bind("modifications") @JSONData List<Map<String, Object>> modifications);
+    int registerTicketUntag(
+            @Bind("ticketIds") List<Integer> ids,
+            @Bind("modifications") @JSONData List<Map<String, Object>> modifications);
 }

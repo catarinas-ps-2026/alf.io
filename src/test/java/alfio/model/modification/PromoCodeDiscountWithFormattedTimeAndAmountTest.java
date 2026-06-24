@@ -16,14 +16,14 @@
  */
 package alfio.model.modification;
 
-import alfio.model.PromoCodeDiscount;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import static alfio.test.util.TestUtil.FIXED_TIME_CLOCK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import alfio.model.PromoCodeDiscount;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class PromoCodeDiscountWithFormattedTimeAndAmountTest {
 
@@ -41,7 +41,8 @@ class PromoCodeDiscountWithFormattedTimeAndAmountTest {
         when(promoCodeDiscount.getDiscountType()).thenReturn(PromoCodeDiscount.DiscountType.FIXED_AMOUNT);
         when(promoCodeDiscount.getDiscountAmount()).thenReturn(10000);
         when(promoCodeDiscount.getFixedAmount()).thenReturn(true);
-        var pdc = new PromoCodeDiscountWithFormattedTimeAndAmount(promoCodeDiscount, FIXED_TIME_CLOCK.getClock().getZone(), "CHF");
+        var pdc = new PromoCodeDiscountWithFormattedTimeAndAmount(
+                promoCodeDiscount, FIXED_TIME_CLOCK.getClock().getZone(), "CHF");
         assertEquals("100.00", pdc.getFormattedDiscountAmount());
     }
 
@@ -52,7 +53,8 @@ class PromoCodeDiscountWithFormattedTimeAndAmountTest {
         when(promoCodeDiscount.getDiscountType()).thenReturn(PromoCodeDiscount.DiscountType.FIXED_AMOUNT);
         when(promoCodeDiscount.getDiscountAmount()).thenReturn(10000);
         when(promoCodeDiscount.getFixedAmount()).thenReturn(true);
-        var pdc = new PromoCodeDiscountWithFormattedTimeAndAmount(promoCodeDiscount, FIXED_TIME_CLOCK.getClock().getZone(), null);
+        var pdc = new PromoCodeDiscountWithFormattedTimeAndAmount(
+                promoCodeDiscount, FIXED_TIME_CLOCK.getClock().getZone(), null);
         assertEquals("10000", pdc.getFormattedDiscountAmount());
     }
 }

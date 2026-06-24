@@ -16,15 +16,14 @@
  */
 package alfio.extension;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class ExtensionUtilsTest {
 

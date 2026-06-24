@@ -16,10 +16,10 @@
  */
 package alfio.controller.api.v2.model;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public record TurnstileChallengeConfiguration(@JsonIgnore String siteKey, boolean enabled) implements ChallengeConfiguration {
+public record TurnstileChallengeConfiguration(@JsonIgnore String siteKey, boolean enabled)
+        implements ChallengeConfiguration {
     @Override
     public String apiKey() {
         return siteKey;

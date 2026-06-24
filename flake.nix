@@ -42,12 +42,17 @@
               nodejs
               postgresql
               nixd
+              mermaid-cli
               plantuml
+              uv
+              playwright-driver.browsers
             ];
 
           buildInputs = [ pkgs.bashInteractive ];
 
           env = {
+            PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+            PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
           };
         };
       }

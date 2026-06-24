@@ -14,8 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
+
+import static alfio.manager.system.AdminJobExecutor.JobName.EXECUTE_EXTENSION;
 
 import alfio.extension.exception.AlfioScriptingException;
 import alfio.extension.exception.InvalidScriptException;
@@ -29,11 +30,6 @@ import alfio.util.Json;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
-import org.mozilla.javascript.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import java.net.ConnectException;
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -43,9 +39,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static alfio.manager.system.AdminJobExecutor.JobName.EXECUTE_EXTENSION;
-
+import org.mozilla.javascript.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 // table {path, name, hash, script content, params}
 // where (path, name) is unique, in our case can be:
@@ -70,22 +67,22 @@ public class ScriptingExecutionService {
     private final AdminJobQueueRepository adminJobQueueRepository;
 
     private final Cache<String, Executor> asyncExecutors = Caffeine.newBuilder()
-        .expireAfterAccess(Duration.ofHours(12))
-        .removalListener((String key, Executor value, RemovalCause cause) -> {
-            if (value instanceof ExecutorService service) {
-                service.shutdown();
-            }
-        })
-        .build();
+            .expireAfterAccess(Duration.ofHours(12))
+            .removalListener((String key, Executor value, RemovalCause cause) -> {
+                if (value instanceof ExecutorService service) {
+                    service.shutdown();
+                }
+            })
+            .build();
 
     static {
         ContextFactory.initGlobal(new SandboxContextFactory());
     }
 
-
-    public ScriptingExecutionService(HttpClient httpClient,
-                                     AdminJobQueueRepository adminJobQueueRepository,
-                                     Supplier<Executor> executorSupplier) {
+    public ScriptingExecutionService(
+            HttpClient httpClient,
+            AdminJobQueueRepository adminJobQueueRepository,
+            Supplier<Executor> executorSupplier) {
         this.executorSupplier = executorSupplier;
         this.adminJobQueueRepository = adminJobQueueRepository;
         var simpleHttpClient = new SimpleHttpClient(httpClient);
@@ -103,48 +100,58 @@ public class ScriptingExecutionService {
         }
     }
 
-    public <T> T executeScript(String name, String hash, Supplier<String> scriptFetcher, Map<String, Object> params, Class<T> clazz, ExtensionLogger extensionLogger) {
+    public <T> T executeScript(
+            String name,
+            String hash,
+            Supplier<String> scriptFetcher,
+            Map<String, Object> params,
+            Class<T> clazz,
+            ExtensionLogger extensionLogger) {
         return executeScriptFinally(name, scriptFetcher.get(), params, clazz, extensionLogger);
     }
 
-    public void executeScriptAsync(String path,
-                                   String name,
-                                   String hash,
-                                   Supplier<String> scriptFetcher,
-                                   Map<String, Object> params,
-                                   ExtensionLogger extensionLogger) {
+    public void executeScriptAsync(
+            String path,
+            String name,
+            String hash,
+            Supplier<String> scriptFetcher,
+            Map<String, Object> params,
+            ExtensionLogger extensionLogger) {
         Optional.ofNullable(asyncExecutors.get(path, key -> executorSupplier.get()))
-            .ifPresent(it -> it.execute(() -> {
-                try {
-                    executeScript(name, hash, scriptFetcher, params, Object.class, extensionLogger);
-                } catch (AlfioScriptingException | IllegalStateException ex) {
-                    // we got an error while executing the script. We must now re-schedule the script to be executed again
-                    // at a later time
-                    var paramsCopy = new HashMap<>(params);
-                    // do not persist extension parameters because they could contain sensitive information
-                    paramsCopy.remove(EXTENSION_CONFIGURATION_PARAMETERS);
-                    Map<String, Object> metadata = Map.of(
-                        EXTENSION_NAME, name,
-                        EXTENSION_PATH, path,
-                        EXTENSION_PARAMS, paramsCopy
-                    );
-                    boolean scheduled = AdminJobManager.executionScheduler(
-                        EXECUTE_EXTENSION,
-                        metadata,
-                        ZonedDateTime.now(ClockProvider.clock()).plusSeconds(2L)
-                    ).apply(adminJobQueueRepository);
-                    if(!scheduled) {
-                        log.warn("Cannot schedule extension {} for retry", name);
-                        // throw exception only if we can't schedule the extension for later execution
-                        throw ex;
-                    } else {
-                        log.warn("Error while executing extension "+name + ", which has been scheduled for retry", ex);
+                .ifPresent(it -> it.execute(() -> {
+                    try {
+                        executeScript(name, hash, scriptFetcher, params, Object.class, extensionLogger);
+                    } catch (AlfioScriptingException | IllegalStateException ex) {
+                        // we got an error while executing the script. We must now re-schedule the script to be executed
+                        // again
+                        // at a later time
+                        var paramsCopy = new HashMap<>(params);
+                        // do not persist extension parameters because they could contain sensitive information
+                        paramsCopy.remove(EXTENSION_CONFIGURATION_PARAMETERS);
+                        Map<String, Object> metadata = Map.of(
+                                EXTENSION_NAME, name,
+                                EXTENSION_PATH, path,
+                                EXTENSION_PARAMS, paramsCopy);
+                        boolean scheduled = AdminJobManager.executionScheduler(
+                                        EXECUTE_EXTENSION,
+                                        metadata,
+                                        ZonedDateTime.now(ClockProvider.clock()).plusSeconds(2L))
+                                .apply(adminJobQueueRepository);
+                        if (!scheduled) {
+                            log.warn("Cannot schedule extension {} for retry", name);
+                            // throw exception only if we can't schedule the extension for later execution
+                            throw ex;
+                        } else {
+                            log.warn(
+                                    "Error while executing extension " + name + ", which has been scheduled for retry",
+                                    ex);
+                        }
                     }
-                }
-            }));
+                }));
     }
 
-    public <T> T executeScript(String name, String script, Map<String, Object> params, Class<T> clazz,  ExtensionLogger extensionLogger) {
+    public <T> T executeScript(
+            String name, String script, Map<String, Object> params, Class<T> clazz, ExtensionLogger extensionLogger) {
         return executeScriptFinally(name, script, params, clazz, extensionLogger);
     }
 
@@ -162,15 +169,16 @@ public class ScriptingExecutionService {
             if (mapping.containsKey(clazz)) {
                 return new NativeJavaClass(scope, mapping.get(clazz));
             } else {
-                throw new IllegalArgumentException("Type "+clazz+" is not recognized");
+                throw new IllegalArgumentException("Type " + clazz + " is not recognized");
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T executeScriptFinally(String name, String script, Map<String, Object> params, Class<T> clazz,  ExtensionLogger extensionLogger) {
+    private <T> T executeScriptFinally(
+            String name, String script, Map<String, Object> params, Class<T> clazz, ExtensionLogger extensionLogger) {
         try (var cx = Context.enter()) {
-            if(params == null) {
+            if (params == null) {
                 params = Collections.emptyMap();
             }
 
@@ -181,13 +189,16 @@ public class ScriptingExecutionService {
             scope.put("console", scope, new ConsoleLogger(extensionLogger));
 
             // retrocompatibility
-            scope.put("Java", scope, new JavaClassInterop(Map.of("alfio.model.CustomerName", alfio.model.CustomerName.class), scope));
+            scope.put(
+                    "Java",
+                    scope,
+                    new JavaClassInterop(Map.of("alfio.model.CustomerName", alfio.model.CustomerName.class), scope));
 
             scope.put("returnClass", scope, clazz);
 
             for (var entry : params.entrySet()) {
                 var value = entry.getValue();
-                if(entry.getKey().equals(EXTENSION_CONFIGURATION_PARAMETERS)) {
+                if (entry.getKey().equals(EXTENSION_CONFIGURATION_PARAMETERS)) {
                     scope.put(entry.getKey(), scope, convertExtensionParameters(scope, value));
                 } else {
                     scope.put(entry.getKey(), scope, Context.javaToJS(value, scope));
@@ -198,14 +209,15 @@ public class ScriptingExecutionService {
             extensionLogger.logSuccess("Script executed successfully.");
             if (res instanceof NativeJavaObject nativeRes) {
                 return (T) nativeRes.unwrap();
-            } else if(clazz.isInstance(res)) {
+            } else if (clazz.isInstance(res)) {
                 return (T) res;
             } else {
                 return null;
             }
         } catch (EcmaError ex) {
             log.warn("Syntax error detected in script " + name, ex);
-            extensionLogger.logError("Syntax error while executing script: " + ex.getMessage() + "(" + ex.lineNumber() + ":" + ex.columnNumber() + ")");
+            extensionLogger.logError("Syntax error while executing script: " + ex.getMessage() + "(" + ex.lineNumber()
+                    + ":" + ex.columnNumber() + ")");
             throw new InvalidScriptException("Syntax error in script " + name);
         } catch (WrappedException ex) {
             var actualException = ex.getWrappedException();
@@ -235,7 +247,7 @@ public class ScriptingExecutionService {
         }
         Throwable root = ex;
         String lastMessage = root.getMessage();
-        while(root.getCause() != null) {
+        while (root.getCause() != null) {
             root = root.getCause();
             if (root instanceof ConnectException) {
                 return CONNECT_EXCEPTION_MESSAGE;
@@ -248,8 +260,9 @@ public class ScriptingExecutionService {
     }
 
     private Object convertExtensionParameters(Scriptable context, Object extensionParameters) {
-        return ((Map<?, ?>) extensionParameters).entrySet().stream()
-            .map(entry -> Map.entry(entry.getKey(), ScriptRuntime.toObject(context, entry.getValue())))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return ((Map<?, ?>) extensionParameters)
+                .entrySet().stream()
+                        .map(entry -> Map.entry(entry.getKey(), ScriptRuntime.toObject(context, entry.getValue())))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

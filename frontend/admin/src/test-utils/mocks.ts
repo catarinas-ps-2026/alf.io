@@ -5,10 +5,13 @@ import { vi } from 'vitest';
  * Útil para tests que hacen múltiples llamadas fetch.
  */
 export function mockFetchJson(data: unknown): void {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok: true,
-        json: vi.fn().mockResolvedValue(data),
-    }));
+    vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+            ok: true,
+            json: vi.fn().mockResolvedValue(data),
+        }),
+    );
 }
 
 /**
@@ -16,30 +19,41 @@ export function mockFetchJson(data: unknown): void {
  * Útil para tests con múltiples llamadas fetch secuenciales.
  */
 export function mockFetchJsonOnce(data: unknown): void {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: vi.fn().mockResolvedValue(data),
-    }));
+    vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: vi.fn().mockResolvedValue(data),
+        }),
+    );
 }
 
 /**
  * Mockea global.fetch con una respuesta personalizada.
  * Permite configurar ok, status, y json.
  */
-export function mockFetchResponse(options: { ok?: boolean; json?: unknown; status?: number } = {}): void {
+export function mockFetchResponse(
+    options: { ok?: boolean; json?: unknown; status?: number } = {},
+): void {
     const { ok = true, json = {}, status = 200 } = options;
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-        ok,
-        status,
-        json: vi.fn().mockResolvedValue(json),
-    }));
+    vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+            ok,
+            status,
+            json: vi.fn().mockResolvedValue(json),
+        }),
+    );
 }
 
 /**
  * Inyecta meta tags CSRF en el DOM para tests de servicios HTTP.
  * Los servicios leen estos valores para los headers X-XSRF-TOKEN.
  */
-export function mockCsrfMeta(xsrfHeader = 'X-XSRF-TOKEN', xsrfValue = 'test-token-123'): void {
+export function mockCsrfMeta(
+    xsrfHeader = 'X-XSRF-TOKEN',
+    xsrfValue = 'test-token-123',
+): void {
     const metaHeader = document.createElement('meta');
     metaHeader.setAttribute('name', '_csrf_header');
     metaHeader.setAttribute('content', xsrfHeader);
@@ -57,7 +71,9 @@ export function mockCsrfMeta(xsrfHeader = 'X-XSRF-TOKEN', xsrfValue = 'test-toke
  * Usar en afterEach para limpiar después de cada test.
  */
 export function clearCsrfMeta(): void {
-    document.head.querySelectorAll('meta[name="_csrf_header"], meta[name="_csrf"]').forEach((el) => el.remove());
+    document.head
+        .querySelectorAll('meta[name="_csrf_header"], meta[name="_csrf"]')
+        .forEach((el) => el.remove());
 }
 
 /**

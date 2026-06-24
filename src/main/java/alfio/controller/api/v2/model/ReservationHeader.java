@@ -16,18 +16,17 @@
  */
 package alfio.controller.api.v2.model;
 
+import static alfio.util.LocaleUtil.formatDate;
+
 import alfio.model.PriceContainer;
 import alfio.model.ReservationWithPurchaseContext;
 import alfio.model.TicketReservation;
-import lombok.Getter;
-
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static alfio.util.LocaleUtil.formatDate;
+import lombok.Getter;
 
 @Getter
 public class ReservationHeader {
@@ -43,9 +42,32 @@ public class ReservationHeader {
     private final PriceContainer.VatStatus vatStatus;
     private final List<ReservationWithPurchaseContext.PurchaseContextItem> items;
 
-    @ConstructorProperties({"id", "status", "formattedExpiresOn", "formattedConfirmedOn", "formattedCreatedOn", "invoiceNumber",
-        "finalPrice", "finalPrice", "currencyCode", "usedVatPercent", "vatStatus", "items"})
-    public ReservationHeader(String id, TicketReservation.TicketReservationStatus status, Map<String, String> formattedExpiresOn, Map<String, String> formattedConfirmedOn, Map<String, String> formattedCreatedOn, String invoiceNumber, BigDecimal finalPrice, String currencyCode, BigDecimal usedVatPercent, PriceContainer.VatStatus vatStatus, List<ReservationWithPurchaseContext.PurchaseContextItem> items) {
+    @ConstructorProperties({
+        "id",
+        "status",
+        "formattedExpiresOn",
+        "formattedConfirmedOn",
+        "formattedCreatedOn",
+        "invoiceNumber",
+        "finalPrice",
+        "finalPrice",
+        "currencyCode",
+        "usedVatPercent",
+        "vatStatus",
+        "items"
+    })
+    public ReservationHeader(
+            String id,
+            TicketReservation.TicketReservationStatus status,
+            Map<String, String> formattedExpiresOn,
+            Map<String, String> formattedConfirmedOn,
+            Map<String, String> formattedCreatedOn,
+            String invoiceNumber,
+            BigDecimal finalPrice,
+            String currencyCode,
+            BigDecimal usedVatPercent,
+            PriceContainer.VatStatus vatStatus,
+            List<ReservationWithPurchaseContext.PurchaseContextItem> items) {
         this.id = id;
         this.status = status;
         this.formattedExpiresOn = formattedExpiresOn;
@@ -59,20 +81,18 @@ public class ReservationHeader {
         this.items = items;
     }
 
-
     public static ReservationHeader from(ReservationWithPurchaseContext r, Map<Locale, String> datePatternsMap) {
         return new ReservationHeader(
-            r.getId(),
-            r.getStatus(),
-            formatDate(r.getValidity(), datePatternsMap),
-            formatDate(r.getConfirmationTs(), datePatternsMap),
-            formatDate(r.getRegistrationTs(), datePatternsMap),
-            r.getInvoiceNumber(),
-            r.getFinalPrice(),
-            r.getCurrencyCode(),
-            r.getVatPercentage(),
-            r.getVatStatus(),
-            r.getItems()
-        );
+                r.getId(),
+                r.getStatus(),
+                formatDate(r.getValidity(), datePatternsMap),
+                formatDate(r.getConfirmationTs(), datePatternsMap),
+                formatDate(r.getRegistrationTs(), datePatternsMap),
+                r.getInvoiceNumber(),
+                r.getFinalPrice(),
+                r.getCurrencyCode(),
+                r.getVatPercentage(),
+                r.getVatStatus(),
+                r.getItems());
     }
 }

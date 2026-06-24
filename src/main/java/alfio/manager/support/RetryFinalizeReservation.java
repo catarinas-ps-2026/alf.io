@@ -34,14 +34,15 @@ public class RetryFinalizeReservation {
     private final TicketReservationStatus originalStatus;
 
     @JsonCreator
-    public RetryFinalizeReservation(@JsonProperty("reservationId") String reservationId,
-                                    @JsonProperty("paymentProxy") PaymentProxy paymentProxy,
-                                    @JsonProperty("sendReservationConfirmationEmail") boolean sendReservationConfirmationEmail,
-                                    @JsonProperty("sendTickets") boolean sendTickets,
-                                    @JsonProperty("username") String username,
-                                    @JsonProperty("tcAccepted") boolean tcAccepted,
-                                    @JsonProperty("privacyPolicyAccepted") boolean privacyPolicyAccepted,
-                                    @JsonProperty("originalStatus") TicketReservationStatus originalStatus) {
+    public RetryFinalizeReservation(
+            @JsonProperty("reservationId") String reservationId,
+            @JsonProperty("paymentProxy") PaymentProxy paymentProxy,
+            @JsonProperty("sendReservationConfirmationEmail") boolean sendReservationConfirmationEmail,
+            @JsonProperty("sendTickets") boolean sendTickets,
+            @JsonProperty("username") String username,
+            @JsonProperty("tcAccepted") boolean tcAccepted,
+            @JsonProperty("privacyPolicyAccepted") boolean privacyPolicyAccepted,
+            @JsonProperty("originalStatus") TicketReservationStatus originalStatus) {
         this.reservationId = reservationId;
         this.paymentProxy = paymentProxy;
         this.sendReservationConfirmationEmail = sendReservationConfirmationEmail;
@@ -86,14 +87,14 @@ public class RetryFinalizeReservation {
 
     public static RetryFinalizeReservation fromFinalizeReservation(FinalizeReservation finalizeReservation) {
         var paymentSpecification = finalizeReservation.getPaymentSpecification();
-        return new RetryFinalizeReservation(paymentSpecification.getReservationId(),
-            finalizeReservation.getPaymentProxy(),
-            finalizeReservation.isSendReservationConfirmationEmail(),
-            finalizeReservation.isSendTickets(),
-            finalizeReservation.getUsername(),
-            paymentSpecification.isTcAccepted(),
-            paymentSpecification.isPrivacyAccepted(),
-            finalizeReservation.getOriginalStatus()
-        );
+        return new RetryFinalizeReservation(
+                paymentSpecification.getReservationId(),
+                finalizeReservation.getPaymentProxy(),
+                finalizeReservation.isSendReservationConfirmationEmail(),
+                finalizeReservation.isSendTickets(),
+                finalizeReservation.getUsername(),
+                paymentSpecification.isTcAccepted(),
+                paymentSpecification.isPrivacyAccepted(),
+                finalizeReservation.getOriginalStatus());
     }
 }

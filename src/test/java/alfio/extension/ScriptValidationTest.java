@@ -17,23 +17,21 @@
 package alfio.extension;
 
 import alfio.extension.exception.ScriptNotValidException;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ScriptValidationTest {
 
     private String getScriptContent(String file) throws IOException {
         String concatenation;
-        try(var input = getClass().getResourceAsStream("/rhino-scripts/" + file)) {
+        try (var input = getClass().getResourceAsStream("/rhino-scripts/" + file)) {
             List<String> extensionStream = IOUtils.readLines(new InputStreamReader(input, StandardCharsets.UTF_8));
-            concatenation = String.join("\n", extensionStream)+"\n;executeScript(extensionEvent)";
+            concatenation = String.join("\n", extensionStream) + "\n;executeScript(extensionEvent)";
         }
         return concatenation;
     }

@@ -19,14 +19,14 @@ package alfio.model.modification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
 public record SendCodeModification(String code, String assignee, String email, String language) {
 
     @JsonCreator
-    public SendCodeModification(@JsonProperty("code") String code,
-                                @JsonProperty("assignee") String assignee,
-                                @JsonProperty("email") String email,
-                                @JsonProperty("language") String language) {
+    public SendCodeModification(
+            @JsonProperty("code") String code,
+            @JsonProperty("assignee") String assignee,
+            @JsonProperty("email") String email,
+            @JsonProperty("language") String language) {
         this.code = code;
         this.assignee = assignee;
         this.email = email;

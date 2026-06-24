@@ -20,14 +20,13 @@ import alfio.controller.api.support.CurrencyDescriptor;
 import alfio.model.subscription.SubscriptionDescriptor.SubscriptionTimeUnit;
 import alfio.model.subscription.SubscriptionDescriptor.SubscriptionUsageType;
 import alfio.model.subscription.SubscriptionDescriptor.SubscriptionValidityType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 @AllArgsConstructor

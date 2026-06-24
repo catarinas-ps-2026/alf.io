@@ -16,18 +16,17 @@
  */
 package alfio.manager.payment;
 
+import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
+import static alfio.model.TicketReservation.TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
+
 import alfio.manager.support.PaymentResult;
 import alfio.model.transaction.*;
 import alfio.repository.TicketReservationRepository;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
-import static alfio.model.TicketReservation.TicketReservationStatus.DEFERRED_OFFLINE_PAYMENT;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 @Component
 @Order(0)
@@ -36,14 +35,15 @@ public class DeferredBankTransferManager implements PaymentProvider {
     private final TicketReservationRepository ticketReservationRepository;
     private final BankTransferManager bankTransferManager;
 
-    public DeferredBankTransferManager(TicketReservationRepository ticketReservationRepository,
-                                       BankTransferManager bankTransferManager) {
+    public DeferredBankTransferManager(
+            TicketReservationRepository ticketReservationRepository, BankTransferManager bankTransferManager) {
         this.ticketReservationRepository = ticketReservationRepository;
         this.bankTransferManager = bankTransferManager;
     }
 
     @Override
-    public Set<? extends PaymentMethod> getSupportedPaymentMethods(PaymentContext paymentContext, TransactionRequest transactionRequest) {
+    public Set<? extends PaymentMethod> getSupportedPaymentMethods(
+            PaymentContext paymentContext, TransactionRequest transactionRequest) {
         return bankTransferManager.getSupportedPaymentMethods(paymentContext, transactionRequest);
     }
 
@@ -53,16 +53,20 @@ public class DeferredBankTransferManager implements PaymentProvider {
     }
 
     @Override
-    public boolean accept(PaymentMethod paymentMethod, PaymentContext paymentContext, TransactionRequest transactionRequest) {
+    public boolean accept(
+            PaymentMethod paymentMethod, PaymentContext paymentContext, TransactionRequest transactionRequest) {
         var options = bankTransferManager.options(paymentContext);
         return paymentContext.getPurchaseContext() != null
-            && bankTransferManager.bankTransferEnabledForMethod(paymentMethod, paymentContext, options)
-            && bankTransferManager.isPaymentDeferredEnabled(options);
+                && bankTransferManager.bankTransferEnabledForMethod(paymentMethod, paymentContext, options)
+                && bankTransferManager.isPaymentDeferredEnabled(options);
     }
 
     @Override
     public PaymentResult doPayment(PaymentSpecification spec) {
-        bankTransferManager.postponePayment(spec, DEFERRED_OFFLINE_PAYMENT, Objects.requireNonNull(spec.getPurchaseContext()).getBegin());
+        bankTransferManager.postponePayment(
+                spec,
+                DEFERRED_OFFLINE_PAYMENT,
+                Objects.requireNonNull(spec.getPurchaseContext()).getBegin());
         bankTransferManager.overrideExistingTransactions(spec);
         return PaymentResult.successful(NOT_YET_PAID_TRANSACTION_ID);
     }
@@ -86,12 +90,13 @@ public class DeferredBankTransferManager implements PaymentProvider {
     public boolean isActive(PaymentContext paymentContext) {
         var options = bankTransferManager.options(paymentContext);
         return bankTransferManager.bankTransferActive(paymentContext, options)
-            && bankTransferManager.isPaymentDeferredEnabled(options);
+                && bankTransferManager.isPaymentDeferredEnabled(options);
     }
 
     private Boolean isReservationStatusCompatible(Transaction transaction) {
-        return ticketReservationRepository.findOptionalStatusAndValidationById(transaction.getReservationId())
-            .map(sv -> sv.getStatus() == DEFERRED_OFFLINE_PAYMENT)
-            .orElse(false);
+        return ticketReservationRepository
+                .findOptionalStatusAndValidationById(transaction.getReservationId())
+                .map(sv -> sv.getStatus() == DEFERRED_OFFLINE_PAYMENT)
+                .orElse(false);
     }
 }

@@ -18,7 +18,6 @@ package alfio.model.subscription;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,8 +28,8 @@ public class LinkSubscriptionsToEventRequest {
     private final List<Integer> categories;
 
     @JsonCreator
-    public LinkSubscriptionsToEventRequest(@JsonProperty("descriptorId") UUID descriptorId,
-                                           @JsonProperty("categories") List<Integer> categories) {
+    public LinkSubscriptionsToEventRequest(
+            @JsonProperty("descriptorId") UUID descriptorId, @JsonProperty("categories") List<Integer> categories) {
         this.descriptorId = descriptorId;
         this.categories = categories;
     }

@@ -16,6 +16,13 @@
  */
 package alfio.manager;
 
+import static alfio.manager.testSupport.TicketCategoryGenerator.generateCategoryStream;
+import static alfio.test.util.TestUtil.clockProvider;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.model.Event;
 import alfio.model.Ticket;
 import alfio.model.TicketCategory;
@@ -23,23 +30,15 @@ import alfio.repository.EventRepository;
 import alfio.repository.SubscriptionRepository;
 import alfio.repository.TicketCategoryDescriptionRepository;
 import alfio.repository.TicketCategoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static alfio.manager.testSupport.TicketCategoryGenerator.generateCategoryStream;
-import static alfio.test.util.TestUtil.clockProvider;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 @DisplayName("EventManager: handle categories")
 public class EventManagerCategoriesTest {
@@ -50,29 +49,53 @@ public class EventManagerCategoriesTest {
     private final int eventId = 0;
     private final int availableSeats = 20;
 
-
     @BeforeEach
     void init() {
         ticketCategoryRepository = mock(TicketCategoryRepository.class);
-        TicketCategoryDescriptionRepository ticketCategoryDescriptionRepository = mock(TicketCategoryDescriptionRepository.class);
+        TicketCategoryDescriptionRepository ticketCategoryDescriptionRepository =
+                mock(TicketCategoryDescriptionRepository.class);
         EventRepository eventRepository = mock(EventRepository.class);
         event = mock(Event.class);
         when(event.getId()).thenReturn(eventId);
-        eventManager = new EventManager(null, eventRepository, null, ticketCategoryRepository, ticketCategoryDescriptionRepository, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, clockProvider(), mock(SubscriptionRepository.class), null);
+        eventManager = new EventManager(
+                null,
+                eventRepository,
+                null,
+                ticketCategoryRepository,
+                ticketCategoryDescriptionRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                clockProvider(),
+                mock(SubscriptionRepository.class),
+                null);
         when(eventRepository.countExistingTickets(0)).thenReturn(availableSeats);
         when(event.getZoneId()).thenReturn(ZoneId.systemDefault());
     }
-
 
     @Test
     @DisplayName("create tickets for the unbounded category")
     void createTicketsForUnboundedCategory() {
         List<TicketCategory> categories = generateCategoryStream().limit(3).collect(Collectors.toList());
         when(ticketCategoryRepository.findAllTicketCategories(eq(eventId))).thenReturn(categories);
-        MapSqlParameterSource[] parameterSources = eventManager.prepareTicketsBulkInsertParameters(ZonedDateTime.now(clockProvider().getClock()), event, availableSeats, Ticket.TicketStatus.FREE);
+        MapSqlParameterSource[] parameterSources = eventManager.prepareTicketsBulkInsertParameters(
+                ZonedDateTime.now(clockProvider().getClock()), event, availableSeats, Ticket.TicketStatus.FREE);
         assertNotNull(parameterSources);
         assertEquals(availableSeats, parameterSources.length);
-        assertTrue(Arrays.stream(parameterSources).allMatch(ps -> Ticket.TicketStatus.FREE.name().equals(ps.getValue("status"))));
+        assertTrue(Arrays.stream(parameterSources)
+                .allMatch(ps -> Ticket.TicketStatus.FREE.name().equals(ps.getValue("status"))));
     }
 
     @Test
@@ -80,10 +103,12 @@ public class EventManagerCategoriesTest {
     void createTicketsForUnboundedCategories() {
         List<TicketCategory> categories = generateCategoryStream().limit(6).collect(Collectors.toList());
         when(ticketCategoryRepository.findAllTicketCategories(eq(eventId))).thenReturn(categories);
-        MapSqlParameterSource[] parameterSources = eventManager.prepareTicketsBulkInsertParameters(ZonedDateTime.now(clockProvider().getClock()), event, availableSeats, Ticket.TicketStatus.FREE);
+        MapSqlParameterSource[] parameterSources = eventManager.prepareTicketsBulkInsertParameters(
+                ZonedDateTime.now(clockProvider().getClock()), event, availableSeats, Ticket.TicketStatus.FREE);
         assertNotNull(parameterSources);
         assertEquals(availableSeats, parameterSources.length);
-        assertTrue(Arrays.stream(parameterSources).allMatch(ps -> Ticket.TicketStatus.FREE.name().equals(ps.getValue("status"))));
+        assertTrue(Arrays.stream(parameterSources)
+                .allMatch(ps -> Ticket.TicketStatus.FREE.name().equals(ps.getValue("status"))));
     }
 
     @Test
@@ -91,11 +116,16 @@ public class EventManagerCategoriesTest {
     void createTicketsOnlyForBounded() {
         List<TicketCategory> categories = generateCategoryStream().limit(2).collect(Collectors.toList());
         when(ticketCategoryRepository.findAllTicketCategories(eq(eventId))).thenReturn(categories);
-        MapSqlParameterSource[] parameterSources = eventManager.prepareTicketsBulkInsertParameters(ZonedDateTime.now(clockProvider().getClock()), event, availableSeats, Ticket.TicketStatus.FREE);
+        MapSqlParameterSource[] parameterSources = eventManager.prepareTicketsBulkInsertParameters(
+                ZonedDateTime.now(clockProvider().getClock()), event, availableSeats, Ticket.TicketStatus.FREE);
         assertNotNull(parameterSources);
         assertEquals(availableSeats, parameterSources.length);
-        assertEquals(4L, Arrays.stream(parameterSources).filter(p -> p.getValue("categoryId") != null).count());
-        assertTrue(Arrays.stream(parameterSources).allMatch(ps -> Ticket.TicketStatus.FREE.name().equals(ps.getValue("status"))));
+        assertEquals(
+                4L,
+                Arrays.stream(parameterSources)
+                        .filter(p -> p.getValue("categoryId") != null)
+                        .count());
+        assertTrue(Arrays.stream(parameterSources)
+                .allMatch(ps -> Ticket.TicketStatus.FREE.name().equals(ps.getValue("status"))));
     }
-
 }

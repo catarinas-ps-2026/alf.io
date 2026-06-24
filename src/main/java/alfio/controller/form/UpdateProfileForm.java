@@ -16,11 +16,10 @@
  */
 package alfio.controller.form;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.io.Serializable;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter

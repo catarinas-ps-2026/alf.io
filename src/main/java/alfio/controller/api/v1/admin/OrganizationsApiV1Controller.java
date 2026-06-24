@@ -26,12 +26,11 @@ import alfio.model.modification.OrganizationModification;
 import alfio.model.user.Organization;
 import alfio.model.user.Role;
 import alfio.model.user.User;
+import java.security.Principal;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin/system/organization")
@@ -40,16 +39,16 @@ public class OrganizationsApiV1Controller {
     private final OrganizationDeleter organizationDeleter;
     private final AccessService accessService;
 
-    public OrganizationsApiV1Controller(UserManager userManager,
-                                        OrganizationDeleter organizationDeleter,
-                                        AccessService accessService) {
+    public OrganizationsApiV1Controller(
+            UserManager userManager, OrganizationDeleter organizationDeleter, AccessService accessService) {
         this.userManager = userManager;
         this.organizationDeleter = organizationDeleter;
         this.accessService = accessService;
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Organization> createOrganization(@RequestBody OrganizationModification om, Principal principal) {
+    public ResponseEntity<Organization> createOrganization(
+            @RequestBody OrganizationModification om, Principal principal) {
         accessService.ensureSystemApiKey(principal);
         if (om == null || !om.isValid(true)) {
             return ResponseEntity.badRequest().build();
@@ -65,15 +64,17 @@ public class OrganizationsApiV1Controller {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Organization> getSingleOrganization(@PathVariable("id") int organizationId, Principal principal) {
+    public ResponseEntity<Organization> getSingleOrganization(
+            @PathVariable("id") int organizationId, Principal principal) {
         accessService.checkOrganizationOwnership(principal, organizationId);
         return ResponseEntity.of(userManager.findOptionalOrganizationById(organizationId, UserManager.ADMIN_USERNAME));
     }
 
     @PutMapping("/{id}/api-key")
-    public ResponseEntity<OrganizationApiKey> createApiKeyForOrganization(@PathVariable("id") int organizationId,
-                                                                          @RequestBody(required = false) CreateApiKeyRequest createApiKeyRequest,
-                                                                          Principal principal) {
+    public ResponseEntity<OrganizationApiKey> createApiKeyForOrganization(
+            @PathVariable("id") int organizationId,
+            @RequestBody(required = false) CreateApiKeyRequest createApiKeyRequest,
+            Principal principal) {
         accessService.checkOrganizationOwnership(principal, organizationId);
         ApiKeyType keyType = ApiKeyType.API_CLIENT;
         String description = CreateApiKeyRequest.DEFAULT_DESCRIPTION;
@@ -85,25 +86,34 @@ public class OrganizationsApiV1Controller {
             keyType = keyTypeOptional.get();
             description = createApiKeyRequest.description();
         }
-        var user = userManager.insertUser(organizationId, null, null, null, null, Role.fromRoleName(keyType.roleName()), User.Type.API_KEY, null, description, principal);
+        var user = userManager.insertUser(
+                organizationId,
+                null,
+                null,
+                null,
+                null,
+                Role.fromRoleName(keyType.roleName()),
+                User.Type.API_KEY,
+                null,
+                description,
+                principal);
         return ResponseEntity.ok(new OrganizationApiKey(organizationId, user.getUsername(), keyType));
     }
 
     @DeleteMapping("/{id}/api-key/{apiKey}")
-    public ResponseEntity<Boolean> deleteApiKeyForOrganization(@PathVariable("id") int organizationId,
-                                                               @PathVariable String apiKey,
-                                                               Principal principal) {
+    public ResponseEntity<Boolean> deleteApiKeyForOrganization(
+            @PathVariable("id") int organizationId, @PathVariable String apiKey, Principal principal) {
         accessService.checkOrganizationOwnership(principal, organizationId);
-        return ResponseEntity.of(userManager.findUserIdByApiKey(apiKey, organizationId).map(userId -> {
-            userManager.deleteUser(userId, principal);
-            return true;
-        }));
+        return ResponseEntity.of(
+                userManager.findUserIdByApiKey(apiKey, organizationId).map(userId -> {
+                    userManager.deleteUser(userId, principal);
+                    return true;
+                }));
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<Organization> update(@PathVariable("id") int organizationId,
-                                               @RequestBody OrganizationModification om,
-                                               Principal principal) {
+    public ResponseEntity<Organization> update(
+            @PathVariable("id") int organizationId, @RequestBody OrganizationModification om, Principal principal) {
         accessService.checkOrganizationOwnership(principal, organizationId);
         if (om == null || !om.isValid(false) || organizationId != om.getId()) {
             return ResponseEntity.badRequest().build();
@@ -122,5 +132,4 @@ public class OrganizationsApiV1Controller {
             return ResponseEntity.badRequest().build();
         }
     }
-
 }

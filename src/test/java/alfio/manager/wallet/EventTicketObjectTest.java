@@ -16,11 +16,11 @@
  */
 package alfio.manager.wallet;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.util.Json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class EventTicketObjectTest {
 
@@ -29,17 +29,11 @@ class EventTicketObjectTest {
         ObjectMapper objectMapper = Json.OBJECT_MAPPER;
 
         EventTicketObject object = new EventTicketObject(
-            "ISSUER_ID.MEMBER_ID",
-            "ISSUER_ID.EVENT_CLASS_ID",
-            "Alf",
-            "123-321-000",
-            "123456789"
-        );
+                "ISSUER_ID.MEMBER_ID", "ISSUER_ID.EVENT_CLASS_ID", "Alf", "123-321-000", "123456789");
         String build = object.build(objectMapper);
 
         var resource = getClass().getResource("/wallet-json/event-object.json");
         assertNotNull(resource);
         assertEquals(objectMapper.readTree(resource), objectMapper.readTree(build));
     }
-
 }

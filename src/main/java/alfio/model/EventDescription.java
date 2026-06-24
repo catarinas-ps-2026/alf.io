@@ -32,9 +32,11 @@ public class EventDescription {
     private final EventDescriptionType eventDescriptionType;
     private final String description;
 
-    public EventDescription(@Column("event_id_fk") Integer eventId, @Column("locale") String locale,
-                            @Column("type") EventDescriptionType eventDescriptionType,
-                            @Column("description") String description) {
+    public EventDescription(
+            @Column("event_id_fk") Integer eventId,
+            @Column("locale") String locale,
+            @Column("type") EventDescriptionType eventDescriptionType,
+            @Column("description") String description) {
         this.eventId = eventId;
         this.locale = locale;
         this.eventDescriptionType = eventDescriptionType;

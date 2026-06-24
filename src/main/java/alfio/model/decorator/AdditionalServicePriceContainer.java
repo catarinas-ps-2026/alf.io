@@ -21,7 +21,6 @@ import alfio.model.Event;
 import alfio.model.PriceContainer;
 import alfio.model.PromoCodeDiscount;
 import alfio.util.MonetaryUtil;
-
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -35,8 +34,21 @@ public class AdditionalServicePriceContainer implements PriceContainer {
     private final BigDecimal vatPercentage;
     private final VatStatus vatStatus;
 
-    @ConstructorProperties({"customAmount", "additionalService", "promoCodeDiscount", "currencyCode", "vatPercentage", "vatStatus"})
-    private AdditionalServicePriceContainer(BigDecimal customAmount, AdditionalService additionalService, PromoCodeDiscount promoCodeDiscount, String currencyCode, BigDecimal vatPercentage, VatStatus vatStatus) {
+    @ConstructorProperties({
+        "customAmount",
+        "additionalService",
+        "promoCodeDiscount",
+        "currencyCode",
+        "vatPercentage",
+        "vatStatus"
+    })
+    private AdditionalServicePriceContainer(
+            BigDecimal customAmount,
+            AdditionalService additionalService,
+            PromoCodeDiscount promoCodeDiscount,
+            String currencyCode,
+            BigDecimal vatPercentage,
+            VatStatus vatStatus) {
         this.customAmount = customAmount;
         this.additionalService = additionalService;
         this.promoCodeDiscount = promoCodeDiscount;
@@ -47,18 +59,22 @@ public class AdditionalServicePriceContainer implements PriceContainer {
 
     @Override
     public int getSrcPriceCts() {
-        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(additionalService.supplementPolicy()) && customAmount != null) {
+        if (AdditionalService.SupplementPolicy.isMandatoryPercentage(additionalService.supplementPolicy())
+                && customAmount != null) {
             return MonetaryUtil.unitToCents(customAmount, currencyCode);
         }
-        if(additionalService.fixPrice()) {
+        if (additionalService.fixPrice()) {
             return additionalService.srcPriceCts();
         }
-        return Optional.ofNullable(customAmount).map(a -> MonetaryUtil.unitToCents(a, currencyCode)).orElse(0);
+        return Optional.ofNullable(customAmount)
+                .map(a -> MonetaryUtil.unitToCents(a, currencyCode))
+                .orElse(0);
     }
 
     @Override
     public Optional<PromoCodeDiscount> getDiscount() {
-        return Optional.ofNullable(promoCodeDiscount).filter(d -> additionalService.type() != AdditionalService.AdditionalServiceType.DONATION);
+        return Optional.ofNullable(promoCodeDiscount)
+                .filter(d -> additionalService.type() != AdditionalService.AdditionalServiceType.DONATION);
     }
 
     @Override
@@ -68,7 +84,7 @@ public class AdditionalServicePriceContainer implements PriceContainer {
 
     @Override
     public Optional<BigDecimal> getOptionalVatPercentage() {
-        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {
+        if (additionalService.vatType() == AdditionalService.VatType.INHERITED) {
             return Optional.ofNullable(vatPercentage);
         } else {
             return Optional.empty();
@@ -77,14 +93,16 @@ public class AdditionalServicePriceContainer implements PriceContainer {
 
     @Override
     public VatStatus getVatStatus() {
-        if(additionalService.vatType() == AdditionalService.VatType.INHERITED) {
+        if (additionalService.vatType() == AdditionalService.VatType.INHERITED) {
             return vatStatus;
         } else {
             return VatStatus.NONE;
         }
     }
 
-    public static AdditionalServicePriceContainer from(BigDecimal customAmount, AdditionalService as, Event event, PromoCodeDiscount discount) {
-        return new AdditionalServicePriceContainer(customAmount, as, discount, event.getCurrency(), event.getVat(), event.getVatStatus());
+    public static AdditionalServicePriceContainer from(
+            BigDecimal customAmount, AdditionalService as, Event event, PromoCodeDiscount discount) {
+        return new AdditionalServicePriceContainer(
+                customAmount, as, discount, event.getCurrency(), event.getVat(), event.getVatStatus());
     }
 }

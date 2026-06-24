@@ -19,7 +19,6 @@ package alfio.model.transaction;
 import alfio.manager.system.ConfigurationLevel;
 import alfio.model.Event;
 import alfio.model.PurchaseContext;
-
 import java.util.Optional;
 
 public class PaymentContext {
@@ -44,7 +43,8 @@ public class PaymentContext {
         this(purchaseContext, configurationLevel, null);
     }
 
-    public PaymentContext(PurchaseContext purchaseContext, ConfigurationLevel configurationLevel, String reservationId) {
+    public PaymentContext(
+            PurchaseContext purchaseContext, ConfigurationLevel configurationLevel, String reservationId) {
         this.purchaseContext = purchaseContext;
         this.configurationLevel = configurationLevel;
         this.reservationId = reservationId;

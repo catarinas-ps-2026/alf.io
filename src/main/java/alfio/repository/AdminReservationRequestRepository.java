@@ -24,29 +24,37 @@ import alfio.util.Json;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @QueryRepository
 public interface AdminReservationRequestRepository {
 
-    default void insertRequest(String requestId, long userId, EventAndOrganizationId event, Stream<AdminReservationModification> requestModifications) {
-        MapSqlParameterSource[] requests = requestModifications.map(res -> new MapSqlParameterSource("userId", userId)
-                .addValue("requestId", requestId)
-                .addValue("requestType", AdminReservationRequest.RequestType.IMPORT.name())
-                .addValue("status", AdminReservationRequest.Status.PENDING.name())
-                .addValue("eventId", event.getId())
-                .addValue("body", Json.toJson(res)))
-            .toArray(MapSqlParameterSource[]::new);
+    default void insertRequest(
+            String requestId,
+            long userId,
+            EventAndOrganizationId event,
+            Stream<AdminReservationModification> requestModifications) {
+        MapSqlParameterSource[] requests = requestModifications
+                .map(res -> new MapSqlParameterSource("userId", userId)
+                        .addValue("requestId", requestId)
+                        .addValue("requestType", AdminReservationRequest.RequestType.IMPORT.name())
+                        .addValue("status", AdminReservationRequest.Status.PENDING.name())
+                        .addValue("eventId", event.getId())
+                        .addValue("body", Json.toJson(res)))
+                .toArray(MapSqlParameterSource[]::new);
 
-        getNamedParameterJdbcTemplate().batchUpdate("insert into admin_reservation_request(user_id, request_id, event_id, request_type, status, body) values(:userId, :requestId, :eventId, :requestType, :status, :body)", requests);
+        getNamedParameterJdbcTemplate()
+                .batchUpdate(
+                        "insert into admin_reservation_request(user_id, request_id, event_id, request_type, status, body) values(:userId, :requestId, :eventId, :requestType, :status, :body)",
+                        requests);
     }
 
-    @Query("select id from admin_reservation_request where status = 'PENDING' order by request_id limit :limit for update skip locked")
+    @Query(
+            "select id from admin_reservation_request where status = 'PENDING' order by request_id limit :limit for update skip locked")
     List<Long> findPendingForUpdate(@Bind("limit") int limit);
 
     @Query("select count(*) from admin_reservation_request where status = 'PENDING'")
@@ -55,16 +63,17 @@ public interface AdminReservationRequestRepository {
     @Query("select * from admin_reservation_request where id = :id")
     AdminReservationRequest fetchCompleteById(@Bind("id") long id);
 
-    //todo, would be better to have more sane parameters, we are leaking the details here
+    // todo, would be better to have more sane parameters, we are leaking the details here
     default void updateStatus(List<MapSqlParameterSource> params) {
-        getNamedParameterJdbcTemplate().batchUpdate("update admin_reservation_request set status = :status, reservation_id = :reservationId, failure_code = :failureCode where id = :id", params.toArray(new MapSqlParameterSource[0]));
+        getNamedParameterJdbcTemplate()
+                .batchUpdate(
+                        "update admin_reservation_request set status = :status, reservation_id = :reservationId, failure_code = :failureCode where id = :id",
+                        params.toArray(new MapSqlParameterSource[0]));
     }
 
-
     @Query("select * from admin_reservation_request_stats where request_id = :requestId and event_id = :eventId")
-    Optional<AdminReservationRequestStats> findStatsByRequestIdAndEventId(@Bind("requestId") String requestId, @Bind("eventId") long eventId);
-
+    Optional<AdminReservationRequestStats> findStatsByRequestIdAndEventId(
+            @Bind("requestId") String requestId, @Bind("eventId") long eventId);
 
     NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
-
 }

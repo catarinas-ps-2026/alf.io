@@ -21,11 +21,10 @@ import alfio.manager.PollManager;
 import alfio.manager.support.response.ValidatedResponse;
 import alfio.model.poll.Poll;
 import alfio.model.poll.PollWithOptions;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v2/public/event/{eventName}/poll")
@@ -38,33 +37,33 @@ public class PollApiController {
     }
 
     @GetMapping("")
-    ResponseEntity<ValidatedResponse<List<Poll>>> getAll(@PathVariable String eventName, @RequestParam("pin") String pin) {
+    ResponseEntity<ValidatedResponse<List<Poll>>> getAll(
+            @PathVariable String eventName, @RequestParam("pin") String pin) {
         var result = pollManager.getActiveForEvent(eventName, pin);
-        if(result.isSuccess()) {
+        if (result.isSuccess()) {
             return ResponseEntity.ok(ValidatedResponse.fromResult(result, "pin"));
         }
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, "pin"));
     }
 
     @GetMapping("/{pollId}")
-    ResponseEntity<ValidatedResponse<PollWithOptions>> getSingle(@PathVariable String eventName, @PathVariable Long pollId, @RequestParam("pin") String pin) {
+    ResponseEntity<ValidatedResponse<PollWithOptions>> getSingle(
+            @PathVariable String eventName, @PathVariable Long pollId, @RequestParam("pin") String pin) {
         var result = pollManager.getSingleActiveForEvent(eventName, pollId, pin);
-        if(result.isSuccess()) {
+        if (result.isSuccess()) {
             return ResponseEntity.ok(ValidatedResponse.fromResult(result, "pin"));
         }
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, "pin"));
     }
 
     @PostMapping("/{pollId}/answer")
-    ResponseEntity<ValidatedResponse<Boolean>> registerAnswer(@PathVariable String eventName,
-                                     @PathVariable Long pollId,
-                                     @RequestBody PollVoteForm form) {
+    ResponseEntity<ValidatedResponse<Boolean>> registerAnswer(
+            @PathVariable String eventName, @PathVariable Long pollId, @RequestBody PollVoteForm form) {
 
         var result = pollManager.registerAnswer(eventName, pollId, form.getOptionId(), form.getPin());
-        if(result.isSuccess()) {
+        if (result.isSuccess()) {
             return ResponseEntity.ok(ValidatedResponse.fromResult(result, "pin"));
         }
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ValidatedResponse.fromResult(result, "pin"));
     }
-
 }

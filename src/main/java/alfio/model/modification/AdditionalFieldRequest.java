@@ -18,15 +18,15 @@ package alfio.model.modification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
 @Getter
-public class AdditionalFieldRequest implements EventModification.WithRestrictedValues, EventModification.WithLinkedCategories {
+public class AdditionalFieldRequest
+        implements EventModification.WithRestrictedValues, EventModification.WithLinkedCategories {
     private final int order;
     private final boolean useDefinedOrder;
     private final String name;
@@ -44,21 +44,21 @@ public class AdditionalFieldRequest implements EventModification.WithRestrictedV
     private final List<Integer> linkedCategoryIds;
     private final boolean displayAtCheckIn;
 
-
     @JsonCreator
-    public AdditionalFieldRequest(@JsonProperty("order") int order,
-                                  @JsonProperty("useDefinedOrder") Boolean useDefinedOrder,
-                                  @JsonProperty("name") String name,
-                                  @JsonProperty("type") String type,
-                                  @JsonProperty("required") boolean required,
-                                  @JsonProperty("readOnly") boolean readOnly,
-                                  @JsonProperty("minLength") Integer minLength,
-                                  @JsonProperty("maxLength") Integer maxLength,
-                                  @JsonProperty("restrictedValues") List<EventModification.RestrictedValue> restrictedValues,
-                                  @JsonProperty("description") Map<String, EventModification.Description> description,
-                                  @JsonProperty("forAdditionalService") EventModification.AdditionalService linkedAdditionalService,
-                                  @JsonProperty("categoryIds") List<Integer> linkedCategoryIds,
-                                  @JsonProperty("displayAtCheckIn") Boolean displayAtCheckIn) {
+    public AdditionalFieldRequest(
+            @JsonProperty("order") int order,
+            @JsonProperty("useDefinedOrder") Boolean useDefinedOrder,
+            @JsonProperty("name") String name,
+            @JsonProperty("type") String type,
+            @JsonProperty("required") boolean required,
+            @JsonProperty("readOnly") boolean readOnly,
+            @JsonProperty("minLength") Integer minLength,
+            @JsonProperty("maxLength") Integer maxLength,
+            @JsonProperty("restrictedValues") List<EventModification.RestrictedValue> restrictedValues,
+            @JsonProperty("description") Map<String, EventModification.Description> description,
+            @JsonProperty("forAdditionalService") EventModification.AdditionalService linkedAdditionalService,
+            @JsonProperty("categoryIds") List<Integer> linkedCategoryIds,
+            @JsonProperty("displayAtCheckIn") Boolean displayAtCheckIn) {
         this.order = order;
         this.useDefinedOrder = Boolean.TRUE.equals(useDefinedOrder);
         this.name = name;
@@ -76,7 +76,11 @@ public class AdditionalFieldRequest implements EventModification.WithRestrictedV
 
     @Override
     public List<String> getRestrictedValuesAsString() {
-        return restrictedValues == null ? Collections.emptyList() : restrictedValues.stream().map(EventModification.RestrictedValue::getValue).collect(Collectors.toList());
+        return restrictedValues == null
+                ? Collections.emptyList()
+                : restrictedValues.stream()
+                        .map(EventModification.RestrictedValue::getValue)
+                        .collect(Collectors.toList());
     }
 
     @Override

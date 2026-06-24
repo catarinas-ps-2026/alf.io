@@ -16,20 +16,19 @@
  */
 package alfio.manager.payment.saferpay;
 
-import com.google.gson.JsonParser;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.google.gson.JsonParser;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 class PaymentPageAssertRequestBuilderTest {
 
     @Test
     void buildRequest() throws IOException {
         String json = new PaymentPageAssertRequestBuilder("token", 1)
-            .addAuthentication("customerId", "requestId")
-            .build();
+                .addAuthentication("customerId", "requestId")
+                .build();
 
         var parsedJson = JsonParser.parseString(json).getAsJsonObject();
         assertEquals("token", parsedJson.get("Token").getAsString());

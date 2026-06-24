@@ -18,18 +18,16 @@ package alfio.model.api.v1.admin;
 
 import alfio.model.Ticket;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
 public record DownloadedAttendeeData(
-    @JsonProperty("firstName") String firstName,
-    @JsonProperty("lastName") String lastName,
-    @JsonProperty("email") String email,
-    @JsonProperty("metadata") Map<String, String> metadata,
-    @JsonProperty("additional") Map<String, List<String>> additional,
-    @JsonProperty("externalReference") String externalReference,
-    @JsonProperty("status") Ticket.TicketStatus status,
-    @JsonProperty("confirmationTimestamp") ZonedDateTime confirmationTimestamp) {
-}
+        @JsonProperty("firstName") String firstName,
+        @JsonProperty("lastName") String lastName,
+        @JsonProperty("email") String email,
+        @JsonProperty("metadata") Map<String, String> metadata,
+        @JsonProperty("additional") Map<String, List<String>> additional,
+        @JsonProperty("externalReference") String externalReference,
+        @JsonProperty("status") Ticket.TicketStatus status,
+        @JsonProperty("confirmationTimestamp") ZonedDateTime confirmationTimestamp) {}

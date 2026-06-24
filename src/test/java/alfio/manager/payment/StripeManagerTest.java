@@ -16,6 +16,12 @@
  */
 package alfio.manager.payment;
 
+import static alfio.model.system.ConfigurationKeys.PLATFORM_MODE_ENABLED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alfio.manager.support.PaymentResult;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.CustomerName;
@@ -29,21 +35,14 @@ import alfio.test.util.TestUtil;
 import com.stripe.exception.AuthenticationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.core.env.Environment;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
-
-import static alfio.model.system.ConfigurationKeys.PLATFORM_MODE_ENABLED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.core.env.Environment;
 
 public class StripeManagerTest {
 
@@ -67,57 +66,87 @@ public class StripeManagerTest {
         customerName = mock(CustomerName.class);
         configurationRepository = mock(ConfigurationRepository.class);
         when(customerName.getFullName()).thenReturn("ciccio");
-        when(configurationManager.getFor(eq(PLATFORM_MODE_ENABLED), any())).thenReturn(new ConfigurationManager.MaybeConfiguration(PLATFORM_MODE_ENABLED));
+        when(configurationManager.getFor(eq(PLATFORM_MODE_ENABLED), any()))
+                .thenReturn(new ConfigurationManager.MaybeConfiguration(PLATFORM_MODE_ENABLED));
     }
 
     @Test
     public void successFlow() {
-        BaseStripeManager baseStripeManager = new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, mock(Environment.class)) {
-            @Override
-            protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams ) {
-                return Optional.of( new Charge() {{
-                    setId(paymentId);
-                    setDescription("description");
-                }});
-            }
-        };
-        StripeCreditCardManager stripeCreditCardManager = new StripeCreditCardManager(transactionRepository, baseStripeManager, TestUtil.clockProvider());
-        PaymentSpecification spec = new PaymentSpecification( "", new StripeCreditCardToken(""), null, 100, event, "", customerName );
+        BaseStripeManager baseStripeManager =
+                new BaseStripeManager(
+                        configurationManager, configurationRepository, ticketRepository, mock(Environment.class)) {
+                    @Override
+                    protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams) {
+                        return Optional.of(new Charge() {
+                            {
+                                setId(paymentId);
+                                setDescription("description");
+                            }
+                        });
+                    }
+                };
+        StripeCreditCardManager stripeCreditCardManager =
+                new StripeCreditCardManager(transactionRepository, baseStripeManager, TestUtil.clockProvider());
+        PaymentSpecification spec =
+                new PaymentSpecification("", new StripeCreditCardToken(""), null, 100, event, "", customerName);
         PaymentResult result = stripeCreditCardManager.doPayment(spec);
         assertEquals(result, PaymentResult.successful(paymentId));
     }
 
     @Test
     void stripeError() {
-        BaseStripeManager baseStripeManager = new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, mock(Environment.class)) {
-            @Override
-            protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams ) throws StripeException {
-                throw new AuthenticationException("401", "42", "401", 401);
-            }
-        };
-        StripeCreditCardManager stripeCreditCardManager = new StripeCreditCardManager(transactionRepository, baseStripeManager, TestUtil.clockProvider());
-        PaymentSpecification spec = new PaymentSpecification( "", new StripeCreditCardToken(""), null, 100, event, "", customerName );
+        BaseStripeManager baseStripeManager =
+                new BaseStripeManager(
+                        configurationManager, configurationRepository, ticketRepository, mock(Environment.class)) {
+                    @Override
+                    protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams)
+                            throws StripeException {
+                        throw new AuthenticationException("401", "42", "401", 401);
+                    }
+                };
+        StripeCreditCardManager stripeCreditCardManager =
+                new StripeCreditCardManager(transactionRepository, baseStripeManager, TestUtil.clockProvider());
+        PaymentSpecification spec =
+                new PaymentSpecification("", new StripeCreditCardToken(""), null, 100, event, "", customerName);
         PaymentResult result = stripeCreditCardManager.doPayment(spec);
         assertEquals(result, PaymentResult.failed("error.STEP2_STRIPE_abort"));
     }
 
     @Test
     public void internalError() {
-        BaseStripeManager baseStripeManager = new BaseStripeManager(configurationManager, configurationRepository, ticketRepository, mock(Environment.class)) {
-            @Override
-            protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams) {
-                return Optional.of( new Charge() {{
-                    setId(paymentId);
-                    setDescription("description");
-                }});
-            }
-        };
-        StripeCreditCardManager stripeCreditCardManager = new StripeCreditCardManager(transactionRepository, baseStripeManager, TestUtil.clockProvider());
+        BaseStripeManager baseStripeManager =
+                new BaseStripeManager(
+                        configurationManager, configurationRepository, ticketRepository, mock(Environment.class)) {
+                    @Override
+                    protected Optional<Charge> charge(PaymentSpecification spec, Map<String, Object> chargeParams) {
+                        return Optional.of(new Charge() {
+                            {
+                                setId(paymentId);
+                                setDescription("description");
+                            }
+                        });
+                    }
+                };
+        StripeCreditCardManager stripeCreditCardManager =
+                new StripeCreditCardManager(transactionRepository, baseStripeManager, TestUtil.clockProvider());
         when(event.getCurrency()).thenReturn("CHF");
-        when(transactionRepository.insert(anyString(), isNull(), anyString(), any(ZonedDateTime.class), anyInt(), eq("CHF"), anyString(), anyString(), anyLong(), anyLong(), eq(Transaction.Status.COMPLETE), anyMap()))
-            .thenThrow(new NullPointerException());
+        when(transactionRepository.insert(
+                        anyString(),
+                        isNull(),
+                        anyString(),
+                        any(ZonedDateTime.class),
+                        anyInt(),
+                        eq("CHF"),
+                        anyString(),
+                        anyString(),
+                        anyLong(),
+                        anyLong(),
+                        eq(Transaction.Status.COMPLETE),
+                        anyMap()))
+                .thenThrow(new NullPointerException());
 
-        PaymentSpecification spec = new PaymentSpecification( "", new StripeCreditCardToken(""), null, 100, event, "", customerName );
+        PaymentSpecification spec =
+                new PaymentSpecification("", new StripeCreditCardToken(""), null, 100, event, "", customerName);
         Assertions.assertThrows(IllegalStateException.class, () -> stripeCreditCardManager.doPayment(spec));
     }
 }

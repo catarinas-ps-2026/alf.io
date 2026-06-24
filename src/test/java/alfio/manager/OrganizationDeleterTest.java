@@ -16,6 +16,10 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
 import alfio.model.user.Organization;
 import alfio.repository.EventDeleterRepository;
 import alfio.repository.EventRepository;
@@ -23,33 +27,33 @@ import alfio.repository.OrganizationDeleterRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.join.UserOrganizationRepository;
 import alfio.util.RequestUtils;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
-
 public class OrganizationDeleterTest {
 
     @Mock
     private UserOrganizationRepository userOrganizationRepository;
+
     @Mock
     private OrganizationRepository organizationRepository;
+
     @Mock
     private EventRepository eventRepository;
+
     @Mock
     private EventDeleterRepository eventDeleterRepository;
+
     @Mock
     private OrganizationDeleterRepository organizationDeleterRepository;
+
     @Mock
     private Principal principal;
 
@@ -63,20 +67,26 @@ public class OrganizationDeleterTest {
                 organizationRepository,
                 eventRepository,
                 eventDeleterRepository,
-                organizationDeleterRepository
-        );
+                organizationDeleterRepository);
     }
 
     @Test
     public void testDeleteOrganizationNotAdmin() {
         try (MockedStatic<RequestUtils> requestUtilsMockedStatic = mockStatic(RequestUtils.class)) {
             requestUtilsMockedStatic.when(() -> RequestUtils.isAdmin(principal)).thenReturn(false);
-            requestUtilsMockedStatic.when(() -> RequestUtils.isSystemApiKey(principal)).thenReturn(false);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isSystemApiKey(principal))
+                    .thenReturn(false);
 
             boolean result = deleter.deleteOrganization(100, principal);
 
             assertFalse(result);
-            verifyNoInteractions(organizationRepository, eventRepository, eventDeleterRepository, organizationDeleterRepository, userOrganizationRepository);
+            verifyNoInteractions(
+                    organizationRepository,
+                    eventRepository,
+                    eventDeleterRepository,
+                    organizationDeleterRepository,
+                    userOrganizationRepository);
         }
     }
 
@@ -84,7 +94,9 @@ public class OrganizationDeleterTest {
     public void testDeleteOrganizationSuccessAdmin() {
         try (MockedStatic<RequestUtils> requestUtilsMockedStatic = mockStatic(RequestUtils.class)) {
             requestUtilsMockedStatic.when(() -> RequestUtils.isAdmin(principal)).thenReturn(true);
-            requestUtilsMockedStatic.when(() -> RequestUtils.isSystemApiKey(principal)).thenReturn(false);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isSystemApiKey(principal))
+                    .thenReturn(false);
             when(principal.getName()).thenReturn("admin-user");
 
             Organization org = mock(Organization.class);
@@ -112,7 +124,9 @@ public class OrganizationDeleterTest {
     public void testDeleteOrganizationSuccessSystemApiKey() {
         try (MockedStatic<RequestUtils> requestUtilsMockedStatic = mockStatic(RequestUtils.class)) {
             requestUtilsMockedStatic.when(() -> RequestUtils.isAdmin(principal)).thenReturn(false);
-            requestUtilsMockedStatic.when(() -> RequestUtils.isSystemApiKey(principal)).thenReturn(true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isSystemApiKey(principal))
+                    .thenReturn(true);
             when(principal.getName()).thenReturn("system-api-key");
 
             Organization org = mock(Organization.class);

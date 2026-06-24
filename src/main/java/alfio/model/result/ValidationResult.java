@@ -16,19 +16,19 @@
  */
 package alfio.model.result;
 
-import lombok.Getter;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import lombok.Getter;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
 @Getter
 public final class ValidationResult {
 
-    private static final ValidationResult SUCCESS = new ValidationResult(Collections.emptyList(), Collections.emptyList());
+    private static final ValidationResult SUCCESS =
+            new ValidationResult(Collections.emptyList(), Collections.emptyList());
 
     private final List<ErrorDescriptor> errorDescriptors;
     private final int errorCount;
@@ -65,14 +65,14 @@ public final class ValidationResult {
     }
 
     public ValidationResult ifSuccess(Operation operation) {
-        if(errorCount == 0) {
+        if (errorCount == 0) {
             operation.doIt();
         }
         return this;
     }
 
     public ValidationResult or(ValidationResult second) {
-        if(!isSuccess()) {
+        if (!isSuccess()) {
             List<ErrorDescriptor> joined = new ArrayList<>();
             joined.addAll(errorDescriptors);
             joined.addAll(second.getErrorDescriptors());
@@ -131,12 +131,11 @@ public final class ValidationResult {
 
         @Override
         public String toString() {
-            return "ValidationResult.ErrorDescriptor(" +
-                "fieldName=" + fieldName +
-                ", message=" + message +
-                ", code=" + code +
-                ", arguments=" + Arrays.toString(arguments) +
-                ')';
+            return "ValidationResult.ErrorDescriptor(" + "fieldName="
+                    + fieldName + ", message="
+                    + message + ", code="
+                    + code + ", arguments="
+                    + Arrays.toString(arguments) + ')';
         }
 
         public static ErrorDescriptor fromFieldError(FieldError fieldError) {
@@ -144,7 +143,8 @@ public final class ValidationResult {
         }
 
         public static ErrorDescriptor fromObjectError(ObjectError objectError) {
-            return new ErrorDescriptor("", objectError.getObjectName(), objectError.getCode(), objectError.getArguments());
+            return new ErrorDescriptor(
+                    "", objectError.getObjectName(), objectError.getCode(), objectError.getArguments());
         }
     }
 
@@ -153,4 +153,3 @@ public final class ValidationResult {
         void doIt();
     }
 }
-

@@ -17,7 +17,6 @@
 package alfio.model;
 
 import alfio.model.transaction.PaymentProxy;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -29,12 +28,17 @@ public interface PurchaseContext extends Configurable, TimeZoneInfo, LocalizedCo
     Map<String, String> getTitle();
 
     BigDecimal getVat();
+
     PriceContainer.VatStatus getVatStatus();
+
     String getCurrency();
 
     List<PaymentProxy> getAllowedPaymentProxies();
+
     String getPrivacyPolicyLinkOrNull();
+
     String getPrivacyPolicyUrl();
+
     String getTermsAndConditionsUrl();
 
     //
@@ -42,23 +46,23 @@ public interface PurchaseContext extends Configurable, TimeZoneInfo, LocalizedCo
 
     //
     PurchaseContextType getType();
+
     String getPublicIdentifier();
 
     String getFileBlobId();
 
     boolean isFreeOfCharge();
 
-
     String getDisplayName();
 
-    //FIXME: check every USE
+    // FIXME: check every USE
     Optional<Event> event();
 
     ZonedDateTime getBegin();
 
-
     enum PurchaseContextType {
-        subscription("subscription"), event("event");
+        subscription("subscription"),
+        event("event");
 
         private final String urlComponent;
 

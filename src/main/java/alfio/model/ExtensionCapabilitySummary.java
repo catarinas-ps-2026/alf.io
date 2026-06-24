@@ -22,10 +22,9 @@ import alfio.model.support.JSONData;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 
 @Getter
 public class ExtensionCapabilitySummary {
@@ -33,8 +32,9 @@ public class ExtensionCapabilitySummary {
     private final ExtensionCapability capability;
     private final List<ExtensionCapabilityDetails> details;
 
-    public ExtensionCapabilitySummary(@Column("capability") @EnumTypeAsString ExtensionCapability capability,
-                                      @Column("capability_detail") @JSONData List<ExtensionCapabilityDetails> details) {
+    public ExtensionCapabilitySummary(
+            @Column("capability") @EnumTypeAsString ExtensionCapability capability,
+            @Column("capability_detail") @JSONData List<ExtensionCapabilityDetails> details) {
         this.capability = capability;
         this.details = details;
     }
@@ -59,9 +59,10 @@ public class ExtensionCapabilitySummary {
         private final String selector;
 
         @JsonCreator
-        public ExtensionCapabilityDetails(@JsonProperty("label") String label,
-                                          @JsonProperty("description") String description,
-                                          @JsonProperty("selector") String selector) {
+        public ExtensionCapabilityDetails(
+                @JsonProperty("label") String label,
+                @JsonProperty("description") String description,
+                @JsonProperty("selector") String selector) {
             this.label = label;
             this.description = description;
             this.selector = selector;
@@ -73,8 +74,8 @@ public class ExtensionCapabilitySummary {
             if (o == null || getClass() != o.getClass()) return false;
             ExtensionCapabilityDetails that = (ExtensionCapabilityDetails) o;
             return label.equals(that.label)
-                && Objects.equals(description, that.description)
-                && Objects.equals(selector, that.selector);
+                    && Objects.equals(description, that.description)
+                    && Objects.equals(selector, that.selector);
         }
 
         @Override

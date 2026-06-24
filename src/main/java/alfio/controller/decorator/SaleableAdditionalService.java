@@ -16,30 +16,30 @@
  */
 package alfio.controller.decorator;
 
+import static alfio.util.MonetaryUtil.formatPercentage;
+
 import alfio.model.AdditionalService;
 import alfio.model.Event;
 import alfio.model.PriceContainer;
 import alfio.model.PromoCodeDiscount;
 import alfio.util.ClockProvider;
-import lombok.experimental.Delegate;
-
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Optional;
-
-import static alfio.util.MonetaryUtil.formatPercentage;
+import lombok.experimental.Delegate;
 
 public class SaleableAdditionalService implements PriceContainer {
     private final Event event;
+
     @Delegate(excludes = {Exclusions.class, PriceContainer.class})
     private final AdditionalService additionalService;
+
     private final PromoCodeDiscount promoCodeDiscount;
     private final Clock clock;
 
-    public SaleableAdditionalService(Event event,
-                                     AdditionalService additionalService,
-                                     PromoCodeDiscount promoCodeDiscount) {
+    public SaleableAdditionalService(
+            Event event, AdditionalService additionalService, PromoCodeDiscount promoCodeDiscount) {
         this.event = event;
         this.additionalService = additionalService;
         this.promoCodeDiscount = promoCodeDiscount;
@@ -78,7 +78,8 @@ public class SaleableAdditionalService implements PriceContainer {
     @Override
     public Optional<PromoCodeDiscount> getDiscount() {
         return Optional.ofNullable(promoCodeDiscount)
-            .filter(x -> x.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT && type() != AdditionalService.AdditionalServiceType.DONATION);
+                .filter(x -> x.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT
+                        && type() != AdditionalService.AdditionalServiceType.DONATION);
     }
 
     @Override
@@ -88,8 +89,8 @@ public class SaleableAdditionalService implements PriceContainer {
 
     @Override
     public Optional<BigDecimal> getOptionalVatPercentage() {
-        if(getVatStatus() != VatStatus.NONE) {
-            return Optional.ofNullable(event.getVat()); //FIXME implement VAT override
+        if (getVatStatus() != VatStatus.NONE) {
+            return Optional.ofNullable(event.getVat()); // FIXME implement VAT override
         }
         return Optional.of(BigDecimal.ZERO);
     }
@@ -103,12 +104,16 @@ public class SaleableAdditionalService implements PriceContainer {
         if (AdditionalService.SupplementPolicy.isMandatoryPercentage(supplementPolicy())) {
             return formatPercentage(srcPriceCts());
         }
-        return SaleableTicketCategory.getFinalPriceToDisplay(getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus()).toPlainString();
+        return SaleableTicketCategory.getFinalPriceToDisplay(
+                        getFinalPrice().add(getAppliedDiscount()), getVAT(), getVatStatus())
+                .toPlainString();
     }
 
     public boolean getSupportsDiscount() {
-        return type() != AdditionalService.AdditionalServiceType.DONATION && fixPrice()
-            && promoCodeDiscount != null && promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT;
+        return type() != AdditionalService.AdditionalServiceType.DONATION
+                && fixPrice()
+                && promoCodeDiscount != null
+                && promoCodeDiscount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT;
     }
 
     public String getDiscountedPrice() {
@@ -125,7 +130,7 @@ public class SaleableAdditionalService implements PriceContainer {
 
     public BigDecimal getVatPercentage() {
         AdditionalService.VatType vatType = vatType();
-        if(vatType == AdditionalService.VatType.INHERITED) {
+        if (vatType == AdditionalService.VatType.INHERITED) {
             return event.getVat();
         }
         return Optional.ofNullable(additionalService.vat()).orElse(BigDecimal.ZERO);
@@ -134,7 +139,6 @@ public class SaleableAdditionalService implements PriceContainer {
     public boolean getVatApplies() {
         return vatType() != AdditionalService.VatType.NONE;
     }
-
 
     public String getCurrency() {
         return event.getCurrency();
@@ -147,5 +151,4 @@ public class SaleableAdditionalService implements PriceContainer {
     private interface Exclusions {
         BigDecimal getVat();
     }
-
 }

@@ -18,11 +18,10 @@ package alfio.model.modification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import java.util.Optional;
 
 @Getter
 public class GroupMemberModification {
@@ -31,11 +30,13 @@ public class GroupMemberModification {
     private final String description;
 
     @JsonCreator
-    public GroupMemberModification(@JsonProperty("id") Integer id,
-                                   @JsonProperty("value") String value,
-                                   @JsonProperty("description") String description) {
+    public GroupMemberModification(
+            @JsonProperty("id") Integer id,
+            @JsonProperty("value") String value,
+            @JsonProperty("description") String description) {
         this.id = id;
-        this.value = Optional.ofNullable(value).map(s -> s.strip().toLowerCase()).orElse(null);
+        this.value =
+                Optional.ofNullable(value).map(s -> s.strip().toLowerCase()).orElse(null);
         this.description = description;
     }
 
@@ -49,17 +50,11 @@ public class GroupMemberModification {
 
         GroupMemberModification that = (GroupMemberModification) o;
 
-        return new EqualsBuilder()
-            .append(id, that.id)
-            .append(value, that.value)
-            .isEquals();
+        return new EqualsBuilder().append(id, that.id).append(value, that.value).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-            .append(id)
-            .append(value)
-            .toHashCode();
+        return new HashCodeBuilder().append(id).append(value).toHashCode();
     }
 }

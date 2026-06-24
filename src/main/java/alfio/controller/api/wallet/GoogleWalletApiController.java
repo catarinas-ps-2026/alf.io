@@ -19,15 +19,14 @@ package alfio.controller.api.wallet;
 import alfio.manager.wallet.GoogleWalletManager;
 import alfio.model.EventAndOrganizationId;
 import alfio.model.Ticket;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/wallet/event/{eventName}/v1")
@@ -40,16 +39,17 @@ public class GoogleWalletApiController {
     }
 
     @GetMapping("/version/passes/{uuid}")
-    public void walletPass(@PathVariable String eventName,
-                                 @PathVariable("uuid") String serialNumber,
-                                 HttpServletResponse response) throws IOException {
-        Optional<Pair<EventAndOrganizationId, Ticket>> validationResult = walletManager.validateTicket(eventName, serialNumber);
+    public void walletPass(
+            @PathVariable String eventName, @PathVariable("uuid") String serialNumber, HttpServletResponse response)
+            throws IOException {
+        Optional<Pair<EventAndOrganizationId, Ticket>> validationResult =
+                walletManager.validateTicket(eventName, serialNumber);
         if (validationResult.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         } else {
-            String walletUrl = walletManager.createAddToWalletUrl(validationResult.get().getRight(), validationResult.get().getLeft());
+            String walletUrl = walletManager.createAddToWalletUrl(
+                    validationResult.get().getRight(), validationResult.get().getLeft());
             response.sendRedirect(walletUrl);
         }
     }
-
 }

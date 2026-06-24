@@ -48,24 +48,25 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public OpenIdUserSynchronizer openIdUserSynchronizer(PlatformTransactionManager transactionManager,
-                                                         PasswordEncoder passwordEncoder,
-                                                         UserManager userManager,
-                                                         UserRepository userRepository,
-                                                         UserOrganizationRepository userOrganizationRepository,
-                                                         NamedParameterJdbcTemplate jdbcTemplate,
-                                                         AuthorityRepository authorityRepository,
-                                                         OrganizationRepository organizationRepository,
-                                                         ExtensionManager extensionManager) {
-        return new OpenIdUserSynchronizer(transactionManager,
-            passwordEncoder,
-            userManager,
-            userRepository,
-            userOrganizationRepository,
-            jdbcTemplate,
-            authorityRepository,
-            organizationRepository,
-            extensionManager);
+    public OpenIdUserSynchronizer openIdUserSynchronizer(
+            PlatformTransactionManager transactionManager,
+            PasswordEncoder passwordEncoder,
+            UserManager userManager,
+            UserRepository userRepository,
+            UserOrganizationRepository userOrganizationRepository,
+            NamedParameterJdbcTemplate jdbcTemplate,
+            AuthorityRepository authorityRepository,
+            OrganizationRepository organizationRepository,
+            ExtensionManager extensionManager) {
+        return new OpenIdUserSynchronizer(
+                transactionManager,
+                passwordEncoder,
+                userManager,
+                userRepository,
+                userOrganizationRepository,
+                jdbcTemplate,
+                authorityRepository,
+                organizationRepository,
+                extensionManager);
     }
-
 }

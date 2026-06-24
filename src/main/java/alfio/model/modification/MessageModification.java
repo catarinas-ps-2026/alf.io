@@ -18,10 +18,9 @@ package alfio.model.modification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
 import java.util.Locale;
 import java.util.Optional;
+import lombok.Data;
 
 @Data
 public class MessageModification {
@@ -34,12 +33,13 @@ public class MessageModification {
     private final boolean attachTicket;
 
     @JsonCreator
-    public MessageModification(@JsonProperty("locale") Locale locale,
-                               @JsonProperty("subject") String subject,
-                               @JsonProperty("text") String text,
-                               @JsonProperty("subjectExample") String subjectExample,
-                               @JsonProperty("textExample") String textExample,
-                               @JsonProperty("attachTicket") Boolean attachTicket) {
+    public MessageModification(
+            @JsonProperty("locale") Locale locale,
+            @JsonProperty("subject") String subject,
+            @JsonProperty("text") String text,
+            @JsonProperty("subjectExample") String subjectExample,
+            @JsonProperty("textExample") String textExample,
+            @JsonProperty("attachTicket") Boolean attachTicket) {
         this.locale = locale;
         this.subject = subject;
         this.text = text;
@@ -48,7 +48,8 @@ public class MessageModification {
         this.attachTicket = Optional.ofNullable(attachTicket).orElse(false);
     }
 
-    public static MessageModification preview(MessageModification original, String subject, String text, boolean attachTicket) {
+    public static MessageModification preview(
+            MessageModification original, String subject, String text, boolean attachTicket) {
         return new MessageModification(original.locale, original.subject, original.text, subject, text, attachTicket);
     }
 }

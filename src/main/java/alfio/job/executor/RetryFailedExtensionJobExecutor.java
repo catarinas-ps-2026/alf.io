@@ -20,12 +20,11 @@ import alfio.extension.ExtensionService;
 import alfio.extension.ScriptingExecutionService;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.model.system.AdminJobSchedule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RetryFailedExtensionJobExecutor implements AdminJobExecutor {
     private static final Logger log = LoggerFactory.getLogger(RetryFailedExtensionJobExecutor.class);

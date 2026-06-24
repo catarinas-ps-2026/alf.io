@@ -14,16 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.extension;
+
+import static java.util.Objects.requireNonNullElse;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
-
-import static java.util.Objects.requireNonNullElse;
+import lombok.Getter;
 
 @Getter
 public class ExtensionMetadata {
@@ -37,14 +35,15 @@ public class ExtensionMetadata {
     private final List<CapabilityDetail> capabilityDetails;
 
     @JsonCreator
-    public ExtensionMetadata(@JsonProperty("id") String id,
-                             @JsonProperty("displayName") String displayName,
-                             @JsonProperty("version") Integer version,
-                             @JsonProperty("async") boolean async,
-                             @JsonProperty("events") List<String> events,
-                             @JsonProperty("parameters") Parameters parameters,
-                             @JsonProperty("capabilities") List<String> capabilities,
-                             @JsonProperty("capabilityDetails") List<CapabilityDetail> capabilityDetails) {
+    public ExtensionMetadata(
+            @JsonProperty("id") String id,
+            @JsonProperty("displayName") String displayName,
+            @JsonProperty("version") Integer version,
+            @JsonProperty("async") boolean async,
+            @JsonProperty("events") List<String> events,
+            @JsonProperty("parameters") Parameters parameters,
+            @JsonProperty("capabilities") List<String> capabilities,
+            @JsonProperty("capabilityDetails") List<CapabilityDetail> capabilityDetails) {
         this.id = id;
         this.displayName = displayName;
         this.version = version;
@@ -61,13 +60,13 @@ public class ExtensionMetadata {
         private final List<String> configurationLevels;
 
         @JsonCreator
-        public Parameters(@JsonProperty("fields") List<Field> fields,
-                          @JsonProperty("configurationLevels") List<String> configurationLevels) {
+        public Parameters(
+                @JsonProperty("fields") List<Field> fields,
+                @JsonProperty("configurationLevels") List<String> configurationLevels) {
             this.fields = fields;
             this.configurationLevels = configurationLevels;
         }
     }
-
 
     @Getter
     public static class Field {
@@ -77,10 +76,11 @@ public class ExtensionMetadata {
         private final boolean required;
 
         @JsonCreator
-        public Field(@JsonProperty("name") String name,
-                     @JsonProperty("description") String description,
-                     @JsonProperty("type") String type,
-                     @JsonProperty("required") boolean required) {
+        public Field(
+                @JsonProperty("name") String name,
+                @JsonProperty("description") String description,
+                @JsonProperty("type") String type,
+                @JsonProperty("required") boolean required) {
             this.name = name;
             this.description = description;
             this.type = type;
@@ -96,10 +96,11 @@ public class ExtensionMetadata {
         private final String selector;
 
         @JsonCreator
-        public CapabilityDetail(@JsonProperty("key") String key,
-                                @JsonProperty("label") String label,
-                                @JsonProperty("description") String description,
-                                @JsonProperty("selector") String selector) {
+        public CapabilityDetail(
+                @JsonProperty("key") String key,
+                @JsonProperty("label") String label,
+                @JsonProperty("description") String description,
+                @JsonProperty("selector") String selector) {
             this.key = key;
             this.label = label;
             this.description = description;

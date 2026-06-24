@@ -23,10 +23,10 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 
 @Configuration(proxyBeanMethods = false)
-@Profile("!"+Initializer.PROFILE_SPRING_BOOT)
+@Profile("!" + Initializer.PROFILE_SPRING_BOOT)
 public class ApplicationPropertiesConfiguration {
     @Bean
-    @Profile("!"+Initializer.PROFILE_SPRING_BOOT)
+    @Profile("!" + Initializer.PROFILE_SPRING_BOOT)
     public static PropertySourcesPlaceholderConfigurer propertyPlaceholder() {
         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setLocation(new ClassPathResource("application.properties"));

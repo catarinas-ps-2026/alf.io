@@ -16,22 +16,21 @@
  */
 package alfio.model.transaction;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Arrays;
 import org.jspecify.annotations.Nullable;
 
 @JsonDeserialize(using = PaymentMethodDeserializer.class)
 public interface PaymentMethod {
     public String name();
+
     public String getPaymentMethodId();
 
     @Nullable
     public static PaymentMethod safeParse(String asString) {
-        return Arrays
-            .stream(StaticPaymentMethods.values())
-            .filter(v -> v.name().equals(asString))
-            .findFirst()
-            .orElse(null);
+        return Arrays.stream(StaticPaymentMethods.values())
+                .filter(v -> v.name().equals(asString))
+                .findFirst()
+                .orElse(null);
     }
 }

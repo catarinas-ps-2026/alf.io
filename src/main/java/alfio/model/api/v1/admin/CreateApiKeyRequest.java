@@ -16,11 +16,11 @@
  */
 package alfio.model.api.v1.admin;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import static java.util.Objects.requireNonNullElse;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CreateApiKeyRequest {
     public static final String DEFAULT_DESCRIPTION = "Auto-generated API Key";
@@ -28,8 +28,8 @@ public class CreateApiKeyRequest {
     private final String description;
 
     @JsonCreator
-    public CreateApiKeyRequest(@JsonProperty("type") String apiKeyType,
-                               @JsonProperty("description") String description) {
+    public CreateApiKeyRequest(
+            @JsonProperty("type") String apiKeyType, @JsonProperty("description") String description) {
         this.apiKeyType = apiKeyType;
         this.description = description;
     }

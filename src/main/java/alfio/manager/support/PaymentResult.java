@@ -17,20 +17,27 @@
 package alfio.manager.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.Objects;
 import java.util.Optional;
 
-
 public final class PaymentResult {
 
-    public enum Type { SUCCESSFUL, INITIALIZED, PENDING, REDIRECT, FAILED }
+    public enum Type {
+        SUCCESSFUL,
+        INITIALIZED,
+        PENDING,
+        REDIRECT,
+        FAILED
+    }
 
     private final Type type;
+
     @JsonIgnore
     private Optional<String> gatewayId = Optional.empty();
+
     @JsonIgnore
     private Optional<String> errorCode = Optional.empty();
+
     private String redirectUrl;
 
     private PaymentResult(Type type) {
@@ -41,7 +48,9 @@ public final class PaymentResult {
         return type == Type.SUCCESSFUL;
     }
 
-    public boolean isFailed() { return type == Type.FAILED; }
+    public boolean isFailed() {
+        return type == Type.FAILED;
+    }
 
     public boolean isRedirect() {
         return type == Type.REDIRECT;
@@ -55,7 +64,7 @@ public final class PaymentResult {
         return errorCode;
     }
 
-    private PaymentResult setErrorCode( String errorCode ) {
+    private PaymentResult setErrorCode(String errorCode) {
         this.errorCode = Optional.ofNullable(errorCode);
         return this;
     }
@@ -77,22 +86,23 @@ public final class PaymentResult {
         return redirectUrl;
     }
 
-
     @Override
     public String toString() {
-        return "PaymentResult(" +
-            "type=" + type +
-            ", gatewayId=" + gatewayId +
-            ", errorCode=" + errorCode +
-            ", redirectUrl=" + redirectUrl +
-            ')';
+        return "PaymentResult(" + "type="
+                + type + ", gatewayId="
+                + gatewayId + ", errorCode="
+                + errorCode + ", redirectUrl="
+                + redirectUrl + ')';
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         PaymentResult that = (PaymentResult) o;
-        return type == that.type && Objects.equals(gatewayId, that.gatewayId) && Objects.equals(errorCode, that.errorCode) && Objects.equals(redirectUrl, that.redirectUrl);
+        return type == that.type
+                && Objects.equals(gatewayId, that.gatewayId)
+                && Objects.equals(errorCode, that.errorCode)
+                && Objects.equals(redirectUrl, that.redirectUrl);
     }
 
     @Override
@@ -100,28 +110,28 @@ public final class PaymentResult {
         return Objects.hash(type, gatewayId, errorCode, redirectUrl);
     }
 
-    private PaymentResult setRedirectUrl( String redirectUrl ) {
+    private PaymentResult setRedirectUrl(String redirectUrl) {
         this.redirectUrl = redirectUrl;
         return this;
     }
 
-    public static PaymentResult successful( String gatewayId) {
-        return new PaymentResult(Type.SUCCESSFUL).setGatewayId( gatewayId );
+    public static PaymentResult successful(String gatewayId) {
+        return new PaymentResult(Type.SUCCESSFUL).setGatewayId(gatewayId);
     }
 
     public static PaymentResult redirect(String redirectUrl) {
-        return new PaymentResult(Type.REDIRECT).setRedirectUrl( redirectUrl );
+        return new PaymentResult(Type.REDIRECT).setRedirectUrl(redirectUrl);
     }
 
     public static PaymentResult pending(String gatewayId) {
-        return new PaymentResult(Type.PENDING).setGatewayId( gatewayId );
+        return new PaymentResult(Type.PENDING).setGatewayId(gatewayId);
     }
 
     public static PaymentResult initialized(String gatewayId) {
-        return new PaymentResult(Type.INITIALIZED).setGatewayId( gatewayId );
+        return new PaymentResult(Type.INITIALIZED).setGatewayId(gatewayId);
     }
 
-    public static PaymentResult failed( String errorCode) {
-        return new PaymentResult(Type.FAILED).setErrorCode( errorCode );
+    public static PaymentResult failed(String errorCode) {
+        return new PaymentResult(Type.FAILED).setErrorCode(errorCode);
     }
 }

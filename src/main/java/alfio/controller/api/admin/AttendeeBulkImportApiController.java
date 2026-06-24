@@ -21,10 +21,8 @@ import alfio.manager.AdminReservationRequestManager;
 import alfio.model.AdminReservationRequestStats;
 import alfio.model.modification.AdminReservationModification;
 import alfio.model.result.Result;
-import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/admin/api/event/{eventName}/attendees/import")
 @RestController
@@ -39,21 +37,20 @@ public class AttendeeBulkImportApiController {
     }
 
     @PostMapping("")
-    public Result<String> createReservations(@PathVariable String eventName,
-                                             @RequestBody AdminReservationModification body,
-                                             @RequestParam(name="oneReservationPerAttendee", defaultValue = "false", required = false) boolean oneReservationPerAttendee,
-                                             Principal principal) {
+    public Result<String> createReservations(
+            @PathVariable String eventName,
+            @RequestBody AdminReservationModification body,
+            @RequestParam(name = "oneReservationPerAttendee", defaultValue = "false", required = false)
+                    boolean oneReservationPerAttendee,
+            Principal principal) {
         accessService.checkEventOwnership(principal, eventName);
         return requestManager.scheduleReservations(eventName, body, !oneReservationPerAttendee, principal.getName());
     }
 
     @GetMapping("/{requestId}/status")
-    public Result<AdminReservationRequestStats> getRequestsStatus(@PathVariable String eventName,
-                                                                  @PathVariable String requestId,
-                                                                  Principal principal) {
+    public Result<AdminReservationRequestStats> getRequestsStatus(
+            @PathVariable String eventName, @PathVariable String requestId, Principal principal) {
         accessService.checkEventOwnership(principal, eventName);
         return requestManager.getRequestStatus(requestId, eventName, principal.getName());
     }
-
 }
-

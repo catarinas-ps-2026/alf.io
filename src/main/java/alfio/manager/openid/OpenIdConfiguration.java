@@ -16,54 +16,53 @@
  */
 package alfio.manager.openid;
 
+import static java.util.Objects.requireNonNullElse;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
+
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.system.ConfigurationKeys;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Objects.requireNonNullElse;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
-
 public record OpenIdConfiguration(
-    String domain,
-    String clientId,
-    String clientSecret,
-    String callbackURI,
-    String authenticationUrl,
-    String tokenEndpoint,
-    String givenNameClaim,
-    String familyNameClaim,
-    String contentType,
-    String rolesParameter,
-    String alfioGroupsParameter,
-    String logoutUrl,
-    String logoutRedirectUrl,
-    String jwksPath
-) {
+        String domain,
+        String clientId,
+        String clientSecret,
+        String callbackURI,
+        String authenticationUrl,
+        String tokenEndpoint,
+        String givenNameClaim,
+        String familyNameClaim,
+        String contentType,
+        String rolesParameter,
+        String alfioGroupsParameter,
+        String logoutUrl,
+        String logoutRedirectUrl,
+        String jwksPath) {
     @JsonCreator
-    public OpenIdConfiguration(@JsonProperty("domain") String domain,
-                               @JsonProperty("clientId") String clientId,
-                               @JsonProperty("clientSecret") String clientSecret,
-                               @JsonProperty("callbackURI") String callbackURI,
-                               @JsonProperty("authenticationUrl") String authenticationUrl,
-                               @JsonProperty("tokenEndpoint") String tokenEndpoint,
-                               @JsonProperty("givenNameClaim") String givenNameClaim,
-                               @JsonProperty("familyNameClaim") String familyNameClaim,
-                               @JsonProperty("contentType") String contentType,
-                               @JsonProperty("rolesParameter") String rolesParameter,
-                               @JsonProperty("alfioGroupsParameter") String alfioGroupsParameter,
-                               @JsonProperty("logoutUrl") String logoutUrl,
-                               @JsonProperty("logoutRedirectUrl") String logoutRedirectUrl,
-                               @JsonProperty("jwksPath") String jwksPath) {
+    public OpenIdConfiguration(
+            @JsonProperty("domain") String domain,
+            @JsonProperty("clientId") String clientId,
+            @JsonProperty("clientSecret") String clientSecret,
+            @JsonProperty("callbackURI") String callbackURI,
+            @JsonProperty("authenticationUrl") String authenticationUrl,
+            @JsonProperty("tokenEndpoint") String tokenEndpoint,
+            @JsonProperty("givenNameClaim") String givenNameClaim,
+            @JsonProperty("familyNameClaim") String familyNameClaim,
+            @JsonProperty("contentType") String contentType,
+            @JsonProperty("rolesParameter") String rolesParameter,
+            @JsonProperty("alfioGroupsParameter") String alfioGroupsParameter,
+            @JsonProperty("logoutUrl") String logoutUrl,
+            @JsonProperty("logoutRedirectUrl") String logoutRedirectUrl,
+            @JsonProperty("jwksPath") String jwksPath) {
         this.domain = domain;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -80,12 +79,9 @@ public record OpenIdConfiguration(
         this.jwksPath = requireNonNullElse(jwksPath, "/.well-known/jwks.json");
     }
 
-    public ClientRegistration toClientRegistration(String registrationId,
-                                                   String fallbackRedirectURI,
-                                                   boolean fullScopeList) {
-        var baseURI = UriComponentsBuilder.newInstance()
-            .scheme("https")
-            .host(domain);
+    public ClientRegistration toClientRegistration(
+            String registrationId, String fallbackRedirectURI, boolean fullScopeList) {
+        var baseURI = UriComponentsBuilder.newInstance().scheme("https").host(domain);
         var scopes = new ArrayList<>(List.of("openid", "email", "profile"));
         if (fullScopeList) {
             scopes.add("openid");
@@ -98,34 +94,37 @@ public record OpenIdConfiguration(
         var redirectUri = requireNonNullElse(StringUtils.trimToNull(callbackURI), fallbackRedirectURI);
 
         return ClientRegistration.withRegistrationId(registrationId)
-            .clientId(clientId)
-            .clientSecret(clientSecret)
-            .redirectUri(redirectUri)
-            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-            .scope(scopes)
-            .authorizationUri(baseURI.replacePath(authenticationUrl).toUriString())
-            .jwkSetUri(baseURI.replacePath(jwksPath).toUriString())
-            .tokenUri(baseURI.replacePath(tokenEndpoint).toUriString())
-            .build();
+                .clientId(clientId)
+                .clientSecret(clientSecret)
+                .redirectUri(redirectUri)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .scope(scopes)
+                .authorizationUri(baseURI.replacePath(authenticationUrl).toUriString())
+                .jwkSetUri(baseURI.replacePath(jwksPath).toUriString())
+                .tokenUri(baseURI.replacePath(tokenEndpoint).toUriString())
+                .build();
     }
 
     public static OpenIdConfiguration from(Environment environment, ConfigurationManager configurationManager) {
-        var baseUrl = removeEnd(configurationManager.getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.system()).getRequiredValue(), "/");
+        var baseUrl = removeEnd(
+                configurationManager
+                        .getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.system())
+                        .getRequiredValue(),
+                "/");
         return new OpenIdConfiguration(
-            environment.getProperty("openid.domain"),
-            environment.getProperty("openid.clientId"),
-            environment.getProperty("openid.clientSecret"),
-            environment.getProperty("openid.callbackURI", baseUrl + "/callback"),
-            environment.getProperty("openid.authenticationUrl"),
-            environment.getProperty("openid.tokenEndpoint", "/authorize"),
-            environment.getProperty("openid.givenNameClaim"),
-            environment.getProperty("openid.familyNameClaim"),
-            environment.getProperty("openid.contentType", "application/x-www-form-urlencoded"),
-            environment.getProperty("openid.rolesParameter"),
-            environment.getProperty("openid.alfioGroupsParameter"),
-            environment.getProperty("openid.logoutUrl"),
-            environment.getProperty("openid.logoutRedirectUrl", baseUrl + "/admin"),
-            environment.getProperty("openid.jwksPath")
-        );
+                environment.getProperty("openid.domain"),
+                environment.getProperty("openid.clientId"),
+                environment.getProperty("openid.clientSecret"),
+                environment.getProperty("openid.callbackURI", baseUrl + "/callback"),
+                environment.getProperty("openid.authenticationUrl"),
+                environment.getProperty("openid.tokenEndpoint", "/authorize"),
+                environment.getProperty("openid.givenNameClaim"),
+                environment.getProperty("openid.familyNameClaim"),
+                environment.getProperty("openid.contentType", "application/x-www-form-urlencoded"),
+                environment.getProperty("openid.rolesParameter"),
+                environment.getProperty("openid.alfioGroupsParameter"),
+                environment.getProperty("openid.logoutUrl"),
+                environment.getProperty("openid.logoutRedirectUrl", baseUrl + "/admin"),
+                environment.getProperty("openid.jwksPath"));
     }
 }

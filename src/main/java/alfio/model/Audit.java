@@ -19,17 +19,19 @@ package alfio.model;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class Audit {
 
     public enum EntityType {
-        EVENT, TICKET, RESERVATION, SUBSCRIPTION
+        EVENT,
+        TICKET,
+        RESERVATION,
+        SUBSCRIPTION
     }
 
     public enum EventType {
@@ -79,7 +81,8 @@ public class Audit {
         AUTOMATIC_PAYMENT_CONFIRMATION_FAILED,
         DYNAMIC_DISCOUNT_CODE_CREATED,
         SUBSCRIPTION_ACQUIRED,
-        UPDATE_TICKET_METADATA, WARNING_IGNORED
+        UPDATE_TICKET_METADATA,
+        WARNING_IGNORED
     }
 
     private final String reservationId;
@@ -93,18 +96,25 @@ public class Audit {
     private final String lastName;
     private final String email;
 
-
-    public Audit(@Column("reservation_id") String reservationId, @Column("event_type") EventType eventType,
-                 @Column("event_time") Date eventTime, @Column("entity_type") EntityType entityType,
-                 @Column("entity_id") String entityId, @Column("modifications") String modifications,
-                 @Column("username") String username, @Column("first_name") String firstName,
-                 @Column("last_name") String lastName, @Column("email_address") String email) {
+    public Audit(
+            @Column("reservation_id") String reservationId,
+            @Column("event_type") EventType eventType,
+            @Column("event_time") Date eventTime,
+            @Column("entity_type") EntityType entityType,
+            @Column("entity_id") String entityId,
+            @Column("modifications") String modifications,
+            @Column("username") String username,
+            @Column("first_name") String firstName,
+            @Column("last_name") String lastName,
+            @Column("email_address") String email) {
         this.reservationId = reservationId;
         this.eventType = eventType;
         this.eventTime = eventTime;
         this.entityType = entityType;
         this.entityId = entityId;
-        this.modifications = modifications == null ? null : Json.fromJson(modifications, new TypeReference<List<Map<String, Object>>>() {});
+        this.modifications = modifications == null
+                ? null
+                : Json.fromJson(modifications, new TypeReference<List<Map<String, Object>>>() {});
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;

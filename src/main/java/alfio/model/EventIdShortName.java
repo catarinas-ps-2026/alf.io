@@ -25,9 +25,7 @@ public class EventIdShortName {
     private final int id;
     private final String shortName;
 
-    public EventIdShortName(
-        @Column("id") int id,
-        @Column("short_name") String shortName) {
+    public EventIdShortName(@Column("id") int id, @Column("short_name") String shortName) {
         this.id = id;
         this.shortName = shortName;
     }

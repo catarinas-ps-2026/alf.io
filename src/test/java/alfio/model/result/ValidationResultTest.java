@@ -23,6 +23,9 @@ class ValidationResultTest {
 
     @Test
     void checkErrorDescriptorToString() {
-        Assertions.assertEquals("ValidationResult.ErrorDescriptor(fieldName=fieldName, message=message, code=code, arguments=[a, b])", new ValidationResult.ErrorDescriptor("fieldName", "message", "code", new Object[]{"a", "b"}).toString());
+        Assertions.assertEquals(
+                "ValidationResult.ErrorDescriptor(fieldName=fieldName, message=message, code=code, arguments=[a, b])",
+                new ValidationResult.ErrorDescriptor("fieldName", "message", "code", new Object[] {"a", "b"})
+                        .toString());
     }
 }

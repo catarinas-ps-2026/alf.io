@@ -16,27 +16,26 @@
  */
 package alfio.model.modification.support;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.Event.EventFormat;
 import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.model.system.ConfigurationKeys;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Test;
 
 public class LocationDescriptorTest {
 
     private final String latitude = "latitude";
     private final String longitude = "longitude";
     private final TimeZone timeZone = TimeZone.getDefault();
-    private Function<String, LocationDescriptor> locationDescriptorBuilder = (mapUrl) -> new LocationDescriptor(timeZone.getID(), latitude, longitude, mapUrl);
-
+    private Function<String, LocationDescriptor> locationDescriptorBuilder =
+            (mapUrl) -> new LocationDescriptor(timeZone.getID(), latitude, longitude, mapUrl);
 
     private static ConfigurationManager.MaybeConfiguration buildMaybeConf(ConfigurationKeys k, String val) {
         return new ConfigurationManager.MaybeConfiguration(k, new ConfigurationKeyValuePathLevel(k.name(), val, null));
@@ -44,44 +43,61 @@ public class LocationDescriptorTest {
 
     @Test
     public void testLocationDescriptorGoogle() {
-        var geoInfo = Map.of(ConfigurationKeys.MAPS_CLIENT_API_KEY, buildMaybeConf(ConfigurationKeys.MAPS_CLIENT_API_KEY, "mapKey"));
-        final LocationDescriptor expected = locationDescriptorBuilder.apply("https://maps.googleapis.com/maps/api/staticmap?center=latitude,longitude&key=mapKey&zoom=16&size=400x400&markers=color:blue%7Clabel:E%7Clatitude,longitude");
-        assertEquals(expected, LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
+        var geoInfo = Map.of(
+                ConfigurationKeys.MAPS_CLIENT_API_KEY, buildMaybeConf(ConfigurationKeys.MAPS_CLIENT_API_KEY, "mapKey"));
+        final LocationDescriptor expected = locationDescriptorBuilder.apply(
+                "https://maps.googleapis.com/maps/api/staticmap?center=latitude,longitude&key=mapKey&zoom=16&size=400x400&markers=color:blue%7Clabel:E%7Clatitude,longitude");
+        assertEquals(
+                expected,
+                LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
     }
 
     @Test
     public void testLocationDescriptorNone() {
         Map<ConfigurationKeys, ConfigurationManager.MaybeConfiguration> geoInfo = Collections.emptyMap();
         final LocationDescriptor expected = locationDescriptorBuilder.apply("");
-        assertEquals(expected, LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
+        assertEquals(
+                expected,
+                LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
     }
 
     @Test
     public void testLocationDescriptorGoogleWithTypeSet() {
         var geoInfo = Map.of(
-            ConfigurationKeys.MAPS_PROVIDER, buildMaybeConf(ConfigurationKeys.MAPS_PROVIDER, ConfigurationKeys.GeoInfoProvider.GOOGLE.name()),
-            ConfigurationKeys.MAPS_CLIENT_API_KEY, buildMaybeConf(ConfigurationKeys.MAPS_CLIENT_API_KEY, "mapKey"));
+                ConfigurationKeys.MAPS_PROVIDER,
+                        buildMaybeConf(
+                                ConfigurationKeys.MAPS_PROVIDER, ConfigurationKeys.GeoInfoProvider.GOOGLE.name()),
+                ConfigurationKeys.MAPS_CLIENT_API_KEY, buildMaybeConf(ConfigurationKeys.MAPS_CLIENT_API_KEY, "mapKey"));
 
-        final LocationDescriptor expected = locationDescriptorBuilder.apply("https://maps.googleapis.com/maps/api/staticmap?center=latitude,longitude&key=mapKey&zoom=16&size=400x400&markers=color:blue%7Clabel:E%7Clatitude,longitude");
-        assertEquals(expected, LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
+        final LocationDescriptor expected = locationDescriptorBuilder.apply(
+                "https://maps.googleapis.com/maps/api/staticmap?center=latitude,longitude&key=mapKey&zoom=16&size=400x400&markers=color:blue%7Clabel:E%7Clatitude,longitude");
+        assertEquals(
+                expected,
+                LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
     }
 
     @Test
     public void testLocationDescriptorHEREWithTypeSet() {
         var geoInfo = Map.of(
-            ConfigurationKeys.MAPS_PROVIDER, buildMaybeConf(ConfigurationKeys.MAPS_PROVIDER, ConfigurationKeys.GeoInfoProvider.HERE.name()),
-            ConfigurationKeys.MAPS_HERE_API_KEY, buildMaybeConf(ConfigurationKeys.MAPS_HERE_API_KEY, "apiKey")
-        );
+                ConfigurationKeys.MAPS_PROVIDER,
+                        buildMaybeConf(ConfigurationKeys.MAPS_PROVIDER, ConfigurationKeys.GeoInfoProvider.HERE.name()),
+                ConfigurationKeys.MAPS_HERE_API_KEY, buildMaybeConf(ConfigurationKeys.MAPS_HERE_API_KEY, "apiKey"));
 
-        final LocationDescriptor expected = locationDescriptorBuilder.apply("https://image.maps.ls.hereapi.com/mia/1.6/mapview?c=latitude,longitude&z=16&w=400&h=400&poi=latitude,longitude&apikey=apiKey");
-        assertEquals(expected, LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
+        final LocationDescriptor expected = locationDescriptorBuilder.apply(
+                "https://image.maps.ls.hereapi.com/mia/1.6/mapview?c=latitude,longitude&z=16&w=400&h=400&poi=latitude,longitude&apikey=apiKey");
+        assertEquals(
+                expected,
+                LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
     }
 
     @Test
     public void testLocationDescriptorNONEWithTypeSet() {
-        var geoInfo = Map.of(ConfigurationKeys.MAPS_PROVIDER, buildMaybeConf(ConfigurationKeys.MAPS_PROVIDER, ConfigurationKeys.GeoInfoProvider.NONE.name()));
+        var geoInfo = Map.of(
+                ConfigurationKeys.MAPS_PROVIDER,
+                buildMaybeConf(ConfigurationKeys.MAPS_PROVIDER, ConfigurationKeys.GeoInfoProvider.NONE.name()));
         final LocationDescriptor expected = locationDescriptorBuilder.apply("");
-        assertEquals(expected, LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
+        assertEquals(
+                expected,
+                LocationDescriptor.fromGeoData(EventFormat.IN_PERSON, Pair.of(latitude, longitude), timeZone, geoInfo));
     }
-
 }

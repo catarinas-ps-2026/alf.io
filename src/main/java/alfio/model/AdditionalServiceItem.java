@@ -17,9 +17,8 @@
 package alfio.model;
 
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import lombok.Getter;
-
 import java.time.ZonedDateTime;
+import lombok.Getter;
 
 @Getter
 public class AdditionalServiceItem {
@@ -27,10 +26,14 @@ public class AdditionalServiceItem {
     // are considered "Confirmed": ACQUIRED, CHECKED_IN and TO_BE_PAID
     public enum AdditionalServiceItemStatus {
         FREE,
-        PENDING, TO_BE_PAID, ACQUIRED, CANCELLED,
+        PENDING,
+        TO_BE_PAID,
+        ACQUIRED,
+        CANCELLED,
         CHECKED_IN,
         EXPIRED,
-        INVALIDATED, RELEASED
+        INVALIDATED,
+        RELEASED
     }
 
     private final int id;
@@ -47,22 +50,23 @@ public class AdditionalServiceItem {
     private final Integer finalPriceCts;
     private final Integer vatCts;
     private final Integer discountCts;
-    private final String  currencyCode;
+    private final String currencyCode;
 
-    public AdditionalServiceItem(@Column("id") int id,
-                                 @Column("uuid") String uuid,
-                                 @Column("creation") ZonedDateTime utcCreation,
-                                 @Column("last_modified") ZonedDateTime utcLastModified,
-                                 @Column("tickets_reservation_uuid") String ticketsReservationUuid,
-                                 @Column("additional_service_id_fk") int additionalServiceId,
-                                 @Column("status") AdditionalServiceItemStatus status,
-                                 @Column("event_id_fk") int eventId,
-                                 @Column("src_price_cts") Integer srcPriceCts,
-                                 @Column("final_price_cts") Integer finalPriceCts,
-                                 @Column("vat_cts") Integer vatCts,
-                                 @Column("discount_cts") Integer discountCts,
-                                 @Column("currency_code") String currencyCode,
-                                 @Column("ticket_id_fk") Integer ticketId) {
+    public AdditionalServiceItem(
+            @Column("id") int id,
+            @Column("uuid") String uuid,
+            @Column("creation") ZonedDateTime utcCreation,
+            @Column("last_modified") ZonedDateTime utcLastModified,
+            @Column("tickets_reservation_uuid") String ticketsReservationUuid,
+            @Column("additional_service_id_fk") int additionalServiceId,
+            @Column("status") AdditionalServiceItemStatus status,
+            @Column("event_id_fk") int eventId,
+            @Column("src_price_cts") Integer srcPriceCts,
+            @Column("final_price_cts") Integer finalPriceCts,
+            @Column("vat_cts") Integer vatCts,
+            @Column("discount_cts") Integer discountCts,
+            @Column("currency_code") String currencyCode,
+            @Column("ticket_id_fk") Integer ticketId) {
         this.id = id;
         this.uuid = uuid;
         this.utcCreation = utcCreation;

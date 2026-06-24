@@ -16,12 +16,10 @@
  */
 package alfio.config.authentication.support;
 
+import static alfio.model.system.ConfigurationKeys.ENABLE_CAPTCHA_FOR_LOGIN;
+
 import alfio.manager.RecaptchaService;
 import alfio.manager.system.ConfigurationManager;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.filter.GenericFilterBean;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -29,8 +27,9 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
-import static alfio.model.system.ConfigurationKeys.ENABLE_CAPTCHA_FOR_LOGIN;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.filter.GenericFilterBean;
 
 public class RecaptchaLoginFilter extends GenericFilterBean {
     private final RequestMatcher requestMatcher;
@@ -38,25 +37,25 @@ public class RecaptchaLoginFilter extends GenericFilterBean {
     private final String recaptchaFailureUrl;
     private final ConfigurationManager configurationManager;
 
-
-    public RecaptchaLoginFilter(RecaptchaService recaptchaService,
-                                String loginProcessingUrl,
-                                String recaptchaFailureUrl,
-                                ConfigurationManager configurationManager) {
+    public RecaptchaLoginFilter(
+            RecaptchaService recaptchaService,
+            String loginProcessingUrl,
+            String recaptchaFailureUrl,
+            ConfigurationManager configurationManager) {
         this.requestMatcher = new AntPathRequestMatcher(loginProcessingUrl, "POST");
         this.recaptchaService = recaptchaService;
         this.recaptchaFailureUrl = recaptchaFailureUrl;
         this.configurationManager = configurationManager;
     }
 
-
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-        if (requestMatcher.matches(req) &&
-            configurationManager.getForSystem(ENABLE_CAPTCHA_FOR_LOGIN).getValueAsBooleanOrDefault() &&
-            !recaptchaService.checkRecaptcha(null, req)) {
+        if (requestMatcher.matches(req)
+                && configurationManager.getForSystem(ENABLE_CAPTCHA_FOR_LOGIN).getValueAsBooleanOrDefault()
+                && !recaptchaService.checkRecaptcha(null, req)) {
             res.sendRedirect(recaptchaFailureUrl);
             return;
         }

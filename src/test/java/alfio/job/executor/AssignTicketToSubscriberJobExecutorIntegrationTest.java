@@ -16,6 +16,9 @@
  */
 package alfio.job.executor;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -41,6 +44,13 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,17 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -92,24 +91,25 @@ class AssignTicketToSubscriberJobExecutorIntegrationTest {
     private String userId;
 
     @Autowired
-    AssignTicketToSubscriberJobExecutorIntegrationTest(EventManager eventManager,
-                                                       UserManager userManager,
-                                                       SubscriptionManager subscriptionManager,
-                                                       SubscriptionRepository subscriptionRepository,
-                                                       FileUploadManager fileUploadManager,
-                                                       ConfigurationRepository configurationRepository,
-                                                       OrganizationRepository organizationRepository,
-                                                       EventRepository eventRepository,
-                                                       TicketReservationRepository ticketReservationRepository,
-                                                       AssignTicketToSubscriberJobExecutor executor,
-                                                       AdminReservationRequestRepository adminReservationRequestRepository,
-                                                       AdminReservationRequestManager adminReservationRequestManager,
-                                                       UserRepository userRepository,
-                                                       AuthorityRepository authorityRepository,
-                                                       NamedParameterJdbcTemplate jdbcTemplate,
-                                                       TicketRepository ticketRepository,
-                                                       TicketCategoryRepository ticketCategoryRepository,
-                                                       NotificationManager notificationManager) {
+    AssignTicketToSubscriberJobExecutorIntegrationTest(
+            EventManager eventManager,
+            UserManager userManager,
+            SubscriptionManager subscriptionManager,
+            SubscriptionRepository subscriptionRepository,
+            FileUploadManager fileUploadManager,
+            ConfigurationRepository configurationRepository,
+            OrganizationRepository organizationRepository,
+            EventRepository eventRepository,
+            TicketReservationRepository ticketReservationRepository,
+            AssignTicketToSubscriberJobExecutor executor,
+            AdminReservationRequestRepository adminReservationRequestRepository,
+            AdminReservationRequestManager adminReservationRequestManager,
+            UserRepository userRepository,
+            AuthorityRepository authorityRepository,
+            NamedParameterJdbcTemplate jdbcTemplate,
+            TicketRepository ticketRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            NotificationManager notificationManager) {
         this.eventManager = eventManager;
         this.userManager = userManager;
         this.subscriptionManager = subscriptionManager;
@@ -134,16 +134,56 @@ class AssignTicketToSubscriberJobExecutorIntegrationTest {
     void setUp() {
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
         List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.ONE, true, "", true, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-            new TicketCategoryModification(null, FIRST_CATEGORY_NAME, TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-        );
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+                new TicketCategoryModification(
+                        null,
+                        "hidden",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        2,
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).minusDays(1),
+                                LocalTime.now(ClockProvider.clock())),
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                        DESCRIPTION,
+                        BigDecimal.ONE,
+                        true,
+                        "",
+                        true,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null,
+                        FIRST_CATEGORY_NAME,
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).minusDays(1),
+                                LocalTime.now(ClockProvider.clock())),
+                        new DateTimeModification(
+                                LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
         var uploadFileForm = new UploadBase64FileModification();
         uploadFileForm.setFile(BaseIntegrationTest.ONE_PIXEL_BLACK_GIF);
         uploadFileForm.setName("my-image.gif");
@@ -153,7 +193,16 @@ class AssignTicketToSubscriberJobExecutorIntegrationTest {
         this.event = eventAndUser.getLeft();
         this.userId = eventAndUser.getRight();
         // init admin user
-        userRepository.create(UserManager.ADMIN_USERNAME, "", "The", "Administrator", "admin@localhost", true, User.Type.INTERNAL, null, null);
+        userRepository.create(
+                UserManager.ADMIN_USERNAME,
+                "",
+                "The",
+                "Administrator",
+                "admin@localhost",
+                true,
+                User.Type.INTERNAL,
+                null,
+                null);
         authorityRepository.create(UserManager.ADMIN_USERNAME, Role.ADMIN.getRoleName());
     }
 
@@ -161,8 +210,8 @@ class AssignTicketToSubscriberJobExecutorIntegrationTest {
     void tearDown() {
         try {
             eventManager.deleteEvent(event.getId(), userId);
-        } catch(Exception ex) {
-            //ignore exception because the transaction might be aborted
+        } catch (Exception ex) {
+            // ignore exception because the transaction might be aborted
         }
     }
 
@@ -178,65 +227,107 @@ class AssignTicketToSubscriberJobExecutorIntegrationTest {
 
     @Test
     void processEventLevel() {
-        var category = ticketCategoryRepository.findAllTicketCategories(event.getId())
-            .stream()
-            .filter(c -> c.getName().equals(FIRST_CATEGORY_NAME))
-            .findFirst()
-            .orElseThrow();
-        performTest(Map.of(
-            AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, event.getOrganizationId(),
-            AssignTicketToSubscriberJobExecutor.EVENT_ID, event.getId()
-        ), List.of(category.getId()));
+        var category = ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()
+                .filter(c -> c.getName().equals(FIRST_CATEGORY_NAME))
+                .findFirst()
+                .orElseThrow();
+        performTest(
+                Map.of(
+                        AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, event.getOrganizationId(),
+                        AssignTicketToSubscriberJobExecutor.EVENT_ID, event.getId()),
+                List.of(category.getId()));
     }
 
     @Test
     void processEventLevelWithCompatibleCategories() {
-        performTest(Map.of(
-            AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, event.getOrganizationId(),
-            AssignTicketToSubscriberJobExecutor.EVENT_ID, event.getId()
-        ), null);
+        performTest(
+                Map.of(
+                        AssignTicketToSubscriberJobExecutor.ORGANIZATION_ID, event.getOrganizationId(),
+                        AssignTicketToSubscriberJobExecutor.EVENT_ID, event.getId()),
+                null);
     }
 
     private void performTest(Map<String, Object> metadata, List<Integer> compatibleCategories) {
-        var adminRequest = new AdminJobSchedule(1L, "", ZonedDateTime.now(ClockProvider.clock()), AdminJobSchedule.Status.SCHEDULED, null, metadata, 1);
+        var adminRequest = new AdminJobSchedule(
+                1L, "", ZonedDateTime.now(ClockProvider.clock()), AdminJobSchedule.Status.SCHEDULED, null, metadata, 1);
         int maxEntries = 2;
-        var descriptorId = createSubscriptionDescriptor(event.getOrganizationId(), fileUploadManager, subscriptionManager, maxEntries);
+        var descriptorId = createSubscriptionDescriptor(
+                event.getOrganizationId(), fileUploadManager, subscriptionManager, maxEntries);
         var descriptor = subscriptionRepository.findOne(descriptorId).orElseThrow();
-        var subscriptionIdAndPin = confirmAndLinkSubscription(descriptor, event.getOrganizationId(), subscriptionRepository, ticketReservationRepository, maxEntries);
-        subscriptionRepository.linkSubscriptionAndEvent(descriptorId, event.getId(), 0, event.getOrganizationId(), compatibleCategories);
-        // 1. check that subscription descriptor is not marked as "available" because it does not support ticket generation
-        assertEquals(0, subscriptionRepository.loadAvailableSubscriptionsByEvent(null, null).size());
+        var subscriptionIdAndPin = confirmAndLinkSubscription(
+                descriptor, event.getOrganizationId(), subscriptionRepository, ticketReservationRepository, maxEntries);
+        subscriptionRepository.linkSubscriptionAndEvent(
+                descriptorId, event.getId(), 0, event.getOrganizationId(), compatibleCategories);
+        // 1. check that subscription descriptor is not marked as "available" because it does not support ticket
+        // generation
+        assertEquals(
+                0,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(null, null)
+                        .size());
         // enable support for tickets generation
-        assertEquals(1, jdbcTemplate.update("update subscription_descriptor set supports_tickets_generation = true where id = :id", Map.of("id", descriptorId)));
+        assertEquals(
+                1,
+                jdbcTemplate.update(
+                        "update subscription_descriptor set supports_tickets_generation = true where id = :id",
+                        Map.of("id", descriptorId)));
 
         // test different parameter combination. The following queries must all return the same result
-        assertEquals(1, subscriptionRepository.loadAvailableSubscriptionsByEvent(null, null).size());
-        assertEquals(1, subscriptionRepository.loadAvailableSubscriptionsByEvent(event.getId(), event.getOrganizationId()).size());
-        assertEquals(1, subscriptionRepository.loadAvailableSubscriptionsByEvent(null, event.getOrganizationId()).size());
-        assertEquals(1, subscriptionRepository.loadAvailableSubscriptionsByEvent(event.getId(), null).size());
-
+        assertEquals(
+                1,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(null, null)
+                        .size());
+        assertEquals(
+                1,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(event.getId(), event.getOrganizationId())
+                        .size());
+        assertEquals(
+                1,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(null, event.getOrganizationId())
+                        .size());
+        assertEquals(
+                1,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(event.getId(), null)
+                        .size());
 
         // 2. trigger job schedule with flag not active
         executor.process(adminRequest);
-        assertEquals(1, subscriptionRepository.loadAvailableSubscriptionsByEvent(null, null).size());
+        assertEquals(
+                1,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(null, null)
+                        .size());
         assertEquals(0, adminReservationRequestRepository.countPending());
 
         // 3. trigger job schedule with flag active
         configurationRepository.insert(ConfigurationKeys.GENERATE_TICKETS_FOR_SUBSCRIPTIONS.name(), "true", "");
         executor.process(adminRequest);
-        assertEquals(1, subscriptionRepository.loadAvailableSubscriptionsByEvent(null, null).size());
+        assertEquals(
+                1,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(null, null)
+                        .size());
         assertEquals(1, adminReservationRequestRepository.countPending());
 
         // trigger reservation processing
         var result = adminReservationRequestManager.processPendingReservations();
         assertEquals(1, result.getLeft()); //  1 success
         assertEquals(0, result.getRight()); // 0 failures
-        assertEquals(0, subscriptionRepository.loadAvailableSubscriptionsByEvent(null, null).size());
+        assertEquals(
+                0,
+                subscriptionRepository
+                        .loadAvailableSubscriptionsByEvent(null, null)
+                        .size());
 
         // check ticket
-        var ticketUuid = jdbcTemplate.queryForObject("select uuid from ticket where event_id = :eventId and ext_reference = :ref",
-            Map.of("eventId", event.getId(), "ref", subscriptionIdAndPin.getLeft() + "_auto"),
-            String.class);
+        var ticketUuid = jdbcTemplate.queryForObject(
+                "select uuid from ticket where event_id = :eventId and ext_reference = :ref",
+                Map.of("eventId", event.getId(), "ref", subscriptionIdAndPin.getLeft() + "_auto"),
+                String.class);
         assertNotNull(ticketUuid);
 
         // check category
@@ -260,6 +351,7 @@ class AssignTicketToSubscriberJobExecutorIntegrationTest {
         assertEquals(1, messagesPair.getLeft());
         assertTrue(messagesPair.getRight().stream().allMatch(m -> m.getStatus() == EmailMessage.Status.SENT));
         assertTrue(messagesPair.getRight().stream()
-            .allMatch(m -> m.getRecipient().equals("subscription+owner@test.com") && m.getCc().contains("subscription+buyer@test.com")));
+                .allMatch(m -> m.getRecipient().equals("subscription+owner@test.com")
+                        && m.getCc().contains("subscription+buyer@test.com")));
     }
 }

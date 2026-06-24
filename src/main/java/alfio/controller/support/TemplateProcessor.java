@@ -37,78 +37,108 @@ import com.openhtmltopdf.extend.FSStreamFactory;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.springframework.core.io.ClassPathResource;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.pdfbox.io.IOUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.springframework.core.io.ClassPathResource;
 
 public final class TemplateProcessor {
 
     private TemplateProcessor() {}
 
-
-    public static PartialTicketTextGenerator buildPartialEmail(Event event,
-                                                               Organization organization,
-                                                               TicketReservation ticketReservation,
-                                                               TicketCategory category,
-                                                               TemplateManager templateManager,
-                                                               String baseUrl,
-                                                               String ticketURL,
-                                                               String calendarURL,
-                                                               Locale language,
-                                                               Map<String, Object> additionalOptions) {
+    public static PartialTicketTextGenerator buildPartialEmail(
+            Event event,
+            Organization organization,
+            TicketReservation ticketReservation,
+            TicketCategory category,
+            TemplateManager templateManager,
+            String baseUrl,
+            String ticketURL,
+            String calendarURL,
+            Locale language,
+            Map<String, Object> additionalOptions) {
         return ticket -> {
-            Map<String, Object> model = TemplateResource.buildModelForTicketEmail(organization, event, ticketReservation, baseUrl, ticketURL, calendarURL, ticket, category, additionalOptions);
-            return templateManager.renderTemplate(event, EventUtil.isAccessOnline(category, event) ? TemplateResource.TICKET_EMAIL_FOR_ONLINE_EVENT : TemplateResource.TICKET_EMAIL, model, language);
+            Map<String, Object> model = TemplateResource.buildModelForTicketEmail(
+                    organization,
+                    event,
+                    ticketReservation,
+                    baseUrl,
+                    ticketURL,
+                    calendarURL,
+                    ticket,
+                    category,
+                    additionalOptions);
+            return templateManager.renderTemplate(
+                    event,
+                    EventUtil.isAccessOnline(category, event)
+                            ? TemplateResource.TICKET_EMAIL_FOR_ONLINE_EVENT
+                            : TemplateResource.TICKET_EMAIL,
+                    model,
+                    language);
         };
     }
 
-    public static PartialTicketTextGenerator buildEmailForOwnerChange(Event e,
-                                                                      Ticket oldTicket,
-                                                                      Organization organization,
-                                                                      String ticketUrl,
-                                                                      TemplateManager templateManager,
-                                                                      Locale language) {
+    public static PartialTicketTextGenerator buildEmailForOwnerChange(
+            Event e,
+            Ticket oldTicket,
+            Organization organization,
+            String ticketUrl,
+            TemplateManager templateManager,
+            Locale language) {
         return newTicket -> {
-            Map<String, Object> emailModel = TemplateResource.buildModelForTicketHasChangedOwner(organization, e, oldTicket, newTicket, ticketUrl);
+            Map<String, Object> emailModel = TemplateResource.buildModelForTicketHasChangedOwner(
+                    organization, e, oldTicket, newTicket, ticketUrl);
             return templateManager.renderTemplate(e, TemplateResource.TICKET_HAS_CHANGED_OWNER, emailModel, language);
         };
     }
 
-    public static void renderPDFTicket(Locale language,
-                                       Event event,
-                                       TicketReservation ticketReservation,
-                                       TicketWithMetadataAttributes ticketWithMetadata,
-                                       TicketCategory ticketCategory,
-                                       Organization organization,
-                                       TemplateManager templateManager,
-                                       FileUploadManager fileUploadManager,
-                                       String reservationID,
-                                       OutputStream os,
-                                       BiFunction<Ticket, Event, List<FieldConfigurationDescriptionAndValue>> retrieveFieldValues,
-                                       ExtensionManager extensionManager,
-                                       Map<String, Object> initialModel,
-                                       List<AdditionalServiceWithData> additionalServiceWithData) throws IOException {
+    public static void renderPDFTicket(
+            Locale language,
+            Event event,
+            TicketReservation ticketReservation,
+            TicketWithMetadataAttributes ticketWithMetadata,
+            TicketCategory ticketCategory,
+            Organization organization,
+            TemplateManager templateManager,
+            FileUploadManager fileUploadManager,
+            String reservationID,
+            OutputStream os,
+            BiFunction<Ticket, Event, List<FieldConfigurationDescriptionAndValue>> retrieveFieldValues,
+            ExtensionManager extensionManager,
+            Map<String, Object> initialModel,
+            List<AdditionalServiceWithData> additionalServiceWithData)
+            throws IOException {
         Optional<TemplateResource.ImageData> imageData = extractImageModel(event, fileUploadManager);
-        List<FieldConfigurationDescriptionAndValue> fields = retrieveFieldValues.apply(ticketWithMetadata.getTicket(), event);
+        List<FieldConfigurationDescriptionAndValue> fields =
+                retrieveFieldValues.apply(ticketWithMetadata.getTicket(), event);
         var model = new HashMap<>(Objects.requireNonNullElse(initialModel, Map.of()));
-        model.putAll(TemplateResource.buildModelForTicketPDF(organization, event, ticketReservation, ticketCategory, ticketWithMetadata, imageData, reservationID,
-            fields.stream().collect(Collectors.toMap(FieldConfigurationDescriptionAndValue::getName, FieldConfigurationDescriptionAndValue::getValueDescription)),
-            additionalServiceWithData));
+        model.putAll(TemplateResource.buildModelForTicketPDF(
+                organization,
+                event,
+                ticketReservation,
+                ticketCategory,
+                ticketWithMetadata,
+                imageData,
+                reservationID,
+                fields.stream()
+                        .collect(Collectors.toMap(
+                                FieldConfigurationDescriptionAndValue::getName,
+                                FieldConfigurationDescriptionAndValue::getValueDescription)),
+                additionalServiceWithData));
 
-        String page = templateManager.renderTemplate(event, TemplateResource.TICKET_PDF, model, language).getTextPart();
+        String page = templateManager
+                .renderTemplate(event, TemplateResource.TICKET_PDF, model, language)
+                .getTextPart();
         renderToPdf(page, os, extensionManager, event, fileUploadManager);
     }
 
-    public static Map<String, Object> getSubscriptionDetailsModelForTicket(Ticket ticket,
-                                                                           Function<UUID, SubscriptionDescriptor> subscriptionDescriptorLoader,
-                                                                           Locale locale) {
+    public static Map<String, Object> getSubscriptionDetailsModelForTicket(
+            Ticket ticket, Function<UUID, SubscriptionDescriptor> subscriptionDescriptorLoader, Locale locale) {
         boolean hasSubscription = ticket.getSubscriptionId() != null;
         var result = new HashMap<String, Object>();
         result.put("hasSubscription", hasSubscription);
@@ -119,28 +149,48 @@ public final class TemplateProcessor {
         return result;
     }
 
-    public static void renderSubscriptionPDF(Subscription subscription,
-                                             Locale locale,
-                                             SubscriptionDescriptor subscriptionDescriptor,
-                                             TicketReservation reservation,
-                                             SubscriptionMetadata metadata,
-                                             Organization organization,
-                                             TemplateManager templateManager,
-                                             FileUploadManager fileUploadManager,
-                                             String reservationId,
-                                             ByteArrayOutputStream os,
-                                             ExtensionManager extensionManager,
-                                             PurchaseContextFieldManager purchaseContextFieldManager) throws IOException {
+    public static void renderSubscriptionPDF(
+            Subscription subscription,
+            Locale locale,
+            SubscriptionDescriptor subscriptionDescriptor,
+            TicketReservation reservation,
+            SubscriptionMetadata metadata,
+            Organization organization,
+            TemplateManager templateManager,
+            FileUploadManager fileUploadManager,
+            String reservationId,
+            ByteArrayOutputStream os,
+            ExtensionManager extensionManager,
+            PurchaseContextFieldManager purchaseContextFieldManager)
+            throws IOException {
         Optional<TemplateResource.ImageData> imageData = extractImageModel(subscriptionDescriptor, fileUploadManager);
-        var additionalFields = purchaseContextFieldManager.getFieldDescriptionAndValues(subscriptionDescriptor, null, subscription, List.of(), locale.getLanguage(), true);
-        Map<String, Object> model = TemplateResource.buildModelForSubscriptionPDF(subscription, subscriptionDescriptor, organization, metadata, imageData, reservationId, locale, reservation, additionalFields);
-        String page = templateManager.renderTemplate(subscriptionDescriptor, TemplateResource.SUBSCRIPTION_PDF, model, locale).getTextPart();
+        var additionalFields = purchaseContextFieldManager.getFieldDescriptionAndValues(
+                subscriptionDescriptor, null, subscription, List.of(), locale.getLanguage(), true);
+        Map<String, Object> model = TemplateResource.buildModelForSubscriptionPDF(
+                subscription,
+                subscriptionDescriptor,
+                organization,
+                metadata,
+                imageData,
+                reservationId,
+                locale,
+                reservation,
+                additionalFields);
+        String page = templateManager
+                .renderTemplate(subscriptionDescriptor, TemplateResource.SUBSCRIPTION_PDF, model, locale)
+                .getTextPart();
         renderToPdf(page, os, extensionManager, subscriptionDescriptor, fileUploadManager);
     }
 
-    public static void renderToPdf(String page, OutputStream os, ExtensionManager extensionManager, PurchaseContext purchaseContext, FileUploadManager fileUploadManager) throws IOException {
+    public static void renderToPdf(
+            String page,
+            OutputStream os,
+            ExtensionManager extensionManager,
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager)
+            throws IOException {
 
-        if(extensionManager.handlePdfTransformation(page, purchaseContext, os)) {
+        if (extensionManager.handlePdfTransformation(page, purchaseContext, os)) {
             return;
         }
         PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -159,16 +209,20 @@ public final class TemplateProcessor {
         try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {
             File monoFont = ImageUtil.getDejaVuSansMonoFont(fileUploadManager);
             if (monoFont != null) {
-                renderer.getFontResolver().addFont(monoFont, "DejaVu Sans Mono", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
-                renderer.getFontResolver().addFont(monoFont, "Monospaced", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
+                renderer.getFontResolver()
+                        .addFont(monoFont, "DejaVu Sans Mono", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
+                renderer.getFontResolver()
+                        .addFont(monoFont, "Monospaced", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
             }
             File sansFont = ImageUtil.getDejaVuSansFont(fileUploadManager);
             if (sansFont != null) {
-                renderer.getFontResolver().addFont(sansFont, "SansSerif", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
+                renderer.getFontResolver()
+                        .addFont(sansFont, "SansSerif", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
             }
             File serifFont = ImageUtil.getDejaVuSerifFont(fileUploadManager);
             if (serifFont != null) {
-                renderer.getFontResolver().addFont(sansFont, "Serif", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
+                renderer.getFontResolver()
+                        .addFont(sansFont, "Serif", null, null, false, PdfBoxFontResolver.FontGroup.MAIN);
             }
             renderer.layout();
             renderer.createPDF();
@@ -202,38 +256,44 @@ public final class TemplateProcessor {
 
         @Override
         public FSStream getUrl(String url) {
-            throw new IllegalStateException(new TemplateAccessException("Protocol for resource '" + url + "' is not supported"));
+            throw new IllegalStateException(
+                    new TemplateAccessException("Protocol for resource '" + url + "' is not supported"));
         }
     }
 
-    public static class TemplateAccessException  extends IllegalStateException {
+    public static class TemplateAccessException extends IllegalStateException {
         TemplateAccessException(String message) {
             super(message);
         }
     }
 
-    public static Optional<TemplateResource.ImageData> extractImageModel(PurchaseContext purchaseContext, FileUploadManager fileUploadManager) {
-        if(purchaseContext.getFileBlobIdIsPresent()) {
-            return fileUploadManager.findMetadata(purchaseContext.getFileBlobId()).map(metadata -> {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                fileUploadManager.outputFile(metadata.getId(), baos);
-                return TemplateResource.fillWithImageData(metadata, baos.toByteArray());
-            });
+    public static Optional<TemplateResource.ImageData> extractImageModel(
+            PurchaseContext purchaseContext, FileUploadManager fileUploadManager) {
+        if (purchaseContext.getFileBlobIdIsPresent()) {
+            return fileUploadManager
+                    .findMetadata(purchaseContext.getFileBlobId())
+                    .map(metadata -> {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        fileUploadManager.outputFile(metadata.getId(), baos);
+                        return TemplateResource.fillWithImageData(metadata, baos.toByteArray());
+                    });
         } else {
             return Optional.empty();
         }
     }
 
-    public static boolean buildReceiptOrInvoicePdf(PurchaseContext purchaseContext,
-                                                   FileUploadManager fileUploadManager,
-                                                   Locale language,
-                                                   TemplateManager templateManager,
-                                                   Map<String, Object> model,
-                                                   TemplateResource templateResource,
-                                                   ExtensionManager extensionManager,
-                                                   OutputStream os) {
+    public static boolean buildReceiptOrInvoicePdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map<String, Object> model,
+            TemplateResource templateResource,
+            ExtensionManager extensionManager,
+            OutputStream os) {
         try {
-            String html = renderReceiptOrInvoicePdfTemplate(purchaseContext, fileUploadManager, language, templateManager, model, templateResource);
+            String html = renderReceiptOrInvoicePdfTemplate(
+                    purchaseContext, fileUploadManager, language, templateManager, model, templateResource);
             renderToPdf(html, os, extensionManager, purchaseContext, fileUploadManager);
             return true;
         } catch (IOException ioe) {
@@ -241,63 +301,111 @@ public final class TemplateProcessor {
         }
     }
 
-    public static String renderReceiptOrInvoicePdfTemplate(PurchaseContext purchaseContext, FileUploadManager fileUploadManager, Locale language, TemplateManager templateManager, Map<String, Object> model, TemplateResource templateResource) {
+    public static String renderReceiptOrInvoicePdfTemplate(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map<String, Object> model,
+            TemplateResource templateResource) {
         extractImageModel(purchaseContext, fileUploadManager).ifPresent(imageData -> {
             model.put("eventImage", imageData.getEventImage());
             model.put("imageWidth", imageData.getImageWidth());
             model.put("imageHeight", imageData.getImageHeight());
         });
-        return templateManager.renderTemplate(purchaseContext, templateResource, model, language).getTextPart();
+        return templateManager
+                .renderTemplate(purchaseContext, templateResource, model, language)
+                .getTextPart();
     }
 
-    public static Optional<byte[]> buildBillingDocumentPdf(BillingDocument.Type documentType, PurchaseContext purchaseContext, FileUploadManager fileUploadManager, Locale language, TemplateManager templateManager, Map<String, Object> model, ExtensionManager extensionManager) {
+    public static Optional<byte[]> buildBillingDocumentPdf(
+            BillingDocument.Type documentType,
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map<String, Object> model,
+            ExtensionManager extensionManager) {
         return switch (documentType) {
-            case INVOICE ->
-                buildInvoicePdf(purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
-            case RECEIPT ->
-                buildReceiptPdf(purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
-            case CREDIT_NOTE ->
-                buildCreditNotePdf(purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
+            case INVOICE -> buildInvoicePdf(
+                    purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
+            case RECEIPT -> buildReceiptPdf(
+                    purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
+            case CREDIT_NOTE -> buildCreditNotePdf(
+                    purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
             default -> throw new IllegalStateException(documentType + " not supported");
         };
     }
 
-    private static Optional<byte[]> buildFrom(PurchaseContext purchaseContext,
-                                              FileUploadManager fileUploadManager,
-                                              Locale language,
-                                              TemplateManager templateManager,
-                                              Map<String, Object> model,
-                                              TemplateResource templateResource,
-                                              ExtensionManager extensionManager) {
+    private static Optional<byte[]> buildFrom(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map<String, Object> model,
+            TemplateResource templateResource,
+            ExtensionManager extensionManager) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        boolean res = buildReceiptOrInvoicePdf(purchaseContext, fileUploadManager, language, templateManager, model, templateResource, extensionManager, baos);
+        boolean res = buildReceiptOrInvoicePdf(
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                templateResource,
+                extensionManager,
+                baos);
         return res ? Optional.of(baos.toByteArray()) : Optional.empty();
     }
 
-    public static Optional<byte[]> buildReceiptPdf(PurchaseContext purchaseContext,
-                                                   FileUploadManager fileUploadManager,
-                                                   Locale language,
-                                                   TemplateManager templateManager,
-                                                   Map<String, Object> model,
-                                                   ExtensionManager extensionManager) {
-        return buildFrom(purchaseContext, fileUploadManager, language, templateManager, model, TemplateResource.RECEIPT_PDF, extensionManager);
+    public static Optional<byte[]> buildReceiptPdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map<String, Object> model,
+            ExtensionManager extensionManager) {
+        return buildFrom(
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                TemplateResource.RECEIPT_PDF,
+                extensionManager);
     }
 
-    public static Optional<byte[]> buildInvoicePdf(PurchaseContext purchaseContext,
-                                                   FileUploadManager fileUploadManager,
-                                                   Locale language,
-                                                   TemplateManager templateManager,
-                                                   Map<String, Object> model,
-                                                   ExtensionManager extensionManager) {
-        return buildFrom(purchaseContext, fileUploadManager, language, templateManager, model, TemplateResource.INVOICE_PDF, extensionManager);
+    public static Optional<byte[]> buildInvoicePdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map<String, Object> model,
+            ExtensionManager extensionManager) {
+        return buildFrom(
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                TemplateResource.INVOICE_PDF,
+                extensionManager);
     }
 
-    public static Optional<byte[]> buildCreditNotePdf(PurchaseContext purchaseContext,
-                                                      FileUploadManager fileUploadManager,
-                                                      Locale language,
-                                                      TemplateManager templateManager,
-                                                      Map<String, Object> model,
-                                                      ExtensionManager extensionManager) {
-        return buildFrom(purchaseContext, fileUploadManager, language, templateManager, model, TemplateResource.CREDIT_NOTE_PDF, extensionManager);
+    public static Optional<byte[]> buildCreditNotePdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map<String, Object> model,
+            ExtensionManager extensionManager) {
+        return buildFrom(
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                TemplateResource.CREDIT_NOTE_PDF,
+                extensionManager);
     }
 }

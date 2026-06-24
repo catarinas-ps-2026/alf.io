@@ -16,8 +16,17 @@
  */
 package alfio.config;
 
+import static alfio.config.authentication.support.AuthenticationConstants.ADMIN;
+import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
+
 import alfio.config.authentication.support.OpenIdPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -29,38 +38,31 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
-import static alfio.config.authentication.support.AuthenticationConstants.ADMIN;
-import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
-
 class RoleAndOrganizationsTransactionPreparer {
 
     private static final Logger log = LoggerFactory.getLogger(RoleAndOrganizationsTransactionPreparer.class);
+
     private RoleAndOrganizationsTransactionPreparer() {}
 
     private static final OrRequestMatcher IS_PUBLIC_URLS = new OrRequestMatcher(
-        new AntPathRequestMatcher("/resources/**"),
-        new AntPathRequestMatcher("/webjars/**"),
-        new AntPathRequestMatcher("/event/**"),
-        new AntPathRequestMatcher("/"),
-        new AntPathRequestMatcher("/file/**"),
-        new AntPathRequestMatcher("/api/events/**"),
-        new AntPathRequestMatcher("/api/webhook/**"),
-        new AntPathRequestMatcher("/api/payment/**"),
-        new AntPathRequestMatcher("/api/pass/**"),
-        new AntPathRequestMatcher("/api/v2/info"),
-        new AntPathRequestMatcher("/api/v2/public/**"),
-        new AntPathRequestMatcher("/session-expired"),
-        new AntPathRequestMatcher("/authentication"));
+            new AntPathRequestMatcher("/resources/**"),
+            new AntPathRequestMatcher("/webjars/**"),
+            new AntPathRequestMatcher("/event/**"),
+            new AntPathRequestMatcher("/"),
+            new AntPathRequestMatcher("/file/**"),
+            new AntPathRequestMatcher("/api/events/**"),
+            new AntPathRequestMatcher("/api/webhook/**"),
+            new AntPathRequestMatcher("/api/payment/**"),
+            new AntPathRequestMatcher("/api/pass/**"),
+            new AntPathRequestMatcher("/api/v2/info"),
+            new AntPathRequestMatcher("/api/v2/public/**"),
+            new AntPathRequestMatcher("/session-expired"),
+            new AntPathRequestMatcher("/authentication"));
 
     private static boolean isCurrentlyInAPublicUrlRequest() {
-        HttpServletRequest request = Objects.requireNonNull((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        HttpServletRequest request = Objects.requireNonNull(
+                        (ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .getRequest();
         return IS_PUBLIC_URLS.matches(request);
     }
 
@@ -79,24 +81,25 @@ class RoleAndOrganizationsTransactionPreparer {
     private static boolean isPublic() {
         SecurityContext context = SecurityContextHolder.getContext();
         if (context != null
-            && context.getAuthentication() instanceof OAuth2AuthenticationToken oauth
-            && oauth.getPrincipal() instanceof OpenIdPrincipal principal) {
+                && context.getAuthentication() instanceof OAuth2AuthenticationToken oauth
+                && oauth.getPrincipal() instanceof OpenIdPrincipal principal) {
             return principal.user().isPublicUser();
         }
         return false;
     }
 
     private static boolean isAdmin() {
-        if(isLoggedUser()) {
-            return SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(authority -> authority.equals("ROLE_" + SYSTEM_API_CLIENT) || authority.equals("ROLE_" + ADMIN));
+        if (isLoggedUser()) {
+            return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(authority ->
+                            authority.equals("ROLE_" + SYSTEM_API_CLIENT) || authority.equals("ROLE_" + ADMIN));
         }
         return false;
     }
 
-    private static final String QUERY_ORG_FOR_USER = """
+    private static final String QUERY_ORG_FOR_USER =
+            """
         (select organization.id from organization inner join j_user_organization on org_id = organization.id where j_user_organization.user_id = (select ba_user.id from ba_user where ba_user.username = ?)) \
          union \
         (select organization.id from organization where 'ROLE_ADMIN' in (select role from ba_user inner join authority on ba_user.username = authority.username where ba_user.username = ?))\
@@ -120,7 +123,8 @@ class RoleAndOrganizationsTransactionPreparer {
 
         Set<Integer> orgIds = new TreeSet<>();
         try (var s = connection.prepareStatement(QUERY_ORG_FOR_USER)) {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            String username =
+                    SecurityContextHolder.getContext().getAuthentication().getName();
             s.setString(1, username);
             s.setString(2, username);
             try (var rs = s.executeQuery()) {
@@ -137,8 +141,10 @@ class RoleAndOrganizationsTransactionPreparer {
                 s.execute("set local alfio.checkRowAccess = true");
             }
             try (var s = connection.createStatement()) {
-                String formattedOrgIds = orgIds.stream().map(orgId -> Integer.toString(orgId)).collect(Collectors.joining(","));
-                //can't use placeholder in a prepared statement when using 'set ...', but cannot be sql injected as the source is a set of integers
+                String formattedOrgIds =
+                        orgIds.stream().map(orgId -> Integer.toString(orgId)).collect(Collectors.joining(","));
+                // can't use placeholder in a prepared statement when using 'set ...', but cannot be sql injected as the
+                // source is a set of integers
                 s.execute("set local alfio.currentUserOrgs = '" + formattedOrgIds + "'");
             }
         }

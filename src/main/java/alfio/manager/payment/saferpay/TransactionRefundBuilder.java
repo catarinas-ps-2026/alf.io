@@ -17,7 +17,6 @@
 package alfio.manager.payment.saferpay;
 
 import com.google.gson.stream.JsonWriter;
-
 import java.io.IOException;
 import java.io.StringWriter;
 
@@ -40,21 +39,29 @@ public class TransactionRefundBuilder {
 
     // @formatter:off
 
-    public String build(String amountToRefund, String currencyCode)throws IOException {
+    public String build(String amountToRefund, String currencyCode) throws IOException {
         var out = new StringWriter();
         var requestHeaderBuilder = new RequestHeaderBuilder(customerId, requestId, retryIndicator);
         try (var writer = new JsonWriter(out)) {
-            requestHeaderBuilder.appendTo(writer.beginObject())
-                .name("Refund").beginObject()
-                    .name("Amount").beginObject()
-                        .name("Value").value(amountToRefund)
-                        .name("CurrencyCode").value(currencyCode)
+            requestHeaderBuilder
+                    .appendTo(writer.beginObject())
+                    .name("Refund")
+                    .beginObject()
+                    .name("Amount")
+                    .beginObject()
+                    .name("Value")
+                    .value(amountToRefund)
+                    .name("CurrencyCode")
+                    .value(currencyCode)
                     .endObject()
-                .endObject()
-                .name("CaptureReference").beginObject()
-                    .name("CaptureId").value(captureId)
-                .endObject()
-            .endObject().flush();
+                    .endObject()
+                    .name("CaptureReference")
+                    .beginObject()
+                    .name("CaptureId")
+                    .value(captureId)
+                    .endObject()
+                    .endObject()
+                    .flush();
         }
         return out.toString();
     }

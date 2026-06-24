@@ -25,5 +25,4 @@ public interface PaymentToken extends Serializable {
     PaymentMethod getPaymentMethod();
 
     PaymentProxy getPaymentProvider();
-
 }

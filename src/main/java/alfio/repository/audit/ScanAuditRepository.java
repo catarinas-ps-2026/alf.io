@@ -22,24 +22,26 @@ import alfio.model.audit.ScanAudit;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
-
 import java.time.ZonedDateTime;
 import java.util.List;
 
 @QueryRepository
 public interface ScanAuditRepository {
-    @Query("insert into scan_audit(ticket_uuid, event_id_fk, scan_ts, username, check_in_status, operation) values(:ticketUuid, :eventId, :scanTs, :username, :status, :operation)")
-    Integer insert(@Bind("ticketUuid") String ticketUuid,
-                   @Bind("eventId") int eventId,
-                   @Bind("scanTs") ZonedDateTime timestamp,
-                   @Bind("username") String username,
-                   @Bind("status") CheckInStatus checkInStatus,
-                   @Bind("operation") ScanAudit.Operation operation);
+    @Query(
+            "insert into scan_audit(ticket_uuid, event_id_fk, scan_ts, username, check_in_status, operation) values(:ticketUuid, :eventId, :scanTs, :username, :status, :operation)")
+    Integer insert(
+            @Bind("ticketUuid") String ticketUuid,
+            @Bind("eventId") int eventId,
+            @Bind("scanTs") ZonedDateTime timestamp,
+            @Bind("username") String username,
+            @Bind("status") CheckInStatus checkInStatus,
+            @Bind("operation") ScanAudit.Operation operation);
 
     @Query("select * from scan_audit where event_id_fk = :eventId")
     List<ScanAudit> findAllForEvent(@Bind("eventId") int eventId);
 
-    @Query("""
+    @Query(
+            """
         select t.uuid t_uuid, jsonb_build_object('firstName', t.first_name, 'lastName', t.last_name, 'email', t.email_address, 'metadata', coalesce(t.metadata::jsonb#>'{metadataMap, general, attributes}', '{}')) attendee_data, jsonb_agg(jsonb_build_object('ticketUuid', sa.ticket_uuid, 'scanTimestamp', sa.scan_ts, 'username', sa.username, 'checkInStatus', sa.check_in_status, 'operation', sa.operation)) scans from ticket t
             join event e on t.event_id = e.id\
             join scan_audit sa on e.id = sa.event_id_fk and t.uuid = sa.ticket_uuid\
@@ -48,5 +50,4 @@ public interface ScanAuditRepository {
             group by 1,2\
         """)
     List<CheckInLogEntry> loadEntries(@Bind("eventId") int eventId);
-
 }

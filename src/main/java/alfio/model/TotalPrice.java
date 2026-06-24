@@ -29,11 +29,12 @@ public class TotalPrice {
     private final String currencyCode;
 
     @JsonCreator
-    public TotalPrice(@JsonProperty("priceWithVAT") int priceWithVAT,
-                      @JsonProperty("vat") int VAT,
-                      @JsonProperty("discount") int discount,
-                      @JsonProperty("discountAppliedCount") int discountAppliedCount,
-                      @JsonProperty("currencyCode") String currencyCode) {
+    public TotalPrice(
+            @JsonProperty("priceWithVAT") int priceWithVAT,
+            @JsonProperty("vat") int VAT,
+            @JsonProperty("discount") int discount,
+            @JsonProperty("discountAppliedCount") int discountAppliedCount,
+            @JsonProperty("currencyCode") String currencyCode) {
         this.priceWithVAT = priceWithVAT;
         this.VAT = VAT;
         this.discount = discount;

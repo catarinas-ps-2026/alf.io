@@ -16,6 +16,11 @@
  */
 package alfio.manager;
 
+import static alfio.model.system.ConfigurationKeys.ENABLE_PRE_REGISTRATION;
+import static alfio.model.system.ConfigurationKeys.ENABLE_WAITING_QUEUE;
+import static alfio.test.util.TestUtil.clockProvider;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.support.TemplateGenerator;
 import alfio.manager.system.ConfigurationManager;
@@ -26,21 +31,15 @@ import alfio.model.system.ConfigurationKeyValuePathLevel;
 import alfio.repository.TicketRepository;
 import alfio.repository.WaitingQueueRepository;
 import alfio.util.TemplateManager;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Triple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.MessageSource;
 import org.springframework.transaction.PlatformTransactionManager;
-
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static alfio.model.system.ConfigurationKeys.ENABLE_PRE_REGISTRATION;
-import static alfio.model.system.ConfigurationKeys.ENABLE_WAITING_QUEUE;
-import static alfio.test.util.TestUtil.clockProvider;
-import static org.mockito.Mockito.*;
 
 public class WaitingQueueSubscriptionProcessorTest {
 
@@ -59,7 +58,6 @@ public class WaitingQueueSubscriptionProcessorTest {
     private WaitingQueueSubscriptionProcessor processor;
     private TicketRepository ticketRepository;
     private MessageSourceManager messageSourceManager;
-
 
     @BeforeEach
     void setUp() {
@@ -83,26 +81,28 @@ public class WaitingQueueSubscriptionProcessorTest {
         when(eventManager.getActiveEvents()).thenReturn(Collections.singletonList(event));
         when(messageSourceManager.getMessageSourceFor(any())).thenReturn(messageSource);
         when(messageSourceManager.getRootMessageSource()).thenReturn(messageSource);
-        processor = new WaitingQueueSubscriptionProcessor(eventManager,
-            ticketReservationManager,
-            configurationManager,
-            waitingQueueManager,
-            notificationManager,
-            waitingQueueRepository,
-            messageSourceManager,
-            templateManager,
-            ticketRepository,
-            transactionManager,
-            clockProvider());
+        processor = new WaitingQueueSubscriptionProcessor(
+                eventManager,
+                ticketReservationManager,
+                configurationManager,
+                waitingQueueManager,
+                notificationManager,
+                waitingQueueRepository,
+                messageSourceManager,
+                templateManager,
+                ticketRepository,
+                transactionManager,
+                clockProvider());
     }
 
     @Test
     void filterWaitingQueueFlagIsNotActive() {
         when(configurationManager.getFor(eq(Set.of(ENABLE_WAITING_QUEUE, ENABLE_PRE_REGISTRATION)), any()))
-            .thenReturn(Map.of(
-                ENABLE_WAITING_QUEUE, new ConfigurationManager.MaybeConfiguration(ENABLE_WAITING_QUEUE, new ConfigurationKeyValuePathLevel( "", "false", null)),
-                ENABLE_PRE_REGISTRATION, new ConfigurationManager.MaybeConfiguration(ENABLE_PRE_REGISTRATION)
-            ));
+                .thenReturn(Map.of(
+                        ENABLE_WAITING_QUEUE,
+                                new ConfigurationManager.MaybeConfiguration(
+                                        ENABLE_WAITING_QUEUE, new ConfigurationKeyValuePathLevel("", "false", null)),
+                        ENABLE_PRE_REGISTRATION, new ConfigurationManager.MaybeConfiguration(ENABLE_PRE_REGISTRATION)));
 
         processor.handleWaitingTickets();
         verify(waitingQueueManager, never()).distributeSeats(eq(event));
@@ -112,20 +112,41 @@ public class WaitingQueueSubscriptionProcessorTest {
     void processPendingTickets() {
 
         when(configurationManager.getFor(eq(Set.of(ENABLE_WAITING_QUEUE, ENABLE_PRE_REGISTRATION)), any()))
-            .thenReturn(Map.of(
-                ENABLE_WAITING_QUEUE, new ConfigurationManager.MaybeConfiguration(ENABLE_WAITING_QUEUE, new ConfigurationKeyValuePathLevel( "", "true", null)),
-                ENABLE_PRE_REGISTRATION, new ConfigurationManager.MaybeConfiguration(ENABLE_PRE_REGISTRATION)
-            ));
+                .thenReturn(Map.of(
+                        ENABLE_WAITING_QUEUE,
+                                new ConfigurationManager.MaybeConfiguration(
+                                        ENABLE_WAITING_QUEUE, new ConfigurationKeyValuePathLevel("", "true", null)),
+                        ENABLE_PRE_REGISTRATION, new ConfigurationManager.MaybeConfiguration(ENABLE_PRE_REGISTRATION)));
 
         when(messageSource.getMessage(anyString(), any(), eq(Locale.ENGLISH))).thenReturn("subject");
         when(subscription.getLocale()).thenReturn(Locale.ENGLISH);
         when(subscription.getEmailAddress()).thenReturn("me");
         ZonedDateTime expiration = ZonedDateTime.now(clockProvider().getClock()).plusDays(1);
-        when(waitingQueueManager.distributeSeats(eq(event))).thenReturn(Stream.of(Triple.of(subscription, reservation, expiration)));
+        when(waitingQueueManager.distributeSeats(eq(event)))
+                .thenReturn(Stream.of(Triple.of(subscription, reservation, expiration)));
         String reservationId = "reservation-id";
-        when(ticketReservationManager.createTicketReservation(eq(event), anyList(), anyList(), any(Date.class), eq(Optional.empty()), any(Locale.class), eq(true), isNull())).thenReturn(reservationId);
+        when(ticketReservationManager.createTicketReservation(
+                        eq(event),
+                        anyList(),
+                        anyList(),
+                        any(Date.class),
+                        eq(Optional.empty()),
+                        any(Locale.class),
+                        eq(true),
+                        isNull()))
+                .thenReturn(reservationId);
         processor.handleWaitingTickets();
-        verify(ticketReservationManager).createTicketReservation(eq(event), eq(Collections.singletonList(reservation)), anyList(), eq(Date.from(expiration.toInstant())), eq(Optional.empty()), eq(Locale.ENGLISH), eq(true), isNull());
-        verify(notificationManager).sendSimpleEmail(eq(event), eq(reservationId), eq("me"), eq("subject"), any(TemplateGenerator.class));
+        verify(ticketReservationManager)
+                .createTicketReservation(
+                        eq(event),
+                        eq(Collections.singletonList(reservation)),
+                        anyList(),
+                        eq(Date.from(expiration.toInstant())),
+                        eq(Optional.empty()),
+                        eq(Locale.ENGLISH),
+                        eq(true),
+                        isNull());
+        verify(notificationManager)
+                .sendSimpleEmail(eq(event), eq(reservationId), eq("me"), eq("subject"), any(TemplateGenerator.class));
     }
 }

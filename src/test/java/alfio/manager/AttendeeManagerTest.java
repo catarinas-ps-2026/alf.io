@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.support.CheckInStatus;
 import alfio.manager.support.SponsorAttendeeData;
 import alfio.manager.support.TicketAndCheckInResult;
@@ -33,37 +36,40 @@ import alfio.repository.TicketRepository;
 import alfio.repository.user.UserRepository;
 import alfio.util.ClockProvider;
 import alfio.util.EventUtil;
+import java.time.Clock;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.BiFunction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
-import java.time.Clock;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.function.BiFunction;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 public class AttendeeManagerTest {
 
     @Mock
     private SponsorScanRepository sponsorScanRepository;
+
     @Mock
     private EventRepository eventRepository;
+
     @Mock
     private TicketRepository ticketRepository;
+
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private UserManager userManager;
+
     @Mock
     private PurchaseContextFieldManager purchaseContextFieldManager;
+
     @Mock
     private AdditionalServiceItemRepository additionalServiceItemRepository;
+
     @Mock
     private ClockProvider clockProvider;
 
@@ -73,9 +79,7 @@ public class AttendeeManagerTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         Clock fixedClock = Clock.fixed(
-                ZonedDateTime.of(2026, 6, 4, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant(),
-                ZoneId.of("UTC")
-        );
+                ZonedDateTime.of(2026, 6, 4, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant(), ZoneId.of("UTC"));
         when(clockProvider.getClock()).thenReturn(fixedClock);
         when(clockProvider.withZone(any())).thenReturn(fixedClock);
         manager = new AttendeeManager(
@@ -86,8 +90,7 @@ public class AttendeeManagerTest {
                 userManager,
                 purchaseContextFieldManager,
                 additionalServiceItemRepository,
-                clockProvider
-        );
+                clockProvider);
     }
 
     @Test
@@ -95,9 +98,11 @@ public class AttendeeManagerTest {
         User user = mock(User.class);
         when(user.getId()).thenReturn(10);
         when(userRepository.getByUsername("sponsor")).thenReturn(user);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1")).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1"))
+                .thenReturn(Optional.empty());
 
-        TicketAndCheckInResult res = manager.registerSponsorScan("event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
+        TicketAndCheckInResult res = manager.registerSponsorScan(
+                "event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
 
         assertNull(res.getTicket());
         assertEquals(CheckInStatus.EVENT_NOT_FOUND, res.getResult().getStatus());
@@ -110,11 +115,13 @@ public class AttendeeManagerTest {
         when(userRepository.getByUsername("sponsor")).thenReturn(user);
 
         EventAndOrganizationId event = mock(EventAndOrganizationId.class);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1"))
+                .thenReturn(Optional.of(event));
 
         when(ticketRepository.findOptionalByUUID("uid1")).thenReturn(Optional.empty());
 
-        TicketAndCheckInResult res = manager.registerSponsorScan("event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
+        TicketAndCheckInResult res = manager.registerSponsorScan(
+                "event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
 
         assertNull(res.getTicket());
         assertEquals(CheckInStatus.TICKET_NOT_FOUND, res.getResult().getStatus());
@@ -128,14 +135,16 @@ public class AttendeeManagerTest {
 
         EventAndOrganizationId event = mock(EventAndOrganizationId.class);
         when(event.getId()).thenReturn(20);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1"))
+                .thenReturn(Optional.of(event));
 
         Ticket ticket = mock(Ticket.class);
         when(ticket.getStatus()).thenReturn(Ticket.TicketStatus.ACQUIRED); // Not checked-in
         when(ticket.getEventId()).thenReturn(20);
         when(ticketRepository.findOptionalByUUID("uid1")).thenReturn(Optional.of(ticket));
 
-        TicketAndCheckInResult res = manager.registerSponsorScan("event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
+        TicketAndCheckInResult res = manager.registerSponsorScan(
+                "event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
 
         assertNotNull(res.getTicket());
         assertEquals(CheckInStatus.INVALID_TICKET_STATE, res.getResult().getStatus());
@@ -149,7 +158,8 @@ public class AttendeeManagerTest {
 
         EventAndOrganizationId event = mock(EventAndOrganizationId.class);
         when(event.getId()).thenReturn(20);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event1"))
+                .thenReturn(Optional.of(event));
 
         Ticket ticket = mock(Ticket.class);
         when(ticket.getId()).thenReturn(30);
@@ -160,11 +170,20 @@ public class AttendeeManagerTest {
         when(sponsorScanRepository.getRegistrationTimestamp(10, 20, 30, "op1")).thenReturn(Optional.empty());
         when(eventRepository.getZoneIdByEventId(20)).thenReturn(ZoneId.of("UTC"));
 
-        TicketAndCheckInResult res = manager.registerSponsorScan("event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
+        TicketAndCheckInResult res = manager.registerSponsorScan(
+                "event1", "uid1", "notes", SponsorScan.LeadStatus.WARM, "sponsor", "op1", null);
 
         assertNotNull(res.getTicket());
         assertEquals(CheckInStatus.SUCCESS, res.getResult().getStatus());
-        verify(sponsorScanRepository).insert(eq(10), any(ZonedDateTime.class), eq(20), eq(30), eq("notes"), eq(SponsorScan.LeadStatus.WARM), eq("op1"));
+        verify(sponsorScanRepository)
+                .insert(
+                        eq(10),
+                        any(ZonedDateTime.class),
+                        eq(20),
+                        eq(30),
+                        eq("notes"),
+                        eq(SponsorScan.LeadStatus.WARM),
+                        eq("op1"));
     }
 
     @Test
@@ -191,9 +210,12 @@ public class AttendeeManagerTest {
         when(ticketRepository.findOptionalByUUID("uid1")).thenReturn(Optional.of(ticket));
 
         try (MockedStatic<EventUtil> eventUtilMockedStatic = mockStatic(EventUtil.class)) {
-            BiFunction<Ticket, Event, List<FieldConfigurationDescriptionAndValue>> mockBiFunction = mock(BiFunction.class);
+            BiFunction<Ticket, Event, List<FieldConfigurationDescriptionAndValue>> mockBiFunction =
+                    mock(BiFunction.class);
             when(mockBiFunction.apply(any(), any())).thenReturn(Collections.emptyList());
-            eventUtilMockedStatic.when(() -> EventUtil.retrieveFieldValues(any(), any(), any(), anyBoolean())).thenReturn(mockBiFunction);
+            eventUtilMockedStatic
+                    .when(() -> EventUtil.retrieveFieldValues(any(), any(), any(), anyBoolean()))
+                    .thenReturn(mockBiFunction);
 
             Result<TicketWithAdditionalFields> result = manager.retrieveTicket("event1", "uid1", "user");
             assertTrue(result.isSuccess());
@@ -223,9 +245,11 @@ public class AttendeeManagerTest {
         when(ss.getTimestamp()).thenReturn(timestamp);
         when(scan.getSponsorScan()).thenReturn(ss);
 
-        when(sponsorScanRepository.loadSponsorData(eq(20), eq(10), any(ZonedDateTime.class))).thenReturn(Collections.singletonList(scan));
+        when(sponsorScanRepository.loadSponsorData(eq(20), eq(10), any(ZonedDateTime.class)))
+                .thenReturn(Collections.singletonList(scan));
 
-        Optional<List<SponsorAttendeeData>> result = manager.retrieveScannedAttendees("event1", "sponsor", ZonedDateTime.now());
+        Optional<List<SponsorAttendeeData>> result =
+                manager.retrieveScannedAttendees("event1", "sponsor", ZonedDateTime.now());
         assertTrue(result.isPresent());
         assertEquals(1, result.get().size());
         assertEquals("ticket-uuid", result.get().get(0).getTicketId());

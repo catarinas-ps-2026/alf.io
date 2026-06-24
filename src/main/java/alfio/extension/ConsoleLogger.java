@@ -16,11 +16,10 @@
  */
 package alfio.extension;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConsoleLogger {
     private static final Logger log = LoggerFactory.getLogger(ConsoleLogger.class);
@@ -52,11 +51,11 @@ public class ConsoleLogger {
         String messageTemplate = "%s";
         var parameterPlaceholders = "";
         Object[] paramObjects;
-        if(others != null) {
+        if (others != null) {
             parameterPlaceholders = " %s".repeat(others.length);
             paramObjects = Stream.concat(Stream.of(first), Arrays.stream(others))
-                .map(ExtensionUtils::unwrap)
-                .toArray();
+                    .map(ExtensionUtils::unwrap)
+                    .toArray();
         } else {
             paramObjects = new Object[] {first};
         }

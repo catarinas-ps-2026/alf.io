@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.model.EventAndOrganizationId;
 import alfio.model.EventStatisticView;
 import alfio.model.Ticket;
@@ -27,17 +30,13 @@ import alfio.model.result.Result;
 import alfio.repository.*;
 import alfio.util.PinGenerator;
 import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import java.util.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 public class PollManagerTest {
 
@@ -59,7 +58,13 @@ public class PollManagerTest {
         jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
         ticketSearchRepository = mock(TicketSearchRepository.class);
         auditingRepository = mock(AuditingRepository.class);
-        pollManager = new PollManager(pollRepository, eventRepository, ticketRepository, jdbcTemplate, ticketSearchRepository, auditingRepository);
+        pollManager = new PollManager(
+                pollRepository,
+                eventRepository,
+                ticketRepository,
+                jdbcTemplate,
+                ticketSearchRepository,
+                auditingRepository);
 
         mockedPinGenerator = mockStatic(PinGenerator.class);
     }
@@ -85,7 +90,8 @@ public class PollManagerTest {
     public void testGetActiveForEvent_EventNotFound() {
         String eventName = "test-event";
         String pin = "VALIDPIN";
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.empty());
         mockPinValid(pin, true);
 
         Result<List<Poll>> result = pollManager.getActiveForEvent(eventName, pin);
@@ -99,7 +105,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "INVALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, false);
 
         Result<List<Poll>> result = pollManager.getActiveForEvent(eventName, pin);
@@ -113,7 +120,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         when(ticketRepository.findByEventIdAndPartialUUIDForUpdate(1, "abcde%", Ticket.TicketStatus.CHECKED_IN))
@@ -130,7 +138,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         Ticket ticket1 = mock(Ticket.class);
@@ -149,7 +158,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         Ticket ticket = mock(Ticket.class);
@@ -171,7 +181,8 @@ public class PollManagerTest {
     public void testGetSingleActiveForEvent_ValidationFail() {
         String eventName = "test-event";
         String pin = "INVALIDPIN";
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.empty());
         mockPinValid(pin, true);
 
         Result<PollWithOptions> result = pollManager.getSingleActiveForEvent(eventName, 200L, pin);
@@ -184,7 +195,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         Ticket ticket = mock(Ticket.class);
@@ -203,7 +215,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         Ticket ticket = mock(Ticket.class);
@@ -240,7 +253,8 @@ public class PollManagerTest {
     public void testRegisterAnswer_ValidationFail() {
         String eventName = "test-event";
         String pin = "INVALIDPIN";
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.empty());
         mockPinValid(pin, true);
 
         Result<Boolean> result = pollManager.registerAnswer(eventName, 1L, 2L, pin);
@@ -252,7 +266,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         Ticket ticket = mock(Ticket.class);
@@ -273,7 +288,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         Ticket ticket = mock(Ticket.class);
@@ -295,7 +311,8 @@ public class PollManagerTest {
         String eventName = "test-event";
         String pin = "VALIDPIN";
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName)).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName))
+                .thenReturn(Optional.of(event));
         mockPinValid(pin, true);
         mockPinToPartial(pin, "abcde");
         Ticket ticket = mock(Ticket.class);
@@ -315,7 +332,8 @@ public class PollManagerTest {
 
     @Test
     public void testGetAllForEvent_EventNotFound() {
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.empty());
         List<Poll> result = pollManager.getAllForEvent("event");
         assertTrue(result.isEmpty());
     }
@@ -323,7 +341,8 @@ public class PollManagerTest {
     @Test
     public void testGetAllForEvent_Success() {
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
         Poll poll = new Poll(200L, Poll.PollStatus.OPEN, Map.of(), Map.of(), List.of(), 1, 1, 10);
         when(pollRepository.findAllForEvent(1)).thenReturn(List.of(poll));
 
@@ -336,7 +355,8 @@ public class PollManagerTest {
 
     @Test
     public void testGetSingleForEvent_EventNotFound() {
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.empty());
         Optional<PollWithOptions> result = pollManager.getSingleForEvent(1L, "event");
         assertTrue(result.isEmpty());
     }
@@ -344,7 +364,8 @@ public class PollManagerTest {
     @Test
     public void testGetSingleForEvent_PollNotFound() {
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
         when(pollRepository.findSingleForEvent(1, 100L)).thenReturn(Optional.empty());
 
         Optional<PollWithOptions> result = pollManager.getSingleForEvent(100L, "event");
@@ -354,7 +375,8 @@ public class PollManagerTest {
     @Test
     public void testGetSingleForEvent_Success() {
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
         Poll poll = new Poll(100L, Poll.PollStatus.OPEN, Map.of(), Map.of(), List.of(), 1, 1, 10);
         when(pollRepository.findSingleForEvent(1, 100L)).thenReturn(Optional.of(poll));
         PollOption option = new PollOption(2L, 100L, Map.of(), Map.of());
@@ -369,7 +391,8 @@ public class PollManagerTest {
     @Test
     public void testGetSingleForEvent_PollIdNull() {
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
         assertThrows(NullPointerException.class, () -> {
             pollManager.getSingleForEvent(null, "event");
         });
@@ -391,7 +414,8 @@ public class PollManagerTest {
     public void testCreateNewPoll_EventNotFound() {
         PollModification form = mock(PollModification.class);
         when(form.isValid()).thenReturn(true);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.empty());
 
         Optional<Long> result = pollManager.createNewPoll("event", form);
         assertTrue(result.isEmpty());
@@ -411,12 +435,14 @@ public class PollManagerTest {
         when(form.getOptions()).thenReturn(List.of(optMod));
 
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
 
         AffectedRowCountAndKey<Long> pollKey = mock(AffectedRowCountAndKey.class);
         when(pollKey.getAffectedRowCount()).thenReturn(1);
         when(pollKey.getKey()).thenReturn(100L);
-        when(pollRepository.insert(eq(Map.of("en", "Poll Title")), eq(Map.of("en", "Desc")), eq(List.of()), eq(5), eq(1), eq(10)))
+        when(pollRepository.insert(
+                        eq(Map.of("en", "Poll Title")), eq(Map.of("en", "Desc")), eq(List.of()), eq(5), eq(1), eq(10)))
                 .thenReturn(pollKey);
 
         Optional<Long> result = pollManager.createNewPoll("event", form);
@@ -441,7 +467,8 @@ public class PollManagerTest {
         when(form.getOptions()).thenReturn(List.of(optMod1, optMod2));
 
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
 
         AffectedRowCountAndKey<Long> pollKey = mock(AffectedRowCountAndKey.class);
         when(pollKey.getAffectedRowCount()).thenReturn(1);
@@ -450,7 +477,8 @@ public class PollManagerTest {
                 .thenReturn(pollKey);
 
         when(pollRepository.bulkInsertOptions()).thenReturn("bulk-insert-query");
-        when(jdbcTemplate.batchUpdate(eq("bulk-insert-query"), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1, 1});
+        when(jdbcTemplate.batchUpdate(eq("bulk-insert-query"), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1, 1});
 
         Optional<Long> result = pollManager.createNewPoll("event", form);
         assertTrue(result.isPresent());
@@ -474,7 +502,8 @@ public class PollManagerTest {
         when(form.getOptions()).thenReturn(List.of(optMod1, optMod2));
 
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
 
         AffectedRowCountAndKey<Long> pollKey = mock(AffectedRowCountAndKey.class);
         when(pollKey.getAffectedRowCount()).thenReturn(1);
@@ -483,7 +512,8 @@ public class PollManagerTest {
                 .thenReturn(pollKey);
 
         when(pollRepository.bulkInsertOptions()).thenReturn("bulk-insert-query");
-        when(jdbcTemplate.batchUpdate(eq("bulk-insert-query"), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1, 0});
+        when(jdbcTemplate.batchUpdate(eq("bulk-insert-query"), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1, 0});
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             pollManager.createNewPoll("event", form);
@@ -537,7 +567,8 @@ public class PollManagerTest {
         PollModification form = mock(PollModification.class);
         when(form.getId()).thenReturn(100L);
         when(form.isValid(100L)).thenReturn(true);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.empty());
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.empty());
 
         Optional<PollWithOptions> result = pollManager.updatePoll("event", form);
         assertTrue(result.isEmpty());
@@ -549,7 +580,8 @@ public class PollManagerTest {
         when(form.getId()).thenReturn(100L);
         when(form.isValid(100L)).thenReturn(true);
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
         when(pollRepository.findSingleForEvent(1, 100L)).thenReturn(Optional.empty());
 
         assertThrows(NoSuchElementException.class, () -> {
@@ -573,17 +605,26 @@ public class PollManagerTest {
         Poll origPoll = new Poll(100L, Poll.PollStatus.OPEN, Map.of(), Map.of(), List.of("tag-uuid"), 1, 1, 10);
 
         EventAndOrganizationId event = new EventAndOrganizationId(1, 10);
-        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event")).thenReturn(Optional.of(event));
+        when(eventRepository.findOptionalEventAndOrganizationIdByShortName("event"))
+                .thenReturn(Optional.of(event));
 
         when(form.isAccessRestricted()).thenReturn(false);
 
-        when(pollRepository.update(eq(Map.of("en", "New Title")), eq(Map.of("en", "New Desc")), eq(List.of()), eq(3), eq(100L), eq(1)))
+        when(pollRepository.update(
+                        eq(Map.of("en", "New Title")),
+                        eq(Map.of("en", "New Desc")),
+                        eq(List.of()),
+                        eq(3),
+                        eq(100L),
+                        eq(1)))
                 .thenReturn(1);
 
         when(pollRepository.bulkUpdateOptions()).thenReturn("bulk-update-query");
-        when(jdbcTemplate.batchUpdate(eq("bulk-update-query"), any(MapSqlParameterSource[].class))).thenReturn(new int[]{1});
+        when(jdbcTemplate.batchUpdate(eq("bulk-update-query"), any(MapSqlParameterSource[].class)))
+                .thenReturn(new int[] {1});
 
-        Poll updatedPoll = new Poll(100L, Poll.PollStatus.OPEN, Map.of("en", "New Title"), Map.of("en", "New Desc"), List.of(), 3, 1, 10);
+        Poll updatedPoll = new Poll(
+                100L, Poll.PollStatus.OPEN, Map.of("en", "New Title"), Map.of("en", "New Desc"), List.of(), 3, 1, 10);
         PollOption updatedOption = new PollOption(200L, 100L, Map.of("en", "Exist Opt"), Map.of());
         PollOption newInsertedOption = new PollOption(201L, 100L, Map.of("en", "New Opt"), Map.of());
         when(pollRepository.getOptionsForPoll(100L)).thenReturn(List.of(updatedOption, newInsertedOption));

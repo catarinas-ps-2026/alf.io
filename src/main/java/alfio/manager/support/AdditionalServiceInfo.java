@@ -17,8 +17,6 @@
 package alfio.manager.support;
 
 import alfio.model.AdditionalServiceFieldValue;
-
 import java.util.List;
 
-public record AdditionalServiceInfo(String name, int count, List<AdditionalServiceFieldValue> fields) {
-}
+public record AdditionalServiceInfo(String name, int count, List<AdditionalServiceFieldValue> fields) {}

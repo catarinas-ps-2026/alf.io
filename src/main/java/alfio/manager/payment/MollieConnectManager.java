@@ -16,6 +16,8 @@
  */
 package alfio.manager.payment;
 
+import static alfio.model.system.ConfigurationKeys.*;
+
 import alfio.manager.ExtensionManager;
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
@@ -28,18 +30,15 @@ import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.builder.api.DefaultApi20;
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.oauth.OAuth20Service;
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
 import java.net.http.HttpClient;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import static alfio.model.system.ConfigurationKeys.*;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
@@ -53,26 +52,48 @@ public class MollieConnectManager implements OAuthPaymentProviderConnector {
 
     @Override
     public AuthorizationRequestDetails getConnectURL(int organizationId) {
-        var options = configurationManager.getFor(Set.of(MOLLIE_API_KEY, MOLLIE_CONNECT_CLIENT_ID, MOLLIE_CONNECT_CALLBACK, BASE_URL), ConfigurationLevel.organization(organizationId));
-        String callbackURL = options.get(MOLLIE_CONNECT_CALLBACK).getValueOrDefault(options.get(BASE_URL).getRequiredValue() + MOLLIE_CONNECT_REDIRECT_PATH);
-        String state = extensionManager.generateOAuth2StateParam(organizationId).orElse(UUID.randomUUID().toString());
-        return new AuthorizationRequestDetails(new MollieConnectApi()
-            .getAuthorizationUrl("code", options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue(), callbackURL, SCOPES, state, Collections.emptyMap()), state);
+        var options = configurationManager.getFor(
+                Set.of(MOLLIE_API_KEY, MOLLIE_CONNECT_CLIENT_ID, MOLLIE_CONNECT_CALLBACK, BASE_URL),
+                ConfigurationLevel.organization(organizationId));
+        String callbackURL = options.get(MOLLIE_CONNECT_CALLBACK)
+                .getValueOrDefault(options.get(BASE_URL).getRequiredValue() + MOLLIE_CONNECT_REDIRECT_PATH);
+        String state = extensionManager
+                .generateOAuth2StateParam(organizationId)
+                .orElse(UUID.randomUUID().toString());
+        return new AuthorizationRequestDetails(
+                new MollieConnectApi()
+                        .getAuthorizationUrl(
+                                "code",
+                                options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue(),
+                                callbackURL,
+                                SCOPES,
+                                state,
+                                Collections.emptyMap()),
+                state);
     }
 
     @Override
     public AccessTokenResponseDetails storeConnectedAccountId(String code, int organizationId) {
         try {
             ConfigurationLevel configurationLevel = ConfigurationLevel.organization(organizationId);
-            var options = configurationManager.getFor(Set.of(MOLLIE_API_KEY, MOLLIE_CONNECT_CLIENT_ID, MOLLIE_CONNECT_CLIENT_SECRET, MOLLIE_CONNECT_CALLBACK, BASE_URL), configurationLevel);
-            OAuth20Service service = new ServiceBuilder(options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue())
-                .apiSecret(options.get(MOLLIE_CONNECT_CLIENT_SECRET).getRequiredValue())
-                .callback(options.get(MOLLIE_CONNECT_CALLBACK).getRequiredValue())
-                .build(new MollieConnectApi());
+            var options = configurationManager.getFor(
+                    Set.of(
+                            MOLLIE_API_KEY,
+                            MOLLIE_CONNECT_CLIENT_ID,
+                            MOLLIE_CONNECT_CLIENT_SECRET,
+                            MOLLIE_CONNECT_CALLBACK,
+                            BASE_URL),
+                    configurationLevel);
+            OAuth20Service service = new ServiceBuilder(
+                            options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue())
+                    .apiSecret(options.get(MOLLIE_CONNECT_CLIENT_SECRET).getRequiredValue())
+                    .callback(options.get(MOLLIE_CONNECT_CALLBACK).getRequiredValue())
+                    .build(new MollieConnectApi());
             OAuth2AccessToken accessTokenResponse = service.getAccessToken(code);
             var refreshToken = accessTokenResponse.getRefreshToken();
-            if(refreshToken != null) {
-                configurationManager.saveConfig(Configuration.from(organizationId, MOLLIE_CONNECT_REFRESH_TOKEN), refreshToken);
+            if (refreshToken != null) {
+                configurationManager.saveConfig(
+                        Configuration.from(organizationId, MOLLIE_CONNECT_REFRESH_TOKEN), refreshToken);
             }
             return new AccessTokenResponseDetails(accessTokenResponse.getAccessToken(), refreshToken, null, true);
         } catch (InterruptedException e) {
@@ -87,10 +108,11 @@ public class MollieConnectManager implements OAuthPaymentProviderConnector {
 
     public AccessTokenResponseDetails refreshAccessToken(Map<ConfigurationKeys, MaybeConfiguration> options) {
         try {
-            OAuth20Service service = new ServiceBuilder(options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue())
-                .apiSecret(options.get(MOLLIE_CONNECT_CLIENT_SECRET).getRequiredValue())
-                .callback(options.get(MOLLIE_CONNECT_CALLBACK).getRequiredValue())
-                .build(new MollieConnectApi());
+            OAuth20Service service = new ServiceBuilder(
+                            options.get(MOLLIE_CONNECT_CLIENT_ID).getRequiredValue())
+                    .apiSecret(options.get(MOLLIE_CONNECT_CLIENT_SECRET).getRequiredValue())
+                    .callback(options.get(MOLLIE_CONNECT_CALLBACK).getRequiredValue())
+                    .build(new MollieConnectApi());
             String refreshToken = options.get(MOLLIE_CONNECT_REFRESH_TOKEN).getRequiredValue();
             OAuth2AccessToken accessTokenResponse = service.refreshAccessToken(refreshToken);
             return new AccessTokenResponseDetails(accessTokenResponse.getAccessToken(), refreshToken, null, true);

@@ -17,7 +17,6 @@
 package alfio.test.util;
 
 import alfio.util.ClockProvider;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,15 +27,12 @@ public class TestUtil {
     public static final ClockProvider FIXED_TIME_CLOCK;
 
     static {
-        var todayAt10Sharp = LocalDateTime.now(Clock.systemUTC())
-            .withHour(10)
-            .withMinute(0)
-            .toInstant(ZoneOffset.UTC);
+        var todayAt10Sharp =
+                LocalDateTime.now(Clock.systemUTC()).withHour(10).withMinute(0).toInstant(ZoneOffset.UTC);
         FIXED_TIME_CLOCK = ClockProvider.init(Clock.fixed(todayAt10Sharp, ZoneId.of("Europe/Zurich")));
     }
 
-    private TestUtil() {
-    }
+    private TestUtil() {}
 
     public static ClockProvider clockProvider() {
         return FIXED_TIME_CLOCK;

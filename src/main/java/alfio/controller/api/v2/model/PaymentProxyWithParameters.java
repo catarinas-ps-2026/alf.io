@@ -17,10 +17,9 @@
 package alfio.controller.api.v2.model;
 
 import alfio.model.transaction.PaymentProxy;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.Map;
 
 @AllArgsConstructor
 @Getter

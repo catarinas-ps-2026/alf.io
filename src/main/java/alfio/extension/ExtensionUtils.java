@@ -18,12 +18,6 @@ package alfio.extension;
 
 import alfio.util.Json;
 import com.google.gson.*;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.HmacAlgorithms;
-import org.apache.commons.codec.digest.HmacUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.mozilla.javascript.*;
-
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -33,15 +27,20 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.*;
 
 public class ExtensionUtils {
 
-    private static final Gson JSON_SERIALIZER = Json.GSON.newBuilder()
-        .registerTypeAdapter(Double.class, new DoubleSerializer())
-        .create();
+    private static final Gson JSON_SERIALIZER = Json.GSON
+            .newBuilder()
+            .registerTypeAdapter(Double.class, new DoubleSerializer())
+            .create();
 
-    private ExtensionUtils() {
-    }
+    private ExtensionUtils() {}
 
     public static String format(String str, String... params) {
         return str.formatted((Object[]) params);
@@ -56,7 +55,7 @@ public class ExtensionUtils {
     }
 
     public static String computeHMAC(String secret, String... parts) {
-        if(parts == null || parts.length == 0) {
+        if (parts == null || parts.length == 0) {
             return "";
         }
         var text = Arrays.stream(parts).map(StringUtils::trimToEmpty).collect(Collectors.joining(""));
@@ -78,9 +77,7 @@ public class ExtensionUtils {
     }
 
     public static String base64UrlSafe(String input) {
-        return Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(input.getBytes(StandardCharsets.UTF_8));
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(input.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -130,8 +127,8 @@ public class ExtensionUtils {
             case "Boolean" -> Context.jsToJava(object, Boolean.class);
             case "Date" -> Context.jsToJava(object, Date.class);
             default ->
-                // better safe than sorry: we ignore all the unknown objects
-                null;
+            // better safe than sorry: we ignore all the unknown objects
+            null;
         };
     }
 
@@ -145,11 +142,11 @@ public class ExtensionUtils {
         @Override
         public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
 
-            if(src == null) {
+            if (src == null) {
                 return null;
             }
 
-            if(Math.floor(src) == src) {
+            if (Math.floor(src) == src) {
                 return new JsonPrimitive(src.longValue());
             } else {
                 return new JsonPrimitive(src);

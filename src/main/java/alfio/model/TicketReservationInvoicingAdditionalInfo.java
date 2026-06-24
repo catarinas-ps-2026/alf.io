@@ -57,19 +57,16 @@ public class TicketReservationInvoicingAdditionalInfo {
         }
 
         public String getReference() {
-            if(referenceType == ReferenceType.ADDRESSEE_CODE) {
+            if (referenceType == ReferenceType.ADDRESSEE_CODE) {
                 return addresseeCode;
-            } else if(referenceType == ReferenceType.PEC) {
+            } else if (referenceType == ReferenceType.PEC) {
                 return pec;
             }
             return null;
         }
 
         public boolean isEmpty() {
-            return fiscalCode == null
-                && referenceType == null
-                && addresseeCode == null
-                && pec == null;
+            return fiscalCode == null && referenceType == null && addresseeCode == null && pec == null;
         }
     }
 }

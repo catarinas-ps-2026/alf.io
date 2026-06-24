@@ -21,14 +21,13 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.Objects;
 
 public class PreAuthCookieWriterFilter extends OncePerRequestFilter {
 
@@ -36,20 +35,20 @@ public class PreAuthCookieWriterFilter extends OncePerRequestFilter {
     private final ContextAwareCookieSerializer cookieSerializer;
     private final RequestMatcher requestMatcher;
 
-    public PreAuthCookieWriterFilter(ContextAwareCookieSerializer cookieSerializer,
-                                     RequestMatcher preAuthRequestMatcher) {
+    public PreAuthCookieWriterFilter(
+            ContextAwareCookieSerializer cookieSerializer, RequestMatcher preAuthRequestMatcher) {
         this.cookieSerializer = cookieSerializer;
         this.requestMatcher = preAuthRequestMatcher;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         if (requestMatcher.matches(request)) {
             log.trace("Request matches. Adding PreAuth cookie.");
             var session = Objects.requireNonNull(request.getSession(false));
-            cookieSerializer.writePreAuthCookieValue(new CookieSerializer.CookieValue(request, response, session.getId()));
+            cookieSerializer.writePreAuthCookieValue(
+                    new CookieSerializer.CookieValue(request, response, session.getId()));
         }
         filterChain.doFilter(request, response);
     }

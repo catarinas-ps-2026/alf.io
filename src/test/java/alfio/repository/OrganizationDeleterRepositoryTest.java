@@ -14,27 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package alfio.repository;
 
+import static org.mockito.Mockito.*;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class OrganizationDeleterRepositoryTest {
 
-    private final OrganizationDeleterRepository organizationDeleterRepository = mock(OrganizationDeleterRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+    private final OrganizationDeleterRepository organizationDeleterRepository =
+            mock(OrganizationDeleterRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 
     @Test
     void testDeleteEmptyOrganizations() {
         List<Integer> orgIds = List.of(1, 2);
         organizationDeleterRepository.deleteEmptyOrganizations(orgIds);
-        
+
         verify(organizationDeleterRepository).deleteInvoiceSequencesForEmptyOrganizations(orgIds);
         verify(organizationDeleterRepository).deleteAuditingForEmptyOrganizations(orgIds);
         verify(organizationDeleterRepository).deleteGroupMembersForEmptyOrganizations(orgIds);

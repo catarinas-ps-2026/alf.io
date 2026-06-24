@@ -18,7 +18,6 @@ package alfio.model.api.v1.admin.subscription;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.time.LocalDateTime;
 
 public class CustomPeriodTerm implements SubscriptionTerm {
@@ -27,17 +26,16 @@ public class CustomPeriodTerm implements SubscriptionTerm {
     private final LocalDateTime validityTo;
 
     @JsonCreator
-    public CustomPeriodTerm(@JsonProperty("validityFrom") LocalDateTime validityFrom,
-                            @JsonProperty("validityTo") LocalDateTime validityTo) {
+    public CustomPeriodTerm(
+            @JsonProperty("validityFrom") LocalDateTime validityFrom,
+            @JsonProperty("validityTo") LocalDateTime validityTo) {
         this.validityFrom = validityFrom;
         this.validityTo = validityTo;
     }
 
     @Override
     public boolean validate() {
-        return validityFrom != null
-            && validityTo != null
-            && validityFrom.isBefore(validityTo);
+        return validityFrom != null && validityTo != null && validityFrom.isBefore(validityTo);
     }
 
     @Override
@@ -49,5 +47,4 @@ public class CustomPeriodTerm implements SubscriptionTerm {
     public LocalDateTime getValidityTo() {
         return validityTo;
     }
-
 }

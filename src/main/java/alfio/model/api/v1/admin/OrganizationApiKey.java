@@ -36,7 +36,6 @@ public class OrganizationApiKey {
         return apiKey;
     }
 
-
     public ApiKeyType getApiKeyType() {
         return apiKeyType;
     }

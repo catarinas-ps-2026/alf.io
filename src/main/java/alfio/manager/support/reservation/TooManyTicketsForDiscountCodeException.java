@@ -16,5 +16,4 @@
  */
 package alfio.manager.support.reservation;
 
-public class TooManyTicketsForDiscountCodeException extends RuntimeException {
-}
+public class TooManyTicketsForDiscountCodeException extends RuntimeException {}

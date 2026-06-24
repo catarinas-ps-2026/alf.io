@@ -21,11 +21,10 @@ import alfio.model.Event.EventFormat;
 import alfio.model.PurchaseContext;
 import alfio.model.user.Organization;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
 public class EventWithAdditionalInfo implements DateValidity, ApiPurchaseContext {
@@ -34,14 +33,14 @@ public class EventWithAdditionalInfo implements DateValidity, ApiPurchaseContext
     private final Organization.OrganizationContact organization;
     private final Map<String, String> description;
 
-    //payment related information
+    // payment related information
     private final String bankAccount;
     private final List<String> bankAccountOwner;
     //
 
-    //date related information
+    // date related information
     private final Map<String, String> formattedBeginDate; // day, month, year
-    private final Map<String, String> formattedBeginTime; //the hour/minute component
+    private final Map<String, String> formattedBeginTime; // the hour/minute component
     private final Map<String, String> formattedEndDate;
     private final Map<String, String> formattedEndTime;
     //
@@ -159,7 +158,6 @@ public class EventWithAdditionalInfo implements DateValidity, ApiPurchaseContext
         return bankAccountOwner;
     }
 
-
     // date related fields
     @Override
     public boolean isSameDay() {
@@ -197,7 +195,6 @@ public class EventWithAdditionalInfo implements DateValidity, ApiPurchaseContext
     }
 
     //
-
 
     @Override
     public InvoicingConfiguration getInvoicingConfiguration() {

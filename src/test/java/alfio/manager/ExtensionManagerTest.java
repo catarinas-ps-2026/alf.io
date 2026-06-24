@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static alfio.manager.support.extension.ExtensionEvent.TICKET_ASSIGNED;
+import static org.mockito.Mockito.*;
+
 import alfio.extension.ExtensionService;
 import alfio.manager.system.ConfigurationManager;
 import alfio.model.Event;
@@ -23,13 +26,9 @@ import alfio.model.Ticket;
 import alfio.model.TicketCategory;
 import alfio.model.metadata.AlfioMetadata;
 import alfio.repository.EventRepository;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-
-import static alfio.manager.support.extension.ExtensionEvent.TICKET_ASSIGNED;
-import static org.mockito.Mockito.*;
 
 class ExtensionManagerTest {
 
@@ -50,7 +49,8 @@ class ExtensionManagerTest {
         when(eventRepository.findOrganizationIdByEventId(1)).thenReturn(1);
         when(eventRepository.findById(1)).thenReturn(event);
         extensionService = mock(ExtensionService.class);
-        extensionManager = new ExtensionManager(extensionService, eventRepository, null, null, mock(ConfigurationManager.class), null, null);
+        extensionManager = new ExtensionManager(
+                extensionService, eventRepository, null, null, mock(ConfigurationManager.class), null, null);
     }
 
     @Test

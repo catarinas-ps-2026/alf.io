@@ -19,12 +19,11 @@ package alfio.model;
 import alfio.model.metadata.AlfioMetadata;
 import alfio.model.modification.StatisticsContainer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.math.BigDecimal;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Delegate;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 @AllArgsConstructor
 @Getter
@@ -57,7 +56,7 @@ public class EventWithAdditionalInfo implements StatisticsContainer, PriceContai
 
     @JsonIgnore
     public EventStatistic getEventStatistic() {
-       return eventStatistic;
+        return eventStatistic;
     }
 
     @Override
@@ -92,8 +91,9 @@ public class EventWithAdditionalInfo implements StatisticsContainer, PriceContai
 
     public boolean isAddCategoryEnabled() {
         return ticketCategories.stream()
-            .mapToInt(TicketCategoryWithAdditionalInfo::getMaxTickets)
-            .sum() < getAvailableSeats();
+                        .mapToInt(TicketCategoryWithAdditionalInfo::getMaxTickets)
+                        .sum()
+                < getAvailableSeats();
     }
 
     public boolean isContainingUnboundedCategories() {

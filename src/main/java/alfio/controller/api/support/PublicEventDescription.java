@@ -38,6 +38,7 @@ public class PublicEventDescription {
 
     interface EventDescriptionExcludes {
         int getEventId();
+
         EventDescription.EventDescriptionType getEventDescriptionType();
     }
 }

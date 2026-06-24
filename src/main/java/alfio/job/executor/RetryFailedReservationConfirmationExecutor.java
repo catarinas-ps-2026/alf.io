@@ -21,7 +21,6 @@ import alfio.manager.support.RetryFinalizeReservation;
 import alfio.manager.system.AdminJobExecutor;
 import alfio.model.system.AdminJobSchedule;
 import alfio.util.Json;
-
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -30,8 +29,7 @@ public class RetryFailedReservationConfirmationExecutor implements AdminJobExecu
     private final ReservationFinalizer reservationFinalizer;
     private final Json json;
 
-    public RetryFailedReservationConfirmationExecutor(ReservationFinalizer reservationFinalizer,
-                                                      Json json) {
+    public RetryFailedReservationConfirmationExecutor(ReservationFinalizer reservationFinalizer, Json json) {
         this.reservationFinalizer = reservationFinalizer;
         this.json = json;
     }
@@ -45,7 +43,8 @@ public class RetryFailedReservationConfirmationExecutor implements AdminJobExecu
     public String process(AdminJobSchedule schedule) {
         var metadata = schedule.getMetadata();
         var retryFinalizeReservation = (String) metadata.get("payload");
-        reservationFinalizer.retryFinalizeReservation(json.fromJsonString(retryFinalizeReservation, RetryFinalizeReservation.class));
+        reservationFinalizer.retryFinalizeReservation(
+                json.fromJsonString(retryFinalizeReservation, RetryFinalizeReservation.class));
         return null;
     }
 }

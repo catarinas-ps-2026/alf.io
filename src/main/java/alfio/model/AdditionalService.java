@@ -19,8 +19,6 @@ package alfio.model;
 import alfio.util.ClockProvider;
 import alfio.util.MonetaryUtil;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
-import org.springframework.security.crypto.codec.Hex;
-
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -33,25 +31,26 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.springframework.security.crypto.codec.Hex;
 
-public record AdditionalService(@Column("id") int id,
-                                @Column("event_id_fk") int eventId,
-                                @Column("fix_price") boolean fixPrice,
-                                @Column("ordinal") int ordinal,
-                                @Column("available_qty") int availableQuantity,
-                                @Column("max_qty_per_order") int maxQtyPerOrder,
-                                @Column("inception_ts") ZonedDateTime utcInception,
-                                @Column("expiration_ts") ZonedDateTime utcExpiration,
-                                @Column("vat") BigDecimal vat,
-                                @Column("vat_type") VatType vatType,
-                                @Column("src_price_cts") Integer srcPriceCts,
-                                @Column("service_type") AdditionalServiceType type,
-                                @Column("supplement_policy") SupplementPolicy supplementPolicy,
-                                @Column("currency_code") String currencyCode,
-                                @Column("available_count") Integer availableItems,
-                                @Column("price_min_cts") Integer minPriceCts,
-                                @Column("price_max_cts") Integer maxPriceCts) {
-
+public record AdditionalService(
+        @Column("id") int id,
+        @Column("event_id_fk") int eventId,
+        @Column("fix_price") boolean fixPrice,
+        @Column("ordinal") int ordinal,
+        @Column("available_qty") int availableQuantity,
+        @Column("max_qty_per_order") int maxQtyPerOrder,
+        @Column("inception_ts") ZonedDateTime utcInception,
+        @Column("expiration_ts") ZonedDateTime utcExpiration,
+        @Column("vat") BigDecimal vat,
+        @Column("vat_type") VatType vatType,
+        @Column("src_price_cts") Integer srcPriceCts,
+        @Column("service_type") AdditionalServiceType type,
+        @Column("supplement_policy") SupplementPolicy supplementPolicy,
+        @Column("currency_code") String currencyCode,
+        @Column("available_count") Integer availableItems,
+        @Column("price_min_cts") Integer minPriceCts,
+        @Column("price_max_cts") Integer maxPriceCts) {
 
     public enum VatType {
         INHERITED,
@@ -61,7 +60,8 @@ public record AdditionalService(@Column("id") int id,
     }
 
     public enum AdditionalServiceType {
-        DONATION, SUPPLEMENT
+        DONATION,
+        SUPPLEMENT
     }
 
     public enum SupplementPolicy {
@@ -98,7 +98,6 @@ public record AdditionalService(@Column("id") int id,
             this.mandatory = mandatory;
         }
 
-
         public boolean isValid(int quantity, AdditionalService as, int selectionCount) {
             return true;
         }
@@ -108,21 +107,29 @@ public record AdditionalService(@Column("id") int id,
         }
 
         public static Set<SupplementPolicy> userSelected() {
-            return Arrays.stream(values()).filter(Predicate.not(SupplementPolicy::isMandatory)).collect(Collectors.toSet());
+            return Arrays.stream(values())
+                    .filter(Predicate.not(SupplementPolicy::isMandatory))
+                    .collect(Collectors.toSet());
         }
 
         public static boolean isMandatoryPercentage(SupplementPolicy policy) {
             return policy == SupplementPolicy.MANDATORY_PERCENTAGE_RESERVATION
-                || policy == SupplementPolicy.MANDATORY_PERCENTAGE_FOR_TICKET;
+                    || policy == SupplementPolicy.MANDATORY_PERCENTAGE_FOR_TICKET;
         }
     }
 
     public ZonedDateTime getInception(ZoneId zoneId) {
-        return Optional.ofNullable(utcInception).map(i -> i.withZoneSameInstant(zoneId)).orElseGet(() -> ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).minus(1L, ChronoUnit.HOURS));
+        return Optional.ofNullable(utcInception)
+                .map(i -> i.withZoneSameInstant(zoneId))
+                .orElseGet(() -> ZonedDateTime.now(ClockProvider.clock().withZone(zoneId))
+                        .minus(1L, ChronoUnit.HOURS));
     }
 
     public ZonedDateTime getExpiration(ZoneId zoneId) {
-        return Optional.ofNullable(utcExpiration).map(i -> i.withZoneSameInstant(zoneId)).orElseGet(() -> ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).plus(1L, ChronoUnit.HOURS));
+        return Optional.ofNullable(utcExpiration)
+                .map(i -> i.withZoneSameInstant(zoneId))
+                .orElseGet(() -> ZonedDateTime.now(ClockProvider.clock().withZone(zoneId))
+                        .plus(1L, ChronoUnit.HOURS));
     }
 
     public boolean getSaleable() {
@@ -153,7 +160,10 @@ public record AdditionalService(@Column("id") int id,
             digest.update(Integer.toString(maxQtyPerOrder).getBytes(StandardCharsets.UTF_8));
             digest.update(utcInception.toString().getBytes(StandardCharsets.UTF_8));
             digest.update(utcExpiration.toString().getBytes(StandardCharsets.UTF_8));
-            digest.update(Optional.ofNullable(vat).map(BigDecimal::toString).orElse("").getBytes(StandardCharsets.UTF_8));
+            digest.update(Optional.ofNullable(vat)
+                    .map(BigDecimal::toString)
+                    .orElse("")
+                    .getBytes(StandardCharsets.UTF_8));
             digest.update(vatType.name().getBytes(StandardCharsets.UTF_8));
             digest.update(type.name().getBytes(StandardCharsets.UTF_8));
             if (supplementPolicy != null) {

@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.admin;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import alfio.controller.api.support.BookingInfoTicketLoader;
 import alfio.controller.api.support.PageAndContent;
 import alfio.manager.*;
@@ -24,6 +28,9 @@ import alfio.model.PurchaseContext.PurchaseContextType;
 import alfio.model.modification.AdminReservationModification;
 import alfio.model.result.ErrorCode;
 import alfio.model.result.Result;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,14 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 class AdminReservationApiControllerUnitTest {
 
@@ -64,14 +63,13 @@ class AdminReservationApiControllerUnitTest {
         accessService = mock(AccessService.class);
 
         controller = new AdminReservationApiController(
-            adminReservationManager,
-            eventManager,
-            purchaseContextManager,
-            purchaseContextSearchManager,
-            ticketReservationManager,
-            bookingInfoTicketLoader,
-            accessService
-        );
+                adminReservationManager,
+                eventManager,
+                purchaseContextManager,
+                purchaseContextSearchManager,
+                ticketReservationManager,
+                bookingInfoTicketLoader,
+                accessService);
 
         principal = mock(Principal.class);
         when(principal.getName()).thenReturn("admin");
@@ -80,7 +78,8 @@ class AdminReservationApiControllerUnitTest {
     @Test
     void createNew_withSubscriptionType_returnsError() {
         AdminReservationModification modification = mock(AdminReservationModification.class);
-        Result<String> result = controller.createNew(PurchaseContextType.subscription, "sub-1", modification, principal);
+        Result<String> result =
+                controller.createNew(PurchaseContextType.subscription, "sub-1", modification, principal);
         assertFalse(result.isSuccess());
         assertEquals("not_found", result.getFirstErrorOrNull().getCode());
     }
@@ -91,7 +90,7 @@ class AdminReservationApiControllerUnitTest {
         TicketReservation mockReservation = mock(TicketReservation.class);
         when(mockReservation.getId()).thenReturn("RES-123");
         when(adminReservationManager.createReservation(modification, "event-1", "admin"))
-            .thenReturn(Result.success(Pair.of(mockReservation, List.of())));
+                .thenReturn(Result.success(Pair.of(mockReservation, List.of())));
 
         Result<String> result = controller.createNew(PurchaseContextType.event, "event-1", modification, principal);
 
@@ -102,7 +101,8 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void getAllStatus_returnsAllEnumValues() {
-        TicketReservation.TicketReservationStatus[] result = controller.getAllStatus(PurchaseContextType.event, "event-1");
+        TicketReservation.TicketReservationStatus[] result =
+                controller.getAllStatus(PurchaseContextType.event, "event-1");
         assertArrayEquals(TicketReservation.TicketReservationStatus.values(), result);
     }
 
@@ -110,7 +110,8 @@ class AdminReservationApiControllerUnitTest {
     void findAll_purchaseContextNotFound_returnsEmptyPage() {
         doReturn(Optional.empty()).when(purchaseContextManager).findBy(PurchaseContextType.event, "event-1");
 
-        PageAndContent<List<TicketReservation>> result = controller.findAll(PurchaseContextType.event, "event-1", 0, "search", List.of(), principal);
+        PageAndContent<List<TicketReservation>> result =
+                controller.findAll(PurchaseContextType.event, "event-1", 0, "search", List.of(), principal);
 
         assertNotNull(result);
         assertTrue(result.getLeft().isEmpty());
@@ -125,9 +126,10 @@ class AdminReservationApiControllerUnitTest {
 
         List<TicketReservation> list = List.of(mock(TicketReservation.class));
         when(purchaseContextSearchManager.findAllReservationsFor(context, 0, "search", List.of()))
-            .thenReturn(Pair.of(list, 1));
+                .thenReturn(Pair.of(list, 1));
 
-        PageAndContent<List<TicketReservation>> result = controller.findAll(PurchaseContextType.event, "event-1", 0, "search", List.of(), principal);
+        PageAndContent<List<TicketReservation>> result =
+                controller.findAll(PurchaseContextType.event, "event-1", 0, "search", List.of(), principal);
 
         verify(accessService).checkOrganizationOwnership(principal, 42);
         assertEquals(list, result.getLeft());
@@ -144,11 +146,17 @@ class AdminReservationApiControllerUnitTest {
         when(context.event()).thenReturn(Optional.of(event));
 
         Triple<TicketReservation, List<Ticket>, PurchaseContext> triple = Triple.of(reservation, List.of(), context);
-        doReturn(Result.success(triple)).when(adminReservationManager)
-            .confirmReservation(eq(PurchaseContextType.event), eq("event-1"), eq("RES-123"), eq("admin"), eq(AdminReservationModification.Notification.EMPTY));
+        doReturn(Result.success(triple))
+                .when(adminReservationManager)
+                .confirmReservation(
+                        eq(PurchaseContextType.event),
+                        eq("event-1"),
+                        eq("RES-123"),
+                        eq("admin"),
+                        eq(AdminReservationModification.Notification.EMPTY));
 
         Result<AdminReservationApiController.TicketReservationDescriptor> result =
-            controller.confirmReservation(PurchaseContextType.event, "event-1", "RES-123", principal);
+                controller.confirmReservation(PurchaseContextType.event, "event-1", "RES-123", principal);
 
         assertTrue(result.isSuccess());
         assertEquals("RES-123", result.getData().getReservation().getId());
@@ -159,9 +167,10 @@ class AdminReservationApiControllerUnitTest {
     void updateReservation_delegatesToManager() {
         AdminReservationModification arm = mock(AdminReservationModification.class);
         when(adminReservationManager.updateReservation(PurchaseContextType.event, "event-1", "RES-123", arm, "admin"))
-            .thenReturn(Result.success(true));
+                .thenReturn(Result.success(true));
 
-        Result<Boolean> result = controller.updateReservation(PurchaseContextType.event, "event-1", "RES-123", arm, principal);
+        Result<Boolean> result =
+                controller.updateReservation(PurchaseContextType.event, "event-1", "RES-123", arm, principal);
 
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
@@ -172,9 +181,10 @@ class AdminReservationApiControllerUnitTest {
     void notifyReservation_delegatesToManager() {
         AdminReservationModification arm = mock(AdminReservationModification.class);
         when(adminReservationManager.notify(PurchaseContextType.event, "event-1", "RES-123", arm, "admin"))
-            .thenReturn(Result.success(true));
+                .thenReturn(Result.success(true));
 
-        Result<Boolean> result = controller.notifyReservation(PurchaseContextType.event, "event-1", "RES-123", arm, principal);
+        Result<Boolean> result =
+                controller.notifyReservation(PurchaseContextType.event, "event-1", "RES-123", arm, principal);
 
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
@@ -185,7 +195,7 @@ class AdminReservationApiControllerUnitTest {
     void notifyAttendees_delegatesToManager() {
         List<Integer> ids = List.of(1, 2);
         when(adminReservationManager.notifyAttendees("event-1", "RES-123", ids, "admin"))
-            .thenReturn(Result.success(true));
+                .thenReturn(Result.success(true));
 
         Result<Boolean> result = controller.notifyAttendees("event-1", "RES-123", ids, principal);
 
@@ -198,7 +208,7 @@ class AdminReservationApiControllerUnitTest {
     void getAudit_delegatesToManager() {
         List<Audit> auditList = List.of();
         when(adminReservationManager.getAudit(PurchaseContextType.event, "event-1", "RES-123", "admin"))
-            .thenReturn(Result.success(auditList));
+                .thenReturn(Result.success(auditList));
 
         Result<List<Audit>> result = controller.getAudit(PurchaseContextType.event, "event-1", "RES-123", principal);
 
@@ -211,9 +221,10 @@ class AdminReservationApiControllerUnitTest {
     void getBillingDocuments_delegatesToManager() {
         List<BillingDocument> docList = List.of();
         when(adminReservationManager.getBillingDocuments("event-1", "RES-123", "admin"))
-            .thenReturn(Result.success(docList));
+                .thenReturn(Result.success(docList));
 
-        Result<List<BillingDocument>> result = controller.getBillingDocuments(PurchaseContextType.event, "event-1", "RES-123", principal);
+        Result<List<BillingDocument>> result =
+                controller.getBillingDocuments(PurchaseContextType.event, "event-1", "RES-123", principal);
 
         assertTrue(result.isSuccess());
         assertEquals(docList, result.getData());
@@ -223,21 +234,24 @@ class AdminReservationApiControllerUnitTest {
     @Test
     void invalidateBillingDocument_success_returnsOk() {
         when(adminReservationManager.invalidateBillingDocument("RES-123", 456L, "admin"))
-            .thenReturn(Result.success(true));
+                .thenReturn(Result.success(true));
 
-        ResponseEntity<Boolean> response = controller.invalidateBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
+        ResponseEntity<Boolean> response =
+                controller.invalidateBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody());
-        verify(accessService).checkBillingDocumentOwnership(principal, PurchaseContextType.event, "event-1", "RES-123", 456L);
+        verify(accessService)
+                .checkBillingDocumentOwnership(principal, PurchaseContextType.event, "event-1", "RES-123", 456L);
     }
 
     @Test
     void invalidateBillingDocument_failure_returnsBadRequest() {
         when(adminReservationManager.invalidateBillingDocument("RES-123", 456L, "admin"))
-            .thenReturn(Result.error(ErrorCode.custom("err", "error")));
+                .thenReturn(Result.error(ErrorCode.custom("err", "error")));
 
-        ResponseEntity<Boolean> response = controller.invalidateBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
+        ResponseEntity<Boolean> response =
+                controller.invalidateBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -245,9 +259,10 @@ class AdminReservationApiControllerUnitTest {
     @Test
     void restoreBillingDocument_success_returnsOk() {
         when(adminReservationManager.restoreBillingDocument("RES-123", 456L, "admin"))
-            .thenReturn(Result.success(true));
+                .thenReturn(Result.success(true));
 
-        ResponseEntity<Boolean> response = controller.restoreBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
+        ResponseEntity<Boolean> response =
+                controller.restoreBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody());
@@ -257,9 +272,10 @@ class AdminReservationApiControllerUnitTest {
     @Test
     void restoreBillingDocument_failure_returnsBadRequest() {
         when(adminReservationManager.restoreBillingDocument("RES-123", 456L, "admin"))
-            .thenReturn(Result.error(ErrorCode.custom("err", "error")));
+                .thenReturn(Result.error(ErrorCode.custom("err", "error")));
 
-        ResponseEntity<Boolean> response = controller.restoreBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
+        ResponseEntity<Boolean> response =
+                controller.restoreBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -270,24 +286,27 @@ class AdminReservationApiControllerUnitTest {
         BillingDocument doc = mock(BillingDocument.class);
         when(doc.getType()).thenReturn(BillingDocument.Type.RECEIPT);
         Pair<BillingDocument, byte[]> pdfPair = Pair.of(doc, pdfBytes);
-        when(adminReservationManager.getSingleBillingDocumentAsPdf(PurchaseContextType.event, "event-1", "RES-123", 456L, "admin"))
-            .thenReturn(Result.success(pdfPair));
+        when(adminReservationManager.getSingleBillingDocumentAsPdf(
+                        PurchaseContextType.event, "event-1", "RES-123", 456L, "admin"))
+                .thenReturn(Result.success(pdfPair));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
-        ResponseEntity<Void> result = controller.getBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal, response);
+        ResponseEntity<Void> result = controller.getBillingDocument(
+                PurchaseContextType.event, "event-1", "RES-123", 456L, principal, response);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         verify(accessService).checkReservationOwnership(principal, PurchaseContextType.event, "event-1", "RES-123");
     }
 
-
     @Test
     void getBillingDocument_notFound_returnsNotFound() {
-        when(adminReservationManager.getSingleBillingDocumentAsPdf(PurchaseContextType.event, "event-1", "RES-123", 456L, "admin"))
-            .thenReturn(Result.error(ErrorCode.custom("not_found", "not found")));
+        when(adminReservationManager.getSingleBillingDocumentAsPdf(
+                        PurchaseContextType.event, "event-1", "RES-123", 456L, "admin"))
+                .thenReturn(Result.error(ErrorCode.custom("not_found", "not found")));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
-        ResponseEntity<Void> result = controller.getBillingDocument(PurchaseContextType.event, "event-1", "RES-123", 456L, principal, response);
+        ResponseEntity<Void> result = controller.getBillingDocument(
+                PurchaseContextType.event, "event-1", "RES-123", 456L, principal, response);
 
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
     }
@@ -302,11 +321,12 @@ class AdminReservationApiControllerUnitTest {
         when(context.event()).thenReturn(Optional.of(event));
 
         Triple<TicketReservation, List<Ticket>, PurchaseContext> triple = Triple.of(reservation, List.of(), context);
-        doReturn(Result.success(triple)).when(adminReservationManager)
-            .loadReservation(eq(PurchaseContextType.event), eq("event-1"), eq("RES-123"), eq("admin"));
+        doReturn(Result.success(triple))
+                .when(adminReservationManager)
+                .loadReservation(eq(PurchaseContextType.event), eq("event-1"), eq("RES-123"), eq("admin"));
 
         Result<AdminReservationApiController.TicketReservationDescriptor> result =
-            controller.loadReservation(PurchaseContextType.event, "event-1", "RES-123", principal);
+                controller.loadReservation(PurchaseContextType.event, "event-1", "RES-123", principal);
 
         assertTrue(result.isSuccess());
         assertEquals("RES-123", result.getData().getReservation().getId());
@@ -323,9 +343,11 @@ class AdminReservationApiControllerUnitTest {
         when(event.getId()).thenReturn(1);
         when(context.event()).thenReturn(Optional.of(event));
 
-        Triple<TicketReservation, List<Ticket>, PurchaseContext> triple = Triple.of(reservation, List.of(ticket), context);
-        doReturn(Result.success(triple)).when(adminReservationManager)
-            .loadReservation(eq(PurchaseContextType.event), eq("event-1"), eq("RES-123"), eq("admin"));
+        Triple<TicketReservation, List<Ticket>, PurchaseContext> triple =
+                Triple.of(reservation, List.of(ticket), context);
+        doReturn(Result.success(triple))
+                .when(adminReservationManager)
+                .loadReservation(eq(PurchaseContextType.event), eq("event-1"), eq("RES-123"), eq("admin"));
 
         Result<Ticket> result = controller.loadTicket(PurchaseContextType.event, "event-1", "RES-123", 99, principal);
 
@@ -343,8 +365,9 @@ class AdminReservationApiControllerUnitTest {
         when(context.event()).thenReturn(Optional.of(event));
 
         Triple<TicketReservation, List<Ticket>, PurchaseContext> triple = Triple.of(reservation, List.of(), context);
-        doReturn(Result.success(triple)).when(adminReservationManager)
-            .loadReservation(eq(PurchaseContextType.event), eq("event-1"), eq("RES-123"), eq("admin"));
+        doReturn(Result.success(triple))
+                .when(adminReservationManager)
+                .loadReservation(eq(PurchaseContextType.event), eq("event-1"), eq("RES-123"), eq("admin"));
 
         Result<Ticket> result = controller.loadTicket(PurchaseContextType.event, "event-1", "RES-123", 99, principal);
 
@@ -353,16 +376,18 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void ticketsWithAdditionalData_subscriptionType_returnsEmptyList() {
-        List<Integer> result = controller.ticketsWithAdditionalData(PurchaseContextType.subscription, "sub-1", "RES-123", principal);
+        List<Integer> result =
+                controller.ticketsWithAdditionalData(PurchaseContextType.subscription, "sub-1", "RES-123", principal);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void ticketsWithAdditionalData_eventType_delegatesToManager() {
         when(adminReservationManager.getTicketIdsWithAdditionalData(PurchaseContextType.event, "event-1", "RES-123"))
-            .thenReturn(List.of(1, 2));
+                .thenReturn(List.of(1, 2));
 
-        List<Integer> result = controller.ticketsWithAdditionalData(PurchaseContextType.event, "event-1", "RES-123", principal);
+        List<Integer> result =
+                controller.ticketsWithAdditionalData(PurchaseContextType.event, "event-1", "RES-123", principal);
 
         assertEquals(List.of(1, 2), result);
         verify(accessService).checkReservationMembership(principal, PurchaseContextType.event, "event-1", "RES-123");
@@ -371,12 +396,14 @@ class AdminReservationApiControllerUnitTest {
     @Test
     void removeTickets_delegatesToManager() {
         AdminReservationApiController.RemoveTicketsModification mod =
-            new AdminReservationApiController.RemoveTicketsModification(List.of(1), Map.of(1, true), true, true);
+                new AdminReservationApiController.RemoveTicketsModification(List.of(1), Map.of(1, true), true, true);
 
-        when(adminReservationManager.removeTickets(eq("event-1"), eq("RES-123"), eq(List.of(1)), eq(List.of(1)), eq(true), eq(true), eq("admin")))
-            .thenReturn(Result.success(true));
+        when(adminReservationManager.removeTickets(
+                        eq("event-1"), eq("RES-123"), eq(List.of(1)), eq(List.of(1)), eq(true), eq(true), eq("admin")))
+                .thenReturn(Result.success(true));
 
-        Result<AdminReservationApiController.RemoveResult> result = controller.removeTickets("event-1", "RES-123", mod, principal);
+        Result<AdminReservationApiController.RemoveResult> result =
+                controller.removeTickets("event-1", "RES-123", mod, principal);
 
         assertTrue(result.isSuccess());
         assertTrue(result.getData().isSuccess());
@@ -389,7 +416,8 @@ class AdminReservationApiControllerUnitTest {
         TransactionAndPaymentInfo info = mock(TransactionAndPaymentInfo.class);
         when(adminReservationManager.getPaymentInfo("RES-123")).thenReturn(Result.success(info));
 
-        Result<TransactionAndPaymentInfo> result = controller.getPaymentInfo(PurchaseContextType.event, "event-1", "RES-123", principal);
+        Result<TransactionAndPaymentInfo> result =
+                controller.getPaymentInfo(PurchaseContextType.event, "event-1", "RES-123", principal);
 
         assertTrue(result.isSuccess());
         assertEquals(info, result.getData());
@@ -398,10 +426,12 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void removeReservation_delegatesToManager() {
-        when(adminReservationManager.removeReservation(PurchaseContextType.event, "event-1", "RES-123", true, true, true, "admin"))
-            .thenReturn(Result.success(true));
+        when(adminReservationManager.removeReservation(
+                        PurchaseContextType.event, "event-1", "RES-123", true, true, true, "admin"))
+                .thenReturn(Result.success(true));
 
-        Result<Boolean> result = controller.removeReservation(PurchaseContextType.event, "event-1", "RES-123", true, true, true, principal);
+        Result<Boolean> result = controller.removeReservation(
+                PurchaseContextType.event, "event-1", "RES-123", true, true, true, principal);
 
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
@@ -410,20 +440,24 @@ class AdminReservationApiControllerUnitTest {
 
     @Test
     void creditReservation_delegatesToManager() {
-        Result<Boolean> result = controller.creditReservation(PurchaseContextType.event, "event-1", "RES-123", true, true, principal);
+        Result<Boolean> result =
+                controller.creditReservation(PurchaseContextType.event, "event-1", "RES-123", true, true, principal);
 
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
         verify(accessService).checkReservationOwnership(principal, PurchaseContextType.event, "event-1", "RES-123");
-        verify(adminReservationManager).creditReservation(PurchaseContextType.event, "event-1", "RES-123", true, true, "admin");
+        verify(adminReservationManager)
+                .creditReservation(PurchaseContextType.event, "event-1", "RES-123", true, true, "admin");
     }
 
     @Test
     void regenerateBillingDocument_delegatesToManager() {
-        when(adminReservationManager.regenerateBillingDocument(PurchaseContextType.event, "event-1", "RES-123", "admin"))
-            .thenReturn(Result.success(true));
+        when(adminReservationManager.regenerateBillingDocument(
+                        PurchaseContextType.event, "event-1", "RES-123", "admin"))
+                .thenReturn(Result.success(true));
 
-        Result<Boolean> result = controller.regenerateBillingDocument(PurchaseContextType.event, "event-1", "RES-123", principal);
+        Result<Boolean> result =
+                controller.regenerateBillingDocument(PurchaseContextType.event, "event-1", "RES-123", principal);
 
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
@@ -433,8 +467,9 @@ class AdminReservationApiControllerUnitTest {
     @Test
     void refund_delegatesToManager() {
         AdminReservationApiController.RefundAmount amount = new AdminReservationApiController.RefundAmount("150.00");
-        when(adminReservationManager.refund(PurchaseContextType.event, "event-1", "RES-123", new BigDecimal("150.00"), "admin"))
-            .thenReturn(Result.success(true));
+        when(adminReservationManager.refund(
+                        PurchaseContextType.event, "event-1", "RES-123", new BigDecimal("150.00"), "admin"))
+                .thenReturn(Result.success(true));
 
         Result<Boolean> result = controller.refund(PurchaseContextType.event, "event-1", "RES-123", amount, principal);
 
@@ -447,9 +482,10 @@ class AdminReservationApiControllerUnitTest {
     void getEmailList_delegatesToManager() {
         List<LightweightMailMessage> list = List.of();
         when(adminReservationManager.getEmailsForReservation(PurchaseContextType.event, "event-1", "RES-123", "admin"))
-            .thenReturn(Result.success(list));
+                .thenReturn(Result.success(list));
 
-        Result<List<LightweightMailMessage>> result = controller.getEmailList(PurchaseContextType.event, "event-1", "RES-123", principal);
+        Result<List<LightweightMailMessage>> result =
+                controller.getEmailList(PurchaseContextType.event, "event-1", "RES-123", principal);
 
         assertTrue(result.isSuccess());
         assertEquals(list, result.getData());

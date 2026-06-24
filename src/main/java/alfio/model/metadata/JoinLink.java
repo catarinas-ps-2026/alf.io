@@ -20,11 +20,10 @@ import alfio.model.LocalizedContent;
 import alfio.util.EventUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Getter;
 
 @Getter
 public class JoinLink {
@@ -34,10 +33,11 @@ public class JoinLink {
     private final Map<String, String> linkText;
 
     @JsonCreator
-    public JoinLink(@JsonProperty("link") String link,
-                    @JsonProperty("validFrom") LocalDateTime validFrom,
-                    @JsonProperty("validTo") LocalDateTime validTo,
-                    @JsonProperty("linkText") Map<String, String> linkText) {
+    public JoinLink(
+            @JsonProperty("link") String link,
+            @JsonProperty("validFrom") LocalDateTime validFrom,
+            @JsonProperty("validTo") LocalDateTime validTo,
+            @JsonProperty("linkText") Map<String, String> linkText) {
         this.link = link;
         this.validFrom = validFrom;
         this.validTo = validTo;
@@ -62,9 +62,9 @@ public class JoinLink {
         }
         JoinLink joinLink = (JoinLink) o;
         return Objects.equals(link, joinLink.link)
-            && Objects.equals(validFrom, joinLink.validFrom)
-            && Objects.equals(validTo, joinLink.validTo)
-            && linkText.equals(joinLink.linkText);
+                && Objects.equals(validFrom, joinLink.validFrom)
+                && Objects.equals(validTo, joinLink.validTo)
+                && linkText.equals(joinLink.linkText);
     }
 
     @Override

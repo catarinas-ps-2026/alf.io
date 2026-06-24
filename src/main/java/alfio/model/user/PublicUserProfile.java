@@ -22,26 +22,28 @@ import alfio.model.support.JSONData;
 import alfio.util.Json;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.Getter;
-
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class PublicUserProfile {
     private final BillingDetails billingDetails;
     private final Map<String, AdditionalInfoWithLabel> additionalData;
 
-    public PublicUserProfile(@Column("billing_address_company") String companyName,
-                             @Column("billing_address_line1") String addressLine1,
-                             @Column("billing_address_line2") String addressLine2,
-                             @Column("billing_address_zip") String zip,
-                             @Column("billing_address_city") String city,
-                             @Column("billing_address_state") String state,
-                             @Column("vat_country") String country,
-                             @Column("vat_nr") String taxId,
-                             @Column("invoicing_additional_information") @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo,
-                             @Column("additional_fields") String additionalData) {
-        this.billingDetails = new BillingDetails(companyName, addressLine1, addressLine2, zip, city, state, country, taxId, invoicingAdditionalInfo);
-        this.additionalData = Json.fromJson(additionalData, new TypeReference<>() { });
+    public PublicUserProfile(
+            @Column("billing_address_company") String companyName,
+            @Column("billing_address_line1") String addressLine1,
+            @Column("billing_address_line2") String addressLine2,
+            @Column("billing_address_zip") String zip,
+            @Column("billing_address_city") String city,
+            @Column("billing_address_state") String state,
+            @Column("vat_country") String country,
+            @Column("vat_nr") String taxId,
+            @Column("invoicing_additional_information") @JSONData
+                    TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo,
+            @Column("additional_fields") String additionalData) {
+        this.billingDetails = new BillingDetails(
+                companyName, addressLine1, addressLine2, zip, city, state, country, taxId, invoicingAdditionalInfo);
+        this.additionalData = Json.fromJson(additionalData, new TypeReference<>() {});
     }
 }

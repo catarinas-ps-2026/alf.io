@@ -28,11 +28,12 @@ public class ReservationMetadata {
     private final boolean lockEmailEdit;
 
     @JsonCreator
-    public ReservationMetadata(@JsonProperty("hideContactData") Boolean hideContactData,
-                               @JsonProperty("readyForConfirmation") Boolean readyForConfirmation,
-                               @JsonProperty("finalized") Boolean finalized,
-                               @JsonProperty("hideConfirmationButtons") Boolean hideConfirmationButtons,
-                               @JsonProperty("lockEmailEdit") Boolean lockEmailEdit) {
+    public ReservationMetadata(
+            @JsonProperty("hideContactData") Boolean hideContactData,
+            @JsonProperty("readyForConfirmation") Boolean readyForConfirmation,
+            @JsonProperty("finalized") Boolean finalized,
+            @JsonProperty("hideConfirmationButtons") Boolean hideConfirmationButtons,
+            @JsonProperty("lockEmailEdit") Boolean lockEmailEdit) {
         this.hideContactData = Boolean.TRUE.equals(hideContactData);
         this.readyForConfirmation = Boolean.TRUE.equals(readyForConfirmation);
         this.finalized = Boolean.TRUE.equals(finalized);
@@ -61,7 +62,8 @@ public class ReservationMetadata {
     }
 
     public ReservationMetadata withFinalized(boolean newValue) {
-        return new ReservationMetadata(hideContactData, readyForConfirmation, newValue, hideConfirmationButtons, lockEmailEdit);
+        return new ReservationMetadata(
+                hideContactData, readyForConfirmation, newValue, hideConfirmationButtons, lockEmailEdit);
     }
 
     public ReservationMetadata withReadyForConfirmation(boolean newValue) {

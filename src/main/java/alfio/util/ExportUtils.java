@@ -23,13 +23,12 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 
 public class ExportUtils {
 
@@ -38,35 +37,43 @@ public class ExportUtils {
 
     private ExportUtils() {}
 
-    public static void exportExcel(String fileName, String sheetName, String[] header, Stream<String[]> data, HttpServletResponse response) throws IOException {
-        exportExcel(fileName, response, workbook -> addSheetToWorkbook(sheetName, header, data, workbook, workbook.defineStyle().font().bold(true).build()));
+    public static void exportExcel(
+            String fileName, String sheetName, String[] header, Stream<String[]> data, HttpServletResponse response)
+            throws IOException {
+        exportExcel(
+                fileName,
+                response,
+                workbook -> addSheetToWorkbook(
+                        sheetName,
+                        header,
+                        data,
+                        workbook,
+                        workbook.defineStyle().font().bold(true).build()));
     }
 
-    public static void exportExcel(String fileName,
-                                   HttpServletResponse response,
-                                   Consumer<StreamingWorkbook> workbookConsumer) throws IOException {
+    public static void exportExcel(
+            String fileName, HttpServletResponse response, Consumer<StreamingWorkbook> workbookConsumer)
+            throws IOException {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         markAsNoIndex(response);
 
-        try (ServletOutputStream out = response.getOutputStream(); StreamingWorkbook workbook = new StreamingWorkbook(out)) {
+        try (ServletOutputStream out = response.getOutputStream();
+                StreamingWorkbook workbook = new StreamingWorkbook(out)) {
             workbookConsumer.accept(workbook);
         }
     }
 
-    public static void addSheetToWorkbook(String sheetName,
-                                          String[] header,
-                                          Stream<String[]> data,
-                                          StreamingWorkbook workbook,
-                                          Style headerStyle) {
+    public static void addSheetToWorkbook(
+            String sheetName, String[] header, Stream<String[]> data, StreamingWorkbook workbook, Style headerStyle) {
         try {
             var headerRow = StreamingWorkbook.row(Arrays.stream(header)
-                .map(v -> Cell.cell(v).withStyle(headerStyle))
-                .collect(Collectors.toList()));
+                    .map(v -> Cell.cell(v).withStyle(headerStyle))
+                    .collect(Collectors.toList()));
 
-            var dataStream = data
-                .map(rowData -> Arrays.stream(rowData).map(Cell::cell).collect(Collectors.toList()))
-                .map(StreamingWorkbook::row);
+            var dataStream = data.map(
+                            rowData -> Arrays.stream(rowData).map(Cell::cell).collect(Collectors.toList()))
+                    .map(StreamingWorkbook::row);
 
             workbook.withSheet(sheetName, Stream.concat(Stream.of(headerRow), dataStream));
 
@@ -81,12 +88,15 @@ public class ExportUtils {
         // tab and carriage return are removed by the trimming
         var res = trimmed;
         if (StringUtils.startsWithAny(trimmed, "=", "+", "-", "@")) {
-            res = "\t" + trimmed; // http://georgemauer.net/2017/10/07/csv-injection.html starting with a tab seems to be enough?
+            res = "\t"
+                    + trimmed; // http://georgemauer.net/2017/10/07/csv-injection.html starting with a tab seems to be
+            // enough?
         }
         return res;
     }
 
-    public static void exportCsv(String fileName, String[] header, Stream<String[]> data, HttpServletResponse response) throws IOException {
+    public static void exportCsv(String fileName, String[] header, Stream<String[]> data, HttpServletResponse response)
+            throws IOException {
         response.setContentType("text/csv;charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         markAsNoIndex(response);

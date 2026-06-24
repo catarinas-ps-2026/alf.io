@@ -16,14 +16,13 @@
  */
 package alfio.controller.api.v2.model;
 
-import alfio.controller.decorator.SaleableTicketCategory;
-import alfio.model.TicketCategory.TicketAccessType;
-import lombok.Getter;
-
-import java.util.Map;
-
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+
+import alfio.controller.decorator.SaleableTicketCategory;
+import alfio.model.TicketCategory.TicketAccessType;
+import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class TicketCategory {
@@ -53,19 +52,24 @@ public class TicketCategory {
     private final boolean displayTaxInformation;
     //
 
-    public TicketCategory(SaleableTicketCategory saleableTicketCategory,
-                          Map<String, String> description,
-                          Map<String, String> formattedInception,
-                          Map<String, String> formattedExpiration,
-                          boolean displayTicketsLeft,
-                          boolean displayTaxInformation) {
+    public TicketCategory(
+            SaleableTicketCategory saleableTicketCategory,
+            Map<String, String> description,
+            Map<String, String> formattedInception,
+            Map<String, String> formattedExpiration,
+            boolean displayTicketsLeft,
+            boolean displayTaxInformation) {
 
         this.description = description;
         this.id = saleableTicketCategory.getId();
         this.name = saleableTicketCategory.getName();
         this.ticketAccessType = saleableTicketCategory.getTicketAccessType();
         this.bounded = saleableTicketCategory.isBounded();
-        this.maximumSaleableTickets = max(0, min(saleableTicketCategory.getMaxTicketsAfterConfiguration(), saleableTicketCategory.getAvailableTickets()));
+        this.maximumSaleableTickets = max(
+                0,
+                min(
+                        saleableTicketCategory.getMaxTicketsAfterConfiguration(),
+                        saleableTicketCategory.getAvailableTickets()));
         this.free = saleableTicketCategory.getFree();
         this.formattedFinalPrice = saleableTicketCategory.getFormattedFinalPrice();
         this.hasDiscount = saleableTicketCategory.getSupportsDiscount();
@@ -84,7 +88,9 @@ public class TicketCategory {
         this.accessRestricted = saleableTicketCategory.getAccessRestricted();
         this.soldOutOrLimitReached = saleableTicketCategory.getSouldOutOrLimitReached();
         //
-        this.availableTickets = displayTicketsLeft && saleableTicketCategory.isBounded() ? saleableTicketCategory.getAvailableTickets() : null;
+        this.availableTickets = displayTicketsLeft && saleableTicketCategory.isBounded()
+                ? saleableTicketCategory.getAvailableTickets()
+                : null;
         this.ordinal = saleableTicketCategory.isAccessRestricted() ? -1 : saleableTicketCategory.getOrdinal();
 
         this.displayTaxInformation = displayTaxInformation;

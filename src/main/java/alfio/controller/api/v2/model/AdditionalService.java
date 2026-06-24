@@ -16,10 +16,9 @@
  */
 package alfio.controller.api.v2.model;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.Map;
 
 @AllArgsConstructor
 @Getter
@@ -44,8 +43,7 @@ public class AdditionalService {
     private final String vatPercentage;
     //
 
-
-    private final boolean expired; //TODO: check, could be useless :)
+    private final boolean expired; // TODO: check, could be useless :)
     private final boolean saleInFuture;
     private final Map<String, String> formattedInception;
     private final Map<String, String> formattedExpiration;

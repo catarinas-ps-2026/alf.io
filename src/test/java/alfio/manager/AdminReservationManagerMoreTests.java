@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.i18n.MessageSourceManager;
 import alfio.manager.support.reservation.ReservationEmailContentHelper;
 import alfio.model.*;
@@ -27,23 +30,16 @@ import alfio.repository.*;
 import alfio.repository.user.UserRepository;
 import alfio.util.ClockProvider;
 import alfio.util.TemplateManager;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.time.ZonedDateTime;
-import java.time.Clock;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class AdminReservationManagerMoreTests {
 
@@ -83,7 +79,8 @@ class AdminReservationManagerMoreTests {
     void setUp() {
         try {
             ClockProvider.init(Clock.systemDefaultZone());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         purchaseContextManager = mock(PurchaseContextManager.class);
         eventManager = mock(EventManager.class);
@@ -117,17 +114,35 @@ class AdminReservationManagerMoreTests {
         accessService = mock(AccessService.class);
 
         adminReservationManager = new AdminReservationManager(
-            purchaseContextManager, eventManager, ticketReservationManager,
-            ticketCategoryRepository, ticketRepository, specialPriceRepository,
-            ticketReservationRepository, eventRepository, transactionManager,
-            specialPriceTokenGenerator, purchaseContextFieldRepository,
-            paymentManager, notificationManager, messageSourceManager,
-            templateManager, additionalServiceItemRepository, auditingRepository,
-            userRepository, extensionManager, billingDocumentRepository,
-            fileUploadManager, promoCodeDiscountRepository, additionalServiceRepository,
-            billingDocumentManager, clockProvider, subscriptionRepository,
-            reservationEmailContentHelper, transactionRepository, accessService
-        );
+                purchaseContextManager,
+                eventManager,
+                ticketReservationManager,
+                ticketCategoryRepository,
+                ticketRepository,
+                specialPriceRepository,
+                ticketReservationRepository,
+                eventRepository,
+                transactionManager,
+                specialPriceTokenGenerator,
+                purchaseContextFieldRepository,
+                paymentManager,
+                notificationManager,
+                messageSourceManager,
+                templateManager,
+                additionalServiceItemRepository,
+                auditingRepository,
+                userRepository,
+                extensionManager,
+                billingDocumentRepository,
+                fileUploadManager,
+                promoCodeDiscountRepository,
+                additionalServiceRepository,
+                billingDocumentManager,
+                clockProvider,
+                subscriptionRepository,
+                reservationEmailContentHelper,
+                transactionRepository,
+                accessService);
     }
 
     @Test
@@ -144,11 +159,14 @@ class AdminReservationManagerMoreTests {
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(any(), anyString());
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getUserLanguage()).thenReturn("en");
-        when(ticketReservationRepository.findOptionalReservationById(anyString())).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(anyString()))
+                .thenReturn(Optional.of(reservation));
 
-        var result = adminReservationManager.notify(PurchaseContextType.event, publicIdentifier, reservationId, arm, username);
+        var result = adminReservationManager.notify(
+                PurchaseContextType.event, publicIdentifier, reservationId, arm, username);
         assertTrue(result.isSuccess());
-        verify(ticketReservationManager).sendConfirmationEmail(eq(purchaseContext), eq(reservation), any(), eq(username));
+        verify(ticketReservationManager)
+                .sendConfirmationEmail(eq(purchaseContext), eq(reservation), any(), eq(username));
     }
 
     @Test
@@ -174,14 +192,16 @@ class AdminReservationManagerMoreTests {
         when(reservation.getEmail()).thenReturn("test@test.com");
         when(reservation.getCurrencyCode()).thenReturn("CHF");
         when(reservation.getFullName()).thenReturn("Full Name");
-        when(ticketReservationRepository.findOptionalReservationById(anyString())).thenReturn(Optional.of(reservation));
-        
+        when(ticketReservationRepository.findOptionalReservationById(anyString()))
+                .thenReturn(Optional.of(reservation));
+
         when(transactionManager.getTransaction(any())).thenReturn(mock(TransactionStatus.class));
 
         when(ticketRepository.findTicketsInReservation(anyString())).thenReturn(Collections.emptyList());
 
-        var result = adminReservationManager.confirmReservation(PurchaseContextType.event, publicIdentifier, reservationId, username, notification);
-        
+        var result = adminReservationManager.confirmReservation(
+                PurchaseContextType.event, publicIdentifier, reservationId, username, notification);
+
         assertTrue(result.isSuccess(), () -> "Result failed with errors: " + result.getErrors());
         verify(ticketReservationManager).completeReservation(any(), any(), anyBoolean(), anyBoolean(), eq(username));
     }
@@ -194,13 +214,14 @@ class AdminReservationManagerMoreTests {
         String username = "admin";
         SubscriptionDescriptor descriptor = mock(SubscriptionDescriptor.class);
         when(descriptor.getId()).thenReturn(descriptorId);
-        
-        when(subscriptionRepository.cancelSubscription(anyString(), any(), any())).thenReturn(1);
+
+        when(subscriptionRepository.cancelSubscription(anyString(), any(), any()))
+                .thenReturn(1);
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getId()).thenReturn(reservationId);
         when(ticketReservationManager.findById(anyString())).thenReturn(Optional.of(reservation));
         when(userRepository.nullSafeFindIdByUserName(anyString())).thenReturn(Optional.of(1));
-        
+
         var result = adminReservationManager.removeSubscription(descriptor, reservationId, subscriptionId, username);
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
@@ -217,15 +238,18 @@ class AdminReservationManagerMoreTests {
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getCurrencyCode()).thenReturn("CHF");
         when(reservation.getPaymentMethod()).thenReturn(alfio.model.transaction.PaymentProxy.STRIPE);
-        
+
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(any(), anyString());
-        when(ticketReservationRepository.findOptionalReservationById(anyString())).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(anyString()))
+                .thenReturn(Optional.of(reservation));
         when(ticketRepository.findTicketsInReservation(anyString())).thenReturn(Collections.emptyList());
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findByReservationId(anyString());
 
-        when(paymentManager.refund(eq(reservation), eq(purchaseContext), anyInt(), eq(username))).thenReturn(true);
+        when(paymentManager.refund(eq(reservation), eq(purchaseContext), anyInt(), eq(username)))
+                .thenReturn(true);
 
-        var result = adminReservationManager.refund(PurchaseContextType.event, publicIdentifier, reservationId, refundAmount, username);
+        var result = adminReservationManager.refund(
+                PurchaseContextType.event, publicIdentifier, reservationId, refundAmount, username);
         assertTrue(result.isSuccess());
         assertTrue(result.getData());
     }
@@ -236,19 +260,22 @@ class AdminReservationManagerMoreTests {
         String reservationId = "resId";
         String username = "admin";
         AdminReservationModification arm = mock(AdminReservationModification.class);
-        when(arm.getExpiration()).thenReturn(alfio.model.modification.DateTimeModification.fromZonedDateTime(ZonedDateTime.now()));
-        
+        when(arm.getExpiration())
+                .thenReturn(alfio.model.modification.DateTimeModification.fromZonedDateTime(ZonedDateTime.now()));
+
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
         when(purchaseContext.getZoneId()).thenReturn(java.time.ZoneId.systemDefault());
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(any(), anyString());
-        
+
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getStatus()).thenReturn(TicketReservation.TicketReservationStatus.PENDING);
-        when(ticketReservationRepository.findOptionalReservationById(anyString())).thenReturn(Optional.of(reservation));
-        
+        when(ticketReservationRepository.findOptionalReservationById(anyString()))
+                .thenReturn(Optional.of(reservation));
+
         when(transactionManager.getTransaction(any())).thenReturn(mock(TransactionStatus.class));
 
-        var result = adminReservationManager.updateReservation(PurchaseContextType.event, publicIdentifier, reservationId, arm, username);
+        var result = adminReservationManager.updateReservation(
+                PurchaseContextType.event, publicIdentifier, reservationId, arm, username);
         assertTrue(result.isSuccess());
     }
 
@@ -257,22 +284,24 @@ class AdminReservationManagerMoreTests {
         String publicIdentifier = "pubId";
         String reservationId = "resId";
         String username = "admin";
-        
+
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
         when(purchaseContext.getType()).thenReturn(PurchaseContextType.event);
         Event event = mock(Event.class);
         when(purchaseContext.event()).thenReturn(Optional.of(event));
-        
+
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getId()).thenReturn(reservationId);
-        
+
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(any(), anyString());
-        when(ticketReservationRepository.findOptionalReservationById(anyString())).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(anyString()))
+                .thenReturn(Optional.of(reservation));
         when(ticketRepository.findTicketsInReservation(anyString())).thenReturn(Collections.emptyList());
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findByReservationId(anyString());
         when(userRepository.nullSafeFindIdByUserName(anyString())).thenReturn(Optional.of(1));
 
-        var result = adminReservationManager.removeReservation(PurchaseContextType.event, publicIdentifier, reservationId, false, false, false, username);
+        var result = adminReservationManager.removeReservation(
+                PurchaseContextType.event, publicIdentifier, reservationId, false, false, false, username);
         assertTrue(result.isSuccess());
     }
 
@@ -281,22 +310,25 @@ class AdminReservationManagerMoreTests {
         String publicIdentifier = "pubId";
         String reservationId = "resId";
         String username = "admin";
-        
+
         PurchaseContext purchaseContext = mock(PurchaseContext.class);
         when(purchaseContext.getType()).thenReturn(PurchaseContextType.event);
         Event event = mock(Event.class);
         when(purchaseContext.event()).thenReturn(Optional.of(event));
-        
+
         TicketReservation reservation = mock(TicketReservation.class);
         when(reservation.getId()).thenReturn(reservationId);
         when(reservation.getStatus()).thenReturn(TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT);
-        
+
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findBy(any(), anyString());
-        when(ticketReservationRepository.findOptionalReservationById(anyString())).thenReturn(Optional.of(reservation));
+        when(ticketReservationRepository.findOptionalReservationById(anyString()))
+                .thenReturn(Optional.of(reservation));
         when(ticketRepository.findTicketsInReservation(anyString())).thenReturn(Collections.emptyList());
         doReturn(Optional.of(purchaseContext)).when(purchaseContextManager).findByReservationId(anyString());
 
-        adminReservationManager.creditReservation(PurchaseContextType.event, publicIdentifier, reservationId, false, false, username);
-        verify(ticketReservationManager).deleteOfflinePayment(any(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyString());
+        adminReservationManager.creditReservation(
+                PurchaseContextType.event, publicIdentifier, reservationId, false, false, username);
+        verify(ticketReservationManager)
+                .deleteOfflinePayment(any(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyString());
     }
 }

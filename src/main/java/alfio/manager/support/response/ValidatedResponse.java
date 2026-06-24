@@ -20,48 +20,50 @@ import alfio.controller.support.CustomBindingResult;
 import alfio.model.result.Result;
 import alfio.model.result.ValidationResult;
 import alfio.model.result.WarningMessage;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
 @AllArgsConstructor
 public class ValidatedResponse<T> {
     private final ValidationResult validationResult;
     private final T value;
 
-
     public static <T> ValidatedResponse<T> toResponse(BindingResult bindingResult, T value) {
 
-        var transformed = bindingResult.getAllErrors().stream().map(objectError -> {
-            if (objectError instanceof FieldError fe) {
-                return new ValidationResult.ErrorDescriptor(fe.getField(), "", fe.getCode(), fe.getArguments());
-            } else {
-                return new ValidationResult.ErrorDescriptor(objectError.getObjectName(), "", objectError.getCode(), objectError.getArguments());
-            }
-        }).collect(Collectors.toList());
+        var transformed = bindingResult.getAllErrors().stream()
+                .map(objectError -> {
+                    if (objectError instanceof FieldError fe) {
+                        return new ValidationResult.ErrorDescriptor(fe.getField(), "", fe.getCode(), fe.getArguments());
+                    } else {
+                        return new ValidationResult.ErrorDescriptor(
+                                objectError.getObjectName(), "", objectError.getCode(), objectError.getArguments());
+                    }
+                })
+                .collect(Collectors.toList());
 
-        List<WarningMessage> warnings = bindingResult instanceof CustomBindingResult cbr ? cbr.getWarnings() : List.of();
+        List<WarningMessage> warnings =
+                bindingResult instanceof CustomBindingResult cbr ? cbr.getWarnings() : List.of();
         return new ValidatedResponse<>(ValidationResult.failed(transformed, warnings), value);
     }
 
     public static <T> ValidatedResponse<T> fromResult(Result<T> result, String objectName) {
-        if(result.isSuccess()) {
+        if (result.isSuccess()) {
             return new ValidatedResponse<>(ValidationResult.success(), result.getData());
         }
         var transformed = result.getErrors().stream()
-            .map(ec -> new ValidationResult.ErrorDescriptor(objectName, "", ec.getCode()))
-            .collect(Collectors.toList());
+                .map(ec -> new ValidationResult.ErrorDescriptor(objectName, "", ec.getCode()))
+                .collect(Collectors.toList());
 
         return new ValidatedResponse<>(ValidationResult.failed(transformed), null);
     }
 
-    public<R> ValidatedResponse<R> withValue(R value) {
+    public <R> ValidatedResponse<R> withValue(R value) {
         return new ValidatedResponse<>(validationResult, value);
     }
 
@@ -71,8 +73,8 @@ public class ValidatedResponse<T> {
 
     public List<ErrorDescriptor> getValidationErrors() {
         return validationResult.getValidationErrors().stream()
-            .map(ed -> new ErrorDescriptor(ed.getFieldName(), ed.getCode(), fromArray(ed.getArguments())))
-            .collect(Collectors.toList());
+                .map(ed -> new ErrorDescriptor(ed.getFieldName(), ed.getCode(), fromArray(ed.getArguments())))
+                .collect(Collectors.toList());
     }
 
     public int getErrorCount() {
@@ -89,7 +91,7 @@ public class ValidatedResponse<T> {
 
     private static Map<String, Object> fromArray(Object[] arguments) {
 
-        if(arguments == null || arguments.length == 0) {
+        if (arguments == null || arguments.length == 0) {
             return null;
         } else {
             var res = new HashMap<String, Object>();

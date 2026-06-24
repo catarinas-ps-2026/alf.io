@@ -17,7 +17,6 @@
 package alfio.model;
 
 import alfio.util.ClockProvider;
-
 import java.time.Clock;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

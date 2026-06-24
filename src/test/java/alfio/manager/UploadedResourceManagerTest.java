@@ -16,23 +16,22 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import alfio.model.UploadedResource;
 import alfio.model.modification.UploadBase64FileModification;
 import alfio.repository.UploadedResourceRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class UploadedResourceManagerTest {
 
@@ -106,12 +105,73 @@ public class UploadedResourceManagerTest {
     public void testSaveResourceIsImage() {
         // 1x1 transparent PNG
         byte[] pngBytes = new byte[] {
-            (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-            0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08,
-            0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, (byte) 0xc4, (byte) 0x89, 0x00, 0x00, 0x00,
-            0x0d, 0x49, 0x44, 0x41, 0x54, 0x78, (byte) 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
-            0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, (byte) 0xb4, 0x00, 0x00, 0x00, 0x00, 0x49,
-            0x45, 0x4e, 0x44, (byte) 0xae, 0x42, 0x60, (byte) 0x82
+            (byte) 0x89,
+            0x50,
+            0x4e,
+            0x47,
+            0x0d,
+            0x0a,
+            0x1a,
+            0x0a,
+            0x00,
+            0x00,
+            0x00,
+            0x0d,
+            0x49,
+            0x48,
+            0x44,
+            0x52,
+            0x00,
+            0x00,
+            0x00,
+            0x01,
+            0x00,
+            0x00,
+            0x00,
+            0x01,
+            0x08,
+            0x06,
+            0x00,
+            0x00,
+            0x00,
+            0x1f,
+            0x15,
+            (byte) 0xc4,
+            (byte) 0x89,
+            0x00,
+            0x00,
+            0x00,
+            0x0d,
+            0x49,
+            0x44,
+            0x41,
+            0x54,
+            0x78,
+            (byte) 0x9c,
+            0x63,
+            0x00,
+            0x01,
+            0x00,
+            0x00,
+            0x05,
+            0x00,
+            0x01,
+            0x0d,
+            0x0a,
+            0x2d,
+            (byte) 0xb4,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x49,
+            0x45,
+            0x4e,
+            0x44,
+            (byte) 0xae,
+            0x42,
+            0x60,
+            (byte) 0x82
         };
 
         UploadBase64FileModification file = new UploadBase64FileModification();
@@ -127,11 +187,14 @@ public class UploadedResourceManagerTest {
         assertTrue(result.isPresent());
         assertEquals(42, result.get());
         verify(repository).delete(1, 2, "test.png");
-        
+
         // check that attributes map contains width and height
-        verify(repository).upload(eq(1), eq(2), eq(file), argThat(map -> 
-            "1".equals(map.get("width")) && "1".equals(map.get("height"))
-        ));
+        verify(repository)
+                .upload(
+                        eq(1),
+                        eq(2),
+                        eq(file),
+                        argThat(map -> "1".equals(map.get("width")) && "1".equals(map.get("height"))));
     }
 
     @Test
@@ -164,10 +227,12 @@ public class UploadedResourceManagerTest {
         // Cascading event level
         when(repository.hasResource(1, 2, "logo.png")).thenReturn(true);
         doAnswer(inv -> {
-            OutputStream os = inv.getArgument(3);
-            os.write("event-logo".getBytes());
-            return null;
-        }).when(repository).fileContent(eq(1), eq(2), eq("logo.png"), any());
+                    OutputStream os = inv.getArgument(3);
+                    os.write("event-logo".getBytes());
+                    return null;
+                })
+                .when(repository)
+                .fileContent(eq(1), eq(2), eq("logo.png"), any());
 
         Optional<byte[]> result = manager.findCascading(1, 2, "logo.png");
         assertTrue(result.isPresent());
@@ -177,10 +242,12 @@ public class UploadedResourceManagerTest {
         when(repository.hasResource(1, 2, "logo.png")).thenReturn(false);
         when(repository.hasResource(1, "logo.png")).thenReturn(true);
         doAnswer(inv -> {
-            OutputStream os = inv.getArgument(2);
-            os.write("org-logo".getBytes());
-            return null;
-        }).when(repository).fileContent(eq(1), eq("logo.png"), any());
+                    OutputStream os = inv.getArgument(2);
+                    os.write("org-logo".getBytes());
+                    return null;
+                })
+                .when(repository)
+                .fileContent(eq(1), eq("logo.png"), any());
 
         Optional<byte[]> result2 = manager.findCascading(1, 2, "logo.png");
         assertTrue(result2.isPresent());
@@ -191,10 +258,12 @@ public class UploadedResourceManagerTest {
         when(repository.hasResource(1, "logo.png")).thenReturn(false);
         when(repository.hasResource("logo.png")).thenReturn(true);
         doAnswer(inv -> {
-            OutputStream os = inv.getArgument(1);
-            os.write("system-logo".getBytes());
-            return null;
-        }).when(repository).fileContent(eq("logo.png"), any());
+                    OutputStream os = inv.getArgument(1);
+                    os.write("system-logo".getBytes());
+                    return null;
+                })
+                .when(repository)
+                .fileContent(eq("logo.png"), any());
 
         Optional<byte[]> result3 = manager.findCascading(1, 2, "logo.png");
         assertTrue(result3.isPresent());

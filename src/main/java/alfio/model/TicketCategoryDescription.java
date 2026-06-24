@@ -26,7 +26,10 @@ public class TicketCategoryDescription {
     private final String locale;
     private final String description;
 
-    public TicketCategoryDescription(@Column("ticket_category_id_fk") int ticketCategoryId, @Column("locale") String locale, @Column("description") String description) {
+    public TicketCategoryDescription(
+            @Column("ticket_category_id_fk") int ticketCategoryId,
+            @Column("locale") String locale,
+            @Column("description") String description) {
         this.ticketCategoryId = ticketCategoryId;
         this.locale = locale;
         this.description = description;

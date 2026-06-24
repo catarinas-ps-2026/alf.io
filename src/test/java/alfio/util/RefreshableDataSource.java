@@ -18,10 +18,9 @@ package alfio.util;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.jdbc.datasource.DelegatingDataSource;
-
-import javax.sql.DataSource;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.sql.DataSource;
+import org.springframework.jdbc.datasource.DelegatingDataSource;
 
 public class RefreshableDataSource extends DelegatingDataSource {
 

@@ -24,8 +24,7 @@ public class AdditionalInfoItem {
     private final String key;
 
     @JsonCreator
-    public AdditionalInfoItem(@JsonProperty("label") String label,
-                              @JsonProperty("key") String key) {
+    public AdditionalInfoItem(@JsonProperty("label") String label, @JsonProperty("key") String key) {
         this.label = label;
         this.key = key;
     }

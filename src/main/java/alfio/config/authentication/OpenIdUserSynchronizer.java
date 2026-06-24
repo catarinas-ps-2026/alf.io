@@ -27,6 +27,9 @@ import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
 import alfio.repository.user.join.UserOrganizationRepository;
 import alfio.util.PasswordGenerator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -36,10 +39,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Transactional
 public class OpenIdUserSynchronizer {
@@ -53,15 +52,16 @@ public class OpenIdUserSynchronizer {
     private final OrganizationRepository organizationRepository;
     private final ExtensionManager extensionManager;
 
-    public OpenIdUserSynchronizer(PlatformTransactionManager transactionManager,
-                                  PasswordEncoder passwordEncoder,
-                                  UserManager userManager,
-                                  UserRepository userRepository,
-                                  UserOrganizationRepository userOrganizationRepository,
-                                  NamedParameterJdbcTemplate jdbcTemplate,
-                                  AuthorityRepository authorityRepository,
-                                  OrganizationRepository organizationRepository,
-                                  ExtensionManager extensionManager) {
+    public OpenIdUserSynchronizer(
+            PlatformTransactionManager transactionManager,
+            PasswordEncoder passwordEncoder,
+            UserManager userManager,
+            UserRepository userRepository,
+            UserOrganizationRepository userOrganizationRepository,
+            NamedParameterJdbcTemplate jdbcTemplate,
+            AuthorityRepository authorityRepository,
+            OrganizationRepository organizationRepository,
+            ExtensionManager extensionManager) {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.passwordEncoder = passwordEncoder;
         this.userManager = userManager;
@@ -73,22 +73,21 @@ public class OpenIdUserSynchronizer {
         this.extensionManager = extensionManager;
     }
 
-    public boolean syncUser(OidcUser oidcUser,
-                         OpenIdAlfioUser internalUser,
-                         OpenIdConfiguration configuration) {
+    public boolean syncUser(OidcUser oidcUser, OpenIdAlfioUser internalUser, OpenIdConfiguration configuration) {
         return Boolean.TRUE.equals(transactionTemplate.execute(tr -> {
             String email = oidcUser.getEmail();
             boolean userSignedUp = false;
             if (!userManager.usernameExists(email)) {
-                var result = userRepository.create(email,
-                    passwordEncoder.encode(PasswordGenerator.generateRandomPassword()),
-                    retrieveClaimOrBlank(configuration.givenNameClaim(), oidcUser),
-                    retrieveClaimOrBlank(configuration.familyNameClaim(), oidcUser),
-                    email,
-                    true,
-                    internalUser.userType(),
-                    null,
-                    null);
+                var result = userRepository.create(
+                        email,
+                        passwordEncoder.encode(PasswordGenerator.generateRandomPassword()),
+                        retrieveClaimOrBlank(configuration.givenNameClaim(), oidcUser),
+                        retrieveClaimOrBlank(configuration.familyNameClaim(), oidcUser),
+                        email,
+                        true,
+                        internalUser.userType(),
+                        null,
+                        null);
                 Validate.isTrue(result.getAffectedRowCount() == 1, "Error while creating user");
                 if (internalUser.isPublicUser()) {
                     extensionManager.handlePublicUserSignUp(userRepository.findById(result.getKey()));
@@ -104,20 +103,21 @@ public class OpenIdUserSynchronizer {
         }));
     }
 
-        private static String retrieveClaimOrBlank(String claim, OidcUser container) {
-            if (claim == null) {
-                return "";
-            }
-            return StringUtils.trimToEmpty(container.getClaim(claim));
+    private static String retrieveClaimOrBlank(String claim, OidcUser container) {
+        if (claim == null) {
+            return "";
         }
+        return StringUtils.trimToEmpty(container.getClaim(claim));
+    }
 
     private void updateOrganizations(OpenIdAlfioUser alfioUser) {
         int userId = userRepository.findIdByUserName(alfioUser.email()).orElseThrow();
         var databaseOrganizationIds = organizationRepository.findAllForUser(alfioUser.email()).stream()
-            .map(Organization::getId).collect(Collectors.toSet());
+                .map(Organization::getId)
+                .collect(Collectors.toSet());
 
         if (alfioUser.isAdmin()) {
-            if(!databaseOrganizationIds.isEmpty()) {
+            if (!databaseOrganizationIds.isEmpty()) {
                 userOrganizationRepository.removeOrganizationUserLinks(userId, databaseOrganizationIds);
             }
             return;
@@ -125,15 +125,15 @@ public class OpenIdUserSynchronizer {
 
         List<Integer> organizationIds;
         var userOrg = alfioUser.alfioOrganizationAuthorizations().keySet();
-        if(!userOrg.isEmpty()) {
+        if (!userOrg.isEmpty()) {
             organizationIds = organizationRepository.findOrganizationIdsByExternalId(userOrg);
         } else {
             organizationIds = List.of();
         }
 
         var organizationsToUnlink = databaseOrganizationIds.stream()
-            .filter(orgId -> !organizationIds.contains(orgId))
-            .collect(Collectors.toSet());
+                .filter(orgId -> !organizationIds.contains(orgId))
+                .collect(Collectors.toSet());
 
         if (!organizationsToUnlink.isEmpty()) {
             userOrganizationRepository.removeOrganizationUserLinks(userId, organizationsToUnlink);
@@ -143,18 +143,18 @@ public class OpenIdUserSynchronizer {
             throw new IllegalStateException("The user needs to be ADMIN or have at least one organization linked");
         }
 
-        var params = organizationIds.stream().filter(orgId -> !databaseOrganizationIds.contains(orgId))
-            .map(id -> new MapSqlParameterSource("userId", userId).addValue("organizationId", id))
-            .toArray(MapSqlParameterSource[]::new);
+        var params = organizationIds.stream()
+                .filter(orgId -> !databaseOrganizationIds.contains(orgId))
+                .map(id -> new MapSqlParameterSource("userId", userId).addValue("organizationId", id))
+                .toArray(MapSqlParameterSource[]::new);
         jdbcTemplate.batchUpdate(userOrganizationRepository.bulkCreate(), params);
     }
 
     private void updateRoles(Set<Role> roles, String username) {
         authorityRepository.revokeAll(username);
         var rolesToAdd = roles.stream()
-            .map(r -> new MapSqlParameterSource("username", username).addValue("role", r.getRoleName()))
-            .toArray(MapSqlParameterSource[]::new);
+                .map(r -> new MapSqlParameterSource("username", username).addValue("role", r.getRoleName()))
+                .toArray(MapSqlParameterSource[]::new);
         jdbcTemplate.batchUpdate(authorityRepository.grantAll(), rolesToAdd);
     }
-
 }

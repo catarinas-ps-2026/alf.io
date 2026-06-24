@@ -16,29 +16,30 @@
  */
 package alfio.config.authentication.support;
 
+import java.io.Serial;
+import java.util.Collection;
+import java.util.Objects;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 
-import java.io.Serial;
-import java.util.Collection;
-import java.util.Objects;
-
 public class OpenIdPrincipal extends DefaultOidcUser {
 
     @Serial
     private static final long serialVersionUID = -3305276997530613807L;
+
     private final OpenIdAlfioUser alfioUser;
     private final String idpLogoutRedirectionUrl;
     private final boolean signedUp;
 
-    public OpenIdPrincipal(Collection<? extends GrantedAuthority> authorities,
-                           OidcIdToken idToken,
-                           OidcUserInfo userInfo,
-                           OpenIdAlfioUser alfioUser,
-                           String idpLogoutRedirectionUrl,
-                           boolean signedUp) {
+    public OpenIdPrincipal(
+            Collection<? extends GrantedAuthority> authorities,
+            OidcIdToken idToken,
+            OidcUserInfo userInfo,
+            OpenIdAlfioUser alfioUser,
+            String idpLogoutRedirectionUrl,
+            boolean signedUp) {
         super(authorities, idToken, userInfo);
         this.alfioUser = alfioUser;
         this.idpLogoutRedirectionUrl = idpLogoutRedirectionUrl;
@@ -70,7 +71,8 @@ public class OpenIdPrincipal extends DefaultOidcUser {
             return false;
         }
         OpenIdPrincipal that = (OpenIdPrincipal) o;
-        return Objects.equals(alfioUser, that.alfioUser) && Objects.equals(idpLogoutRedirectionUrl, that.idpLogoutRedirectionUrl);
+        return Objects.equals(alfioUser, that.alfioUser)
+                && Objects.equals(idpLogoutRedirectionUrl, that.idpLogoutRedirectionUrl);
     }
 
     @Override

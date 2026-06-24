@@ -19,14 +19,12 @@ package alfio.controller.api.v2.model;
 import java.util.List;
 
 public record ItemsByCategory(
-    List<TicketCategory> ticketCategories,
-    List<TicketCategory> expiredCategories,
-    List<AdditionalService> additionalServices,
-    boolean waitingList,
-    boolean preSales,
-    List<TicketCategoryForWaitingList> ticketCategoriesForWaitingList
-) {
+        List<TicketCategory> ticketCategories,
+        List<TicketCategory> expiredCategories,
+        List<AdditionalService> additionalServices,
+        boolean waitingList,
+        boolean preSales,
+        List<TicketCategoryForWaitingList> ticketCategoriesForWaitingList) {
 
-    public record TicketCategoryForWaitingList(int id, String name) {
-    }
+    public record TicketCategoryForWaitingList(int id, String name) {}
 }

@@ -16,6 +16,8 @@
  */
 package alfio.manager;
 
+import static java.util.Objects.requireNonNullElse;
+
 import alfio.manager.support.PaymentResult;
 import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
@@ -29,6 +31,12 @@ import alfio.model.transaction.capabilities.RefundRequest;
 import alfio.repository.AuditingRepository;
 import alfio.repository.TransactionRepository;
 import alfio.repository.user.UserRepository;
+import java.security.Principal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.commons.lang3.Validate;
@@ -36,15 +44,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.security.Principal;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Objects.requireNonNullElse;
 
 @Component
 @AllArgsConstructor
@@ -61,22 +60,26 @@ public class PaymentManager {
 
     private final List<PaymentProvider> paymentProviders; // injected by Spring
 
-    public Optional<PaymentProvider> lookupProviderByTransactionAndCapabilities(Transaction transaction, List<Class<? extends Capability>> capabilities) {
+    public Optional<PaymentProvider> lookupProviderByTransactionAndCapabilities(
+            Transaction transaction, List<Class<? extends Capability>> capabilities) {
         return paymentProviders.stream()
-            .filter(filterByCapabilities(capabilities))
-            .filter(paymentProvider -> paymentProvider.accept(transaction))
-            .findFirst();
+                .filter(filterByCapabilities(capabilities))
+                .filter(paymentProvider -> paymentProvider.accept(transaction))
+                .findFirst();
     }
 
-    Optional<PaymentProvider> lookupProviderByMethodAndCapabilities(PaymentMethod paymentMethod,
-                                                                    PaymentContext context,
-                                                                    TransactionRequest transactionRequest,
-                                                                    List<Class<? extends Capability>> capabilities) {
+    Optional<PaymentProvider> lookupProviderByMethodAndCapabilities(
+            PaymentMethod paymentMethod,
+            PaymentContext context,
+            TransactionRequest transactionRequest,
+            List<Class<? extends Capability>> capabilities) {
         return compatibleStream(paymentMethod, context, transactionRequest)
-            .filter(p -> Objects.requireNonNull(capabilities).stream().allMatch(c -> c.isInstance(p))).findFirst();
+                .filter(p -> Objects.requireNonNull(capabilities).stream().allMatch(c -> c.isInstance(p)))
+                .findFirst();
     }
 
-    public Stream<PaymentProvider> streamActiveProvidersByProxy(PaymentProxy paymentProxy, PaymentContext paymentContext) {
+    public Stream<PaymentProvider> streamActiveProvidersByProxy(
+            PaymentProxy paymentProxy, PaymentContext paymentContext) {
         return streamActiveProvidersByProxyAndCapabilities(paymentProxy, paymentContext, List.of());
     }
 
@@ -87,187 +90,225 @@ public class PaymentManager {
      * @param organizationId the organization for which the validation is made
      * @return the conflicting {@link PaymentProxy proxies}
      */
-    List<Map.Entry<PaymentMethod, Set<PaymentProxy>>> validateSelection(List<PaymentProxy> paymentProxies, int organizationId) {
+    List<Map.Entry<PaymentMethod, Set<PaymentProxy>>> validateSelection(
+            List<PaymentProxy> paymentProxies, int organizationId) {
         var paymentContext = new PaymentContext(null, ConfigurationLevel.organization(organizationId));
 
         Map<PaymentMethod, Set<PaymentProxy>> proxiesByMethod = paymentProxies.stream()
-            .flatMap(proxy -> streamProvidersByProxyAndCapabilities(proxy, List.of()))
-            .map(provider -> Pair.of(provider.getPaymentProxy(), provider.getSupportedPaymentMethods(paymentContext, TransactionRequest.empty())))
-            .flatMap(pair -> pair.getValue().stream().map(pm -> Pair.of(pm, pair.getKey()))) // flip
-            .collect(Collectors.groupingBy(Pair::getKey, Collectors.mapping(Pair::getValue, Collectors.toSet())));
+                .flatMap(proxy -> streamProvidersByProxyAndCapabilities(proxy, List.of()))
+                .map(provider -> Pair.of(
+                        provider.getPaymentProxy(),
+                        provider.getSupportedPaymentMethods(paymentContext, TransactionRequest.empty())))
+                .flatMap(pair -> pair.getValue().stream().map(pm -> Pair.of(pm, pair.getKey()))) // flip
+                .collect(Collectors.groupingBy(Pair::getKey, Collectors.mapping(Pair::getValue, Collectors.toSet())));
 
         return proxiesByMethod.entrySet().stream()
-            .filter(e -> e.getValue().size() > 1)
-            .collect(Collectors.toList());
+                .filter(e -> e.getValue().size() > 1)
+                .collect(Collectors.toList());
     }
 
-    private Stream<PaymentProvider> streamProvidersByProxyAndCapabilities(PaymentProxy paymentProxy,
-                                                                  List<Class<? extends Capability>> capabilities) {
+    private Stream<PaymentProvider> streamProvidersByProxyAndCapabilities(
+            PaymentProxy paymentProxy, List<Class<? extends Capability>> capabilities) {
         return paymentProviders.stream()
-            .filter(pp -> pp.getPaymentProxy() == paymentProxy)
-            .filter(filterByCapabilities(capabilities));
+                .filter(pp -> pp.getPaymentProxy() == paymentProxy)
+                .filter(filterByCapabilities(capabilities));
     }
 
-    Stream<PaymentProvider> streamActiveProvidersByProxyAndCapabilities(PaymentProxy paymentProxy,
-                                                                                PaymentContext paymentContext,
-                                                                                List<Class<? extends Capability>> capabilities) {
-        return streamProvidersByProxyAndCapabilities(paymentProxy, capabilities).filter((pp) -> pp.isActive(paymentContext));
+    Stream<PaymentProvider> streamActiveProvidersByProxyAndCapabilities(
+            PaymentProxy paymentProxy, PaymentContext paymentContext, List<Class<? extends Capability>> capabilities) {
+        return streamProvidersByProxyAndCapabilities(paymentProxy, capabilities)
+                .filter((pp) -> pp.isActive(paymentContext));
     }
 
     private static Predicate<PaymentProvider> filterByCapabilities(List<Class<? extends Capability>> capabilities) {
         return p -> capabilities.isEmpty() || capabilities.stream().allMatch(c -> c.isInstance(p));
     }
 
-    private Stream<PaymentProvider> compatibleStream(PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
-        return paymentProviders.stream()
-            .filter(p -> p.accept(paymentMethod, context, transactionRequest));
+    private Stream<PaymentProvider> compatibleStream(
+            PaymentMethod paymentMethod, PaymentContext context, TransactionRequest transactionRequest) {
+        return paymentProviders.stream().filter(p -> p.accept(paymentMethod, context, transactionRequest));
     }
 
     private List<PaymentMethodDTO> getPaymentMethods(PaymentContext context, TransactionRequest transactionRequest) {
-        String blacklist = configurationManager.getFor(ConfigurationKeys.PAYMENT_METHODS_BLACKLIST, context.getConfigurationLevel()).getValueOrDefault("");
+        String blacklist = configurationManager
+                .getFor(ConfigurationKeys.PAYMENT_METHODS_BLACKLIST, context.getConfigurationLevel())
+                .getValueOrDefault("");
         var blacklistItems = List.of(blacklist.split(","));
-        var proxies = Optional.ofNullable(context.getPurchaseContext()).map(PurchaseContext::getAllowedPaymentProxies).orElseGet(PaymentProxy::availableProxies);
+        var proxies = Optional.ofNullable(context.getPurchaseContext())
+                .map(PurchaseContext::getAllowedPaymentProxies)
+                .orElseGet(PaymentProxy::availableProxies);
 
         return proxies.stream()
-            .filter(p -> blacklistItems.stream().noneMatch(blItem -> p.getKey().equals(blItem)))
-            .map(proxy -> Pair.of(proxy, paymentMethodsByProxy(context, transactionRequest, proxy)))
-            .flatMap(pair -> pair.getRight().stream().map(pm -> new PaymentMethodDTO(pair.getLeft(), pm, PaymentMethodDTO.PaymentMethodStatus.ACTIVE)))
-            .collect(Collectors.toList());
+                .filter(p ->
+                        blacklistItems.stream().noneMatch(blItem -> p.getKey().equals(blItem)))
+                .map(proxy -> Pair.of(proxy, paymentMethodsByProxy(context, transactionRequest, proxy)))
+                .flatMap(pair -> pair.getRight().stream()
+                        .map(pm ->
+                                new PaymentMethodDTO(pair.getLeft(), pm, PaymentMethodDTO.PaymentMethodStatus.ACTIVE)))
+                .collect(Collectors.toList());
     }
 
-    private Set<PaymentMethod> paymentMethodsByProxy(PaymentContext context, TransactionRequest transactionRequest, PaymentProxy proxy) {
+    private Set<PaymentMethod> paymentMethodsByProxy(
+            PaymentContext context, TransactionRequest transactionRequest, PaymentProxy proxy) {
         return paymentProviders.stream()
-            .filter(pp -> pp.getPaymentProxy() == proxy)
-            .flatMap(pp -> pp.getSupportedPaymentMethods(context, transactionRequest).stream())
-            .collect(Collectors.toSet());
+                .filter(pp -> pp.getPaymentProxy() == proxy)
+                .flatMap(pp -> pp.getSupportedPaymentMethods(context, transactionRequest).stream())
+                .collect(Collectors.toSet());
     }
 
-    public List<PaymentMethodDTO> getPaymentMethods(PurchaseContext purchaseContext, TransactionRequest transactionRequest) {
+    public List<PaymentMethodDTO> getPaymentMethods(
+            PurchaseContext purchaseContext, TransactionRequest transactionRequest) {
         return getPaymentMethods(new PaymentContext(purchaseContext), transactionRequest);
     }
 
     public List<PaymentMethodDTO> getPaymentMethods(int organizationId) {
-        return getPaymentMethods(new PaymentContext(null, ConfigurationLevel.organization(organizationId)), TransactionRequest.empty());
+        return getPaymentMethods(
+                new PaymentContext(null, ConfigurationLevel.organization(organizationId)), TransactionRequest.empty());
     }
 
-    public boolean refund(TicketReservation reservation, PurchaseContext purchaseContext, Integer amount, String username) {
+    public boolean refund(
+            TicketReservation reservation, PurchaseContext purchaseContext, Integer amount, String username) {
         Transaction transaction = transactionRepository.loadByReservationId(reservation.getId());
 
         boolean res = lookupProviderByTransactionAndCapabilities(transaction, List.of(RefundRequest.class))
-            .map(paymentProvider -> ((RefundRequest)paymentProvider).refund(transaction, purchaseContext, amount))
-            .orElse(false);
+                .map(paymentProvider -> ((RefundRequest) paymentProvider).refund(transaction, purchaseContext, amount))
+                .orElse(false);
 
         Map<String, Object> changes = Map.of(
-            "refund", amount != null ? amount.toString() : "full",
-            "paymentMethod", reservation.getPaymentMethod().toString()
-        );
-        if(res) {
-            auditingRepository.insert(reservation.getId(), userRepository.findIdByUserName(username).orElse(null),
+                "refund",
+                amount != null ? amount.toString() : "full",
+                "paymentMethod",
+                reservation.getPaymentMethod().toString());
+        if (res) {
+            auditingRepository.insert(
+                    reservation.getId(),
+                    userRepository.findIdByUserName(username).orElse(null),
                     purchaseContext,
-                Audit.EventType.REFUND, new Date(), Audit.EntityType.RESERVATION, reservation.getId(),
-                Collections.singletonList(changes));
+                    Audit.EventType.REFUND,
+                    new Date(),
+                    Audit.EntityType.RESERVATION,
+                    reservation.getId(),
+                    Collections.singletonList(changes));
             extensionManager.handleRefund(purchaseContext, reservation, getInfo(reservation, purchaseContext));
         } else {
-            auditingRepository.insert(reservation.getId(), userRepository.findIdByUserName(username).orElse(null),
+            auditingRepository.insert(
+                    reservation.getId(),
+                    userRepository.findIdByUserName(username).orElse(null),
                     purchaseContext,
-                Audit.EventType.REFUND_ATTEMPT_FAILED, new Date(), Audit.EntityType.RESERVATION, reservation.getId(),
-                Collections.singletonList(changes));
+                    Audit.EventType.REFUND_ATTEMPT_FAILED,
+                    new Date(),
+                    Audit.EntityType.RESERVATION,
+                    reservation.getId(),
+                    Collections.singletonList(changes));
         }
 
         return res;
     }
 
     public TransactionAndPaymentInfo getInfo(TicketReservation reservation, PurchaseContext purchaseContext) {
-        Optional<TransactionAndPaymentInfo> maybeTransaction = transactionRepository.loadOptionalByReservationId(reservation.getId())
-            .map(transaction -> internalGetInfo(reservation, purchaseContext, transaction));
+        Optional<TransactionAndPaymentInfo> maybeTransaction = transactionRepository
+                .loadOptionalByReservationId(reservation.getId())
+                .map(transaction -> internalGetInfo(reservation, purchaseContext, transaction));
         maybeTransaction.ifPresent(info -> {
             try {
                 Transaction transaction = info.getTransaction();
                 String transactionId = transaction.getTransactionId();
                 PaymentInformation paymentInformation = info.getPaymentInformation();
-                if(paymentInformation != null && feesUpdated(transaction, paymentInformation)) {
-                    transactionRepository.updateFees(transactionId, reservation.getId(), safeParseLong(paymentInformation.getPlatformFee()), safeParseLong(paymentInformation.getFee()));
+                if (paymentInformation != null && feesUpdated(transaction, paymentInformation)) {
+                    transactionRepository.updateFees(
+                            transactionId,
+                            reservation.getId(),
+                            safeParseLong(paymentInformation.getPlatformFee()),
+                            safeParseLong(paymentInformation.getFee()));
                 }
             } catch (Exception e) {
                 log.warn("cannot update fees", e);
             }
         });
-        return maybeTransaction.orElseGet(() -> new TransactionAndPaymentInfo(reservation.getPaymentMethod(),null, new PaymentInformation(reservation.getPaidAmount(), null, null, null)));
+        return maybeTransaction.orElseGet(() -> new TransactionAndPaymentInfo(
+                reservation.getPaymentMethod(),
+                null,
+                new PaymentInformation(reservation.getPaidAmount(), null, null, null)));
     }
 
-    public void updateTransactionDetails(String reservationId,
-                                         String notes,
-                                         ZonedDateTime timestamp,
-                                         Principal principal) {
+    public void updateTransactionDetails(
+            String reservationId, String notes, ZonedDateTime timestamp, Principal principal) {
         // TODO check if user can modify transaction once we have a centralized service.
         var existingTransaction = transactionRepository.loadByReservationId(reservationId);
         Validate.isTrue(existingTransaction.isTimestampEditable() || timestamp == null, "Cannot modify timestamp");
         var existingMetadata = new HashMap<>(existingTransaction.getMetadata());
         existingMetadata.put(Transaction.NOTES_KEY, notes);
-        int result = transactionRepository.updateDetailsById(existingTransaction.getId(), existingMetadata, requireNonNullElse(timestamp, existingTransaction.getTimestamp()));
+        int result = transactionRepository.updateDetailsById(
+                existingTransaction.getId(),
+                existingMetadata,
+                requireNonNullElse(timestamp, existingTransaction.getTimestamp()));
         Validate.isTrue(result == 1, "Expected 1, got " + result);
     }
 
     private boolean feesUpdated(Transaction transaction, PaymentInformation paymentInformation) {
         return transaction.getPlatformFee() != safeParseLong(paymentInformation.getPlatformFee())
-            || transaction.getGatewayFee()  != safeParseLong(paymentInformation.getFee());
+                || transaction.getGatewayFee() != safeParseLong(paymentInformation.getFee());
     }
 
-    private TransactionAndPaymentInfo internalGetInfo(TicketReservation reservation, PurchaseContext purchaseContext, Transaction transaction) {
+    private TransactionAndPaymentInfo internalGetInfo(
+            TicketReservation reservation, PurchaseContext purchaseContext, Transaction transaction) {
         return lookupProviderByTransactionAndCapabilities(transaction, List.of(PaymentInfo.class))
-            .map(provider -> {
-                Optional<PaymentInformation> info = ((PaymentInfo) provider).getInfo(transaction, purchaseContext);
-                return new TransactionAndPaymentInfo(reservation.getPaymentMethod(), transaction, info.orElse(null));
-            })
-            .orElseGet(() -> {
-                //
-                return new TransactionAndPaymentInfo(
-                    reservation.getPaymentMethod(),
-                    transaction,
-                    new PaymentInformation(
-                        reservation.getPaidAmount(),
-                        null,
-                        String.valueOf(transaction.getGatewayFee()),
-                        String.valueOf(transaction.getPlatformFee())));
-            });
+                .map(provider -> {
+                    Optional<PaymentInformation> info = ((PaymentInfo) provider).getInfo(transaction, purchaseContext);
+                    return new TransactionAndPaymentInfo(
+                            reservation.getPaymentMethod(), transaction, info.orElse(null));
+                })
+                .orElseGet(() -> {
+                    //
+                    return new TransactionAndPaymentInfo(
+                            reservation.getPaymentMethod(),
+                            transaction,
+                            new PaymentInformation(
+                                    reservation.getPaidAmount(),
+                                    null,
+                                    String.valueOf(transaction.getGatewayFee()),
+                                    String.valueOf(transaction.getPlatformFee())));
+                });
     }
 
     private static long safeParseLong(String src) {
         return Optional.ofNullable(src).map(Long::parseLong).orElse(0L);
     }
 
-    public Map<String, ?> loadModelOptionsFor(List<PaymentProxy> activePaymentMethods, PurchaseContext purchaseContext) {
+    public Map<String, ?> loadModelOptionsFor(
+            List<PaymentProxy> activePaymentMethods, PurchaseContext purchaseContext) {
         PaymentContext context = new PaymentContext(purchaseContext);
         return activePaymentMethods.stream()
-            .flatMap(pp -> getProviderOptions(context, pp))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .flatMap(pp -> getProviderOptions(context, pp))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private Stream<? extends Map.Entry<String, ?>> getProviderOptions(PaymentContext context, PaymentProxy pp) {
         return streamActiveProvidersByProxy(pp, context)
-            .flatMap(it -> it.getModelOptions(context).entrySet().stream().filter(kv -> kv.getValue() != null));
+                .flatMap(it -> it.getModelOptions(context).entrySet().stream().filter(kv -> kv.getValue() != null));
     }
 
     public PaymentToken buildPaymentToken(String gatewayToken, PaymentProxy proxy, PaymentContext context) {
         return streamActiveProvidersByProxyAndCapabilities(proxy, context, List.of(ClientServerTokenRequest.class))
-            .map(ClientServerTokenRequest.class::cast)
-            .map(pp -> pp.buildPaymentToken(gatewayToken, context))
-            .findFirst()
-            .orElse(null);
+                .map(ClientServerTokenRequest.class::cast)
+                .map(pp -> pp.buildPaymentToken(gatewayToken, context))
+                .findFirst()
+                .orElse(null);
     }
 
     public Optional<PaymentResult> getTransactionStatus(TicketReservation reservation, PaymentMethod paymentMethod) {
-        return transactionRepository.loadOptionalByReservationId(reservation.getId())
-            .filter(transaction -> {
-                var metadata = transaction.getMetadata();
-                if (metadata.containsKey(Transaction.SELECTED_PAYMENT_METHOD_KEY)) {
-                    return metadata.get(Transaction.SELECTED_PAYMENT_METHOD_KEY).equals(paymentMethod.getPaymentMethodId());
-                }
+        return transactionRepository
+                .loadOptionalByReservationId(reservation.getId())
+                .filter(transaction -> {
+                    var metadata = transaction.getMetadata();
+                    if (metadata.containsKey(Transaction.SELECTED_PAYMENT_METHOD_KEY)) {
+                        return metadata.get(Transaction.SELECTED_PAYMENT_METHOD_KEY)
+                                .equals(paymentMethod.getPaymentMethodId());
+                    }
 
-                return transaction.getPaymentProxy().getPaymentMethod() == paymentMethod;
-            })
-            .map(transaction ->
-                switch (transaction.getStatus()) {
+                    return transaction.getPaymentProxy().getPaymentMethod() == paymentMethod;
+                })
+                .map(transaction -> switch (transaction.getStatus()) {
                     case COMPLETE -> PaymentResult.successful(transaction.getPaymentId());
                     case FAILED -> PaymentResult.failed(null);
                     default -> PaymentResult.initialized(transaction.getPaymentId());
@@ -275,34 +316,40 @@ public class PaymentManager {
     }
 
     public Optional<PaymentToken> getPaymentToken(String reservationId) {
-        return transactionRepository.loadOptionalByReservationId(reservationId)
-            .filter(t->t.getStatus() == Transaction.Status.PENDING)
-            .flatMap(t -> {
-                if(t.getMetadata().containsKey(PAYMENT_TOKEN)) {
-                    return lookupProviderByTransactionAndCapabilities(t, List.of(ExtractPaymentTokenFromTransaction.class))
-                        .map(ExtractPaymentTokenFromTransaction.class::cast)
-                        .flatMap(paymentProvider -> paymentProvider.extractToken(t));
-                }
-                return Optional.empty();
-            });
+        return transactionRepository
+                .loadOptionalByReservationId(reservationId)
+                .filter(t -> t.getStatus() == Transaction.Status.PENDING)
+                .flatMap(t -> {
+                    if (t.getMetadata().containsKey(PAYMENT_TOKEN)) {
+                        return lookupProviderByTransactionAndCapabilities(
+                                        t, List.of(ExtractPaymentTokenFromTransaction.class))
+                                .map(ExtractPaymentTokenFromTransaction.class::cast)
+                                .flatMap(paymentProvider -> paymentProvider.extractToken(t));
+                    }
+                    return Optional.empty();
+                });
     }
 
     public boolean removePaymentTokenReservation(String reservationId) {
-        return transactionRepository.loadOptionalByReservationId(reservationId).filter(t->t.getStatus() == Transaction.Status.PENDING)
-            .map(t -> {
-                if (t.getMetadata().containsKey(PAYMENT_TOKEN)) {
-                    return transactionRepository.invalidateById(t.getId()) == 1;
-                } else {
-                    return false;
-                }
-            }).orElse(false);
+        return transactionRepository
+                .loadOptionalByReservationId(reservationId)
+                .filter(t -> t.getStatus() == Transaction.Status.PENDING)
+                .map(t -> {
+                    if (t.getMetadata().containsKey(PAYMENT_TOKEN)) {
+                        return transactionRepository.invalidateById(t.getId()) == 1;
+                    } else {
+                        return false;
+                    }
+                })
+                .orElse(false);
     }
 
     @Data
     public static final class PaymentMethodDTO {
 
         public enum PaymentMethodStatus {
-            ACTIVE, ERROR
+            ACTIVE,
+            ERROR
         }
 
         private final PaymentProxy paymentProxy;

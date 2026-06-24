@@ -16,12 +16,11 @@
  */
 package alfio.model.system;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class ConfigurationKeysTest {
 
@@ -29,15 +28,21 @@ class ConfigurationKeysTest {
     void validateAllBooleansHaveDefaultValue() {
         var pattern = Pattern.compile(".*?\\(.*?default.*?(true|false).*?\\).*?");
         Arrays.stream(ConfigurationKeys.values())
-            .filter(ConfigurationKeys::isBooleanComponentType)
-            .forEach(confKey -> {
-                assertNotNull(confKey.getDefaultValue(), confKey.name());
-                assertTrue(confKey.getDefaultValue().equals("true") || confKey.getDefaultValue().equals("false"), confKey.name() + " default value must be either 'true' or 'false'");
-                var matcher = pattern.matcher(confKey.getDescription());
-                if(matcher.matches()) {
-                    assertEquals(matcher.group(1), confKey.getDefaultValue(), confKey.name() + ": description says \"default "+matcher.group(1)+"\", but default value is "+ confKey.getDefaultValue());
-                }
-            });
+                .filter(ConfigurationKeys::isBooleanComponentType)
+                .forEach(confKey -> {
+                    assertNotNull(confKey.getDefaultValue(), confKey.name());
+                    assertTrue(
+                            confKey.getDefaultValue().equals("true")
+                                    || confKey.getDefaultValue().equals("false"),
+                            confKey.name() + " default value must be either 'true' or 'false'");
+                    var matcher = pattern.matcher(confKey.getDescription());
+                    if (matcher.matches()) {
+                        assertEquals(
+                                matcher.group(1),
+                                confKey.getDefaultValue(),
+                                confKey.name() + ": description says \"default " + matcher.group(1)
+                                        + "\", but default value is " + confKey.getDefaultValue());
+                    }
+                });
     }
-
 }

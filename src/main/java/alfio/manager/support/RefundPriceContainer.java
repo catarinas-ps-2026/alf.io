@@ -17,10 +17,8 @@
 package alfio.manager.support;
 
 import alfio.model.PriceContainer;
-
 import java.math.BigDecimal;
 import java.util.Optional;
-
 
 public class RefundPriceContainer implements PriceContainer {
 
@@ -29,10 +27,8 @@ public class RefundPriceContainer implements PriceContainer {
     private final BigDecimal vatPercentage;
     private final VatStatus vatStatus;
 
-    public RefundPriceContainer(int priceCts,
-                                String currencyCode,
-                                VatStatus reservationVatStatus,
-                                BigDecimal vatPercentage) {
+    public RefundPriceContainer(
+            int priceCts, String currencyCode, VatStatus reservationVatStatus, BigDecimal vatPercentage) {
         this.priceCts = priceCts;
         this.currencyCode = currencyCode;
         this.vatPercentage = vatPercentage;

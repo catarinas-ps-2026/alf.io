@@ -16,12 +16,12 @@
  */
 package alfio.manager.system;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import alfio.model.EventAndOrganizationId;
 import alfio.model.system.ConfigurationPathLevel;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConfigurationLevelTest {
 
@@ -56,7 +56,6 @@ class ConfigurationLevelTest {
         assertEquals(666, eventLevel.organizationId);
         assertEquals(1, eventLevel.eventId);
     }
-
 
     @Test
     void ticketCategory() {

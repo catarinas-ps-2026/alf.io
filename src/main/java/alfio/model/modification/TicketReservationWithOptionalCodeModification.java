@@ -17,14 +17,14 @@
 package alfio.model.modification;
 
 import alfio.model.SpecialPrice;
+import java.util.Optional;
 import lombok.Data;
 import lombok.experimental.Delegate;
-
-import java.util.Optional;
 
 @Data
 public class TicketReservationWithOptionalCodeModification {
     @Delegate
     private final ReservationRequest ticketReservationModification;
+
     private final Optional<SpecialPrice> specialPrice;
 }

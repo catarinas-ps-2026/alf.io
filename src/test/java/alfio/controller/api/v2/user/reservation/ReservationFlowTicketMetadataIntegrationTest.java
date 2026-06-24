@@ -16,6 +16,10 @@
  */
 package alfio.controller.api.v2.user.reservation;
 
+import static alfio.manager.support.extension.ExtensionEvent.TICKET_ASSIGNED_GENERATE_METADATA;
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -32,13 +36,6 @@ import alfio.model.modification.TicketCategoryModification;
 import alfio.repository.user.OrganizationRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.util.Json;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -46,10 +43,12 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static alfio.manager.support.extension.ExtensionEvent.TICKET_ASSIGNED_GENERATE_METADATA;
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -58,23 +57,72 @@ class ReservationFlowTicketMetadataIntegrationTest extends BaseReservationFlowTe
 
     @Autowired
     private OrganizationRepository organizationRepository;
+
     @Autowired
     private UserManager userManager;
 
     private ReservationFlowContext createContext() {
         try {
-            insertExtension(extensionService, "/ticket-custom-metadata-extension.js", false, true, "Metadata", Stream.of(TICKET_ASSIGNED_GENERATE_METADATA.name()));
+            insertExtension(
+                    extensionService,
+                    "/ticket-custom-metadata-extension.js",
+                    false,
+                    true,
+                    "Metadata",
+                    Stream.of(TICKET_ASSIGNED_GENERATE_METADATA.name()));
             List<TicketCategoryModification> categories = Arrays.asList(
-                new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                    DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-                new TicketCategoryModification(null, "hidden", TicketCategory.TicketAccessType.INHERIT, 2,
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).minusDays(1), LocalTime.now(clockProvider.getClock())),
-                    new DateTimeModification(LocalDate.now(clockProvider.getClock()).plusDays(1), LocalTime.now(clockProvider.getClock())),
-                    DESCRIPTION, BigDecimal.ONE, true, "", true, URL_CODE_HIDDEN, null, null, null, null, 0, null, null, AlfioMetadata.empty())
-            );
-            Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+                    new TicketCategoryModification(
+                            null,
+                            "default",
+                            TicketCategory.TicketAccessType.INHERIT,
+                            AVAILABLE_SEATS,
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            DESCRIPTION,
+                            BigDecimal.TEN,
+                            false,
+                            "",
+                            false,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            null,
+                            null,
+                            AlfioMetadata.empty()),
+                    new TicketCategoryModification(
+                            null,
+                            "hidden",
+                            TicketCategory.TicketAccessType.INHERIT,
+                            2,
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            new DateTimeModification(
+                                    LocalDate.now(clockProvider.getClock()).plusDays(1),
+                                    LocalTime.now(clockProvider.getClock())),
+                            DESCRIPTION,
+                            BigDecimal.ONE,
+                            true,
+                            "",
+                            true,
+                            URL_CODE_HIDDEN,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            null,
+                            null,
+                            AlfioMetadata.empty()));
+            Pair<Event, String> eventAndUser =
+                    initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
             return new ReservationFlowContext(eventAndUser.getLeft(), owner(eventAndUser.getRight()));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -89,11 +137,18 @@ class ReservationFlowTicketMetadataIntegrationTest extends BaseReservationFlowTe
     @Override
     protected void performAdditionalTests(ReservationFlowContext context) {
         var event = context.event;
-        var metadataJson = jdbcTemplate.queryForObject("select metadata from ticket where event_id = :eventId and metadata <> '{}' limit 1", new MapSqlParameterSource("eventId", event.getId()), String.class);
+        var metadataJson = jdbcTemplate.queryForObject(
+                "select metadata from ticket where event_id = :eventId and metadata <> '{}' limit 1",
+                new MapSqlParameterSource("eventId", event.getId()),
+                String.class);
         assertNotNull(metadataJson);
         var metadataObj = Json.fromJson(metadataJson, TicketMetadataContainer.class);
-        assertTrue(metadataObj.getMetadataForKey(TicketMetadataContainer.GENERAL).isPresent());
-        var attributes = metadataObj.getMetadataForKey(TicketMetadataContainer.GENERAL).get().getAttributes();
+        assertTrue(
+                metadataObj.getMetadataForKey(TicketMetadataContainer.GENERAL).isPresent());
+        var attributes = metadataObj
+                .getMetadataForKey(TicketMetadataContainer.GENERAL)
+                .get()
+                .getAttributes();
         assertEquals("fixedValue", attributes.get("metadataAttribute"));
         assertNotNull(attributes.get("pdfLink"));
         assertTrue(attributes.get("pdfLink").endsWith("/download-ticket"));

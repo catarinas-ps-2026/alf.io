@@ -16,68 +16,65 @@
  */
 package alfio.util;
 
-import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
-
 import static java.util.Map.entry;
 import static org.apache.commons.lang3.StringUtils.*;
+
+import java.util.*;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 public class ItalianTaxIdValidator {
     private static final char[] CONTROL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
     private static final String VOWELS = "AEIOU";
     private static final int COMPANY_TAX_ID_LENGTH = 11;
     private static final Map<Character, EvenOddValueContainer> VALUES = Map.ofEntries(
-        entry('A', new EvenOddValueContainer(0, 1)),
-        entry('B', new EvenOddValueContainer(1, 0)),
-        entry('C', new EvenOddValueContainer(2, 5)),
-        entry('D', new EvenOddValueContainer(3, 7)),
-        entry('E', new EvenOddValueContainer(4, 9)),
-        entry('F', new EvenOddValueContainer(5, 13)),
-        entry('G', new EvenOddValueContainer(6, 15)),
-        entry('H', new EvenOddValueContainer(7, 17)),
-        entry('I', new EvenOddValueContainer(8, 19)),
-        entry('J', new EvenOddValueContainer(9, 21)),
-        entry('K', new EvenOddValueContainer(10,2)),
-        entry('L', new EvenOddValueContainer(11,4)),
-        entry('M', new EvenOddValueContainer(12,18)),
-        entry('N', new EvenOddValueContainer(13,20)),
-        entry('O', new EvenOddValueContainer(14,11)),
-        entry('P', new EvenOddValueContainer(15,3 )),
-        entry('Q', new EvenOddValueContainer(16,6 )),
-        entry('R', new EvenOddValueContainer(17,8 )),
-        entry('S', new EvenOddValueContainer(18,12)),
-        entry('T', new EvenOddValueContainer(19,14)),
-        entry('U', new EvenOddValueContainer(20,16)),
-        entry('V', new EvenOddValueContainer(21,10)),
-        entry('W', new EvenOddValueContainer(22,22)),
-        entry('X', new EvenOddValueContainer(23,25)),
-        entry('Y', new EvenOddValueContainer(24,24)),
-        entry('Z', new EvenOddValueContainer(25,23)),
-        entry('0', new EvenOddValueContainer(0, 1)),
-        entry('1', new EvenOddValueContainer(1,0)),
-        entry('2', new EvenOddValueContainer(2,5)),
-        entry('3', new EvenOddValueContainer(3,7)),
-        entry('4', new EvenOddValueContainer(4,9)),
-        entry('5', new EvenOddValueContainer(5,13)),
-        entry('6', new EvenOddValueContainer(6,15)),
-        entry('7', new EvenOddValueContainer(7,17)),
-        entry('8', new EvenOddValueContainer(8,19)),
-        entry('9', new EvenOddValueContainer(9,21))
-    );
+            entry('A', new EvenOddValueContainer(0, 1)),
+            entry('B', new EvenOddValueContainer(1, 0)),
+            entry('C', new EvenOddValueContainer(2, 5)),
+            entry('D', new EvenOddValueContainer(3, 7)),
+            entry('E', new EvenOddValueContainer(4, 9)),
+            entry('F', new EvenOddValueContainer(5, 13)),
+            entry('G', new EvenOddValueContainer(6, 15)),
+            entry('H', new EvenOddValueContainer(7, 17)),
+            entry('I', new EvenOddValueContainer(8, 19)),
+            entry('J', new EvenOddValueContainer(9, 21)),
+            entry('K', new EvenOddValueContainer(10, 2)),
+            entry('L', new EvenOddValueContainer(11, 4)),
+            entry('M', new EvenOddValueContainer(12, 18)),
+            entry('N', new EvenOddValueContainer(13, 20)),
+            entry('O', new EvenOddValueContainer(14, 11)),
+            entry('P', new EvenOddValueContainer(15, 3)),
+            entry('Q', new EvenOddValueContainer(16, 6)),
+            entry('R', new EvenOddValueContainer(17, 8)),
+            entry('S', new EvenOddValueContainer(18, 12)),
+            entry('T', new EvenOddValueContainer(19, 14)),
+            entry('U', new EvenOddValueContainer(20, 16)),
+            entry('V', new EvenOddValueContainer(21, 10)),
+            entry('W', new EvenOddValueContainer(22, 22)),
+            entry('X', new EvenOddValueContainer(23, 25)),
+            entry('Y', new EvenOddValueContainer(24, 24)),
+            entry('Z', new EvenOddValueContainer(25, 23)),
+            entry('0', new EvenOddValueContainer(0, 1)),
+            entry('1', new EvenOddValueContainer(1, 0)),
+            entry('2', new EvenOddValueContainer(2, 5)),
+            entry('3', new EvenOddValueContainer(3, 7)),
+            entry('4', new EvenOddValueContainer(4, 9)),
+            entry('5', new EvenOddValueContainer(5, 13)),
+            entry('6', new EvenOddValueContainer(6, 15)),
+            entry('7', new EvenOddValueContainer(7, 17)),
+            entry('8', new EvenOddValueContainer(8, 19)),
+            entry('9', new EvenOddValueContainer(9, 21)));
 
-    private ItalianTaxIdValidator() {
-    }
+    private ItalianTaxIdValidator() {}
 
     public static boolean validateFiscalCode(String fiscalCode, boolean companyRegistration) {
         var code = StringUtils.upperCase(trimToNull(fiscalCode));
         int length = length(code);
-        if(length == COMPANY_TAX_ID_LENGTH) {
+        if (length == COMPANY_TAX_ID_LENGTH) {
             // when length is 11, the fiscal code is equal to the VAT Number
             // This only applies to company reservations
             return companyRegistration && validateVatId(fiscalCode);
-        } else if(isBlank(code) || length != 16) {
+        } else if (isBlank(code) || length != 16) {
             return false;
         }
         var chars = code.toCharArray();
@@ -89,9 +86,10 @@ public class ItalianTaxIdValidator {
         return chars[15] == CONTROL_CHARS[sum % 26];
     }
 
-    public static boolean fiscalCodeMatchesWithName(String firstName, String lastName, String fiscalCode, boolean companyRegistration) {
-        if(validateFiscalCode(fiscalCode, companyRegistration)) {
-            if(length(fiscalCode) == COMPANY_TAX_ID_LENGTH) {
+    public static boolean fiscalCodeMatchesWithName(
+            String firstName, String lastName, String fiscalCode, boolean companyRegistration) {
+        if (validateFiscalCode(fiscalCode, companyRegistration)) {
+            if (length(fiscalCode) == COMPANY_TAX_ID_LENGTH) {
                 // if the fiscal code belongs to a company then there's no point in checking the name in it
                 return true;
             }
@@ -100,7 +98,7 @@ public class ItalianTaxIdValidator {
             appendLastNameCode(code, lastNameParts);
             var firstNameParts = parseFiscalCodePart(firstName.trim());
             int numConsonants = firstNameParts.consonants.size();
-            if(numConsonants < 4) {
+            if (numConsonants < 4) {
                 // if the first name contains less than 4 consonants,
                 // we can apply the same algorithm of the last name
                 appendLastNameCode(code, firstNameParts);
@@ -119,7 +117,7 @@ public class ItalianTaxIdValidator {
     private static void appendLastNameCode(StringBuilder code, FiscalCodeParts lastNameParts) {
         lastNameParts.consonants.stream().limit(3).forEach(code::append);
         int chars = code.length();
-        if(chars < 3) {
+        if (chars < 3) {
             lastNameParts.vowels.stream().limit(3L - chars).forEach(code::append);
         }
         chars = code.length();
@@ -145,7 +143,7 @@ public class ItalianTaxIdValidator {
 
     public static boolean validateVatId(String vatId) {
         var nr = StringUtils.trimToNull(vatId);
-        if(nr == null || (length(nr) != COMPANY_TAX_ID_LENGTH && !StringUtils.isNumeric(nr))) {
+        if (nr == null || (length(nr) != COMPANY_TAX_ID_LENGTH && !StringUtils.isNumeric(nr))) {
             return false;
         }
         int sumEven = 0;
@@ -154,9 +152,9 @@ public class ItalianTaxIdValidator {
         if (chars.length != COMPANY_TAX_ID_LENGTH) {
             return false;
         }
-        for (int i=0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             int val = Character.getNumericValue(chars[i]);
-            if((i + 1) % 2 == 0) {
+            if ((i + 1) % 2 == 0) {
                 int product = val * 2;
                 sumOdd += (product > 9 ? product - 9 : product);
             } else {
@@ -164,7 +162,7 @@ public class ItalianTaxIdValidator {
             }
         }
         int controlDigit = (sumEven + sumOdd) % 10;
-        if(controlDigit > 0) {
+        if (controlDigit > 0) {
             controlDigit = 10 - controlDigit;
         }
         return controlDigit == Character.getNumericValue(chars[10]);

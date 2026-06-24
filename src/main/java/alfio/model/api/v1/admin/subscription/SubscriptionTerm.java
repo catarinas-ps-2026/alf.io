@@ -17,7 +17,6 @@
 package alfio.model.api.v1.admin.subscription;
 
 import alfio.model.subscription.SubscriptionDescriptor;
-
 import java.time.LocalDateTime;
 
 public interface SubscriptionTerm {
@@ -34,6 +33,7 @@ public interface SubscriptionTerm {
     default Integer getUnits() {
         return null;
     }
+
     default Integer getNumEntries() {
         return null;
     }

@@ -16,14 +16,13 @@
  */
 package alfio.controller.form;
 
+import java.util.List;
+import java.util.UUID;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.UUID;
 
 @Data
 public class SearchOptions {
@@ -39,13 +38,13 @@ public class SearchOptions {
 
     public boolean isEmpty() {
         return StringUtils.isEmpty(subscription)
-            && (organizer == null || organizer == 0 || StringUtils.isEmpty(organizerSlug))
-            && CollectionUtils.isEmpty(tags);
+                && (organizer == null || organizer == 0 || StringUtils.isEmpty(organizerSlug))
+                && CollectionUtils.isEmpty(tags);
     }
 
     public UUID getSubscriptionCodeUUIDOrNull() {
         try {
-            if(StringUtils.isEmpty(subscription)) {
+            if (StringUtils.isEmpty(subscription)) {
                 return null;
             }
             return UUID.fromString(subscription);

@@ -22,6 +22,12 @@ import alfio.util.Json;
 import ch.digitalfondue.npjt.Bind;
 import ch.digitalfondue.npjt.Query;
 import ch.digitalfondue.npjt.QueryRepository;
+import java.io.*;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -29,13 +35,6 @@ import org.springframework.jdbc.core.support.AbstractLobCreatingPreparedStatemen
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobCreator;
 import org.springframework.jdbc.support.lob.LobHandler;
-
-import java.io.*;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
 
 @QueryRepository
 public interface FileUploadRepository {
@@ -46,7 +45,8 @@ public interface FileUploadRepository {
     @Query("select id, name, content_size, content_type, attributes from file_blob where id = :id")
     Optional<FileBlobMetadata> findById(@Bind("id") String id);
 
-    @Query("""
+    @Query(
+            """
         delete from file_blob where creation_time <= :date and id not in (\
         select file_blob_id from event where file_blob_id is not null\
          union \
@@ -60,18 +60,20 @@ public interface FileUploadRepository {
 
         NamedParameterJdbcTemplate jdbc = getNamedParameterJdbcTemplate();
 
-        jdbc.getJdbcOperations().execute("insert into file_blob (id, name, content_size, content, content_type, attributes) values(?, ?, ?, ?, ?, ?)",
-            new AbstractLobCreatingPreparedStatementCallback(lobHandler) {
-                @Override
-                protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
-                    ps.setString(1, digest);
-                    ps.setString(2, file.getName());
-                    ps.setLong(3, file.getFile().length);
-                    lobCreator.setBlobAsBytes(ps, 4, file.getFile());
-                    ps.setString(5, file.getType());
-                    ps.setString(6, Json.GSON.toJson(attributes));
-                }
-            });
+        jdbc.getJdbcOperations()
+                .execute(
+                        "insert into file_blob (id, name, content_size, content, content_type, attributes) values(?, ?, ?, ?, ?, ?)",
+                        new AbstractLobCreatingPreparedStatementCallback(lobHandler) {
+                            @Override
+                            protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
+                                ps.setString(1, digest);
+                                ps.setString(2, file.getName());
+                                ps.setLong(3, file.getFile().length);
+                                lobCreator.setBlobAsBytes(ps, 4, file.getFile());
+                                ps.setString(5, file.getType());
+                                ps.setString(6, Json.GSON.toJson(attributes));
+                            }
+                        });
     }
 
     NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
@@ -86,7 +88,8 @@ public interface FileUploadRepository {
             File cachedFile = File.createTempFile("fileupload-cache", ".tmp");
             SqlParameterSource param = new MapSqlParameterSource("id", id);
             getNamedParameterJdbcTemplate().query("select content from file_blob where id = :id", param, rs -> {
-                try (InputStream is = rs.getBinaryStream("content"); OutputStream os = new FileOutputStream(cachedFile)) {
+                try (InputStream is = rs.getBinaryStream("content");
+                        OutputStream os = new FileOutputStream(cachedFile)) {
                     is.transferTo(os);
                 } catch (IOException e) {
                     throw new IllegalStateException("Error while copying data", e);
@@ -97,5 +100,4 @@ public interface FileUploadRepository {
             throw new IllegalStateException(e);
         }
     }
-
 }

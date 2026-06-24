@@ -25,8 +25,7 @@ public class PollOptionStatistics {
     private final int votes;
     private final long optionId;
 
-    public PollOptionStatistics(@Column("votes") int votes,
-                                @Column("poll_option_id_fk") long optionId) {
+    public PollOptionStatistics(@Column("votes") int votes, @Column("poll_option_id_fk") long optionId) {
         this.votes = votes;
         this.optionId = optionId;
     }

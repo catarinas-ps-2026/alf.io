@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static alfio.test.util.IntegrationTestUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
@@ -33,6 +36,11 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.BaseIntegrationTest;
 import alfio.util.ClockProvider;
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,25 +48,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
-
-import static alfio.test.util.IntegrationTestUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class})
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class UploadedResourceIntegrationTest extends BaseIntegrationTest {
 
-    private static final byte[] FILE = {1,2,3,4};
-    private static final byte[] ONE_PIXEL_BLACK_GIF = Base64.getDecoder().decode("R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=");
+    private static final byte[] FILE = {1, 2, 3, 4};
+    private static final byte[] ONE_PIXEL_BLACK_GIF =
+            Base64.getDecoder().decode("R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=");
 
     private static final Map<String, String> DESCRIPTION = Collections.singletonMap("en", "desc");
-
 
     @Autowired
     UploadedResourceManager uploadedResourceManager;
@@ -74,6 +73,7 @@ class UploadedResourceIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     OrganizationRepository organizationRepository;
+
     @Autowired
     private EventRepository eventRepository;
 
@@ -84,12 +84,31 @@ class UploadedResourceIntegrationTest extends BaseIntegrationTest {
     public void ensureConfiguration() {
 
         IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
-        List<TicketCategoryModification> categories = Collections.singletonList(
-            new TicketCategoryModification(null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false, null, null, null, null, null, 0, null, null, AlfioMetadata.empty()));
-        Pair<Event, String> eventAndUser = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Pair<Event, String> eventAndUser =
+                initEvent(categories, organizationRepository, userManager, eventManager, eventRepository);
 
         event = eventAndUser.getKey();
         user = owner(eventAndUser.getValue());
@@ -110,7 +129,8 @@ class UploadedResourceIntegrationTest extends BaseIntegrationTest {
 
         assertTrue(uploadedResourceManager.hasResource("file_name.txt"));
         assertEquals(1, uploadedResourceManager.findAll().size());
-        assertEquals(toSave.getName(), uploadedResourceManager.get("file_name.txt").getName());
+        assertEquals(
+                toSave.getName(), uploadedResourceManager.get("file_name.txt").getName());
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         uploadedResourceManager.outputResource("file_name.txt", baos);
@@ -142,7 +162,9 @@ class UploadedResourceIntegrationTest extends BaseIntegrationTest {
 
         assertTrue(uploadedResourceManager.hasResource(orgId, "file_name.txt"));
         assertEquals(1, uploadedResourceManager.findAll(orgId).size());
-        assertEquals(toSave.getName(), uploadedResourceManager.get(orgId, "file_name.txt").getName());
+        assertEquals(
+                toSave.getName(),
+                uploadedResourceManager.get(orgId, "file_name.txt").getName());
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         uploadedResourceManager.outputResource(orgId, "file_name.txt", baos);
@@ -175,7 +197,9 @@ class UploadedResourceIntegrationTest extends BaseIntegrationTest {
 
         assertTrue(uploadedResourceManager.hasResource(orgId, eventId, "file_name.txt"));
         assertEquals(1, uploadedResourceManager.findAll(orgId, eventId).size());
-        assertEquals(toSave.getName(), uploadedResourceManager.get(orgId, eventId, "file_name.txt").getName());
+        assertEquals(
+                toSave.getName(),
+                uploadedResourceManager.get(orgId, eventId, "file_name.txt").getName());
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         uploadedResourceManager.outputResource(orgId, eventId, "file_name.txt", baos);
@@ -190,6 +214,4 @@ class UploadedResourceIntegrationTest extends BaseIntegrationTest {
         uploadedResourceManager.outputResource(orgId, eventId, "file_name.txt", baos1);
         assertArrayEquals(ONE_PIXEL_BLACK_GIF, baos1.toByteArray());
     }
-
-
 }

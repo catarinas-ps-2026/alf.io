@@ -21,13 +21,12 @@ import alfio.model.subscription.SubscriptionDescriptor;
 import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.UUID;
+import java.util.function.Function;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import java.util.UUID;
-import java.util.function.Function;
 
 @Getter
 public class Configuration implements Comparable<Configuration> {
@@ -41,12 +40,13 @@ public class Configuration implements Comparable<Configuration> {
     private final boolean basic;
     private final boolean internal;
 
-
     @JsonCreator
-    public Configuration(@JsonProperty("id") @Column("id") int id,
-                         @JsonProperty("key") @Column("c_key") String key,
-                         @JsonProperty("value") @Column("c_value") String value,
-                         @JsonProperty("configurationPathLevel") @Column("configuration_path_level") ConfigurationPathLevel configurationPathLevel) {
+    public Configuration(
+            @JsonProperty("id") @Column("id") int id,
+            @JsonProperty("key") @Column("c_key") String key,
+            @JsonProperty("value") @Column("c_value") String value,
+            @JsonProperty("configurationPathLevel") @Column("configuration_path_level")
+                    ConfigurationPathLevel configurationPathLevel) {
         this.id = id;
         this.key = key;
         this.value = value;
@@ -63,7 +63,9 @@ public class Configuration implements Comparable<Configuration> {
 
     @Override
     public int compareTo(Configuration o) {
-        return new CompareToBuilder().append(configurationKey.ordinal(), o.configurationKey.ordinal()).toComparison();
+        return new CompareToBuilder()
+                .append(configurationKey.ordinal(), o.configurationKey.ordinal())
+                .toComparison();
     }
 
     @Override
@@ -77,20 +79,26 @@ public class Configuration implements Comparable<Configuration> {
         if (!(obj instanceof Configuration o)) {
             return false;
         }
-        return new EqualsBuilder().append(configurationKey, o.configurationKey).append(configurationPathLevel, configurationPathLevel).isEquals();
+        return new EqualsBuilder()
+                .append(configurationKey, o.configurationKey)
+                .append(configurationPathLevel, configurationPathLevel)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(configurationKey).append(configurationPathLevel).toHashCode();
+        return new HashCodeBuilder()
+                .append(configurationKey)
+                .append(configurationPathLevel)
+                .toHashCode();
     }
 
-    public sealed interface ConfigurationPath permits
-        SystemConfigurationPath,
-        OrganizationConfigurationPath,
-        EventConfigurationPath,
-        SubscriptionDescriptorConfigurationPath,
-        TicketCategoryConfigurationPath {
+    public sealed interface ConfigurationPath
+            permits SystemConfigurationPath,
+                    OrganizationConfigurationPath,
+                    EventConfigurationPath,
+                    SubscriptionDescriptorConfigurationPath,
+                    TicketCategoryConfigurationPath {
         ConfigurationPathLevel pathLevel();
     }
 
@@ -111,23 +119,23 @@ public class Configuration implements Comparable<Configuration> {
     public record EventConfigurationPath(int organizationId, int id) implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-                return ConfigurationPathLevel.PURCHASE_CONTEXT;
-            }
+            return ConfigurationPathLevel.PURCHASE_CONTEXT;
+        }
     }
 
     public record SubscriptionDescriptorConfigurationPath(int organizationId, UUID id) implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-                return ConfigurationPathLevel.PURCHASE_CONTEXT;
-            }
+            return ConfigurationPathLevel.PURCHASE_CONTEXT;
+        }
     }
 
-
-    public record TicketCategoryConfigurationPath(int organizationId, int eventId, int id) implements ConfigurationPath {
+    public record TicketCategoryConfigurationPath(int organizationId, int eventId, int id)
+            implements ConfigurationPath {
         @Override
         public ConfigurationPathLevel pathLevel() {
-                return ConfigurationPathLevel.TICKET_CATEGORY;
-            }
+            return ConfigurationPathLevel.TICKET_CATEGORY;
+        }
     }
 
     public static ConfigurationPath system() {
@@ -142,20 +150,22 @@ public class Configuration implements Comparable<Configuration> {
         return new TicketCategoryConfigurationPath(organizationId, eventId, id);
     }
 
-
     //
     public record ConfigurationPathKey(ConfigurationPath path, ConfigurationKeys key) {}
     //
 
-    private static ConfigurationPathKey getOrganizationConfiguration(int organizationId, ConfigurationKeys configurationKey) {
+    private static ConfigurationPathKey getOrganizationConfiguration(
+            int organizationId, ConfigurationKeys configurationKey) {
         return new ConfigurationPathKey(organization(organizationId), configurationKey);
     }
 
-    private static ConfigurationPathKey getEventConfiguration(int organizationId, int eventId, ConfigurationKeys configurationKey) {
+    private static ConfigurationPathKey getEventConfiguration(
+            int organizationId, int eventId, ConfigurationKeys configurationKey) {
         return new ConfigurationPathKey(new EventConfigurationPath(organizationId, eventId), configurationKey);
     }
 
-    private static ConfigurationPathKey getTicketCategoryConfiguration(int organizationId, int eventId, int ticketCategoryId, ConfigurationKeys configurationKey) {
+    private static ConfigurationPathKey getTicketCategoryConfiguration(
+            int organizationId, int eventId, int ticketCategoryId, ConfigurationKeys configurationKey) {
         return new ConfigurationPathKey(ticketCategory(organizationId, eventId, ticketCategoryId), configurationKey);
     }
 
@@ -168,7 +178,10 @@ public class Configuration implements Comparable<Configuration> {
     }
 
     public static ConfigurationPathKey from(SubscriptionDescriptor subscriptionDescriptor, ConfigurationKeys key) {
-        return new ConfigurationPathKey(new SubscriptionDescriptorConfigurationPath(subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId()), key);
+        return new ConfigurationPathKey(
+                new SubscriptionDescriptorConfigurationPath(
+                        subscriptionDescriptor.getOrganizationId(), subscriptionDescriptor.getId()),
+                key);
     }
 
     public static Function<ConfigurationKeys, ConfigurationPathKey> from(EventAndOrganizationId e) {
@@ -179,7 +192,8 @@ public class Configuration implements Comparable<Configuration> {
         return p -> from(organizationId, p);
     }
 
-    public static ConfigurationPathKey from(int organizationId, int eventId, int ticketCategoryId, ConfigurationKeys key) {
+    public static ConfigurationPathKey from(
+            int organizationId, int eventId, int ticketCategoryId, ConfigurationKeys key) {
         return getTicketCategoryConfiguration(organizationId, eventId, ticketCategoryId, key);
     }
 }

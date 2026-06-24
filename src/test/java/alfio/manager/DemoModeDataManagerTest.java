@@ -16,6 +16,9 @@
  */
 package alfio.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.user.User;
@@ -25,30 +28,32 @@ import alfio.repository.OrganizationDeleterRepository;
 import alfio.repository.user.OrganizationRepository;
 import alfio.repository.user.UserRepository;
 import alfio.repository.user.join.UserOrganizationRepository;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-
 public class DemoModeDataManagerTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private UserOrganizationRepository userOrganizationRepository;
+
     @Mock
     private OrganizationRepository organizationRepository;
+
     @Mock
     private EventDeleterRepository eventDeleterRepository;
+
     @Mock
     private EventRepository eventRepository;
+
     @Mock
     private ConfigurationManager configurationManager;
+
     @Mock
     private OrganizationDeleterRepository organizationDeleterRepository;
 
@@ -64,8 +69,7 @@ public class DemoModeDataManagerTest {
                 eventDeleterRepository,
                 eventRepository,
                 configurationManager,
-                organizationDeleterRepository
-        );
+                organizationDeleterRepository);
     }
 
     @Test
@@ -77,13 +81,19 @@ public class DemoModeDataManagerTest {
         List<Integer> actualIds = manager.findExpiredUsers(checkDate);
 
         assertEquals(expectedIds, actualIds);
-        verify(userRepository).findUsersToDeleteOlderThan(eq(checkDate), eq(Set.of(User.Type.DEMO.name(), User.Type.API_KEY.name())));
+        verify(userRepository)
+                .findUsersToDeleteOlderThan(eq(checkDate), eq(Set.of(User.Type.DEMO.name(), User.Type.API_KEY.name())));
     }
 
     @Test
     public void testDeleteAccountsEmpty() {
         manager.deleteAccounts(Collections.emptyList());
-        verifyNoInteractions(userOrganizationRepository, eventRepository, eventDeleterRepository, userRepository, organizationDeleterRepository);
+        verifyNoInteractions(
+                userOrganizationRepository,
+                eventRepository,
+                eventDeleterRepository,
+                userRepository,
+                organizationDeleterRepository);
     }
 
     @Test
@@ -111,11 +121,13 @@ public class DemoModeDataManagerTest {
         when(configurationManager.getForSystem(any())).thenReturn(mockConfig);
 
         List<Integer> expiredUserIds = Arrays.asList(5, 6);
-        when(userRepository.findUsersToDeleteOlderThan(any(Date.class), anySet())).thenReturn(expiredUserIds);
+        when(userRepository.findUsersToDeleteOlderThan(any(Date.class), anySet()))
+                .thenReturn(expiredUserIds);
 
         List<Integer> organizationIds = Arrays.asList(300);
         List<Integer> eventIds = Arrays.asList(3000);
-        when(userOrganizationRepository.findOrganizationsForUsers(expiredUserIds)).thenReturn(organizationIds);
+        when(userOrganizationRepository.findOrganizationsForUsers(expiredUserIds))
+                .thenReturn(organizationIds);
         when(eventRepository.disableEventsForUsers(expiredUserIds)).thenReturn(eventIds);
 
         manager.cleanupForDemoMode();

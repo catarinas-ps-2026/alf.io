@@ -16,16 +16,14 @@
  */
 package alfio.config.support;
 
-import alfio.config.Initializer;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
+import static java.util.Optional.ofNullable;
 
+import alfio.config.Initializer;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Objects;
 import java.util.regex.Pattern;
-
-import static java.util.Optional.ofNullable;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
 /**
  * For handling the various differences between the cloud providers.
@@ -66,7 +64,6 @@ public enum PlatformProvider {
             return env.getRequiredProperty("OPENSHIFT_POSTGRESQL_DB_USERNAME");
         }
 
-
         @Override
         public String getPassword(Environment env) {
             return env.getRequiredProperty("OPENSHIFT_POSTGRESQL_DB_PASSWORD");
@@ -86,7 +83,9 @@ public enum PlatformProvider {
     CLOUD_FOUNDRY {
 
         @Override
-        public String getUrl(Environment env) { return "url"; }
+        public String getUrl(Environment env) {
+            return "url";
+        }
 
         @Override
         public String getUsername(Environment env) {
@@ -100,12 +99,12 @@ public enum PlatformProvider {
 
         @Override
         public boolean isHosting(Environment env) {
-            //check if json object for services is returned
-            //example payload
-            //{
-            //"staging_env_json": {},
-            //"running_env_json": {},
-            //"system_env_json": {
+            // check if json object for services is returned
+            // example payload
+            // {
+            // "staging_env_json": {},
+            // "running_env_json": {},
+            // "system_env_json": {
             //    "VCAP_SERVICES": {
             //        "p-mysql": [
             //        {
@@ -127,7 +126,6 @@ public enum PlatformProvider {
             return Pattern.compile(":").split(resolveURI(env).getUserInfo())[0];
         }
 
-
         @Override
         public String getPassword(Environment env) {
             return Pattern.compile(":").split(resolveURI(env).getUserInfo())[1];
@@ -141,10 +139,10 @@ public enum PlatformProvider {
         private URI resolveURI(Environment env) {
             return resolveURI(env, "DATABASE_URL");
         }
-
     },
 
-    DOCKER { // we assume that the db container has been linked using the `postgres` alias (e.g. --link alfio-db:postgres)
+    DOCKER { // we assume that the db container has been linked using the `postgres` alias (e.g. --link
+        // alfio-db:postgres)
 
         @Override
         public String getUrl(Environment env) {
@@ -158,7 +156,6 @@ public enum PlatformProvider {
         public String getUsername(Environment env) {
             return env.getRequiredProperty("POSTGRES_ENV_POSTGRES_USERNAME");
         }
-
 
         @Override
         public String getPassword(Environment env) {
@@ -196,14 +193,16 @@ public enum PlatformProvider {
         public boolean isHosting(Environment env) {
             return ofNullable(env.getProperty("RDS_HOSTNAME")).isPresent();
         }
-
     },
 
     CLEVER_CLOUD {
         @Override
         public String getUrl(Environment env) {
-            return "jdbc:postgresql://%s:%s/%s".formatted(env.getRequiredProperty("POSTGRESQL_ADDON_HOST"),
-                env.getRequiredProperty("POSTGRESQL_ADDON_PORT"), env.getRequiredProperty("POSTGRESQL_ADDON_DB"));
+            return "jdbc:postgresql://%s:%s/%s"
+                    .formatted(
+                            env.getRequiredProperty("POSTGRESQL_ADDON_HOST"),
+                            env.getRequiredProperty("POSTGRESQL_ADDON_PORT"),
+                            env.getRequiredProperty("POSTGRESQL_ADDON_DB"));
         }
 
         @Override
@@ -218,7 +217,7 @@ public enum PlatformProvider {
 
         @Override
         public int getMaxActive(Environment env) {
-            //default limit to 5, to be on the safe side
+            // default limit to 5, to be on the safe side
             return Integer.parseInt(env.getProperty("POSTGRESQL_ADDON_MAXCONN", "5"));
         }
 
@@ -242,14 +241,14 @@ public enum PlatformProvider {
 
     public int getMaxActive(Environment env) {
         return ofNullable(env.getProperty("datasource.connections.max-active"))
-            .map(Integer::parseInt)
-            .orElse(10);//
+                .map(Integer::parseInt)
+                .orElse(10); //
     }
 
     public int getMinIdle(Environment env) {
         return ofNullable(env.getProperty("datasource.connections.min-idle"))
-            .map(Integer::parseInt)
-            .orElse(5);//
+                .map(Integer::parseInt)
+                .orElse(5); //
     }
 
     public boolean isHosting(Environment env) {

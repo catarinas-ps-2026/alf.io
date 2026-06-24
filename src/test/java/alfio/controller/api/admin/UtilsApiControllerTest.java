@@ -16,23 +16,22 @@
  */
 package alfio.controller.api.admin;
 
-import alfio.util.MonetaryUtil;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import alfio.util.MonetaryUtil;
+import java.math.BigDecimal;
+import org.junit.jupiter.api.Test;
 
 class UtilsApiControllerTest {
 
     @Test
     void getCurrencies() {
-        new UtilsApiController(null, null, null)
-            .getCurrencies()
-            .forEach(currency -> {
-                assertFalse(currency.getFractionDigits() < 0);
-                assertEquals(MonetaryUtil.unitToCents(BigDecimal.TEN, currency.getCode()), 10 * Math.pow(10, currency.getFractionDigits()));
-            });
+        new UtilsApiController(null, null, null).getCurrencies().forEach(currency -> {
+            assertFalse(currency.getFractionDigits() < 0);
+            assertEquals(
+                    MonetaryUtil.unitToCents(BigDecimal.TEN, currency.getCode()),
+                    10 * Math.pow(10, currency.getFractionDigits()));
+        });
     }
 }

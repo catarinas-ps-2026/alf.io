@@ -32,7 +32,6 @@ public class SandboxContextFactory extends ContextFactory {
 
         public MyContext(ContextFactory factory) {
             super(factory);
-
         }
     }
 
@@ -49,10 +48,10 @@ public class SandboxContextFactory extends ContextFactory {
 
     @Override
     protected void observeInstructionCount(Context cx, int instructionCount) {
-        MyContext mcx = (MyContext)cx;
+        MyContext mcx = (MyContext) cx;
         long currentTime = System.currentTimeMillis();
         long executionTime = currentTime - mcx.startTime;
-        if (executionTime > 15*1000) {
+        if (executionTime > 15 * 1000) {
             // More than 15 seconds from Context creation time:
             // it is time to stop the script.
             // Throw Error instance to ensure that script will never
