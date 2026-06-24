@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WaitingQueueSubscriptionProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">WaitingQueueSubscriptionProcessor.java</span></div><h1>WaitingQueueSubscriptionProcessor.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.model.system.ConfigurationKeys.ENABLE_PRE_REGISTRATION;
+import static alfio.model.system.ConfigurationKeys.ENABLE_WAITING_QUEUE;
+import static java.util.stream.Collectors.toList;
+
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.Event;
+import alfio.model.EventAndOrganizationId;
+import alfio.model.TicketInfo;
+import alfio.model.WaitingQueueSubscription;
+import alfio.model.modification.TicketReservationWithOptionalCodeModification;
+import alfio.model.user.Organization;
+import alfio.repository.TicketRepository;
+import alfio.repository.WaitingQueueRepository;
+import alfio.util.ClockProvider;
+import alfio.util.TemplateManager;
+import alfio.util.TemplateResource;
+import java.sql.Date;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+@Component
+@Transactional
+public class WaitingQueueSubscriptionProcessor {
+
+<span class="fc" id="L55">    private static final Logger log = LoggerFactory.getLogger(WaitingQueueSubscriptionProcessor.class);</span>
+    private final EventManager eventManager;
+    private final TicketReservationManager ticketReservationManager;
+    private final ConfigurationManager configurationManager;
+    private final WaitingQueueManager waitingQueueManager;
+    private final NotificationManager notificationManager;
+    private final WaitingQueueRepository waitingQueueRepository;
+    private final MessageSourceManager messageSourceManager;
+    private final TemplateManager templateManager;
+    private final TicketRepository ticketRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final ClockProvider clockProvider;
+
+    public WaitingQueueSubscriptionProcessor(
+            EventManager eventManager,
+            TicketReservationManager ticketReservationManager,
+            ConfigurationManager configurationManager,
+            WaitingQueueManager waitingQueueManager,
+            NotificationManager notificationManager,
+            WaitingQueueRepository waitingQueueRepository,
+            MessageSourceManager messageSourceManager,
+            TemplateManager templateManager,
+            TicketRepository ticketRepository,
+            PlatformTransactionManager transactionManager,
+<span class="fc" id="L79">            ClockProvider clockProvider) {</span>
+<span class="fc" id="L80">        this.eventManager = eventManager;</span>
+<span class="fc" id="L81">        this.ticketReservationManager = ticketReservationManager;</span>
+<span class="fc" id="L82">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L83">        this.waitingQueueManager = waitingQueueManager;</span>
+<span class="fc" id="L84">        this.notificationManager = notificationManager;</span>
+<span class="fc" id="L85">        this.waitingQueueRepository = waitingQueueRepository;</span>
+<span class="fc" id="L86">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L87">        this.templateManager = templateManager;</span>
+<span class="fc" id="L88">        this.ticketRepository = ticketRepository;</span>
+<span class="fc" id="L89">        this.transactionManager = transactionManager;</span>
+<span class="fc" id="L90">        this.clockProvider = clockProvider;</span>
+<span class="fc" id="L91">    }</span>
+
+    public void handleWaitingTickets() {
+<span class="fc" id="L94">        Map&lt;Boolean, List&lt;Event&gt;&gt; activeEvents = eventManager.getActiveEvents().stream()</span>
+<span class="fc" id="L95">                .collect(Collectors.partitioningBy(this::isWaitingListFormEnabled));</span>
+<span class="fc" id="L96">        activeEvents.get(true).forEach(event -&gt; {</span>
+<span class="fc" id="L97">            TransactionStatus transaction = transactionManager.getTransaction(</span>
+                    new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+            try {
+<span class="fc" id="L100">                ticketReservationManager.revertTicketsToFreeIfAccessRestricted(event.getId());</span>
+<span class="fc" id="L101">                revertTicketToFreeIfCategoryIsExpired(event);</span>
+<span class="fc" id="L102">                distributeAvailableSeats(event);</span>
+<span class="fc" id="L103">                transactionManager.commit(transaction);</span>
+<span class="nc" id="L104">            } catch (Exception ex) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                if (!(ex instanceof TransactionException)) {</span>
+<span class="nc" id="L106">                    transactionManager.rollback(transaction);</span>
+                }
+<span class="nc" id="L108">                log.error(&quot;cannot process waiting list for event {}&quot;, event.getShortName(), ex);</span>
+<span class="fc" id="L109">            }</span>
+<span class="fc" id="L110">        });</span>
+<span class="fc" id="L111">        activeEvents.get(false).forEach(eventManager::resetReleasedTickets);</span>
+<span class="fc" id="L112">    }</span>
+
+    public void revertTicketToFreeIfCategoryIsExpired(Event event) {
+<span class="fc" id="L115">        int eventId = event.getId();</span>
+<span class="fc" id="L116">        List&lt;TicketInfo&gt; releasedButExpired =</span>
+<span class="fc" id="L117">                ticketRepository.findReleasedBelongingToExpiredCategories(eventId, event.now(clockProvider));</span>
+<span class="fc" id="L118">        Map&lt;Pair&lt;Integer, Boolean&gt;, List&lt;Integer&gt;&gt; releasedByCategory = releasedButExpired.stream()</span>
+<span class="fc" id="L119">                .collect(Collectors.groupingBy(</span>
+<span class="fc" id="L120">                        t -&gt; Pair.of(t.getTicketCategoryId(), t.isTicketCategoryBounded()),</span>
+<span class="fc" id="L121">                        Collectors.mapping(TicketInfo::getTicketId, toList())));</span>
+<span class="fc" id="L122">        releasedByCategory.forEach((ticketCategory, ticketIds) -&gt; {</span>
+<span class="fc" id="L123">            int ticketCategoryId = ticketCategory.getKey();</span>
+<span class="fc" id="L124">            boolean isTicketCategoryBounded = ticketCategory.getRight();</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">            if (!ticketIds.isEmpty()) {</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">                if (isTicketCategoryBounded) {</span>
+<span class="fc" id="L127">                    ticketRepository.revertToFree(eventId, ticketCategoryId, ticketIds);</span>
+                } else {
+<span class="nc" id="L129">                    ticketRepository.unbindTicketsFromCategory(eventId, ticketCategoryId, ticketIds);</span>
+                }
+            }
+<span class="fc" id="L132">        });</span>
+<span class="fc" id="L133">    }</span>
+
+    private boolean isWaitingListFormEnabled(EventAndOrganizationId event) {
+<span class="fc" id="L136">        var res = configurationManager.getFor(</span>
+<span class="fc" id="L137">                Set.of(ENABLE_WAITING_QUEUE, ENABLE_PRE_REGISTRATION), event.getConfigurationLevel());</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">        return res.get(ENABLE_WAITING_QUEUE).getValueAsBooleanOrDefault()</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">                || res.get(ENABLE_PRE_REGISTRATION).getValueAsBooleanOrDefault();</span>
+    }
+
+    public void distributeAvailableSeats(Event event) {
+<span class="fc" id="L143">        var messageSource = messageSourceManager.getMessageSourceFor(event);</span>
+<span class="fc" id="L144">        waitingQueueManager.distributeSeats(event).forEach(triple -&gt; {</span>
+<span class="fc" id="L145">            WaitingQueueSubscription subscription = triple.getLeft();</span>
+<span class="fc" id="L146">            Locale locale = subscription.getLocale();</span>
+<span class="fc" id="L147">            ZonedDateTime expiration = triple.getRight();</span>
+<span class="fc" id="L148">            Organization organization = eventManager.loadOrganizerUsingSystemPrincipal(event);</span>
+<span class="fc" id="L149">            String reservationId = createReservation(event, triple.getMiddle(), expiration, locale);</span>
+<span class="fc" id="L150">            String subject = messageSource.getMessage(</span>
+<span class="fc" id="L151">                    &quot;email-waiting-queue-acquired.subject&quot;, new Object[] {event.getDisplayName()}, locale);</span>
+<span class="fc" id="L152">            String reservationUrl = ticketReservationManager.reservationUrl(reservationId, event);</span>
+<span class="fc" id="L153">            Map&lt;String, Object&gt; model = TemplateResource.buildModelForWaitingQueueReservationEmail(</span>
+                    organization, event, subscription, reservationUrl, expiration);
+<span class="fc" id="L155">            notificationManager.sendSimpleEmail(</span>
+                    event,
+                    reservationId,
+<span class="fc" id="L158">                    subscription.getEmailAddress(),</span>
+                    subject,
+<span class="fc" id="L160">                    () -&gt; templateManager.renderTemplate(</span>
+                            event, TemplateResource.WAITING_QUEUE_RESERVATION_EMAIL, model, locale));
+<span class="fc" id="L162">            waitingQueueRepository.flagAsPending(reservationId, subscription.getId());</span>
+<span class="fc" id="L163">        });</span>
+<span class="fc" id="L164">    }</span>
+
+    private String createReservation(
+            Event event,
+            TicketReservationWithOptionalCodeModification reservation,
+            ZonedDateTime expiration,
+            Locale locale) {
+<span class="fc" id="L171">        return ticketReservationManager.createTicketReservation(</span>
+                event,
+<span class="fc" id="L173">                Collections.singletonList(reservation),</span>
+<span class="fc" id="L174">                Collections.emptyList(),</span>
+<span class="fc" id="L175">                Date.from(expiration.toInstant()),</span>
+<span class="fc" id="L176">                Optional.empty(),</span>
+                locale,
+                true,
+                null); // set principal to null because this happens in a job
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
