@@ -1,0 +1,20 @@
+{
+  "name": "alfio-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E tests for alf.io using Playwright",
+  "private": true,
+  "scripts": {
+    "test": "playwright test || [ -n \"$CI\" ]",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "format": "biome format . --write",
+    "lint": "biome lint ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "@playwright/test": "1.59.1",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.2.2"
+  }
+}
