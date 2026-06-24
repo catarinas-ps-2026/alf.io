@@ -193,6 +193,7 @@ Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los sig
 | Código del commit (link) | Descripción | Autor |
 |---|---|---|
 | https://github.com/catarinas-ps-2026/alf.io/commit/7e524f820e6e4a0cada190ffde743dc494fbc70d | fix en CheckInManager: corregido cálculo de inicio/fin del día usando ZonedDateTime -> uso de instant.truncatedTo(ChronoUnit.DAYS) y plus(1, DAYS) para evitar errores por zona horaria al contar escaneos del mismo día (evita dobles conteos/errores en badge-scan). (Se introdujo en PR #108 "fix: timezone computing making tests fail") | christianmz565 |
+| https://github.com/catarinas-ps-2026/alf.io/commit/99f17a75dd2542bc97e2d2d10e823525fc337a52 | 
 
 
 ## 11. Conclusión
