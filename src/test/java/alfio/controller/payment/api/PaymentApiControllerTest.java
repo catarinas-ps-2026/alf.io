@@ -27,7 +27,6 @@ import alfio.manager.support.PaymentResult;
 import alfio.model.PurchaseContext;
 import alfio.model.TicketReservation;
 import alfio.model.transaction.PaymentMethod;
-import alfio.model.transaction.StaticPaymentMethods;
 import alfio.model.transaction.TransactionInitializationToken;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,17 +61,17 @@ class PaymentApiControllerTest {
     @BeforeEach
     void setUp() {
         controller = new PaymentApiController(paymentManager, ticketReservationManager, purchaseContextManager);
-        lenient().when(purchaseContextManager.findByReservationId(RESERVATION_ID))
+        lenient()
+                .when(purchaseContextManager.findByReservationId(RESERVATION_ID))
                 .thenReturn(Optional.of(purchaseContext));
-        lenient().when(ticketReservationManager.findById(RESERVATION_ID))
-                .thenReturn(Optional.of(ticketReservation));
+        lenient().when(ticketReservationManager.findById(RESERVATION_ID)).thenReturn(Optional.of(ticketReservation));
     }
 
     @Test
     void initTransactionSuccess() {
         var token = mock(TransactionInitializationToken.class);
         when(ticketReservationManager.initTransaction(
-                eq(purchaseContext), eq(RESERVATION_ID), any(PaymentMethod.class), any()))
+                        eq(purchaseContext), eq(RESERVATION_ID), any(PaymentMethod.class), any()))
                 .thenReturn(Optional.of(token));
 
         var params = new LinkedMultiValueMap<String, String>();
@@ -92,8 +91,7 @@ class PaymentApiControllerTest {
 
     @Test
     void initTransactionReservationNotFound() {
-        when(purchaseContextManager.findByReservationId("unknown"))
-                .thenReturn(Optional.empty());
+        when(purchaseContextManager.findByReservationId("unknown")).thenReturn(Optional.empty());
 
         var params = new LinkedMultiValueMap<String, String>();
         var result = controller.initTransaction("unknown", "CREDIT_CARD", params);

@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.Event;
-import alfio.model.PurchaseContext;
 import alfio.model.system.ConfigurationKeys;
 import alfio.model.transaction.PaymentContext;
 import alfio.model.transaction.PaymentProxy;
@@ -38,7 +37,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,7 +87,8 @@ class SaferpayManagerTest {
     public void init() {
         var configurationManager = mock(ConfigurationManager.class);
         var configuration = mock(Map.class);
-        lenient().when(configurationManager.getFor(
+        lenient()
+                .when(configurationManager.getFor(
                         eq(EnumSet.of(
                                 SAFERPAY_ENABLED,
                                 SAFERPAY_API_USERNAME,
@@ -205,7 +204,9 @@ class SaferpayManagerTest {
                 .thenReturn(configMap);
         var presentConfig = mock(MaybeConfiguration.class);
         when(presentConfig.isPresent()).thenReturn(true);
-        when(configMap.values()).thenReturn(java.util.List.of(presentConfig, presentConfig, presentConfig, presentConfig, presentConfig));
+        when(configMap.values())
+                .thenReturn(
+                        java.util.List.of(presentConfig, presentConfig, presentConfig, presentConfig, presentConfig));
         var activeManager = new SaferpayManager(
                 configurationManager,
                 httpClient,
@@ -282,7 +283,9 @@ class SaferpayManagerTest {
         HttpResponse<Object> response = mock(HttpResponse.class);
         when(httpClient.send(any(), any())).thenReturn(response);
         when(response.statusCode()).thenReturn(200);
-        when(response.body()).thenReturn("""
+        when(response.body())
+                .thenReturn(
+                        """
                 {
                   "Transaction": {
                     "Amount": {

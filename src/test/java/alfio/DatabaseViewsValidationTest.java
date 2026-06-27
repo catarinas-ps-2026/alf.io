@@ -1,3 +1,19 @@
+/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package alfio;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,8 +59,7 @@ class DatabaseViewsValidationTest {
             "promocode_count_all",
             "additional_item_field_value_with_ticket_id",
             "field_value_w_additional",
-            "all_ticket_field_values"
-    );
+            "all_ticket_field_values");
 
     @Test
     void allExpectedViewsExist() {
@@ -53,9 +68,8 @@ class DatabaseViewsValidationTest {
                 Map.of());
         var viewNames = views.stream().map(m -> (String) m.get("table_name")).collect(Collectors.toSet());
 
-        var missingViews = EXPECTED_VIEWS.stream()
-                .filter(v -> !viewNames.contains(v))
-                .collect(Collectors.toList());
+        var missingViews =
+                EXPECTED_VIEWS.stream().filter(v -> !viewNames.contains(v)).collect(Collectors.toList());
         assertTrue(missingViews.isEmpty(), "Missing views: " + missingViews);
     }
 

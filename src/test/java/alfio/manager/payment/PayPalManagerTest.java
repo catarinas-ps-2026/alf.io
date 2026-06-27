@@ -82,8 +82,12 @@ class PayPalManagerTest {
     @SuppressWarnings("unchecked")
     private void setupConfigForActive() {
         var configMap = mock(Map.class);
-        lenient().when(configurationManager.getFor(
-                        eq(Set.of(PAYPAL_ENABLED, ConfigurationKeys.PAYPAL_CLIENT_ID, ConfigurationKeys.PAYPAL_CLIENT_SECRET)),
+        lenient()
+                .when(configurationManager.getFor(
+                        eq(Set.of(
+                                PAYPAL_ENABLED,
+                                ConfigurationKeys.PAYPAL_CLIENT_ID,
+                                ConfigurationKeys.PAYPAL_CLIENT_SECRET)),
                         any()))
                 .thenReturn(configMap);
         var enabledConfig = mock(MaybeConfiguration.class);
@@ -100,8 +104,12 @@ class PayPalManagerTest {
     @SuppressWarnings("unchecked")
     private void setupConfigForInactive() {
         var configMap = mock(Map.class);
-        lenient().when(configurationManager.getFor(
-                        eq(Set.of(PAYPAL_ENABLED, ConfigurationKeys.PAYPAL_CLIENT_ID, ConfigurationKeys.PAYPAL_CLIENT_SECRET)),
+        lenient()
+                .when(configurationManager.getFor(
+                        eq(Set.of(
+                                PAYPAL_ENABLED,
+                                ConfigurationKeys.PAYPAL_CLIENT_ID,
+                                ConfigurationKeys.PAYPAL_CLIENT_SECRET)),
                         any()))
                 .thenReturn(configMap);
         var disabledConfig = mock(MaybeConfiguration.class);
@@ -183,19 +191,20 @@ class PayPalManagerTest {
 
         payPalManager.saveToken("res-123", purchaseContext, token);
 
-        verify(transactionRepository).insert(
-                eq("res-123"),
-                eq("pay-789"),
-                eq("res-123"),
-                any(),
-                eq(0),
-                any(),
-                eq("Paypal token"),
-                eq(PaymentProxy.PAYPAL.name()),
-                eq(0L),
-                eq(0L),
-                eq(Transaction.Status.PENDING),
-                anyMap());
+        verify(transactionRepository)
+                .insert(
+                        eq("res-123"),
+                        eq("pay-789"),
+                        eq("res-123"),
+                        any(),
+                        eq(0),
+                        any(),
+                        eq("Paypal token"),
+                        eq(PaymentProxy.PAYPAL.name()),
+                        eq(0L),
+                        eq(0L),
+                        eq(Transaction.Status.PENDING),
+                        anyMap());
     }
 
     @Test
@@ -221,8 +230,7 @@ class PayPalManagerTest {
     void removeTokenWithNonMatchingPaymentId() {
         var transaction = mock(Transaction.class);
         when(transaction.getPaymentId()).thenReturn("other-pay-id");
-        when(transactionRepository.loadOptionalByReservationId("res-123"))
-                .thenReturn(Optional.of(transaction));
+        when(transactionRepository.loadOptionalByReservationId("res-123")).thenReturn(Optional.of(transaction));
 
         var reservation = mock(TicketReservation.class);
         when(reservation.getId()).thenReturn("res-123");

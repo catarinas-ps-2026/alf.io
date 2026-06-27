@@ -18,7 +18,6 @@ package alfio.manager.payment;
 
 import static alfio.manager.TicketReservationManager.NOT_YET_PAID_TRANSACTION_ID;
 import static alfio.model.system.ConfigurationKeys.ON_SITE_ENABLED;
-import static alfio.model.system.ConfigurationKeys.RECAPTCHA_API_KEY;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,7 +27,6 @@ import alfio.manager.system.ConfigurationLevel;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.Event;
-import alfio.model.system.ConfigurationPathLevel;
 import alfio.model.transaction.*;
 import alfio.repository.TransactionRepository;
 import java.util.EnumSet;
@@ -69,7 +67,8 @@ class OnSiteManagerTest {
             var result = onSiteManager.doPayment(spec);
             assertTrue(result.isSuccessful());
             assertEquals(NOT_YET_PAID_TRANSACTION_ID, result.getGatewayIdOrNull());
-            mockedUtils.verify(() -> PaymentManagerUtils.invalidateExistingTransactions("res-123", transactionRepository));
+            mockedUtils.verify(
+                    () -> PaymentManagerUtils.invalidateExistingTransactions("res-123", transactionRepository));
         }
     }
 

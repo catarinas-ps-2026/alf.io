@@ -44,7 +44,6 @@ import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.ClockProvider;
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -321,7 +320,8 @@ class CheckInManagerIntegrationTest {
     }
 
     private String createReservationAndConfirm(Event event, String username) {
-        var category = ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
+        var category =
+                ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
         TicketReservationModification tr = new TicketReservationModification();
         tr.setQuantity(1);
         tr.setTicketCategoryId(category.getId());
@@ -365,7 +365,8 @@ class CheckInManagerIntegrationTest {
     }
 
     private String createReservationWithoutPayment(Event event) {
-        var category = ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
+        var category =
+                ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
         TicketReservationModification tr = new TicketReservationModification();
         tr.setQuantity(1);
         tr.setTicketCategoryId(category.getId());
@@ -444,11 +445,7 @@ class CheckInManagerIntegrationTest {
 
         String ticketCode = ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive());
         var result = checkInManager.confirmOnSitePayment(
-                event.getShortName(),
-                ticket.getUuid(),
-                Optional.of(ticketCode),
-                username,
-                "auditUser");
+                event.getShortName(), ticket.getUuid(), Optional.of(ticketCode), username, "auditUser");
         assertEquals(CheckInStatus.SUCCESS, result.getResult().getStatus());
     }
 
@@ -535,11 +532,7 @@ class CheckInManagerIntegrationTest {
         var username = eventAndUser.getRight();
 
         configurationRepository.insertEventLevel(
-                event.getOrganizationId(),
-                event.getId(),
-                ConfigurationKeys.CHECK_IN_STATS.getValue(),
-                "true",
-                "");
+                event.getOrganizationId(), event.getId(), ConfigurationKeys.CHECK_IN_STATS.getValue(), "true", "");
 
         CheckInStatistics stats = checkInManager.getStatistics(event.getShortName(), null, username);
         assertNotNull(stats);
@@ -552,11 +545,7 @@ class CheckInManagerIntegrationTest {
         var username = eventAndUser.getRight();
 
         configurationRepository.insertEventLevel(
-                event.getOrganizationId(),
-                event.getId(),
-                ConfigurationKeys.CHECK_IN_STATS.getValue(),
-                "false",
-                "");
+                event.getOrganizationId(), event.getId(), ConfigurationKeys.CHECK_IN_STATS.getValue(), "false", "");
 
         CheckInStatistics stats = checkInManager.getStatistics(event.getShortName(), null, username);
         assertNull(stats);
@@ -571,17 +560,14 @@ class CheckInManagerIntegrationTest {
         var ticket = getTicketFromReservation(reservationId);
 
         configurationRepository.insertEventLevel(
-                event.getOrganizationId(),
-                event.getId(),
-                ConfigurationKeys.CHECK_IN_STATS.getValue(),
-                "true",
-                "");
+                event.getOrganizationId(), event.getId(), ConfigurationKeys.CHECK_IN_STATS.getValue(), "true", "");
 
         checkInManager.manualCheckIn(event.getId(), ticket.getUuid(), "scanUser");
 
-        var category = ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
-        CheckInStatistics stats = checkInManager.getStatistics(
-                event.getShortName(), List.of(category.getId()), username);
+        var category =
+                ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0);
+        CheckInStatistics stats =
+                checkInManager.getStatistics(event.getShortName(), List.of(category.getId()), username);
         assertNotNull(stats);
         assertEquals(1, stats.getCheckedIn());
     }
@@ -642,8 +628,8 @@ class CheckInManagerIntegrationTest {
                 "update ticket set full_name = 'Test User', email_address = 'test@test.com' where uuid = :uuid",
                 new MapSqlParameterSource("uuid", ticket.getUuid()));
 
-        List<FullTicketInfo> info = checkInManager.getAttendeesInformation(
-                event.getId(), List.of(ticket.getId()), username);
+        List<FullTicketInfo> info =
+                checkInManager.getAttendeesInformation(event.getId(), List.of(ticket.getId()), username);
         assertFalse(info.isEmpty());
         assertEquals(ticket.getUuid(), info.get(0).getUuid());
     }
@@ -656,8 +642,8 @@ class CheckInManagerIntegrationTest {
         var ticket = getTicketFromReservation(reservationId);
 
         String unknownUser = UUID.randomUUID().toString();
-        List<FullTicketInfo> info = checkInManager.getAttendeesInformation(
-                event.getId(), List.of(ticket.getId()), unknownUser);
+        List<FullTicketInfo> info =
+                checkInManager.getAttendeesInformation(event.getId(), List.of(ticket.getId()), unknownUser);
         assertTrue(info.isEmpty());
     }
 }

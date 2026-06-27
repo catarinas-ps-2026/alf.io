@@ -1544,8 +1544,10 @@ class TicketReservationManagerIntegrationTest extends BaseIntegrationTest {
                 "default",
                 TicketCategory.TicketAccessType.INHERIT,
                 AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
                 DESCRIPTION,
                 BigDecimal.TEN,
                 false,
@@ -1560,26 +1562,30 @@ class TicketReservationManagerIntegrationTest extends BaseIntegrationTest {
                 null,
                 null,
                 AlfioMetadata.empty()));
-        Event event = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository).getKey();
+        Event event = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository)
+                .getKey();
 
         TicketReservationModification tr = new TicketReservationModification();
         tr.setQuantity(AVAILABLE_SEATS);
-        tr.setTicketCategoryId(ticketCategoryRepository.findAllTicketCategories(event.getId()).get(0).getId());
+        tr.setTicketCategoryId(ticketCategoryRepository
+                .findAllTicketCategories(event.getId())
+                .get(0)
+                .getId());
         var tickets = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
 
         String reservationId = ticketReservationManager.createTicketReservation(
-                event, List.of(tickets), List.of(), DateUtils.addDays(new Date(), 1),
-                Optional.empty(), Locale.ENGLISH, false, null);
+                event,
+                List.of(tickets),
+                List.of(),
+                DateUtils.addDays(new Date(), -2),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
 
         // Verify reservation exists
         var ids = ticketReservationRepository.findByIds(List.of(reservationId));
         assertEquals(1, ids.size());
-
-        // Set validity to the past
-        var past = Date.from(java.time.Instant.now(ClockProvider.clock()).minus(java.time.Duration.ofHours(1)));
-        jdbcTemplate.update(
-                "update tickets_reservation set validity = :date where id = :id",
-                Map.of("date", past, "id", reservationId));
 
         // Cleanup should delete the expired reservation
         ticketReservationManager.cleanupExpiredReservations(new Date());

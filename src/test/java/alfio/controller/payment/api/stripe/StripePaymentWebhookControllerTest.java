@@ -29,7 +29,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +54,8 @@ class StripePaymentWebhookControllerTest {
 
     private void mockInputStream(String content) throws IOException {
         var inputStream = new ServletInputStream() {
-            private final ByteArrayInputStream delegate = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+            private final ByteArrayInputStream delegate =
+                    new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 
             @Override
             public int read() {
