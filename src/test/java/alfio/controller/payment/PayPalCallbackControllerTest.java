@@ -80,10 +80,8 @@ class PayPalCallbackControllerTest {
 
     @Test
     void payPalSuccessSavesToken() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
-        when(ticketReservationManager.findById(RESERVATION_ID))
-                .thenReturn(Optional.of(ticketReservation));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
+        when(ticketReservationManager.findById(RESERVATION_ID)).thenReturn(Optional.of(ticketReservation));
 
         String result = controller.payPalSuccess(
                 PurchaseContext.PurchaseContextType.event,
@@ -93,10 +91,7 @@ class PayPalCallbackControllerTest {
                 "payer-456",
                 HMAC);
 
-        verify(payPalManager).saveToken(
-                eq(RESERVATION_ID),
-                eq(purchaseContext),
-                any(PayPalToken.class));
+        verify(payPalManager).saveToken(eq(RESERVATION_ID), eq(purchaseContext), any(PayPalToken.class));
         assertTrue(result.contains("/overview"));
         assertTrue(result.contains("event"));
         assertTrue(result.contains(PURCHASE_CONTEXT_ID));
@@ -104,18 +99,11 @@ class PayPalCallbackControllerTest {
 
     @Test
     void payPalSuccessMissingPayerID() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
-        when(ticketReservationManager.findById(RESERVATION_ID))
-                .thenReturn(Optional.of(ticketReservation));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
+        when(ticketReservationManager.findById(RESERVATION_ID)).thenReturn(Optional.of(ticketReservation));
 
         String result = controller.payPalSuccess(
-                PurchaseContext.PurchaseContextType.event,
-                PURCHASE_CONTEXT_ID,
-                RESERVATION_ID,
-                "pay-123",
-                null,
-                HMAC);
+                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID, RESERVATION_ID, "pay-123", null, HMAC);
 
         verify(payPalManager).removeToken(ticketReservation, "pay-123");
         verify(payPalManager, never()).saveToken(any(), any(), any());
@@ -124,8 +112,7 @@ class PayPalCallbackControllerTest {
 
     @Test
     void payPalSuccessMissingPurchaseContext() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.empty());
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.empty());
 
         String result = controller.payPalSuccess(
                 PurchaseContext.PurchaseContextType.event,
@@ -141,16 +128,11 @@ class PayPalCallbackControllerTest {
 
     @Test
     void payPalCancelRemovesToken() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
-        when(ticketReservationManager.findById(RESERVATION_ID))
-                .thenReturn(Optional.of(ticketReservation));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
+        when(ticketReservationManager.findById(RESERVATION_ID)).thenReturn(Optional.of(ticketReservation));
 
         String result = controller.payPalCancel(
-                PurchaseContext.PurchaseContextType.event,
-                PURCHASE_CONTEXT_ID,
-                RESERVATION_ID,
-                "pay-123");
+                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID, RESERVATION_ID, "pay-123");
 
         verify(payPalManager).removeToken(ticketReservation, "pay-123");
         assertTrue(result.contains("/overview"));
@@ -159,14 +141,10 @@ class PayPalCallbackControllerTest {
 
     @Test
     void payPalCancelMissingPurchaseContext() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.empty());
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.empty());
 
         String result = controller.payPalCancel(
-                PurchaseContext.PurchaseContextType.event,
-                PURCHASE_CONTEXT_ID,
-                RESERVATION_ID,
-                "pay-123");
+                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID, RESERVATION_ID, "pay-123");
 
         assertEquals("redirect:/", result);
         verifyNoInteractions(ticketReservationManager, payPalManager);

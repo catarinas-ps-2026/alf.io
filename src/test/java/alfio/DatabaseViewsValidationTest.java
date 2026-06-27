@@ -43,8 +43,7 @@ class DatabaseViewsValidationTest {
             "promocode_count_all",
             "additional_item_field_value_with_ticket_id",
             "field_value_w_additional",
-            "all_ticket_field_values"
-    );
+            "all_ticket_field_values");
 
     @Test
     void allExpectedViewsExist() {
@@ -53,9 +52,8 @@ class DatabaseViewsValidationTest {
                 Map.of());
         var viewNames = views.stream().map(m -> (String) m.get("table_name")).collect(Collectors.toSet());
 
-        var missingViews = EXPECTED_VIEWS.stream()
-                .filter(v -> !viewNames.contains(v))
-                .collect(Collectors.toList());
+        var missingViews =
+                EXPECTED_VIEWS.stream().filter(v -> !viewNames.contains(v)).collect(Collectors.toList());
         assertTrue(missingViews.isEmpty(), "Missing views: " + missingViews);
     }
 

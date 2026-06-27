@@ -26,7 +26,6 @@ import alfio.manager.support.PaymentWebhookResult;
 import alfio.model.PurchaseContext;
 import alfio.model.transaction.PaymentProxy;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,8 +63,7 @@ class MolliePaymentWebhookControllerTest {
     @Test
     void receivePaymentConfirmationSuccess() {
         when(request.getParameter("id")).thenReturn("mollie-pay-456");
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
         when(ticketReservationManager.processTransactionWebhook(
                         anyString(), isNull(), eq(PaymentProxy.MOLLIE), anyMap(), any()))
                 .thenReturn(PaymentWebhookResult.successful(null));
@@ -90,8 +88,7 @@ class MolliePaymentWebhookControllerTest {
     @Test
     void receivePaymentConfirmationError() {
         when(request.getParameter("id")).thenReturn("mollie-pay-456");
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
         when(ticketReservationManager.processTransactionWebhook(
                         anyString(), isNull(), eq(PaymentProxy.MOLLIE), anyMap(), any()))
                 .thenReturn(PaymentWebhookResult.error("payment failed"));
@@ -105,8 +102,7 @@ class MolliePaymentWebhookControllerTest {
     @Test
     void receivePaymentConfirmationIntermediateState() {
         when(request.getParameter("id")).thenReturn("mollie-pay-456");
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
         when(ticketReservationManager.processTransactionWebhook(
                         anyString(), isNull(), eq(PaymentProxy.MOLLIE), anyMap(), any()))
                 .thenReturn(PaymentWebhookResult.pending());

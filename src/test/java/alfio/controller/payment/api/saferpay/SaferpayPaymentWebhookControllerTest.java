@@ -25,7 +25,6 @@ import alfio.manager.TicketReservationManager;
 import alfio.manager.support.PaymentWebhookResult;
 import alfio.model.PurchaseContext;
 import alfio.model.transaction.PaymentProxy;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,8 +58,7 @@ class SaferpayPaymentWebhookControllerTest {
 
     @Test
     void handleTransactionNotificationSuccess() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
         when(ticketReservationManager.processTransactionWebhook(
                         anyString(), isNull(), eq(PaymentProxy.SAFERPAY), anyMap(), any()))
                 .thenReturn(PaymentWebhookResult.successful(null));
@@ -73,8 +71,7 @@ class SaferpayPaymentWebhookControllerTest {
 
     @Test
     void handleTransactionNotificationMissingReservation() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.empty());
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.empty());
 
         var result = controller.handleTransactionNotification(RESERVATION_ID);
 
@@ -85,8 +82,7 @@ class SaferpayPaymentWebhookControllerTest {
 
     @Test
     void handleTransactionNotificationError() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
         when(ticketReservationManager.processTransactionWebhook(
                         anyString(), isNull(), eq(PaymentProxy.SAFERPAY), anyMap(), any()))
                 .thenReturn(PaymentWebhookResult.error("webhook processing failed"));
@@ -99,8 +95,7 @@ class SaferpayPaymentWebhookControllerTest {
 
     @Test
     void handleTransactionNotificationIntermediateState() {
-        when(purchaseContextManager.findByReservationId(RESERVATION_ID))
-                .thenReturn(Optional.of(purchaseContext));
+        when(purchaseContextManager.findByReservationId(RESERVATION_ID)).thenReturn(Optional.of(purchaseContext));
         when(ticketReservationManager.processTransactionWebhook(
                         anyString(), isNull(), eq(PaymentProxy.SAFERPAY), anyMap(), any()))
                 .thenReturn(PaymentWebhookResult.pending());

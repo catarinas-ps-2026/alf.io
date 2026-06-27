@@ -61,18 +61,14 @@ class SaferpayCallbackControllerTest {
 
     @Test
     void saferpayCancelWithTransaction() {
-        when(purchaseContextManager.findBy(
-                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
+        when(purchaseContextManager.findBy(PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
                 .thenAnswer(inv -> Optional.of(purchaseContext));
-        when(ticketReservationManager.findById(RESERVATION_ID))
-                .thenReturn(Optional.of(ticketReservation));
+        when(ticketReservationManager.findById(RESERVATION_ID)).thenReturn(Optional.of(ticketReservation));
         when(ticketReservationManager.forceTransactionCheck(purchaseContext, ticketReservation))
                 .thenAnswer(inv -> Optional.of(mock(TransactionInitializationToken.class)));
 
         String result = controller.saferpayCancel(
-                PurchaseContext.PurchaseContextType.event,
-                PURCHASE_CONTEXT_ID,
-                RESERVATION_ID);
+                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID, RESERVATION_ID);
 
         assertTrue(result.startsWith("redirect:"));
         assertTrue(result.contains("event"));
@@ -82,18 +78,14 @@ class SaferpayCallbackControllerTest {
 
     @Test
     void saferpayCancelWithoutTransaction() {
-        when(purchaseContextManager.findBy(
-                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
+        when(purchaseContextManager.findBy(PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
                 .thenAnswer(inv -> Optional.of(purchaseContext));
-        when(ticketReservationManager.findById(RESERVATION_ID))
-                .thenReturn(Optional.of(ticketReservation));
+        when(ticketReservationManager.findById(RESERVATION_ID)).thenReturn(Optional.of(ticketReservation));
         when(ticketReservationManager.forceTransactionCheck(purchaseContext, ticketReservation))
                 .thenReturn(Optional.empty());
 
         String result = controller.saferpayCancel(
-                PurchaseContext.PurchaseContextType.event,
-                PURCHASE_CONTEXT_ID,
-                RESERVATION_ID);
+                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID, RESERVATION_ID);
 
         assertTrue(result.startsWith("redirect:/"));
         assertTrue(result.contains(PURCHASE_CONTEXT_ID));
@@ -102,14 +94,11 @@ class SaferpayCallbackControllerTest {
 
     @Test
     void saferpayCancelMissingPurchaseContext() {
-        when(purchaseContextManager.findBy(
-                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
+        when(purchaseContextManager.findBy(PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
                 .thenReturn(Optional.empty());
 
         String result = controller.saferpayCancel(
-                PurchaseContext.PurchaseContextType.event,
-                PURCHASE_CONTEXT_ID,
-                RESERVATION_ID);
+                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID, RESERVATION_ID);
 
         assertEquals("redirect:/", result);
         verifyNoInteractions(ticketReservationManager);
@@ -117,16 +106,12 @@ class SaferpayCallbackControllerTest {
 
     @Test
     void saferpayCancelMissingReservation() {
-        when(purchaseContextManager.findBy(
-                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
+        when(purchaseContextManager.findBy(PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID))
                 .thenAnswer(inv -> Optional.of(purchaseContext));
-        when(ticketReservationManager.findById(RESERVATION_ID))
-                .thenReturn(Optional.empty());
+        when(ticketReservationManager.findById(RESERVATION_ID)).thenReturn(Optional.empty());
 
         String result = controller.saferpayCancel(
-                PurchaseContext.PurchaseContextType.event,
-                PURCHASE_CONTEXT_ID,
-                RESERVATION_ID);
+                PurchaseContext.PurchaseContextType.event, PURCHASE_CONTEXT_ID, RESERVATION_ID);
 
         assertTrue(result.startsWith("redirect:/"));
         assertTrue(result.contains(PURCHASE_CONTEXT_ID));

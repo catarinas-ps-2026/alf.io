@@ -39,13 +39,12 @@ class FlywayMigrationValidationTest {
         String tableName = (String) tables.get(0).get("table_name");
 
         var failed = jdbc.queryForList(
-                "SELECT installed_rank, version, description, type, success FROM " + tableName + " WHERE success = false",
+                "SELECT installed_rank, version, description, type, success FROM " + tableName
+                        + " WHERE success = false",
                 Map.of());
         assertTrue(failed.isEmpty(), "Failed migrations found: " + failed);
 
-        var pending = jdbc.queryForList(
-                "SELECT count(*) as cnt FROM " + tableName + " WHERE success = true",
-                Map.of());
+        var pending = jdbc.queryForList("SELECT count(*) as cnt FROM " + tableName + " WHERE success = true", Map.of());
         long appliedCount = ((Number) pending.get(0).get("cnt")).longValue();
         assertTrue(appliedCount > 0, "No migrations have been applied");
     }

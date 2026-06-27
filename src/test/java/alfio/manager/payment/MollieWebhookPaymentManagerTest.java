@@ -26,7 +26,6 @@ import alfio.manager.PurchaseContextManager;
 import alfio.manager.system.ConfigurationManager;
 import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.*;
-import alfio.model.system.ConfigurationKeys;
 import alfio.model.transaction.*;
 import alfio.model.transaction.webhook.MollieWebhookPayload;
 import alfio.repository.TicketRepository;
@@ -34,7 +33,6 @@ import alfio.repository.TicketReservationRepository;
 import alfio.repository.TransactionRepository;
 import alfio.test.util.TestUtil;
 import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,7 +88,8 @@ class MollieWebhookPaymentManagerTest {
     @SuppressWarnings("unchecked")
     private void setupActiveConfig() {
         var configMap = mock(Map.class);
-        lenient().when(configurationManager.getFor(eq(MollieWebhookPaymentManager.ALL_OPTIONS), any()))
+        lenient()
+                .when(configurationManager.getFor(eq(MollieWebhookPaymentManager.ALL_OPTIONS), any()))
                 .thenReturn(configMap);
         var ccEnabled = mock(MaybeConfiguration.class);
         lenient().when(ccEnabled.getValueAsBooleanOrDefault()).thenReturn(true);
@@ -109,7 +108,8 @@ class MollieWebhookPaymentManagerTest {
     @SuppressWarnings("unchecked")
     private void setupInactiveConfig() {
         var configMap = mock(Map.class);
-        lenient().when(configurationManager.getFor(eq(MollieWebhookPaymentManager.ALL_OPTIONS), any()))
+        lenient()
+                .when(configurationManager.getFor(eq(MollieWebhookPaymentManager.ALL_OPTIONS), any()))
                 .thenReturn(configMap);
         var ccDisabled = mock(MaybeConfiguration.class);
         lenient().when(ccDisabled.getValueAsBooleanOrDefault()).thenReturn(false);
