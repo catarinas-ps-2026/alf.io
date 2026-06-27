@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository.user</a> &gt; <span class="el_source">UserRepository.java</span></div><h1>UserRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository.user;
+
+import alfio.model.TicketReservationInvoicingAdditionalInfo;
+import alfio.model.support.JSONData;
+import alfio.model.user.AdditionalInfoWithLabel;
+import alfio.model.user.PublicUserProfile;
+import alfio.model.user.User;
+import ch.digitalfondue.npjt.*;
+import java.time.ZonedDateTime;
+import java.util.*;
+import org.apache.commons.lang3.StringUtils;
+
+@QueryRepository
+public interface UserRepository {
+
+    @Query(&quot;SELECT * FROM ba_user WHERE id = :userId&quot;)
+    User findById(@Bind(&quot;userId&quot;) int userId);
+
+    @Query(&quot;SELECT * FROM ba_user WHERE id = :userId&quot;)
+    Optional&lt;User&gt; findOptionalById(@Bind(&quot;userId&quot;) int userId);
+
+    @Query(&quot;select * from ba_user where id in (:userIds)&quot;)
+    List&lt;User&gt; findByIds(@Bind(&quot;userIds&quot;) Collection&lt;Integer&gt; ids);
+
+    @Query(
+            &quot;select * from ba_user left join j_user_organization on ba_user.id = j_user_organization.user_id where j_user_organization.org_id = :orgId and ba_user.user_type = 'API_KEY'&quot;)
+    List&lt;User&gt; findAllApiKeysForOrganization(@Bind(&quot;orgId&quot;) int organizationId);
+
+    @Query(
+            &quot;select id from ba_user join j_user_organization on ba_user.id = j_user_organization.user_id where j_user_organization.org_id = :orgId and ba_user.username = :apiKey and ba_user.user_type = 'API_KEY'&quot;)
+    Optional&lt;Integer&gt; findUserIdForApiKey(@Bind(&quot;orgId&quot;) int organizationId, @Bind(&quot;apiKey&quot;) String apiKey);
+
+    @Query(&quot;select * from ba_user where username = :username&quot;)
+    User getByUsername(@Bind(&quot;username&quot;) String username);
+
+    @Query(&quot;select * from ba_user where username = :username&quot;)
+    Optional&lt;User&gt; findByUsername(@Bind(&quot;username&quot;) String username);
+
+    @Query(&quot;select id from ba_user where username = :username&quot;)
+    Optional&lt;Integer&gt; findIdByUserName(@Bind(&quot;username&quot;) String username);
+
+    default Optional&lt;Integer&gt; nullSafeFindIdByUserName(String username) {
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (StringUtils.isNotBlank(username)) {</span>
+<span class="fc" id="L60">            return findIdByUserName(username);</span>
+        }
+<span class="fc" id="L62">        return Optional.empty();</span>
+    }
+
+    @Query(&quot;select * from ba_user where username = :username and enabled = true&quot;)
+    Optional&lt;User&gt; findEnabledByUsername(@Bind(&quot;username&quot;) String username);
+
+    @Query(&quot;select id from ba_user where username = :username and user_type = 'PUBLIC' and enabled = true&quot;)
+    Optional&lt;Integer&gt; findPublicUserIdByUsername(@Bind(&quot;username&quot;) String username);
+
+    @Query(&quot;select password from ba_user where username = :username and enabled = true&quot;)
+    Optional&lt;String&gt; findPasswordByUsername(@Bind(&quot;username&quot;) String username);
+
+    @Query(
+            &quot;&quot;&quot;
+            INSERT INTO ba_user(username, password, first_name, last_name, email_address, enabled, user_type, valid_to, description) VALUES\
+             (:username, :password, :first_name, :last_name, :email_address, :enabled, :userType, :validTo, :description)\
+            &quot;&quot;&quot;)
+    @AutoGeneratedKey(&quot;id&quot;)
+    AffectedRowCountAndKey&lt;Integer&gt; create(
+            @Bind(&quot;username&quot;) String username,
+            @Bind(&quot;password&quot;) String password,
+            @Bind(&quot;first_name&quot;) String firstname,
+            @Bind(&quot;last_name&quot;) String lastname,
+            @Bind(&quot;email_address&quot;) String emailAddress,
+            @Bind(&quot;enabled&quot;) boolean enabled,
+            @Bind(&quot;userType&quot;) User.Type userType,
+            @Bind(&quot;validTo&quot;) ZonedDateTime validTo,
+            @Bind(&quot;description&quot;) String description);
+
+    @Query(
+            &quot;&quot;&quot;
+        INSERT INTO ba_user(username, password, first_name, last_name, email_address, enabled, user_type) VALUES\
+         (:username, :password, :first_name, :last_name, :email_address, :enabled, 'PUBLIC') on conflict(username) do nothing\
+        &quot;&quot;&quot;)
+    int createPublicUserIfNotExists(
+            @Bind(&quot;username&quot;) String username,
+            @Bind(&quot;password&quot;) String password,
+            @Bind(&quot;first_name&quot;) String firstname,
+            @Bind(&quot;last_name&quot;) String lastname,
+            @Bind(&quot;email_address&quot;) String emailAddress,
+            @Bind(&quot;enabled&quot;) boolean enabled);
+
+    @Query(
+            &quot;update ba_user set username = :username, first_name = :firstName, last_name = :lastName, email_address = :emailAddress, description = :description where id = :id&quot;)
+    int update(
+            @Bind(&quot;id&quot;) int id,
+            @Bind(&quot;username&quot;) String username,
+            @Bind(&quot;firstName&quot;) String firstName,
+            @Bind(&quot;lastName&quot;) String lastName,
+            @Bind(&quot;emailAddress&quot;) String emailAddress,
+            @Bind(&quot;description&quot;) String description);
+
+    @Query(
+            &quot;update ba_user set first_name = :firstName, last_name = :lastName, email_address = :emailAddress where id = :id&quot;)
+    int updateContactInfo(
+            @Bind(&quot;id&quot;) int id,
+            @Bind(&quot;firstName&quot;) String firstName,
+            @Bind(&quot;lastName&quot;) String lastName,
+            @Bind(&quot;emailAddress&quot;) String emailAddress);
+
+    @Query(&quot;update ba_user set enabled = :enabled where id = :id&quot;)
+    int toggleEnabled(@Bind(&quot;id&quot;) int id, @Bind(&quot;enabled&quot;) boolean enabled);
+
+    @Query(&quot;update ba_user set password = :password where id = :id&quot;)
+    int resetPassword(@Bind(&quot;id&quot;) int id, @Bind(&quot;password&quot;) String newPassword);
+
+    @Query(&quot;delete from sponsor_scan where user_id = :id&quot;)
+    int deleteUserFromSponsorScan(@Bind(&quot;id&quot;) int id);
+
+    @Query(&quot;delete from j_user_organization where user_id = :id&quot;)
+    int deleteUserFromOrganization(@Bind(&quot;id&quot;) int id);
+
+    @Query(&quot;delete from ba_user where id = :id&quot;)
+    int deleteUser(@Bind(&quot;id&quot;) int id);
+
+    @Query(&quot;select id from ba_user where user_type in (:types) and enabled = true and user_creation_time &lt; :date&quot;)
+    List&lt;Integer&gt; findUsersToDeleteOlderThan(@Bind(&quot;date&quot;) Date date, @Bind(&quot;types&quot;) Collection&lt;String&gt; types);
+
+    @Query(&quot;delete from authority where username = (select username from ba_user where id = :id)&quot;)
+    int deleteUserFromAuthority(@Bind(&quot;id&quot;) int id);
+
+    @Query(
+            &quot;&quot;&quot;
+        insert into user_profile (user_id_fk, billing_address_company, billing_address_line1, billing_address_line2, billing_address_zip,\
+        billing_address_city, billing_address_state, vat_country, vat_nr, invoicing_additional_information, additional_fields)\
+         values (:userId, :company, :line1, :line2, :zip, :city, :state, :country, :taxId, :invoiceInfo::jsonb, :addFields::jsonb)\
+         on conflict (user_id_fk) do update set \
+         billing_address_company = EXCLUDED.billing_address_company,\
+         billing_address_line1 = EXCLUDED.billing_address_line1,\
+         billing_address_line2 = EXCLUDED.billing_address_line2,\
+         billing_address_zip = EXCLUDED.billing_address_zip,\
+         billing_address_city = EXCLUDED.billing_address_city,\
+         billing_address_state = EXCLUDED.billing_address_state,\
+         vat_country = EXCLUDED.vat_country,\
+         vat_nr = EXCLUDED.vat_nr,\
+         invoicing_additional_information = EXCLUDED.invoicing_additional_information::jsonb,\
+         additional_fields = EXCLUDED.additional_fields::jsonb\
+        &quot;&quot;&quot;)
+    int persistUserProfile(
+            @Bind(&quot;userId&quot;) int userId,
+            @Bind(&quot;company&quot;) String companyName,
+            @Bind(&quot;line1&quot;) String addressLine1,
+            @Bind(&quot;line2&quot;) String addressLine2,
+            @Bind(&quot;zip&quot;) String zip,
+            @Bind(&quot;city&quot;) String city,
+            @Bind(&quot;state&quot;) String state,
+            @Bind(&quot;country&quot;) String country,
+            @Bind(&quot;taxId&quot;) String taxId,
+            @Bind(&quot;invoiceInfo&quot;) @JSONData TicketReservationInvoicingAdditionalInfo invoicingAdditionalInfo,
+            @Bind(&quot;addFields&quot;) @JSONData Map&lt;String, AdditionalInfoWithLabel&gt; additionalFields);
+
+    @Query(&quot;select * from user_profile where user_id_fk = :userId&quot;)
+    Optional&lt;PublicUserProfile&gt; loadUserProfile(@Bind(&quot;userId&quot;) int userId);
+
+    @Query(&quot;delete from user_profile where user_id_fk = :userId&quot;)
+    int deleteUserProfile(@Bind(&quot;userId&quot;) int userId);
+
+    default void deleteUserAndReferences(int userId) {
+<span class="fc" id="L180">        deleteUserFromSponsorScan(userId);</span>
+<span class="fc" id="L181">        deleteUserFromOrganization(userId);</span>
+<span class="fc" id="L182">        deleteUserFromAuthority(userId);</span>
+<span class="fc" id="L183">        deleteUserProfile(userId);</span>
+<span class="fc" id="L184">        deleteUser(userId);</span>
+<span class="fc" id="L185">    }</span>
+
+    @Query(
+            &quot;update ba_user set enabled = false, email_address = :newEmail, username = :newEmail, first_name = 'Deleted', last_name = 'Deleted' where id = :userId&quot;)
+    int invalidatePublicUser(@Bind(&quot;userId&quot;) int userId, @Bind(&quot;newEmail&quot;) String newEmail);
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

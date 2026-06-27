@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TemplateManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">TemplateManager.java</span></div><h1>TemplateManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import static alfio.util.MustacheCustomTag.*;
+
+import alfio.manager.PurchaseContextFieldManager;
+import alfio.manager.UploadedResourceManager;
+import alfio.manager.i18n.MessageSourceManager;
+import alfio.manager.system.ConfigurationLevel;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.Event;
+import alfio.model.PurchaseContext;
+import alfio.model.PurchaseContextFieldDescription;
+import alfio.model.system.ConfigurationKeys;
+import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Mustache.Compiler;
+import com.samskivert.mustache.Template;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.web.servlet.ModelAndView;
+
+/**
+ * For hiding the ugliness :)
+ * */
+public class TemplateManager {
+
+    public static final String METADATA_ATTRIBUTES_KEY = &quot;metadata-attributes&quot;;
+    public static final String ADDITIONAL_FIELDS_KEY = &quot;additional-fields&quot;;
+    public static final String VAT_TRANSLATION_TEMPLATE_KEY = &quot;vatTranslation&quot;;
+    public static final String MAIL_FOOTER = &quot;mailFooter&quot;;
+<span class="fc" id="L60">    private static final Logger log = LoggerFactory.getLogger(TemplateManager.class);</span>
+
+    public enum TemplateOutput {
+        TEXT,
+        HTML
+    }
+
+    private final MessageSourceManager messageSourceManager;
+    private final Map&lt;TemplateOutput, Compiler&gt; compilers;
+    private final UploadedResourceManager uploadedResourceManager;
+    private final ConfigurationManager configurationManager;
+    private final PurchaseContextFieldManager purchaseContextFieldManager;
+
+    public TemplateManager(
+            MessageSourceManager messageSourceManager,
+            UploadedResourceManager uploadedResourceManager,
+            ConfigurationManager configurationManager,
+<span class="fc" id="L77">            PurchaseContextFieldManager purchaseContextFieldManager) {</span>
+<span class="fc" id="L78">        this.messageSourceManager = messageSourceManager;</span>
+<span class="fc" id="L79">        this.uploadedResourceManager = uploadedResourceManager;</span>
+<span class="fc" id="L80">        this.configurationManager = configurationManager;</span>
+<span class="fc" id="L81">        this.purchaseContextFieldManager = purchaseContextFieldManager;</span>
+
+<span class="fc" id="L83">        this.compilers = new EnumMap&lt;&gt;(TemplateOutput.class);</span>
+<span class="fc" id="L84">        this.compilers.put(</span>
+                TemplateOutput.TEXT,
+<span class="fc" id="L86">                Mustache.compiler()</span>
+<span class="fc" id="L87">                        .escapeHTML(false)</span>
+<span class="fc" id="L88">                        .standardsMode(false)</span>
+<span class="fc" id="L89">                        .defaultValue(&quot;&quot;)</span>
+<span class="fc" id="L90">                        .nullValue(&quot;&quot;)</span>
+<span class="fc" id="L91">                        .withFormatter(TemplateManager::dateFormatter));</span>
+<span class="fc" id="L92">        this.compilers.put(</span>
+                TemplateOutput.HTML,
+<span class="fc" id="L94">                Mustache.compiler()</span>
+<span class="fc" id="L95">                        .escapeHTML(true)</span>
+<span class="fc" id="L96">                        .standardsMode(false)</span>
+<span class="fc" id="L97">                        .defaultValue(&quot;&quot;)</span>
+<span class="fc" id="L98">                        .nullValue(&quot;&quot;)</span>
+<span class="fc" id="L99">                        .withFormatter(TemplateManager::dateFormatter));</span>
+<span class="fc" id="L100">    }</span>
+
+    private static String dateFormatter(Object o) {
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (o instanceof ZonedDateTime time) {</span>
+<span class="fc" id="L104">            return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(time);</span>
+        }
+<span class="fc" id="L106">        return String.valueOf(o);</span>
+    }
+
+    private RenderedTemplate renderMultipartTemplate(
+            PurchaseContext purchaseContext,
+            TemplateResource templateResource,
+            Map&lt;String, Object&gt; model,
+            Locale locale) {
+<span class="fc" id="L114">        var enrichedModel = modelEnricher(model, purchaseContext, locale);</span>
+<span class="fc" id="L115">        var options = configurationManager.getFor(</span>
+<span class="fc" id="L116">                EnumSet.of(ConfigurationKeys.MAIL_FOOTER, ConfigurationKeys.ENABLE_HTML_EMAILS),</span>
+<span class="fc" id="L117">                purchaseContext.getConfigurationLevel());</span>
+<span class="fc" id="L118">        var mailFooter = options.get(ConfigurationKeys.MAIL_FOOTER);</span>
+<span class="fc" id="L119">        enrichedModel.put(&quot;hasMailFooter&quot;, mailFooter.isPresent());</span>
+<span class="fc" id="L120">        enrichedModel.put(MAIL_FOOTER, mailFooter.getValueOrNull());</span>
+<span class="fc" id="L121">        var isMultipart = templateResource.isMultipart();</span>
+
+<span class="fc" id="L123">        var textRender = render(</span>
+<span class="fc" id="L124">                new ClassPathResource(templateResource.classPath()),</span>
+                enrichedModel,
+                locale,
+                purchaseContext,
+<span class="fc bfc" id="L128" title="All 2 branches covered.">                isMultipart ? TemplateOutput.TEXT : templateResource.getTemplateOutput());</span>
+
+<span class="fc" id="L130">        boolean htmlEnabled = options.get(ConfigurationKeys.ENABLE_HTML_EMAILS).getValueAsBooleanOrDefault();</span>
+
+<span class="fc" id="L132">        String htmlRender = null;</span>
+
+<span class="pc bpc" id="L134" title="1 of 4 branches missed.">        if (isMultipart &amp;&amp; htmlEnabled) {</span>
+<span class="fc" id="L135">            htmlRender = render(</span>
+<span class="fc" id="L136">                    new ClassPathResource(templateResource.htmlClassPath()),</span>
+                    enrichedModel,
+                    locale,
+                    purchaseContext,
+                    TemplateOutput.HTML);
+        }
+
+<span class="fc" id="L143">        return RenderedTemplate.multipart(textRender, htmlRender, model);</span>
+    }
+
+    public RenderedTemplate renderTemplate(
+            PurchaseContext purchaseContext,
+            TemplateResource templateResource,
+            Map&lt;String, Object&gt; model,
+            Locale locale) {
+<span class="fc" id="L151">        Map&lt;String, Object&gt; updatedModel = modelEnricher(model, purchaseContext, locale);</span>
+<span class="fc" id="L152">        return uploadedResourceManager</span>
+<span class="fc" id="L153">                .findCascading(</span>
+<span class="fc" id="L154">                        purchaseContext.getOrganizationId(),</span>
+<span class="fc" id="L155">                        purchaseContext.event().map(Event::getId).orElse(null),</span>
+<span class="fc" id="L156">                        templateResource.getSavedName(locale))</span>
+<span class="pc" id="L157">                .map(resource -&gt; RenderedTemplate.plaintext(</span>
+<span class="nc" id="L158">                        render(</span>
+<span class="nc" id="L159">                                new ByteArrayResource(templateResource.replaceTokens(resource)),</span>
+                                updatedModel,
+                                locale,
+                                purchaseContext,
+<span class="nc" id="L163">                                templateResource.getTemplateOutput()),</span>
+                        model))
+<span class="fc" id="L165">                .orElseGet(() -&gt; renderMultipartTemplate(purchaseContext, templateResource, updatedModel, locale));</span>
+    }
+
+    public String renderString(
+            PurchaseContext purchaseContext,
+            String template,
+            Map&lt;String, Object&gt; model,
+            Locale locale,
+            TemplateOutput templateOutput) {
+<span class="nc" id="L174">        return render(</span>
+<span class="nc" id="L175">                new ByteArrayResource(template.getBytes(StandardCharsets.UTF_8)),</span>
+<span class="nc" id="L176">                modelEnricher(model, purchaseContext, locale),</span>
+                locale,
+                purchaseContext,
+                templateOutput);
+    }
+
+    public void renderHtml(Resource resource, Map&lt;String, Object&gt; model, OutputStream os) {
+<span class="nc" id="L183">        try (var osw = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L184">            compile(resource, TemplateOutput.HTML).execute(model, osw);</span>
+<span class="nc" id="L185">        } catch (IOException ioe) {</span>
+<span class="nc" id="L186">            throw new IllegalStateException(ioe);</span>
+<span class="nc" id="L187">        }</span>
+<span class="nc" id="L188">    }</span>
+
+    public void renderHtml(Resource resource, Map&lt;String, Object&gt; model, Writer out) {
+<span class="nc" id="L191">        compile(resource, TemplateOutput.HTML).execute(model, out);</span>
+<span class="nc" id="L192">    }</span>
+
+    public void renderText(Resource resource, Map&lt;String, Object&gt; model, Writer out) {
+<span class="nc" id="L195">        compile(resource, TemplateOutput.TEXT).execute(model, out);</span>
+<span class="nc" id="L196">    }</span>
+
+    private Map&lt;String, Object&gt; modelEnricher(
+            Map&lt;String, Object&gt; model, PurchaseContext purchaseContext, Locale locale) {
+<span class="fc" id="L200">        Map&lt;String, Object&gt; toEnrich = new HashMap&lt;&gt;(model);</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">        if (!toEnrich.containsKey(&quot;purchaseContext&quot;)) {</span>
+            // this is necessary to support older model format
+<span class="fc" id="L203">            toEnrich.put(&quot;purchaseContext&quot;, purchaseContext);</span>
+        }
+<span class="fc" id="L205">        toEnrich.put(</span>
+                VAT_TRANSLATION_TEMPLATE_KEY,
+<span class="fc" id="L207">                messageSourceManager.getMessageSourceFor(purchaseContext).getMessage(&quot;common.vat&quot;, null, locale));</span>
+<span class="fc" id="L208">        return toEnrich;</span>
+    }
+
+    private String render(
+            Resource resource,
+            Map&lt;String, Object&gt; model,
+            Locale locale,
+            PurchaseContext purchaseContext,
+            TemplateOutput templateOutput) {
+        try {
+<span class="fc" id="L218">            var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
+<span class="fc" id="L219">            var configuration = configurationManager.getFor(</span>
+<span class="fc" id="L220">                    EnumSet.of(</span>
+                            ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL,
+                            ConfigurationKeys.ENABLE_WALLET,
+                            ConfigurationKeys.ENABLE_PASS),
+<span class="fc" id="L224">                    ConfigurationLevel.purchaseContext(purchaseContext));</span>
+<span class="fc" id="L225">            boolean usePartnerCode = Objects.requireNonNull(</span>
+<span class="fc" id="L226">                            configuration.get(ConfigurationKeys.USE_PARTNER_CODE_INSTEAD_OF_PROMOTIONAL))</span>
+<span class="fc" id="L227">                    .getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L228">            Supplier&lt;Map&lt;String, String&gt;&gt; descriptionSupplier =</span>
+<span class="nc" id="L229">                    () -&gt; purchaseContextFieldManager.findDescriptions(purchaseContext).stream()</span>
+<span class="nc" id="L230">                            .filter(d -&gt; d.getLocale().equals(locale.getLanguage()))</span>
+<span class="nc" id="L231">                            .collect(Collectors.toMap(</span>
+                                    PurchaseContextFieldDescription::getFieldName,
+<span class="nc" id="L233">                                    d -&gt; String.valueOf(d.getDescription().getOrDefault(&quot;label&quot;, d.getFieldName()))));</span>
+<span class="fc" id="L234">            ModelAndView mv = new ModelAndView();</span>
+<span class="fc" id="L235">            mv.getModelMap().addAllAttributes(model);</span>
+<span class="fc" id="L236">            mv.addObject(&quot;format-date&quot;, MustacheCustomTag.FORMAT_DATE);</span>
+<span class="fc" id="L237">            mv.addObject(&quot;country-name&quot;, COUNTRY_NAME);</span>
+<span class="fc" id="L238">            mv.addObject(&quot;render-markdown&quot;, RENDER_MARKDOWN);</span>
+<span class="fc" id="L239">            mv.addObject(&quot;additional-field-value&quot;, ADDITIONAL_FIELD_VALUE.apply(model.get(ADDITIONAL_FIELDS_KEY)));</span>
+<span class="fc" id="L240">            mv.addObject(</span>
+                    &quot;print-additional-fields&quot;,
+<span class="fc" id="L242">                    MustacheCustomTag.PRINT_ADDITIONAL_FIELDS.apply(</span>
+<span class="fc" id="L243">                            model.get(ADDITIONAL_FIELDS_KEY), descriptionSupplier));</span>
+<span class="fc" id="L244">            mv.addObject(&quot;metadata-value&quot;, ADDITIONAL_FIELD_VALUE.apply(model.get(METADATA_ATTRIBUTES_KEY)));</span>
+<span class="fc" id="L245">            mv.addObject(&quot;i18n&quot;, new CustomLocalizationMessageInterceptor(locale, messageSource).createTranslator());</span>
+<span class="fc" id="L246">            mv.addObject(</span>
+                    &quot;discountCodeDescription&quot;,
+<span class="fc" id="L248">                    messageSource.getMessage(</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">                            &quot;show-event.promo-code-type.&quot; + (usePartnerCode ? &quot;partner&quot; : &quot;promotional&quot;),</span>
+                            null,
+                            locale));
+<span class="fc" id="L252">            mv.addObject(</span>
+                    &quot;subscriptionDescription&quot;,
+<span class="fc" id="L254">                    MustacheCustomTag.subscriptionDescriptionGenerator(messageSource, model, locale));</span>
+<span class="fc" id="L255">            var updatedModel = mv.getModel();</span>
+<span class="fc" id="L256">            updatedModel.putIfAbsent(&quot;custom-header-text&quot;, &quot;&quot;);</span>
+<span class="fc" id="L257">            updatedModel.putIfAbsent(&quot;custom-body-text&quot;, &quot;&quot;);</span>
+<span class="fc" id="L258">            updatedModel.putIfAbsent(&quot;custom-footer-text&quot;, &quot;&quot;);</span>
+<span class="fc" id="L259">            boolean googleWalletEnabled =</span>
+<span class="fc" id="L260">                    configuration.get(ConfigurationKeys.ENABLE_WALLET).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L261">            boolean appleWalletEnabled =</span>
+<span class="fc" id="L262">                    configuration.get(ConfigurationKeys.ENABLE_PASS).getValueAsBooleanOrDefault();</span>
+<span class="fc" id="L263">            updatedModel.putIfAbsent(&quot;googleWalletEnabled&quot;, googleWalletEnabled);</span>
+<span class="fc" id="L264">            updatedModel.putIfAbsent(&quot;appleWalletEnabled&quot;, appleWalletEnabled);</span>
+<span class="pc bpc" id="L265" title="2 of 4 branches missed.">            updatedModel.putIfAbsent(&quot;walletEnabled&quot;, googleWalletEnabled || appleWalletEnabled);</span>
+<span class="fc" id="L266">            return compile(resource, templateOutput).execute(mv.getModel());</span>
+<span class="nc" id="L267">        } catch (Exception e) {</span>
+<span class="nc" id="L268">            log.error(&quot;TemplateManager: got exception while generating a template&quot;, e);</span>
+<span class="nc" id="L269">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+    private Template compile(Resource resource, TemplateOutput templateOutput) {
+<span class="fc" id="L274">        try (InputStreamReader tmpl = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L275">            return compilers.get(templateOutput).compile(tmpl);</span>
+<span class="nc" id="L276">        } catch (IOException ioe) {</span>
+<span class="nc" id="L277">            throw new IllegalStateException(ioe);</span>
+        }
+    }
+
+<span class="fc" id="L281">    private static final Pattern KEY_PATTERN = Pattern.compile(&quot;^([^\\[]+)[\\s\\[]&quot;);</span>
+<span class="fc" id="L282">    private static final Pattern ARGS_PATTERN = Pattern.compile(&quot;\\[(.*?)]&quot;);</span>
+
+    /**
+     * Split key from (optional) arguments.
+     *
+     * @param key key
+     * @return localization key
+     */
+    private static String extractKey(String key) {
+<span class="fc" id="L291">        Matcher matcher = KEY_PATTERN.matcher(key);</span>
+<span class="fc bfc" id="L292" title="All 2 branches covered.">        if (matcher.find()) {</span>
+<span class="fc" id="L293">            return matcher.group(1).strip();</span>
+        }
+
+<span class="fc" id="L296">        return key.strip();</span>
+    }
+
+    /**
+     * Split args from input string.
+     * &lt;p/&gt;
+     * localization_key [param1] [param2] [param3]
+     *
+     * @param key key
+     * @return List of extracted parameters
+     */
+    private static List&lt;String&gt; extractParameters(String key) {
+<span class="fc" id="L308">        final Matcher matcher = ARGS_PATTERN.matcher(key);</span>
+<span class="fc" id="L309">        final List&lt;String&gt; args = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        while (matcher.find()) {</span>
+<span class="fc" id="L311">            args.add(matcher.group(1));</span>
+        }
+<span class="fc" id="L313">        return args;</span>
+    }
+
+    private static class CustomLocalizationMessageInterceptor {
+
+        private final Locale locale;
+        private final MessageSource messageSource;
+
+        private CustomLocalizationMessageInterceptor(Locale locale, MessageSource messageSource) {
+            this.locale = locale;
+            this.messageSource = messageSource;
+        }
+
+        protected Mustache.Lambda createTranslator() {
+            return (frag, out) -&gt; {
+                String template = frag.execute();
+                final String key = extractKey(template);
+                final List&lt;String&gt; args = extractParameters(template);
+                final String text = messageSource.getMessage(key, args.toArray(), locale);
+                out.write(text);
+            };
+        }
+    }
+
+    private static final String START_TAG = &quot;{{#i18n}}&quot;;
+    private static final String END_TAG = &quot;{{/i18n}}&quot;;
+
+    private enum ParserState {
+        START {
+            @Override
+            public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
+                int startTagIdx = template.indexOf(START_TAG, idx);
+                if (startTagIdx == -1) {
+                    ast.addText(template);
+                    return Pair.of(END, idx);
+                } else {
+                    ast.addText(template.substring(0, startTagIdx));
+                    ast.addI18NNode();
+                    return Pair.of(OPEN_TAG, startTagIdx + START_TAG.length());
+                }
+            }
+        },
+        OPEN_TAG {
+            @Override
+            public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
+                int startTagIdx = template.indexOf(START_TAG, idx);
+                int endTagIdx = template.indexOf(END_TAG, idx);
+
+                if (endTagIdx != -1 &amp;&amp; startTagIdx != -1 &amp;&amp; startTagIdx &lt; endTagIdx) {
+                    ast.addText(template.substring(idx, startTagIdx));
+                    int startTagIdxBoundary = startTagIdx + START_TAG.length();
+                    ast.addI18NNode();
+                    return Pair.of(OPEN_TAG, startTagIdxBoundary);
+                } else if (endTagIdx == -1 &amp;&amp; startTagIdx == -1) {
+                    ast.addText(template.substring(idx));
+                    return Pair.of(END, idx);
+                } else if (endTagIdx != -1) {
+                    ast.addText(template.substring(idx, endTagIdx));
+                    return Pair.of(CLOSE_TAG, endTagIdx);
+                } else {
+                    throw new IllegalStateException(&quot;should not be reached&quot;);
+                }
+            }
+        },
+        CLOSE_TAG {
+            @Override
+            public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
+
+                //
+                ast.focusToParent();
+                //
+                return Pair.of(OPEN_TAG, idx + END_TAG.length());
+            }
+        },
+        END {
+            @Override
+            public Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast) {
+
+                if (ast.currentLevel != ast.root) {
+                    throw new IllegalStateException(&quot;unbalanced tags&quot;);
+                }
+
+                return Pair.of(END, idx);
+            }
+        };
+
+        public abstract Pair&lt;ParserState, Integer&gt; next(String template, int idx, AST ast);
+    }
+
+    static class AST {
+        Node root = new Node();
+        Node currentLevel = root;
+
+        void addChild(Node node) {
+            node.parent = currentLevel;
+            currentLevel.addChild(node);
+        }
+
+        void addText(String text) {
+            if (text.length() &gt; 0) {
+                addChild(new TextNode(text));
+            }
+        }
+
+        void addI18NNode() {
+            addChild(new I18NNode());
+            currentLevel = currentLevel.children.get(currentLevel.children.size() - 1);
+        }
+
+        void focusToParent() {
+            currentLevel = currentLevel.parent;
+        }
+
+        public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
+            root.visit(sb, locale, messageSource);
+        }
+    }
+
+    static class Node {
+
+        Node parent;
+        List&lt;Node&gt; children = new ArrayList&lt;&gt;(1);
+
+        void addChild(Node node) {
+            children.add(node);
+        }
+
+        public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
+            for (Node node : children) {
+                node.visit(sb, locale, messageSource);
+            }
+        }
+    }
+
+    static class TextNode extends Node {
+        String text;
+
+        TextNode(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
+            sb.append(text);
+        }
+    }
+
+    static class I18NNode extends Node {
+
+        @Override
+        public void visit(StringBuilder sb, Locale locale, MessageSource messageSource) {
+            StringBuilder internal = new StringBuilder();
+            for (Node node : children) {
+                node.visit(internal, locale, messageSource);
+            }
+
+            String childTemplate = internal.toString();
+            String key = extractKey(childTemplate);
+            List&lt;String&gt; args = extractParameters(childTemplate);
+            String text = messageSource.getMessage(key, args.toArray(), locale);
+
+            sb.append(text);
+        }
+    }
+
+    public static String translate(String template, Locale locale, MessageSource messageSource) {
+<span class="fc" id="L479">        StringBuilder sb = new StringBuilder(template.length());</span>
+
+<span class="fc" id="L481">        AST ast = new AST();</span>
+
+<span class="fc" id="L483">        ParserState state = ParserState.START;</span>
+<span class="fc" id="L484">        int idx = 0;</span>
+        do {
+<span class="fc" id="L486">            Pair&lt;ParserState, Integer&gt; stateAndIdx = state.next(template, idx, ast);</span>
+<span class="fc" id="L487">            state = stateAndIdx.getKey();</span>
+<span class="fc" id="L488">            idx = stateAndIdx.getValue();</span>
+<span class="fc bfc" id="L489" title="All 2 branches covered.">        } while (state != ParserState.END);</span>
+
+<span class="fc" id="L491">        ast.visit(sb, locale, messageSource);</span>
+
+<span class="fc" id="L493">        return sb.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

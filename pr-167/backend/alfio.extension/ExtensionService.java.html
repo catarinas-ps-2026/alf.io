@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExtensionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.extension</a> &gt; <span class="el_source">ExtensionService.java</span></div><h1>ExtensionService.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.extension;
+
+import static alfio.extension.ScriptingExecutionService.EXTENSION_CONFIGURATION_PARAMETERS;
+import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import alfio.manager.support.extension.ExtensionCapability;
+import alfio.manager.support.extension.ExtensionEvent;
+import alfio.manager.system.ExternalConfiguration;
+import alfio.model.*;
+import alfio.model.ExtensionSupport.*;
+import alfio.model.user.Organization;
+import alfio.repository.ExtensionLogRepository;
+import alfio.repository.ExtensionRepository;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+
+@Service
+@AllArgsConstructor
+public class ExtensionService {
+
+    private static final String EVALUATE_RESULT = &quot;res = GSON.fromJson(JSON.stringify(res), returnClass);&quot;;
+    private static final String PROCESS_EXTENSION_RESULT =
+            &quot;var res = executeScript(extensionEvent); &quot; + EVALUATE_RESULT;
+    private static final String PROCESS_CAPABILITY_RESULT =
+            &quot;var res = executeCapability(capability); &quot; + EVALUATE_RESULT;
+    private static final String EXECUTE_SCRIPT = &quot;executeScript(extensionEvent);&quot;;
+    private static final String OUTPUT = &quot;output&quot;;
+    private static final String EXECUTION_KEY = &quot;executionKey&quot;;
+    private static final String EXTENSION_EVENT = &quot;extensionEvent&quot;;
+    private final ScriptingExecutionService scriptingExecutionService;
+    private final ExtensionRepository extensionRepository;
+    private final ExtensionLogRepository extensionLogRepository;
+    private final PlatformTransactionManager platformTransactionManager;
+    private final ExternalConfiguration externalConfiguration;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    @AllArgsConstructor
+    private static final class ExtensionLoggerImpl implements ExtensionLogger {
+
+        private final ExtensionLogRepository extensionLogRepository;
+        private final PlatformTransactionManager platformTransactionManager;
+        private final String effectivePath;
+        private final String path;
+        private final String name;
+
+        @Override
+        public void logWarning(String msg) {
+            executeInNewTransaction(
+                    s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.WARNING));
+        }
+
+        @Override
+        public void logSuccess(String msg) {
+            executeInNewTransaction(
+                    s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.SUCCESS));
+        }
+
+        @Override
+        public void logError(String msg) {
+            executeInNewTransaction(
+                    s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.ERROR));
+        }
+
+        @Override
+        public void logInfo(String msg) {
+            executeInNewTransaction(
+                    s -&gt; extensionLogRepository.insert(effectivePath, path, name, msg, ExtensionLog.Type.INFO));
+        }
+
+        private void executeInNewTransaction(TransactionCallback&lt;Integer&gt; t) {
+            DefaultTransactionDefinition definition =
+                    new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            TransactionTemplate template = new TransactionTemplate(platformTransactionManager, definition);
+            template.execute(t);
+        }
+    }
+
+    private static final class NoopExtensionLogger implements ExtensionLogger {}
+
+    private ExtensionMetadata getMetadata(String name, String script) {
+<span class="fc" id="L115">        return scriptingExecutionService.executeScript(</span>
+                name,
+                script + &quot;\n;GSON.fromJson(JSON.stringify(getScriptMetadata()), returnClass);&quot;, // &lt;- ugly hack, but
+                // the interop
+                // java&lt;-&gt;js is simpler
+                // that way...
+<span class="fc" id="L121">                Collections.emptyMap(),</span>
+                ExtensionMetadata.class,
+                new NoopExtensionLogger());
+    }
+
+    @Transactional
+    public void createOrUpdate(String previousPath, String previousName, Extension script) {
+<span class="fc" id="L128">        Validate.notBlank(script.getName(), &quot;Name is mandatory&quot;);</span>
+<span class="fc" id="L129">        Validate.notBlank(script.getPath(), &quot;Path must be defined&quot;);</span>
+<span class="fc" id="L130">        ScriptValidation validation = new ScriptValidation(script.getScript());</span>
+<span class="fc" id="L131">        validation.validate();</span>
+<span class="fc" id="L132">        String hash = DigestUtils.sha256Hex(script.getScript());</span>
+<span class="fc" id="L133">        ExtensionMetadata extensionMetadata = getMetadata(script.getName(), script.getScript());</span>
+
+<span class="fc" id="L135">        Validate.notBlank(extensionMetadata.getDisplayName(), &quot;Display Name is mandatory&quot;);</span>
+
+<span class="fc" id="L137">        validateCapabilities(extensionMetadata);</span>
+
+<span class="pc bpc" id="L139" title="1 of 4 branches missed.">        if (previousPath != null &amp;&amp; previousName != null) {</span>
+<span class="fc" id="L140">            extensionRepository.deleteEventsForPath(previousPath, previousName);</span>
+        }
+
+<span class="pc bpc" id="L143" title="1 of 4 branches missed.">        if (!Objects.equals(previousPath, script.getPath()) || !Objects.equals(previousName, script.getName())) {</span>
+<span class="fc" id="L144">            extensionRepository.deleteScriptForPath(previousPath, previousName);</span>
+<span class="fc" id="L145">            extensionRepository.insert(</span>
+<span class="fc" id="L146">                    script.getPath(),</span>
+<span class="fc" id="L147">                    script.getName(),</span>
+<span class="fc" id="L148">                    extensionMetadata.getDisplayName(),</span>
+                    hash,
+<span class="fc" id="L150">                    script.isEnabled(),</span>
+<span class="fc" id="L151">                    extensionMetadata.isAsync(),</span>
+<span class="fc" id="L152">                    script.getScript(),</span>
+                    extensionMetadata);
+        } else {
+<span class="fc" id="L155">            extensionRepository.update(</span>
+<span class="fc" id="L156">                    script.getPath(),</span>
+<span class="fc" id="L157">                    script.getName(),</span>
+<span class="fc" id="L158">                    extensionMetadata.getDisplayName(),</span>
+                    hash,
+<span class="fc" id="L160">                    script.isEnabled(),</span>
+<span class="fc" id="L161">                    extensionMetadata.isAsync(),</span>
+<span class="fc" id="L162">                    script.getScript(),</span>
+                    extensionMetadata);
+        }
+
+<span class="fc" id="L166">        int extensionId = extensionRepository.getExtensionIdFor(script.getPath(), script.getName());</span>
+
+<span class="fc bfc" id="L168" title="All 2 branches covered.">        for (String event : extensionMetadata.getEvents()) {</span>
+<span class="fc" id="L169">            extensionRepository.insertEvent(extensionId, event);</span>
+<span class="fc" id="L170">        }</span>
+
+        //
+<span class="fc" id="L173">        ExtensionMetadata.Parameters parameters = extensionMetadata.getParameters();</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">        if (parameters != null) {</span>
+<span class="nc" id="L175">            List&lt;ExtensionParameterKeyValue&gt; extensionParameterKeyValue =</span>
+<span class="nc" id="L176">                    extensionRepository.findExtensionParameterKeyValue(extensionId);</span>
+<span class="nc" id="L177">            extensionRepository.deleteExtensionParameter(extensionId);</span>
+            for (ExtensionMetadata.Field field :
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                    requireNonNullElse(parameters.getFields(), List.&lt;ExtensionMetadata.Field&gt;of())) {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                for (String level : parameters.getConfigurationLevels()) {</span>
+<span class="nc" id="L181">                    int confFieldId = extensionRepository</span>
+<span class="nc" id="L182">                            .registerExtensionConfigurationMetadata(</span>
+                                    extensionId,
+<span class="nc" id="L184">                                    field.getName(),</span>
+<span class="nc" id="L185">                                    field.getDescription(),</span>
+<span class="nc" id="L186">                                    field.getType(),</span>
+                                    level,
+<span class="nc" id="L188">                                    field.isRequired())</span>
+<span class="nc" id="L189">                            .getKey();</span>
+<span class="nc" id="L190">                    List&lt;ExtensionParameterKeyValue&gt; filteredParam = extensionParameterKeyValue.stream()</span>
+<span class="nc" id="L191">                            .filter(kv -&gt;</span>
+<span class="nc bnc" id="L192" title="All 4 branches missed.">                                    field.getName().equals(kv.getName()) &amp;&amp; level.equals(kv.getConfigurationLevel()))</span>
+<span class="nc" id="L193">                            .collect(toList());</span>
+<span class="nc" id="L194">                    var parameterSources = filteredParam.stream()</span>
+<span class="nc" id="L195">                            .map(kv -&gt; new MapSqlParameterSource(&quot;ecmId&quot;, confFieldId)</span>
+<span class="nc" id="L196">                                    .addValue(&quot;confPath&quot;, kv.getConfigurationPath())</span>
+<span class="nc" id="L197">                                    .addValue(&quot;value&quot;, kv.getConfigurationValue()))</span>
+<span class="nc" id="L198">                            .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L199">                    jdbcTemplate.batchUpdate(extensionRepository.bulkInsertSettingValue(), parameterSources);</span>
+<span class="nc" id="L200">                }</span>
+<span class="nc" id="L201">            }</span>
+        }
+<span class="fc" id="L203">    }</span>
+
+    void validateCapabilities(ExtensionMetadata extensionMetadata) {
+        // validate events / capabilities combination
+<span class="fc" id="L207">        Set&lt;ExtensionEvent&gt; events = requireNonNull(extensionMetadata.getEvents(), &quot;Events are mandatory&quot;).stream()</span>
+<span class="fc" id="L208">                .map(ExtensionEvent::valueOf)</span>
+<span class="fc" id="L209">                .collect(toSet());</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">        Validate.isTrue(!events.isEmpty(), &quot;Events are mandatory&quot;);</span>
+<span class="fc" id="L211">        var invalidCapabilities = requireNonNullElse(extensionMetadata.getCapabilities(), List.&lt;String&gt;of()).stream()</span>
+<span class="fc" id="L212">                .filter(s -&gt; ExtensionCapability.valueOf(s).getCompatibleEvents().stream()</span>
+<span class="fc" id="L213">                        .noneMatch(events::contains))</span>
+<span class="fc" id="L214">                .collect(toSet());</span>
+
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (!invalidCapabilities.isEmpty()) {</span>
+<span class="fc" id="L217">            throw new IllegalArgumentException(&quot;Invalid capabilities: &quot; + String.join(&quot;, &quot;, invalidCapabilities));</span>
+        }
+<span class="fc" id="L219">    }</span>
+
+    public List&lt;ExtensionParameterMetadataAndValue&gt; getConfigurationParametersFor(
+            String basePath, String pathPattern, String configurationLevel) {
+<span class="nc" id="L223">        return extensionRepository.getParametersForLevelAndPath(</span>
+<span class="nc" id="L224">                configurationLevel, generatePossiblePath(basePath), pathPattern);</span>
+    }
+
+    @Transactional
+    public void bulkUpdateSystemSettings(List&lt;ExtensionMetadataValue&gt; toUpdate) {
+<span class="nc" id="L229">        deleteAndInsertSetting(&quot;SYSTEM&quot;, &quot;-&quot;, toUpdate);</span>
+<span class="nc" id="L230">    }</span>
+
+    @Transactional
+    public void bulkUpdateOrganizationSettings(Organization org, List&lt;ExtensionMetadataValue&gt; toUpdate) {
+<span class="nc" id="L234">        String path = &quot;-&quot; + org.getId();</span>
+<span class="nc" id="L235">        deleteAndInsertSetting(&quot;ORGANIZATION&quot;, path, toUpdate);</span>
+<span class="nc" id="L236">    }</span>
+
+    @Transactional
+    public void bulkUpdateEventSettings(
+            Organization org, EventAndOrganizationId event, List&lt;ExtensionMetadataValue&gt; toUpdate) {
+<span class="nc" id="L241">        String path = &quot;-&quot; + org.getId() + &quot;-&quot; + event.getId();</span>
+<span class="nc" id="L242">        deleteAndInsertSetting(&quot;EVENT&quot;, path, toUpdate);</span>
+<span class="nc" id="L243">    }</span>
+
+    @Transactional
+    public void deleteSettingValue(int id, String path) {
+<span class="nc" id="L247">        extensionRepository.deleteSettingValue(id, path);</span>
+<span class="nc" id="L248">    }</span>
+
+    private void deleteAndInsertSetting(String level, String path, List&lt;ExtensionMetadataValue&gt; toUpdate) {
+<span class="nc" id="L251">        extensionRepository.deleteSettingValue(level, path);</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        List&lt;ExtensionMetadataValue&gt; toUpdate2 = (toUpdate == null ? Collections.emptyList() : toUpdate);</span>
+<span class="nc" id="L253">        List&lt;ExtensionMetadataValue&gt; filtered = toUpdate2.stream()</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                .filter(f -&gt; StringUtils.trimToNull(f.getValue()) != null)</span>
+<span class="nc" id="L255">                .collect(toList());</span>
+<span class="nc" id="L256">        var parameterSources = filtered.stream()</span>
+<span class="nc" id="L257">                .map(kv -&gt; new MapSqlParameterSource(&quot;ecmId&quot;, kv.getId())</span>
+<span class="nc" id="L258">                        .addValue(&quot;confPath&quot;, path)</span>
+<span class="nc" id="L259">                        .addValue(&quot;value&quot;, kv.getValue()))</span>
+<span class="nc" id="L260">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L261">        jdbcTemplate.batchUpdate(extensionRepository.bulkInsertSettingValue(), parameterSources);</span>
+<span class="nc" id="L262">    }</span>
+
+    @Transactional
+    public void toggle(String path, String name, boolean status) {
+<span class="nc" id="L266">        extensionRepository.toggle(path, name, status);</span>
+<span class="nc" id="L267">    }</span>
+
+    @Transactional
+    public void delete(String path, String name) {
+<span class="nc" id="L271">        extensionRepository.deleteEventsForPath(path, name);</span>
+<span class="nc" id="L272">        extensionRepository.deleteScriptForPath(path, name);</span>
+<span class="nc" id="L273">    }</span>
+
+    @Transactional(readOnly = true)
+    public String getScript(String path, String name) {
+<span class="fc" id="L277">        return externalConfiguration.getScript(path, name).orElseGet(() -&gt; extensionRepository.getScript(path, name));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Optional&lt;ExtensionSupport&gt; getSingle(String path, String name) {
+<span class="nc" id="L282">        return extensionRepository.getSingle(path, name);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Optional&lt;ExtensionSupport&gt; getSingle(Organization organization, EventAndOrganizationId event, String name) {
+<span class="nc" id="L287">        Set&lt;String&gt; paths = generatePossiblePath(</span>
+<span class="nc" id="L288">                toPath(new EventAndOrganizationId(organization.getId(), event.getId())), Comparator.reverseOrder());</span>
+<span class="nc" id="L289">        return extensionRepository.getSingle(paths, name);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isCapabilitySupported(ExtensionCapability capability, PurchaseContext purchaseContext) {
+        // load compatible scripts
+<span class="fc" id="L295">        var externalScripts = externalConfiguration.getAllExtensionsForCapability(capability);</span>
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">        if (!externalScripts.isEmpty()) {</span>
+<span class="nc" id="L297">            return true;</span>
+        }
+<span class="fc" id="L299">        var paths = generatePossiblePath(toPath(purchaseContext), Comparator.reverseOrder());</span>
+<span class="fc" id="L300">        int count = extensionRepository.countScriptsSupportingCapability(paths, List.of(capability.name()));</span>
+<span class="fc bfc" id="L301" title="All 2 branches covered.">        return count &gt; 0;</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Set&lt;ExtensionCapabilitySummary&gt; getSupportedCapabilities(
+            Set&lt;ExtensionCapability&gt; requested, PurchaseContext purchaseContext) {
+<span class="fc" id="L307">        var externalScriptsSupportedCapabilities = externalConfiguration.getSupportedCapabilities(requested);</span>
+<span class="pc bpc" id="L308" title="1 of 2 branches missed.">        if (requested.stream().allMatch(capability -&gt; externalScriptsSupportedCapabilities.stream()</span>
+<span class="pc bnc" id="L309" title="All 2 branches missed.">                .anyMatch(sc -&gt; sc.getCapability() == capability))) {</span>
+<span class="nc" id="L310">            return externalScriptsSupportedCapabilities;</span>
+        }
+<span class="fc" id="L312">        var result = new HashSet&lt;&gt;(externalScriptsSupportedCapabilities);</span>
+<span class="fc" id="L313">        var paths = generatePossiblePath(toPath(purchaseContext), Comparator.reverseOrder());</span>
+<span class="fc" id="L314">        result.addAll(extensionRepository.getSupportedCapabilities(paths, ExtensionCapability.toString(requested)));</span>
+<span class="fc" id="L315">        return result;</span>
+    }
+
+    private Optional&lt;ScriptPathNameHash&gt; getFirstScriptSupportingCapability(
+            ExtensionCapability capability, String basePath) {
+<span class="fc" id="L320">        var externalConfCapabilities = externalConfiguration.getAllExtensionsForCapability(capability);</span>
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">        if (!externalConfCapabilities.isEmpty()) {</span>
+<span class="nc" id="L322">            return Optional.of(externalConfCapabilities.get(0));</span>
+        }
+<span class="fc" id="L324">        return extensionRepository.getFirstScriptForCapability(generatePossiblePath(basePath), capability.name());</span>
+    }
+
+    public &lt;T&gt; Optional&lt;T&gt; executeCapability(
+            ExtensionCapability capability, String basePath, Map&lt;String, Object&gt; params, Class&lt;T&gt; resultType) {
+<span class="fc" id="L329">        return getFirstScriptSupportingCapability(capability, basePath).map(scriptPathNameHash -&gt; {</span>
+<span class="fc" id="L330">            Map&lt;String, Object&gt; context = new HashMap&lt;&gt;(params);</span>
+<span class="fc" id="L331">            context.put(&quot;capability&quot;, capability.name());</span>
+<span class="fc" id="L332">            context.put(OUTPUT, null);</span>
+<span class="fc" id="L333">            context.put(EXECUTION_KEY, UUID.randomUUID().toString());</span>
+<span class="fc" id="L334">            context = internalExecuteScript(</span>
+                    scriptPathNameHash, context, basePath, false, PROCESS_CAPABILITY_RESULT, resultType);
+<span class="fc" id="L336">            return resultType.cast(context.get(OUTPUT));</span>
+        });
+    }
+
+    public &lt;T&gt; T executeScriptsForEvent(String event, String basePath, Map&lt;String, Object&gt; payload, Class&lt;T&gt; clazz) {
+<span class="fc" id="L341">        List&lt;ScriptPathNameHash&gt; activePaths = getActiveScriptsForEvent(event, basePath, false);</span>
+<span class="fc" id="L342">        Map&lt;String, Object&gt; context = new HashMap&lt;&gt;(payload);</span>
+<span class="fc" id="L343">        context.put(EXTENSION_EVENT, event);</span>
+<span class="fc" id="L344">        context.put(EXECUTION_KEY, UUID.randomUUID().toString());</span>
+<span class="fc" id="L345">        context.put(OUTPUT, null);</span>
+<span class="fc bfc" id="L346" title="All 2 branches covered.">        for (ScriptPathNameHash activePath : activePaths) {</span>
+<span class="fc" id="L347">            context = internalExecuteScript(activePath, context, basePath, false, PROCESS_EXTENSION_RESULT, clazz);</span>
+<span class="fc" id="L348">        }</span>
+<span class="fc" id="L349">        return clazz.cast(context.get(OUTPUT));</span>
+    }
+
+    public void executeScriptAsync(String event, String basePath, Map&lt;String, Object&gt; payload) {
+<span class="fc" id="L353">        List&lt;ScriptPathNameHash&gt; activePaths = getActiveScriptsForEvent(event, basePath, true);</span>
+<span class="fc" id="L354">        Map&lt;String, Object&gt; input = new HashMap&lt;&gt;(payload);</span>
+<span class="fc" id="L355">        input.put(EXTENSION_EVENT, event);</span>
+<span class="fc" id="L356">        input.put(EXECUTION_KEY, UUID.randomUUID().toString());</span>
+<span class="fc bfc" id="L357" title="All 2 branches covered.">        for (ScriptPathNameHash activePath : activePaths) {</span>
+<span class="fc" id="L358">            input = internalExecuteScript(activePath, input, basePath, true, EXECUTE_SCRIPT, Void.class);</span>
+<span class="fc" id="L359">        }</span>
+<span class="fc" id="L360">    }</span>
+
+    public void retryFailedAsyncScript(String path, String name, Map&lt;String, Object&gt; payload) {
+<span class="fc" id="L363">        var extensionEvent = (String) payload.get(EXTENSION_EVENT);</span>
+<span class="fc" id="L364">        var activePathOptional = getActiveScriptsForEvent(extensionEvent, path, true).stream()</span>
+<span class="fc" id="L365">                .filter(nh -&gt; nh.getName().equals(name))</span>
+<span class="fc" id="L366">                .findFirst();</span>
+<span class="fc" id="L367">        activePathOptional.ifPresent(scriptPathNameHash -&gt; internalExecuteScript(</span>
+                scriptPathNameHash, payload, path, false, EXECUTE_SCRIPT + &quot;\nvar res = null;&quot;, Void.class, true));
+<span class="fc" id="L369">    }</span>
+
+    private &lt;T&gt; Map&lt;String, Object&gt; internalExecuteScript(
+            ScriptPathNameHash activePath,
+            Map&lt;String, Object&gt; input,
+            String basePath,
+            boolean async,
+            String executeInstruction,
+            Class&lt;T&gt; expectedResult) {
+<span class="fc" id="L378">        return internalExecuteScript(activePath, input, basePath, async, executeInstruction, expectedResult, false);</span>
+    }
+
+    private &lt;T&gt; Map&lt;String, Object&gt; internalExecuteScript(
+            ScriptPathNameHash activePath,
+            Map&lt;String, Object&gt; input,
+            String basePath,
+            boolean async,
+            String executeInstruction,
+            Class&lt;T&gt; expectedResult,
+            boolean throwErrorIfNotExecuted) {
+<span class="fc" id="L389">        String path = activePath.getPath();</span>
+<span class="fc" id="L390">        String name = activePath.getName();</span>
+<span class="fc" id="L391">        Pair&lt;Set&lt;String&gt;, Map&lt;String, Object&gt;&gt; params = addExtensionParameters(input, basePath, activePath);</span>
+<span class="fc" id="L392">        var context = params.getRight();</span>
+<span class="fc" id="L393">        ExtensionLogger extLogger =</span>
+                new ExtensionLoggerImpl(extensionLogRepository, platformTransactionManager, basePath, path, name);
+
+<span class="pc bpc" id="L396" title="1 of 2 branches missed.">        if (params.getLeft().isEmpty()) {</span>
+<span class="fc" id="L397">            Supplier&lt;String&gt; scriptGetter = () -&gt; getScript(path, name) + &quot;\n;&quot; + executeInstruction;</span>
+<span class="fc bfc" id="L398" title="All 2 branches covered.">            if (async) {</span>
+<span class="fc" id="L399">                scriptingExecutionService.executeScriptAsync(</span>
+<span class="fc" id="L400">                        path, name, activePath.getHash(), scriptGetter, context, extLogger);</span>
+            } else {
+<span class="fc" id="L402">                Object res = scriptingExecutionService.executeScript(</span>
+<span class="fc" id="L403">                        name, activePath.getHash(), scriptGetter, context, expectedResult, extLogger);</span>
+<span class="fc" id="L404">                context.put(OUTPUT, res);</span>
+            }
+<span class="fc" id="L406">        } else {</span>
+<span class="nc" id="L407">            extLogger.logWarning(&quot;script not run, missing parameters: &quot; + params.getLeft());</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">            if (throwErrorIfNotExecuted) {</span>
+<span class="nc" id="L409">                throw new IllegalStateException(&quot;Script not run, missing parameters: &quot; + params.getLeft());</span>
+            }
+        }
+<span class="fc" id="L412">        return context;</span>
+    }
+
+    /*
+     * Return a copy of the input with added parameters and a set of missing mandatory parameters, if any
+     * */
+    private Pair&lt;Set&lt;String&gt;, Map&lt;String, Object&gt;&gt; addExtensionParameters(
+            Map&lt;String, Object&gt; input, String basePath, ScriptPathNameHash activePath) {
+<span class="pc bpc" id="L420" title="1 of 2 branches missed.">        if (ExternalConfiguration.isExternalPath(activePath.getPath())) {</span>
+<span class="nc" id="L421">            return getExternalExtensionParameters(input, activePath);</span>
+        } else {
+<span class="fc" id="L423">            return getExtensionParameters(input, basePath, activePath);</span>
+        }
+    }
+
+    private Pair&lt;Set&lt;String&gt;, Map&lt;String, Object&gt;&gt; getExternalExtensionParameters(
+            Map&lt;String, Object&gt; input, ScriptPathNameHash activePath) {
+<span class="nc" id="L429">        Map&lt;String, Object&gt; copy = new HashMap&lt;&gt;(input);</span>
+        // we assume that external parameters are defined correctly.
+<span class="nc" id="L431">        copy.put(</span>
+                EXTENSION_CONFIGURATION_PARAMETERS,
+<span class="nc" id="L433">                externalConfiguration.getParametersForExtension(activePath.getName()));</span>
+<span class="nc" id="L434">        return Pair.of(Set.of(), copy);</span>
+    }
+
+    private Pair&lt;Set&lt;String&gt;, Map&lt;String, Object&gt;&gt; getExtensionParameters(
+            Map&lt;String, Object&gt; input, String basePath, ScriptPathNameHash activePath) {
+<span class="fc" id="L439">        Map&lt;String, Object&gt; copy = new HashMap&lt;&gt;(input);</span>
+<span class="fc" id="L440">        Map&lt;String, String&gt; nameAndValues = extensionRepository</span>
+<span class="fc" id="L441">                .findParametersForScript(activePath.getName(), activePath.getPath(), generatePossiblePath(basePath))</span>
+<span class="fc" id="L442">                .stream()</span>
+<span class="fc" id="L443">                .collect(Collectors.toMap(NameAndValue::getName, NameAndValue::getValue));</span>
+
+<span class="fc" id="L445">        Set&lt;String&gt; mandatory = new HashSet&lt;&gt;(</span>
+<span class="fc" id="L446">                extensionRepository.findMandatoryParametersForScript(activePath.getName(), activePath.getPath()));</span>
+
+<span class="fc" id="L448">        mandatory.removeAll(nameAndValues.keySet());</span>
+
+<span class="fc" id="L450">        copy.put(EXTENSION_CONFIGURATION_PARAMETERS, nameAndValues);</span>
+<span class="fc" id="L451">        return Pair.of(mandatory, copy);</span>
+    }
+
+    private List&lt;ScriptPathNameHash&gt; getActiveScriptsForEvent(String event, String basePath, boolean async) {
+        // fetch all active scripts
+        // to handle override:
+        // if there are active tree scripts with the same name
+        // with path:
+        //  - -org-event
+        //  - -org
+        //  - -
+        // the one with the longest path win
+<span class="fc" id="L463">        Set&lt;String&gt; paths = generatePossiblePath(basePath);</span>
+<span class="fc" id="L464">        var allExtensions = new ArrayList&lt;&gt;(externalConfiguration.getAllExtensionsFor(event, async));</span>
+<span class="fc" id="L465">        allExtensions.addAll(extensionRepository.findActive(paths, async, event));</span>
+<span class="fc" id="L466">        return allExtensions;</span>
+    }
+
+    private static Set&lt;String&gt; generatePossiblePath(String basePath, Comparator&lt;String&gt; comparator) {
+        // generate all the paths
+        // given &quot;-0-0&quot; it will generate
+        // &quot;-&quot;, &quot;-0&quot;, &quot;-0-0&quot;
+<span class="fc" id="L473">        Set&lt;String&gt; paths = new TreeSet&lt;&gt;(comparator);</span>
+<span class="fc" id="L474">        int basePathLength = basePath.length();</span>
+<span class="fc bfc" id="L475" title="All 2 branches covered.">        for (int i = 1; i &lt; basePathLength; i++) {</span>
+<span class="fc bfc" id="L476" title="All 2 branches covered.">            if (basePath.charAt(i) == '-') {</span>
+<span class="fc" id="L477">                paths.add(basePath.substring(0, i));</span>
+            }
+        }
+<span class="fc" id="L480">        paths.add(&quot;-&quot;); // handle first and last case</span>
+<span class="fc" id="L481">        paths.add(basePath);</span>
+<span class="fc" id="L482">        return paths;</span>
+    }
+
+    private static Set&lt;String&gt; generatePossiblePath(String basePath) {
+<span class="fc" id="L486">        return generatePossiblePath(basePath, Comparator.naturalOrder());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;ExtensionSupport&gt; listAll() {
+<span class="nc" id="L491">        return extensionRepository.listAll();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Pair&lt;List&lt;ExtensionLog&gt;, Integer&gt; getLog(
+            String path, String name, ExtensionLog.Type type, int pageSize, int offset) {
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        String typeAsString = type != null ? type.name() : null;</span>
+<span class="nc" id="L498">        int count = extensionLogRepository.countPages(path, name, typeAsString);</span>
+<span class="nc" id="L499">        List&lt;ExtensionLog&gt; logs = extensionLogRepository.getPage(path, name, typeAsString, pageSize, offset);</span>
+<span class="nc" id="L500">        return Pair.of(logs, count);</span>
+    }
+
+    public static String toPath(EventAndOrganizationId event) {
+<span class="fc" id="L504">        return &quot;-&quot; + event.getOrganizationId() + &quot;-&quot; + event.getId();</span>
+    }
+
+    public static String toPath(PurchaseContext purchaseContext) {
+<span class="fc bfc" id="L508" title="All 2 branches covered.">        if (purchaseContext == null) {</span>
+<span class="fc" id="L509">            return &quot;-&quot;;</span>
+        }
+<span class="fc" id="L511">        int organizationId = purchaseContext.getOrganizationId();</span>
+<span class="fc" id="L512">        return purchaseContext</span>
+<span class="fc" id="L513">                .event()</span>
+<span class="fc" id="L514">                .map(e -&gt; toPath((EventAndOrganizationId) e))</span>
+<span class="fc" id="L515">                .orElseGet(() -&gt; &quot;-&quot; + organizationId);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
