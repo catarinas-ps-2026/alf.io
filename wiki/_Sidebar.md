@@ -11,3 +11,6 @@
 
 ## Pruebas de integración
 - [[Plan de Pruebas de Integración]]
+
+## Pruebas de sistema
+- [[Plan de Pruebas de Sistema]]
