@@ -43,9 +43,9 @@ public class RequestUtils {
     public static Optional&lt;String&gt; readRequest(HttpServletRequest request) {
 <span class="fc" id="L44">        try (ServletInputStream is = request.getInputStream()) {</span>
 <span class="fc" id="L45">            return Optional.ofNullable(is.readAllBytes()).map(b -&gt; new String(b, StandardCharsets.UTF_8));</span>
-<span class="nc" id="L46">        } catch (Exception e) {</span>
-<span class="nc" id="L47">            log.error(&quot;exception during request conversion&quot;, e);</span>
-<span class="nc" id="L48">            return Optional.empty();</span>
+<span class="fc" id="L46">        } catch (Exception e) {</span>
+<span class="fc" id="L47">            log.error(&quot;exception during request conversion&quot;, e);</span>
+<span class="fc" id="L48">            return Optional.empty();</span>
         }
     }
 

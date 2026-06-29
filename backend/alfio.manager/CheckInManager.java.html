@@ -308,8 +308,8 @@ public class CheckInManager {
 
 <span class="fc" id="L309">        Optional&lt;Ticket&gt; ticket = findAndLockTicket(ticketIdentifier);</span>
 <span class="fc" id="L310">        return ticket.map(t -&gt; {</span>
-<span class="pc bpc" id="L311" title="1 of 2 branches missed.">                    if (t.getStatus() == TicketStatus.TO_BE_PAID) {</span>
-<span class="nc" id="L312">                        acquire(ticketIdentifier);</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">                    if (t.getStatus() == TicketStatus.TO_BE_PAID) {</span>
+<span class="fc" id="L312">                        acquire(ticketIdentifier);</span>
                     }
 
 <span class="fc" id="L315">                    checkIn(ticketIdentifier, eventRepository.findById(t.getEventId()));</span>
@@ -586,11 +586,11 @@ public class CheckInManager {
     }
 
     public List&lt;FullTicketInfo&gt; getAttendeesInformation(int eventId, List&lt;Integer&gt; ids, String username) {
-<span class="nc" id="L589">        return eventRepository</span>
-<span class="nc" id="L590">                .findOptionalById(eventId)</span>
-<span class="nc" id="L591">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
-<span class="nc" id="L592">                .map(event -&gt; ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids))</span>
-<span class="nc" id="L593">                .orElse(Collections.emptyList());</span>
+<span class="fc" id="L589">        return eventRepository</span>
+<span class="fc" id="L590">                .findOptionalById(eventId)</span>
+<span class="fc" id="L591">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L592">                .map(event -&gt; ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids))</span>
+<span class="fc" id="L593">                .orElse(Collections.emptyList());</span>
     }
 
     public Predicate&lt;EventAndOrganizationId&gt; isOfflineCheckInEnabled() {
@@ -599,8 +599,8 @@ public class CheckInManager {
     }
 
     public Predicate&lt;EventAndOrganizationId&gt; isOfflineCheckInAndLabelPrintingEnabled() {
-<span class="nc" id="L602">        return isOfflineCheckInEnabled()</span>
-<span class="nc" id="L603">                .and(configurationManager.areBooleanSettingsEnabledForEvent(LABEL_PRINTING_ENABLED));</span>
+<span class="fc" id="L602">        return isOfflineCheckInEnabled()</span>
+<span class="fc" id="L603">                .and(configurationManager.areBooleanSettingsEnabledForEvent(LABEL_PRINTING_ENABLED));</span>
     }
 
     public Map&lt;String, String&gt; getEncryptedAttendeesInformation(
