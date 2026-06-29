@@ -54,19 +54,25 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ContextConfiguration(
-        classes = {
-            DataSourceConfiguration.class,
-            TestConfiguration.class,
-            ControllerConfiguration.class,
-            CheckRestApiStabilityIntegrationTest.DisableSecurity.class,
-            SpringDocConfiguration.class,
-            SpringDocConfigProperties.class,
-            SpringDocWebMvcConfiguration.class
-        })
-@ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
+    classes = {
+        DataSourceConfiguration.class,
+        TestConfiguration.class,
+        ControllerConfiguration.class,
+        CheckRestApiStabilityIntegrationTest.DisableSecurity.class,
+        SpringDocConfiguration.class,
+        SpringDocConfigProperties.class,
+        SpringDocWebMvcConfiguration.class,
+    }
+)
+@ActiveProfiles({
+    Initializer.PROFILE_DEV,
+    Initializer.PROFILE_DISABLE_JOBS,
+    Initializer.PROFILE_INTEGRATION_TEST,
+})
 class CheckRestApiStabilityIntegrationTest {
 
-    private static final String DESCRIPTOR_JSON_PATH = "src/test/resources/api/descriptor.json";
+    private static final String DESCRIPTOR_JSON_PATH =
+        "src/test/resources/api/descriptor.json";
 
     @Autowired
     private MockMvc mockMvc;
@@ -75,32 +81,64 @@ class CheckRestApiStabilityIntegrationTest {
 
     @Test
     void checkRestApiStability() throws Exception {
-
         var mvcResult = this.mockMvc
-                .perform(get(Constants.DEFAULT_API_DOCS_URL))
-                .andExpect(status().isOk())
-                .andReturn();
+            .perform(get(Constants.DEFAULT_API_DOCS_URL))
+            .andExpect(status().isOk())
+            .andReturn();
 
         var response = mvcResult.getResponse();
         var content = response.getContentAsString();
         // for some reason we get a quoted base64 JSON: "ey..."
-        var descriptor = Base64.getDecoder().decode(content.substring(1, content.length() - 1));
+        var descriptor = Base64.getDecoder().decode(
+            content.substring(1, content.length() - 1)
+        );
 
         // for generating the result
         if (updateDescriptor) {
-            try (var writer = Files.newBufferedWriter(Paths.get(DESCRIPTOR_JSON_PATH), StandardCharsets.UTF_8)) {
-                var formattedDescriptor =
-                        Json.OBJECT_MAPPER.readTree(descriptor).toPrettyString();
+            try (
+                var writer = Files.newBufferedWriter(
+                    Paths.get(DESCRIPTOR_JSON_PATH),
+                    StandardCharsets.UTF_8
+                )
+            ) {
+                var formattedDescriptor = Json.OBJECT_MAPPER.readTree(
+                    descriptor
+                ).toPrettyString();
                 writer.write(formattedDescriptor);
             }
         }
 
-        var referenceDescriptor = IOUtils.toString(new FileReader(DESCRIPTOR_JSON_PATH));
-        var currentDescriptor = IOUtils.toString(descriptor, StandardCharsets.UTF_8.toString());
-        var compareResult = OpenApiCompare.fromContents(referenceDescriptor, currentDescriptor);
+        var apiDocsDir = Paths.get("build/api-docs");
+        Files.createDirectories(apiDocsDir);
+        try (
+            var writer = Files.newBufferedWriter(
+                apiDocsDir.resolve("openapi.json"),
+                StandardCharsets.UTF_8
+            )
+        ) {
+            var formattedDescriptor = Json.OBJECT_MAPPER.readTree(
+                descriptor
+            ).toPrettyString();
+            writer.write(formattedDescriptor);
+        }
+
+        var referenceDescriptor = IOUtils.toString(
+            new FileReader(DESCRIPTOR_JSON_PATH)
+        );
+        var currentDescriptor = IOUtils.toString(
+            descriptor,
+            StandardCharsets.UTF_8.toString()
+        );
+        var compareResult = OpenApiCompare.fromContents(
+            referenceDescriptor,
+            currentDescriptor
+        );
         if (compareResult.isDifferent()) {
             var out = new ByteArrayOutputStream();
-            new MarkdownRender().render(compareResult, new OutputStreamWriter(out));
+            new MarkdownRender().render(
+                compareResult,
+                new OutputStreamWriter(out)
+            );
             Assertions.fail(out.toString(StandardCharsets.UTF_8));
         }
     }
@@ -110,10 +148,13 @@ class CheckRestApiStabilityIntegrationTest {
     public static class DisableSecurity {
 
         @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            return http.authorizeHttpRequests(
-                            auth -> auth.requestMatchers("/**").permitAll())
-                    .build();
+        public SecurityFilterChain filterChain(HttpSecurity http)
+            throws Exception {
+            return http
+                .authorizeHttpRequests(auth ->
+                    auth.requestMatchers("/**").permitAll()
+                )
+                .build();
         }
     }
 }
