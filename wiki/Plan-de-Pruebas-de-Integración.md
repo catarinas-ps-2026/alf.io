@@ -98,7 +98,7 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 #### Elementos Excluidos
 - **Pruebas de rendimiento y carga:** No se valida el comportamiento bajo alta concurrencia.
 - **Pruebas E2E con navegador (Selenium/Playwright):** Quedan fuera del alcance de este plan.
-- **Transacciones reales con pasarelas de pago (Stripe, PayPal):** Solo se usan ambientes sandbox o mocks de alto nivel.
+- **Transacciones reales con pasarelas de pago (Stripe, PayPal):** Solo se usan mocks de alto nivel mediante WireMock.
 - **Pruebas de seguridad avanzadas (Penetration Testing):** No se auditan vulnerabilidades de red ni inyección SQL.
 - **Pruebas de aceptación del usuario (UAT):** Quedan para la validación final académica.
 

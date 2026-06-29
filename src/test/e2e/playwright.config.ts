@@ -13,9 +13,22 @@ export default defineConfig({
     use: {
         baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8080",
 
-        trace: "on-first-retry",
+        trace: "retain-on-failure",
         screenshot: "only-on-failure",
         video: "retain-on-failure",
+        locale: "en-US",
+    },
+
+    webServer: {
+        command: "cd ../../.. && ./gradlew -Pprofile=dev :bootRun",
+        url: "http://localhost:8080/admin",
+        reuseExistingServer: !process.env.CI,
+        timeout: 180000,
+        env: {
+            ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY:
+                process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY ||
+                "e2e-test-api-key",
+        },
     },
 
     projects: [
