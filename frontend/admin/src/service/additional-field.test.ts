@@ -15,14 +15,11 @@ const mockPostJson = vi.mocked(postJson);
 const mockCallDelete = vi.mocked(callDelete);
 
 describe('AdditionalFieldService', () => {
-    // Técnicas: Mocking con verificación (mockear helpers.ts)
-    // Cada método construye una URL y delega a helpers HTTP
     afterEach(() => {
         vi.clearAllMocks();
     });
 
     describe('loadAllByPurchaseContext', () => {
-        // Técnicas: Particiones de equivalencia (type: event vs subscription)
         it.each([
             ['event', 'evt-1', '/admin/api/event/evt-1/additional-field'],
             [
@@ -44,7 +41,6 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('deleteField', () => {
-        // Técnicas: Mocking con verificación
         it('construye URL DELETE con id', async () => {
             const ctx = createPurchaseContext({
                 type: 'event',
@@ -61,7 +57,6 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('swapFieldPosition', () => {
-        // Técnicas: Mocking con verificación + Valores límite
         it.each([
             [
                 'ids diferentes',
@@ -89,7 +84,6 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('moveField', () => {
-        // Técnicas: Mocking con verificación + Valores límite
         it.each([
             ['position válida', 5],
             ['position cero', 0],
@@ -112,7 +106,6 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('createNewField', () => {
-        // Técnicas: Mocking con verificación
         it('envía POST y retorna ValidatedResponse', async () => {
             const ctx = createPurchaseContext({
                 type: 'event',
@@ -144,7 +137,6 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('saveField', () => {
-        // Técnicas: Mocking con verificación
         it('usa field.id en URL', async () => {
             const ctx = createPurchaseContext({
                 type: 'event',
@@ -172,7 +164,6 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('loadRestrictedValuesStats', () => {
-        // Técnicas: Mocking con verificación
         it('construye URL con id de stats', async () => {
             const ctx = createPurchaseContext({
                 type: 'event',
@@ -189,7 +180,6 @@ describe('AdditionalFieldService', () => {
     });
 
     describe('loadTemplates', () => {
-        // Técnicas: Mocking con verificación
         it('construye URL de templates', async () => {
             const ctx = createPurchaseContext({
                 type: 'event',

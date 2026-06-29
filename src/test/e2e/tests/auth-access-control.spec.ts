@@ -55,12 +55,14 @@ test.describe("Authorization: Access Control", () => {
         await page.locator('button[type="submit"]').click();
         await page.waitForURL(/.*(admin).*/);
 
-        // Access a configuration API endpoint directly via page.request
+        // Access a system API endpoint directly via page.request
         // (inherits session cookies from the page)
+        // Must include X-Requested-With header to get 403 instead of redirect to /session-expired (404)
         const supervisorConfigResponse = await page.request.get(
-            "/admin/api/configuration/system",
+            "/admin/api/system/api-key",
+            { headers: { "X-Requested-With": "XMLHttpRequest" } },
         );
-        // Should be forbidden (403) or rejected
+        // Should be forbidden (403) for supervisor
         expect(supervisorConfigResponse.status()).toBe(403);
 
         // Logout
@@ -75,9 +77,10 @@ test.describe("Authorization: Access Control", () => {
         await page.waitForURL(/.*(admin).*/);
         await completeBasicConfigIfVisible(page, base);
 
-        // Access configuration API endpoint again
+        // Access system API endpoint again as admin
         const adminConfigResponse = await page.request.get(
-            "/admin/api/configuration/system",
+            "/admin/api/system/api-key",
+            { headers: { "X-Requested-With": "XMLHttpRequest" } },
         );
         // Admin should succeed (200)
         expect(adminConfigResponse.status()).toBe(200);

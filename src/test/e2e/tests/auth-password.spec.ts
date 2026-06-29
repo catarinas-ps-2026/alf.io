@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { expect, test } from "../fixtures/test-fixtures";
 import { AdminPage } from "../pages/admin.page";
 
@@ -27,6 +27,17 @@ test.describe("Authentication: Password Management", () => {
         const oldPassword = adminCredentials.password;
         const newPassword = "NewP@ssw0rd123!"; // meets complexity rules
 
+        // Read current password hash from DB before changing
+        let originalHash = "";
+        try {
+            const result = execSync(
+                "docker exec alfio-w2-db-1 psql -U postgres -d alfio -t -A -c \"SELECT password FROM ba_user WHERE username = 'admin';\"",
+            );
+            originalHash = result.toString().trim();
+        } catch (err) {
+            console.error("Failed to read admin password hash:", err);
+        }
+
         try {
             await oldPasswordInput.fill(oldPassword);
             await authenticatedPage.fill("#newPassword", newPassword);
@@ -45,15 +56,19 @@ test.describe("Authentication: Password Management", () => {
             await expect(successAlert).toBeVisible({ timeout: 15000 });
         } finally {
             // Restore password in database directly to guarantee environment sanity
-            try {
-                execSync(
-                    "docker exec -i alfio-db-1 psql -U postgres -d alfio -c \"UPDATE ba_user SET password = '\\$2a\\$10\\$jYtoZFDdARUKL3YGIEL.PevWqNZUrPt74yIn9QOGh5O3DvsDHApbi' WHERE username = 'admin';\"",
-                );
-            } catch (err) {
-                console.error(
-                    "Failed to restore admin password via DB query:",
-                    err,
-                );
+            if (originalHash) {
+                try {
+                    execFileSync("docker", [
+                        "exec", "alfio-w2-db-1", "psql",
+                        "-U", "postgres", "-d", "alfio", "-c",
+                        `UPDATE ba_user SET password = '${originalHash}' WHERE username = 'admin';`,
+                    ]);
+                } catch (err) {
+                    console.error(
+                        "Failed to restore admin password via DB query:",
+                        err,
+                    );
+                }
             }
         }
     });
