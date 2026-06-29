@@ -173,6 +173,7 @@ jobs:
                   E2E_OWNER_PASSWORD: abcd
                   E2E_SUPERVISOR_USERNAME: supervisor-e2e
                   E2E_SUPERVISOR_PASSWORD: abcd
+                  PLAYWRIGHT_VIDEO: "on"
               run: pnpm --prefix src/test/e2e test
 
             - name: Upload Playwright Report Artifact
