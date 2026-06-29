@@ -188,6 +188,21 @@ Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los sig
 | Tiempo de ejecución de backend (CI) | ~4m 26s |
 | Tiempo de ejecución de frontend (CI) | ~38s |
 
-## 11. Conclusión
+## 11. Issues Encontrados en Fase 2
+
+| ID | Descripción | Severidad | Resolución Aplicada |
+| :--- | :--- | :---: | :--- |
+| IS-01 | **Error 500 en edición de tickets con 254/255 caracteres:** Al intentar guardar un nombre con 254 o 255 caracteres, el servidor retorna una excepción 500 no controlada en lugar de validar el límite correctamente. | Alta | Pendiente de corrección en backend (ampliar límite de columna en BD) |
+| IS-02 | **Validación de formato de nombre insuficiente:** El sistema acepta caracteres numéricos y símbolos (ej. "Juan123", "$$") en campos de nombre y apellido (CPF-01-006, CPF-15-011, CPF-15-012, CPF-15-017, CPF-15-018). | Media | Pendiente de implementar validación de solo texto alfabético en frontend y backend |
+| IS-03 | **Validación de longitud de correo incorrecta:** El sistema permite guardar correos de más de 64 caracteres en la parte local (CPF-01-011), incumpliendo el estándar RFC 5321. | Media | Pendiente de agregar validación de longitud máxima en frontend |
+| IS-04 | **Botón "Marcar como completa" visible incorrectamente:** El botón se muestra visible incluso cuando el llenado de datos del asistente está incompleto, permitiendo avanzar a un estado inválido (CPF-03-006). | Alta | Pendiente de corregir la regla de visibilidad del botón en frontend |
+| IS-05 | **Exposición de errores SQL (Stack Trace):** Al crear una organización con nombre de 256 caracteres, el sistema expone información sensible de la base de datos en un error 500 (CPF-09-006). | Crítica | Pendiente de capturar excepción de integridad y mostrar mensaje genérico |
+| IS-06 | **Date picker con bug de scroll:** El selector de fechas tiene un problema de visualización (scroll) que dificulta su usabilidad (CPF-10-001). | Baja | Pendiente de revisión de estilo del componente Shoelace |
+| IS-07 | **Botón de guardado se deshabilita silenciosamente:** Al configurar fin de venta de categoría después del fin del evento, el botón "Save" se inhabilita sin mostrar mensaje de error al usuario (CPF-10-006). | Media | Pendiente de agregar feedback visual con descripción del error |
+| IS-08 | **Códigos de acceso ocultos duplicados permitidos:** El sistema permite asignar el mismo código oculto a múltiples categorías del mismo evento sin advertencia (CPF-10-007). | Media | Pendiente de agregar validación de unicidad de códigos ocultos |
+| IS-09 | **Advertencia de zona horaria no mostrada:** El sistema no muestra la advertencia de desfase de zona horaria al configurar un evento con zona diferente a la del usuario (CPF-14-004). | Baja | Pendiente de implementar validación de zona horaria |
+| IS-10 | **Cobertura de ramas (branches) por debajo del objetivo:** La cobertura de ramas en backend es de 68% (3 228 / 4 730), por debajo del 70% recomendado. | Media | Pendiente de agregar casos de prueba para cubrir ramas condicionales faltantes |
+
+## 12. Conclusión
 
 La suite de pruebas unitarias de alf.io alcanza una tasa de éxito del 100% con un total de 2 290 casos de prueba distribuidos en las tres aplicaciones del sistema. La cobertura de código cumple con el objetivo mínimo del 85% establecido en el [[Plan-de-Pruebas-Unitarias]] tanto en backend como en frontend, con un 85.76% de cobertura agregada en instrucciones/statements. La ejecución automatizada mediante GitHub Actions garantiza la reproducibilidad de las pruebas y la retroalimentación continua para el equipo de desarrollo.
