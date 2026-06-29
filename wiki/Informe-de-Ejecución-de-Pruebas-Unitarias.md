@@ -11,7 +11,8 @@
 - [8. Cobertura de código](#8-cobertura-de-código)
 - [9. Cumplimiento de criterios de finalización](#9-cumplimiento-de-criterios-de-finalización)
 - [10. Métricas adicionales](#10-métricas-adicionales)
-- [11. Conclusión](#11-conclusión)
+- [11. Commits con Correcciones Funcionales](#11-commits-con-correcciones-funcionales)
+- [12. Conclusión](#12-conclusión)
 
 ## 1. Introducción
 
@@ -188,7 +189,7 @@ Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los sig
 | Tiempo de ejecución de backend (CI) | ~4m 26s |
 | Tiempo de ejecución de frontend (CI) | ~38s |
 
-## 10. Commits con Correcciones Funcionales
+## 11. Commits con Correcciones Funcionales
 
 | Código del commit (link) | Descripción | Autor |
 |---|---|---|
@@ -197,6 +198,6 @@ Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los sig
 | https://github.com/catarinas-ps-2026/alf.io/commit/dc1341a5f6088d5fcf00c8e7013417f7dd9a3471 | ajuste en frontend: dispatchFeedback ahora acepta EventTarget en lugar de LitElement y cambio relacionado en el payload del evento (ajuste en la propagación/uso del evento 'alfio-feedback'); corrige comportamiento del envío/recepción de eventos en runtime. (incluido en PR #122 "fix: frontend build failing due to smaller type issues") | christianmz565 |
 
 
-## 11. Conclusión
+## 12. Conclusión
 
 La suite de pruebas unitarias de alf.io alcanza una tasa de éxito del 100% con un total de 2 290 casos de prueba distribuidos en las tres aplicaciones del sistema. La cobertura de código cumple con el objetivo mínimo del 85% establecido en el [[Plan-de-Pruebas-Unitarias]] tanto en backend como en frontend, con un 85.76% de cobertura agregada en instrucciones/statements. La ejecución automatizada mediante GitHub Actions garantiza la reproducibilidad de las pruebas y la retroalimentación continua para el equipo de desarrollo.
