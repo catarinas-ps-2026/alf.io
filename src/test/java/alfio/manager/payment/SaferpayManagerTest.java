@@ -21,9 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import alfio.manager.system.ConfigurationManager;
+import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
 import alfio.model.Event;
 import alfio.model.system.ConfigurationKeys;
 import alfio.model.transaction.PaymentContext;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.transaction.StaticPaymentMethods;
 import alfio.model.transaction.Transaction;
 import alfio.repository.TicketRepository;
 import alfio.repository.TicketReservationRepository;
@@ -84,7 +87,8 @@ class SaferpayManagerTest {
     public void init() {
         var configurationManager = mock(ConfigurationManager.class);
         var configuration = mock(Map.class);
-        when(configurationManager.getFor(
+        lenient()
+                .when(configurationManager.getFor(
                         eq(EnumSet.of(
                                 SAFERPAY_ENABLED,
                                 SAFERPAY_API_USERNAME,
@@ -96,9 +100,9 @@ class SaferpayManagerTest {
                                 RESERVATION_TIMEOUT)),
                         any()))
                 .thenReturn(configuration);
-        when(maybeConfiguration.getRequiredValue()).thenReturn("");
-        when(configuration.get(any(ConfigurationKeys.class))).thenReturn(maybeConfiguration);
-        when(paymentContext.getPurchaseContext()).thenReturn(event);
+        lenient().when(maybeConfiguration.getRequiredValue()).thenReturn("");
+        lenient().when(configuration.get(any(ConfigurationKeys.class))).thenReturn(maybeConfiguration);
+        lenient().when(paymentContext.getPurchaseContext()).thenReturn(event);
         manager = new SaferpayManager(
                 configurationManager,
                 httpClient,
@@ -182,6 +186,136 @@ class SaferpayManagerTest {
         when(httpClient.send(any(), any())).thenReturn(response);
         when(response.statusCode()).thenReturn(500);
         assertThrows(IllegalStateException.class, () -> manager.internalProcessWebhook(transaction, paymentContext));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void isActiveWhenConfigured() {
+        var configurationManager = mock(ConfigurationManager.class);
+        var configMap = mock(Map.class);
+        when(configurationManager.getFor(
+                        eq(EnumSet.of(
+                                SAFERPAY_ENABLED,
+                                SAFERPAY_API_USERNAME,
+                                SAFERPAY_API_PASSWORD,
+                                SAFERPAY_CUSTOMER_ID,
+                                SAFERPAY_TERMINAL_ID)),
+                        any()))
+                .thenReturn(configMap);
+        var presentConfig = mock(MaybeConfiguration.class);
+        when(presentConfig.isPresent()).thenReturn(true);
+        when(configMap.values())
+                .thenReturn(
+                        java.util.List.of(presentConfig, presentConfig, presentConfig, presentConfig, presentConfig));
+        var activeManager = new SaferpayManager(
+                configurationManager,
+                httpClient,
+                ticketReservationRepository,
+                transactionRepository,
+                ticketRepository,
+                TestUtil.clockProvider());
+        assertTrue(activeManager.isActive(paymentContext));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void isActiveWhenMissingConfig() {
+        var configurationManager = mock(ConfigurationManager.class);
+        var configMap = mock(Map.class);
+        when(configurationManager.getFor(
+                        eq(EnumSet.of(
+                                SAFERPAY_ENABLED,
+                                SAFERPAY_API_USERNAME,
+                                SAFERPAY_API_PASSWORD,
+                                SAFERPAY_CUSTOMER_ID,
+                                SAFERPAY_TERMINAL_ID)),
+                        any()))
+                .thenReturn(configMap);
+        var missingConfig = mock(MaybeConfiguration.class);
+        when(missingConfig.isPresent()).thenReturn(false);
+        when(configMap.values()).thenReturn(java.util.List.of(missingConfig));
+        var incompleteManager = new SaferpayManager(
+                configurationManager,
+                httpClient,
+                ticketReservationRepository,
+                transactionRepository,
+                ticketRepository,
+                TestUtil.clockProvider());
+        assertFalse(incompleteManager.isActive(paymentContext));
+    }
+
+    @Test
+    void acceptForSaferpayProxy() {
+        var saferpayTransaction = mock(Transaction.class);
+        when(saferpayTransaction.getPaymentProxy()).thenReturn(PaymentProxy.SAFERPAY);
+        assertTrue(manager.accept(saferpayTransaction));
+
+        var stripeTransaction = mock(Transaction.class);
+        when(stripeTransaction.getPaymentProxy()).thenReturn(PaymentProxy.STRIPE);
+        assertFalse(manager.accept(stripeTransaction));
+    }
+
+    @Test
+    void getSupportedPaymentMethods() {
+        var methods = manager.getSupportedPaymentMethods(paymentContext, null);
+        assertEquals(EnumSet.of(StaticPaymentMethods.CREDIT_CARD), methods);
+    }
+
+    @Test
+    void getPaymentProxy() {
+        assertEquals(PaymentProxy.SAFERPAY, manager.getPaymentProxy());
+    }
+
+    @Test
+    void getPaymentMethodForTransaction() {
+        var transaction = mock(Transaction.class);
+        assertEquals(StaticPaymentMethods.CREDIT_CARD, manager.getPaymentMethodForTransaction(transaction));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getInfoSuccess() throws IOException, InterruptedException {
+        var transaction = mock(Transaction.class);
+        when(transaction.getTransactionId()).thenReturn("tx-123");
+        when(transaction.getReservationId()).thenReturn("res-123");
+
+        @SuppressWarnings("unchecked")
+        HttpResponse<Object> response = mock(HttpResponse.class);
+        when(httpClient.send(any(), any())).thenReturn(response);
+        when(response.statusCode()).thenReturn(200);
+        when(response.body())
+                .thenReturn(
+                        """
+                {
+                  "Transaction": {
+                    "Amount": {
+                      "Value": "1000",
+                      "CurrencyCode": "CHF"
+                    }
+                  }
+                }
+                """);
+
+        var result = manager.getInfo(transaction, event);
+        assertTrue(result.isPresent());
+        verify(httpClient).send(any(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getInfoHttpError() throws IOException, InterruptedException {
+        var transaction = mock(Transaction.class);
+        when(transaction.getTransactionId()).thenReturn("tx-123");
+        when(transaction.getReservationId()).thenReturn("res-123");
+
+        @SuppressWarnings("unchecked")
+        HttpResponse<Object> response = mock(HttpResponse.class);
+        when(httpClient.send(any(), any())).thenReturn(response);
+        when(response.statusCode()).thenReturn(500);
+        when(response.body()).thenReturn("error");
+
+        var result = manager.getInfo(transaction, event);
+        assertTrue(result.isEmpty());
     }
 
     // @formatter:off

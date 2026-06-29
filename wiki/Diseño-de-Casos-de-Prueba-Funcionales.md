@@ -1020,10 +1020,7 @@ S0 (Procesando) --[error]--> S2 (Error)
 | :--- | :--- | :--- | :--- |
 | CPF-RES-07-001 | Evento con campos regionales | Campos personalizados visibles en formulario | f+ |
 
-| **RF-MAN-01:** Creación de eventos | CPF-MAN-01 (001-028) |
-
-# Creación de Eventos
-
+### Creación de Eventos
 | ID | CPF-MAN-01 |
 | :--- | :--- |
 | **Funcionalidad** | Creación de eventos |
@@ -1031,41 +1028,38 @@ S0 (Procesando) --[error]--> S2 (Error)
 | **Requisito Asociado** | RF-MAN-01 (Creación de eventos) |
 | **Precondiciones** | El usuario debe estar autenticado con permisos para crear eventos. |
 | **Datos de Entrada** | Nombre del evento, organizador, modalidad, ubicación, fecha y hora, zona horaria, descripción, URL del evento, sitio web, términos y condiciones, política de privacidad y logo. |
-| **Pasos de Ejecución** | 1. Acceder al módulo de eventos. 2. Seleccionar "Create Event". 3. Completar los campos obligatorios. 4. Cargar el logo del evento. 5. Presionar "Save".|
-| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión.  |
-| **Prioridad** | Alta  |
+| **Pasos de Ejecución** | 1. Acceder al módulo de eventos. 2. Seleccionar "Create Event". 3. Completar los campos obligatorios. 4. Cargar el logo del evento. 5. Presionar "Save". |
+| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión |
+| **Prioridad** | Alta |
 
-## Análisis de Técnicas
+**Análisis de Técnicas**
 
-### Partición de Equivalencia
-
+**Partición de Equivalencia**
 | Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
-| Event Name | Texto no vacío | Vacío, solo espacios|
+| Event Name | Texto no vacío | Vacío, solo espacios |
 | Event Organizer | Organizador existente | Vacío |
-| Event will be held | In person    | Vacío  |
+| Event will be held | In person | Vacío |
 | Event Location | Dirección válida | Vacía |
-| Event Date | Fecha y hora válidas | Vacía, fecha fin menor que fecha inicio|
+| Event Date | Fecha y hora válidas | Vacía, fecha fin menor que fecha inicio |
 | Event Time Zone | Zona horaria válida | Vacía, inexistente |
 | Event Description | Texto descriptivo válido | Vacío |
-| Event URL  | URL válida única | Vacía, formato inválido |
+| Event URL | URL válida única | Vacía, formato inválido |
 | Website Link | URL válida | Formato inválido |
 | Terms and Conditions URL | URL válida | Formato inválido |
 | Privacy Policy URL | URL válida o vacío | Formato inválido |
-| Logo  | PNG, JPG, GIF o SVG ≤ 1 MB | Formato no permitido, tamaño > 1 MB, ausente |
+| Logo | PNG, JPG, GIF o SVG ≤ 1 MB | Formato no permitido, tamaño > 1 MB, ausente |
 
-### Valores Límite
-
-| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido  | Límite Sup. No Válido |
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
 | :--- | :--- | :--- | :--- | :--- |
-| Event Name  | 1 carácter | 0 caracteres | 255 caracteres| 256 caracteres |
+| Event Name | 1 carácter | 0 caracteres | 255 caracteres | 256 caracteres |
 | Event Description | 1 carácter | 0 caracteres | 5000 caracteres | 5001 caracteres |
 | Event URL | Longitud mínima válida | Vacío | Longitud máxima soportada | Excede límite |
 | Website Link | Longitud mínima válida | Vacío | Longitud máxima soportada | Excede límite |
-| Logo| 1 KB | 0 KB | 1 MB | Mayor a 1 MB |
+| Logo | 1 KB | 0 KB | 1 MB | Mayor a 1 MB |
 
-### Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Eventos
-
+**Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Eventos**
 | Condición| C1 | C2 | C3 | C4 | C5 | C6 | C7 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | Event Name informado | SI | NO | SI | SI | SI | SI | SI |
@@ -1075,80 +1069,74 @@ S0 (Procesando) --[error]--> S2 (Error)
 | Event Description informada | SI | SI | SI | SI | SI | NO | SI |
 | Logo cargado | SI | SI | SI | SI | SI | SI | NO |
 | **Crear Evento**| **SI** | **NO** | **NO** | **NO** | **NO** | **NO** | **NO** |
-
-### Tabla de Decisión: Acciones
-
+**Tabla de Decisión: Acciones**
 | Acción   | C1 | C2 | C3 | C4 | C5 | C6 | C7 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | Permitir guardar evento     | X  |    |    |    |    |    |    |
 | Mostrar error de validación |    | X  | X  | X  | X  | X  | X  |
 
-## Catálogo de Pruebas
 
-| #CP| Datos de Entrada| Resultado Esperado| Obs |
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
-| CPF-MAN-01-001 | Event Name: ""  | Error: Nombre del evento obligatorio | f-  |
-| CPF-MAN-01-002 | Event Name: " " (solo espacios)    | Error: Nombre del evento inválido    | f-  |
-| CPF-MAN-01-003 | Event Name: "A" | Evento creado exitosamente| f+  |
-| CPF-MAN-01-004 | Event Name: (255 caracteres) | Evento creado exitosamente| f+  |
-| CPF-MAN-01-005 | Event Name: (256 caracteres) | Error: Longitud excedida  | f-  |
-| CPF-MAN-01-006 | Event Organizer: vacío | Error: Organizador obligatorio  | f-  |
-| CPF-MAN-01-007 | Event Location: vacío| Error: Ubicación obligatoria    | f-  |
-| CPF-MAN-01-008 | Event Date Inicio: 26/06/2026 15:00, Fin: 26/06/2026 14:00 | Error: Fecha fin debe ser posterior a fecha inicio | f-  |
-| CPF-MAN-01-009 | Event Date: vacío    | Error: Fecha obligatoria  | f-  |
-| CPF-MAN-01-010 | Event Time Zone: vacío | Error: Zona horaria obligatoria | f-  |
-| CPF-MAN-01-011 | Event Time Zone: "America/Lima"    | Validación correcta | f+  |
-| CPF-MAN-01-012 | Event Description: vacío     | Error: Descripción obligatoria  | f-  |
-| CPF-MAN-01-013 | Event Description: "caracteres" | Validación correcta | f+  |
-| CPF-MAN-01-014 | Event URL: "evento"  | Error: URL inválida | f-  |
-| CPF-MAN-01-015 | Event URL: "https://alfio.ynoacamino.me/event/demo"   | Validación correcta | f+  |
-| CPF-MAN-01-016 | Website Link: "empresa"| Error: URL inválida | f-  |
-| CPF-MAN-01-017 | Website Link: "https://empresa.com"| Validación correcta | f+  |
-| CPF-MAN-01-018 | Terms and Conditions URL: "condiciones" | Error: URL inválida | f-  |
-| CPF-MAN-01-019 | Terms and Conditions URL: "https://empresa.com/terms" | Validación correcta | f+  |
-| CPF-MAN-01-020 | Privacy Policy URL: "privacidad"   | Error: URL inválida | f-  |
-| CPF-MAN-01-021 | Privacy Policy URL: vacío    | Validación correcta (campo opcional) | f+  |
-| CPF-MAN-01-022 | Logo: no cargado| Error: Event logo is missing    | f-  |
-| CPF-MAN-01-023 | Logo: archivo .pdf   | Error: Formato no permitido     | f-  |
-| CPF-MAN-01-024 | Logo: imagen PNG de 900 KB | Logo cargado correctamente| f+  |
-| CPF-MAN-01-025 | Logo: imagen PNG de 1.2 MB | Error: Tamaño máximo excedido   | f-  |
-| CPF-MAN-01-026 | Todos los campos obligatorios válidos y logo cargado  | Evento creado exitosamente| f+  |
+| CPF-MAN-01-001 | Event Name: "" | Error: Nombre del evento obligatorio | f- |
+| CPF-MAN-01-002 | Event Name: " " (solo espacios) | Error: Nombre del evento inválido | f- |
+| CPF-MAN-01-003 | Event Name: "A" | Evento creado exitosamente | f+ |
+| CPF-MAN-01-004 | Event Name: (255 caracteres) | Evento creado exitosamente | f+ |
+| CPF-MAN-01-005 | Event Name: (256 caracteres) | Error: Longitud excedida | f- |
+| CPF-MAN-01-006 | Event Organizer: vacío | Error: Organizador obligatorio | f- |
+| CPF-MAN-01-007 | Event Location: vacío | Error: Ubicación obligatoria | f- |
+| CPF-MAN-01-008 | Event Date Inicio: 26/06/2026 15:00, Fin: 26/06/2026 14:00 | Error: Fecha fin debe ser posterior a fecha inicio | f- |
+| CPF-MAN-01-009 | Event Date: vacío | Error: Fecha obligatoria | f- |
+| CPF-MAN-01-010 | Event Time Zone: vacío | Error: Zona horaria obligatoria | f- |
+| CPF-MAN-01-011 | Event Time Zone: "America/Lima" | Validación correcta | f+ |
+| CPF-MAN-01-012 | Event Description: vacío | Error: Descripción obligatoria | f- |
+| CPF-MAN-01-013 | Event Description: "caracteres" | Validación correcta | f+ |
+| CPF-MAN-01-014 | Event URL: "evento" | Error: URL inválida | f- |
+| CPF-MAN-01-015 | Event URL: "https://alfio.ynoacamino.me/event/demo" | Validación correcta | f+ |
+| CPF-MAN-01-016 | Website Link: "empresa" | Error: URL inválida | f- |
+| CPF-MAN-01-017 | Website Link: "https://empresa.com" | Validación correcta | f+ |
+| CPF-MAN-01-018 | Terms and Conditions URL: "condiciones" | Error: URL inválida | f- |
+| CPF-MAN-01-019 | Terms and Conditions URL: "https://empresa.com/terms" | Validación correcta | f+ |
+| CPF-MAN-01-020 | Privacy Policy URL: "privacidad" | Error: URL inválida | f- |
+| CPF-MAN-01-021 | Privacy Policy URL: vacío | Validación correcta (campo opcional) | f+ |
+| CPF-MAN-01-022 | Logo: no cargado | Error: Event logo is missing | f- |
+| CPF-MAN-01-023 | Logo: archivo .pdf | Error: Formato no permitido | f- |
+| CPF-MAN-01-024 | Logo: imagen PNG de 900 KB | Logo cargado correctamente | f+ |
+| CPF-MAN-01-025 | Logo: imagen PNG de 1.2 MB | Error: Tamaño máximo excedido | f- |
+| CPF-MAN-01-026 | Todos los campos obligatorios válidos y logo cargado | Evento creado exitosamente | f+ |
 
-# Creación de Grupos
+### Creación de Grupos
+| ID | CPF-MAN-02 |
+| :--- | :--- |
+| **Funcionalidad** | Creación de grupos |
+| **Descripción** | Permite crear grupos de usuarios que pueden utilizarse para limitar el acceso a determinadas categorías o eventos dentro del sistema. |
+| **Requisito Asociado** | RF-MAN-02 (Creación de grupos) |
+| **Precondiciones** | El usuario debe estar autenticado con permisos de administración. |
+| **Datos de Entrada** | Nombre, descripción, e-mail y descripción del ítem. |
+| **Pasos de Ejecución** | 1. Acceder al módulo de grupos. 2. Seleccionar "Add Group". 3. Completar los campos obligatorios. 4. Agregar uno o más ítems al grupo. 5. Presionar "Save". |
+| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión |
+| **Prioridad** | Alta |
 
-| ID                      | CPF-MAN-02                                                                                                                                                  |
-| :---------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Funcionalidad**       | Creación de grupos                                                                                                                                          |
-| **Descripción**         | Permite crear grupos de usuarios que pueden utilizarse para limitar el acceso a determinadas categorías o eventos dentro del sistema.                       |
-| **Requisito Asociado**  | RF-MAN-02 (Creación de grupos)                                                                                                                              |
-| **Precondiciones**      | El usuario debe estar autenticado con permisos de administración.                                                                                           |
-| **Datos de Entrada**    | Nombre, descripción, e-mail y descripción del ítem.                                                                                                         |
-| **Pasos de Ejecución**  | 1. Acceder al módulo de grupos. 2. Seleccionar "Add Group". 3. Completar los campos obligatorios. 4. Agregar uno o más ítems al grupo. 5. Presionar "Save". |
-| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión.                                                                                  |
-| **Prioridad**           | Alta                                                                                                                                                        |
+**Análisis de Técnicas**
 
-## Análisis de Técnicas
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Name | Texto válido no vacío | Vacío, solo espacios |
+| Description | Texto descriptivo válido | Vacío |
+| E-Mail | Correo electrónico válido | Vacío, formato inválido |
+| Item Description | Texto descriptivo válido | Vacío |
 
-### Partición de Equivalencia
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Name | 1 carácter | 0 caracteres | 255 caracteres | 256 caracteres |
+| Description | 1 carácter | 0 caracteres | 1000 caracteres | 1001 caracteres |
+| E-Mail | Longitud mínima válida | Vacío | Longitud máxima soportada | Excede límite |
+| Item Description | 1 carácter | 0 caracteres | 1000 caracteres | 1001 caracteres |
 
-| Campo            | Clase Válida              | Clases No Válidas       |
-| :--------------- | :------------------------ | :---------------------- |
-| Name             | Texto válido no vacío     | Vacío, solo espacios    |
-| Description      | Texto descriptivo válido  | Vacío                   |
-| E-Mail           | Correo electrónico válido | Vacío, formato inválido |
-| Item Description | Texto descriptivo válido  | Vacío                   |
-
-### Valores Límite
-
-| Campo            | Límite Inf. Válido     | Límite Inf. No Válido | Límite Sup. Válido        | Límite Sup. No Válido |
-| :--------------- | :--------------------- | :-------------------- | :------------------------ | :-------------------- |
-| Name             | 1 carácter             | 0 caracteres          | 255 caracteres            | 256 caracteres        |
-| Description      | 1 carácter             | 0 caracteres          | 1000 caracteres           | 1001 caracteres       |
-| E-Mail           | Longitud mínima válida | Vacío                 | Longitud máxima soportada | Excede límite         |
-| Item Description | 1 carácter             | 0 caracteres          | 1000 caracteres           | 1001 caracteres       |
-
-### Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Grupos
-
+**Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Grupos**
 | Condición                  | C1     | C2     | C3     | C4     | C5     |
 | :------------------------- | :----- | :----- | :----- | :----- | :----- |
 | Name informado             | SI     | NO     | SI     | SI     | SI     |
@@ -1156,72 +1144,66 @@ S0 (Procesando) --[error]--> S2 (Error)
 | E-Mail informado           | SI     | SI     | SI     | NO     | SI     |
 | Item Description informada | SI     | SI     | SI     | SI     | NO     |
 | **Crear Grupo**            | **SI** | **NO** | **NO** | **NO** | **NO** |
-
-### Tabla de Decisión: Acciones
-
+**Tabla de Decisión: Acciones**
 | Acción                      | C1 | C2 | C3 | C4 | C5 |
 | :-------------------------- | :- | :- | :- | :- | :- |
 | Permitir guardar grupo      | X  |    |    |    |    |
 | Mostrar error de validación |    | X  | X  | X  | X  |
 
-## Catálogo de Pruebas
 
-| #CP            | Datos de Entrada                                                           | Resultado Esperado                            | Obs |
-| :------------- | :------------------------------------------------------------------------- | :-------------------------------------------- | :-- |
-| CPF-MAN-02-001 | Name: ""                                                                   | Error: Nombre obligatorio                     | f-  |
-| CPF-MAN-02-002 | Name: " " (solo espacios)                                                  | Error: Nombre inválido                        | f-  |
-| CPF-MAN-02-003 | Name: "A"                                                                  | Grupo creado exitosamente                     | f+  |
-| CPF-MAN-02-004 | Name: (255 caracteres)                                                     | Grupo creado exitosamente                     | f+  |
-| CPF-MAN-02-005 | Name: (256 caracteres)                                                     | Error: Longitud excedida                      | f-  |
-| CPF-MAN-02-006 | Description: ""                                                            | Error: Descripción obligatoria                | f-  |
-| CPF-MAN-02-007 | Description: "Grupo de asistentes VIP"                                     | Validación correcta                           | f+  |
-| CPF-MAN-02-008 | E-Mail: ""                                                                 | Error: Correo obligatorio                     | f-  |
-| CPF-MAN-02-009 | E-Mail: "usuario.com"                                                      | Error: Formato de correo inválido             | f-  |
-| CPF-MAN-02-010 | E-Mail: "usuario@"                                                         | Error: Formato de correo inválido             | f-  |
-| CPF-MAN-02-011 | E-Mail: "[usuario@empresa.com](mailto:usuario@empresa.com)"                | Validación correcta                           | f+  |
-| CPF-MAN-02-012 | Item Description: ""                                                       | Error: Descripción del ítem obligatoria       | f-  |
-| CPF-MAN-02-013 | Item Description: "Acceso a categoría premium"                             | Validación correcta                           | f+  |
-| CPF-MAN-02-014 | Todos los campos obligatorios válidos                                      | Grupo creado exitosamente                     | f+  |
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-MAN-02-001 | Name: "" | Error: Nombre obligatorio | f- |
+| CPF-MAN-02-002 | Name: " " (solo espacios) | Error: Nombre inválido | f- |
+| CPF-MAN-02-003 | Name: "A" | Grupo creado exitosamente | f+ |
+| CPF-MAN-02-004 | Name: (255 caracteres) | Grupo creado exitosamente | f+ |
+| CPF-MAN-02-005 | Name: (256 caracteres) | Error: Longitud excedida | f- |
+| CPF-MAN-02-006 | Description: "" | Error: Descripción obligatoria | f- |
+| CPF-MAN-02-007 | Description: "Grupo de asistentes VIP" | Validación correcta | f+ |
+| CPF-MAN-02-008 | E-Mail: "" | Error: Correo obligatorio | f- |
+| CPF-MAN-02-009 | E-Mail: "usuario.com" | Error: Formato de correo inválido | f- |
+| CPF-MAN-02-010 | E-Mail: "usuario@" | Error: Formato de correo inválido | f- |
+| CPF-MAN-02-011 | E-Mail: "usuario@empresa.com" | Validación correcta | f+ |
+| CPF-MAN-02-012 | Item Description: "" | Error: Descripción del ítem obligatoria | f- |
+| CPF-MAN-02-013 | Item Description: "Acceso a categoría premium" | Validación correcta | f+ |
+| CPF-MAN-02-014 | Todos los campos obligatorios válidos | Grupo creado exitosamente | f+ |
 
-# Creación de Suscripciones
+### Creación de Suscripciones
+| ID | CPF-MAN-03 |
+| :--- | :--- |
+| **Funcionalidad** | Creación de suscripciones |
+| **Descripción** | Permite crear suscripciones que otorgan acceso a eventos según el tipo configurado: Multi-Access Pass, suscripción periódica o suscripción personalizada. |
+| **Requisito Asociado** | RF-MAN-03 (Creación de suscripciones) |
+| **Precondiciones** | El usuario debe estar autenticado con permisos de administración y debe existir una organización registrada. |
+| **Datos de Entrada** | Organización, título, descripción, URL de términos y condiciones, URL de política de privacidad, imagen y tipo de suscripción. |
+| **Pasos de Ejecución** | 1. Acceder al módulo de suscripciones. 2. Seleccionar "Create New Subscription". 3. Completar los campos obligatorios. 4. Cargar una imagen. 5. Seleccionar el tipo de suscripción. 6. Presionar "Save". |
+| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión |
+| **Prioridad** | Alta |
 
-| ID                      | CPF-MAN-03                                                                                                                                                                                               |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Funcionalidad**       | Creación de suscripciones                                                                                                                                                                                |
-| **Descripción**         | Permite crear suscripciones que otorgan acceso a eventos según el tipo configurado: Multi-Access Pass, suscripción periódica o suscripción personalizada.                                                |
-| **Requisito Asociado**  | RF-MAN-03 (Creación de suscripciones)                                                                                                                                                                    |
-| **Precondiciones**      | El usuario debe estar autenticado con permisos de administración y debe existir una organización registrada.                                                                                             |
-| **Datos de Entrada**    | Organización, título, descripción, URL de términos y condiciones, URL de política de privacidad, imagen y tipo de suscripción.                                                                           |
-| **Pasos de Ejecución**  | 1. Acceder al módulo de suscripciones. 2. Seleccionar "Create New Subscription". 3. Completar los campos obligatorios. 4. Cargar una imagen. 5. Seleccionar el tipo de suscripción. 6. Presionar "Save". |
-| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión.                                                                                                                               |
-| **Prioridad**           | Alta                                                                                                                                                                                                     |
+**Análisis de Técnicas**
 
-## Análisis de Técnicas
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Organization | Organización existente | Vacía |
+| Title | Texto válido no vacío | Vacío, solo espacios |
+| Description | Texto descriptivo válido | Vacío |
+| Terms and Conditions URL | URL válida | Vacía, formato inválido |
+| Privacy Policy URL | URL válida o vacío | Formato inválido |
+| Image | PNG, JPG, GIF o SVG ≤ 1 MB | Ausente, formato no permitido, tamaño > 1 MB |
+| Type | Multi-Access Pass, Monthly/Yearly/Daily Subscription, Custom | Vacío, valor inexistente |
 
-### Partición de Equivalencia
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Title | 1 carácter | 0 caracteres | 255 caracteres | 256 caracteres |
+| Description | 1 carácter | 0 caracteres | 5000 caracteres | 5001 caracteres |
+| Terms and Conditions URL | Longitud mínima válida | Vacío | Longitud máxima soportada | Excede límite |
+| Privacy Policy URL | Longitud mínima válida | Formato inválido | Longitud máxima soportada | Excede límite |
+| Image | 1 KB | 0 KB | 1 MB | Mayor a 1 MB |
 
-| Campo                    | Clase Válida                                                 | Clases No Válidas                            |
-| :----------------------- | :----------------------------------------------------------- | :------------------------------------------- |
-| Organization             | Organización existente                                       | Vacía                                        |
-| Title                    | Texto válido no vacío                                        | Vacío, solo espacios                         |
-| Description              | Texto descriptivo válido                                     | Vacío                                        |
-| Terms and Conditions URL | URL válida                                                   | Vacía, formato inválido                      |
-| Privacy Policy URL       | URL válida o vacío                                           | Formato inválido                             |
-| Image                    | PNG, JPG, GIF o SVG ≤ 1 MB                                   | Ausente, formato no permitido, tamaño > 1 MB |
-| Type                     | Multi-Access Pass, Monthly/Yearly/Daily Subscription, Custom | Vacío, valor inexistente                     |
-
-### Valores Límite
-
-| Campo                    | Límite Inf. Válido     | Límite Inf. No Válido | Límite Sup. Válido        | Límite Sup. No Válido |
-| :----------------------- | :--------------------- | :-------------------- | :------------------------ | :-------------------- |
-| Title                    | 1 carácter             | 0 caracteres          | 255 caracteres            | 256 caracteres        |
-| Description              | 1 carácter             | 0 caracteres          | 5000 caracteres           | 5001 caracteres       |
-| Terms and Conditions URL | Longitud mínima válida | Vacío                 | Longitud máxima soportada | Excede límite         |
-| Privacy Policy URL       | Longitud mínima válida | Formato inválido      | Longitud máxima soportada | Excede límite         |
-| Image                    | 1 KB                   | 0 KB                  | 1 MB                      | Mayor a 1 MB          |
-
-### Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Suscripciones
-
+**Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Suscripciones**
 | Condición                        | C1     | C2     | C3     | C4     | C5     | C6     | C7     |
 | :------------------------------- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
 | Organización informada           | SI     | NO     | SI     | SI     | SI     | SI     | SI     |
@@ -1231,80 +1213,74 @@ S0 (Procesando) --[error]--> S2 (Error)
 | Imagen cargada                   | SI     | SI     | SI     | SI     | SI     | NO     | SI     |
 | Tipo seleccionado                | SI     | SI     | SI     | SI     | SI     | SI     | NO     |
 | **Crear Suscripción**            | **SI** | **NO** | **NO** | **NO** | **NO** | **NO** | **NO** |
-
-### Tabla de Decisión: Acciones
-
+**Tabla de Decisión: Acciones**
 | Acción                       | C1 | C2 | C3 | C4 | C5 | C6 | C7 |
 | :--------------------------- | :- | :- | :- | :- | :- | :- | :- |
 | Permitir guardar suscripción | X  |    |    |    |    |    |    |
 | Mostrar error de validación  |    | X  | X  | X  | X  | X  | X  |
 
-## Catálogo de Pruebas
 
-| #CP            | Datos de Entrada                                                          | Resultado Esperado                     | Obs |
-| :------------- | :------------------------------------------------------------------------ | :------------------------------------- | :-- |
-| CPF-MAN-03-001 | Organization: vacío                                                       | Error: Organización obligatoria        | f-  |
-| CPF-MAN-03-002 | Title: ""                                                                 | Error: Título obligatorio              | f-  |
-| CPF-MAN-03-003 | Title: " " (solo espacios)                                                | Error: Título inválido                 | f-  |
-| CPF-MAN-03-004 | Title: "Titulo valido "                            | Suscripción creada exitosamente        | f+  |
-| CPF-MAN-03-005 | Title: (255 caracteres)                                                   | Suscripción creada exitosamente        | f+  |
-| CPF-MAN-03-006 | Title: (256 caracteres)                                                   | Error: Longitud excedida               | f-  |
-| CPF-MAN-03-007 | Description: ""                                                           | Error: Descripción obligatoria         | f-  |
-| CPF-MAN-03-008 | Description: "Acceso premium a eventos"                                   | Validación correcta                    | f+  |
-| CPF-MAN-03-009 | Terms and Conditions URL: ""                                              | Error: URL obligatoria                 | f-  |
-| CPF-MAN-03-010 | Terms and Conditions URL: "condiciones"                                   | Error: URL inválida                    | f-  |
-| CPF-MAN-03-011 | Terms and Conditions URL: "https://empresa.com/terms"                     | Validación correcta                    | f+  |
-| CPF-MAN-03-012 | Privacy Policy URL: "privacidad"                                          | Error: URL inválida                    | f-  |
-| CPF-MAN-03-013 | Privacy Policy URL: ""                                                    | Validación correcta (campo opcional)   | f+  |
-| CPF-MAN-03-014 | Privacy Policy URL: "https://empresa.com/privacy"                         | Validación correcta                    | f+  |
-| CPF-MAN-03-015 | Image: no cargada                                                         | Error: Image is missing                | f-  |
-| CPF-MAN-03-016 | Image: archivo PDF                                                        | Error: Formato no permitido            | f-  |
-| CPF-MAN-03-017 | Image: PNG de 900 KB                                                      | Imagen cargada correctamente           | f+  |
-| CPF-MAN-03-018 | Image: PNG de 1.2 MB                                                      | Error: Tamaño máximo excedido          | f-  |
-| CPF-MAN-03-019 | Type: vacío                                                               | Error: Tipo de suscripción obligatorio | f-  |
-| CPF-MAN-03-020 | Type: "Multi-Access Pass"                                                 | Validación correcta                    | f+  |
-| CPF-MAN-03-021 | Type: "Monthly Subscription"                                              | Validación correcta                    | f+  |
-| CPF-MAN-03-022 | Type: "Custom"                                                            | Validación correcta                    | f+  |
-| CPF-MAN-03-023 | Todos los campos obligatorios válidos, imagen cargada y tipo seleccionado | Suscripción creada exitosamente        | f+  |
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-MAN-03-001 | Organization: vacío | Error: Organización obligatoria | f- |
+| CPF-MAN-03-002 | Title: "" | Error: Título obligatorio | f- |
+| CPF-MAN-03-003 | Title: " " (solo espacios) | Error: Título inválido | f- |
+| CPF-MAN-03-004 | Title: "Titulo valido" | Suscripción creada exitosamente | f+ |
+| CPF-MAN-03-005 | Title: (255 caracteres) | Suscripción creada exitosamente | f+ |
+| CPF-MAN-03-006 | Title: (256 caracteres) | Error: Longitud excedida | f- |
+| CPF-MAN-03-007 | Description: "" | Error: Descripción obligatoria | f- |
+| CPF-MAN-03-008 | Description: "Acceso premium a eventos" | Validación correcta | f+ |
+| CPF-MAN-03-009 | Terms and Conditions URL: "" | Error: URL obligatoria | f- |
+| CPF-MAN-03-010 | Terms and Conditions URL: "condiciones" | Error: URL inválida | f- |
+| CPF-MAN-03-011 | Terms and Conditions URL: "https://empresa.com/terms" | Validación correcta | f+ |
+| CPF-MAN-03-012 | Privacy Policy URL: "privacidad" | Error: URL inválida | f- |
+| CPF-MAN-03-013 | Privacy Policy URL: "" | Validación correcta (campo opcional) | f+ |
+| CPF-MAN-03-014 | Privacy Policy URL: "https://empresa.com/privacy" | Validación correcta | f+ |
+| CPF-MAN-03-015 | Image: no cargada | Error: Image is missing | f- |
+| CPF-MAN-03-016 | Image: archivo PDF | Error: Formato no permitido | f- |
+| CPF-MAN-03-017 | Image: PNG de 900 KB | Imagen cargada correctamente | f+ |
+| CPF-MAN-03-018 | Image: PNG de 1.2 MB | Error: Tamaño máximo excedido | f- |
+| CPF-MAN-03-019 | Type: vacío | Error: Tipo de suscripción obligatorio | f- |
+| CPF-MAN-03-020 | Type: "Multi-Access Pass" | Validación correcta | f+ |
+| CPF-MAN-03-021 | Type: "Monthly Subscription" | Validación correcta | f+ |
+| CPF-MAN-03-022 | Type: "Custom" | Validación correcta | f+ |
+| CPF-MAN-03-023 | Todos los campos obligatorios válidos, imagen cargada y tipo seleccionado | Suscripción creada exitosamente | f+ |
 
-# Creación de Tickets
+### Creación de Tickets
+| ID | CPF-MAN-04 |
+| :--- | :--- |
+| **Funcionalidad** | Creación de tickets |
+| **Descripción** | Permite configurar los tickets de un evento, definiendo el modelo de precio, cantidad máxima disponible, precio, impuestos y métodos de pago aceptados. |
+| **Requisito Asociado** | RF-MAN-04 (Creación de tickets) |
+| **Precondiciones** | El usuario debe estar autenticado con permisos de administración y debe existir un evento previamente creado. |
+| **Datos de Entrada** | Modelo de precio del ticket, cantidad máxima de tickets, precio regular, moneda, porcentaje de impuestos y métodos de pago aceptados. |
+| **Pasos de Ejecución** | 1. Acceder a la configuración de tickets del evento. 2. Seleccionar el modelo de precio. 3. Completar los datos de capacidad y precio. 4. Configurar impuestos. 5. Seleccionar los métodos de pago aceptados. 6. Presionar "Save". |
+| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión |
+| **Prioridad** | Alta |
 
-| ID                      | CPF-MAN-04                                                                                                                                                                                                                         |
-| :---------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Funcionalidad**       | Creación de tickets                                                                                                                                                                                                                |
-| **Descripción**         | Permite configurar los tickets de un evento, definiendo el modelo de precio, cantidad máxima disponible, precio, impuestos y métodos de pago aceptados.                                                                            |
-| **Requisito Asociado**  | RF-MAN-04 (Creación de tickets)                                                                                                                                                                                                    |
-| **Precondiciones**      | El usuario debe estar autenticado con permisos de administración y debe existir un evento previamente creado.                                                                                                                      |
-| **Datos de Entrada**    | Modelo de precio del ticket, cantidad máxima de tickets, precio regular, moneda, porcentaje de impuestos y métodos de pago aceptados.                                                                                              |
-| **Pasos de Ejecución**  | 1. Acceder a la configuración de tickets del evento. 2. Seleccionar el modelo de precio. 3. Completar los datos de capacidad y precio. 4. Configurar impuestos. 5. Seleccionar los métodos de pago aceptados. 6. Presionar "Save". |
-| **Técnicas de Pruebas** | Partición por Equivalencia, Análisis de Valores Límite, Tabla de Decisión.                                                                                                                                                         |
-| **Prioridad**           | Alta                                                                                                                                                                                                                               |
+**Análisis de Técnicas**
 
-## Análisis de Técnicas
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Ticket Price Model | Entry fee requested, Free of charge | Vacío |
+| Max Tickets | Número entero positivo | Vacío, cero, negativo |
+| Regular Price | Número mayor o igual a 0 | Negativo, vacío |
+| Currency | Moneda válida del sistema | Vacía, inexistente |
+| Taxes (%) | Valor entre 0 y 100 | Negativo, mayor a 100 |
+| Accepted Payment Methods | Al menos un método seleccionado | Ningún método seleccionado |
+| Price Includes Taxes | Activado o desactivado | N/A |
 
-### Partición de Equivalencia
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Max Tickets | 1 | 0 | 999999 | 1000000 |
+| Regular Price | 0 | -0.01 | Valor máximo soportado | Excede límite |
+| Taxes (%) | 0 | -1 | 100 | 101 |
+| Payment Methods | 1 método | 0 métodos | Todos los métodos disponibles | N/A |
 
-| Campo                    | Clase Válida                        | Clases No Válidas          |
-| :----------------------- | :---------------------------------- | :------------------------- |
-| Ticket Price Model       | Entry fee requested, Free of charge | Vacío                      |
-| Max Tickets              | Número entero positivo              | Vacío, cero, negativo      |
-| Regular Price            | Número mayor o igual a 0            | Negativo, vacío            |
-| Currency                 | Moneda válida del sistema           | Vacía, inexistente         |
-| Taxes (%)                | Valor entre 0 y 100                 | Negativo, mayor a 100      |
-| Accepted Payment Methods | Al menos un método seleccionado     | Ningún método seleccionado |
-| Price Includes Taxes     | Activado o desactivado              | N/A                        |
-
-### Valores Límite
-
-| Campo           | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido            | Límite Sup. No Válido |
-| :-------------- | :----------------- | :-------------------- | :---------------------------- | :-------------------- |
-| Max Tickets     | 1                  | 0                     | 999999                        | 1000000               |
-| Regular Price   | 0.00               | -0.01                 | Valor máximo soportado        | Excede límite         |
-| Taxes (%)       | 0                  | -1                    | 100                           | 101                   |
-| Payment Methods | 1 método           | 0 métodos             | Todos los métodos disponibles | N/A                   |
-
-### Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Tickets
-
+**Tabla de Decisión: Validación de Campos Obligatorios para la Creación de Tickets**
 | Condición                     | C1     | C2     | C3     | C4     | C5     | C6     |
 | :---------------------------- | :----- | :----- | :----- | :----- | :----- | :----- |
 | Modelo de precio seleccionado | SI     | NO     | SI     | SI     | SI     | SI     |
@@ -1315,41 +1291,39 @@ S0 (Procesando) --[error]--> S2 (Error)
 | **Crear Ticket**              | **SI** | **NO** | **NO** | **NO** | **NO** | **NO** |
 
 (*) Para el modelo "Free of charge", el precio debe ser igual a 0.
-
-### Tabla de Decisión: Acciones
-
+**Tabla de Decisión: Acciones**
 | Acción                      | C1 | C2 | C3 | C4 | C5 | C6 |
 | :-------------------------- | :- | :- | :- | :- | :- | :- |
 | Permitir guardar ticket     | X  |    |    |    |    |    |
 | Mostrar error de validación |    | X  | X  | X  | X  | X  |
 
-## Catálogo de Pruebas
 
-| #CP            | Datos de Entrada                                                                                                      | Resultado Esperado                                 | Obs |
-| :------------- | :-------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- | :-- |
-| CPF-MAN-04-001 | Ticket Price Model: vacío                                                                                             | Error: Modelo de precio obligatorio                | f-  |
-| CPF-MAN-04-002 | Ticket Price Model: "Free of charge"                                                                                  | Validación correcta                                | f+  |
-| CPF-MAN-04-003 | Ticket Price Model: "Entry fee requested"                                                                             | Validación correcta                                | f+  |
-| CPF-MAN-04-004 | Max Tickets: vacío                                                                                                    | Error: Cantidad máxima obligatoria                 | f-  |
-| CPF-MAN-04-005 | Max Tickets: 0                                                                                                        | Error: Debe ser mayor a cero                       | f-  |
-| CPF-MAN-04-006 | Max Tickets: -10                                                                                                      | Error: Valor inválido                              | f-  |
-| CPF-MAN-04-007 | Max Tickets: 1                                                                                                        | Validación correcta                                | f+  |
-| CPF-MAN-04-008 | Max Tickets: 100                                                                                                      | Validación correcta                                | f+  |
-| CPF-MAN-04-009 | Regular Price: vacío con modelo "Entry fee requested"                                                                 | Error: Precio obligatorio                          | f-  |
-| CPF-MAN-04-010 | Regular Price: -1                                                                                                     | Error: Precio inválido                             | f-  |
-| CPF-MAN-04-011 | Regular Price: 0                                                                                                      | Validación correcta                                | f+  |
-| CPF-MAN-04-012 | Regular Price: 20                                                                                                     | Validación correcta                                | f+  |
-| CPF-MAN-04-013 | Currency: vacío                                                                                                       | Error: Moneda obligatoria                          | f-  |
-| CPF-MAN-04-014 | Currency: "EUR"                                                                                                       | Validación correcta                                | f+  |
-| CPF-MAN-04-015 | Currency: "XXX"                                                                                                       | Error: Moneda inválida                             | f-  |
-| CPF-MAN-04-016 | Taxes (%): -1                                                                                                         | Error: Impuesto inválido                           | f-  |
-| CPF-MAN-04-017 | Taxes (%): 0                                                                                                          | Validación correcta                                | f+  |
-| CPF-MAN-04-018 | Taxes (%): 18                                                                                                         | Validación correcta                                | f+  |
-| CPF-MAN-04-019 | Taxes (%): 100                                                                                                        | Validación correcta                                | f+  |
-| CPF-MAN-04-020 | Taxes (%): 101                                                                                                        | Valicación                     | f-  |
-| CPF-MAN-04-021 | Ningún método de pago seleccionado                                                                                    | Error: Debe seleccionar al menos un método de pago | f-  |
-| CPF-MAN-04-022 | Método de pago: PayPal                                                                                                | Validación correcta                                | f+  |
-| CPF-MAN-04-023 | Métodos de pago: PayPal y Saferpay By SIX Payments                                                                    | Validación correcta                                | f+  |
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-MAN-04-001 | Ticket Price Model: vacío | Error: Modelo de precio obligatorio | f- |
+| CPF-MAN-04-002 | Ticket Price Model: "Free of charge" | Validación correcta | f+ |
+| CPF-MAN-04-003 | Ticket Price Model: "Entry fee requested" | Validación correcta | f+ |
+| CPF-MAN-04-004 | Max Tickets: vacío | Error: Cantidad máxima obligatoria | f- |
+| CPF-MAN-04-005 | Max Tickets: 0 | Error: Debe ser mayor a cero | f- |
+| CPF-MAN-04-006 | Max Tickets: -10 | Error: Valor inválido | f- |
+| CPF-MAN-04-007 | Max Tickets: 1 | Validación correcta | f+ |
+| CPF-MAN-04-008 | Max Tickets: 100 | Validación correcta | f+ |
+| CPF-MAN-04-009 | Regular Price: vacío con modelo "Entry fee requested" | Error: Precio obligatorio | f- |
+| CPF-MAN-04-010 | Regular Price: -1 | Error: Precio inválido | f- |
+| CPF-MAN-04-011 | Regular Price: 0 | Validación correcta | f+ |
+| CPF-MAN-04-012 | Regular Price: 20 | Validación correcta | f+ |
+| CPF-MAN-04-013 | Currency: vacío | Error: Moneda obligatoria | f- |
+| CPF-MAN-04-014 | Currency: "EUR" | Validación correcta | f+ |
+| CPF-MAN-04-015 | Currency: "XXX" | Error: Moneda inválida | f- |
+| CPF-MAN-04-016 | Taxes (%): -1 | Error: Impuesto inválido | f- |
+| CPF-MAN-04-017 | Taxes (%): 0 | Validación correcta | f+ |
+| CPF-MAN-04-018 | Taxes (%): 18 | Validación correcta | f+ |
+| CPF-MAN-04-019 | Taxes (%): 100 | Validación correcta | f+ |
+| CPF-MAN-04-020 | Taxes (%): 101 | Error: Impuesto inválido | f- |
+| CPF-MAN-04-021 | Ningún método de pago seleccionado | Error: Debe seleccionar al menos un método de pago | f- |
+| CPF-MAN-04-022 | Método de pago: PayPal | Validación correcta | f+ |
+| CPF-MAN-04-023 | Métodos de pago: PayPal y Saferpay By SIX Payments | Validación correcta | f+ |
 
 ## 8. Matriz de Trazabilidad
 
@@ -1365,9 +1339,6 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-006:** Procesamiento de pago OFFLINE | CPF-0006 (001-005) |
 | **RF-007:** Procesamiento de pago ON_SITE | CPF-0007 (001-005) |
 | **RF-008:** Gestión de Pagos Pendientes | CPF-0008 (001-004) |
-| **RF-009:** Auto-Check-in | CPF-0016 (001-005) |
-| **RF-010:** Control de Acceso | CPF-0017 (001-004) |
-| **RF-011:** Generación de Acreditaciones | CPF-0018 (001-005) |
 | **RF-012:** Creación de Usuarios | CPF-0015 (001-027) |
 | **RF-CONF-01:** Configuración de la Organización | CPF-0009 (001-006) |
 | **RF-CONF-02:** Configuración del Evento | CPF-0010 (001-007) |
@@ -1375,6 +1346,9 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-CONF-04:** Gestión de Capacidad | CPF-0012 (001-005) |
 | **RF-CONF-05:** Configuración de Impuestos | CPF-0013 (001-003) |
 | **RF-CONF-06:** Configuración de Localización y Moneda | CPF-0014 (001-006) |
+| **RF-009:** Auto-Check-in | CPF-0016 (001-005) |
+| **RF-010:** Control de Acceso | CPF-0017 (001-004) |
+| **RF-011:** Generación de Acreditaciones | CPF-0018 (001-005) |
 | **RF-RES-01:** Selección de Entradas (Tickets) | CPF-RES-01 (001-005) |
 | **RF-RES-02:** Formulario de Asistente - Validación de Campos | CPF-RES-02 (001-010) |
 | **RF-RES-03:** Tiempo de Expiración de Reserva (Countdown) | CPF-RES-03 (001-006) |
@@ -1384,7 +1358,7 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-RES-07:** Campos Personalizados | CPF-RES-07 (001) |
 | **RF-MAN-01:** Creación de eventos | CPF-MAN-01 (001-026) |
 | **RF-MAN-02:** Creación de grupos | CPF-MAN-02 (001-014) |
-| **RF-MAN-03:** Creación de subscripciones | CPF-MAN-03 (001-023) |
+| **RF-MAN-03:** Creación de suscripciones | CPF-MAN-03 (001-023) |
 | **RF-MAN-04:** Creación de tickets | CPF-MAN-04 (001-023) |
 
 ## 9. Métodos y Herramientas

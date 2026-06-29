@@ -18,7 +18,7 @@ permissions:
     contents: write
 
 jobs:
-    test:
+    format:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -31,7 +31,9 @@ jobs:
               with:
                   java-version: 17
                   distribution: temurin
-                  cache: gradle
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
 
             - uses: pnpm/action-setup@v3
               with:
@@ -46,23 +48,66 @@ jobs:
 
             - name: Format Code (Java & Frontend)
               run: |
-                pnpm --prefix frontend install
-                pnpm --prefix frontend run format
-                ./gradlew spotlessApply
+                  pnpm --prefix frontend install
+                  pnpm --prefix frontend run format
+                  ./gradlew spotlessApply
 
             - name: Commit and Push formatting changes
               run: |
-                git config --global user.name "github-actions[bot]"
-                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-                if ! git diff --exit-code; then
-                  git commit -am "chore: auto-format code"
-                  git push
-                  echo "Formatting changes pushed. Exiting current run."
-                  exit 1
-                fi
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  if ! git diff --exit-code; then
+                    git commit -am "chore: auto-format code"
+                    git push
+                    echo "Formatting changes pushed. Exiting current run."
+                    exit 1
+                  fi
+
+    backend-tests:
+        needs: format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: temurin
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
 
             - name: Run Backend Tests
               run: ./gradlew test jacocoTestReport -Dpgsql.version=16
+
+            - name: Upload Jacoco Coverage
+              uses: actions/upload-artifact@v4
+              with:
+                  name: backend-coverage
+                  path: build/reports/jacoco/test/html/
+                  retention-days: 1
+
+    checkstyle:
+        needs: format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: temurin
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
 
             - name: Run Checkstyle
               run: ./gradlew checkstyleMain checkstyleTest
@@ -74,23 +119,290 @@ jobs:
                   name: checkstyle-report
                   path: build/reports/checkstyle/
                   if-no-files-found: ignore
+                  retention-days: 1
+
+    frontend-tests:
+        needs: format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 11.1.2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "pnpm"
+                  cache-dependency-path: frontend/pnpm-lock.yaml
 
             - name: Run Frontend Tests
               run: |
                   pnpm --prefix frontend install
                   pnpm --prefix frontend run coverage
 
-            - name: Prepare Coverage for Deployment
+            - name: Upload Frontend Admin Coverage
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-admin-coverage
+                  path: frontend/admin/coverage/
+                  retention-days: 1
+
+            - name: Upload Frontend Public Coverage
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-public-coverage
+                  path: frontend/projects/public/coverage/
+                  retention-days: 1
+
+    e2e-tests:
+        needs: format
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_DB: alfio
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: password
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: temurin
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 11.1.2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "pnpm"
+                  cache-dependency-path: src/test/e2e/pnpm-lock.yaml
+
+            - name: Cache Playwright browsers
+              uses: actions/cache@v4
+              id: playwright-cache
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: ${{ runner.os }}-playwright-${{ hashFiles('src/test/e2e/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-playwright-
+
+            - name: Install E2E dependencies
+              run: pnpm --prefix src/test/e2e install
+
+            - name: Install Playwright Browsers
+              run: pnpm --prefix src/test/e2e exec playwright install --with-deps
+
+            - name: Run Playwright E2E Tests
+              env:
+                  E2E_SERVER_APIKEY: e2e-test-api-key
+                  ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY: e2e-test-api-key
+                  ALFIO_OVERRIDE_SYSTEM_SETTINGS_BASE_URL: http://localhost:8080
+                  E2E_ADMIN_USERNAME: admin
+                  E2E_ADMIN_PASSWORD: abcd
+                  E2E_OWNER_USERNAME: owner-e2e
+                  E2E_OWNER_PASSWORD: abcd
+                  E2E_SUPERVISOR_USERNAME: supervisor-e2e
+                  E2E_SUPERVISOR_PASSWORD: abcd
+              run: pnpm --prefix src/test/e2e test
+
+            - name: Upload Playwright Report Artifact
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: playwright-report
+                  path: src/test/e2e/playwright-report/
+                  if-no-files-found: ignore
+                  retention-days: 1
+
+    performance-test:
+        needs: format
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_DB: alfio
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: password
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: temurin
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 11.1.2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "pnpm"
+                  cache-dependency-path: frontend/pnpm-lock.yaml
+
+            - name: Build Frontend and Backend
+              run: |
+                  pnpm --prefix frontend install
+                  ./gradlew bootJar
+
+            - name: Start alf.io App
+              run: |
+                  ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY="my-performance-test-api-key" \
+                  ALFIO_OVERRIDE_SYSTEM_SETTINGS_BASE_URL="http://localhost:8080" \
+                  java -Ddatasource.url="jdbc:postgresql://localhost:5432/alfio" \
+                       -Ddatasource.username="postgres" \
+                       -Ddatasource.password="password" \
+                       -Dspring.profiles.active=dev \
+                       -jar build/libs/alfio-*-boot.jar > app.log 2>&1 &
+                  echo "APP_PID=$!" >> $GITHUB_ENV
+
+            - name: Wait for alf.io to start
+              run: |
+                  MAX_ATTEMPTS=60
+                  ATTEMPT=0
+                  while true; do
+                      if curl --output /dev/null --silent --fail "http://localhost:8080/healthz"; then
+                          echo "alf.io is healthy!"
+                          break
+                      fi
+                      ATTEMPT=$((ATTEMPT + 1))
+                      if [ ${ATTEMPT} -eq ${MAX_ATTEMPTS} ]; then
+                          echo "Error: Timeout waiting for alf.io to start."
+                          cat app.log
+                          exit 1
+                      fi
+                      sleep 1
+                  done
+
+            - name: Setup k6
+              uses: grafana/setup-k6-action@v1
+
+            - name: Run k6 performance test
+              uses: grafana/run-k6-action@v1
+              with:
+                  path: src/test/k6/performance-test.js
+                  flags: --env BASE_URL=http://localhost:8080 --env API_KEY=my-performance-test-api-key --env PROFILE=mid-large-event
+
+            - name: Stop alf.io App
+              if: always()
+              run: |
+                  if [ -n "${{ env.APP_PID }}" ]; then
+                      kill "${{ env.APP_PID }}" || true
+                  fi
+
+            - name: Upload k6 Report
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: k6-report
+                  path: k6-report.html
+                  retention-days: 1
+
+    deploy-coverage:
+        needs:
+            [
+                backend-tests,
+                checkstyle,
+                frontend-tests,
+                e2e-tests,
+                performance-test,
+            ]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Prepare Coverage directory structure
               run: |
                   mkdir -p public-coverage
                   mkdir -p public-coverage/backend
                   mkdir -p public-coverage/frontend-admin
                   mkdir -p public-coverage/frontend-public
                   mkdir -p public-coverage/checkstyle
-                  cp -r build/reports/jacoco/test/html/* public-coverage/backend/
-                  cp -r frontend/admin/coverage/* public-coverage/frontend-admin/
-                  cp -r frontend/projects/public/coverage/* public-coverage/frontend-public/
-                  cp -r build/reports/checkstyle/* public-coverage/checkstyle/ || true
+                  mkdir -p public-coverage/playwright
+                  mkdir -p public-coverage/k6
+
+            - name: Download Backend Coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: backend-coverage
+                  path: public-coverage/backend
+
+            - name: Download Frontend Admin Coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-admin-coverage
+                  path: public-coverage/frontend-admin
+
+            - name: Download Frontend Public Coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-public-coverage
+                  path: public-coverage/frontend-public
+
+            - name: Download Checkstyle Report
+              uses: actions/download-artifact@v4
+              with:
+                  name: checkstyle-report
+                  path: public-coverage/checkstyle
+              continue-on-error: true
+
+            - name: Download Playwright Report
+              uses: actions/download-artifact@v4
+              with:
+                  name: playwright-report
+                  path: public-coverage/playwright
+              continue-on-error: true
+
+            - name: Download k6 Report
+              uses: actions/download-artifact@v4
+              with:
+                  name: k6-report
+                  path: public-coverage/k6
+              continue-on-error: true
+
+            - name: Generate Coverage Landing Page
+              run: |
                   cat <<EOF > public-coverage/index.html
                   <!DOCTYPE html>
                   <html>
@@ -101,6 +413,8 @@ jobs:
                   <li><a href="backend/index.html">Backend (Jacoco)</a></li>
                   <li><a href="frontend-admin/index.html">Frontend Admin</a></li>
                   <li><a href="frontend-public/index.html">Frontend Public</a></li>
+                  <li><a href="playwright/index.html">Playwright E2E Tests</a></li>
+                  <li><a href="k6/k6-report.html">k6 Performance Test Report</a></li>
                   <li>Checkstyle Reports:
                     <ul>
                       <li><a href="checkstyle/main.html">Main Sources</a></li>

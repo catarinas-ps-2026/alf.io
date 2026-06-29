@@ -5,17 +5,33 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
     testDir: "./tests",
-    fullyParallel: true,
+    timeout: 60000,
+    fullyParallel: false,
     forbidOnly: false,
     retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : undefined,
+    workers: 1,
     reporter: [["html", { open: "never" }], ["list"]],
     use: {
         baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8080",
+        actionTimeout: 15000,
+        navigationTimeout: 30000,
 
-        trace: "on-first-retry",
+        trace: "retain-on-failure",
         screenshot: "only-on-failure",
-        video: "retain-on-failure",
+        video: (process.env.PLAYWRIGHT_VIDEO as "on" | "off" | "retain-on-failure" | "on-first-retry") || "retain-on-failure",
+        locale: "en-US",
+    },
+
+    webServer: {
+        command: "cd ../../.. && ./gradlew -Pprofile=dev :bootRun",
+        url: "http://localhost:8080/admin",
+        reuseExistingServer: !process.env.CI,
+        timeout: 180000,
+        env: {
+            ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY:
+                process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY ||
+                "e2e-test-api-key",
+        },
     },
 
     projects: [
