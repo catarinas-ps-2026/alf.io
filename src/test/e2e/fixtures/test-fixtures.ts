@@ -1,12 +1,112 @@
-import { test as baseTest } from "@playwright/test";
+import { test as baseTest, type Browser, type Page } from "@playwright/test";
 import {
     createTestEvent,
     deleteTestEvent,
     type TestEvent,
 } from "../helpers/api-helper";
+import {
+    completeBasicConfigIfVisible,
+    createUserViaPage,
+    ensureOrganizationExists,
+    findUserByUsername,
+    loginViaUI,
+    resetUserPassword,
+} from "../helpers/auth-helper";
+
+export interface Credentials {
+    username: string;
+    password: string;
+}
 
 export interface CustomFixtures {
     event: TestEvent | null;
+    adminCredentials: Credentials;
+    ownerCredentials: Credentials;
+    supervisorCredentials: Credentials;
+    authenticatedPage: Page | null;
+}
+
+const ADMIN_USERNAME = process.env.E2E_ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "abcd";
+const OWNER_USERNAME = process.env.E2E_OWNER_USERNAME || "owner-e2e";
+const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || "abcd";
+const SUPERVISOR_USERNAME =
+    process.env.E2E_SUPERVISOR_USERNAME || "supervisor-e2e";
+const SUPERVISOR_PASSWORD = process.env.E2E_SUPERVISOR_PASSWORD || "abcd";
+
+let cachedOwnerPassword = OWNER_PASSWORD;
+let cachedSupervisorPassword = SUPERVISOR_PASSWORD;
+let seedingPromise: Promise<{
+    ownerPass: string;
+    supervisorPass: string;
+}> | null = null;
+
+async function performSeeding(browser: Browser, baseURL: string) {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    try {
+        await loginViaUI(page, ADMIN_USERNAME, ADMIN_PASSWORD);
+        await page.waitForURL(/.*(admin).*/);
+        await completeBasicConfigIfVisible(page, baseURL);
+        const orgId = await ensureOrganizationExists(page);
+
+        let ownerPass = OWNER_PASSWORD;
+        try {
+            const created = await createUserViaPage(page, {
+                organizationId: orgId,
+                username: OWNER_USERNAME,
+                firstName: "Test",
+                lastName: "Owner",
+                emailAddress: `${OWNER_USERNAME}@e2e.test`,
+                role: "OWNER",
+            });
+            ownerPass = created.password;
+        } catch {
+            const existing = await findUserByUsername(page, OWNER_USERNAME);
+            if (existing) {
+                ownerPass = await resetUserPassword(page, existing.id);
+            }
+        }
+
+        let supervisorPass = SUPERVISOR_PASSWORD;
+        try {
+            const created = await createUserViaPage(page, {
+                organizationId: orgId,
+                username: SUPERVISOR_USERNAME,
+                firstName: "Test",
+                lastName: "Supervisor",
+                emailAddress: `${SUPERVISOR_USERNAME}@e2e.test`,
+                role: "SUPERVISOR",
+            });
+            supervisorPass = created.password;
+        } catch {
+            const existing = await findUserByUsername(
+                page,
+                SUPERVISOR_USERNAME,
+            );
+            if (existing) {
+                supervisorPass = await resetUserPassword(page, existing.id);
+            }
+        }
+
+        cachedOwnerPassword = ownerPass;
+        cachedSupervisorPassword = supervisorPass;
+    } finally {
+        await page.close();
+        await context.close();
+    }
+}
+
+function seedUsersIfNeeded(browser: Browser, baseURL: string) {
+    if (!seedingPromise) {
+        seedingPromise = performSeeding(browser, baseURL).then(() => {
+            return {
+                ownerPass: cachedOwnerPassword,
+                supervisorPass: cachedSupervisorPassword,
+            };
+        });
+    }
+    return seedingPromise;
 }
 
 export const test = baseTest.extend<CustomFixtures>({
@@ -24,8 +124,6 @@ export const test = baseTest.extend<CustomFixtures>({
         let clientApiKey = apiKey;
 
         try {
-            // Check if the API key is the system API key by trying to list organizations.
-            // If it succeeds, we are authenticated as SYSTEM_API_CLIENT and need to bootstrap.
             const orgListResp = await requestContext.get(
                 `${baseURL}/api/v1/admin/system/organization/list`,
                 {
@@ -64,7 +162,6 @@ export const test = baseTest.extend<CustomFixtures>({
                     orgId = newOrg.id;
                 }
 
-                // Generate a client API key for the organization
                 const keyResp = await requestContext.put(
                     `${baseURL}/api/v1/admin/system/organization/${orgId}/api-key`,
                     {
@@ -112,6 +209,56 @@ export const test = baseTest.extend<CustomFixtures>({
             console.error(`Failed to delete test event ${event.slug}:`, e);
         }
         await requestContext.dispose();
+    },
+
+    // biome-ignore lint/correctness/noEmptyPattern: Playwright fixture API requires this signature
+    adminCredentials: async ({}, use) => {
+        await use({
+            username: ADMIN_USERNAME,
+            password: ADMIN_PASSWORD,
+        });
+    },
+
+    ownerCredentials: async ({ browser }, use) => {
+        const baseURL =
+            baseTest.info().project.use.baseURL || "http://localhost:8080";
+        const { ownerPass } = await seedUsersIfNeeded(browser, baseURL);
+        await use({
+            username: OWNER_USERNAME,
+            password: ownerPass,
+        });
+    },
+
+    supervisorCredentials: async ({ browser }, use) => {
+        const baseURL =
+            baseTest.info().project.use.baseURL || "http://localhost:8080";
+        const { supervisorPass } = await seedUsersIfNeeded(browser, baseURL);
+        await use({
+            username: SUPERVISOR_USERNAME,
+            password: supervisorPass,
+        });
+    },
+
+    authenticatedPage: async ({ page, adminCredentials, browser }, use) => {
+        const baseURL =
+            baseTest.info().project.use.baseURL || "http://localhost:8080";
+
+        try {
+            await seedUsersIfNeeded(browser, baseURL);
+
+            await loginViaUI(
+                page,
+                adminCredentials.username,
+                adminCredentials.password,
+            );
+
+            await page.waitForURL(/.*(admin).*/);
+
+            await completeBasicConfigIfVisible(page, baseURL);
+
+            await use(page);
+        } finally {
+        }
     },
 });
 
