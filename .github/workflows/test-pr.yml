@@ -188,7 +188,7 @@ jobs:
               env:
                   E2E_SERVER_APIKEY: e2e-test-api-key
                   ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY: e2e-test-api-key
-              run: pnpm --prefix src/test/e2e exec playwright test
+              run: pnpm --prefix src/test/e2e test
 
             - name: Upload Playwright Report Artifact
               uses: actions/upload-artifact@v4

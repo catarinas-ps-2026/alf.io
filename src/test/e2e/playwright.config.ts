@@ -24,7 +24,9 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         timeout: 180000,
         env: {
-            ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY: process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY || "e2e-test-api-key",
+            ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY:
+                process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY ||
+                "e2e-test-api-key",
         },
     },
 
