@@ -285,6 +285,7 @@ jobs:
             - name: Start alf.io App
               run: |
                   ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY="my-performance-test-api-key" \
+                  ALFIO_OVERRIDE_SYSTEM_SETTINGS_BASE_URL="http://localhost:8080" \
                   java -Ddatasource.url="jdbc:postgresql://localhost:5432/alfio" \
                        -Ddatasource.username="postgres" \
                        -Ddatasource.password="password" \

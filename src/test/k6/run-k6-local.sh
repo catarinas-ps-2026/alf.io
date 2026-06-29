@@ -18,6 +18,7 @@ PORT=8080
 
 echo "Starting alf.io application in background..."
 ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY="${API_KEY}" \
+ALFIO_OVERRIDE_SYSTEM_SETTINGS_BASE_URL="http://localhost:${PORT}" \
 java -Ddatasource.url="jdbc:postgresql://localhost:5432/alfio" \
      -Ddatasource.username="postgres" \
      -Ddatasource.password="password" \
