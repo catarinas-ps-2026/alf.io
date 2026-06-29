@@ -46,6 +46,7 @@
               plantuml
               uv
               playwright-driver.browsers
+              k6
             ];
 
           buildInputs = [ pkgs.bashInteractive ];
