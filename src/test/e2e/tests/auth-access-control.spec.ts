@@ -5,10 +5,8 @@ test.describe("Authorization: Access Control", () => {
     test("should redirect unauthenticated users trying to access administrative UI to login page", async ({
         page,
     }) => {
-        // Go to admin dashboard unauthenticated
         await page.goto("/admin/");
 
-        // Should be redirected to the login/authentication page
         await expect(page).toHaveURL(/.*(login|authentication).*/);
     });
 
@@ -22,9 +20,7 @@ test.describe("Authorization: Access Control", () => {
         const requestContext = await playwright.request.newContext();
 
         const response = await requestContext.get(url);
-        // Spring Security returns 401 (Unauthorized) or redirects to login/session-expired (giving 3xx or 403)
-        // for Ajax/XMLHttpRequest requests. If not marked with X-Requested-With, it might redirect.
-        // Let's assert it is not successful (status >= 400 or redirected to authentication/session-expired)
+
         expect(
             response.status() >= 400 ||
                 response.url().includes("authentication") ||
@@ -48,41 +44,34 @@ test.describe("Authorization: Access Control", () => {
 
         const base = baseURL || "http://localhost:8080";
 
-        // Log in as supervisor
         await page.goto("/authentication");
         await page.locator("#username").fill(supervisorCredentials.username);
         await page.locator("#password").fill(supervisorCredentials.password);
         await page.locator('button[type="submit"]').click();
         await page.waitForURL(/.*(admin).*/);
 
-        // Access a system API endpoint directly via page.request
-        // (inherits session cookies from the page)
-        // Must include X-Requested-With header to get 403 instead of redirect to /session-expired (404)
         const supervisorConfigResponse = await page.request.get(
             "/admin/api/system/api-key",
             { headers: { "X-Requested-With": "XMLHttpRequest" } },
         );
-        // Should be forbidden (403) for supervisor
+
         expect(supervisorConfigResponse.status()).toBe(403);
 
-        // Logout
         await page.goto("/admin/");
         await page.locator('.navbar-right a:has-text("Log out")').click();
         await page.waitForURL(/.*(login|authentication).*/);
 
-        // Log in as admin
         await page.locator("#username").fill(adminCredentials.username);
         await page.locator("#password").fill(adminCredentials.password);
         await page.locator('button[type="submit"]').click();
         await page.waitForURL(/.*(admin).*/);
         await completeBasicConfigIfVisible(page, base);
 
-        // Access system API endpoint again as admin
         const adminConfigResponse = await page.request.get(
             "/admin/api/system/api-key",
             { headers: { "X-Requested-With": "XMLHttpRequest" } },
         );
-        // Admin should succeed (200)
+
         expect(adminConfigResponse.status()).toBe(200);
     });
 });

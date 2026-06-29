@@ -1,5 +1,5 @@
-import { execFileSync, execSync } from "node:child_process";
 import { expect, test } from "../fixtures/test-fixtures";
+import { getCurrentUserId, resetUserPassword } from "../helpers/auth-helper";
 import { AdminPage } from "../pages/admin.page";
 
 test.describe("Authentication: Password Management", () => {
@@ -16,26 +16,19 @@ test.describe("Authentication: Password Management", () => {
         const adminPage = new AdminPage(authenticatedPage);
         await adminPage.goto();
 
-        // Navigate to edit profile using the page link to avoid full reload issues
         await adminPage.gotoEditAccount();
 
-        // Wait for AngularJS routing to render the form fields
         const oldPasswordInput = authenticatedPage.locator("#oldPassword");
         await oldPasswordInput.waitFor({ state: "visible", timeout: 15000 });
 
-        // Fill form fields to change password
         const oldPassword = adminCredentials.password;
-        const newPassword = "NewP@ssw0rd123!"; // meets complexity rules
+        const newPassword = "NewP@ssw0rd123!";
 
-        // Read current password hash from DB before changing
-        let originalHash = "";
+        let adminUserId: number | null = null;
         try {
-            const result = execSync(
-                "docker exec alfio-w2-db-1 psql -U postgres -d alfio -t -A -c \"SELECT password FROM ba_user WHERE username = 'admin';\"",
-            );
-            originalHash = result.toString().trim();
+            adminUserId = await getCurrentUserId(authenticatedPage);
         } catch (err) {
-            console.error("Failed to read admin password hash:", err);
+            console.error("Failed to get admin user ID:", err);
         }
 
         try {
@@ -43,29 +36,22 @@ test.describe("Authentication: Password Management", () => {
             await authenticatedPage.fill("#newPassword", newPassword);
             await authenticatedPage.fill("#newPasswordConfirm", newPassword);
 
-            // Click the update button within the Change Password form (second form in page)
             const updateBtn = authenticatedPage
                 .locator('form[name="$ctrl.changePassword"]')
                 .locator('button:has-text("Update")');
             await updateBtn.click();
 
-            // Wait for success alert to show up
             const successAlert = authenticatedPage.locator(
                 "div[uib-alert].alert-success",
             );
             await expect(successAlert).toBeVisible({ timeout: 15000 });
         } finally {
-            // Restore password in database directly to guarantee environment sanity
-            if (originalHash) {
+            if (adminUserId !== null) {
                 try {
-                    execFileSync("docker", [
-                        "exec", "alfio-w2-db-1", "psql",
-                        "-U", "postgres", "-d", "alfio", "-c",
-                        `UPDATE ba_user SET password = '${originalHash}' WHERE username = 'admin';`,
-                    ]);
+                    await resetUserPassword(authenticatedPage, adminUserId);
                 } catch (err) {
                     console.error(
-                        "Failed to restore admin password via DB query:",
+                        "Failed to restore admin password via API:",
                         err,
                     );
                 }
@@ -99,7 +85,6 @@ test.describe("Authentication: Password Management", () => {
             .locator('button:has-text("Update")');
         await updateBtn.click();
 
-        // Verify the error message for mismatching passwords is visible
         const mismatchError = authenticatedPage.locator(
             'div[data-ng-message="alfio.new-password-does-not-match"]',
         );
@@ -124,7 +109,7 @@ test.describe("Authentication: Password Management", () => {
         await oldPasswordInput.waitFor({ state: "visible", timeout: 15000 });
 
         await oldPasswordInput.fill(adminCredentials.password);
-        await authenticatedPage.fill("#newPassword", "123"); // too short and simple
+        await authenticatedPage.fill("#newPassword", "123");
         await authenticatedPage.fill("#newPasswordConfirm", "123");
 
         const updateBtn = authenticatedPage
@@ -132,7 +117,6 @@ test.describe("Authentication: Password Management", () => {
             .locator('button:has-text("Update")');
         await updateBtn.click();
 
-        // Verify complexity error message is shown
         const complexityError = authenticatedPage.locator(
             'div[data-ng-message="alfio.new-password-invalid"]',
         );

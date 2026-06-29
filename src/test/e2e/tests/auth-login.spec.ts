@@ -23,7 +23,7 @@ test.describe("Authentication: Login Flows", () => {
         );
 
         const adminPage = new AdminPage(page);
-        // Complete config if visible to avoid blocking subsequent steps
+
         await completeBasicConfigIfVisible(
             page,
             baseURL || "http://localhost:8080",
@@ -90,7 +90,6 @@ test.describe("Authentication: Login Flows", () => {
         await loginPage.goto();
         await loginPage.login("non_existent_user", "invalid_password");
 
-        // Verify we stay on the login page with failed query parameter
         await expect(page).toHaveURL(/.*(failed|login|authentication).*/);
         expect(await loginPage.isErrorVisible()).toBe(true);
 
@@ -109,7 +108,6 @@ test.describe("Authentication: Login Flows", () => {
 
         await loginPage.clickCancel();
 
-        // Fields should be cleared
         expect(await loginPage.getUsernameValue()).toBe("");
         expect(await loginPage.getPasswordValue()).toBe("");
     });
@@ -125,7 +123,6 @@ test.describe("Authentication: Login Flows", () => {
         );
         if (!adminCredentials) return;
 
-        // Perform login
         const loginPage = new LoginPage(page);
         await loginPage.goto();
         await loginPage.login(
@@ -140,10 +137,8 @@ test.describe("Authentication: Login Flows", () => {
         );
         expect(await adminPage.isLoggedIn()).toBe(true);
 
-        // Try navigating back to login page
         await loginPage.goto();
 
-        // Should automatically redirect back to admin page
         await expect(page).toHaveURL(/.*(admin).*/);
     });
 });

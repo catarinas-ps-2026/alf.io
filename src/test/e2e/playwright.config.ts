@@ -5,11 +5,11 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
     testDir: "./tests",
-    timeout: 60000, // 60s timeout for resource-constrained test runs
-    fullyParallel: false, // Run tests sequentially to avoid DB conflicts
+    timeout: 60000,
+    fullyParallel: false,
     forbidOnly: false,
     retries: process.env.CI ? 2 : 0,
-    workers: 1, // Single worker to ensure sequential DB test execution
+    workers: 1,
     reporter: [["html", { open: "never" }], ["list"]],
     use: {
         baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8080",

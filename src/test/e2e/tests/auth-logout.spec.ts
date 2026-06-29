@@ -17,17 +17,13 @@ test.describe("Authentication: Logout Flows", () => {
         const adminPage = new AdminPage(authenticatedPage);
         expect(await adminPage.isLoggedIn()).toBe(true);
 
-        // Perform logout
         await adminPage.logout();
 
-        // Verify redirection to login/authentication page
         await expect(authenticatedPage).toHaveURL(/.*(login|authentication).*/);
 
-        // Try navigating back to admin page, should be redirected to login page
         await authenticatedPage.goto("/admin/");
         await expect(authenticatedPage).toHaveURL(/.*(login|authentication).*/);
 
-        // Verify via API that session is truly unauthenticated
         const requestContext = await playwright.request.newContext();
         const status = await getAuthStatus(
             requestContext,

@@ -8,7 +8,7 @@ export class AdminPage {
 
     constructor(page: Page) {
         this.page = page;
-        // In admin-index.ms: "Logged in as" text in .navbar-right
+
         this.loggedInIndicator = page.locator(
             '.navbar-right:has-text("Logged in as")',
         );
@@ -36,7 +36,7 @@ export class AdminPage {
 
     async logout(): Promise<void> {
         await this.logoutLink.click();
-        // Wait for redirection to login page or URL change
+
         await this.page.waitForURL(/.*(login|authentication).*/);
     }
 

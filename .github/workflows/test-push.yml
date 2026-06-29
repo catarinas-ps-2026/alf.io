@@ -167,6 +167,12 @@ jobs:
                   E2E_SERVER_APIKEY: e2e-test-api-key
                   ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY: e2e-test-api-key
                   ALFIO_OVERRIDE_SYSTEM_SETTINGS_BASE_URL: http://localhost:8080
+                  E2E_ADMIN_USERNAME: admin
+                  E2E_ADMIN_PASSWORD: abcd
+                  E2E_OWNER_USERNAME: owner-e2e
+                  E2E_OWNER_PASSWORD: abcd
+                  E2E_SUPERVISOR_USERNAME: supervisor-e2e
+                  E2E_SUPERVISOR_PASSWORD: abcd
               run: pnpm --prefix src/test/e2e test
 
             - name: Upload Playwright Report Artifact
