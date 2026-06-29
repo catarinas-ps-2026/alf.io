@@ -1536,4 +1536,61 @@ class TicketReservationManagerIntegrationTest extends BaseIntegrationTest {
         ticketReservationManager.cleanupExpiredOfflineReservations(now);
         assertTrue(idsOfflinePayment.get().isEmpty());
     }
+
+    @Test
+    void cleanupExpiredReservations() {
+        List<TicketCategoryModification> categories = Collections.singletonList(new TicketCategoryModification(
+                null,
+                "default",
+                TicketCategory.TicketAccessType.INHERIT,
+                AVAILABLE_SEATS,
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(1), LocalTime.now(ClockProvider.clock())),
+                DESCRIPTION,
+                BigDecimal.TEN,
+                false,
+                "",
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                null,
+                null,
+                AlfioMetadata.empty()));
+        Event event = initEvent(categories, organizationRepository, userManager, eventManager, eventRepository)
+                .getKey();
+
+        TicketReservationModification tr = new TicketReservationModification();
+        tr.setQuantity(AVAILABLE_SEATS);
+        tr.setTicketCategoryId(ticketCategoryRepository
+                .findAllTicketCategories(event.getId())
+                .get(0)
+                .getId());
+        var tickets = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
+
+        String reservationId = ticketReservationManager.createTicketReservation(
+                event,
+                List.of(tickets),
+                List.of(),
+                DateUtils.addDays(new Date(), -2),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
+
+        // Verify reservation exists
+        var ids = ticketReservationRepository.findByIds(List.of(reservationId));
+        assertEquals(1, ids.size());
+
+        // Cleanup should delete the expired reservation
+        ticketReservationManager.cleanupExpiredReservations(new Date());
+
+        var deletedIds = ticketReservationRepository.findByIds(List.of(reservationId));
+        assertTrue(deletedIds.isEmpty());
+    }
 }
