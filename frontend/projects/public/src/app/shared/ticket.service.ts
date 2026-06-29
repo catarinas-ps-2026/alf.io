@@ -1,10 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import type {
-    UntypedFormArray,
-    UntypedFormBuilder,
-    UntypedFormGroup,
-} from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
+import type { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { from, type Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';

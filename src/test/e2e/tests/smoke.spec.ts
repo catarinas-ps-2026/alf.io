@@ -26,7 +26,7 @@ test.describe("Alf.io E2E Smoke Tests", () => {
 
         await page.goto(event.url);
 
-        const markdownContent = page.locator("div.markdown-content");
+        const markdownContent = page.locator("div.markdown-content").first();
         await expect(markdownContent).toBeVisible({ timeout: 10000 });
     });
 });

@@ -2,11 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { NavigationStart, Router } from '@angular/router';
-import type {
-    LangChangeEvent,
-    TranslateLoader,
-    TranslateService,
-} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
+import type { LangChangeEvent, TranslateLoader } from '@ngx-translate/core';
 import { type Observable, of, zip } from 'rxjs';
 import { catchError, map, mergeMap, shareReplay, tap } from 'rxjs/operators';
 import type { Language } from '../model/event';
