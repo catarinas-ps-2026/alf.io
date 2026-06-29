@@ -257,7 +257,7 @@ jobs:
               uses: grafana/run-k6-action@v1
               with:
                   path: src/test/k6/performance-test.js
-                  flags: --env BASE_URL=http://localhost:8080 --env API_KEY=my-performance-test-api-key
+                  flags: --env BASE_URL=http://localhost:8080 --env API_KEY=my-performance-test-api-key --env PROFILE=mid-large-event
 
             - name: Stop alf.io App
               if: always()
