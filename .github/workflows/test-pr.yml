@@ -101,6 +101,7 @@ jobs:
                   <li><a href="backend/index.html">Backend (Jacoco)</a></li>
                   <li><a href="frontend-admin/index.html">Frontend Admin</a></li>
                   <li><a href="frontend-public/index.html">Frontend Public</a></li>
+                  <li><a href="playwright/index.html">Playwright E2E Tests</a></li>
                   <li>Checkstyle Reports:
                     <ul>
                       <li><a href="checkstyle/main.html">Main Sources</a></li>
@@ -134,3 +135,74 @@ jobs:
                         repo: repo,
                         body: `Se completó la generación del reporte de cobertura.\n\nEspera 1-2 minutos y revisa los [Reportes de Cobertura](${link})`
                       })
+
+    e2e-test:
+        needs: test
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_DB: alfio
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: password
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: temurin
+                  cache: gradle
+
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: 11.1.2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "pnpm"
+                  cache-dependency-path: src/test/e2e/pnpm-lock.yaml
+
+            - name: Install E2E dependencies
+              run: pnpm --prefix src/test/e2e install
+
+            - name: Install Playwright Browsers
+              run: pnpm --prefix src/test/e2e exec playwright install --with-deps
+
+            - name: Run Playwright E2E Tests
+              env:
+                  E2E_SERVER_APIKEY: e2e-test-api-key
+                  ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY: e2e-test-api-key
+              run: pnpm --prefix src/test/e2e exec playwright test
+
+            - name: Upload Playwright Report Artifact
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: playwright-report
+                  path: src/test/e2e/playwright-report/
+                  if-no-files-found: ignore
+
+            - name: Deploy Playwright Report to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v4
+              if: always()
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: src/test/e2e/playwright-report/
+                  destination_dir: pr-${{ github.event.number }}/playwright
+                  keep_files: true

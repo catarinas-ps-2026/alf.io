@@ -5,6 +5,12 @@ test.describe("Alf.io E2E Smoke Tests", () => {
         await page.goto("/");
 
         await expect(page).toHaveURL(/.*(login|event|admin|public)?/);
+
+        // Capture a screenshot of the landing page and attach it to the report
+        await test.info().attach("landing-page", {
+            body: await page.screenshot(),
+            contentType: "image/png",
+        });
     });
 
     test("should load a dynamically created event page", async ({
