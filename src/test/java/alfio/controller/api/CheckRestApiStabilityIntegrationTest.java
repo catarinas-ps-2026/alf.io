@@ -34,6 +34,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openapitools.openapidiff.core.OpenApiCompare;
+import org.openapitools.openapidiff.core.output.HtmlRender;
 import org.openapitools.openapidiff.core.output.MarkdownRender;
 import org.springdoc.core.configuration.SpringDocConfiguration;
 import org.springdoc.core.properties.SpringDocConfigProperties;
@@ -122,6 +123,22 @@ class CheckRestApiStabilityIntegrationTest {
             writer.write(formattedDescriptor);
         }
 
+        var redocHtml = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "  <title>API Contract Portal</title>\n" +
+                "  <meta charset=\"utf-8\"/>\n" +
+                "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
+                "  <link href=\"https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700\" rel=\"stylesheet\">\n" +
+                "  <style>body { margin: 0; padding: 0; }</style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "  <redoc spec-url='openapi.json'></redoc>\n" +
+                "  <script src=\"https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js\"> </script>\n" +
+                "</body>\n" +
+                "</html>";
+        Files.writeString(apiDocsDir.resolve("index.html"), redocHtml, StandardCharsets.UTF_8);
+
         var referenceDescriptor = IOUtils.toString(
             new FileReader(DESCRIPTOR_JSON_PATH)
         );
@@ -133,6 +150,22 @@ class CheckRestApiStabilityIntegrationTest {
             referenceDescriptor,
             currentDescriptor
         );
+
+        var diffOut = new ByteArrayOutputStream();
+        new HtmlRender().render(compareResult, new OutputStreamWriter(diffOut));
+        var htmlContent = diffOut.toString(StandardCharsets.UTF_8);
+        if (htmlContent.isEmpty() || !compareResult.isDifferent()) {
+            htmlContent = "<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    "<head><title>API Contract Diff</title></head>\n" +
+                    "<body>\n" +
+                    "  <h1>API Contract Diff Report</h1>\n" +
+                    "  <p style=\"color: green; font-weight: bold;\">No backward-incompatible changes detected! API contract is stable.</p>\n" +
+                    "</body>\n" +
+                    "</html>";
+        }
+        Files.writeString(apiDocsDir.resolve("openapi-diff.html"), htmlContent, StandardCharsets.UTF_8);
+
         if (compareResult.isDifferent()) {
             var out = new ByteArrayOutputStream();
             new MarkdownRender().render(
