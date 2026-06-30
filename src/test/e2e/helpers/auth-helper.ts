@@ -11,6 +11,11 @@ export interface UserStatus {
     prodMode: boolean;
 }
 
+export interface Credentials {
+    username: string;
+    password: string;
+}
+
 export interface CreatedUser {
     id: number;
     username: string;
@@ -27,11 +32,55 @@ export async function loginViaUI(
     await loginPage.login(username, password);
 }
 
+export async function loginAs(
+    page: Page,
+    credentials: Credentials,
+    baseURL: string,
+    options?: { dismissConfig?: boolean },
+): Promise<void> {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(credentials.username, credentials.password);
+    await page.waitForURL(/.*(admin).*/);
+    const status = await getCurrentUser(page);
+    if (!status?.authenticated || status.username !== credentials.username) {
+        throw new Error(
+            `loginAs("${credentials.username}") did not produce an authenticated session for that user. ` +
+                `authentication-status returned: ${JSON.stringify(status)}`,
+        );
+    }
+
+    if (options?.dismissConfig !== false) {
+        await completeBasicConfigIfVisible(page, baseURL);
+    }
+}
+
 export async function logoutViaUI(page: Page): Promise<void> {
     const adminPage = new AdminPage(page);
     await adminPage.goto();
     if (await adminPage.isLoggedIn()) {
         await adminPage.logout();
+    }
+}
+
+export async function isSessionActive(page: Page): Promise<boolean> {
+    try {
+        const statusResponse = await page.request.get("/authentication-status");
+        if (!statusResponse.ok()) return false;
+        const status = await statusResponse.json();
+        return status.authenticated === true;
+    } catch {
+        return false;
+    }
+}
+
+export async function getCurrentUser(page: Page): Promise<UserStatus | null> {
+    try {
+        const statusResponse = await page.request.get("/authentication-status");
+        if (!statusResponse.ok()) return null;
+        return await statusResponse.json();
+    } catch {
+        return null;
     }
 }
 
@@ -64,7 +113,7 @@ export async function completeBasicConfigIfVisible(
         'h1:has-text("Basic Configuration")',
     );
     try {
-        await basicConfigHeader.waitFor({ state: "visible", timeout: 2000 });
+        await basicConfigHeader.waitFor({ state: "visible", timeout: 800 });
         const baseUrlInput = page.getByRole("textbox", {
             name: "Base application url",
         });
@@ -166,6 +215,37 @@ export async function createUserViaPage(
         },
         { url: baseURL, userData: user },
     );
+}
+
+/**
+ * Creates a user, or - if the username is already taken (e.g. left over
+ * from a previous test run) - resets its password instead. Either way,
+ * returns a password that is known to work right now.
+ */
+export async function createOrResetUser(
+    page: Page,
+    user: {
+        organizationId: number;
+        username: string;
+        firstName: string;
+        lastName: string;
+        emailAddress: string;
+        role: string;
+        type?: string;
+    },
+): Promise<string> {
+    try {
+        const created = await createUserViaPage(page, user);
+        return created.password;
+    } catch {
+        const existing = await findUserByUsername(page, user.username);
+        if (existing) {
+            return resetUserPassword(page, existing.id);
+        }
+        throw new Error(
+            `Could not create user "${user.username}" and no existing user with that name was found either.`,
+        );
+    }
 }
 
 export async function deleteUserViaPage(

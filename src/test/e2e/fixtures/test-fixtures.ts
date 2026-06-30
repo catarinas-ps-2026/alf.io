@@ -5,18 +5,17 @@ import {
     type TestEvent,
 } from "../helpers/api-helper";
 import {
+    type Credentials,
     completeBasicConfigIfVisible,
     createUserViaPage,
     ensureOrganizationExists,
     findUserByUsername,
+    loginAs,
     loginViaUI,
     resetUserPassword,
 } from "../helpers/auth-helper";
 
-export interface Credentials {
-    username: string;
-    password: string;
-}
+export type { Credentials };
 
 export interface CustomFixtures {
     event: TestEvent | null;
@@ -24,10 +23,13 @@ export interface CustomFixtures {
     ownerCredentials: Credentials;
     supervisorCredentials: Credentials;
     authenticatedPage: Page | null;
+    adminPage: Page | null;
+    ownerPage: Page | null;
+    supervisorPage: Page | null;
 }
 
 const ADMIN_USERNAME = process.env.E2E_ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "abcd";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "Admin-1234";
 const OWNER_USERNAME = process.env.E2E_OWNER_USERNAME || "owner-e2e";
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || "abcd";
 const SUPERVISOR_USERNAME =
@@ -246,16 +248,44 @@ export const test = baseTest.extend<CustomFixtures>({
         try {
             await seedUsersIfNeeded(browser, baseURL);
 
-            await loginViaUI(
-                page,
-                adminCredentials.username,
-                adminCredentials.password,
-            );
+            await loginAs(page, adminCredentials, baseURL);
 
-            await page.waitForURL(/.*(admin).*/);
+            await use(page);
+        } finally {
+        }
+    },
 
-            await completeBasicConfigIfVisible(page, baseURL);
+    adminPage: async ({ page, adminCredentials, browser }, use) => {
+        const baseURL =
+            baseTest.info().project.use.baseURL || "http://localhost:8080";
 
+        try {
+            await seedUsersIfNeeded(browser, baseURL);
+            await loginAs(page, adminCredentials, baseURL);
+            await use(page);
+        } finally {
+        }
+    },
+
+    ownerPage: async ({ page, ownerCredentials, browser }, use) => {
+        const baseURL =
+            baseTest.info().project.use.baseURL || "http://localhost:8080";
+
+        try {
+            await seedUsersIfNeeded(browser, baseURL);
+            await loginAs(page, ownerCredentials, baseURL);
+            await use(page);
+        } finally {
+        }
+    },
+
+    supervisorPage: async ({ page, supervisorCredentials, browser }, use) => {
+        const baseURL =
+            baseTest.info().project.use.baseURL || "http://localhost:8080";
+
+        try {
+            await seedUsersIfNeeded(browser, baseURL);
+            await loginAs(page, supervisorCredentials, baseURL);
             await use(page);
         } finally {
         }

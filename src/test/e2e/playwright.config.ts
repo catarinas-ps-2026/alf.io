@@ -1,10 +1,12 @@
+import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-    testDir: "./tests",
+    testDir: "./specs",
+    globalSetup: "./global-setup.ts",
     timeout: 60000,
     fullyParallel: false,
     forbidOnly: false,
@@ -18,7 +20,13 @@ export default defineConfig({
 
         trace: "retain-on-failure",
         screenshot: "only-on-failure",
-        video: (process.env.PLAYWRIGHT_VIDEO as "on" | "off" | "retain-on-failure" | "on-first-retry") || "retain-on-failure",
+        // video:
+        //     (process.env.PLAYWRIGHT_VIDEO as
+        //         | "on"
+        //         | "off"
+        //         | "retain-on-failure"
+        //         | "on-first-retry") || "retain-on-failure",
+        video: "on",
         locale: "en-US",
     },
 
@@ -36,12 +44,23 @@ export default defineConfig({
 
     projects: [
         {
-            name: "chromium",
-            use: { ...devices["Desktop Chrome"] },
+            name: "setup",
+            testMatch: /auth\.setup\.ts/,
         },
         {
-            name: "firefox",
-            use: { ...devices["Desktop Firefox"] },
+            name: "chromium",
+            use: { ...devices["Desktop Chrome"] },
+            dependencies: ["setup"],
+            testMatch: [
+                "**/auth/*.spec.ts",
+                "**/navigation/*.spec.ts",
+                "**/permissions/*.spec.ts",
+            ],
         },
+        // {
+        //     name: "firefox",
+        //     use: { ...devices["Desktop Firefox"] },
+        //     dependencies: ["setup"],
+        // },
     ],
 });
