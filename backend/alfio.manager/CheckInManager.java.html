@@ -202,12 +202,12 @@ public class CheckInManager {
 <span class="fc" id="L202">                .flatMap(e -&gt; confirmOnSitePayment(ticketIdentifier).map((String s) -&gt; Pair.of(s, e)))</span>
 <span class="fc" id="L203">                .map(p -&gt; checkIn(p.getRight().getId(), ticketIdentifier, ticketCode, auditUser))</span>
 <span class="fc" id="L204">                .orElseGet(() -&gt;</span>
-<span class="nc" id="L205">                        new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.TICKET_NOT_FOUND, &quot;&quot;)));</span>
+<span class="fc" id="L205">                        new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.TICKET_NOT_FOUND, &quot;&quot;)));</span>
     }
 
     public Optional&lt;String&gt; confirmOnSitePayment(String ticketIdentifier) {
 <span class="fc" id="L209">        Optional&lt;String&gt; uuid = findAndLockTicket(ticketIdentifier)</span>
-<span class="pc bpc" id="L210" title="1 of 2 branches missed.">                .filter(t -&gt; t.getStatus() == TicketStatus.TO_BE_PAID)</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">                .filter(t -&gt; t.getStatus() == TicketStatus.TO_BE_PAID)</span>
 <span class="fc" id="L211">                .map(Ticket::getUuid);</span>
 
 <span class="fc" id="L213">        uuid.ifPresent(this::acquire);</span>
@@ -225,7 +225,7 @@ public class CheckInManager {
 <span class="fc" id="L225">                .findOptionalByShortName(eventShortName)</span>
 <span class="fc" id="L226">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
 <span class="fc" id="L227">                .map(e -&gt; {</span>
-<span class="pc bpc" id="L228" title="1 of 2 branches missed.">                    if (automaticallyConfirmOnSitePayment</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">                    if (automaticallyConfirmOnSitePayment</span>
                             &amp;&amp; CheckInStatus.MUST_PAY
 <span class="fc" id="L230">                                    == evaluateTicketStatus(eventShortName, ticketIdentifier, ticketCode)</span>
 <span class="fc" id="L231">                                            .getResult()</span>

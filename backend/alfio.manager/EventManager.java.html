@@ -261,7 +261,7 @@ public class EventManager {
 <span class="pc bpc" id="L261" title="1 of 2 branches missed.">        if (environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
 <span class="nc" id="L262">            throw new IllegalStateException(&quot;demo mode&quot;);</span>
         }
-<span class="pc bpc" id="L264" title="1 of 2 branches missed.">        Event.Status status = activate ? Event.Status.PUBLIC : Event.Status.DRAFT;</span>
+<span class="fc bfc" id="L264" title="All 2 branches covered.">        Event.Status status = activate ? Event.Status.PUBLIC : Event.Status.DRAFT;</span>
 <span class="fc" id="L265">        eventRepository.updateEventStatus(id, status);</span>
 <span class="fc" id="L266">        extensionManager.handleEventStatusChange(event, status);</span>
 <span class="fc" id="L267">    }</span>

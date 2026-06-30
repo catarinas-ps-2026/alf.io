@@ -1463,12 +1463,12 @@ public class AdminReservationManager {
 <span class="fc" id="L1463">                .map(res -&gt; {</span>
 <span class="fc" id="L1464">                    var reservation = res.getLeft();</span>
 <span class="fc" id="L1465">                    var purchaseContext = res.getRight();</span>
-<span class="pc bpc" id="L1466" title="1 of 2 branches missed.">                    if (reservation.getHasInvoiceNumber()) {</span>
-<span class="nc" id="L1467">                        ticketReservationManager.issueCreditNoteForRefund(</span>
+<span class="fc bfc" id="L1466" title="All 2 branches covered.">                    if (reservation.getHasInvoiceNumber()) {</span>
+<span class="fc" id="L1467">                        ticketReservationManager.issueCreditNoteForRefund(</span>
                                 purchaseContext, reservation, refundAmount, username);
                     }
 <span class="pc bpc" id="L1470" title="1 of 2 branches missed.">                    return reservation.getPaymentMethod() != null</span>
-<span class="pc bpc" id="L1471" title="1 of 2 branches missed.">                            &amp;&amp; reservation.getPaymentMethod().isSupportRefund()</span>
+<span class="fc bfc" id="L1471" title="All 2 branches covered.">                            &amp;&amp; reservation.getPaymentMethod().isSupportRefund()</span>
 <span class="pc bpc" id="L1472" title="1 of 2 branches missed.">                            &amp;&amp; paymentManager.refund(</span>
                                     reservation,
                                     purchaseContext,

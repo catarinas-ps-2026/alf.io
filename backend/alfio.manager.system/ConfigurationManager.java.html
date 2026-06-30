@@ -333,10 +333,10 @@ public class ConfigurationManager {
             }
 <span class="fc" id="L334">        } else {</span>
 <span class="fc" id="L335">            Optional&lt;String&gt; valueOpt = Optional.ofNullable(value);</span>
-<span class="pc bpc" id="L336" title="1 of 4 branches missed.">            if (conf.isEmpty() || conf.get().getConfigurationPathLevel() == EXTERNAL) {</span>
+<span class="fc bfc" id="L336" title="All 4 branches covered.">            if (conf.isEmpty() || conf.get().getConfigurationPathLevel() == EXTERNAL) {</span>
 <span class="fc" id="L337">                valueOpt.ifPresent(v -&gt; configurationRepository.insert(key.getValue(), v, key.getDescription()));</span>
             } else {
-<span class="nc" id="L339">                configurationRepository.update(key.getValue(), value);</span>
+<span class="fc" id="L339">                configurationRepository.update(key.getValue(), value);</span>
             }
         }
 <span class="fc" id="L342">    }</span>
