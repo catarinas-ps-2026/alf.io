@@ -20,6 +20,8 @@ permissions:
 jobs:
     format:
         runs-on: ubuntu-latest
+        outputs:
+            changed: ${{ steps.check_changes.outputs.changed }}
         steps:
             - uses: actions/checkout@v4
               with:
@@ -53,6 +55,7 @@ jobs:
                   ./gradlew spotlessApply
 
             - name: Commit and Push formatting changes
+              id: check_changes
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -60,11 +63,14 @@ jobs:
                     git commit -am "chore: auto-format code"
                     git push
                     echo "Formatting changes pushed. Exiting current run."
-                    exit 1
+                    echo "changed=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "changed=false" >> $GITHUB_OUTPUT
                   fi
 
     backend-tests:
         needs: format
+        if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -109,6 +115,7 @@ jobs:
 
     checkstyle:
         needs: format
+        if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -139,6 +146,7 @@ jobs:
 
     frontend-tests:
         needs: format
+        if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -178,6 +186,7 @@ jobs:
 
     e2e-tests:
         needs: format
+        if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
         services:
             postgres:
@@ -258,6 +267,7 @@ jobs:
 
     performance-test:
         needs: format
+        if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
         services:
             postgres:
@@ -360,12 +370,14 @@ jobs:
     deploy-coverage:
         needs:
             [
+                format,
                 backend-tests,
                 checkstyle,
                 frontend-tests,
                 e2e-tests,
                 performance-test,
             ]
+        if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Prepare Coverage directory structure
