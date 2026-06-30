@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PromoCodeRequestManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">PromoCodeRequestManager.java</span></div><h1>PromoCodeRequestManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.controller.form.ReservationForm;
+import alfio.manager.support.response.ValidatedResponse;
+import alfio.model.Event;
+import alfio.model.PromoCodeDiscount;
+import alfio.model.PromoCodeUsageResult;
+import alfio.model.SpecialPrice;
+import alfio.model.modification.TicketReservationModification;
+import alfio.model.result.ValidationResult;
+import alfio.repository.EventRepository;
+import alfio.repository.PromoCodeDiscountRepository;
+import alfio.repository.SpecialPriceRepository;
+import alfio.repository.TicketCategoryRepository;
+import alfio.util.ClockProvider;
+import alfio.util.ErrorsCode;
+import alfio.util.RequestUtils;
+import alfio.util.ReservationUtil;
+import java.security.Principal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.context.request.ServletWebRequest;
+
+@Component
+@AllArgsConstructor
+public class PromoCodeRequestManager {
+
+    private final SpecialPriceRepository specialPriceRepository;
+    private final PromoCodeDiscountRepository promoCodeRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final EventManager eventManager;
+    private final EventRepository eventRepository;
+    private final TicketReservationManager ticketReservationManager;
+    private final ClockProvider clockProvider;
+    private final AdditionalServiceManager additionalServiceManager;
+
+    enum PromoCodeType {
+        SPECIAL_PRICE,
+        PROMO_CODE_DISCOUNT,
+        TICKET_CATEGORY_CODE,
+        NOT_FOUND
+    }
+
+    public Optional&lt;String&gt; createReservationFromPromoCode(
+            String eventName,
+            String code,
+            BiConsumer&lt;String, String&gt; queryStringHandler,
+            Function&lt;Pair&lt;Optional&lt;String&gt;, BindingResult&gt;, Optional&lt;String&gt;&gt; handleErrors,
+            ServletWebRequest request,
+            Principal principal) {
+
+<span class="fc" id="L81">        String trimmedCode = StringUtils.trimToNull(code);</span>
+
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (trimmedCode == null) {</span>
+<span class="nc" id="L84">            return Optional.empty();</span>
+        }
+
+<span class="fc" id="L87">        return eventRepository.findOptionalByShortName(eventName).flatMap(e -&gt; {</span>
+<span class="fc" id="L88">            var checkedCode = checkCode(e, trimmedCode);</span>
+
+<span class="fc" id="L90">            var codeType = checkPromoCodeType(e.getId(), trimmedCode);</span>
+
+<span class="fc" id="L92">            var maybePromoCodeDiscount = checkedCode.getValue().getRight();</span>
+
+<span class="pc bpc" id="L94" title="1 of 4 branches missed.">            if (checkedCode.isSuccess() &amp;&amp; codeType == PromoCodeType.PROMO_CODE_DISCOUNT) {</span>
+<span class="fc" id="L95">                queryStringHandler.accept(&quot;code&quot;, trimmedCode);</span>
+<span class="fc" id="L96">                return Optional.empty();</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            } else if (codeType == PromoCodeType.TICKET_CATEGORY_CODE) {</span>
+<span class="fc" id="L98">                var category = ticketCategoryRepository</span>
+<span class="fc" id="L99">                        .findCodeInEvent(e.getId(), trimmedCode)</span>
+<span class="fc" id="L100">                        .orElseThrow();</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">                if (!category.isAccessRestricted()) {</span>
+<span class="nc" id="L102">                    var res = makeSimpleReservation(</span>
+<span class="nc" id="L103">                            e, category.getId(), trimmedCode, request, maybePromoCodeDiscount, principal);</span>
+<span class="nc" id="L104">                    return handleErrors.apply(res);</span>
+                } else {
+<span class="fc" id="L106">                    var specialPrice =</span>
+<span class="fc" id="L107">                            specialPriceRepository.findActiveNotAssignedByCategoryId(category.getId(), 1).stream()</span>
+<span class="fc" id="L108">                                    .findFirst();</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">                    if (specialPrice.isEmpty()) {</span>
+<span class="nc" id="L110">                        queryStringHandler.accept(&quot;errors&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND);</span>
+<span class="nc" id="L111">                        return Optional.empty();</span>
+                    }
+<span class="fc" id="L113">                    var res = makeSimpleReservation(</span>
+                            e,
+<span class="fc" id="L115">                            category.getId(),</span>
+<span class="fc" id="L116">                            specialPrice.get().getCode(),</span>
+                            request,
+                            maybePromoCodeDiscount,
+                            principal);
+<span class="fc" id="L120">                    return handleErrors.apply(res);</span>
+                }
+<span class="pc bpc" id="L122" title="3 of 4 branches missed.">            } else if (checkedCode.isSuccess() &amp;&amp; codeType == PromoCodeType.SPECIAL_PRICE) {</span>
+<span class="nc" id="L123">                int ticketCategoryId = specialPriceRepository</span>
+<span class="nc" id="L124">                        .getByCode(trimmedCode)</span>
+<span class="nc" id="L125">                        .orElseThrow()</span>
+<span class="nc" id="L126">                        .getTicketCategoryId();</span>
+<span class="nc" id="L127">                var res = makeSimpleReservation(</span>
+                        e, ticketCategoryId, trimmedCode, request, maybePromoCodeDiscount, principal);
+<span class="nc" id="L129">                return handleErrors.apply(res);</span>
+            } else {
+<span class="fc" id="L131">                queryStringHandler.accept(&quot;errors&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND);</span>
+<span class="fc" id="L132">                return Optional.empty();</span>
+            }
+        });
+    }
+
+    public ValidatedResponse&lt;Triple&lt;Optional&lt;SpecialPrice&gt;, Event, Optional&lt;PromoCodeDiscount&gt;&gt;&gt; checkCode(
+            String eventName, String promoCode) {
+<span class="fc" id="L139">        var eventOptional = eventRepository.findOptionalByShortName(eventName);</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">        if (eventOptional.isEmpty()) {</span>
+<span class="nc" id="L141">            return new ValidatedResponse&lt;&gt;(</span>
+<span class="nc" id="L142">                    ValidationResult.failed(new ValidationResult.ErrorDescriptor(&quot;eventName&quot;, &quot;Event not found.&quot;)),</span>
+                    null);
+        }
+<span class="fc" id="L145">        var event = eventOptional.get();</span>
+<span class="fc" id="L146">        var response = checkCode(event, promoCode);</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">        if (response.isSuccess()) {</span>
+<span class="fc" id="L148">            var value = response.getValue();</span>
+<span class="fc" id="L149">            return new ValidatedResponse&lt;&gt;(</span>
+<span class="fc" id="L150">                    ValidationResult.success(), Triple.of(value.getLeft(), event, value.getRight()));</span>
+        } else {
+<span class="fc" id="L152">            return new ValidatedResponse&lt;&gt;(</span>
+<span class="fc" id="L153">                    ValidationResult.failed(new ValidationResult.ErrorDescriptor(</span>
+                            &quot;promoCode&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)),
+                    null);
+        }
+    }
+
+    public ValidatedResponse&lt;Pair&lt;Optional&lt;SpecialPrice&gt;, Optional&lt;PromoCodeDiscount&gt;&gt;&gt; checkCode(
+            Event event, String promoCode) {
+<span class="fc" id="L161">        ZoneId eventZoneId = event.getZoneId();</span>
+<span class="fc" id="L162">        ZonedDateTime now = ZonedDateTime.now(clockProvider.withZone(eventZoneId));</span>
+<span class="fc" id="L163">        Optional&lt;String&gt; maybeSpecialCode = Optional.ofNullable(StringUtils.trimToNull(promoCode));</span>
+<span class="fc" id="L164">        Optional&lt;SpecialPrice&gt; specialCode = maybeSpecialCode.flatMap(specialPriceRepository::getByCode);</span>
+<span class="fc" id="L165">        Optional&lt;PromoCodeDiscount&gt; promotionCodeDiscount = maybeSpecialCode.flatMap(trimmedCode -&gt;</span>
+<span class="fc" id="L166">                promoCodeRepository.findPublicPromoCodeInEventOrOrganization(event.getId(), trimmedCode));</span>
+
+<span class="fc" id="L168">        var result = Pair.of(specialCode, promotionCodeDiscount);</span>
+
+<span class="fc" id="L170">        var errorResponse = new ValidatedResponse&lt;&gt;(</span>
+<span class="fc" id="L171">                ValidationResult.failed(new ValidationResult.ErrorDescriptor(</span>
+                        &quot;promoCode&quot;, ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND)),
+                result);
+
+        //
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if (specialCode.isPresent()) {</span>
+<span class="nc" id="L177">            if (eventManager</span>
+<span class="nc" id="L178">                    .getOptionalByIdAndActive(specialCode.get().getTicketCategoryId(), event.getId())</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                    .isEmpty()) {</span>
+<span class="nc" id="L180">                return errorResponse;</span>
+            }
+
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (specialCode.get().getStatus() != SpecialPrice.Status.FREE) {</span>
+<span class="nc" id="L184">                return errorResponse;</span>
+            }
+
+<span class="fc bfc" id="L187" title="All 2 branches covered.">        } else if (promotionCodeDiscount.isPresent()) {</span>
+<span class="fc" id="L188">            var pcd = promotionCodeDiscount.get();</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">            if (!pcd.isCurrentlyValid(eventZoneId, now)</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">                    || isDiscountCodeUsageExceeded(pcd)</span>
+<span class="pc bpc" id="L191" title="1 of 4 branches missed.">                    || (pcd.hasCurrencyCode() &amp;&amp; !pcd.getCurrencyCode().equals(event.getCurrency()))) {</span>
+<span class="fc" id="L192">                return errorResponse;</span>
+            }
+<span class="fc" id="L194">        } else {</span>
+<span class="fc" id="L195">            return errorResponse;</span>
+        }
+
+<span class="fc" id="L198">        return new ValidatedResponse&lt;&gt;(ValidationResult.success(), result);</span>
+    }
+
+    private PromoCodeType checkPromoCodeType(int eventId, String trimmedCode) {
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">        if (trimmedCode == null) {</span>
+<span class="nc" id="L203">            return PromoCodeType.NOT_FOUND;</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        } else if (specialPriceRepository.getByCode(trimmedCode).isPresent()) {</span>
+<span class="nc" id="L205">            return PromoCodeType.SPECIAL_PRICE;</span>
+<span class="fc" id="L206">        } else if (promoCodeRepository</span>
+<span class="fc" id="L207">                .findPublicPromoCodeInEventOrOrganization(eventId, trimmedCode)</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">                .isPresent()) {</span>
+<span class="fc" id="L209">            return PromoCodeType.PROMO_CODE_DISCOUNT;</span>
+<span class="fc" id="L210">        } else if (ticketCategoryRepository</span>
+<span class="fc" id="L211">                .findCodeInEvent(eventId, trimmedCode)</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">                .isPresent()) {</span>
+<span class="fc" id="L213">            return PromoCodeType.TICKET_CATEGORY_CODE;</span>
+        } else {
+<span class="fc" id="L215">            return PromoCodeType.NOT_FOUND;</span>
+        }
+    }
+
+    private boolean isDiscountCodeUsageExceeded(PromoCodeDiscount discount) {
+<span class="fc bfc" id="L220" title="All 2 branches covered.">        return discount.getMaxUsage() != null</span>
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">                &amp;&amp; discount.getMaxUsage() &lt;= promoCodeRepository.countConfirmedPromoCode(discount.getId());</span>
+    }
+
+    private Pair&lt;Optional&lt;String&gt;, BindingResult&gt; makeSimpleReservation(
+            Event event,
+            int ticketCategoryId,
+            String promoCode,
+            ServletWebRequest request,
+            Optional&lt;PromoCodeDiscount&gt; promoCodeDiscount,
+            Principal principal) {
+
+<span class="fc" id="L232">        Locale locale = RequestUtils.getMatchingLocale(request, event);</span>
+<span class="fc" id="L233">        ReservationForm form = new ReservationForm();</span>
+<span class="fc" id="L234">        form.setPromoCode(promoCode);</span>
+<span class="fc" id="L235">        TicketReservationModification reservation = new TicketReservationModification();</span>
+<span class="fc" id="L236">        reservation.setQuantity(1);</span>
+<span class="fc" id="L237">        reservation.setTicketCategoryId(ticketCategoryId);</span>
+<span class="fc" id="L238">        form.setReservation(Collections.singletonList(reservation));</span>
+<span class="fc" id="L239">        var bindingRes = new BeanPropertyBindingResult(form, &quot;reservationForm&quot;);</span>
+<span class="fc" id="L240">        return Pair.of(</span>
+<span class="fc" id="L241">                createTicketReservation(</span>
+                        form,
+                        bindingRes,
+                        event,
+                        locale,
+<span class="fc" id="L246">                        promoCodeDiscount.map(PromoCodeDiscount::getPromoCode),</span>
+                        principal),
+                bindingRes);
+    }
+
+    private Optional&lt;String&gt; createTicketReservation(
+            ReservationForm reservation,
+            BindingResult bindingResult,
+            Event event,
+            Locale locale,
+            Optional&lt;String&gt; promoCodeDiscount,
+            Principal principal) {
+<span class="fc" id="L258">        return ReservationUtil.validateCreateRequest(</span>
+                        reservation,
+                        bindingResult,
+                        ticketReservationManager,
+                        eventManager,
+                        additionalServiceManager,
+<span class="fc" id="L264">                        promoCodeDiscount.orElse(null),</span>
+                        event)
+<span class="fc" id="L266">                .flatMap(selected -&gt; ReservationUtil.handleReservationCreationErrors(</span>
+<span class="fc" id="L267">                        () -&gt; ticketReservationManager.createTicketReservation(</span>
+<span class="fc" id="L268">                                event, selected.getLeft(), selected.getRight(), promoCodeDiscount, locale, principal),</span>
+                        bindingResult,
+<span class="fc" id="L270">                        event.getType()));</span>
+    }
+
+    public Optional&lt;PromoCodeDiscount&gt; findById(int id) {
+<span class="fc" id="L274">        return promoCodeRepository.findOptionalById(id);</span>
+    }
+
+    public void disablePromoCode(int promoCodeId) {
+<span class="nc" id="L278">        promoCodeRepository.updateEventPromoCodeEnd(promoCodeId, ZonedDateTime.now(clockProvider.getClock()));</span>
+<span class="nc" id="L279">    }</span>
+
+    public int countUsage(int promoCodeId) {
+<span class="nc" id="L282">        Optional&lt;PromoCodeDiscount&gt; code = findById(promoCodeId);</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        if (code.isEmpty()) {</span>
+<span class="nc" id="L284">            return 0;</span>
+        }
+<span class="nc" id="L286">        return promoCodeRepository.countConfirmedPromoCode(promoCodeId);</span>
+    }
+
+    public List&lt;PromoCodeUsageResult&gt; retrieveDetailedUsage(int promoCodeId, Integer eventId) {
+<span class="fc" id="L290">        return findById(promoCodeId)</span>
+<span class="fc" id="L291">                .map(pc -&gt; promoCodeRepository.findDetailedUsage(pc.getPromoCode(), eventId))</span>
+<span class="fc" id="L292">                .orElse(List.of());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
