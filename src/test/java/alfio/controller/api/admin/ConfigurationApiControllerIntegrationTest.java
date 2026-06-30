@@ -614,8 +614,7 @@ class ConfigurationApiControllerIntegrationTest {
         var adminPrincipal = Mockito.mock(Principal.class);
         when(adminPrincipal.getName()).thenReturn(UserManager.ADMIN_USERNAME);
 
-        var configUpdate = new ConfigurationModification(
-                null, "BASE_URL", "http://test.example.com");
+        var configUpdate = new ConfigurationModification(null, "BASE_URL", "http://test.example.com");
 
         boolean result = configurationApiController.updateConfiguration(configUpdate, adminPrincipal);
         assertTrue(result);
@@ -630,8 +629,7 @@ class ConfigurationApiControllerIntegrationTest {
         var adminPrincipal = Mockito.mock(Principal.class);
         when(adminPrincipal.getName()).thenReturn(UserManager.ADMIN_USERNAME);
 
-        var configUpdate = new ConfigurationModification(
-                null, "SUPPORTED_LANGUAGES", "7");
+        var configUpdate = new ConfigurationModification(null, "SUPPORTED_LANGUAGES", "7");
 
         boolean result = configurationApiController.updateConfiguration(configUpdate, adminPrincipal);
         assertTrue(result);

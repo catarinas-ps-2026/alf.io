@@ -25,7 +25,6 @@ import static alfio.test.util.IntegrationTestUtil.owner;
 import static alfio.test.util.TestUtil.clockProvider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -351,7 +350,8 @@ class EventApiControllerIntegrationTest {
         var principal = Mockito.mock(Authentication.class);
         when(principal.getName()).thenReturn(owner(orgAndUser.getRight()));
 
-        var modification = buildEventModificationWithMultipleCategories(orgAndUser.getLeft().getId());
+        var modification = buildEventModificationWithMultipleCategories(
+                orgAndUser.getLeft().getId());
         String result = eventApiController.insertEvent(modification, principal);
         assertNotNull(result);
     }
@@ -401,46 +401,105 @@ class EventApiControllerIntegrationTest {
                 null, orgName, "email@example.com", "org", null, null);
         userManager.createOrganization(orgMod, null);
         var org = organizationRepository.findByName(orgName).orElseThrow();
-        userManager.insertUser(org.getId(), username, "test", "test", "test@example.com",
-                Role.OPERATOR, User.Type.INTERNAL, null);
-        userManager.insertUser(org.getId(), owner(username), "test", "test", "test@example.com",
-                Role.OWNER, User.Type.INTERNAL, null);
+        userManager.insertUser(
+                org.getId(), username, "test", "test", "test@example.com", Role.OPERATOR, User.Type.INTERNAL, null);
+        userManager.insertUser(
+                org.getId(), owner(username), "test", "test", "test@example.com", Role.OWNER, User.Type.INTERNAL, null);
         return Pair.of(org, username);
     }
 
     private EventModification buildEventModification(int organizationId) {
-        return buildEventModificationWithCategories(organizationId, List.of(new TicketCategoryModification(
-                null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1),
-                        LocalTime.now(clockProvider().getClock())),
-                new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1),
-                        LocalTime.now(clockProvider().getClock())),
-                DESCRIPTION, BigDecimal.TEN, false, "", false,
-                null, null, null, null, null, 0, null, null, AlfioMetadata.empty())));
+        return buildEventModificationWithCategories(
+                organizationId,
+                List.of(new TicketCategoryModification(
+                        null,
+                        "default",
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider().getClock()).minusDays(1),
+                                LocalTime.now(clockProvider().getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider().getClock()).plusDays(1),
+                                LocalTime.now(clockProvider().getClock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty())));
     }
 
     private EventModification buildEventModificationWithMultipleCategories(int organizationId) {
-        return buildEventModificationWithCategories(organizationId, List.of(
-                new TicketCategoryModification(
-                        null, "category-A", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
-                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1),
-                                LocalTime.now(clockProvider().getClock())),
-                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1),
-                                LocalTime.now(clockProvider().getClock())),
-                        DESCRIPTION, BigDecimal.TEN, false, "", false,
-                        null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
-                new TicketCategoryModification(
-                        null, "category-B", TicketCategory.TicketAccessType.INHERIT, 10,
-                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1),
-                                LocalTime.now(clockProvider().getClock())),
-                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1),
-                                LocalTime.now(clockProvider().getClock())),
-                        DESCRIPTION, BigDecimal.ONE, false, "", false,
-                        null, null, null, null, null, 0, null, null, AlfioMetadata.empty())));
+        return buildEventModificationWithCategories(
+                organizationId,
+                List.of(
+                        new TicketCategoryModification(
+                                null,
+                                "category-A",
+                                TicketCategory.TicketAccessType.INHERIT,
+                                AVAILABLE_SEATS,
+                                new DateTimeModification(
+                                        LocalDate.now(clockProvider().getClock())
+                                                .minusDays(1),
+                                        LocalTime.now(clockProvider().getClock())),
+                                new DateTimeModification(
+                                        LocalDate.now(clockProvider().getClock())
+                                                .plusDays(1),
+                                        LocalTime.now(clockProvider().getClock())),
+                                DESCRIPTION,
+                                BigDecimal.TEN,
+                                false,
+                                "",
+                                false,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                null,
+                                null,
+                                AlfioMetadata.empty()),
+                        new TicketCategoryModification(
+                                null,
+                                "category-B",
+                                TicketCategory.TicketAccessType.INHERIT,
+                                10,
+                                new DateTimeModification(
+                                        LocalDate.now(clockProvider().getClock())
+                                                .minusDays(1),
+                                        LocalTime.now(clockProvider().getClock())),
+                                new DateTimeModification(
+                                        LocalDate.now(clockProvider().getClock())
+                                                .plusDays(1),
+                                        LocalTime.now(clockProvider().getClock())),
+                                DESCRIPTION,
+                                BigDecimal.ONE,
+                                false,
+                                "",
+                                false,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                null,
+                                null,
+                                AlfioMetadata.empty())));
     }
 
-    private EventModification buildEventModificationWithCategories(int organizationId,
-            List<TicketCategoryModification> categories) {
+    private EventModification buildEventModificationWithCategories(
+            int organizationId, List<TicketCategoryModification> categories) {
         Map<String, String> desc = Map.of("en", "Test event description");
         return new EventModification(
                 null,
@@ -459,10 +518,10 @@ class EventApiControllerIntegrationTest {
                 "0.0",
                 ClockProvider.clock().getZone().getId(),
                 desc,
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(5),
-                        LocalTime.now(ClockProvider.clock())),
-                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(6),
-                        LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(5), LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(
+                        LocalDate.now(ClockProvider.clock()).plusDays(6), LocalTime.now(ClockProvider.clock())),
                 BigDecimal.TEN,
                 "CHF",
                 AVAILABLE_SEATS,

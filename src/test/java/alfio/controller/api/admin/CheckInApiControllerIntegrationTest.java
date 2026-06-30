@@ -27,12 +27,12 @@ import alfio.config.Initializer;
 import alfio.controller.api.ControllerConfiguration;
 import alfio.manager.EventManager;
 import alfio.manager.TicketReservationManager;
-import alfio.manager.user.UserManager;
+import alfio.manager.payment.PaymentSpecification;
 import alfio.manager.support.CheckInStatistics;
 import alfio.manager.support.CheckInStatus;
-import alfio.manager.support.TicketAndCheckInResult;
-import alfio.manager.payment.PaymentSpecification;
 import alfio.manager.support.PaymentResult;
+import alfio.manager.support.TicketAndCheckInResult;
+import alfio.manager.user.UserManager;
 import alfio.model.*;
 import alfio.model.metadata.AlfioMetadata;
 import alfio.model.modification.DateTimeModification;
@@ -56,7 +56,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.core.Authentication;
@@ -68,17 +67,35 @@ import org.springframework.test.context.ContextConfiguration;
 @ActiveProfiles({Initializer.PROFILE_DEV, Initializer.PROFILE_DISABLE_JOBS, Initializer.PROFILE_INTEGRATION_TEST})
 class CheckInApiControllerIntegrationTest {
 
-    @Autowired private ConfigurationRepository configurationRepository;
-    @Autowired private OrganizationRepository organizationRepository;
-    @Autowired private UserManager userManager;
-    @Autowired private EventManager eventManager;
-    @Autowired private EventRepository eventRepository;
-    @Autowired private TicketCategoryRepository ticketCategoryRepository;
-    @Autowired private TicketRepository ticketRepository;
-    @Autowired private TicketReservationManager ticketReservationManager;
-    @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
+    @Autowired
+    private ConfigurationRepository configurationRepository;
 
-    @Autowired private CheckInApiController checkInApiController;
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private UserManager userManager;
+
+    @Autowired
+    private EventManager eventManager;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private TicketCategoryRepository ticketCategoryRepository;
+
+    @Autowired
+    private TicketRepository ticketRepository;
+
+    @Autowired
+    private TicketReservationManager ticketReservationManager;
+
+    @Autowired
+    private NamedParameterJdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private CheckInApiController checkInApiController;
 
     private Event event;
     private String username;
@@ -131,8 +148,7 @@ class CheckInApiControllerIntegrationTest {
         CheckInApiController.TicketCode tc = new CheckInApiController.TicketCode();
         tc.setCode(ticketCode);
 
-        TicketAndCheckInResult result = checkInApiController.checkIn(
-                event.getId(), ticket.getUuid(), tc, principal);
+        TicketAndCheckInResult result = checkInApiController.checkIn(event.getId(), ticket.getUuid(), tc, principal);
         assertEquals(CheckInStatus.SUCCESS, result.getResult().getStatus());
     }
 
@@ -144,8 +160,7 @@ class CheckInApiControllerIntegrationTest {
         CheckInApiController.TicketCode tc = new CheckInApiController.TicketCode();
         tc.setCode("WRONG_CODE_12345");
 
-        TicketAndCheckInResult result = checkInApiController.checkIn(
-                event.getId(), ticket.getUuid(), tc, principal);
+        TicketAndCheckInResult result = checkInApiController.checkIn(event.getId(), ticket.getUuid(), tc, principal);
         assertEquals(CheckInStatus.INVALID_TICKET_CODE, result.getResult().getStatus());
     }
 
@@ -160,8 +175,8 @@ class CheckInApiControllerIntegrationTest {
 
         checkInApiController.checkIn(event.getId(), ticket.getUuid(), tc, principal);
 
-        TicketAndCheckInResult secondResult = checkInApiController.checkIn(
-                event.getId(), ticket.getUuid(), tc, principal);
+        TicketAndCheckInResult secondResult =
+                checkInApiController.checkIn(event.getId(), ticket.getUuid(), tc, principal);
         assertEquals(CheckInStatus.ALREADY_CHECK_IN, secondResult.getResult().getStatus());
     }
 
@@ -203,8 +218,7 @@ class CheckInApiControllerIntegrationTest {
         configurationRepository.insertEventLevel(
                 event.getOrganizationId(), event.getId(), "CHECK_IN_STATS", "true", "");
 
-        CheckInStatistics stats = checkInApiController.getStatistics(
-                event.getShortName(), null, principal);
+        CheckInStatistics stats = checkInApiController.getStatistics(event.getShortName(), null, principal);
         assertNotNull(stats);
     }
 
@@ -213,8 +227,7 @@ class CheckInApiControllerIntegrationTest {
         configurationRepository.insertEventLevel(
                 event.getOrganizationId(), event.getId(), "CHECK_IN_STATS", "true", "");
 
-        CheckInStatistics stats = checkInApiController.getStatistics(
-                event.getShortName(), null, principal);
+        CheckInStatistics stats = checkInApiController.getStatistics(event.getShortName(), null, principal);
         assertNotNull(stats);
         assertEquals(0, stats.getCheckedIn());
     }
@@ -237,8 +250,8 @@ class CheckInApiControllerIntegrationTest {
             ticketIdentifierCodes.add(tic);
         }
 
-        var response = checkInApiController.bulkCheckIn(
-                event.getShortName(), ticketIdentifierCodes, null, false, principal);
+        var response =
+                checkInApiController.bulkCheckIn(event.getShortName(), ticketIdentifierCodes, null, false, principal);
         assertNotNull(response);
         assertEquals(2, response.size());
         for (var entry : response.values()) {
@@ -252,8 +265,7 @@ class CheckInApiControllerIntegrationTest {
         tic.setIdentifier("nonexistent-uuid");
         tic.setCode("WRONG_CODE");
 
-        var response = checkInApiController.bulkCheckIn(
-                event.getShortName(), List.of(tic), null, false, principal);
+        var response = checkInApiController.bulkCheckIn(event.getShortName(), List.of(tic), null, false, principal);
         assertNotNull(response);
         assertEquals(1, response.size());
         var result = response.get("nonexistent-uuid");
@@ -270,15 +282,14 @@ class CheckInApiControllerIntegrationTest {
         String reservationId = createReservation();
         var ticket = ticketRepository.findTicketsInReservation(reservationId).get(0);
         jdbcTemplate.update(
-                "update ticket set status = 'TO_BE_PAID' where uuid = :uuid",
-                Map.of("uuid", ticket.getUuid()));
+                "update ticket set status = 'TO_BE_PAID' where uuid = :uuid", Map.of("uuid", ticket.getUuid()));
 
         String ticketCode = ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive());
         CheckInApiController.TicketCode tc = new CheckInApiController.TicketCode();
         tc.setCode(ticketCode);
 
-        var result = checkInApiController.confirmOnSitePayment(
-                event.getShortName(), ticket.getUuid(), tc, null, principal);
+        var result =
+                checkInApiController.confirmOnSitePayment(event.getShortName(), ticket.getUuid(), tc, null, principal);
         assertNotNull(result);
         assertEquals(CheckInStatus.SUCCESS, result.getResult().getStatus());
     }
@@ -292,8 +303,8 @@ class CheckInApiControllerIntegrationTest {
         CheckInApiController.TicketCode tc = new CheckInApiController.TicketCode();
         tc.setCode(ticketCode);
 
-        var result = checkInApiController.confirmOnSitePayment(
-                event.getShortName(), ticket.getUuid(), tc, null, principal);
+        var result =
+                checkInApiController.confirmOnSitePayment(event.getShortName(), ticket.getUuid(), tc, null, principal);
         assertNotNull(result);
         assertNotEquals(CheckInStatus.SUCCESS, result.getResult().getStatus());
     }
@@ -375,11 +386,9 @@ class CheckInApiControllerIntegrationTest {
                 TicketCategory.TicketAccessType.INHERIT,
                 AVAILABLE_SEATS,
                 new DateTimeModification(
-                        LocalDate.now(ClockProvider.clock()).minusDays(1),
-                        LocalTime.now(ClockProvider.clock())),
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
                 new DateTimeModification(
-                        LocalDate.now(ClockProvider.clock()).plusDays(5),
-                        LocalTime.now(ClockProvider.clock())),
+                        LocalDate.now(ClockProvider.clock()).plusDays(5), LocalTime.now(ClockProvider.clock())),
                 DESCRIPTION,
                 BigDecimal.TEN,
                 false,
@@ -395,8 +404,13 @@ class CheckInApiControllerIntegrationTest {
                 null,
                 AlfioMetadata.empty()));
         var result = initEvent(
-                categories, organizationRepository, userManager, eventManager, eventRepository,
-                List.of(), Event.EventFormat.IN_PERSON);
+                categories,
+                organizationRepository,
+                userManager,
+                eventManager,
+                eventRepository,
+                List.of(),
+                Event.EventFormat.IN_PERSON);
         event = result.getLeft();
         username = result.getRight();
     }
@@ -412,8 +426,14 @@ class CheckInApiControllerIntegrationTest {
         tr.setTicketCategoryId(categories.get(0).getId());
         var tickets = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
         return ticketReservationManager.createTicketReservation(
-                event, List.of(tickets), List.of(), DateUtils.addDays(new Date(), 1),
-                Optional.empty(), Locale.ENGLISH, false, null);
+                event,
+                List.of(tickets),
+                List.of(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
     }
 
     private String createAndConfirmReservation() {

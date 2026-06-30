@@ -25,8 +25,6 @@ import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
 import alfio.controller.api.ControllerConfiguration;
-import alfio.controller.api.support.PageAndContent;
-import alfio.manager.AdminReservationManager;
 import alfio.manager.EventManager;
 import alfio.manager.TicketReservationManager;
 import alfio.manager.payment.PaymentSpecification;
@@ -56,7 +54,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
@@ -64,12 +61,11 @@ import org.springframework.test.context.ContextConfiguration;
 
 @AlfioIntegrationTest
 @ContextConfiguration(
-    classes = {
-        DataSourceConfiguration.class,
-        TestConfiguration.class,
-        ControllerConfiguration.class,
-    }
-)
+        classes = {
+            DataSourceConfiguration.class,
+            TestConfiguration.class,
+            ControllerConfiguration.class,
+        })
 @ActiveProfiles({
     Initializer.PROFILE_DEV,
     Initializer.PROFILE_DISABLE_JOBS,
@@ -124,13 +120,7 @@ class AdminReservationApiControllerIntegrationTest {
         createAndConfirmReservation();
 
         var response = adminReservationApiController.findAll(
-            PurchaseContextType.event,
-            event.getShortName(),
-            0,
-            null,
-            null,
-            principal
-        );
+                PurchaseContextType.event, event.getShortName(), 0, null, null, principal);
         assertNotNull(response);
         assertNotNull(response.getLeft());
         assertFalse(response.getLeft().isEmpty());
@@ -141,13 +131,7 @@ class AdminReservationApiControllerIntegrationTest {
         createAndConfirmReservation();
 
         var response = adminReservationApiController.findAll(
-            PurchaseContextType.event,
-            event.getShortName(),
-            0,
-            null,
-            null,
-            principal
-        );
+                PurchaseContextType.event, event.getShortName(), 0, null, null, principal);
         assertNotNull(response);
         assertTrue(response.getRight() > 0);
     }
@@ -157,13 +141,7 @@ class AdminReservationApiControllerIntegrationTest {
         String reservationId = createAndConfirmReservation();
 
         var response = adminReservationApiController.findAll(
-            PurchaseContextType.event,
-            event.getShortName(),
-            0,
-            reservationId.substring(0, 5),
-            null,
-            principal
-        );
+                PurchaseContextType.event, event.getShortName(), 0, reservationId.substring(0, 5), null, principal);
         assertNotNull(response);
         assertNotNull(response.getLeft());
     }
@@ -173,13 +151,12 @@ class AdminReservationApiControllerIntegrationTest {
         createAndConfirmReservation();
 
         var response = adminReservationApiController.findAll(
-            PurchaseContextType.event,
-            event.getShortName(),
-            0,
-            null,
-            List.of(TicketReservation.TicketReservationStatus.COMPLETE),
-            principal
-        );
+                PurchaseContextType.event,
+                event.getShortName(),
+                0,
+                null,
+                List.of(TicketReservation.TicketReservationStatus.COMPLETE),
+                principal);
         assertNotNull(response);
         assertNotNull(response.getLeft());
     }
@@ -194,12 +171,7 @@ class AdminReservationApiControllerIntegrationTest {
 
         var refundAmount = new AdminReservationApiController.RefundAmount("10.00");
         var response = adminReservationApiController.refund(
-            PurchaseContextType.event,
-            event.getShortName(),
-            reservationId,
-            refundAmount,
-            principal
-        );
+                PurchaseContextType.event, event.getShortName(), reservationId, refundAmount, principal);
         assertNotNull(response);
         assertTrue(response.isSuccess());
     }
@@ -210,12 +182,7 @@ class AdminReservationApiControllerIntegrationTest {
 
         var refundAmount = new AdminReservationApiController.RefundAmount("5.00");
         var response = adminReservationApiController.refund(
-            PurchaseContextType.event,
-            event.getShortName(),
-            reservationId,
-            refundAmount,
-            principal
-        );
+                PurchaseContextType.event, event.getShortName(), reservationId, refundAmount, principal);
         assertNotNull(response);
         assertTrue(response.isSuccess());
     }
@@ -225,20 +192,15 @@ class AdminReservationApiControllerIntegrationTest {
     // ========================================================================
 
     private void initTestEvent() {
-        List<TicketCategoryModification> categories = List.of(
-            new TicketCategoryModification(
+        List<TicketCategoryModification> categories = List.of(new TicketCategoryModification(
                 null,
                 "default",
                 TicketCategory.TicketAccessType.INHERIT,
                 AVAILABLE_SEATS,
                 new DateTimeModification(
-                    LocalDate.now(ClockProvider.clock()).minusDays(1),
-                    LocalTime.now(ClockProvider.clock())
-                ),
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
                 new DateTimeModification(
-                    LocalDate.now(ClockProvider.clock()).plusDays(5),
-                    LocalTime.now(ClockProvider.clock())
-                ),
+                        LocalDate.now(ClockProvider.clock()).plusDays(5), LocalTime.now(ClockProvider.clock())),
                 DESCRIPTION,
                 BigDecimal.TEN,
                 false,
@@ -252,18 +214,15 @@ class AdminReservationApiControllerIntegrationTest {
                 0,
                 null,
                 null,
-                AlfioMetadata.empty()
-            )
-        );
+                AlfioMetadata.empty()));
         var result = initEvent(
-            categories,
-            organizationRepository,
-            userManager,
-            eventManager,
-            eventRepository,
-            List.of(),
-            Event.EventFormat.IN_PERSON
-        );
+                categories,
+                organizationRepository,
+                userManager,
+                eventManager,
+                eventRepository,
+                List.of(),
+                Event.EventFormat.IN_PERSON);
         event = result.getLeft();
         username = result.getRight();
     }
@@ -275,49 +234,42 @@ class AdminReservationApiControllerIntegrationTest {
         tr.setTicketCategoryId(categories.get(0).getId());
         var tickets = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
         return ticketReservationManager.createTicketReservation(
-            event,
-            List.of(tickets),
-            List.of(),
-            DateUtils.addDays(new Date(), 1),
-            Optional.empty(),
-            Locale.ENGLISH,
-            false,
-            null
-        );
+                event,
+                List.of(tickets),
+                List.of(),
+                DateUtils.addDays(new Date(), 1),
+                Optional.empty(),
+                Locale.ENGLISH,
+                false,
+                null);
     }
 
     private String createAndConfirmReservation() {
         String reservationId = createReservation();
         Pair<TotalPrice, Optional<PromoCodeDiscount>> priceAndDiscount =
-            ticketReservationManager.totalReservationCostWithVAT(reservationId);
+                ticketReservationManager.totalReservationCostWithVAT(reservationId);
         TotalPrice reservationCost = priceAndDiscount.getLeft();
         PaymentSpecification specification = new PaymentSpecification(
-            reservationId,
-            null,
-            null,
-            reservationCost.getPriceWithVAT(),
-            event,
-            "email@example.com",
-            new CustomerName("full name", "full", "name", event.mustUseFirstAndLastName()),
-            "billing address",
-            null,
-            Locale.ENGLISH,
-            true,
-            false,
-            null,
-            "IT",
-            "123456",
-            PriceContainer.VatStatus.INCLUDED,
-            true,
-            false
-        );
+                reservationId,
+                null,
+                null,
+                reservationCost.getPriceWithVAT(),
+                event,
+                "email@example.com",
+                new CustomerName("full name", "full", "name", event.mustUseFirstAndLastName()),
+                "billing address",
+                null,
+                Locale.ENGLISH,
+                true,
+                false,
+                null,
+                "IT",
+                "123456",
+                PriceContainer.VatStatus.INCLUDED,
+                true,
+                false);
         PaymentResult result = ticketReservationManager.performPayment(
-            specification,
-            reservationCost,
-            PaymentProxy.OFFLINE,
-            StaticPaymentMethods.BANK_TRANSFER,
-            null
-        );
+                specification, reservationCost, PaymentProxy.OFFLINE, StaticPaymentMethods.BANK_TRANSFER, null);
         assertTrue(result.isSuccessful());
         ticketReservationManager.confirmOfflinePayment(event, reservationId, null, username);
         return reservationId;
