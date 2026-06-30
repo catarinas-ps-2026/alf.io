@@ -1,23 +1,21 @@
 # Plan de Pruebas de Integración del Sistema alf.io
 
 ## Índice
-- [Información General](#1-información-general)
-- [Especificaciones de las Pruebas](#2-especificaciones-de-las-pruebas)
-- [Comunicación de las Pruebas](#3-comunicación-de-las-pruebas)
-- [Registro de Riesgos](#4-registro-de-riesgos)
-- [Metodología](#5-metodología)
-<!--
-- [Estructura de Pruebas](#6-estructura-de-pruebas)
--->
-- [Organización](#7-organización)
-- [Cronograma](#8-cronograma)
+- [Información General](#información-general)
+- [Especificaciones de las Pruebas](#especificaciones-de-las-pruebas)
+- [Comunicación de las Pruebas](#comunicación-de-las-pruebas)
+- [Registro de Riesgos](#registro-de-riesgos)
+- [Metodología](#metodología)
+- [Organización](#organización)
+- [Cronograma](#cronograma)
+- [Cobertura de Endpoints Obligatorios](#cobertura-de-endpoints-obligatorios)
 
 ## Información General
 
 ### Alcance
-Este plan cubre las pruebas de integración de alf.io, cuyo objetivo es verificar que los módulos del sistema interactúan correctamente entre sí y con sus dependencias reales (base de datos PostgreSQL, servicios de correo, pasarelas de pago simuladas, etc.). A diferencia de las pruebas unitarias, aquí **no se usan mocks** para las capas internas del sistema; se valida la colaboración real entre componentes como controladores, managers, repositorios y la base de datos.
+Este plan cubre las pruebas de integración de alf.io, cuyo objetivo es verificar que los módulos del sistema interactúan correctamente entre sí y con sus dependencias reales (base de datos PostgreSQL, pasarelas de pago simuladas, etc.). A diferencia de las pruebas unitarias, aquí **no se usan mocks** para las capas internas del sistema; se valida la colaboración real entre componentes como controladores, managers, repositorios y la base de datos.
 
-La estrategia de integración adoptada es **Big Bang incremental**: primero se integran y validan los módulos de infraestructura (base de datos, migraciones Flyway, configuración de Spring), luego los flujos de negocio críticos (reservas, pagos, check-in) y finalmente la comunicación entre el backend y el frontend.
+La estrategia de integración adoptada es **Big Bang incremental**: primero se integran y validan los módulos de infraestructura (base de datos, migraciones Flyway, configuración de Spring), luego los flujos de negocio críticos (reservas, pagos, check-in) a través de los endpoints.
 
 ### Referencias
 1. Estándares de Ingeniería de Software y Pruebas
@@ -29,8 +27,6 @@ La estrategia de integración adoptada es **Big Bang incremental**: primero se i
      - Documentación de Spring Boot 3.x y Spring Test.
      - Documentación de JUnit 5 y Testcontainers.
      - Documentación de Flyway (migraciones de esquema).
-   - **Frontend:**
-     - Documentación de Angular HttpClient y pruebas de integración con servidores reales.
 
 ### Glosario
 
@@ -39,8 +35,8 @@ La estrategia de integración adoptada es **Big Bang incremental**: primero se i
 - **Flyway:** Herramienta de migración de base de datos. En las pruebas de integración, se ejecuta sobre un contenedor PostgreSQL real para validar que el esquema es coherente.
 - **@SpringBootTest:** Anotación de Spring Test que levanta el contexto completo de la aplicación para pruebas de integración de backend.
 - **Estrategia Big Bang incremental:** Estrategia de integración donde los módulos se van conectando en grupos lógicos (de infraestructura a negocio) antes de integrar el sistema completo.
-- **Smoke Test:** Conjunto mínimo de pruebas de integración que verifica que el sistema arranca y sus flujos principales funcionan, sin entrar en todos los casos de borde.
 - **API Contract:** Acuerdo implícito sobre la forma (endpoints, schemas JSON, códigos HTTP) de la API REST. Las pruebas de integración validan su cumplimiento.
+- **Endpoint obligatorio:** Endpoint seleccionado del flujo crítico Reserva → Pago → Check-In para el cual se exige cobertura de prueba de integración.
 
 ---
 
@@ -57,22 +53,17 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 
 #### Subproceso 2 – Integración de Capas de Negocio
 - **Objetivo:** Validar que los flujos de negocio completos (Controller → Manager → Repository → DB) funcionan correctamente de extremo a extremo en el backend.
-- **Técnica:** Tests `@SpringBootTest` con `MockMvc` o `TestRestTemplate` contra un PostgreSQL real en contenedor.
+- **Técnica:** Tests `@SpringBootTest` con invocación directa de controladores contra un PostgreSQL real.
 - **Foco:**
   - Flujo de creación y configuración de eventos.
   - Flujo de reserva y compra de entradas (incluyendo cálculo de precios e impuestos).
   - Flujo de check-in y validación de tickets.
-  - Envío de notificaciones por correo (con servidor SMTP simulado o log).
+  - Flujo de gestión de reservas por parte del administrador.
 
 #### Subproceso 3 – Integración de API REST (Contrato de API)
-- **Objetivo:** Verificar que los endpoints REST devuelven los esquemas JSON, códigos HTTP y cabeceras correctas según el contrato de la API.
-- **Técnica:** `MockMvc` con assertions sobre el cuerpo de la respuesta y serialización/deserialización Jackson.
-- **Foco:** Endpoints de creación de eventos, compra de entradas, autenticación (SSO/OIDC), gestión de usuarios y check-in.
-
-#### Subproceso 4 – Integración Frontend–Backend
-- **Objetivo:** Verificar que el frontend (Angular / Lit) se comunica correctamente con el backend real, especialmente en los flujos críticos.
-- **Técnica:** Pruebas con servidor de desarrollo real o mocks de HTTP de alto nivel (interceptores Angular).
-- **Foco:** Formulario de compra de entrada, flujo de pago, acceso a rutas de administrador.
+- **Objetivo:** Verificar que los endpoints REST devuelven los códigos HTTP, esquemas JSON y respuestas correctas según el contrato de la API.
+- **Técnica:** Invocación directa de controladores con assertions sobre el cuerpo de la respuesta.
+- **Foco:** Endpoints de creación de eventos, reserva de entradas, pago, check-in y gestión administrativa.
 
 ### Elementos de Prueba
 
@@ -80,20 +71,16 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 | :--- | :--- |
 | Infraestructura | Migraciones Flyway, arranque del contexto Spring, configuración de datasource |
 | Repositorios | Queries personalizadas contra PostgreSQL real, paginación y filtros |
-| Managers de negocio | `ReservationManager`, `PaymentManager`, `CheckInManager`, `EventManager`, `UserManager` |
-| Controladores REST | Todos los endpoints públicos y de administración (`/api/v1/...`) |
-| Integración de correo | Servicio de envío de emails (SMTP simulado con MailHog o logs) |
-| Frontend–Backend | Formularios de compra, checkout y panel de administración |
+| Managers de negocio | `TicketReservationManager`, `CheckInManager`, `EventManager`, `AdminReservationManager` |
+| Controladores REST | Endpoints públicos (`/api/v2/public/...`) y de administración (`/admin/api/...`) |
 
 ### Alcance de la Prueba
 
 #### Elementos Incluidos
 - Validación de migraciones de base de datos con Flyway sobre PostgreSQL real.
-- Flujos completos Controller → Manager → Repository → DB para los módulos críticos.
-- Contrato de la API REST: códigos HTTP, schemas JSON, manejo de errores.
-- Integración del sistema de autenticación (SSO/OIDC) con el contexto de Spring Security.
-- Envío de correos transaccionales.
-- Comunicación entre el frontend Angular y los endpoints del backend.
+- Flujos completos Controller → Manager → Repository → DB para los 30 endpoints obligatorios del flujo crítico.
+- Contrato de la API REST: códigos HTTP, respuestas JSON, manejo de errores.
+- Integración con la base de datos real para verificación de estado persistido.
 
 #### Elementos Excluidos
 - **Pruebas de rendimiento y carga:** No se valida el comportamiento bajo alta concurrencia.
@@ -101,6 +88,8 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - **Transacciones reales con pasarelas de pago (Stripe, PayPal):** Solo se usan mocks de alto nivel mediante WireMock.
 - **Pruebas de seguridad avanzadas (Penetration Testing):** No se auditan vulnerabilidades de red ni inyección SQL.
 - **Pruebas de aceptación del usuario (UAT):** Quedan para la validación final académica.
+- **Integración Frontend–Backend:** La comunicación Angular/Lit con el backend no forma parte de las pruebas de integración de endpoints.
+- **Envío real de correos transaccionales:** No se valida el envío de emails en las pruebas de endpoints.
 
 ### Suposiciones y Restricciones
 
@@ -108,12 +97,11 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - Existe un entorno con Docker disponible para levantar contenedores de Testcontainers.
 - Las pruebas unitarias ya están aprobadas y con cobertura ≥ 85% antes de iniciar la integración.
 - El esquema de base de datos se crea exclusivamente vía Flyway (sin scripts manuales).
-- Se tiene un servidor SMTP disponible para su uso en el entorno de pruebas.
 
 **Restricciones**
 - Las suites de integración deben completarse en menos de 15 minutos en el pipeline de CI.
 - Las pruebas de integración deben ser reproducibles: no deben depender de datos preexistentes en la base de datos.
-- Cada test debe limpiar su estado al finalizar (uso de `@Transactional` con rollback o truncado de tablas).
+- Cada test debe limpiar su estado al finalizar (uso de `DataCleaner` o truncado de tablas).
 
 ### Partes Interesadas
 
@@ -158,55 +146,12 @@ La severidad se calcula como: **Probabilidad (1–5) × Impacto (1–5)**.
 | N° | Riesgo | Prob. | Impacto | Severidad | Plan de Mitigación |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | 1 | Lentitud en el pipeline de CI por pruebas de integración pesadas | 4 | 3 | 12 | Paralelizar suites; usar caché de dependencias en GitHub Actions. |
-| 2 | Datos de prueba inconsistentes que causan fallos intermitentes (flaky tests) | 4 | 4 | 16 | Usar `@Transactional` con rollback y fixtures controlados por prueba. |
+| 2 | Datos de prueba inconsistentes que causan fallos intermitentes (flaky tests) | 4 | 4 | 16 | Usar `DataCleaner` para limpiar estado entre tests y fixtures controlados por prueba. |
 | 3 | Incompatibilidades entre versiones de PostgreSQL en contenedor y producción | 2 | 4 | 8 | Fijar la versión del contenedor Testcontainers a la misma que producción (v15). |
 | 4 | Dificultad para reproducir flujos de pago sin acceso a sandbox de Stripe | 3 | 3 | 9 | Implementar stubs de alto nivel para la pasarela; validar solo la lógica de orquestación. |
 | 5 | Deuda técnica de pruebas unitarias incompletas que bloquea integración | 3 | 5 | 15 | Completar al 100% las pruebas unitarias de los módulos críticos antes de integrar. |
 
 ---
-
-<!--
-## Estructura de Pruebas
-
-Las pruebas de integración se ubican separadas de las unitarias, siguiendo la convención de nomenclatura `*IntegrationTest`:
-
-```
-src/test/java/alfio/
-├── integration/
-│   ├── infrastructure/
-│   │   ├── FlywayMigrationIntegrationTest.java      # Fase 1
-│   │   └── SpringContextIntegrationTest.java        # Fase 1
-│   ├── business/
-│   │   ├── EventCreationIntegrationTest.java        # Fase 2
-│   │   ├── ReservationFlowIntegrationTest.java      # Fase 2
-│   │   ├── PaymentFlowIntegrationTest.java          # Fase 2
-│   │   └── CheckInIntegrationTest.java              # Fase 2
-│   └── api/
-│       ├── EventControllerIntegrationTest.java      # Fase 3
-│       ├── ReservationControllerIntegrationTest.java # Fase 3
-│       └── AuthControllerIntegrationTest.java       # Fase 3
-```
-
-Todas las clases de integración extienden de una clase base común `BaseIntegrationTest` que configura el contenedor de PostgreSQL con Testcontainers y el contexto de Spring Boot:
-
-```java
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
-public abstract class BaseIntegrationTest {
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
-}
-```
-
----
--->
 
 ## Metodología
 
@@ -217,21 +162,21 @@ Se adopta la estrategia incremental por módulos, dividida en tres fases:
 | Fase | Descripción | Módulos Involucrados |
 | :--- | :--- | :--- |
 | **Fase 1 – Infraestructura** | Arranque del contexto Spring con PostgreSQL real; validación de todas las migraciones Flyway. | DataSource, Flyway, Spring Context |
-| **Fase 2 – Negocio Core** | Pruebas E2E parciales de los flujos críticos de negocio sobre la base de datos real. | EventManager, ReservationManager, PaymentManager, CheckInManager |
-| **Fase 3 – API y Comunicación** | Validación del contrato REST y de la integración Frontend–Backend. | Controllers, Angular Services, Admin SPA |
+| **Fase 2 – Negocio Core** | Pruebas de los flujos críticos de negocio sobre la base de datos real: creación de eventos, reserva, pago y check-in. | EventManager, TicketReservationManager, CheckInManager, AdminReservationManager |
+| **Fase 3 – API y Contrato** | Validación del contrato REST de los 30 endpoints obligatorios del flujo crítico. | EventApiController, ConfigurationApiController, CheckInApiController, AdminReservationApiController, EventApiV2Controller, ReservationApiV2Controller, TicketApiV2Controller |
 
 Las fases son **secuenciales**: la Fase 2 solo comienza cuando la Fase 1 pasa al 100%, y la Fase 3 cuando la Fase 2 ha sido aprobada.
 
 ### Entregables de Prueba
 
 - **Reporte de Ejecución de Pruebas de Integración:** Resultados generados por JUnit / GitHub Actions con detalle por test y suite.
-- **Matriz de Trazabilidad de Integración:** Documento que vincula cada prueba de integración con el flujo de negocio o requisito funcional que valida.
+- **Matriz de Trazabilidad de Integración:** Documento que vincula cada prueba de integración con el endpoint obligatorio que valida (ver sección 8).
 - **Registro de Defectos de Integración:** Lista de bugs encontrados durante la integración, con severidad, estado y responsable de corrección.
 
 ### Técnicas de Diseño de Prueba
 
-- **Pruebas de Flujo (Use-Case driven):** Se diseñan pruebas que recorren el flujo completo de un caso de uso real (ej. crear evento → publicar → comprar entrada → recibir email → hacer check-in).
-- **Pruebas de Contrato de API:** Se verifica que cada endpoint devuelva el schema JSON correcto, el código HTTP esperado y las cabeceras adecuadas.
+- **Pruebas de Flujo (Use-Case driven):** Se diseñan pruebas que recorren el flujo completo de un caso de uso real (ej. crear evento → publicar → reservar entrada → pagar → hacer check-in).
+- **Pruebas de Contrato de API:** Se verifica que cada endpoint devuelva el código HTTP esperado y la respuesta correcta.
 - **Pruebas de Estado de Base de Datos:** Tras ejecutar una operación, se consulta directamente la base de datos para verificar que el estado persistido es el esperado.
 - **Pruebas de Regresión de Integración:** Se re-ejecutan pruebas de integración previas ante cada cambio en los módulos integrados para detectar regresiones.
 
@@ -263,13 +208,10 @@ El proceso de pruebas de integración se dará por concluido cuando:
 #### Requisitos de Software
 - **Java JDK 17** (distribución Temurin).
 - **Gradle** (construcción y ejecución de pruebas de backend).
-- **Node.js 22.x** (pruebas de frontend).
 - **Docker** (obligatorio para Testcontainers).
 
 #### Base de Datos y Servicios
 - **PostgreSQL 15** en contenedor efímero gestionado por Testcontainers.
-- **MailHog** (o modo log de Spring Mail) para captura de correos transaccionales en pruebas.
-- **Servidor mock de pago:** Stub HTTP para Stripe/PayPal con WireMock o MockServer.
 
 ---
 
@@ -285,7 +227,7 @@ Matriz RACI para las actividades de pruebas de integración:
 | **2. Configuración de Testcontainers y entorno CI** | **A** | **R** | **C** | **C** | **C** | **C** | **I** |
 | **3. Fase 1 – Infraestructura (Flyway, Spring Context)** | **A** | **C** | **R** | **R** | **C** | **C** | **I** |
 | **4. Fase 2 – Negocio Core (Reservas, Pagos, Check-in)** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
-| **5. Fase 3 – API y Frontend–Backend** | **A** | **R** | **R** | **C** | **R** | **R** | **I** |
+| **5. Fase 3 – API y Contrato (30 endpoints obligatorios)** | **A** | **R** | **R** | **C** | **R** | **R** | **I** |
 | **6. Consolidación de Reportes y Matriz de Trazabilidad** | **R** | **C** | **C** | **C** | **C** | **C** | **I** |
 | **7. Revisión y Cierre del Plan** | **A** | **C** | **C** | **C** | **C** | **C** | **I** |
 
@@ -293,32 +235,99 @@ Matriz RACI para las actividades de pruebas de integración:
 
 ## Cronograma
 
-El cronograma de las pruebas de integración se extiende durante 1 sprint de 2 semanas (del 11 al 24 de junio de 2026), en continuidad con el cronograma del plan de pruebas unitarias. Las fases se ejecutan de manera secuencial: la Fase 2 solo comienza cuando la Fase 1 tiene el pipeline verde, y la Fase 3 cuando la Fase 2 ha sido aprobada. El detalle de las 20 tareas planificadas es el siguiente:
+El cronograma de las pruebas de integración se extiende durante 1 sprint de 2 semanas (del 11 al 24 de junio de 2026), en continuidad con el cronograma del plan de pruebas unitarias. Las fases se ejecutan de manera secuencial: la Fase 2 solo comienza cuando la Fase 1 tiene el pipeline verde, y la Fase 3 cuando la Fase 2 ha sido aprobada. El detalle de las tareas planificadas es el siguiente:
 
 | N° | Semana | Fecha Entrega | Fase | Tarea | Asignado(s) |
 | :---: | :--- | :--- | :--- | :--- | :--- |
 | 1 | Semana 1 | 11 jun | Fase 1 | Configurar `BaseIntegrationTest` con Testcontainers (PostgreSQL 15) y `@DynamicPropertySource` | Christian Mestas |
 | 2 | Semana 1 | 11 jun | Fase 1 | Configurar pipeline de GitHub Actions para suites de integración (jobs paralelos, caché de Docker) | Christian Mestas |
-| 3 | Semana 1 | 12 jun | Fase 1 | Validar aplicación de las 195 migraciones Flyway (V1–V206) sobre contenedor PostgreSQL real | Mariel Jara |
+| 3 | Semana 1 | 12 jun | Fase 1 | Validar aplicación de las migraciones Flyway sobre contenedor PostgreSQL real | Mariel Jara |
 | 4 | Semana 1 | 12 jun | Fase 1 | Verificar arranque del contexto Spring Boot (`@SpringBootTest`) con datasource de Testcontainers | Mariel Jara |
-| 5 | Semana 1 | 13 jun | Fase 1 | Test `EventRepository` y `TicketRepository` – CRUD y queries contra PostgreSQL real | Gustavo Sequeiros |
-| 6 | Semana 1 | 13 jun | Fase 1 | Test `TicketReservationRepository` y `ConfigurationRepository` – persistencia y paginación | Gustavo Sequeiros |
-| 7 | Semana 1 | 16 jun | Fase 1 | Test `AdditionalServiceRepository` y `PromoCodeDiscountRepository` – datos complementarios | Mathias Barrios |
-| 8 | Semana 1 | 16 jun | Fase 1 | Validar scripts de post-migración (afterMigrateApplied__000–__018) y vistas de estadísticas | Mathias Barrios |
+| 5 | Semana 1 | 13 jun | Fase 1 | Test de repositorios de eventos y tickets: CRUD y queries contra PostgreSQL real | Gustavo Sequeiros |
+| 6 | Semana 1 | 13 jun | Fase 1 | Test de repositorios de reservas y configuración: persistencia y paginación | Gustavo Sequeiros |
+| 7 | Semana 1 | 16 jun | Fase 1 | Test de repositorios de servicios adicionales y códigos promocionales | Mathias Barrios |
+| 8 | Semana 1 | 16 jun | Fase 1 | Validar scripts de post-migración y vistas de estadísticas | Mathias Barrios |
 | 9 | Semana 1 | 17 jun | Fase 1 | Test de integridad referencial: foreign keys y constraints entre tablas principales | Rodrigo Fernandez |
-| 10 | Semana 1 | 17 jun | Fase 1 | Test `UserRepository` y `OrganizationRepository` – operaciones de usuarios y organizaciones | Alvaro Quispe |
-| 11 | Semana 2 | 18 jun | Fase 2 | Test `EventManager` – flujo completo de creación y configuración de eventos | Mariel Jara |
-| 12 | Semana 2 | 18 jun | Fase 2 | Test `TicketReservationManager` – flujo de reserva con cálculo de precios e impuestos | Rodrigo Fernandez |
-| 13 | Semana 2 | 19 jun | Fase 2 | Test `PaymentManager` – orquestación de pago con stubs de Stripe/PayPal | Rodrigo Fernandez |
-| 14 | Semana 2 | 19 jun | Fase 2 | Test `NotificationManager` y `CheckInManager` – emails transaccionales y check-in | Alvaro Quispe |
-| 15 | Semana 2 | 20 jun | Fase 2 | Test `SubscriptionManager`, `PromoCodeRequestManager` y `GroupManager` – suscripciones, descuentos y grupos | Gustavo Sequeiros |
-| 16 | Semana 2 | 20 jun | Fase 2 | Test E2E `NormalFlowE2ETest` – flujo completo reserva→pago→email→check-in | Christian Mestas |
-| 17 | Semana 2 | 23 jun | Fase 3 | Test contrato API admin: `EventApiController`, `ConfigurationApiController`, `AdminReservationApiController` | Mariel Jara |
-| 18 | Semana 2 | 23 jun | Fase 3 | Test webhooks de pago: `StripePaymentWebhookController`, `PayPalCallbackController`, `MolliePaymentWebhookController` | Alvaro Quispe |
-| 19 | Semana 2 | 24 jun | Fase 3 | Test contrato API pública: `EventApiV2Controller`, `ReservationApiV2Controller`, `TicketApiV2Controller` | Mathias Barrios |
-| 20 | Semana 2 | 24 jun | Fase 3 | Test integración frontend Angular (reserva/pago) + Lit admin + consolidación de reportes y Wiki | Christian Mestas, Mariel Jara |
+| 10 | Semana 1 | 17 jun | Fase 1 | Test de repositorios de usuarios y organizaciones | Alvaro Quispe |
+| 11 | Semana 2 | 18 jun | Fase 2 | Test del flujo de creación y configuración de eventos | Mariel Jara |
+| 12 | Semana 2 | 18 jun | Fase 2 | Test del flujo de reserva con cálculo de precios e impuestos | Rodrigo Fernandez |
+| 13 | Semana 2 | 19 jun | Fase 2 | Test del flujo de check-in y validación de tickets | Alvaro Quispe |
+| 14 | Semana 2 | 19 jun | Fase 2 | Test del flujo de gestión de reservas administrativas | Gustavo Sequeiros |
+| 15 | Semana 2 | 20 jun | Fase 2 | Test del flujo completo de reserva → pago → check-in | Christian Mestas |
+| 16 | Semana 2 | 23 jun | Fase 3 | Test de endpoints de administración: creación y publicación de eventos, configuración del sistema, check-in y gestión de reservas | Mariel Jara, Alvaro Quispe |
+| 17 | Semana 2 | 23 jun | Fase 3 | Test de endpoints públicos: consulta de eventos, reserva de entradas, pago y casos de borde de reserva | Gustavo Sequeiros, Mathias Barrios |
+| 18 | Semana 2 | 24 jun | Fase 3 | Test de webhooks de confirmación de pago (Stripe y Mollie) | Alvaro Quispe |
+| 19 | Semana 2 | 24 jun | Fase 3 | Consolidación de reportes y actualización de documentación | Christian Mestas, Mariel Jara |
 
-> [!IMPORTANT]
-> Las Fases son secuenciales. No se inicia la Fase 2 hasta que la Fase 1 tenga el pipeline verde. No se inicia la Fase 3 hasta que la Fase 2 haya sido aprobada. El reporte final debe estar publicado en la Wiki antes del 24 de junio (cierre del sprint).
+---
 
+## Cobertura de Endpoints Obligatorios
 
+Se han seleccionado 30 endpoints críticos del flujo **Reserva → Pago → Check-In** para garantizar cobertura de integración. A continuación se detallan los 30 endpoints obligatorios agrupados por dominio funcional.
+
+### Administración de Eventos y Configuración
+
+| ID | Método | Endpoint | Controlador |
+| :---: | :--- | :--- | :--- |
+| A1 | POST | `/admin/api/events/new` | `EventApiController` |
+| A2 | PUT | `/admin/api/events/{id}/status` | `EventApiController` |
+| A3 | POST | `/admin/api/configuration/update` | `ConfigurationApiController` |
+
+### Reserva de Cliente
+
+| ID | Método | Endpoint | Controlador |
+| :---: | :--- | :--- | :--- |
+| R1 | GET | `/api/v2/public/event/{name}` | `EventApiV2Controller` |
+| R2 | GET | `/api/v2/public/event/{name}/ticket-categories` | `EventApiV2Controller` |
+| R3 | POST | `/api/v2/public/event/{name}/reserve-tickets` | `EventApiV2Controller` |
+| R4 | GET | `/api/v2/public/reservation/{id}` | `ReservationApiV2Controller` |
+| R5 | POST | `/api/v2/public/reservation/{id}/validate-to-overview` | `ReservationApiV2Controller` |
+| R6 | POST | `/api/v2/public/reservation/{id}` | `ReservationApiV2Controller` |
+| R9 | PUT | `/api/v2/public/event/{name}/ticket/{id}` | `TicketApiV2Controller` |
+| R10 | DELETE | `/api/v2/public/event/{name}/ticket/{id}` | `TicketApiV2Controller` |
+
+### Pago
+
+| ID | Método | Endpoint | Controlador |
+| :---: | :--- | :--- | :--- |
+| P1 | POST | `/api/v2/public/reservation/{id}/payment/{method}/init` | `ReservationApiV2Controller` |
+| P2 | GET | `/api/v2/public/reservation/{id}/payment/{method}/status` | `ReservationApiV2Controller` |
+| P3 | POST | `/api/payment/webhook/stripe/payment` | `StripePaymentWebhookController` |
+| P4 | POST | `/api/payment/webhook/mollie/reservation/{id}` | `MolliePaymentWebhookController` |
+
+### Check-In
+
+| ID | Método | Endpoint | Controlador |
+| :---: | :--- | :--- | :--- |
+| C1 | GET | `/admin/api/check-in/event/{name}/attendees` | `CheckInApiController` |
+| C2 | POST | `/admin/api/check-in/event/{name}/ticket/{id}` | `CheckInApiController` |
+| C3 | GET | `/admin/api/check-in/event/{name}/ticket/{id}/status` | `CheckInApiController` |
+| C4 | GET | `/admin/api/check-in/event/{name}/statistics` | `CheckInApiController` |
+| C5 | POST | `/admin/api/check-in/event/{name}/bulk` | `CheckInApiController` |
+| C6 | POST | `/admin/api/check-in/event/{name}/ticket/{id}/confirm-on-site-payment` | `CheckInApiController` |
+
+### Gestión de Reservas (Admin)
+
+| ID | Método | Endpoint | Controlador |
+| :---: | :--- | :--- | :--- |
+| A4 | GET | `/admin/api/reservation/{type}/{id}/reservations/list` | `AdminReservationApiController` |
+| A7 | POST | `/admin/api/reservation/{type}/{id}/{reservationId}/refund` | `AdminReservationApiController` |
+
+### Casos de Borde y Errores
+
+| ID | Método | Endpoint | Controlador |
+| :---: | :--- | :--- | :--- |
+| E1 | GET | `/api/v2/public/reservation/{id}/status` | `ReservationApiV2Controller` |
+| E2 | POST | `/api/v2/public/reservation/{id}/back-to-booking` | `ReservationApiV2Controller` |
+| E3 | POST | `/api/v2/public/reservation/{id}/apply-code` | `ReservationApiV2Controller` |
+| E4 | DELETE | `/api/v2/public/reservation/{id}` | `ReservationApiV2Controller` |
+| E5 | POST | `/admin/api/check-in/event/{name}/ticket/{id}/revert-check-in` | `CheckInApiController` |
+| E8 | POST | `/admin/api/check-in/event/{name}/ticket/{id}` | `CheckInApiController` |
+| E9 | POST | `/admin/api/check-in/event/{name}/ticket/{id}` | `CheckInApiController` |
+
+### Resumen
+
+| Métrica | Valor |
+| :--- | :--- |
+| Total de endpoints obligatorios | 30 |
+| Controladores involucrados | 8 |
