@@ -25,6 +25,7 @@ import static alfio.test.util.IntegrationTestUtil.owner;
 import static alfio.test.util.TestUtil.clockProvider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -43,8 +44,13 @@ import alfio.model.TicketCategory;
 import alfio.model.metadata.AlfioMetadata;
 import alfio.model.modification.AdminReservationModification;
 import alfio.model.modification.DateTimeModification;
+import alfio.model.modification.EventModification;
 import alfio.model.modification.TicketCategoryModification;
+import alfio.model.modification.support.LocationDescriptor;
+import alfio.model.transaction.PaymentProxy;
 import alfio.model.transaction.UserDefinedOfflinePaymentMethod;
+import alfio.model.user.Role;
+import alfio.model.user.User;
 import alfio.repository.EventDeleterRepository;
 import alfio.repository.EventRepository;
 import alfio.repository.TicketCategoryRepository;
@@ -322,6 +328,157 @@ class EventApiControllerIntegrationTest {
                 .anyMatch(pmItem -> blItem.getPaymentMethodId().equals(pmItem.getPaymentMethodId()))));
     }
 
+    // ========================================================================
+    // A1: POST /admin/api/events/new — Create event with ticket category
+    // ========================================================================
+
+    @Test
+    void createEventWithValidData() {
+        IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
+        var orgAndUser = createOrgAndUser();
+        var principal = Mockito.mock(Authentication.class);
+        when(principal.getName()).thenReturn(owner(orgAndUser.getRight()));
+
+        var modification = buildEventModification(orgAndUser.getLeft().getId());
+        String result = eventApiController.insertEvent(modification, principal);
+        assertNotNull(result);
+    }
+
+    @Test
+    void createEventWithMultipleCategories() {
+        IntegrationTestUtil.ensureMinimalConfiguration(configurationRepository);
+        var orgAndUser = createOrgAndUser();
+        var principal = Mockito.mock(Authentication.class);
+        when(principal.getName()).thenReturn(owner(orgAndUser.getRight()));
+
+        var modification = buildEventModificationWithMultipleCategories(orgAndUser.getLeft().getId());
+        String result = eventApiController.insertEvent(modification, principal);
+        assertNotNull(result);
+    }
+
+    // ========================================================================
+    // A2: PUT /admin/api/events/{id}/status?active=true — Publish event
+    // ========================================================================
+
+    @Test
+    void publishDraftEvent() {
+        var eventAndUser = createEvent(Event.EventFormat.IN_PERSON);
+        event = eventAndUser.getKey();
+        var principal = Mockito.mock(Authentication.class);
+        when(principal.getName()).thenReturn(owner(eventAndUser.getValue()));
+
+        assertEquals(Event.Status.DRAFT, event.getStatus());
+
+        String result = eventApiController.activateEvent(event.getId(), true, principal);
+        assertEquals("OK", result);
+
+        var updatedEvent = eventRepository.findById(event.getId());
+        assertEquals(Event.Status.PUBLIC, updatedEvent.getStatus());
+    }
+
+    @Test
+    void unpublishPublicEvent() {
+        var eventAndUser = createEvent(Event.EventFormat.IN_PERSON);
+        event = eventAndUser.getKey();
+        var principal = Mockito.mock(Authentication.class);
+        when(principal.getName()).thenReturn(owner(eventAndUser.getValue()));
+
+        eventApiController.activateEvent(event.getId(), true, principal);
+        var publishedEvent = eventRepository.findById(event.getId());
+        assertEquals(Event.Status.PUBLIC, publishedEvent.getStatus());
+
+        String result = eventApiController.activateEvent(event.getId(), false, principal);
+        assertEquals("OK", result);
+
+        var unpublishedEvent = eventRepository.findById(event.getId());
+        assertEquals(Event.Status.DRAFT, unpublishedEvent.getStatus());
+    }
+
+    private Pair<alfio.model.user.Organization, String> createOrgAndUser() {
+        String orgName = java.util.UUID.randomUUID().toString();
+        String username = java.util.UUID.randomUUID().toString();
+        var orgMod = new alfio.model.modification.OrganizationModification(
+                null, orgName, "email@example.com", "org", null, null);
+        userManager.createOrganization(orgMod, null);
+        var org = organizationRepository.findByName(orgName).orElseThrow();
+        userManager.insertUser(org.getId(), username, "test", "test", "test@example.com",
+                Role.OPERATOR, User.Type.INTERNAL, null);
+        userManager.insertUser(org.getId(), owner(username), "test", "test", "test@example.com",
+                Role.OWNER, User.Type.INTERNAL, null);
+        return Pair.of(org, username);
+    }
+
+    private EventModification buildEventModification(int organizationId) {
+        return buildEventModificationWithCategories(organizationId, List.of(new TicketCategoryModification(
+                null, "default", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
+                new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1),
+                        LocalTime.now(clockProvider().getClock())),
+                new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1),
+                        LocalTime.now(clockProvider().getClock())),
+                DESCRIPTION, BigDecimal.TEN, false, "", false,
+                null, null, null, null, null, 0, null, null, AlfioMetadata.empty())));
+    }
+
+    private EventModification buildEventModificationWithMultipleCategories(int organizationId) {
+        return buildEventModificationWithCategories(organizationId, List.of(
+                new TicketCategoryModification(
+                        null, "category-A", TicketCategory.TicketAccessType.INHERIT, AVAILABLE_SEATS,
+                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1),
+                                LocalTime.now(clockProvider().getClock())),
+                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1),
+                                LocalTime.now(clockProvider().getClock())),
+                        DESCRIPTION, BigDecimal.TEN, false, "", false,
+                        null, null, null, null, null, 0, null, null, AlfioMetadata.empty()),
+                new TicketCategoryModification(
+                        null, "category-B", TicketCategory.TicketAccessType.INHERIT, 10,
+                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).minusDays(1),
+                                LocalTime.now(clockProvider().getClock())),
+                        new DateTimeModification(LocalDate.now(clockProvider().getClock()).plusDays(1),
+                                LocalTime.now(clockProvider().getClock())),
+                        DESCRIPTION, BigDecimal.ONE, false, "", false,
+                        null, null, null, null, null, 0, null, null, AlfioMetadata.empty())));
+    }
+
+    private EventModification buildEventModificationWithCategories(int organizationId,
+            List<TicketCategoryModification> categories) {
+        Map<String, String> desc = Map.of("en", "Test event description");
+        return new EventModification(
+                null,
+                Event.EventFormat.IN_PERSON,
+                "http://website.example.com",
+                "http://external.example.com",
+                "http://terms.example.com",
+                "http://privacy.example.com",
+                "http://image.example.com",
+                null,
+                "event-" + java.util.UUID.randomUUID(),
+                "Test Event Display Name",
+                organizationId,
+                "Test Location",
+                "0.0",
+                "0.0",
+                ClockProvider.clock().getZone().getId(),
+                desc,
+                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(5),
+                        LocalTime.now(ClockProvider.clock())),
+                new DateTimeModification(LocalDate.now(ClockProvider.clock()).plusDays(6),
+                        LocalTime.now(ClockProvider.clock())),
+                BigDecimal.TEN,
+                "CHF",
+                AVAILABLE_SEATS,
+                BigDecimal.ONE,
+                true,
+                List.of(PaymentProxy.OFFLINE),
+                categories,
+                false,
+                new LocationDescriptor("", "", "", ""),
+                7,
+                null,
+                null,
+                AlfioMetadata.empty(),
+                List.of());
+    }
+
     private AdminReservationModification getTestAdminReservationModification() {
         DateTimeModification expiration = DateTimeModification.fromZonedDateTime(
                 ZonedDateTime.now(ClockProvider.clock()).plusDays(1));
@@ -406,6 +563,8 @@ class EventApiControllerIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        eventDeleterRepository.deleteAllForEvent(event.getId());
+        if (event != null) {
+            eventDeleterRepository.deleteAllForEvent(event.getId());
+        }
     }
 }
