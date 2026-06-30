@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketCategoryDescriptionRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">TicketCategoryDescriptionRepository.java</span></div><h1>TicketCategoryDescriptionRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.TicketCategoryDescription;
+import ch.digitalfondue.npjt.Bind;
+import ch.digitalfondue.npjt.Query;
+import ch.digitalfondue.npjt.QueryRepository;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@QueryRepository
+public interface TicketCategoryDescriptionRepository {
+
+    @Query(&quot;select * from ticket_category_text where ticket_category_id_fk = :ticketCategoryId&quot;)
+    List&lt;TicketCategoryDescription&gt; findByTicketCategoryId(@Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId);
+
+    @Query(
+            &quot;select description from ticket_category_text where ticket_category_id_fk = :ticketCategoryId and locale = :locale&quot;)
+    Optional&lt;String&gt; findByTicketCategoryIdAndLocale(
+            @Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId, @Bind(&quot;locale&quot;) String locale);
+
+    @Query(
+            &quot;insert into ticket_category_text(ticket_category_id_fk, locale, description) values (:ticketCategoryId, :locale, :description)&quot;)
+    int insert(
+            @Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId,
+            @Bind(&quot;locale&quot;) String locale,
+            @Bind(&quot;description&quot;) String description);
+
+    @Query(&quot;delete from ticket_category_text where ticket_category_id_fk = :ticketCategoryId&quot;)
+    int delete(@Bind(&quot;ticketCategoryId&quot;) int ticketCategoryId);
+
+    @Query(&quot;select * from ticket_category_text where ticket_category_id_fk in (:ticketCategoryIds)&quot;)
+    List&lt;TicketCategoryDescription&gt; findByTicketCategoryIds(
+            @Bind(&quot;ticketCategoryIds&quot;) Collection&lt;Integer&gt; ticketCategoryIds);
+
+    default Map&lt;String, String&gt; descriptionForTicketCategory(int ticketCategory) {
+<span class="fc" id="L52">        return findByTicketCategoryId(ticketCategory).stream()</span>
+<span class="fc" id="L53">                .collect(Collectors.toMap(</span>
+                        TicketCategoryDescription::getLocale, TicketCategoryDescription::getDescription));
+    }
+
+    default Map&lt;Integer, Map&lt;String, String&gt;&gt; descriptionsByTicketCategory(Collection&lt;Integer&gt; ticketCategoryIds) {
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (ticketCategoryIds.isEmpty()) {</span>
+<span class="fc" id="L59">            return Collections.emptyMap();</span>
+        }
+
+<span class="fc" id="L62">        Map&lt;Integer, Map&lt;String, String&gt;&gt; res = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L63">        findByTicketCategoryIds(ticketCategoryIds).forEach(t -&gt; {</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">            if (!res.containsKey(t.getTicketCategoryId())) {</span>
+<span class="fc" id="L65">                res.put(t.getTicketCategoryId(), new HashMap&lt;&gt;());</span>
+            }
+<span class="fc" id="L67">            res.get(t.getTicketCategoryId()).put(t.getLocale(), t.getDescription());</span>
+<span class="fc" id="L68">        });</span>
+<span class="fc" id="L69">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CheckInManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">CheckInManager.java</span></div><h1>CheckInManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.manager.AccessService.MEMBERSHIP_ROLES;
+import static alfio.manager.support.CheckInStatus.*;
+import static alfio.model.Audit.EventType.*;
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+import static alfio.util.Wrappers.optionally;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+
+import alfio.manager.support.*;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.Ticket.TicketStatus;
+import alfio.model.api.v1.admin.CheckInLogEntry;
+import alfio.model.audit.ScanAudit;
+import alfio.model.checkin.AttendeeSearchResults;
+import alfio.model.decorator.TicketPriceContainer;
+import alfio.model.support.CheckInOutputColorConfiguration;
+import alfio.model.transaction.PaymentProxy;
+import alfio.repository.*;
+import alfio.repository.audit.ScanAuditRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.repository.user.UserRepository;
+import alfio.util.*;
+import com.google.gson.reflect.TypeToken;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.Principal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import lombok.AllArgsConstructor;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+@Transactional
+@AllArgsConstructor
+public class CheckInManager {
+
+<span class="fc" id="L78">    private static final Logger log = LoggerFactory.getLogger(CheckInManager.class);</span>
+<span class="fc" id="L79">    static final Pattern CYPHER_SPLITTER = Pattern.compile(&quot;\\|&quot;);</span>
+    private static final int SEARCH_ATTENDEES_LIMIT = 20;
+    private final TicketRepository ticketRepository;
+    private final EventRepository eventRepository;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final PurchaseContextFieldRepository purchaseContextFieldRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final ScanAuditRepository scanAuditRepository;
+    private final AuditingRepository auditingRepository;
+    private final ConfigurationManager configurationManager;
+    private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
+    private final TicketReservationManager ticketReservationManager;
+    private final ExtensionManager extensionManager;
+    private final AdditionalServiceItemRepository additionalServiceItemRepository;
+    private final PollRepository pollRepository;
+    private final ClockProvider clockProvider;
+    private final AccessService accessService;
+
+    private void checkIn(String uuid, Event event) {
+<span class="fc" id="L99">        Ticket ticket = ticketRepository.findByUUID(uuid);</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        Validate.isTrue(ticket.getStatus() == TicketStatus.ACQUIRED);</span>
+<span class="fc" id="L101">        ticketRepository.updateTicketStatusWithUUID(uuid, TicketStatus.CHECKED_IN.toString());</span>
+<span class="fc" id="L102">        ticketRepository.toggleTicketLocking(ticket.getId(), ticket.getCategoryId(), true);</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (event.supportsLinkedAdditionalServices()) {</span>
+<span class="fc" id="L104">            int n = additionalServiceItemRepository.updateItemsStatusWithTicketId(</span>
+<span class="fc" id="L105">                    event.getId(),</span>
+<span class="fc" id="L106">                    ticket.getTicketsReservationId(),</span>
+<span class="fc" id="L107">                    ticket.getId(),</span>
+                    AdditionalServiceItem.AdditionalServiceItemStatus.CHECKED_IN);
+<span class="pc bpc" id="L109" title="3 of 4 branches missed.">            if (n &gt; 0 &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L110">                log.debug(&quot;Checked in {} additional services for ticket {}&quot;, n, removeTabsAndNewlines(uuid));</span>
+            }
+        }
+<span class="fc" id="L113">        extensionManager.handleTicketCheckedIn(ticketRepository.findByUUID(uuid));</span>
+<span class="fc" id="L114">    }</span>
+
+    private void acquire(String uuid) {
+<span class="fc" id="L117">        Ticket ticket = ticketRepository.findByUUID(uuid);</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        Validate.isTrue(ticket.getStatus() == TicketStatus.TO_BE_PAID);</span>
+<span class="fc" id="L119">        ticketRepository.updateTicketStatusWithUUID(uuid, TicketStatus.ACQUIRED.toString());</span>
+<span class="fc" id="L120">        ticketReservationManager.registerAlfioTransactionForOnsitePayment(</span>
+<span class="fc" id="L121">                eventRepository.findById(ticket.getEventId()), ticket.getTicketsReservationId());</span>
+<span class="fc" id="L122">    }</span>
+
+    public AttendeeSearchResults searchAttendees(Event event, String query, int page, Principal principal) {
+<span class="fc" id="L125">        accessService.checkEventMembership(principal, event.getShortName(), MEMBERSHIP_ROLES);</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">        if (StringUtils.isBlank(query)) {</span>
+<span class="nc" id="L127">            return new AttendeeSearchResults(0, 0, 0, 0, List.of());</span>
+        }
+<span class="fc" id="L129">        int eventId = event.getId();</span>
+<span class="fc" id="L130">        var search = &quot;%&quot; + query + &quot;%&quot;;</span>
+<span class="fc" id="L131">        var results = ticketRepository.searchAttendees(</span>
+                eventId, search, SEARCH_ATTENDEES_LIMIT, SEARCH_ATTENDEES_LIMIT * page);
+<span class="fc" id="L133">        var statistics = ticketRepository.countSearchResults(eventId, search);</span>
+<span class="fc" id="L134">        var attendees = results.stream()</span>
+<span class="fc" id="L135">                .map(fi -&gt; {</span>
+<span class="fc" id="L136">                    var ticket = fi.getTicket();</span>
+<span class="fc" id="L137">                    var reservation = fi.getTicketReservation();</span>
+<span class="fc" id="L138">                    String amountToPay = null;</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">                    if (reservation.getPaymentMethod() == PaymentProxy.ON_SITE) {</span>
+<span class="nc" id="L140">                        var priceContainer = TicketPriceContainer.from(</span>
+                                ticket,
+<span class="nc" id="L142">                                reservation.getVatStatus(),</span>
+<span class="nc" id="L143">                                reservation.getVAT(),</span>
+<span class="nc" id="L144">                                event.getVatStatus(),</span>
+<span class="nc" id="L145">                                reservation.getDiscount().orElse(null));</span>
+<span class="nc" id="L146">                        amountToPay = event.getCurrency() + &quot; &quot;</span>
+<span class="nc" id="L147">                                + MonetaryUtil.formatUnit(priceContainer.getFinalPrice(), event.getCurrency());</span>
+                    }
+<span class="fc" id="L149">                    return new AttendeeSearchResults.AttendeeResult(</span>
+<span class="fc" id="L150">                            ticket.getUuid(),</span>
+<span class="fc" id="L151">                            ticket.getPublicUuid(),</span>
+<span class="fc" id="L152">                            ticket.getFirstName(),</span>
+<span class="fc" id="L153">                            ticket.getLastName(),</span>
+<span class="fc" id="L154">                            fi.getTicketCategory().getName(),</span>
+<span class="fc" id="L155">                            fi.getTicketAdditionalInfo(),</span>
+<span class="fc" id="L156">                            ticket.getStatus(),</span>
+                            amountToPay);
+                })
+<span class="fc" id="L159">                .collect(Collectors.toList());</span>
+<span class="fc" id="L160">        int totalPages = (int) Math.ceil((statistics.getTotal() / (double) SEARCH_ATTENDEES_LIMIT));</span>
+<span class="fc" id="L161">        return new AttendeeSearchResults(statistics.getTotal(), statistics.getCheckedIn(), totalPages, page, attendees);</span>
+    }
+
+    /**
+     * Simplified and more performant procedure for online events' check-in
+     *
+     * @param ticket
+     * @param event
+     * @return
+     */
+    public CheckInStatus performCheckinForOnlineEvent(Ticket ticket, EventCheckInInfo event, TicketCategory tc) {
+<span class="fc" id="L172">        Validate.isTrue(EventUtil.isAccessOnline(tc, event));</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        if (!tc.hasValidCheckIn(event.now(clockProvider), event.getZoneId())) {</span>
+<span class="fc" id="L174">            return INVALID_TICKET_CATEGORY_CHECK_IN_DATE;</span>
+        }
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        if (ticket.isCheckedIn()) {</span>
+            // ticket is already checked in, there's no reason to attempt an update of the record.
+<span class="fc" id="L178">            return ALREADY_CHECK_IN;</span>
+        }
+<span class="fc" id="L180">        int affectedCount = ticketRepository.performCheckIn(ticket.getUuid(), event.getId());</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        if (affectedCount == 1) {</span>
+<span class="fc" id="L182">            auditingRepository.insert(</span>
+<span class="fc" id="L183">                    ticket.getTicketsReservationId(),</span>
+                    null,
+<span class="fc" id="L185">                    event.getId(),</span>
+                    CHECK_IN,
+                    new Date(),
+                    Audit.EntityType.TICKET,
+<span class="fc" id="L189">                    Integer.toString(ticket.getId()));</span>
+<span class="fc" id="L190">            extensionManager.handleTicketCheckedIn(ticket);</span>
+<span class="fc" id="L191">            return SUCCESS;</span>
+        }
+        // if affected count is not &quot;1&quot; we return a failure
+<span class="fc" id="L194">        return ERROR;</span>
+    }
+
+    public TicketAndCheckInResult confirmOnSitePayment(
+            String eventName, String ticketIdentifier, Optional&lt;String&gt; ticketCode, String username, String auditUser) {
+<span class="fc" id="L199">        return eventRepository</span>
+<span class="fc" id="L200">                .findOptionalByShortName(eventName)</span>
+<span class="fc" id="L201">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L202">                .flatMap(e -&gt; confirmOnSitePayment(ticketIdentifier).map((String s) -&gt; Pair.of(s, e)))</span>
+<span class="fc" id="L203">                .map(p -&gt; checkIn(p.getRight().getId(), ticketIdentifier, ticketCode, auditUser))</span>
+<span class="fc" id="L204">                .orElseGet(() -&gt;</span>
+<span class="fc" id="L205">                        new TicketAndCheckInResult(null, new DefaultCheckInResult(CheckInStatus.TICKET_NOT_FOUND, &quot;&quot;)));</span>
+    }
+
+    public Optional&lt;String&gt; confirmOnSitePayment(String ticketIdentifier) {
+<span class="fc" id="L209">        Optional&lt;String&gt; uuid = findAndLockTicket(ticketIdentifier)</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">                .filter(t -&gt; t.getStatus() == TicketStatus.TO_BE_PAID)</span>
+<span class="fc" id="L211">                .map(Ticket::getUuid);</span>
+
+<span class="fc" id="L213">        uuid.ifPresent(this::acquire);</span>
+<span class="fc" id="L214">        return uuid;</span>
+    }
+
+    public TicketAndCheckInResult checkIn(
+            String eventShortName,
+            String ticketIdentifier,
+            Optional&lt;String&gt; ticketCode,
+            String username,
+            String auditUser,
+            boolean automaticallyConfirmOnSitePayment) {
+<span class="fc" id="L224">        return eventRepository</span>
+<span class="fc" id="L225">                .findOptionalByShortName(eventShortName)</span>
+<span class="fc" id="L226">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L227">                .map(e -&gt; {</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">                    if (automaticallyConfirmOnSitePayment</span>
+                            &amp;&amp; CheckInStatus.MUST_PAY
+<span class="fc" id="L230">                                    == evaluateTicketStatus(eventShortName, ticketIdentifier, ticketCode)</span>
+<span class="fc" id="L231">                                            .getResult()</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">                                            .getStatus()) {</span>
+<span class="fc" id="L233">                        log.info(</span>
+                                &quot;in event {} automaticallyConfirmOnSitePayment for {}&quot;,
+                                eventShortName,
+                                ticketIdentifier);
+<span class="fc" id="L237">                        confirmOnSitePayment(eventShortName, ticketIdentifier, ticketCode, username, auditUser);</span>
+                    }
+<span class="fc" id="L239">                    return checkIn(e.getId(), ticketIdentifier, ticketCode, auditUser);</span>
+                })
+<span class="pc" id="L241">                .orElseGet(() -&gt; new TicketAndCheckInResult(</span>
+                        null, new DefaultCheckInResult(CheckInStatus.EVENT_NOT_FOUND, &quot;event not found&quot;)));
+    }
+
+    public TicketAndCheckInResult checkIn(
+            String shortName, String ticketIdentifier, Optional&lt;String&gt; ticketCode, String username, String auditUser) {
+<span class="nc" id="L247">        return checkIn(shortName, ticketIdentifier, ticketCode, username, auditUser, false);</span>
+    }
+
+    public TicketAndCheckInResult checkIn(
+            int eventId, String ticketIdentifier, Optional&lt;String&gt; ticketCode, String user) {
+<span class="fc" id="L252">        var optionalEvent = eventRepository.findOptionalById(eventId);</span>
+<span class="fc" id="L253">        TicketAndCheckInResult descriptor = extractStatus(</span>
+<span class="fc" id="L254">                eventId, ticketRepository.findByUUIDForUpdate(ticketIdentifier), ticketIdentifier, ticketCode);</span>
+<span class="fc" id="L255">        var checkInStatus = descriptor.getResult().getStatus();</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">        if (checkInStatus == OK_READY_TO_BE_CHECKED_IN) {</span>
+<span class="fc" id="L257">            var event = optionalEvent.orElseThrow();</span>
+<span class="fc" id="L258">            checkIn(ticketIdentifier, event);</span>
+<span class="fc" id="L259">            TicketWithCategory ticket = descriptor.getTicket();</span>
+<span class="fc" id="L260">            scanAuditRepository.insert(</span>
+                    ticketIdentifier,
+                    eventId,
+<span class="fc" id="L263">                    ZonedDateTime.now(clockProvider.getClock()),</span>
+                    user,
+                    SUCCESS,
+                    ScanAudit.Operation.SCAN);
+<span class="fc" id="L267">            auditingRepository.insert(</span>
+<span class="fc" id="L268">                    ticket.getTicketsReservationId(),</span>
+<span class="fc" id="L269">                    userRepository.findIdByUserName(user).orElse(null),</span>
+<span class="fc" id="L270">                    eventId,</span>
+                    CHECK_IN,
+                    new Date(),
+                    Audit.EntityType.TICKET,
+<span class="fc" id="L274">                    Integer.toString(descriptor.getTicket().getId()));</span>
+            // return also additional items and any additional info to display.
+<span class="fc" id="L276">            return new SuccessfulCheckIn(</span>
+                    ticket,
+<span class="fc" id="L278">                    getAdditionalServicesForTicket(ticket, event),</span>
+<span class="fc" id="L279">                    purchaseContextFieldRepository.findValuesForTicketAtCheckIn(ticket.getId()),</span>
+<span class="fc" id="L280">                    loadBoxColor(ticket));</span>
+<span class="fc bfc" id="L281" title="All 4 branches covered.">        } else if (checkInStatus == BADGE_SCAN_ALREADY_DONE || checkInStatus == OK_READY_FOR_BADGE_SCAN) {</span>
+<span class="fc bfc" id="L282" title="All 2 branches covered.">            var auditingStatus = checkInStatus == OK_READY_FOR_BADGE_SCAN ? BADGE_SCAN_SUCCESS : checkInStatus;</span>
+<span class="fc" id="L283">            scanAuditRepository.insert(</span>
+                    ticketIdentifier,
+                    eventId,
+<span class="fc" id="L286">                    ZonedDateTime.now(clockProvider.getClock()),</span>
+                    user,
+                    auditingStatus,
+                    ScanAudit.Operation.SCAN);
+<span class="fc" id="L290">            auditingRepository.insert(</span>
+<span class="fc" id="L291">                    descriptor.getTicket().getTicketsReservationId(),</span>
+<span class="fc" id="L292">                    userRepository.findIdByUserName(user).orElse(null),</span>
+<span class="fc" id="L293">                    eventId,</span>
+                    BADGE_SCAN,
+                    new Date(),
+                    Audit.EntityType.TICKET,
+<span class="fc" id="L297">                    Integer.toString(descriptor.getTicket().getId()));</span>
+<span class="fc" id="L298">            return new TicketAndCheckInResult(</span>
+                    null,
+                    new DefaultCheckInResult(
+                            auditingStatus,
+<span class="fc bfc" id="L302" title="All 2 branches covered.">                            checkInStatus == OK_READY_FOR_BADGE_SCAN ? &quot;scan successful&quot; : &quot;already scanned&quot;));</span>
+        }
+<span class="fc" id="L304">        return descriptor;</span>
+    }
+
+    public boolean manualCheckIn(int eventId, String ticketIdentifier, String user) {
+
+<span class="fc" id="L309">        Optional&lt;Ticket&gt; ticket = findAndLockTicket(ticketIdentifier);</span>
+<span class="fc" id="L310">        return ticket.map(t -&gt; {</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">                    if (t.getStatus() == TicketStatus.TO_BE_PAID) {</span>
+<span class="fc" id="L312">                        acquire(ticketIdentifier);</span>
+                    }
+
+<span class="fc" id="L315">                    checkIn(ticketIdentifier, eventRepository.findById(t.getEventId()));</span>
+<span class="fc" id="L316">                    scanAuditRepository.insert(</span>
+                            ticketIdentifier,
+                            eventId,
+<span class="fc" id="L319">                            ZonedDateTime.now(clockProvider.getClock()),</span>
+                            user,
+                            SUCCESS,
+                            ScanAudit.Operation.SCAN);
+<span class="fc" id="L323">                    auditingRepository.insert(</span>
+<span class="fc" id="L324">                            t.getTicketsReservationId(),</span>
+<span class="fc" id="L325">                            userRepository.findIdByUserName(user).orElse(null),</span>
+<span class="fc" id="L326">                            eventId,</span>
+                            Audit.EventType.MANUAL_CHECK_IN,
+                            new Date(),
+                            Audit.EntityType.TICKET,
+<span class="fc" id="L330">                            Integer.toString(t.getId()));</span>
+<span class="fc" id="L331">                    return true;</span>
+                })
+<span class="fc" id="L333">                .orElse(false);</span>
+    }
+
+    public boolean revertCheckIn(int eventId, String ticketIdentifier, String user) {
+<span class="fc" id="L337">        return findAndLockTicket(ticketIdentifier)</span>
+<span class="fc" id="L338">                .map(t -&gt; {</span>
+<span class="fc bfc" id="L339" title="All 2 branches covered.">                    if (t.getStatus() == TicketStatus.CHECKED_IN) {</span>
+<span class="fc" id="L340">                        TicketReservation reservation =</span>
+<span class="fc" id="L341">                                ticketReservationRepository.findReservationById(t.getTicketsReservationId());</span>
+<span class="pc bpc" id="L342" title="1 of 2 branches missed.">                        boolean onSitePayment = reservation.getPaymentMethod() == PaymentProxy.ON_SITE;</span>
+<span class="pc bpc" id="L343" title="1 of 2 branches missed.">                        TicketStatus revertedStatus = onSitePayment ? TicketStatus.TO_BE_PAID : TicketStatus.ACQUIRED;</span>
+<span class="fc" id="L344">                        ticketRepository.updateTicketStatusWithUUID(ticketIdentifier, revertedStatus.toString());</span>
+<span class="fc" id="L345">                        var event = eventRepository.findById(eventId);</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">                        if (event.supportsLinkedAdditionalServices()) {</span>
+<span class="fc" id="L347">                            additionalServiceItemRepository.updateItemsStatusWithTicketId(</span>
+<span class="fc" id="L348">                                    t.getEventId(),</span>
+<span class="fc" id="L349">                                    t.getTicketsReservationId(),</span>
+<span class="fc" id="L350">                                    t.getId(),</span>
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">                                    onSitePayment</span>
+<span class="nc" id="L352">                                            ? AdditionalServiceItem.AdditionalServiceItemStatus.TO_BE_PAID</span>
+<span class="fc" id="L353">                                            : AdditionalServiceItem.AdditionalServiceItemStatus.ACQUIRED);</span>
+                        }
+<span class="fc" id="L355">                        scanAuditRepository.insert(</span>
+                                ticketIdentifier,
+                                eventId,
+<span class="fc" id="L358">                                ZonedDateTime.now(clockProvider.getClock()),</span>
+                                user,
+                                OK_READY_TO_BE_CHECKED_IN,
+                                ScanAudit.Operation.REVERT);
+<span class="fc" id="L362">                        auditingRepository.insert(</span>
+<span class="fc" id="L363">                                t.getTicketsReservationId(),</span>
+<span class="fc" id="L364">                                userRepository.findIdByUserName(user).orElse(null),</span>
+<span class="fc" id="L365">                                eventId,</span>
+                                Audit.EventType.REVERT_CHECK_IN,
+                                new Date(),
+                                Audit.EntityType.TICKET,
+<span class="fc" id="L369">                                Integer.toString(t.getId()));</span>
+<span class="fc" id="L370">                        extensionManager.handleTicketRevertCheckedIn(ticketRepository.findByUUID(ticketIdentifier));</span>
+<span class="fc" id="L371">                        return true;</span>
+                    }
+<span class="fc" id="L373">                    return false;</span>
+                })
+<span class="fc" id="L375">                .orElse(false);</span>
+    }
+
+    private Optional&lt;Ticket&gt; findAndLockTicket(String uuid) {
+<span class="fc" id="L379">        return ticketRepository.findByUUIDForUpdate(uuid);</span>
+    }
+
+    public TicketAndCheckInResult evaluateTicketStatus(
+            int eventId, String ticketIdentifier, Optional&lt;String&gt; ticketCode) {
+<span class="fc" id="L384">        return extractStatus(</span>
+<span class="fc" id="L385">                eventRepository.findOptionalById(eventId),</span>
+<span class="fc" id="L386">                ticketRepository.findOptionalByUUID(ticketIdentifier),</span>
+                ticketIdentifier,
+                ticketCode);
+    }
+
+    public TicketAndCheckInResult evaluateTicketStatus(
+            String eventName, String ticketIdentifier, Optional&lt;String&gt; ticketCode) {
+<span class="fc" id="L393">        return extractStatus(</span>
+<span class="fc" id="L394">                eventRepository.findOptionalByShortName(eventName),</span>
+<span class="fc" id="L395">                ticketRepository.findOptionalByUUID(ticketIdentifier),</span>
+                ticketIdentifier,
+                ticketCode);
+    }
+
+    public TicketCheckInStatusResult retrieveTicketStatus(String ticketIdentifier) {
+<span class="fc" id="L401">        var ticket = ticketRepository.findByUUID(ticketIdentifier);</span>
+<span class="fc" id="L402">        return new TicketCheckInStatusResult(</span>
+<span class="fc" id="L403">                ticket.getUuid(),</span>
+<span class="fc" id="L404">                ticket.getFirstName(),</span>
+<span class="fc" id="L405">                ticket.getLastName(),</span>
+<span class="fc bfc" id="L406" title="All 2 branches covered.">                ticket.getStatus() == TicketStatus.CHECKED_IN ? ALREADY_CHECK_IN : OK_READY_TO_BE_CHECKED_IN,</span>
+<span class="fc" id="L407">                ticket.getTags());</span>
+    }
+
+    private TicketAndCheckInResult extractStatus(
+            int eventId, Optional&lt;Ticket&gt; maybeTicket, String ticketIdentifier, Optional&lt;String&gt; ticketCode) {
+<span class="fc" id="L412">        return extractStatus(eventRepository.findOptionalById(eventId), maybeTicket, ticketIdentifier, ticketCode);</span>
+    }
+
+    private TicketAndCheckInResult extractStatus(
+            Optional&lt;? extends EventCheckInInfo&gt; maybeEvent,
+            Optional&lt;Ticket&gt; maybeTicket,
+            String ticketIdentifier,
+            Optional&lt;String&gt; ticketCode) {
+
+<span class="fc bfc" id="L421" title="All 2 branches covered.">        if (maybeEvent.isEmpty()) {</span>
+<span class="fc" id="L422">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(EVENT_NOT_FOUND, &quot;Event not found&quot;));</span>
+        }
+
+<span class="fc bfc" id="L425" title="All 2 branches covered.">        if (maybeTicket.isEmpty()) {</span>
+<span class="fc" id="L426">            return new TicketAndCheckInResult(</span>
+                    null,
+                    new DefaultCheckInResult(TICKET_NOT_FOUND, &quot;Ticket with uuid &quot; + ticketIdentifier + &quot; not found&quot;));
+        }
+
+<span class="fc" id="L431">        Ticket ticket = maybeTicket.get();</span>
+<span class="fc bfc" id="L432" title="All 2 branches covered.">        if (ticket.getCategoryId() == null) {</span>
+<span class="fc" id="L433">            return new TicketAndCheckInResult(</span>
+                    new TicketWithCategory(ticket, null),
+                    new DefaultCheckInResult(INVALID_TICKET_STATE, &quot;Invalid ticket state&quot;));
+        }
+
+<span class="fc" id="L438">        TicketCategory tc = ticketCategoryRepository.getById(ticket.getCategoryId());</span>
+
+<span class="fc" id="L440">        EventCheckInInfo event = maybeEvent.get();</span>
+<span class="fc bfc" id="L441" title="All 2 branches covered.">        if (ticketCode.filter(StringUtils::isNotBlank).isEmpty()) {</span>
+<span class="pc bpc" id="L442" title="1 of 2 branches missed.">            if (ticket.isCheckedIn()</span>
+<span class="fc bfc" id="L443" title="All 2 branches covered.">                    &amp;&amp; tc.getTicketCheckInStrategy() == TicketCategory.TicketCheckInStrategy.ONCE_PER_DAY) {</span>
+<span class="fc bfc" id="L444" title="All 2 branches covered.">                if (!isBadgeValidNow(tc, event)) {</span>
+                    // if the badge is not currently valid, we give an error
+<span class="fc" id="L446">                    return new TicketAndCheckInResult(</span>
+                            new TicketWithCategory(ticket, null),
+                            new DefaultCheckInResult(
+                                    INVALID_TICKET_CATEGORY_CHECK_IN_DATE, &quot;Not allowed to check in at this time.&quot;));
+                }
+<span class="fc" id="L451">                var ticketsReservationId = ticket.getTicketsReservationId();</span>
+<span class="fc" id="L452">                var now = event.now(clockProvider);</span>
+<span class="fc" id="L453">                var startOfDay = Date.from(now.toInstant().truncatedTo(ChronoUnit.DAYS));</span>
+<span class="fc" id="L454">                var endOfDay =</span>
+<span class="fc" id="L455">                        Date.from(now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));</span>
+<span class="fc" id="L456">                int previousScan = auditingRepository.countAuditsOfTypesInTheSameDay(</span>
+                        ticketsReservationId,
+<span class="fc" id="L458">                        Set.of(CHECK_IN.name(), MANUAL_CHECK_IN.name(), BADGE_SCAN.name()),</span>
+                        startOfDay,
+                        endOfDay);
+<span class="fc bfc" id="L461" title="All 2 branches covered.">                if (previousScan &gt; 0) {</span>
+<span class="fc" id="L462">                    return new TicketAndCheckInResult(</span>
+                            new TicketWithCategory(ticket, null),
+                            new DefaultCheckInResult(BADGE_SCAN_ALREADY_DONE, &quot;Badge scan already done&quot;));
+                }
+<span class="fc" id="L466">                return new TicketAndCheckInResult(</span>
+                        new TicketWithCategory(ticket, null),
+                        new DefaultCheckInResult(OK_READY_FOR_BADGE_SCAN, &quot;Badge scan already done&quot;));
+            }
+<span class="fc" id="L470">            return new TicketAndCheckInResult(null, new DefaultCheckInResult(EMPTY_TICKET_CODE, &quot;Missing ticket code&quot;));</span>
+        }
+
+<span class="fc" id="L473">        String code = ticketCode.get();</span>
+
+<span class="fc" id="L475">        ZonedDateTime now = event.now(clockProvider);</span>
+<span class="fc bfc" id="L476" title="All 2 branches covered.">        if (!tc.hasValidCheckIn(now, event.getZoneId())) {</span>
+<span class="fc" id="L477">            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy - hh:mm&quot;);</span>
+<span class="pc bpc" id="L478" title="1 of 2 branches missed.">            String from = tc.getValidCheckInFrom() == null</span>
+<span class="fc" id="L479">                    ? &quot;..&quot;</span>
+<span class="pc" id="L480">                    : formatter.format(tc.getValidCheckInFrom(event.getZoneId()));</span>
+            String to =
+<span class="pc bpc" id="L482" title="1 of 2 branches missed.">                    tc.getValidCheckInTo() == null ? &quot;..&quot; : formatter.format(tc.getValidCheckInTo(event.getZoneId()));</span>
+<span class="fc" id="L483">            String formattedNow = formatter.format(now);</span>
+<span class="fc" id="L484">            return new TicketAndCheckInResult(</span>
+                    new TicketWithCategory(ticket, tc),
+                    new DefaultCheckInResult(
+                            INVALID_TICKET_CATEGORY_CHECK_IN_DATE,
+<span class="fc" id="L488">                            String.format(</span>
+                                    &quot;Invalid check-in date: valid range for category %s is from %s to %s, current time is: %s&quot;,
+<span class="fc" id="L490">                                    tc.getName(), from, to, formattedNow)));</span>
+        }
+
+<span class="fc bfc" id="L493" title="All 2 branches covered.">        if (!code.equals(ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive()))) {</span>
+<span class="fc" id="L494">            return new TicketAndCheckInResult(</span>
+                    null, new DefaultCheckInResult(INVALID_TICKET_CODE, &quot;Ticket qr code does not match&quot;));
+        }
+
+<span class="fc" id="L498">        final TicketStatus ticketStatus = ticket.getStatus();</span>
+
+<span class="fc bfc" id="L500" title="All 2 branches covered.">        if (ticketStatus == TicketStatus.TO_BE_PAID) {</span>
+<span class="fc" id="L501">            return new TicketAndCheckInResult(</span>
+                    new TicketWithCategory(ticket, tc),
+                    new OnSitePaymentResult(
+                            MUST_PAY,
+                            &quot;Must pay for ticket&quot;,
+<span class="fc" id="L506">                            MonetaryUtil.centsToUnit(ticket.getFinalPriceCts(), ticket.getCurrencyCode()),</span>
+<span class="fc" id="L507">                            ticket.getCurrencyCode()));</span>
+        }
+
+<span class="fc bfc" id="L510" title="All 2 branches covered.">        if (ticketStatus == TicketStatus.CHECKED_IN) {</span>
+<span class="fc" id="L511">            return new TicketAndCheckInResult(</span>
+                    new TicketWithCategory(ticket, tc),
+                    new DefaultCheckInResult(ALREADY_CHECK_IN, &quot;Error: already checked in&quot;));
+        }
+
+<span class="fc bfc" id="L516" title="All 2 branches covered.">        if (ticket.getStatus() != TicketStatus.ACQUIRED) {</span>
+<span class="fc" id="L517">            return new TicketAndCheckInResult(</span>
+                    new TicketWithCategory(ticket, tc),
+                    new DefaultCheckInResult(
+                            INVALID_TICKET_STATE,
+<span class="fc" id="L521">                            &quot;Invalid ticket state, expected ACQUIRED state, received &quot; + ticket.getStatus()));</span>
+        }
+
+<span class="fc" id="L524">        return new TicketAndCheckInResult(</span>
+                new TicketWithCategory(ticket, tc),
+                new DefaultCheckInResult(OK_READY_TO_BE_CHECKED_IN, &quot;Ready to be checked in&quot;));
+    }
+
+    private static boolean isBadgeValidNow(TicketCategory tc, EventCheckInInfo event) {
+<span class="fc" id="L530">        var zoneId = event.getZoneId();</span>
+<span class="fc" id="L531">        var now = ZonedDateTime.now(ClockProvider.clock().withZone(zoneId));</span>
+<span class="fc bfc" id="L532" title="All 2 branches covered.">        return now.isAfter(toZoneIdIfNotNull(tc.getValidCheckInFrom(), zoneId).orElse(event.getBegin()))</span>
+<span class="pc bpc" id="L533" title="1 of 2 branches missed.">                &amp;&amp; now.isAfter(</span>
+<span class="fc" id="L534">                        toZoneIdIfNotNull(tc.getTicketValidityStart(), zoneId).orElse(event.getBegin()))</span>
+<span class="pc bpc" id="L535" title="1 of 2 branches missed.">                &amp;&amp; now.isBefore(</span>
+<span class="fc" id="L536">                        toZoneIdIfNotNull(tc.getTicketValidityEnd(), zoneId).orElse(event.getEnd()));</span>
+    }
+
+    private static Optional&lt;ZonedDateTime&gt; toZoneIdIfNotNull(ZonedDateTime in, ZoneId zoneId) {
+<span class="pc" id="L540">        return Optional.ofNullable(in).map(d -&gt; d.withZoneSameInstant(zoneId));</span>
+    }
+
+    static Pair&lt;Cipher, SecretKeySpec&gt; getCypher(String key) {
+        try {
+<span class="fc" id="L545">            SecretKeyFactory factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA1&quot;);</span>
+<span class="fc" id="L546">            int iterations = 1000;</span>
+<span class="fc" id="L547">            int keyLength = 256;</span>
+<span class="fc" id="L548">            PBEKeySpec spec =</span>
+<span class="fc" id="L549">                    new PBEKeySpec(key.toCharArray(), key.getBytes(StandardCharsets.UTF_8), iterations, keyLength);</span>
+<span class="fc" id="L550">            SecretKey secretKey = factory.generateSecret(spec);</span>
+<span class="fc" id="L551">            SecretKeySpec secret = new SecretKeySpec(secretKey.getEncoded(), &quot;AES&quot;);</span>
+<span class="fc" id="L552">            Cipher cipher = Cipher.getInstance(&quot;AES/CBC/PKCS5Padding&quot;);</span>
+<span class="fc" id="L553">            return Pair.of(cipher, secret);</span>
+<span class="nc" id="L554">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L555">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+    public static String encrypt(String key, String payload) {
+        try {
+<span class="fc" id="L561">            Pair&lt;Cipher, SecretKeySpec&gt; cipherAndSecret = getCypher(key);</span>
+<span class="fc" id="L562">            Cipher cipher = cipherAndSecret.getKey();</span>
+<span class="fc" id="L563">            cipher.init(Cipher.ENCRYPT_MODE, cipherAndSecret.getRight());</span>
+<span class="fc" id="L564">            byte[] data = cipher.doFinal(payload.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L565">            byte[] iv = cipher.getIV();</span>
+<span class="fc" id="L566">            return Base64.encodeBase64URLSafeString(iv) + &quot;|&quot; + Base64.encodeBase64URLSafeString(data);</span>
+<span class="nc" id="L567">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L568">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+    public List&lt;Integer&gt; getAttendeesIdentifiers(EventAndOrganizationId ev, Date changedSince, String username) {
+<span class="fc" id="L573">        return Optional.ofNullable(ev)</span>
+<span class="fc" id="L574">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L575">                .filter(isOfflineCheckInEnabled())</span>
+<span class="fc" id="L576">                .map(event -&gt; ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))</span>
+<span class="fc" id="L577">                .orElseGet(Collections::emptyList);</span>
+    }
+
+    public List&lt;Integer&gt; getAttendeesIdentifiers(int eventId, Date changedSince, String username) {
+<span class="nc" id="L581">        return eventRepository</span>
+<span class="nc" id="L582">                .findOptionalById(eventId)</span>
+<span class="nc" id="L583">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="nc" id="L584">                .map(event -&gt; ticketRepository.findAllAssignedByEventIdForCheckIn(event.getId(), changedSince))</span>
+<span class="nc" id="L585">                .orElse(Collections.emptyList());</span>
+    }
+
+    public List&lt;FullTicketInfo&gt; getAttendeesInformation(int eventId, List&lt;Integer&gt; ids, String username) {
+<span class="fc" id="L589">        return eventRepository</span>
+<span class="fc" id="L590">                .findOptionalById(eventId)</span>
+<span class="fc" id="L591">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L592">                .map(event -&gt; ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids))</span>
+<span class="fc" id="L593">                .orElse(Collections.emptyList());</span>
+    }
+
+    public Predicate&lt;EventAndOrganizationId&gt; isOfflineCheckInEnabled() {
+<span class="fc" id="L597">        return configurationManager.areBooleanSettingsEnabledForEvent(</span>
+                ALFIO_PI_INTEGRATION_ENABLED, OFFLINE_CHECKIN_ENABLED);
+    }
+
+    public Predicate&lt;EventAndOrganizationId&gt; isOfflineCheckInAndLabelPrintingEnabled() {
+<span class="fc" id="L602">        return isOfflineCheckInEnabled()</span>
+<span class="fc" id="L603">                .and(configurationManager.areBooleanSettingsEnabledForEvent(LABEL_PRINTING_ENABLED));</span>
+    }
+
+    public Map&lt;String, String&gt; getEncryptedAttendeesInformation(
+            Event ev, Set&lt;String&gt; additionalFields, List&lt;Integer&gt; ids) {
+
+<span class="fc" id="L609">        return Optional.ofNullable(ev)</span>
+<span class="fc" id="L610">                .filter(isOfflineCheckInEnabled())</span>
+<span class="fc" id="L611">                .map(event -&gt; {</span>
+<span class="fc" id="L612">                    boolean caseInsensitiveQRCode = ev.supportsQRCodeCaseInsensitive();</span>
+<span class="fc" id="L613">                    Map&lt;Integer, TicketCategory&gt; categories =</span>
+<span class="fc" id="L614">                            ticketCategoryRepository.findByEventIdAsMap(event.getId());</span>
+<span class="fc" id="L615">                    String eventKey = event.getPrivateKey();</span>
+
+<span class="fc" id="L617">                    Function&lt;FullTicketInfo, String&gt; hashedHMAC =</span>
+<span class="fc" id="L618">                            ticket -&gt; DigestUtils.sha256Hex(ticket.hmacTicketInfo(eventKey, caseInsensitiveQRCode));</span>
+<span class="fc" id="L619">                    var outputColorConfiguration = getOutputColorConfiguration(event, configurationManager);</span>
+
+                    // fetch polls for event, in order to determine if we have to print PIN or not
+<span class="fc" id="L622">                    var polls = pollRepository.findAllForEvent(event.getId());</span>
+<span class="fc bfc" id="L623" title="All 2 branches covered.">                    boolean hasPolls = !polls.isEmpty();</span>
+<span class="fc bfc" id="L624" title="All 2 branches covered.">                    var allowedTags = hasPolls</span>
+<span class="fc" id="L625">                            ? polls.stream()</span>
+<span class="fc" id="L626">                                    .flatMap(p -&gt; p.allowedTags().stream())</span>
+<span class="fc" id="L627">                                    .toList()</span>
+<span class="fc" id="L628">                            : List.&lt;String&gt;of();</span>
+
+<span class="fc" id="L630">                    Function&lt;FullTicketInfo, String&gt; encryptedBody = ticket -&gt; {</span>
+<span class="fc" id="L631">                        Map&lt;String, String&gt; info = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L632">                        info.put(&quot;firstName&quot;, ticket.getFirstName());</span>
+<span class="fc" id="L633">                        info.put(&quot;lastName&quot;, ticket.getLastName());</span>
+<span class="fc" id="L634">                        info.put(&quot;fullName&quot;, ticket.getFullName());</span>
+<span class="fc" id="L635">                        info.put(&quot;email&quot;, ticket.getEmail());</span>
+<span class="fc" id="L636">                        info.put(&quot;status&quot;, ticket.getStatus().toString());</span>
+<span class="fc" id="L637">                        info.put(&quot;uuid&quot;, ticket.getUuid());</span>
+<span class="fc bfc" id="L638" title="All 2 branches covered.">                        if (hasPolls</span>
+<span class="fc bfc" id="L639" title="All 2 branches covered.">                                &amp;&amp; (allowedTags.isEmpty()</span>
+<span class="fc bfc" id="L640" title="All 2 branches covered.">                                        || CollectionUtils.containsAny(allowedTags, ticket.getTags()))) {</span>
+<span class="fc" id="L641">                            info.put(&quot;pin&quot;, PinGenerator.uuidToPin(ticket.getUuid()));</span>
+                        }
+<span class="fc" id="L643">                        info.put(&quot;category&quot;, ticket.getTicketCategory().getName());</span>
+<span class="pc bpc" id="L644" title="1 of 2 branches missed.">                        if (outputColorConfiguration != null) {</span>
+<span class="nc" id="L645">                            info.put(&quot;boxColor&quot;, detectBoxColor(outputColorConfiguration, ticket.getCategoryId()));</span>
+                        }
+
+<span class="pc bpc" id="L648" title="1 of 2 branches missed.">                        if (!additionalFields.isEmpty()) {</span>
+<span class="fc" id="L649">                            Map&lt;String, String&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L650">                            fields.put(</span>
+                                    &quot;company&quot;,
+<span class="fc" id="L652">                                    trimToEmpty(ticket.getBillingDetails().getCompanyName()));</span>
+<span class="fc" id="L653">                            fields.put(&quot;category&quot;, ticket.getTicketCategory().getName());</span>
+<span class="fc" id="L654">                            fields.putAll(</span>
+                                    purchaseContextFieldRepository
+<span class="fc" id="L656">                                            .findValueForTicketId(ticket.getId(), additionalFields)</span>
+<span class="fc" id="L657">                                            .stream()</span>
+<span class="fc" id="L658">                                            .map(vd -&gt; {</span>
+                                                try {
+<span class="pc bpc" id="L660" title="1 of 2 branches missed.">                                                    if (StringUtils.isNotBlank(vd.getDescription())) {</span>
+<span class="fc" id="L661">                                                        Map&lt;String, Object&gt; description = Json.GSON.fromJson(</span>
+<span class="fc" id="L662">                                                                vd.getDescription(),</span>
+<span class="fc" id="L663">                                                                new TypeToken&lt;Map&lt;String, Object&gt;&gt;() {}.getType());</span>
+<span class="fc" id="L664">                                                        Object rv = description.get(&quot;restrictedValues&quot;);</span>
+<span class="pc bpc" id="L665" title="1 of 2 branches missed.">                                                        if (rv instanceof Map) {</span>
+                                                            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L667">                                                            Map&lt;String, String&gt; restrictedValues =</span>
+                                                                    (Map&lt;String, String&gt;) rv;
+<span class="fc" id="L669">                                                            return Pair.of(</span>
+<span class="fc" id="L670">                                                                    vd.getName(),</span>
+<span class="fc" id="L671">                                                                    restrictedValues.getOrDefault(</span>
+<span class="fc" id="L672">                                                                            vd.getValue(), vd.getValue()));</span>
+                                                        }
+                                                    }
+<span class="nc" id="L675">                                                } catch (Exception e) {</span>
+<span class="nc" id="L676">                                                    log.error(&quot;cannot deserialize restricted values&quot;, e);</span>
+<span class="nc" id="L677">                                                }</span>
+<span class="nc" id="L678">                                                return Pair.of(vd.getName(), vd.getValue());</span>
+                                            })
+<span class="fc" id="L680">                                            .collect(toMap(Pair::getLeft, Pair::getRight)));</span>
+<span class="fc" id="L681">                            info.put(&quot;additionalInfoJson&quot;, Json.toJson(fields));</span>
+                        }
+
+                        //
+<span class="fc" id="L685">                        TicketCategory tc = categories.get(ticket.getCategoryId());</span>
+<span class="pc bpc" id="L686" title="1 of 2 branches missed.">                        if (tc.getValidCheckInFrom() != null) {</span>
+<span class="nc" id="L687">                            info.put(</span>
+                                    &quot;validCheckInFrom&quot;,
+<span class="nc" id="L689">                                    Long.toString(tc.getValidCheckInFrom(event.getZoneId())</span>
+<span class="nc" id="L690">                                            .toEpochSecond()));</span>
+                        }
+<span class="pc bpc" id="L692" title="1 of 2 branches missed.">                        if (tc.getValidCheckInTo() != null) {</span>
+<span class="nc" id="L693">                            info.put(</span>
+                                    &quot;validCheckInTo&quot;,
+<span class="nc" id="L695">                                    Long.toString(tc.getValidCheckInTo(event.getZoneId())</span>
+<span class="nc" id="L696">                                            .toEpochSecond()));</span>
+                        }
+<span class="pc bpc" id="L698" title="1 of 2 branches missed.">                        if (tc.getTicketValidityStart() != null) {</span>
+<span class="nc" id="L699">                            info.put(</span>
+                                    &quot;ticketValidityStart&quot;,
+<span class="nc" id="L701">                                    Long.toString(tc.getTicketValidityStart(event.getZoneId())</span>
+<span class="nc" id="L702">                                            .toEpochSecond()));</span>
+                        }
+<span class="pc bpc" id="L704" title="1 of 2 branches missed.">                        if (tc.getTicketValidityEnd() != null) {</span>
+<span class="nc" id="L705">                            info.put(</span>
+                                    &quot;ticketValidityEnd&quot;,
+<span class="nc" id="L707">                                    Long.toString(tc.getTicketValidityEnd(event.getZoneId())</span>
+<span class="nc" id="L708">                                            .toEpochSecond()));</span>
+                        }
+<span class="fc" id="L710">                        info.put(</span>
+                                &quot;categoryCheckInStrategy&quot;,
+<span class="fc" id="L712">                                tc.getTicketCheckInStrategy().name());</span>
+                        //
+
+<span class="fc" id="L715">                        var additionalServicesInfo = getAdditionalServicesForTicket(ticket, event);</span>
+<span class="pc bpc" id="L716" title="1 of 2 branches missed.">                        if (!additionalServicesInfo.isEmpty()) {</span>
+<span class="nc" id="L717">                            info.put(&quot;additionalServicesInfoJson&quot;, Json.toJson(additionalServicesInfo));</span>
+                        }
+<span class="fc" id="L719">                        String key = ticket.ticketCode(eventKey, caseInsensitiveQRCode);</span>
+<span class="fc" id="L720">                        return encrypt(key, Json.toJson(info));</span>
+                    };
+<span class="fc" id="L722">                    return ticketRepository.findAllFullTicketInfoAssignedByEventId(event.getId(), ids).stream()</span>
+<span class="fc" id="L723">                            .collect(toMap(hashedHMAC, encryptedBody));</span>
+                })
+<span class="fc" id="L725">                .orElseGet(Collections::emptyMap);</span>
+    }
+
+    static CheckInOutputColorConfiguration getOutputColorConfiguration(
+            EventAndOrganizationId event, ConfigurationManager configurationManager) {
+<span class="fc" id="L730">        return configurationManager</span>
+<span class="fc" id="L731">                .getFor(CHECK_IN_COLOR_CONFIGURATION, event.getConfigurationLevel())</span>
+<span class="fc" id="L732">                .getValue()</span>
+<span class="fc" id="L733">                .flatMap(str -&gt; optionally(() -&gt; Json.fromJson(str, CheckInOutputColorConfiguration.class)))</span>
+<span class="fc" id="L734">                .orElse(null);</span>
+    }
+
+    private String loadBoxColor(TicketInfoContainer ticket) {
+<span class="fc" id="L738">        var eventAndOrganizationId = eventRepository.findEventAndOrganizationIdById(ticket.getEventId());</span>
+<span class="fc" id="L739">        return detectBoxColor(</span>
+<span class="fc" id="L740">                getOutputColorConfiguration(eventAndOrganizationId, configurationManager), ticket.getCategoryId());</span>
+    }
+
+    private static String detectBoxColor(CheckInOutputColorConfiguration outputColorConfiguration, Integer categoryId) {
+<span class="pc bpc" id="L744" title="1 of 2 branches missed.">        if (outputColorConfiguration == null) {</span>
+<span class="fc" id="L745">            return null;</span>
+        }
+<span class="nc" id="L747">        return outputColorConfiguration.getConfigurations().stream()</span>
+<span class="nc" id="L748">                .filter(cc -&gt; cc.getCategories().contains(categoryId))</span>
+<span class="nc" id="L749">                .map(CheckInOutputColorConfiguration.ColorConfiguration::getColorName)</span>
+<span class="nc" id="L750">                .findFirst()</span>
+<span class="nc" id="L751">                .orElse(outputColorConfiguration.getDefaultColorName());</span>
+    }
+
+    List&lt;AdditionalServiceInfo&gt; getAdditionalServicesForTicket(TicketInfoContainer ticket, Event event) {
+
+<span class="fc" id="L756">        String ticketsReservationId = ticket.getTicketsReservationId();</span>
+<span class="fc bfc" id="L757" title="All 2 branches covered.">        if (!event.supportsLinkedAdditionalServices()) {</span>
+            // return a result only for the first ticket if event does not support linked additional service
+<span class="fc" id="L759">            int firstId = ticketRepository</span>
+<span class="fc" id="L760">                    .findFirstTicketIdInReservation(ticketsReservationId)</span>
+<span class="fc" id="L761">                    .orElseThrow();</span>
+<span class="fc bfc" id="L762" title="All 2 branches covered.">            if (ticket.getId() != firstId) {</span>
+<span class="fc" id="L763">                return List.of();</span>
+            }
+        }
+
+        List&lt;BookedAdditionalService&gt; additionalServices;
+<span class="fc bfc" id="L768" title="All 2 branches covered.">        if (event.supportsLinkedAdditionalServices()) {</span>
+<span class="fc" id="L769">            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForTicket(</span>
+<span class="fc" id="L770">                    ticketsReservationId, ticket.getId(), ticket.getUserLanguage(), ticket.getEventId());</span>
+        } else {
+<span class="fc" id="L772">            additionalServices = additionalServiceItemRepository.getAdditionalServicesBookedForReservation(</span>
+<span class="fc" id="L773">                    ticketsReservationId, ticket.getUserLanguage(), ticket.getEventId());</span>
+        }
+<span class="fc" id="L775">        boolean additionalServicesEmpty = additionalServices.isEmpty();</span>
+<span class="fc bfc" id="L776" title="All 2 branches covered.">        if (!additionalServicesEmpty) {</span>
+<span class="fc" id="L777">            List&lt;Integer&gt; additionalServiceIds = additionalServices.stream()</span>
+<span class="fc" id="L778">                    .map(BookedAdditionalService::getAdditionalServiceId)</span>
+<span class="fc" id="L779">                    .collect(Collectors.toList());</span>
+<span class="fc" id="L780">            Map&lt;Integer, List&lt;AdditionalServiceFieldValue&gt;&gt; fields =</span>
+                    purchaseContextFieldRepository
+<span class="fc" id="L782">                            .loadTicketFieldsForAdditionalService(ticket.getId(), additionalServiceIds)</span>
+<span class="fc" id="L783">                            .stream()</span>
+<span class="fc" id="L784">                            .collect(Collectors.groupingBy(AdditionalServiceFieldValue::getAdditionalServiceId));</span>
+
+<span class="fc" id="L786">            return additionalServices.stream()</span>
+<span class="fc" id="L787">                    .map(as -&gt; new AdditionalServiceInfo(</span>
+<span class="fc" id="L788">                            as.getAdditionalServiceName(), as.getCount(), fields.get(as.getAdditionalServiceId())))</span>
+<span class="fc" id="L789">                    .collect(Collectors.toList());</span>
+        }
+<span class="fc" id="L791">        return List.of();</span>
+    }
+
+    public CheckInStatistics getStatistics(String eventName, List&lt;Integer&gt; categories, String username) {
+<span class="fc" id="L795">        return eventRepository</span>
+<span class="fc" id="L796">                .findOptionalByShortName(eventName)</span>
+<span class="fc" id="L797">                .filter(this::areStatsEnabled)</span>
+<span class="fc" id="L798">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L799">                .map(event -&gt; eventRepository.retrieveCheckInStatisticsForEvent(event.getId(), categories))</span>
+<span class="fc" id="L800">                .orElse(null);</span>
+    }
+
+    public List&lt;CheckInLogEntry&gt; retrieveLogEntries(String eventName, String username) {
+<span class="fc" id="L804">        return eventRepository</span>
+<span class="fc" id="L805">                .findOptionalEventAndOrganizationIdByShortName(eventName)</span>
+<span class="fc" id="L806">                .filter(EventManager.checkOwnership(username, organizationRepository))</span>
+<span class="fc" id="L807">                .map(event -&gt; scanAuditRepository.loadEntries(event.getId()))</span>
+<span class="fc" id="L808">                .orElse(List.of());</span>
+    }
+
+    private boolean areStatsEnabled(EventAndOrganizationId event) {
+<span class="fc" id="L812">        return configurationManager</span>
+<span class="fc" id="L813">                .getFor(CHECK_IN_STATS, event.getConfigurationLevel())</span>
+<span class="fc" id="L814">                .getValueAsBooleanOrDefault();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
