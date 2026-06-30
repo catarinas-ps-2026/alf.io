@@ -55,16 +55,15 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ContextConfiguration(
-    classes = {
-        DataSourceConfiguration.class,
-        TestConfiguration.class,
-        ControllerConfiguration.class,
-        CheckRestApiStabilityIntegrationTest.DisableSecurity.class,
-        SpringDocConfiguration.class,
-        SpringDocConfigProperties.class,
-        SpringDocWebMvcConfiguration.class,
-    }
-)
+        classes = {
+            DataSourceConfiguration.class,
+            TestConfiguration.class,
+            ControllerConfiguration.class,
+            CheckRestApiStabilityIntegrationTest.DisableSecurity.class,
+            SpringDocConfiguration.class,
+            SpringDocConfigProperties.class,
+            SpringDocWebMvcConfiguration.class,
+        })
 @ActiveProfiles({
     Initializer.PROFILE_DEV,
     Initializer.PROFILE_DISABLE_JOBS,
@@ -72,8 +71,7 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 class CheckRestApiStabilityIntegrationTest {
 
-    private static final String DESCRIPTOR_JSON_PATH =
-        "src/test/resources/api/descriptor.json";
+    private static final String DESCRIPTOR_JSON_PATH = "src/test/resources/api/descriptor.json";
 
     @Autowired
     private MockMvc mockMvc;
@@ -83,95 +81,67 @@ class CheckRestApiStabilityIntegrationTest {
     @Test
     void checkRestApiStability() throws Exception {
         var mvcResult = this.mockMvc
-            .perform(get(Constants.DEFAULT_API_DOCS_URL))
-            .andExpect(status().isOk())
-            .andReturn();
+                .perform(get(Constants.DEFAULT_API_DOCS_URL))
+                .andExpect(status().isOk())
+                .andReturn();
 
         var response = mvcResult.getResponse();
         var content = response.getContentAsString();
         // for some reason we get a quoted base64 JSON: "ey..."
-        var descriptor = Base64.getDecoder().decode(
-            content.substring(1, content.length() - 1)
-        );
+        var descriptor = Base64.getDecoder().decode(content.substring(1, content.length() - 1));
 
         // for generating the result
         if (updateDescriptor) {
-            try (
-                var writer = Files.newBufferedWriter(
-                    Paths.get(DESCRIPTOR_JSON_PATH),
-                    StandardCharsets.UTF_8
-                )
-            ) {
-                var formattedDescriptor = Json.OBJECT_MAPPER.readTree(
-                    descriptor
-                ).toPrettyString();
+            try (var writer = Files.newBufferedWriter(Paths.get(DESCRIPTOR_JSON_PATH), StandardCharsets.UTF_8)) {
+                var formattedDescriptor =
+                        Json.OBJECT_MAPPER.readTree(descriptor).toPrettyString();
                 writer.write(formattedDescriptor);
             }
         }
 
         var apiDocsDir = Paths.get("build/api-docs");
         Files.createDirectories(apiDocsDir);
-        try (
-            var writer = Files.newBufferedWriter(
-                apiDocsDir.resolve("openapi.json"),
-                StandardCharsets.UTF_8
-            )
-        ) {
-            var formattedDescriptor = Json.OBJECT_MAPPER.readTree(
-                descriptor
-            ).toPrettyString();
+        try (var writer = Files.newBufferedWriter(apiDocsDir.resolve("openapi.json"), StandardCharsets.UTF_8)) {
+            var formattedDescriptor = Json.OBJECT_MAPPER.readTree(descriptor).toPrettyString();
             writer.write(formattedDescriptor);
         }
 
-        var redocHtml = "<!DOCTYPE html>\n" +
-                "<html>\n" +
-                "<head>\n" +
-                "  <title>API Contract Portal</title>\n" +
-                "  <meta charset=\"utf-8\"/>\n" +
-                "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
-                "  <link href=\"https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700\" rel=\"stylesheet\">\n" +
-                "  <style>body { margin: 0; padding: 0; }</style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "  <redoc spec-url='openapi.json'></redoc>\n" +
-                "  <script src=\"https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js\"> </script>\n" +
-                "</body>\n" +
-                "</html>";
+        var redocHtml = "<!DOCTYPE html>\n" + "<html>\n"
+                + "<head>\n"
+                + "  <title>API Contract Portal</title>\n"
+                + "  <meta charset=\"utf-8\"/>\n"
+                + "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+                + "  <link href=\"https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700\" rel=\"stylesheet\">\n"
+                + "  <style>body { margin: 0; padding: 0; }</style>\n"
+                + "</head>\n"
+                + "<body>\n"
+                + "  <redoc spec-url='openapi.json'></redoc>\n"
+                + "  <script src=\"https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js\"> </script>\n"
+                + "</body>\n"
+                + "</html>";
         Files.writeString(apiDocsDir.resolve("index.html"), redocHtml, StandardCharsets.UTF_8);
 
-        var referenceDescriptor = IOUtils.toString(
-            new FileReader(DESCRIPTOR_JSON_PATH)
-        );
-        var currentDescriptor = IOUtils.toString(
-            descriptor,
-            StandardCharsets.UTF_8.toString()
-        );
-        var compareResult = OpenApiCompare.fromContents(
-            referenceDescriptor,
-            currentDescriptor
-        );
+        var referenceDescriptor = IOUtils.toString(new FileReader(DESCRIPTOR_JSON_PATH));
+        var currentDescriptor = IOUtils.toString(descriptor, StandardCharsets.UTF_8.toString());
+        var compareResult = OpenApiCompare.fromContents(referenceDescriptor, currentDescriptor);
 
         var diffOut = new ByteArrayOutputStream();
         new HtmlRender().render(compareResult, new OutputStreamWriter(diffOut));
         var htmlContent = diffOut.toString(StandardCharsets.UTF_8);
         if (htmlContent.isEmpty() || !compareResult.isDifferent()) {
-            htmlContent = "<!DOCTYPE html>\n" +
-                    "<html>\n" +
-                    "<head><title>API Contract Diff</title></head>\n" +
-                    "<body>\n" +
-                    "  <h1>API Contract Diff Report</h1>\n" +
-                    "  <p style=\"color: green; font-weight: bold;\">No backward-incompatible changes detected! API contract is stable.</p>\n" +
-                    "</body>\n" +
-                    "</html>";
+            htmlContent = "<!DOCTYPE html>\n" + "<html>\n"
+                    + "<head><title>API Contract Diff</title></head>\n"
+                    + "<body>\n"
+                    + "  <h1>API Contract Diff Report</h1>\n"
+                    + "  <p style=\"color: green; font-weight: bold;\">No backward-incompatible changes detected! API contract is stable.</p>\n"
+                    + "</body>\n"
+                    + "</html>";
         }
         Files.writeString(apiDocsDir.resolve("openapi-diff.html"), htmlContent, StandardCharsets.UTF_8);
 
         if (compareResult.isDifferent()) {
             var out = new ByteArrayOutputStream();
-            new MarkdownRender().render(
-                compareResult,
-                new OutputStreamWriter(out)
-            );
+            new MarkdownRender().render(compareResult, new OutputStreamWriter(out));
             Assertions.fail(out.toString(StandardCharsets.UTF_8));
         }
     }
@@ -181,13 +151,10 @@ class CheckRestApiStabilityIntegrationTest {
     public static class DisableSecurity {
 
         @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http)
-            throws Exception {
-            return http
-                .authorizeHttpRequests(auth ->
-                    auth.requestMatchers("/**").permitAll()
-                )
-                .build();
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+            return http.authorizeHttpRequests(
+                            auth -> auth.requestMatchers("/**").permitAll())
+                    .build();
         }
     }
 }
