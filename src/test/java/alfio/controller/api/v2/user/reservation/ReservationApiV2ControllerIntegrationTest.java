@@ -18,6 +18,8 @@ package alfio.controller.api.v2.user.reservation;
 
 import static alfio.test.util.IntegrationTestUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,7 +29,13 @@ import alfio.config.Initializer;
 import alfio.controller.api.ControllerConfiguration;
 import alfio.controller.api.admin.PassedIdDoesNotExistException;
 import alfio.controller.api.v2.user.ReservationApiV2Controller;
+import alfio.controller.form.ContactAndTicketsForm;
 import alfio.controller.form.PaymentForm;
+import alfio.controller.form.ReservationCodeForm;
+import alfio.controller.form.ReservationForm;
+import alfio.model.modification.TicketReservationModification;
+import alfio.model.modification.TicketReservationWithOptionalCodeModification;
+import alfio.controller.form.UpdateTicketOwnerForm;
 import alfio.manager.EventManager;
 import alfio.manager.TicketReservationManager;
 import alfio.manager.payment.PaymentSpecification;
@@ -38,12 +46,15 @@ import alfio.manager.user.UserManager;
 import alfio.model.CustomerName;
 import alfio.model.Event;
 import alfio.model.PriceContainer;
+import alfio.model.PromoCodeDiscount;
 import alfio.model.TicketCategory;
 import alfio.model.TicketReservation;
 import alfio.model.TotalPrice;
 import alfio.model.metadata.AlfioMetadata;
 import alfio.model.modification.DateTimeModification;
 import alfio.model.modification.TicketCategoryModification;
+import alfio.model.modification.TicketReservationModification;
+import alfio.model.modification.TicketReservationWithOptionalCodeModification;
 import alfio.model.transaction.PaymentProxy;
 import alfio.model.transaction.UserDefinedOfflinePaymentMethod;
 import alfio.model.user.Organization;
@@ -67,6 +78,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -76,9 +88,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.web.context.request.ServletWebRequest;
 
 @AlfioIntegrationTest
 @ContextConfiguration(classes = {DataSourceConfiguration.class, TestConfiguration.class, ControllerConfiguration.class})
@@ -122,9 +138,10 @@ class ReservationApiV2ControllerIntegrationTest {
     @Autowired
     private CustomOfflineConfigurationManager customOfflineConfigurationManager;
 
-    private Principal mockPrincipal;
+    private Authentication mockPrincipal;
     private Organization organization;
     private Event event;
+    private String username;
     private List<UserDefinedOfflinePaymentMethod> paymentMethods;
 
     @BeforeEach
@@ -197,8 +214,8 @@ class ReservationApiV2ControllerIntegrationTest {
 
         organization = organizationRepository.getById(event.getOrganizationId());
 
-        var username = eventAndUser.getRight();
-        mockPrincipal = Mockito.mock(Principal.class);
+        username = eventAndUser.getRight();
+        mockPrincipal = Mockito.mock(Authentication.class);
         Mockito.when(mockPrincipal.getName()).thenReturn(owner(username));
 
         paymentMethods = List.of(
@@ -410,5 +427,336 @@ class ReservationApiV2ControllerIntegrationTest {
         var paymentMethodIds = info.getActivePaymentMethods().keySet();
 
         assertEquals(0, paymentMethodIds.size());
+    }
+
+    // ========================================================================
+    // R4: GET /api/v2/public/reservation/{id} — Get reservation details
+    // ========================================================================
+
+    @Test
+    void getReservationDetailsReturnsReservationInfo() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createReservationForEvent(inPersonEvent);
+
+        var response = reservationApiV2Controller.getReservationInfo(reservationId, null);
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(reservationId, response.getBody().getId());
+    }
+
+    @Test
+    void getReservationDetailsReturns404ForNonexistent() {
+        var response = reservationApiV2Controller.getReservationInfo("nonexistent-id", null);
+        assertEquals(404, response.getStatusCode().value());
+    }
+
+    // ========================================================================
+    // R5: POST /api/v2/public/reservation/{id}/validate-to-overview
+    // ========================================================================
+
+    @Test
+    void validateToOverviewWithMissingFieldsReturns422() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createReservationForEvent(inPersonEvent);
+
+        var contactForm = new ContactAndTicketsForm();
+
+        var response = reservationApiV2Controller.validateToOverview(
+                reservationId, "en", false, contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"), null);
+        assertEquals(422, response.getStatusCode().value());
+    }
+
+    // ========================================================================
+    // R6: POST /api/v2/public/reservation/{id} — Confirm overview
+    // ========================================================================
+
+    @Test
+    void confirmOverviewWithOfflinePayment() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createValidatedReservationForEvent(inPersonEvent);
+
+        var paymentForm = new PaymentForm();
+        paymentForm.setPrivacyPolicyAccepted(true);
+        paymentForm.setTermAndConditionsAccepted(true);
+        paymentForm.setPaymentProxy(PaymentProxy.OFFLINE);
+        paymentForm.setSelectedPaymentMethod(alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER);
+
+        var response = reservationApiV2Controller.confirmOverview(
+                reservationId, "en", paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(), null);
+        assertEquals(200, response.getStatusCode().value());
+    }
+
+    @Test
+    void confirmOverviewWithoutAcceptingTermsReturns422() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createValidatedReservationForEvent(inPersonEvent);
+
+        var paymentForm = new PaymentForm();
+        paymentForm.setPrivacyPolicyAccepted(false);
+        paymentForm.setTermAndConditionsAccepted(false);
+
+        var response = reservationApiV2Controller.confirmOverview(
+                reservationId, "en", paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(), null);
+        assertEquals(422, response.getStatusCode().value());
+    }
+
+    // ========================================================================
+    // P1: POST /api/v2/public/reservation/{id}/payment/{method}/init
+    // ========================================================================
+
+    @Test
+    void initBankTransferPayment() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createValidatedReservationForEvent(inPersonEvent);
+
+        var allParams = new LinkedMultiValueMap<String, String>();
+        var response = reservationApiV2Controller.initTransaction(
+                reservationId,
+                alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER.name(),
+                allParams);
+        assertNotNull(response);
+    }
+
+    // ========================================================================
+    // P2: GET /api/v2/public/reservation/{id}/payment/{method}/status
+    // ========================================================================
+
+    @Test
+    void checkPaymentStatusForCompletedPayment() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createConfirmedReservationForEvent(inPersonEvent);
+
+        var response = reservationApiV2Controller.getTransactionStatus(
+                reservationId, alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER.name());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+    }
+
+    // ========================================================================
+    // E1: GET /api/v2/public/reservation/{id}/status — Poll status
+    // ========================================================================
+
+    @Test
+    void pollReservationStatusReturnsPending() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createReservationForEvent(inPersonEvent);
+
+        var response = reservationApiV2Controller.getReservationStatus(reservationId);
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(TicketReservation.TicketReservationStatus.PENDING, response.getBody().getStatus());
+    }
+
+    @Test
+    void pollReservationStatusReturns404ForNonexistent() {
+        var response = reservationApiV2Controller.getReservationStatus("nonexistent-id");
+        assertEquals(404, response.getStatusCode().value());
+    }
+
+    // ========================================================================
+    // E2: POST /api/v2/public/reservation/{id}/back-to-booking
+    // ========================================================================
+
+    @Test
+    void backToBookingRevertsValidatedState() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createValidatedReservationForEvent(inPersonEvent);
+
+        var statusBefore = reservationApiV2Controller.getReservationStatus(reservationId);
+        assertTrue(statusBefore.getBody().isValidatedBookingInformation());
+
+        var response = reservationApiV2Controller.backToBooking(reservationId);
+        assertEquals(200, response.getStatusCode().value());
+
+        var statusAfter = reservationApiV2Controller.getReservationStatus(reservationId);
+        assertFalse(statusAfter.getBody().isValidatedBookingInformation());
+    }
+
+    // ========================================================================
+    // E4: DELETE /api/v2/public/reservation/{id} — Cancel reservation
+    // ========================================================================
+
+    @Test
+    void cancelPendingReservation() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createReservationForEvent(inPersonEvent);
+
+        var response = reservationApiV2Controller.cancelPendingReservation(reservationId);
+        assertEquals(200, response.getStatusCode().value());
+
+        var statusResponse = reservationApiV2Controller.getReservationStatus(reservationId);
+        assertEquals(404, statusResponse.getStatusCode().value());
+    }
+
+    // ========================================================================
+    // IN_PERSON event helpers (for tests needing validateToOverview)
+    // ========================================================================
+
+    private Pair<Event, String> createInPersonEvent() {
+        List<TicketCategoryModification> categories = Arrays.asList(
+                new TicketCategoryModification(
+                        null,
+                        DEFAULT_CATEGORY_NAME,
+                        TicketCategory.TicketAccessType.INHERIT,
+                        AVAILABLE_SEATS,
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).minusDays(1),
+                                LocalTime.now(clockProvider.getClock())),
+                        new DateTimeModification(
+                                LocalDate.now(clockProvider.getClock()).plusDays(5),
+                                LocalTime.now(clockProvider.getClock())),
+                        DESCRIPTION,
+                        BigDecimal.TEN,
+                        false,
+                        "",
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        AlfioMetadata.empty()));
+        return initEvent(
+                categories,
+                organizationRepository,
+                userManager,
+                eventManager,
+                eventRepository,
+                null,
+                Event.EventFormat.IN_PERSON,
+                PriceContainer.VatStatus.INCLUDED,
+                List.of(PaymentProxy.OFFLINE));
+    }
+
+    private String createReservationForEvent(Pair<Event, String> eventAndUser) {
+        var evt = eventAndUser.getLeft();
+        var categories = ticketCategoryRepository.findAllTicketCategories(evt.getId());
+        alfio.model.modification.TicketReservationModification tr =
+                new alfio.model.modification.TicketReservationModification();
+        tr.setQuantity(1);
+        tr.setTicketCategoryId(categories.get(0).getId());
+        var tickets = new TicketReservationWithOptionalCodeModification(tr, Optional.empty());
+        return ticketReservationManager.createTicketReservation(
+                evt, List.of(tickets), List.of(), DateUtils.addDays(new Date(), 1),
+                Optional.empty(), Locale.ENGLISH, false, null);
+    }
+
+    private String createValidatedReservationForEvent(Pair<Event, String> eventAndUser) {
+        String reservationId = createReservationForEvent(eventAndUser);
+        var tickets = ticketRepository.findTicketsInReservation(reservationId);
+
+        var contactForm = new ContactAndTicketsForm();
+        contactForm.setEmail("test@test.com");
+        contactForm.setFirstName("full");
+        contactForm.setLastName("name");
+
+        var ticketForm = new UpdateTicketOwnerForm();
+        ticketForm.setFirstName("ticketfull");
+        ticketForm.setLastName("ticketname");
+        ticketForm.setEmail("tickettest@test.com");
+        contactForm.setTickets(Collections.singletonMap(
+                tickets.get(0).getPublicUuid().toString(), ticketForm));
+
+        reservationApiV2Controller.validateToOverview(
+                reservationId, "en", false, contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"), null);
+        return reservationId;
+    }
+
+    private String createConfirmedReservationForEvent(Pair<Event, String> eventAndUser) {
+        String reservationId = createValidatedReservationForEvent(eventAndUser);
+
+        var paymentForm = new PaymentForm();
+        paymentForm.setPrivacyPolicyAccepted(true);
+        paymentForm.setTermAndConditionsAccepted(true);
+        paymentForm.setPaymentProxy(PaymentProxy.OFFLINE);
+        paymentForm.setSelectedPaymentMethod(alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER);
+
+        reservationApiV2Controller.confirmOverview(
+                reservationId, "en", paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(), null);
+
+        ticketReservationManager.confirmOfflinePayment(
+                eventAndUser.getLeft(), reservationId, null, eventAndUser.getRight());
+        return reservationId;
+    }
+
+    // ========================================================================
+    // Existing ONLINE event helpers (for existing tests)
+    // ========================================================================
+
+    private String createReservation() {
+        var reservationId = UUID.randomUUID().toString();
+        ticketReservationRepository.createNewReservation(
+                reservationId,
+                ZonedDateTime.now(event.getZoneId()),
+                DateUtils.addMinutes(new Date(), 1),
+                null,
+                "en",
+                event.getId(),
+                null,
+                null,
+                null,
+                event.getOrganizationId(),
+                null);
+        var firstCategory = CollectionUtils.get(ticketCategoryRepository.findByEventIdAsMap(event.getId()), 0);
+        var tickets = ticketRepository.findFreeByEventId(event.getId());
+        var firstTicket = tickets.get(0);
+        ticketRepository.reserveTickets(
+                reservationId, List.of(firstTicket.getId()), firstCategory.getValue(), "en",
+                event.getVatStatus(), i -> null);
+        return reservationId;
+    }
+
+    private String createAndValidateReservation() {
+        String reservationId = createReservation();
+        var tickets = ticketRepository.findTicketsInReservation(reservationId);
+
+        var contactForm = new ContactAndTicketsForm();
+        contactForm.setEmail("test@test.com");
+        contactForm.setFirstName("full");
+        contactForm.setLastName("name");
+
+        var ticketForm = new UpdateTicketOwnerForm();
+        ticketForm.setFirstName("ticketfull");
+        ticketForm.setLastName("ticketname");
+        ticketForm.setEmail("tickettest@test.com");
+        contactForm.setTickets(Collections.singletonMap(tickets.get(0).getUuid(), ticketForm));
+
+        reservationApiV2Controller.validateToOverview(
+                reservationId, "en", false, contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"), mockPrincipal);
+        return reservationId;
+    }
+
+    private String createAndConfirmReservation() {
+        return createAndConfirmPayment();
+    }
+
+    private String createAndConfirmPayment() {
+        String reservationId = createAndValidateReservation();
+
+        var paymentForm = new PaymentForm();
+        paymentForm.setPrivacyPolicyAccepted(true);
+        paymentForm.setTermAndConditionsAccepted(true);
+        paymentForm.setPaymentProxy(PaymentProxy.OFFLINE);
+        paymentForm.setSelectedPaymentMethod(alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER);
+
+        reservationApiV2Controller.confirmOverview(
+                reservationId, "en", paymentForm,
+                new BeanPropertyBindingResult(paymentForm, "paymentForm"),
+                new MockHttpServletRequest(), mockPrincipal);
+
+        ticketReservationManager.confirmOfflinePayment(event, reservationId, null, username);
+        return reservationId;
     }
 }
