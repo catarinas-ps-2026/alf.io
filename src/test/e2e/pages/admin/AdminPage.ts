@@ -13,14 +13,17 @@ export class AdminPage {
         this.loggedInIndicator = page.locator(
             '.navbar-right:has-text("Logged in as")',
         );
-        this.logoutLink = page.locator('.navbar-right a:has-text("Log out")');
-        this.editAccountLink = page.locator(
-            '.navbar-right a[data-ui-sref="edit-current-user"]',
-        );
+        this.logoutLink = this.page.getByRole("link", {
+            name: /log out/i,
+        });
+        this.editAccountLink = this.page.getByRole("link", {
+            name: /edit account/i,
+        });
     }
 
     async goto(): Promise<void> {
         await this.page.goto("/admin/");
+        await this.loggedInIndicator.waitFor();
     }
 
     async isLoggedIn(): Promise<boolean> {
