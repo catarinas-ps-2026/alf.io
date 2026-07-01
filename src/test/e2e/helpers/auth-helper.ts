@@ -132,6 +132,20 @@ function getBaseURL(page: Page): string {
     return url.origin;
 }
 
+// Organizations have no delete action in the admin UI, so tests that create
+// one via the UI must clean up through the system API key instead.
+export async function deleteOrganizationViaApi(
+    page: Page,
+    organizationId: number,
+): Promise<void> {
+    const baseURL = getBaseURL(page);
+    const apiKey = process.env.E2E_SERVER_APIKEY || "e2e-test-api-key";
+    await page.request.delete(
+        `${baseURL}/api/v1/admin/system/organization/${organizationId}`,
+        { headers: { Authorization: `ApiKey ${apiKey}` } },
+    );
+}
+
 export async function getCurrentUserId(page: Page): Promise<number> {
     const baseURL = getBaseURL(page);
     const resp = await page.evaluate(async (url) => {
@@ -217,11 +231,6 @@ export async function createUserViaPage(
     );
 }
 
-/**
- * Creates a user, or - if the username is already taken (e.g. left over
- * from a previous test run) - resets its password instead. Either way,
- * returns a password that is known to work right now.
- */
 export async function createOrResetUser(
     page: Page,
     user: {
@@ -373,4 +382,44 @@ export async function ensureOrganizationExists(page: Page): Promise<number> {
         return resp[resp.length - 1].id;
     }
     throw new Error("No organizations found after creation");
+}
+
+export async function createDisposableUser(
+    page: Page,
+    role: string,
+): Promise<CreatedUser> {
+    const orgId = await getOrganizationIdViaPage(page);
+    const username = `e2e-${role.toLowerCase()}-${Date.now()}`;
+    return createUserViaPage(page, {
+        organizationId: orgId,
+        username,
+        firstName: "Test",
+        lastName: role.charAt(0) + role.slice(1).toLowerCase(),
+        emailAddress: `${username}@e2e.test`,
+        role,
+    });
+}
+
+export async function withDisposableUser(
+    page: Page,
+    adminCredentials: Credentials,
+    baseURL: string,
+    role: string,
+    run: (credentials: Credentials) => Promise<void>,
+): Promise<void> {
+    await loginAs(page, adminCredentials, baseURL);
+    const created = await createDisposableUser(page, role);
+    const credentials = {
+        username: created.username,
+        password: created.password,
+    };
+    try {
+        await logoutViaUI(page);
+        await loginAs(page, credentials, baseURL);
+        await run(credentials);
+    } finally {
+        await logoutViaUI(page);
+        await loginAs(page, adminCredentials, baseURL);
+        await deleteUserViaPage(page, created.id);
+    }
 }
