@@ -1020,7 +1020,7 @@ S0 (Procesando) --[error]--> S2 (Error)
 | :--- | :--- | :--- | :--- |
 | CPF-RES-07-001 | Evento con campos regionales | Campos personalizados visibles en formulario | f+ |
 
-### Flujo Completo de Reserva (Integración)
+### Flujo Completo de Reserva
 | ID | CPF-RES-08 |
 | :--- | :--- |
 | **Funcionalidad** | Flujo completo de reserva desde selección hasta confirmación |
@@ -1034,14 +1034,6 @@ S0 (Procesando) --[error]--> S2 (Error)
 
 **Análisis de Técnicas**
 
-**Transición de Estados - Flujo Principal de Reserva**
-
-![Diagrama de Transición de Estados - Flujo de Reserva](images/functional-tests/design/reservation-flow.png)
-
-**Transición de Estados - Cancelación y Reembolso**
-
-![Diagrama de Transición de Estados - Cancelación y Reembolso](images/functional-tests/design/reservation-cancellation-refund.png)
-
 **Partición de Equivalencia**
 | Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
@@ -1050,14 +1042,20 @@ S0 (Procesando) --[error]--> S2 (Error)
 | Método de pago | OFFLINE, ON_SITE, Ninguno (gratis) | - |
 | Estado del countdown | Activo (> 0) | Expirado (= 0) |
 
+
 **Tabla de Decisión: Comportamiento según tipo de entrada y método de pago**
 | Condición | C1 | C2 | C3 | C4 | C5 | C6 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | Tipo de entrada | Gratis | Con precio | Con precio | Con precio | Con precio | Con precio |
 | Método de pago | N/A | OFFLINE | OFFLINE | ON_SITE | ON_SITE | Stripe |
 | Términos aceptados | Sí | Sí | No | Sí | No | Sí |
-| **Redirección** | **Success** | **WaitingPayment** | **No avanza** | **Success** | **No avanza** | **ProcessingPayment** |
+| Redirección | Success | WaitingPayment | No avanza | Success | No avanza | ProcessingPayment |
 | **¿Requiere pago?** | **No** | **Sí (diferido)** | **No** | **Sí (en sitio)** | **No** | **Sí (inmediato)** |
+
+**Transición de Estados**
+
+![Diagrama de Transición de Estados - Flujo de Reserva](images/functional-tests/design/reservation-flow.png)
+![Diagrama de Transición de Estados - Cancelación y Reembolso](images/functional-tests/design/reservation-cancellation-refund.png)
 
 **Catálogo de Pruebas**
 | #CP | Escenario | Resultado Esperado | Obs |
@@ -1092,16 +1090,12 @@ S0 (Procesando) --[error]--> S2 (Error)
 
 **Análisis de Técnicas**
 
-**Transición de Estados - Estados No Válidos**
+
+
+
+**Transición de Estados**
 
 ![Diagrama de Transición de Estados - Estados No Válidos](images/functional-tests/design/reservation-invalid-states.png)
-
-**Tabla de Decisión: Acciones inválidas por estado de reserva**
-| Condición | C1 | C2 | C3 | C4 | C5 | C6 |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Estado actual | PENDING | PENDING | CANCELLED | CANCELLED | COMPLETED | COMPLETED |
-| Acción intentada | Confirmar pago | Hacer check-in | Confirmar pago | Hacer check-in | Cambiar a PENDING | Reembolsar (no OFFLINE) |
-| **Resultado esperado** | **No permitido** | **No permitido** | **Error/Disabled** | **Error/Disabled** | **Error** | **Error/Disabled** |
 
 **Catálogo de Pruebas**
 | #CP | Escenario | Resultado Esperado | Obs |
@@ -1134,6 +1128,9 @@ S0 (Procesando) --[error]--> S2 (Error)
 | Estado de reserva | PENDING, WAITING_PAYMENT, COMPLETED | CANCELLED, EXPIRED, REFUNDED |
 | Acción de cancelación | Por usuario, Por admin, Por sistema (expiración) | - |
 
+
+
+
 **Catálogo de Pruebas**
 | #CP | Escenario | Resultado Esperado | Obs |
 | :--- | :--- | :--- | :--- |
@@ -1159,6 +1156,8 @@ S0 (Procesando) --[error]--> S2 (Error)
 
 **Análisis de Técnicas**
 
+
+
 **Tabla de Decisión: Elegibilidad para reembolso**
 | Condición | C1 | C2 | C3 | C4 | C5 | C6 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -1166,6 +1165,7 @@ S0 (Procesando) --[error]--> S2 (Error)
 | Método de pago | OFFLINE | ON_SITE | Stripe | Gratis | OFFLINE | - |
 | ¿Ya reembolsado? | No | No | No | No | - | - |
 | **¿Reembolso disponible?** | **Sí** | **Sí** | **No** | **No** | **No** | **No** |
+
 
 **Catálogo de Pruebas**
 | #CP | Escenario | Resultado Esperado | Obs |
@@ -1191,19 +1191,6 @@ S0 (Procesando) --[error]--> S2 (Error)
 
 **Análisis de Técnicas**
 
-**Tabla de Decisión: Cálculo de precio con descuentos e impuestos**
-| Condición | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Precio base | $100 | $100 | $100 | $100 | $100 | $100 | $100 | $100 |
-| Descuento % | 0% | 10% | 10% | 20% | 0% | 0% | 15% | 15% |
-| ¿Impuesto incluido? | Sí | Sí | No | No | Sí | No | Sí | No |
-| Tasa impuesto | 18% | 18% | 18% | 18% | 0% | 0% | 18% | 18% |
-| **Precio final** | **$118.00** | **$106.20** | **$96.20** | **$86.40** | **$100.00** | **$82.00** | **$100.30** | **$83.00** |
-
-**Fórmulas de cálculo:**
-- Sin impuesto incluido: `PrecioFinal = (PrecioBase - Descuento) * (1 + TasaImpuesto/100)`
-- Con impuesto incluido: `PrecioFinal = PrecioBase - Descuento` (el impuesto ya está en el precio base)
-
 **Partición de Equivalencia**
 | Campo | Clase Válida | Clases No Válidas |
 | :--- | :--- | :--- |
@@ -1216,6 +1203,16 @@ S0 (Procesando) --[error]--> S2 (Error)
 | :--- | :--- | :--- | :--- | :--- |
 | Descuento (%) | 0% | -1% | 100% | 101% |
 | Precio final | >= 0 | Negativo | - | - |
+
+**Tabla de Decisión: Cálculo de precio con descuentos e impuestos**
+| Condición | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Precio base | $100 | $100 | $100 | $100 | $100 | $100 | $100 | $100 |
+| Descuento % | 0% | 10% | 10% | 20% | 0% | 0% | 15% | 15% |
+| ¿Impuesto incluido? | Sí | Sí | No | No | Sí | No | Sí | No |
+| Tasa impuesto | 18% | 18% | 18% | 18% | 0% | 0% | 18% | 18% |
+| **Precio final** | **$118.00** | **$106.20** | **$96.20** | **$86.40** | **$100.00** | **$82.00** | **$100.30** | **$83.00** |
+
 
 **Catálogo de Pruebas**
 | #CP | Datos de Entrada | Resultado Esperado | Obs |

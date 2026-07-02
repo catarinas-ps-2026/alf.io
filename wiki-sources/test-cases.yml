@@ -3427,6 +3427,493 @@ test_suites:
                           - image: images/functional-tests/run/reservation/39.png
                             alt: custom-fields
                             text: "Campos personalizados visibles en el formulario (ej: configuración regional como Perú)."
+    - title: Flujo Completo de Reserva
+      level: "###"
+      catalog_header: Escenario
+      cases:
+          - id: CPF-RES-08
+            functionality: Flujo completo de reserva desde selección hasta confirmación
+            description: "Valida el flujo completo de reserva de tickets: desde la selección de eventos y llenado de formularios hasta la confirmación y pago, incluyendo todos los caminos posibles del proceso (entradas gratis, múltiples asistentes, temporizador)."
+            requirement: RF-RES-08 (Flujo Completo de Reserva)
+            preconditions: "Evento público visible con al menos una categoría de tickets configurada y disponibilidad."
+            inputs: Cantidad de tickets, datos del comprador/asistente, método de pago, aceptación de términos.
+            steps:
+                - Acceder al enlace público del evento.
+                - Seleccionar categoría y cantidad de tickets.
+                - Llenar formulario de comprador/asistente.
+                - Aceptar términos y condiciones.
+                - Seleccionar método de pago.
+                - Confirmar reserva.
+                - Verificar página de resultado.
+            techniques:
+                - Transición de Estados
+                - Partición de Equivalencia
+                - Tablas de Decisión
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Tipo de entrada
+                      valid: Gratis (precio = 0)
+                      invalid: Con precio (> 0)
+                    - field: Cantidad de asistentes
+                      valid: 1 entrada
+                      invalid: Múltiples entradas (> 1)
+                    - field: Método de pago
+                      valid: OFFLINE, ON_SITE, Ninguno (gratis)
+                      invalid: "-"
+                    - field: Estado del countdown
+                      valid: Activo (> 0)
+                      invalid: Expirado (= 0)
+                boundary_values: []
+                state_transitions:
+                    - image: images/functional-tests/design/reservation-flow.png
+                      alt: Diagrama de Transición de Estados - Flujo de Reserva
+                    - image: images/functional-tests/design/reservation-cancellation-refund.png
+                      alt: Diagrama de Transición de Estados - Cancelación y Reembolso
+                decision_tables:
+                    - title: Comportamiento según tipo de entrada y método de pago
+                      header: Condición
+                      columns: [C1, C2, C3, C4, C5, C6]
+                      conditions:
+                          - name: Tipo de entrada
+                            values:
+                                [
+                                    Gratis,
+                                    "Con precio",
+                                    "Con precio",
+                                    "Con precio",
+                                    "Con precio",
+                                    "Con precio",
+                                ]
+                          - name: Método de pago
+                            values:
+                                [
+                                    N/A,
+                                    OFFLINE,
+                                    OFFLINE,
+                                    ON_SITE,
+                                    ON_SITE,
+                                    Stripe,
+                                ]
+                          - name: Términos aceptados
+                            values: [Sí, Sí, No, Sí, No, Sí]
+                      outputs:
+                          - name: Redirección
+                            values:
+                                [
+                                    Success,
+                                    WaitingPayment,
+                                    "No avanza",
+                                    Success,
+                                    "No avanza",
+                                    ProcessingPayment,
+                                ]
+                          - name: "¿Requiere pago?"
+                            values:
+                                [
+                                    "No",
+                                    "Sí (diferido)",
+                                    "No",
+                                    "Sí (en sitio)",
+                                    "No",
+                                    "Sí (inmediato)",
+                                ]
+            catalog:
+                - cp_id: CPF-RES-08-001
+                  inputs: Reserva con 1 entrada gratuita
+                  expected: "Redirige a Success, PEN 0.00, ticket disponible inmediatamente"
+                  obs: f+
+                - cp_id: CPF-RES-08-002
+                  inputs: "Reserva con 1 entrada pagada, método OFFLINE"
+                  expected: "Redirige a WaitingPayment, muestra fecha expiración, ID de reserva"
+                  obs: f+
+                - cp_id: CPF-RES-08-003
+                  inputs: "Reserva con 1 entrada pagada, método ON_SITE"
+                  expected: 'Redirige a Success, ticket disponible, mensaje "pagar en sitio"'
+                  obs: f+
+                - cp_id: CPF-RES-08-004
+                  inputs: Reserva con múltiples entradas (2)
+                  expected: Muestra formulario para 2 asistentes con opción checkbox "Aún no saben quiénes asistirán"
+                  obs: f+
+                - cp_id: CPF-RES-08-005
+                  inputs: Reserva con checkbox "ocultar asistentes" marcado
+                  expected: Permite avanzar sin llenar datos de asistentes, campos se completan después
+                  obs: f+
+                - cp_id: CPF-RES-08-006
+                  inputs: Reserva sin aceptar los 3 términos
+                  expected: Botón de pago/confirmar deshabilitado, no avanza
+                  obs: f-
+                - cp_id: CPF-RES-08-007
+                  inputs: Countdown expira durante el proceso
+                  expected: 'Modal "La sesión ha expirado", redirige al inicio del evento'
+                  obs: f-
+                - cp_id: CPF-RES-08-008
+                  inputs: "Countdown cambia a amarillo (<=5 min)"
+                  expected: Timer cambia a color amarillo en la interfaz
+                  obs: f+
+                - cp_id: CPF-RES-08-009
+                  inputs: "Countdown cambia a rojo (<=1 min)"
+                  expected: Timer cambia a color rojo en la interfaz
+                  obs: f+
+                - cp_id: CPF-RES-08-010
+                  inputs: Admin confirma pago OFFLINE pendiente
+                  expected: Reserva cambia a Completed, tickets se activan
+                  obs: f+
+                - cp_id: CPF-RES-08-011
+                  inputs: Reserva OFFLINE expira antes de confirmación
+                  expected: "Reserva cambia a Cancelled, cupo liberado"
+                  obs: f+
+                - cp_id: CPF-RES-08-012
+                  inputs: Admin cancela reserva completada
+                  expected: "Reserva cambia a Cancelled, opción de reembolso disponible"
+                  obs: f+
+                - cp_id: CPF-RES-08-013
+                  inputs: Admin ejecuta reembolso
+                  expected: "Reserva cambia a Refunded, monto reintegrado"
+                  obs: f+
+                - cp_id: CPF-RES-08-014
+                  inputs: Comprador completa datos de asistentes después
+                  expected: Formulario permite edición, datos se guardan correctamente
+                  obs: f+
+                - cp_id: CPF-RES-08-015
+                  inputs: Verificar que ticket PDF contiene código QR
+                  expected: PDF generado con código QR válido y datos completos del asistente
+                  obs: f+
+    - title: Estados No Válidos de Reserva
+      level: "###"
+      catalog_header: Escenario
+      cases:
+          - id: CPF-RES-09
+            functionality: Validación de estados inválidos y transiciones no permitidas
+            description: "Valida que el sistema rechace correctamente transiciones de estado no válidas y muestre los mensajes de error apropiados cuando se intenten acciones no permitidas en el contexto actual de la reserva."
+            requirement: RF-RES-09 (Estados No Válidos)
+            preconditions: "Reserva en cualquier estado válido del sistema."
+            inputs: Acción sobre reserva, estado actual de la reserva.
+            steps:
+                - Acceder a una reserva en estado específico.
+                - Intentar realizar una acción no válida para ese estado.
+                - Verificar mensaje de error o comportamiento del sistema.
+            techniques:
+                - Transición de Estados
+                - Partición de Equivalencia
+            priority: Alta
+            analysis:
+                equivalency_partitions: []
+                boundary_values: []
+                decision_tables: []
+                state_transitions:
+                    - image: images/functional-tests/design/reservation-invalid-states.png
+                      alt: Diagrama de Transición de Estados - Estados No Válidos
+            catalog:
+                - cp_id: CPF-RES-09-001
+                  inputs: Intentar confirmar pago desde estado PENDING
+                  expected: "Error: La acción no está disponible desde este estado"
+                  obs: f-
+                - cp_id: CPF-RES-09-002
+                  inputs: Intentar hacer check-in desde estado PENDING
+                  expected: "Error: El ticket no está activo"
+                  obs: f-
+                - cp_id: CPF-RES-09-003
+                  inputs: Intentar confirmar pago de reserva CANCELLED
+                  expected: 'Botón deshabilitado o error "Reserva cancelada"'
+                  obs: f-
+                - cp_id: CPF-RES-09-004
+                  inputs: Intentar hacer check-in de reserva CANCELLED
+                  expected: "Error: Ticket cancelado, no válido para ingreso"
+                  obs: f-
+                - cp_id: CPF-RES-09-005
+                  inputs: Intentar cambiar estado COMPLETED a PENDING
+                  expected: "Error: Transición no permitida"
+                  obs: f-
+                - cp_id: CPF-RES-09-006
+                  inputs: Intentar reembolsar reserva ON_SITE (ya pagada en sitio)
+                  expected: "Error: El tipo de pago no es reembolsable"
+                  obs: f-
+                - cp_id: CPF-RES-09-007
+                  inputs: Intentar acceder a ticket PDF de reserva CANCELLED
+                  expected: "Error: La reserva está cancelada"
+                  obs: f-
+    - title: Cancelación de Reserva
+      level: "###"
+      catalog_header: Escenario
+      cases:
+          - id: CPF-RES-10
+            functionality: Cancelación de reservas por usuario y administrador
+            description: "Valida que las reservas puedan ser canceladas correctamente, ya sea por expiración del temporizador, por acción del usuario comprador, o por acción del administrador, liberando el cupo correspondiente."
+            requirement: RF-RES-10 (Cancelación de Reserva)
+            preconditions: "Reserva en estado PENDING, WAITING_PAYMENT o COMPLETED."
+            inputs: Motivo de cancelación (opcional), confirmación de acción.
+            steps:
+                - Acceder a la reserva en estado válido.
+                - Solicitar cancelación.
+                - Confirmar la acción.
+                - Verificar cambio de estado y liberación de cupo.
+            techniques:
+                - Transición de Estados
+                - Partición de Equivalencia
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Estado de reserva
+                      valid: PENDING, WAITING_PAYMENT, COMPLETED
+                      invalid: CANCELLED, EXPIRED, REFUNDED
+                    - field: Acción de cancelación
+                      valid: Por usuario, Por admin, Por sistema (expiración)
+                      invalid: "-"
+                boundary_values: []
+                decision_tables: []
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-10-001
+                  inputs: "Expiración del countdown (24 min) en estado PENDING"
+                  expected: "Reserva cambia a CANCELLED automáticamente, modal de expiración mostrado"
+                  obs: f-
+                - cp_id: CPF-RES-10-002
+                  inputs: Usuario cancela reserva en PENDING
+                  expected: "Reserva cambia a CANCELLED, mensaje de confirmación"
+                  obs: f+
+                - cp_id: CPF-RES-10-003
+                  inputs: Admin cancela reserva en COMPLETED
+                  expected: "Reserva cambia a CANCELLED, opción de reembolso disponible si aplica"
+                  obs: f+
+                - cp_id: CPF-RES-10-004
+                  inputs: Verificar liberación de cupo tras cancelación
+                  expected: Los tickets cancelados vuelven a estar disponibles en el inventario
+                  obs: f+
+                - cp_id: CPF-RES-10-005
+                  inputs: Cancelación de reserva WAITING_PAYMENT
+                  expected: "Reserva cambia a CANCELLED, liberados los tickets"
+                  obs: f+
+                - cp_id: CPF-RES-10-006
+                  inputs: Intentar cancelar reserva ya CANCELLED
+                  expected: "Error: La reserva ya está cancelada"
+                  obs: f-
+                - cp_id: CPF-RES-10-007
+                  inputs: Verificar que administrador puede reactivar reserva CANCELLED
+                  expected: Reserva vuelve a estado PENDING, tickets disponibles
+                  obs: f+
+    - title: Reembolso de Reserva
+      level: "###"
+      catalog_header: Escenario
+      cases:
+          - id: CPF-RES-11
+            functionality: Reembolso de reservas canceladas
+            description: "Valida que el administrador pueda ejecutar reembolsos para reservas canceladas que fueron pagadas mediante métodos OFFLINE u ON_SITE, verificando las condiciones y restricciones del proceso."
+            requirement: RF-RES-11 (Reembolso de Reserva)
+            preconditions: "Reserva en estado CANCELLED con pago previo (OFFLINE completada u ON_SITE)."
+            inputs: Confirmación de reembolso, motivo (opcional).
+            steps:
+                - Acceder a reserva cancelada en el panel admin.
+                - Verificar que el tipo de pago permite reembolso.
+                - Solicitar reembolso.
+                - Confirmar la acción.
+                - Verificar cambio de estado a REFUNDED.
+            techniques:
+                - Transición de Estados
+                - Tablas de Decisión
+            priority: Alta
+            analysis:
+                equivalency_partitions: []
+                boundary_values: []
+                decision_tables:
+                    - title: Elegibilidad para reembolso
+                      header: Condición
+                      columns: [C1, C2, C3, C4, C5, C6]
+                      conditions:
+                          - name: Estado de reserva
+                            values:
+                                [
+                                    CANCELLED,
+                                    CANCELLED,
+                                    CANCELLED,
+                                    CANCELLED,
+                                    COMPLETED,
+                                    PENDING,
+                                ]
+                          - name: Método de pago
+                            values:
+                                [OFFLINE, ON_SITE, Stripe, Gratis, OFFLINE, "-"]
+                          - name: "¿Ya reembolsado?"
+                            values: [No, No, No, No, "-", "-"]
+                      outputs:
+                          - name: "¿Reembolso disponible?"
+                            values: [Sí, Sí, No, No, No, No]
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-11-001
+                  inputs: Admin ejecuta reembolso en reserva OFFLINE cancelada
+                  expected: "Reserva cambia a REFUNDED, estado final alcanzado"
+                  obs: f+
+                - cp_id: CPF-RES-11-002
+                  inputs: Admin ejecuta reembolso en reserva ON_SITE cancelada
+                  expected: "Reserva cambia a REFUNDED, proceso completado"
+                  obs: f+
+                - cp_id: CPF-RES-11-003
+                  inputs: Intentar reembolsar reserva pagada con Stripe
+                  expected: "Error: Los pagos con Stripe no son reembolsables desde el sistema"
+                  obs: f-
+                - cp_id: CPF-RES-11-004
+                  inputs: Intentar reembolsar reserva gratuita cancelada
+                  expected: "Error: No existe pago registrado para esta reserva"
+                  obs: f-
+                - cp_id: CPF-RES-11-005
+                  inputs: Intentar reembolsar reserva ya en estado REFUNDED
+                  expected: "Error: La reserva ya fue reembolsada"
+                  obs: f-
+                - cp_id: CPF-RES-11-006
+                  inputs: Verificar que reembolso solo está disponible desde estado CANCELLED
+                  expected: Opción de reembolso visible solo para reservas canceladas
+                  obs: f+
+    - title: Cálculo de Precios con Descuentos e Impuestos
+      level: "###"
+      catalog_header: Datos de Entrada
+      cases:
+          - id: CPF-RES-12
+            functionality: Cálculo de precios finales con aplicación de descuentos e impuestos
+            description: "Valida que el sistema calcule correctamente el precio final de las entradas considerando: precio base de categoría, descuentos promocionales, impuestos (IVA/VAT), y tarifas de servicio, generando el monto total correcto."
+            requirement: RF-RES-12 (Cálculo de Precios)
+            preconditions: "Evento con categorías configuradas, promociones activas opcionales."
+            inputs: Categoría de ticket, cantidad, código promocional, configuración de impuestos.
+            steps:
+                - Seleccionar categoría y cantidad de tickets.
+                - Ingresar código promocional (si existe).
+                - Verificar cálculo en resumen.
+                - Confirmar y verificar precio final en pago.
+            techniques:
+                - Tablas de Decisión
+                - Análisis de Valores Límite
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Código promocional
+                      valid: Válido y activo
+                      invalid: Inválido, expirado, ya utilizado
+                    - field: Descuento
+                      valid: "Valor entre 0% y 100%"
+                      invalid: "< 0%, > 100%"
+                    - field: Impuesto
+                      valid: Tasas estándar (0%, 18%, etc.)
+                      invalid: Tasas negativas
+                boundary_values:
+                    - field: Descuento (%)
+                      min_valid: 0%
+                      min_invalid: -1%
+                      max_valid: 100%
+                      max_invalid: 101%
+                    - field: Precio final
+                      min_valid: ">= 0"
+                      min_invalid: Negativo
+                      max_valid: "-"
+                      max_invalid: "-"
+                decision_tables:
+                    - title: Cálculo de precio con descuentos e impuestos
+                      header: Condición
+                      columns: [C1, C2, C3, C4, C5, C6, C7, C8]
+                      conditions:
+                          - name: Precio base
+                            values:
+                                [$100, $100, $100, $100, $100, $100, $100, $100]
+                          - name: Descuento %
+                            values:
+                                [
+                                    "0%",
+                                    "10%",
+                                    "10%",
+                                    "20%",
+                                    "0%",
+                                    "0%",
+                                    "15%",
+                                    "15%",
+                                ]
+                          - name: "¿Impuesto incluido?"
+                            values: [Sí, Sí, No, No, Sí, No, Sí, No]
+                          - name: Tasa impuesto
+                            values:
+                                [
+                                    "18%",
+                                    "18%",
+                                    "18%",
+                                    "18%",
+                                    "0%",
+                                    "0%",
+                                    "18%",
+                                    "18%",
+                                ]
+                      outputs:
+                          - name: Precio final
+                            values:
+                                [
+                                    "$118.00",
+                                    "$106.20",
+                                    "$96.20",
+                                    "$86.40",
+                                    "$100.00",
+                                    "$82.00",
+                                    "$100.30",
+                                    "$83.00",
+                                ]
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-RES-12-001
+                  inputs: "Precio base $100, sin descuento, sin impuesto"
+                  expected: "Precio final: $100.00"
+                  obs: f+
+                - cp_id: CPF-RES-12-002
+                  inputs: "Precio base $100, 10% descuento, sin impuesto"
+                  expected: "Precio final: $90.00"
+                  obs: f+
+                - cp_id: CPF-RES-12-003
+                  inputs: "Precio base $100, 10% descuento, 18% impuesto"
+                  expected: "Precio final: $106.20"
+                  obs: f+
+                - cp_id: CPF-RES-12-004
+                  inputs: "Precio base $100, 20% descuento, 18% impuesto"
+                  expected: "Precio final: $86.40"
+                  obs: f+
+                - cp_id: CPF-RES-12-005
+                  inputs: Código promocional válido "DESCUENTO20" con 20%
+                  expected: Descuento aplicado correctamente
+                  obs: f+
+                - cp_id: CPF-RES-12-006
+                  inputs: Código promocional inválido "INVALIDO"
+                  expected: "Error: El código no es válido"
+                  obs: f-
+                - cp_id: CPF-RES-12-007
+                  inputs: Código promocional expirado
+                  expected: "Error: El código ha expirado"
+                  obs: f-
+                - cp_id: CPF-RES-12-008
+                  inputs: Código promocional ya utilizado (mismo email)
+                  expected: "Error: El código ya fue utilizado"
+                  obs: f-
+                - cp_id: CPF-RES-12-009
+                  inputs: "Descuento del 0% (sin descuento)"
+                  expected: Precio sin modificaciones
+                  obs: f+
+                - cp_id: CPF-RES-12-010
+                  inputs: "Descuento del 100% (gratis total)"
+                  expected: "Precio final: $0.00"
+                  obs: f+
+                - cp_id: CPF-RES-12-011
+                  inputs: Descuento negativo
+                  expected: "Error: El descuento no puede ser negativo"
+                  obs: f-
+                - cp_id: CPF-RES-12-012
+                  inputs: Descuento mayor a 100%
+                  expected: "Error: El descuento excede el 100%"
+                  obs: f-
+                - cp_id: CPF-RES-12-013
+                  inputs: Precio final negativo (caso extremos)
+                  expected: "Error: El precio no puede ser negativo"
+                  obs: f-
+                - cp_id: CPF-RES-12-014
+                  inputs: Múltiples entradas (3) con descuento
+                  expected: Descuento aplica al subtotal, precio por unidad correcto
+                  obs: f+
+                - cp_id: CPF-RES-12-015
+                  inputs: Verificar que el resumen muestra desglose
+                  expected: "Se muestra: Subtotal, Descuento, Impuestos, Total"
+                  obs: f+
 traceability_matrix:
     - requirement: RF-001
       description: Gestión de información del asistente (Edición de Ticket)
@@ -3503,3 +3990,18 @@ traceability_matrix:
     - requirement: RF-RES-07
       description: Campos Personalizados
       cases: CPF-RES-07 (001)
+    - requirement: RF-RES-08
+      description: Flujo Completo de Reserva
+      cases: CPF-RES-08 (001-015)
+    - requirement: RF-RES-09
+      description: Estados No Válidos de Reserva
+      cases: CPF-RES-09 (001-007)
+    - requirement: RF-RES-10
+      description: Cancelación de Reserva
+      cases: CPF-RES-10 (001-007)
+    - requirement: RF-RES-11
+      description: Reembolso de Reserva
+      cases: CPF-RES-11 (001-006)
+    - requirement: RF-RES-12
+      description: Cálculo de Precios con Descuentos e Impuestos
+      cases: CPF-RES-12 (001-015)

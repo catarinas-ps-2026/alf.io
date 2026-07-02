@@ -6329,6 +6329,16 @@ Este proceso es controlado mediante Github actions, que:
   </tbody>
 </table>
 
+### Flujo Completo de Reserva
+
+### Estados No Válidos de Reserva
+
+### Cancelación de Reserva
+
+### Reembolso de Reserva
+
+### Cálculo de Precios con Descuentos e Impuestos
+
 
 ## 7. Limitaciones
 
@@ -6354,8 +6364,8 @@ El enfoque de pruebas de alf.io combina múltiples niveles con un fuerte énfasi
 |:---|:---|
 | Navegador utilizado | Firefox 151.* |
 | Entorno de aplicación | Imagen Docker ([ghcr.io/catarinas-ps-2026/alf.io](https://github.com/catarinas-ps-2026/alf.io/pkgs/container/alf.io)) compilada vía GitHub Actions (ubuntu-latest) y ejecutada en Kubernetes v1.34.5+k3s1 ([alfio.ynoacamino.me](https://alfio.ynoacamino.me)) |
-| Total de casos de prueba diseñados | 155 |
+| Total de casos de prueba diseñados | 205 |
 | Total de casos de prueba ejecutados | 155 |
-| Cobertura funcional (ejecutados / diseñados) | 100.0% |
+| Cobertura funcional (ejecutados / diseñados) | 75.6% |
 | Casos con fallos | 15 |
 | Tasa de éxito (sobre ejecutados) | 90.3% |
