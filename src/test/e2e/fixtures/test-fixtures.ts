@@ -113,12 +113,10 @@ export const test = baseTest.extend<CustomFixtures>({
     event: async ({ playwright }, use) => {
         const baseURL =
             baseTest.info().project.use.baseURL || "http://localhost:8080";
-        const apiKey = process.env.E2E_SERVER_APIKEY;
-
-        if (!apiKey) {
-            await use(null);
-            return;
-        }
+        const apiKey =
+            process.env.E2E_SERVER_APIKEY ||
+            process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY ||
+            "e2e-test-api-key";
 
         const requestContext = await playwright.request.newContext();
         let clientApiKey = apiKey;

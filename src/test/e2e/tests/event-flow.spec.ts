@@ -1,11 +1,8 @@
 import { test, expect } from "../fixtures/event-flow-fixtures";
 import { PublicEventPage } from "../pages/public-event.page";
-import { BookingPage } from "../pages/booking.page";
-import { OverviewPage } from "../pages/overview.page";
-import { SuccessPage } from "../pages/success.page";
+import { ReservationPage } from "../pages/reservation.page";
 import { CheckInPage } from "../pages/check-in.page";
-import { loginViaUI } from "../helpers/auth-helper";
-import { completeBasicConfigIfVisible } from "../helpers/auth-helper";
+
 
 const ATTENDEE_FIRST_NAME = "Test";
 const ATTENDEE_LAST_NAME = "Attendee";
@@ -59,38 +56,34 @@ test.describe.serial(
             const publicEventPage = new PublicEventPage(page);
             await publicEventPage.goto(eventSlug);
 
-            // Get the category ID from the quantity select element
-            const qtySelect = page.locator('select[id^="category-"][id$="-qty"]').first();
+            const qtySelect = page
+                .locator('select[id^="category-"][id$="-qty"]')
+                .first();
             const selectId = await qtySelect.getAttribute("id");
-            const categoryId = selectId?.replace("category-", "").replace("-qty", "");
+            const categoryId = selectId
+                ?.replace("category-", "")
+                .replace("-qty", "");
             expect(categoryId).toBeTruthy();
 
-            // Select quantity 1 for the first category
             await publicEventPage.selectCategoryQuantity(Number(categoryId), 1);
             await publicEventPage.clickContinue();
 
-            // Wait for reservation to be created and navigate to booking page
             reservationId = await publicEventPage.waitForReservationCreated();
             expect(reservationId).toBeTruthy();
 
-            // Fill booking form
-            const bookingPage = new BookingPage(page);
-            await bookingPage.fillAndSubmit(
+            const reservationPage = new ReservationPage(page);
+            await reservationPage.fillAndSubmitAttendeeInfo(
                 ATTENDEE_FIRST_NAME,
                 ATTENDEE_LAST_NAME,
                 ATTENDEE_EMAIL,
             );
 
-            // Wait for overview page
             await page.waitForURL(/.*\/reservation\/.*\/overview/, {
                 timeout: 15000,
             });
 
-            // Complete purchase (ON_SITE is auto-selected as the only payment method)
-            const overviewPage = new OverviewPage(page);
-            await overviewPage.completePurchase();
+            await reservationPage.completePurchase();
 
-            // Wait for success page
             await page.waitForURL(/.*\/reservation\/.*\/success/, {
                 timeout: 15000,
             });
@@ -103,55 +96,32 @@ test.describe.serial(
                 `/event/${eventSlug}/reservation/${reservationId}/success`,
             );
 
-            const successPage = new SuccessPage(page);
-            const isSuccess = await successPage.isSuccessVisible();
-            expect(isSuccess).toBe(true);
-
+            const successAlert = page.locator(".alert.alert-success");
+            await expect(successAlert).toBeVisible({ timeout: 10000 });
             expect(page.url()).toMatch(/\/success/);
         });
 
         test("Test 5: Check-in via admin UI", async ({
-            page,
-            adminCredentials,
-            baseURL,
+            authenticatedPage,
         }) => {
-            // Login as admin first
-            await loginViaUI(
-                page,
-                adminCredentials.username,
-                adminCredentials.password,
-            );
-            await page.waitForURL(/.*(admin).*/);
-            await completeBasicConfigIfVisible(
-                page,
-                baseURL || "http://localhost:8080",
-            );
-
-            const checkInPage = new CheckInPage(page);
+            const checkInPage = new CheckInPage(authenticatedPage);
             await checkInPage.goto(eventSlug);
 
-            // Wait for the check-in table to load
             await checkInPage.waitForTableLoad();
 
-            // Search for the attendee
             await checkInPage.searchAttendee(ATTENDEE_LAST_NAME);
 
-            // Verify attendee appears in pending list
             const pendingCount = await checkInPage.getPendingRowCount();
             expect(pendingCount).toBeGreaterThanOrEqual(1);
 
-            // Get the first attendee name and verify it matches
             const attendeeName = await checkInPage.getAttendeeName(0);
             expect(attendeeName).toContain(ATTENDEE_LAST_NAME);
 
-            // Perform manual check-in
             await checkInPage.manualCheckIn(0);
 
-            // Refresh and switch to checked-in tab
             await checkInPage.refresh();
             await checkInPage.switchToCheckedInTab();
 
-            // Verify attendee is in checked-in list
             const checkedInCount = await checkInPage.getCheckedInRowCount();
             expect(checkedInCount).toBeGreaterThanOrEqual(1);
         });

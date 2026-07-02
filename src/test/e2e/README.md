@@ -31,7 +31,7 @@ pnpm install
 To run tests, set the following environment variables:
 
 ```bash
-# Required for event creation tests
+# Required for event creation tests (defaults to "e2e-test-api-key" if not set)
 export E2E_SERVER_APIKEY="your-system-api-key"
 
 # Required for authentication tests (all have defaults when running in dev mode)

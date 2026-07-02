@@ -1,4 +1,4 @@
-import { test as baseTest, type Browser, type Page } from "@playwright/test";
+import { test as baseTest, type Page } from "@playwright/test";
 import {
     createTestEvent,
     deleteTestEvent,
@@ -20,13 +20,10 @@ export const test = baseTest.extend<CustomFixtures>({
         async ({ playwright }, use) => {
             const baseURL =
                 baseTest.info().project.use.baseURL || "http://localhost:8080";
-            const apiKey = process.env.E2E_SERVER_APIKEY;
-
-            if (!apiKey) {
-                throw new Error(
-                    "E2E_SERVER_APIKEY is required for event-flow tests",
-                );
-            }
+            const apiKey =
+                process.env.E2E_SERVER_APIKEY ||
+                process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_SYSTEM_API_KEY ||
+                "e2e-test-api-key";
 
             const requestContext = await playwright.request.newContext();
 
