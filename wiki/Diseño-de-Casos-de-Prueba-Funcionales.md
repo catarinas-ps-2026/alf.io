@@ -1020,6 +1020,219 @@ S0 (Procesando) --[error]--> S2 (Error)
 | :--- | :--- | :--- | :--- |
 | CPF-RES-07-001 | Evento con campos regionales | Campos personalizados visibles en formulario | f+ |
 
+### Flujo Completo de Reserva
+| ID | CPF-RES-08 |
+| :--- | :--- |
+| **Funcionalidad** | Flujo completo de reserva desde selección hasta confirmación |
+| **Descripción** | Valida el flujo completo de reserva de tickets: desde la selección de eventos y llenado de formularios hasta la confirmación y pago, incluyendo todos los caminos posibles del proceso (entradas gratis, múltiples asistentes, temporizador). |
+| **Requisito Asociado** | RF-RES-08 (Flujo Completo de Reserva) |
+| **Precondiciones** | Evento público visible con al menos una categoría de tickets configurada y disponibilidad. |
+| **Datos de Entrada** | Cantidad de tickets, datos del comprador/asistente, método de pago, aceptación de términos. |
+| **Pasos de Ejecución** | 1. Acceder al enlace público del evento. 2. Seleccionar categoría y cantidad de tickets. 3. Llenar formulario de comprador/asistente. 4. Aceptar términos y condiciones. 5. Seleccionar método de pago. 6. Confirmar reserva. 7. Verificar página de resultado. |
+| **Técnicas de Pruebas** | Transición de Estados, Partición de Equivalencia, Tablas de Decisión |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Tipo de entrada | Gratis (precio = 0) | Con precio (> 0) |
+| Cantidad de asistentes | 1 entrada | Múltiples entradas (> 1) |
+| Método de pago | OFFLINE, ON_SITE, Ninguno (gratis) | - |
+| Estado del countdown | Activo (> 0) | Expirado (= 0) |
+
+
+**Tabla de Decisión: Comportamiento según tipo de entrada y método de pago**
+| Condición | C1 | C2 | C3 | C4 | C5 | C6 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Tipo de entrada | Gratis | Con precio | Con precio | Con precio | Con precio | Con precio |
+| Método de pago | N/A | OFFLINE | OFFLINE | ON_SITE | ON_SITE | Stripe |
+| Términos aceptados | Sí | Sí | No | Sí | No | Sí |
+| Redirección | Success | WaitingPayment | No avanza | Success | No avanza | ProcessingPayment |
+| **¿Requiere pago?** | **No** | **Sí (diferido)** | **No** | **Sí (en sitio)** | **No** | **Sí (inmediato)** |
+
+**Transición de Estados**
+
+![Diagrama de Transición de Estados - Flujo de Reserva](images/functional-tests/design/reservation-flow.png)
+![Diagrama de Transición de Estados - Cancelación y Reembolso](images/functional-tests/design/reservation-cancellation-refund.png)
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-08-001 | Reserva con 1 entrada gratuita | Redirige a Success, PEN 0.00, ticket disponible inmediatamente | f+ |
+| CPF-RES-08-002 | Reserva con 1 entrada pagada, método OFFLINE | Redirige a WaitingPayment, muestra fecha expiración, ID de reserva | f+ |
+| CPF-RES-08-003 | Reserva con 1 entrada pagada, método ON_SITE | Redirige a Success, ticket disponible, mensaje "pagar en sitio" | f+ |
+| CPF-RES-08-004 | Reserva con múltiples entradas (2) | Muestra formulario para 2 asistentes con opción checkbox "Aún no saben quiénes asistirán" | f+ |
+| CPF-RES-08-005 | Reserva con checkbox "ocultar asistentes" marcado | Permite avanzar sin llenar datos de asistentes, campos se completan después | f+ |
+| CPF-RES-08-006 | Reserva sin aceptar los 3 términos | Botón de pago/confirmar deshabilitado, no avanza | f- |
+| CPF-RES-08-007 | Countdown expira durante el proceso | Modal "La sesión ha expirado", redirige al inicio del evento | f- |
+| CPF-RES-08-008 | Countdown cambia a amarillo (<=5 min) | Timer cambia a color amarillo en la interfaz | f+ |
+| CPF-RES-08-009 | Countdown cambia a rojo (<=1 min) | Timer cambia a color rojo en la interfaz | f+ |
+| CPF-RES-08-010 | Admin confirma pago OFFLINE pendiente | Reserva cambia a Completed, tickets se activan | f+ |
+| CPF-RES-08-011 | Reserva OFFLINE expira antes de confirmación | Reserva cambia a Cancelled, cupo liberado | f+ |
+| CPF-RES-08-012 | Admin cancela reserva completada | Reserva cambia a Cancelled, opción de reembolso disponible | f+ |
+| CPF-RES-08-013 | Admin ejecuta reembolso | Reserva cambia a Refunded, monto reintegrado | f+ |
+| CPF-RES-08-014 | Comprador completa datos de asistentes después | Formulario permite edición, datos se guardan correctamente | f+ |
+| CPF-RES-08-015 | Verificar que ticket PDF contiene código QR | PDF generado con código QR válido y datos completos del asistente | f+ |
+
+### Estados No Válidos de Reserva
+| ID | CPF-RES-09 |
+| :--- | :--- |
+| **Funcionalidad** | Validación de estados inválidos y transiciones no permitidas |
+| **Descripción** | Valida que el sistema rechace correctamente transiciones de estado no válidas y muestre los mensajes de error apropiados cuando se intenten acciones no permitidas en el contexto actual de la reserva. |
+| **Requisito Asociado** | RF-RES-09 (Estados No Válidos) |
+| **Precondiciones** | Reserva en cualquier estado válido del sistema. |
+| **Datos de Entrada** | Acción sobre reserva, estado actual de la reserva. |
+| **Pasos de Ejecución** | 1. Acceder a una reserva en estado específico. 2. Intentar realizar una acción no válida para ese estado. 3. Verificar mensaje de error o comportamiento del sistema. |
+| **Técnicas de Pruebas** | Transición de Estados, Partición de Equivalencia |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+
+
+
+**Transición de Estados**
+
+![Diagrama de Transición de Estados - Estados No Válidos](images/functional-tests/design/reservation-invalid-states.png)
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-09-001 | Intentar confirmar pago desde estado PENDING | Error: La acción no está disponible desde este estado | f- |
+| CPF-RES-09-002 | Intentar hacer check-in desde estado PENDING | Error: El ticket no está activo | f- |
+| CPF-RES-09-003 | Intentar confirmar pago de reserva CANCELLED | Botón deshabilitado o error "Reserva cancelada" | f- |
+| CPF-RES-09-004 | Intentar hacer check-in de reserva CANCELLED | Error: Ticket cancelado, no válido para ingreso | f- |
+| CPF-RES-09-005 | Intentar cambiar estado COMPLETED a PENDING | Error: Transición no permitida | f- |
+| CPF-RES-09-006 | Intentar reembolsar reserva ON_SITE (ya pagada en sitio) | Error: El tipo de pago no es reembolsable | f- |
+| CPF-RES-09-007 | Intentar acceder a ticket PDF de reserva CANCELLED | Error: La reserva está cancelada | f- |
+
+### Cancelación de Reserva
+| ID | CPF-RES-10 |
+| :--- | :--- |
+| **Funcionalidad** | Cancelación de reservas por usuario y administrador |
+| **Descripción** | Valida que las reservas puedan ser canceladas correctamente, ya sea por expiración del temporizador, por acción del usuario comprador, o por acción del administrador, liberando el cupo correspondiente. |
+| **Requisito Asociado** | RF-RES-10 (Cancelación de Reserva) |
+| **Precondiciones** | Reserva en estado PENDING, WAITING_PAYMENT o COMPLETED. |
+| **Datos de Entrada** | Motivo de cancelación (opcional), confirmación de acción. |
+| **Pasos de Ejecución** | 1. Acceder a la reserva en estado válido. 2. Solicitar cancelación. 3. Confirmar la acción. 4. Verificar cambio de estado y liberación de cupo. |
+| **Técnicas de Pruebas** | Transición de Estados, Partición de Equivalencia |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Estado de reserva | PENDING, WAITING_PAYMENT, COMPLETED | CANCELLED, EXPIRED, REFUNDED |
+| Acción de cancelación | Por usuario, Por admin, Por sistema (expiración) | - |
+
+
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-10-001 | Expiración del countdown (24 min) en estado PENDING | Reserva cambia a CANCELLED automáticamente, modal de expiración mostrado | f- |
+| CPF-RES-10-002 | Usuario cancela reserva en PENDING | Reserva cambia a CANCELLED, mensaje de confirmación | f+ |
+| CPF-RES-10-003 | Admin cancela reserva en COMPLETED | Reserva cambia a CANCELLED, opción de reembolso disponible si aplica | f+ |
+| CPF-RES-10-004 | Verificar liberación de cupo tras cancelación | Los tickets cancelados vuelven a estar disponibles en el inventario | f+ |
+| CPF-RES-10-005 | Cancelación de reserva WAITING_PAYMENT | Reserva cambia a CANCELLED, liberados los tickets | f+ |
+| CPF-RES-10-006 | Intentar cancelar reserva ya CANCELLED | Error: La reserva ya está cancelada | f- |
+| CPF-RES-10-007 | Verificar que administrador puede reactivar reserva CANCELLED | Reserva vuelve a estado PENDING, tickets disponibles | f+ |
+
+### Reembolso de Reserva
+| ID | CPF-RES-11 |
+| :--- | :--- |
+| **Funcionalidad** | Reembolso de reservas canceladas |
+| **Descripción** | Valida que el administrador pueda ejecutar reembolsos para reservas canceladas que fueron pagadas mediante métodos OFFLINE u ON_SITE, verificando las condiciones y restricciones del proceso. |
+| **Requisito Asociado** | RF-RES-11 (Reembolso de Reserva) |
+| **Precondiciones** | Reserva en estado CANCELLED con pago previo (OFFLINE completada u ON_SITE). |
+| **Datos de Entrada** | Confirmación de reembolso, motivo (opcional). |
+| **Pasos de Ejecución** | 1. Acceder a reserva cancelada en el panel admin. 2. Verificar que el tipo de pago permite reembolso. 3. Solicitar reembolso. 4. Confirmar la acción. 5. Verificar cambio de estado a REFUNDED. |
+| **Técnicas de Pruebas** | Transición de Estados, Tablas de Decisión |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+
+
+**Tabla de Decisión: Elegibilidad para reembolso**
+| Condición | C1 | C2 | C3 | C4 | C5 | C6 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Estado de reserva | CANCELLED | CANCELLED | CANCELLED | CANCELLED | COMPLETED | PENDING |
+| Método de pago | OFFLINE | ON_SITE | Stripe | Gratis | OFFLINE | - |
+| ¿Ya reembolsado? | No | No | No | No | - | - |
+| **¿Reembolso disponible?** | **Sí** | **Sí** | **No** | **No** | **No** | **No** |
+
+
+**Catálogo de Pruebas**
+| #CP | Escenario | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-11-001 | Admin ejecuta reembolso en reserva OFFLINE cancelada | Reserva cambia a REFUNDED, estado final alcanzado | f+ |
+| CPF-RES-11-002 | Admin ejecuta reembolso en reserva ON_SITE cancelada | Reserva cambia a REFUNDED, proceso completado | f+ |
+| CPF-RES-11-003 | Intentar reembolsar reserva pagada con Stripe | Error: Los pagos con Stripe no son reembolsables desde el sistema | f- |
+| CPF-RES-11-004 | Intentar reembolsar reserva gratuita cancelada | Error: No existe pago registrado para esta reserva | f- |
+| CPF-RES-11-005 | Intentar reembolsar reserva ya en estado REFUNDED | Error: La reserva ya fue reembolsada | f- |
+| CPF-RES-11-006 | Verificar que reembolso solo está disponible desde estado CANCELLED | Opción de reembolso visible solo para reservas canceladas | f+ |
+
+### Cálculo de Precios con Descuentos e Impuestos
+| ID | CPF-RES-12 |
+| :--- | :--- |
+| **Funcionalidad** | Cálculo de precios finales con aplicación de descuentos e impuestos |
+| **Descripción** | Valida que el sistema calcule correctamente el precio final de las entradas considerando: precio base de categoría, descuentos promocionales, impuestos (IVA/VAT), y tarifas de servicio, generando el monto total correcto. |
+| **Requisito Asociado** | RF-RES-12 (Cálculo de Precios) |
+| **Precondiciones** | Evento con categorías configuradas, promociones activas opcionales. |
+| **Datos de Entrada** | Categoría de ticket, cantidad, código promocional, configuración de impuestos. |
+| **Pasos de Ejecución** | 1. Seleccionar categoría y cantidad de tickets. 2. Ingresar código promocional (si existe). 3. Verificar cálculo en resumen. 4. Confirmar y verificar precio final en pago. |
+| **Técnicas de Pruebas** | Tablas de Decisión, Análisis de Valores Límite |
+| **Prioridad** | Alta |
+
+**Análisis de Técnicas**
+
+**Partición de Equivalencia**
+| Campo | Clase Válida | Clases No Válidas |
+| :--- | :--- | :--- |
+| Código promocional | Válido y activo | Inválido, expirado, ya utilizado |
+| Descuento | Valor entre 0% y 100% | < 0%, > 100% |
+| Impuesto | Tasas estándar (0%, 18%, etc.) | Tasas negativas |
+
+**Valores Límite**
+| Campo | Límite Inf. Válido | Límite Inf. No Válido | Límite Sup. Válido | Límite Sup. No Válido |
+| :--- | :--- | :--- | :--- | :--- |
+| Descuento (%) | 0% | -1% | 100% | 101% |
+| Precio final | >= 0 | Negativo | - | - |
+
+**Tabla de Decisión: Cálculo de precio con descuentos e impuestos**
+| Condición | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Precio base | $100 | $100 | $100 | $100 | $100 | $100 | $100 | $100 |
+| Descuento % | 0% | 10% | 10% | 20% | 0% | 0% | 15% | 15% |
+| ¿Impuesto incluido? | Sí | Sí | No | No | Sí | No | Sí | No |
+| Tasa impuesto | 18% | 18% | 18% | 18% | 0% | 0% | 18% | 18% |
+| **Precio final** | **$118.00** | **$106.20** | **$96.20** | **$86.40** | **$100.00** | **$82.00** | **$100.30** | **$83.00** |
+
+
+**Catálogo de Pruebas**
+| #CP | Datos de Entrada | Resultado Esperado | Obs |
+| :--- | :--- | :--- | :--- |
+| CPF-RES-12-001 | Precio base $100, sin descuento, sin impuesto | Precio final: $100.00 | f+ |
+| CPF-RES-12-002 | Precio base $100, 10% descuento, sin impuesto | Precio final: $90.00 | f+ |
+| CPF-RES-12-003 | Precio base $100, 10% descuento, 18% impuesto | Precio final: $106.20 | f+ |
+| CPF-RES-12-004 | Precio base $100, 20% descuento, 18% impuesto | Precio final: $86.40 | f+ |
+| CPF-RES-12-005 | Código promocional válido "DESCUENTO20" con 20% | Descuento aplicado correctamente | f+ |
+| CPF-RES-12-006 | Código promocional inválido "INVALIDO" | Error: El código no es válido | f- |
+| CPF-RES-12-007 | Código promocional expirado | Error: El código ha expirado | f- |
+| CPF-RES-12-008 | Código promocional ya utilizado (mismo email) | Error: El código ya fue utilizado | f- |
+| CPF-RES-12-009 | Descuento del 0% (sin descuento) | Precio sin modificaciones | f+ |
+| CPF-RES-12-010 | Descuento del 100% (gratis total) | Precio final: $0.00 | f+ |
+| CPF-RES-12-011 | Descuento negativo | Error: El descuento no puede ser negativo | f- |
+| CPF-RES-12-012 | Descuento mayor a 100% | Error: El descuento excede el 100% | f- |
+| CPF-RES-12-013 | Precio final negativo (caso extremos) | Error: El precio no puede ser negativo | f- |
+| CPF-RES-12-014 | Múltiples entradas (3) con descuento | Descuento aplica al subtotal, precio por unidad correcto | f+ |
+| CPF-RES-12-015 | Verificar que el resumen muestra desglose | Se muestra: Subtotal, Descuento, Impuestos, Total | f+ |
+
 ### Creación de Eventos
 | ID | CPF-MAN-01 |
 | :--- | :--- |
@@ -1356,6 +1569,11 @@ En esta sección se relacionan los requisitos funcionales con los casos de prueb
 | **RF-RES-05:** Reserva Completada - Confirmación y Descarga | CPF-RES-05 (001-006) |
 | **RF-RES-06:** Panel de Administración - Gestión de Reservas | CPF-RES-06 (001-002) |
 | **RF-RES-07:** Campos Personalizados | CPF-RES-07 (001) |
+| **RF-RES-08:** Flujo Completo de Reserva | CPF-RES-08 (001-015) |
+| **RF-RES-09:** Estados No Válidos de Reserva | CPF-RES-09 (001-007) |
+| **RF-RES-10:** Cancelación de Reserva | CPF-RES-10 (001-007) |
+| **RF-RES-11:** Reembolso de Reserva | CPF-RES-11 (001-006) |
+| **RF-RES-12:** Cálculo de Precios con Descuentos e Impuestos | CPF-RES-12 (001-015) |
 | **RF-MAN-01:** Creación de eventos | CPF-MAN-01 (001-026) |
 | **RF-MAN-02:** Creación de grupos | CPF-MAN-02 (001-014) |
 | **RF-MAN-03:** Creación de suscripciones | CPF-MAN-03 (001-023) |
