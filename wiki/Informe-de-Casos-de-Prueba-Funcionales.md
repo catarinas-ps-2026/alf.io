@@ -11,6 +11,7 @@
 - [8. Estrategia y métodos de prueba aplicados](#8-estrategia-y-métodos-de-prueba-aplicados)
 - [9. Conclusión](#9-conclusión)
 - [10. Resumen de Ejecución](#10-resumen-de-ejecución)
+- [11. Lista de Defectos](#11-lista-de-defectos)
 
 ## 1. Introducción
 
@@ -6339,6 +6340,3454 @@ Este proceso es controlado mediante Github actions, que:
 
 ### Cálculo de Precios con Descuentos e Impuestos
 
+### Creación de Eventos
+
+**CPF-MAN-01-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-001</td>
+      <td>Verificar que el sistema no permita crear un evento cuando el nombre está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que el nombre del evento es obligatorio.</td>
+      <td colspan="3">El sistema impidió el registro del evento y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/01.png" alt="cpf-man-01-001">
+        <br>
+        Validación del campo obligatorio "Event Name".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-002</td>
+      <td>Verificar que el sistema rechace un nombre compuesto únicamente por espacios en blanco.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que el nombre ingresado es inválido.</td>
+      <td colspan="3">El sistema rechazó el valor ingresado y mostró el mensaje de validación.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/02.png" alt="cpf-man-01-002">
+        <br>
+        Validación de nombre del evento compuesto únicamente por espacios.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-003</td>
+      <td>Verificar que el sistema permita crear un evento con un nombre de un carácter.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El evento debe registrarse correctamente.</td>
+      <td colspan="3">El sistema creó el evento exitosamente con el nombre mínimo permitido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/03.png" alt="cpf-man-01-003">
+        <br>
+        Registro exitoso de un evento con longitud mínima del nombre.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-004</td>
+      <td>Verificar que el sistema permita registrar un evento con un nombre de 255 caracteres.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe aceptar el nombre dentro del límite máximo permitido.</td>
+      <td colspan="3">El evento fue registrado correctamente utilizando un nombre de 255 caracteres.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/04.png" alt="cpf-man-01-004">
+        <br>
+        Registro exitoso con longitud máxima válida del nombre del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-005</td>
+      <td>Verificar que el sistema rechace un nombre de evento que exceda los 255 caracteres.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe impedir el registro del evento e indicar que se excedió la longitud permitida.</td>
+      <td colspan="3">El sistema mostró el mensaje de error correspondiente y no permitió guardar el evento.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/05.png" alt="cpf-man-01-005">
+        <br>
+        Validación del límite máximo permitido para el nombre del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-006</td>
+      <td>Verificar que el sistema no permita crear un evento cuando la ubicación está vacía.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la ubicación del evento es obligatoria.</td>
+      <td colspan="3">El sistema impidió el registro del evento y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/06.png" alt="cpf-man-01-006">
+        <br>
+        Validación del campo obligatorio "Event Location".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-007**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-007</td>
+      <td>Verificar que el sistema no permita crear un evento cuando la fecha y hora no han sido especificadas.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que la fecha del evento es obligatoria.</td>
+      <td colspan="3">El sistema mostró el mensaje de validación y no permitió guardar el evento.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/07.png" alt="cpf-man-01-007">
+        <br>
+        Validación del campo obligatorio "Event Date".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-008**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-008</td>
+      <td>Verificar que la fecha de finalización del evento sea posterior a la fecha de inicio.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe impedir el registro del evento y mostrar un mensaje indicando que la fecha de finalización es inválida.</td>
+      <td colspan="3">El sistema detectó la inconsistencia entre las fechas y rechazó el registro.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/08.png" alt="cpf-man-01-008">
+        <br>
+        Validación del intervalo de fechas del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-009**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-009</td>
+      <td>Verificar que el sistema no permita crear un evento cuando la zona horaria no ha sido seleccionada.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la zona horaria es obligatoria.</td>
+      <td colspan="3">El sistema mostró el mensaje de validación correspondiente y no permitió guardar el evento.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/09.png" alt="cpf-man-01-009">
+        <br>
+        Validación del campo obligatorio "Event Time Zone".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-010**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-010</td>
+      <td>Verificar que el sistema acepte una zona horaria válida para la creación del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe aceptar la zona horaria seleccionada y permitir continuar con el registro del evento.</td>
+      <td colspan="3">La zona horaria fue aceptada correctamente y el formulario permaneció válido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/10.png" alt="cpf-man-01-010">
+        <br>
+        Selección correcta de la zona horaria del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-011**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-011</td>
+      <td>Verificar que el sistema acepte una descripción válida para el evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La descripción debe almacenarse correctamente y permanecer visible en el formulario.</td>
+      <td colspan="3">La descripción fue registrada correctamente y se mostró sin alteraciones.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/11.png" alt="cpf-man-01-011">
+        <br>
+        Registro exitoso de una descripción válida para el evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-012**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-012</td>
+      <td>Verificar que el sistema no permita crear un evento cuando la descripción está vacía.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la descripción es obligatoria.</td>
+      <td colspan="3">El sistema rechazó el registro y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/12.png" alt="cpf-man-01-012">
+        <br>
+        Validación del campo obligatorio "Event Description".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-013**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-013</td>
+      <td>Verificar que el sistema acepte una descripción con la longitud mínima permitida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La descripción debe ser aceptada y el evento debe poder registrarse.</td>
+      <td colspan="3">El sistema aceptó correctamente la descripción mínima ingresada.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/13.png" alt="cpf-man-01-013">
+        <br>
+        Validación de la longitud mínima de la descripción del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-014**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-014</td>
+      <td>Verificar que el sistema rechace una URL del evento con un formato inválido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la URL ingresada no es válida.</td>
+      <td colspan="3">La URL fue rechazada y el sistema mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/14.png" alt="cpf-man-01-014">
+        <br>
+        Validación del formato de la URL del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-015**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-015</td>
+      <td>Verificar que el sistema acepte una URL válida para el evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La URL debe ser aceptada y asociada correctamente al evento.</td>
+      <td colspan="3">El sistema validó la URL y permitió continuar con el registro del evento.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/15.png" alt="cpf-man-01-015">
+        <br>
+        Validación de una URL válida para el evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-016**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-016</td>
+      <td>Verificar que el sistema rechace un enlace de sitio web con un formato inválido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que el enlace del sitio web no tiene un formato válido.</td>
+      <td colspan="3">El sistema rechazó el enlace ingresado y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/16.png" alt="cpf-man-01-016">
+        <br>
+        Validación del formato del campo "Website Link".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-017**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-017</td>
+      <td>Verificar que el sistema acepte un enlace de sitio web con un formato válido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El enlace debe almacenarse correctamente y quedar asociado al evento.</td>
+      <td colspan="3">El sistema validó correctamente el enlace y permitió continuar con la creación del evento.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/17.png" alt="cpf-man-01-017">
+        <br>
+        Validación de un enlace de sitio web válido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-018**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-018</td>
+      <td>Verificar que el sistema rechace una URL de términos y condiciones con un formato inválido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que la URL de términos y condiciones es inválida.</td>
+      <td colspan="3">La URL fue rechazada y el sistema mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/18.png" alt="cpf-man-01-018">
+        <br>
+        Validación del formato de la URL de términos y condiciones.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-019**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-019</td>
+      <td>Verificar que el sistema acepte una URL válida de términos y condiciones.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La URL debe almacenarse correctamente y quedar asociada al evento.</td>
+      <td colspan="3">El sistema validó la URL correctamente y permitió guardar la configuración.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/19.png" alt="cpf-man-01-019">
+        <br>
+        Validación de una URL válida de términos y condiciones.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-020**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-020</td>
+      <td>Verificar que el sistema rechace una URL de política de privacidad con un formato inválido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la URL de política de privacidad es inválida.</td>
+      <td colspan="3">La URL ingresada fue rechazada y el sistema mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/20.png" alt="cpf-man-01-020">
+        <br>
+        Validación del formato de la URL de política de privacidad.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-021**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-021</td>
+      <td>Verificar que el sistema permita dejar vacía la URL de la política de privacidad al ser un campo opcional.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe permitir continuar con el registro del evento sin especificar una política de privacidad.</td>
+      <td colspan="3">El formulario fue validado correctamente sin ingresar una URL de política de privacidad.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/21.png" alt="cpf-man-01-021">
+        <br>
+        Validación del campo opcional "Privacy Policy URL".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-022**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-022</td>
+      <td>Verificar que el sistema no permita crear un evento cuando no se ha cargado un logo.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar el mensaje "Event logo is missing!" y no permitir guardar el evento.</td>
+      <td colspan="3">El sistema impidió el registro del evento y mostró el mensaje correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/22.png" alt="cpf-man-01-022">
+        <br>
+        Validación del logo obligatorio del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-023**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-023</td>
+      <td>Verificar que el sistema rechace archivos con formatos no permitidos como logo del evento.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe aceptar únicamente archivos PNG, JPG, GIF o SVG.</td>
+      <td colspan="3">El archivo con formato no permitido fue rechazado y se mostró el mensaje de validación.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/23.png" alt="cpf-man-01-023">
+        <br>
+        Validación del formato permitido para el logo del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-024**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-024</td>
+      <td>Verificar que el sistema acepte un logo válido con un tamaño menor a 1 MB.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La imagen debe cargarse correctamente y mostrarse como logo del evento.</td>
+      <td colspan="3">El sistema cargó la imagen correctamente y la mostró como vista previa del evento.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/24.png" alt="cpf-man-01-024">
+        <br>
+        Carga exitosa de un logo válido para el evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-025**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-025</td>
+      <td>Verificar que el sistema rechace un logo cuyo tamaño exceda el límite permitido de 1 MB.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe impedir la carga del archivo e informar que se excedió el tamaño máximo permitido.</td>
+      <td colspan="3">La carga del archivo fue rechazada y el sistema mostró el mensaje correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/25.png" alt="cpf-man-01-025">
+        <br>
+        Validación del tamaño máximo permitido para el logo del evento.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-01-026**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-01-026</td>
+      <td>Verificar que el sistema permita crear un evento cuando todos los campos obligatorios son válidos y el logo ha sido cargado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El evento debe registrarse exitosamente y mostrarse en el listado de eventos.</td>
+      <td colspan="3">El sistema creó correctamente el evento y lo agregó al listado correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/event/26.png" alt="cpf-man-01-026">
+        <br>
+        Registro exitoso de un nuevo evento con todos los datos obligatorios completos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Creación de Grupos
+
+**CPF-MAN-02-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-001</td>
+      <td>Verificar que el sistema no permita crear un grupo cuando el nombre está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que el nombre del grupo es obligatorio.</td>
+      <td colspan="3">El sistema impidió el registro del grupo y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/01.png" alt="cpf-man-02-001">
+        <br>
+        Validación del campo obligatorio "Name".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-002</td>
+      <td>Verificar que el sistema rechace un nombre compuesto únicamente por espacios en blanco.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que el nombre ingresado es inválido.</td>
+      <td colspan="3">El sistema rechazó el valor ingresado y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/02.png" alt="cpf-man-02-002">
+        <br>
+        Validación de nombre compuesto únicamente por espacios.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-003</td>
+      <td>Verificar que el sistema permita crear un grupo con un nombre de un carácter.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El grupo debe registrarse correctamente utilizando la longitud mínima permitida.</td>
+      <td colspan="3">El sistema creó el grupo exitosamente con un nombre de un carácter.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/03.png" alt="cpf-man-02-003">
+        <br>
+        Registro exitoso con longitud mínima del nombre del grupo.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-004</td>
+      <td>Verificar que el sistema permita registrar un grupo con un nombre de 255 caracteres.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe aceptar el nombre dentro del límite máximo permitido.</td>
+      <td colspan="3">El grupo fue registrado correctamente utilizando un nombre de 255 caracteres.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/04.png" alt="cpf-man-02-004">
+        <br>
+        Registro exitoso con longitud máxima válida del nombre del grupo.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-005</td>
+      <td>Verificar que el sistema rechace un nombre de grupo que exceda los 255 caracteres.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe impedir el registro del grupo e indicar que se excedió la longitud permitida.</td>
+      <td colspan="3">El sistema mostró el mensaje de error correspondiente y no permitió guardar el grupo.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/05.png" alt="cpf-man-02-005">
+        <br>
+        Validación del límite máximo permitido para el nombre del grupo.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-006</td>
+      <td>Verificar que el sistema no permita crear un grupo cuando la descripción está vacía.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la descripción es obligatoria.</td>
+      <td colspan="3">El sistema impidió el registro del grupo y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/06.png" alt="cpf-man-02-006">
+        <br>
+        Validación del campo obligatorio "Description".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-007**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-007</td>
+      <td>Verificar que el sistema acepte una descripción válida para el grupo.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La descripción debe almacenarse correctamente y permanecer asociada al grupo.</td>
+      <td colspan="3">El sistema registró correctamente la descripción ingresada.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/07.png" alt="cpf-man-02-007">
+        <br>
+        Registro exitoso de una descripción válida para el grupo.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-008**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-008</td>
+      <td>Verificar que el sistema no permita agregar un miembro al grupo cuando el correo electrónico está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que el correo electrónico es obligatorio.</td>
+      <td colspan="3">El sistema rechazó el registro del miembro y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/08.png" alt="cpf-man-02-008">
+        <br>
+        Validación del campo obligatorio "E-Mail".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-009**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-009</td>
+      <td>Verificar que el sistema rechace un correo electrónico con un formato inválido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que el formato del correo electrónico es incorrecto.</td>
+      <td colspan="3">El sistema rechazó el correo ingresado y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/09.png" alt="cpf-man-02-009">
+        <br>
+        Validación del formato del correo electrónico del miembro.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-010**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-010</td>
+      <td>Verificar que el sistema acepte un correo electrónico con un formato válido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El correo electrónico debe aceptarse y agregarse correctamente al grupo.</td>
+      <td colspan="3">El sistema validó el correo y permitió agregar el miembro al grupo.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/10.png" alt="cpf-man-02-010">
+        <br>
+        Registro exitoso de un miembro con correo electrónico válido.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-011**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-011</td>
+      <td>Verificar que el sistema no permita agregar un correo electrónico compuesto únicamente por espacios en blanco.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que el correo electrónico ingresado es inválido.</td>
+      <td colspan="3">El sistema rechazó el valor ingresado y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/11.png" alt="cpf-man-02-011">
+        <br>
+        Validación de correo electrónico compuesto únicamente por espacios.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-012**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-012</td>
+      <td>Verificar que el sistema permita agregar un miembro sin descripción adicional.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe permitir registrar el miembro cuando la descripción está vacía, al tratarse de un campo opcional.</td>
+      <td colspan="3">El miembro fue agregado correctamente sin necesidad de ingresar una descripción.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/12.png" alt="cpf-man-02-012">
+        <br>
+        Registro exitoso de un miembro sin descripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-013**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-013</td>
+      <td>Verificar que el sistema permita agregar un miembro con una descripción válida.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La descripción debe almacenarse correctamente junto con la información del miembro.</td>
+      <td colspan="3">El sistema registró correctamente la descripción proporcionada para el miembro.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/13.png" alt="cpf-man-02-013">
+        <br>
+        Registro exitoso de un miembro con descripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-02-014**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-02-014</td>
+      <td>Verificar que el sistema permita crear un grupo sin miembros registrados.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El grupo debe registrarse correctamente aunque no se hayan agregado elementos en la sección "Items".</td>
+      <td colspan="3">El sistema permitió crear el grupo sin miembros y lo mostró correctamente en el listado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/group/14.png" alt="cpf-man-02-014">
+        <br>
+        Creación exitosa de un grupo sin miembros asociados.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Creación de Suscripciones
+
+**CPF-MAN-03-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-001</td>
+      <td>Verificar que el sistema no permita crear una suscripción cuando el título está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que el título de la suscripción es obligatorio.</td>
+      <td colspan="3">El sistema impidió el registro de la suscripción y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/01.png" alt="cpf-man-03-001">
+        <br>
+        Validación del campo obligatorio "Title".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-002</td>
+      <td>Verificar que el sistema rechace un título compuesto únicamente por espacios en blanco.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que el título ingresado es inválido.</td>
+      <td colspan="3">El sistema rechazó el valor ingresado y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/02.png" alt="cpf-man-03-002">
+        <br>
+        Validación de título compuesto únicamente por espacios.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-003</td>
+      <td>Verificar que el sistema permita crear una suscripción con un título de un carácter.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La suscripción debe registrarse correctamente utilizando la longitud mínima permitida.</td>
+      <td colspan="3">El sistema creó correctamente la suscripción con un título de un carácter.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/03.png" alt="cpf-man-03-003">
+        <br>
+        Registro exitoso con longitud mínima del título.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-004</td>
+      <td>Verificar que el sistema permita registrar una suscripción con un título de 255 caracteres.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe aceptar el título dentro del límite máximo permitido.</td>
+      <td colspan="3">La suscripción fue registrada correctamente utilizando un título de 255 caracteres.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/04.png" alt="cpf-man-03-004">
+        <br>
+        Registro exitoso con longitud máxima válida del título.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-005</td>
+      <td>Verificar que el sistema rechace un título que exceda los 255 caracteres.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe impedir el registro de la suscripción e indicar que se excedió la longitud permitida.</td>
+      <td colspan="3">El sistema mostró el mensaje de error correspondiente y no permitió guardar la suscripción.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/05.png" alt="cpf-man-03-005">
+        <br>
+        Validación del límite máximo permitido para el título de la suscripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-006</td>
+      <td>Verificar que el sistema no permita crear una suscripción cuando la descripción está vacía.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la descripción es obligatoria.</td>
+      <td colspan="3">El sistema impidió el registro de la suscripción y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/06.png" alt="cpf-man-03-006">
+        <br>
+        Validación del campo obligatorio "Description".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-007**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-007</td>
+      <td>Verificar que el sistema acepte una descripción válida para la suscripción.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La descripción debe almacenarse correctamente y permanecer asociada a la suscripción.</td>
+      <td colspan="3">El sistema registró correctamente la descripción ingresada.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/07.png" alt="cpf-man-03-007">
+        <br>
+        Registro exitoso de una descripción válida para la suscripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-008**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-008</td>
+      <td>Verificar que el sistema rechace una URL de términos y condiciones con un formato inválido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe indicar que la URL ingresada no tiene un formato válido.</td>
+      <td colspan="3">El sistema rechazó la URL y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/08.png" alt="cpf-man-03-008">
+        <br>
+        Validación del formato de la URL de términos y condiciones.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-009**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-009</td>
+      <td>Verificar que el sistema acepte una URL válida de términos y condiciones.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La URL debe almacenarse correctamente y quedar asociada a la suscripción.</td>
+      <td colspan="3">El sistema validó correctamente la URL y permitió continuar con el registro.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/09.png" alt="cpf-man-03-009">
+        <br>
+        Validación de una URL válida de términos y condiciones.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-010**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-010</td>
+      <td>Verificar que el sistema permita dejar vacía la URL de la política de privacidad al ser un campo opcional.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe permitir crear la suscripción sin especificar una URL de política de privacidad.</td>
+      <td colspan="3">La suscripción pudo registrarse correctamente sin ingresar una política de privacidad.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/10.png" alt="cpf-man-03-010">
+        <br>
+        Validación del campo opcional "Privacy Policy URL".
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-011**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-011</td>
+      <td>Verificar que el sistema rechace una URL de política de privacidad con un formato inválido.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar un mensaje indicando que la URL de política de privacidad no tiene un formato válido.</td>
+      <td colspan="3">El sistema rechazó la URL ingresada y mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/11.png" alt="cpf-man-03-011">
+        <br>
+        Validación del formato de la URL de política de privacidad.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-012**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-012</td>
+      <td>Verificar que el sistema acepte una URL válida de política de privacidad.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La URL debe almacenarse correctamente y quedar asociada a la suscripción.</td>
+      <td colspan="3">El sistema validó correctamente la URL y permitió guardar la configuración.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/12.png" alt="cpf-man-03-012">
+        <br>
+        Validación de una URL válida de política de privacidad.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-013**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-013</td>
+      <td>Verificar que el sistema no permita crear una suscripción cuando no se ha cargado una imagen.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe mostrar el mensaje "Image is missing!" e impedir el registro de la suscripción.</td>
+      <td colspan="3">El sistema bloqueó la creación de la suscripción y mostró el mensaje correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/13.png" alt="cpf-man-03-013">
+        <br>
+        Validación de la imagen obligatoria para la suscripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-014**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-014</td>
+      <td>Verificar que el sistema rechace archivos con formatos no permitidos como imagen de la suscripción.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe aceptar únicamente archivos PNG, JPG, GIF o SVG.</td>
+      <td colspan="3">El archivo con formato no permitido fue rechazado y el sistema mostró el mensaje de validación correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/14.png" alt="cpf-man-03-014">
+        <br>
+        Validación del formato permitido para la imagen de la suscripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-015**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-015</td>
+      <td>Verificar que el sistema acepte una imagen válida con un tamaño menor a 1 MB.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La imagen debe cargarse correctamente y mostrarse como imagen de la suscripción.</td>
+      <td colspan="3">El sistema cargó correctamente la imagen y la mostró como vista previa de la suscripción.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/15.png" alt="cpf-man-03-015">
+        <br>
+        Carga exitosa de una imagen válida para la suscripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-016**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-016</td>
+      <td>Verificar que el sistema rechace una imagen cuyo tamaño exceda 1 MB.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe impedir la carga de la imagen y mostrar un mensaje indicando que se excedió el tamaño máximo permitido.</td>
+      <td colspan="3">El sistema rechazó el archivo y mostró el mensaje correspondiente al límite de 1 MB.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/16.png" alt="cpf-man-03-016">
+        <br>
+        Validación del tamaño máximo permitido para la imagen.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-017**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-017</td>
+      <td>Verificar que el sistema permita seleccionar el tipo "Multi-Access Pass".</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La opción "Multi-Access Pass" debe quedar seleccionada y almacenarse correctamente.</td>
+      <td colspan="3">El sistema registró correctamente la selección del tipo Multi-Access Pass.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/17.png" alt="cpf-man-03-017">
+        <br>
+        Selección del tipo de suscripción Multi-Access Pass.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-018**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-018</td>
+      <td>Verificar que el sistema permita seleccionar el tipo "Custom".</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La opción "Custom" debe quedar seleccionada y almacenarse correctamente.</td>
+      <td colspan="3">El sistema registró correctamente la selección del tipo personalizado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/18.png" alt="cpf-man-03-018">
+        <br>
+        Selección del tipo de suscripción personalizada.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-019**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-019</td>
+      <td>Verificar que el sistema permita crear una suscripción con todos los datos obligatorios correctamente ingresados.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La suscripción debe registrarse exitosamente y mostrarse en el listado de suscripciones disponibles.</td>
+      <td colspan="3">El sistema creó correctamente la suscripción y la mostró en la lista correspondiente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/19.png" alt="cpf-man-03-019">
+        <br>
+        Creación exitosa de una suscripción con todos los datos válidos.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-020**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-020</td>
+      <td>Verificar que el sistema permita modificar el tipo de suscripción antes de guardar el registro.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El sistema debe actualizar correctamente la opción seleccionada sin perder la información previamente ingresada.</td>
+      <td colspan="3">El tipo de suscripción fue modificado correctamente y el resto de los datos permanecieron sin cambios.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/20.png" alt="cpf-man-03-020">
+        <br>
+        Cambio del tipo de suscripción antes del registro.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-021**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-021</td>
+      <td>Verificar que el sistema conserve la imagen cargada al cambiar el tipo de suscripción.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La imagen previamente cargada debe mantenerse disponible después de seleccionar otro tipo de suscripción.</td>
+      <td colspan="3">El sistema conservó correctamente la imagen sin requerir una nueva carga.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/21.png" alt="cpf-man-03-021">
+        <br>
+        Persistencia de la imagen al modificar el tipo de suscripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-022**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-022</td>
+      <td>Verificar que el sistema permita cancelar la creación de una suscripción antes de guardar.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">El formulario debe cerrarse o restablecerse sin registrar la suscripción en el sistema.</td>
+      <td colspan="3">La operación fue cancelada correctamente y no se creó ninguna suscripción nueva.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/22.png" alt="cpf-man-03-022">
+        <br>
+        Cancelación del proceso de creación de una suscripción.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-03-023**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-03-023</td>
+      <td>Verificar que el sistema cree correctamente una suscripción con todos los campos válidos, imagen cargada y tipo seleccionado.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">La suscripción debe almacenarse correctamente con toda la información configurada y quedar disponible para su utilización.</td>
+      <td colspan="3">El sistema registró exitosamente la suscripción con todos los datos, imagen y tipo configurados, mostrándola en el listado de suscripciones.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/subscription/23.png" alt="cpf-man-03-023">
+        <br>
+        Registro exitoso de una suscripción completamente configurada.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Creación de Tickets
+
+**CPF-MAN-04-001**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-001</td>
+      <td>No permitir guardar el formulario cuando el campo Ticket Price Model está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Modelo de precio obligatorio.</td>
+      <td colspan="3">Se mostró el mensaje indicando que el modelo de precio es obligatorio y no se guardó el formulario.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/01.png" alt="ticket-price-model-empty">
+        <br>
+        Validación del campo Ticket Price Model obligatorio.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-002**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-002</td>
+      <td>Permitir seleccionar el modelo de precio "Free of charge".</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó el modelo de precio "Free of charge" sin mostrar errores.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/02.png" alt="ticket-price-model-free">
+        <br>
+        Selección correcta del modelo de precio gratuito.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-003**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-003</td>
+      <td>Permitir seleccionar el modelo de precio "Entry fee requested".</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó el modelo de precio "Entry fee requested" correctamente.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/03.png" alt="ticket-price-model-entry-fee">
+        <br>
+        Selección correcta del modelo de precio con costo de entrada.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-004**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-004</td>
+      <td>No permitir guardar el formulario cuando el campo Max Tickets está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Cantidad máxima obligatoria.</td>
+      <td colspan="3">Se mostró el mensaje indicando que la cantidad máxima de tickets es obligatoria.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/04.png" alt="max-tickets-empty">
+        <br>
+        Validación del campo Max Tickets obligatorio.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-005**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-005</td>
+      <td>No permitir registrar un valor de Max Tickets igual a 0.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Debe ser mayor a cero.</td>
+      <td colspan="3">El sistema mostró el mensaje correspondiente y rechazó el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/05.png" alt="max-tickets-zero">
+        <br>
+        Validación del valor mínimo permitido para Max Tickets.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-006**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-006</td>
+      <td>No permitir registrar un valor negativo en el campo Max Tickets.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Valor inválido.</td>
+      <td colspan="3">El sistema mostró el mensaje correspondiente y rechazó el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/06.png" alt="max-tickets-negative">
+        <br>
+        Validación de valores negativos en el campo Max Tickets.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-007**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-007</td>
+      <td>Permitir registrar el valor mínimo válido (1) en el campo Max Tickets.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el valor mínimo permitido.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/07.png" alt="max-tickets-one">
+        <br>
+        Validación del valor mínimo permitido para Max Tickets.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-008**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-008</td>
+      <td>Permitir registrar el valor 100 en el campo Max Tickets.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/08.png" alt="max-tickets-hundred">
+        <br>
+        Validación de un valor válido para Max Tickets.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-009**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-009</td>
+      <td>No permitir guardar el formulario cuando el campo Regular Price está vacío y el modelo de precio es "Entry fee requested".</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Precio obligatorio.</td>
+      <td colspan="3">Se mostró el mensaje indicando que el precio es obligatorio y no se guardó el formulario.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/09.png" alt="regular-price-empty">
+        <br>
+        Validación del campo Regular Price obligatorio.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-010**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-010</td>
+      <td>No permitir registrar un valor negativo en el campo Regular Price.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Precio inválido.</td>
+      <td colspan="3">El sistema mostró el mensaje correspondiente y rechazó el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/10.png" alt="regular-price-negative">
+        <br>
+        Validación de valores negativos en el campo Regular Price.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-011**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-011</td>
+      <td>Permitir registrar el valor 0 en el campo Regular Price.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/11.png" alt="regular-price-zero">
+        <br>
+        Validación del valor cero en el campo Regular Price.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-012**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-012</td>
+      <td>Permitir registrar el valor 20 en el campo Regular Price.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/12.png" alt="regular-price-twenty">
+        <br>
+        Validación de un valor válido en el campo Regular Price.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-013**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-013</td>
+      <td>No permitir guardar el formulario cuando el campo Currency está vacío.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Moneda obligatoria.</td>
+      <td colspan="3">Se mostró el mensaje indicando que la moneda es obligatoria y no se guardó el formulario.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/13.png" alt="currency-empty">
+        <br>
+        Validación del campo Currency obligatorio.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-014**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-014</td>
+      <td>Permitir seleccionar la moneda "EUR".</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente la moneda seleccionada.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/14.png" alt="currency-eur">
+        <br>
+        Validación de una moneda válida.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-015**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-015</td>
+      <td>No permitir registrar una moneda inválida en el campo Currency.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Moneda inválida.</td>
+      <td colspan="3">El sistema mostró el mensaje correspondiente y rechazó la moneda ingresada.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/15.png" alt="currency-invalid">
+        <br>
+        Validación de una moneda inválida.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-016**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-016</td>
+      <td>No permitir registrar un valor negativo en el campo Taxes (%).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Impuesto inválido.</td>
+      <td colspan="3">El sistema mostró el mensaje correspondiente y rechazó el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/16.png" alt="taxes-negative">
+        <br>
+        Validación de valores negativos en el campo Taxes (%).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-017**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-017</td>
+      <td>Permitir registrar el valor 0 en el campo Taxes (%).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/17.png" alt="taxes-zero">
+        <br>
+        Validación del valor cero en el campo Taxes (%).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-018**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-018</td>
+      <td>Permitir registrar el valor 18 en el campo Taxes (%).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/18.png" alt="taxes-eighteen">
+        <br>
+        Validación de un valor válido en el campo Taxes (%).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-019**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-019</td>
+      <td>Permitir registrar el valor 100 en el campo Taxes (%).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/19.png" alt="taxes-hundred">
+        <br>
+        Validación del valor máximo permitido para Taxes (%).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-020**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-020</td>
+      <td>No permitir registrar un valor mayor a 100 en el campo Taxes (%).</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Impuesto inválido.</td>
+      <td colspan="3">El sistema mostró el mensaje correspondiente y rechazó el valor ingresado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/20.png" alt="taxes-over-limit">
+        <br>
+        Validación de valores superiores al máximo permitido para Taxes (%).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-021**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-021</td>
+      <td>No permitir guardar el formulario sin seleccionar al menos un Payment Method.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Error: Debe seleccionar al menos un método de pago.</td>
+      <td colspan="3">Se mostró el mensaje correspondiente y no se guardó el formulario.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/21.png" alt="payment-method-empty">
+        <br>
+        Validación de selección obligatoria de al menos un método de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-022**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-022</td>
+      <td>Permitir seleccionar el método de pago PayPal.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente el método de pago seleccionado.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/22.png" alt="payment-method-paypal">
+        <br>
+        Validación de selección del método de pago PayPal.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**CPF-MAN-04-023**
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Defectos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPF-MAN-04-023</td>
+      <td>Permitir seleccionar los métodos de pago PayPal y Saferpay By SIX Payments simultáneamente.</td>
+      <td>Manual</td>
+      <td>Exitoso</td>
+      <td>No se encontraron defectos</td>
+    </tr>
+    <tr>
+      <th colspan="2">Resultado esperado</th>
+      <th colspan="3">Resultado obtenido</th>
+    </tr>
+    <tr>
+      <td colspan="2">Validación correcta.</td>
+      <td colspan="3">El sistema aceptó correctamente ambos métodos de pago seleccionados.</td>
+    </tr>
+    <tr>
+      <th colspan="5">Evidencia</th>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <img src="images/functional-tests/run/management/ticket/23.png" alt="payment-method-multiple">
+        <br>
+        Validación de selección de múltiples métodos de pago.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 
 ## 7. Limitaciones
 
@@ -6364,8 +9813,24 @@ El enfoque de pruebas de alf.io combina múltiples niveles con un fuerte énfasi
 |:---|:---|
 | Navegador utilizado | Firefox 151.* |
 | Entorno de aplicación | Imagen Docker ([ghcr.io/catarinas-ps-2026/alf.io](https://github.com/catarinas-ps-2026/alf.io/pkgs/container/alf.io)) compilada vía GitHub Actions (ubuntu-latest) y ejecutada en Kubernetes v1.34.5+k3s1 ([alfio.ynoacamino.me](https://alfio.ynoacamino.me)) |
-| Total de casos de prueba diseñados | 205 |
-| Total de casos de prueba ejecutados | 155 |
-| Cobertura funcional (ejecutados / diseñados) | 75.6% |
+| Total de casos de prueba diseñados | 291 |
+| Total de casos de prueba ejecutados | 241 |
+| Cobertura funcional (ejecutados / diseñados) | 82.8% |
 | Casos con fallos | 15 |
-| Tasa de éxito (sobre ejecutados) | 90.3% |
+| Tasa de éxito (sobre ejecutados) | 93.8% |
+
+## 11. Lista de Defectos
+
+| ID | Descripción | Severidad | Resolución Aplicada |
+| :--- | :--- | :---: | :--- |
+| IS-01 | **Error 500 en edición de tickets con 254/255 caracteres:** Al intentar guardar un nombre con 254 o 255 caracteres, el servidor retorna una excepción 500 no controlada en lugar de validar el límite correctamente. | Alta | Pendiente de corrección en backend (ampliar límite de columna en BD) |
+| IS-02 | **Validación de formato de nombre insuficiente:** El sistema acepta caracteres numéricos y símbolos (ej. "Juan123", "$$") en campos de nombre y apellido (CPF-01-006, CPF-15-011, CPF-15-012, CPF-15-017, CPF-15-018). | Media | Pendiente de implementar validación de solo texto alfabético en frontend y backend |
+| IS-03 | **Validación de longitud de correo incorrecta:** El sistema permite guardar correos de más de 64 caracteres en la parte local (CPF-01-011), incumpliendo el estándar RFC 5321. | Media | Pendiente de agregar validación de longitud máxima en frontend |
+| IS-04 | **Botón "Marcar como completa" visible incorrectamente:** El botón se muestra visible incluso cuando el llenado de datos del asistente está incompleto, permitiendo avanzar a un estado inválido (CPF-03-006). | Alta | Pendiente de corregir la regla de visibilidad del botón en frontend |
+| IS-05 | **Exposición de errores SQL (Stack Trace):** Al crear una organización con nombre de 256 caracteres, el sistema expone información sensible de la base de datos en un error 500 (CPF-09-006). | Crítica | Pendiente de capturar excepción de integridad y mostrar mensaje genérico |
+| IS-06 | **Date picker con bug de scroll:** El selector de fechas tiene un problema de visualización (scroll) que dificulta su usabilidad (CPF-10-001). | Baja | Pendiente de revisión de estilo del componente Shoelace |
+| IS-07 | **Botón de guardado se deshabilita silenciosamente:** Al configurar fin de venta de categoría después del fin del evento, el botón "Save" se inhabilita sin mostrar mensaje de error al usuario (CPF-10-006). | Media | Pendiente de agregar feedback visual con descripción del error |
+| IS-08 | **Códigos de acceso ocultos duplicados permitidos:** El sistema permite asignar el mismo código oculto a múltiples categorías del mismo evento sin advertencia (CPF-10-007). | Media | Pendiente de agregar validación de unicidad de códigos ocultos |
+| IS-09 | **Advertencia de zona horaria no mostrada:** El sistema no muestra la advertencia de desfase de zona horaria al configurar un evento con zona diferente a la del usuario (CPF-14-004). | Baja | Pendiente de implementar validación de zona horaria |
+| IS-10 | **Cobertura de ramas (branches) por debajo del objetivo:** La cobertura de ramas en backend es de 68% (3 228 / 4 730), por debajo del 70% recomendado. | Media | Pendiente de agregar casos de prueba para cubrir ramas condicionales faltantes |
+

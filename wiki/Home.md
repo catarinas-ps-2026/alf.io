@@ -20,3 +20,5 @@
 [[Informe de Casos de Prueba Funcionales]]
 
 [[Plan de Pruebas de Integración]]
+
+[[Plan de Pruebas de Sistema]]

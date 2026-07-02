@@ -3914,6 +3914,1743 @@ test_suites:
                   inputs: Verificar que el resumen muestra desglose
                   expected: "Se muestra: Subtotal, Descuento, Impuestos, Total"
                   obs: f+
+    - title: "Creación de Eventos"
+      level: "###"
+      catalog_header: "Datos de Entrada"
+      cases:
+          - id: CPF-MAN-01
+            functionality: Creación de eventos
+            description: "Permite a un organizador registrar un nuevo evento definiendo su información básica, configuración de acceso, ubicación, fechas, descripción y elementos gráficos."
+            requirement: RF-MAN-01 (Creación de eventos)
+            preconditions: "El usuario debe estar autenticado con permisos para crear eventos."
+            inputs: "Nombre del evento, organizador, modalidad, ubicación, fecha y hora, zona horaria, descripción, URL del evento, sitio web, términos y condiciones, política de privacidad y logo."
+            steps:
+                - "Acceder al módulo de eventos."
+                - 'Seleccionar "Create Event".'
+                - "Completar los campos obligatorios."
+                - "Cargar el logo del evento."
+                - 'Presionar "Save".'
+            techniques:
+                - Partición por Equivalencia
+                - Análisis de Valores Límite
+                - Tabla de Decisión
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Event Name
+                      valid: Texto no vacío
+                      invalid: "Vacío, solo espacios"
+                    - field: Event Organizer
+                      valid: Organizador existente
+                      invalid: Vacío
+                    - field: "Event will be held"
+                      valid: In person
+                      invalid: Vacío
+                    - field: Event Location
+                      valid: Dirección válida
+                      invalid: Vacía
+                    - field: Event Date
+                      valid: "Fecha y hora válidas"
+                      invalid: "Vacía, fecha fin menor que fecha inicio"
+                    - field: Event Time Zone
+                      valid: Zona horaria válida
+                      invalid: "Vacía, inexistente"
+                    - field: Event Description
+                      valid: Texto descriptivo válido
+                      invalid: Vacío
+                    - field: Event URL
+                      valid: URL válida única
+                      invalid: "Vacía, formato inválido"
+                    - field: Website Link
+                      valid: URL válida
+                      invalid: Formato inválido
+                    - field: Terms and Conditions URL
+                      valid: URL válida
+                      invalid: Formato inválido
+                    - field: Privacy Policy URL
+                      valid: URL válida o vacío
+                      invalid: Formato inválido
+                    - field: Logo
+                      valid: "PNG, JPG, GIF o SVG ≤ 1 MB"
+                      invalid: "Formato no permitido, tamaño > 1 MB, ausente"
+                boundary_values:
+                    - field: Event Name
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres
+                      max_valid: 255 caracteres
+                      max_invalid: 256 caracteres
+                    - field: Event Description
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres
+                      max_valid: 5000 caracteres
+                      max_invalid: 5001 caracteres
+                    - field: Event URL
+                      min_valid: Longitud mínima válida
+                      min_invalid: Vacío
+                      max_valid: Longitud máxima soportada
+                      max_invalid: Excede límite
+                    - field: Website Link
+                      min_valid: Longitud mínima válida
+                      min_invalid: Vacío
+                      max_valid: Longitud máxima soportada
+                      max_invalid: Excede límite
+                    - field: Logo
+                      min_valid: 1 KB
+                      min_invalid: 0 KB
+                      max_valid: 1 MB
+                      max_invalid: Mayor a 1 MB
+                decision_tables:
+                    - title: Validación de Campos Obligatorios para la Creación de Eventos
+                      raw: |-
+                        | Condición| C1 | C2 | C3 | C4 | C5 | C6 | C7 |
+                        | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+                        | Event Name informado | SI | NO | SI | SI | SI | SI | SI |
+                        | Event Organizer informado | SI | SI | NO | SI | SI | SI | SI |
+                        | Event Location informada | SI | SI | SI | NO | SI | SI | SI |
+                        | Event Date informada | SI | SI | SI | SI | NO | SI | SI |
+                        | Event Description informada | SI | SI | SI | SI | SI | NO | SI |
+                        | Logo cargado | SI | SI | SI | SI | SI | SI | NO |
+                        | **Crear Evento**| **SI** | **NO** | **NO** | **NO** | **NO** | **NO** | **NO** |
+                    - title: Acciones
+                      raw: |-
+                        | Acción   | C1 | C2 | C3 | C4 | C5 | C6 | C7 |
+                        | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+                        | Permitir guardar evento     | X  |    |    |    |    |    |    |
+                        | Mostrar error de validación |    | X  | X  | X  | X  | X  | X  |
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-MAN-01-001
+                  inputs: 'Event Name: ""'
+                  expected: "Error: Nombre del evento obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-01-002
+                  inputs: 'Event Name: " " (solo espacios)'
+                  expected: "Error: Nombre del evento inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-01-003
+                  inputs: 'Event Name: "A"'
+                  expected: Evento creado exitosamente
+                  obs: f+
+                - cp_id: CPF-MAN-01-004
+                  inputs: "Event Name: (255 caracteres)"
+                  expected: Evento creado exitosamente
+                  obs: f+
+                - cp_id: CPF-MAN-01-005
+                  inputs: "Event Name: (256 caracteres)"
+                  expected: "Error: Longitud excedida"
+                  obs: f-
+                - cp_id: CPF-MAN-01-006
+                  inputs: "Event Organizer: vacío"
+                  expected: "Error: Organizador obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-01-007
+                  inputs: "Event Location: vacío"
+                  expected: "Error: Ubicación obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-01-008
+                  inputs: "Event Date Inicio: 26/06/2026 15:00, Fin: 26/06/2026 14:00"
+                  expected: "Error: Fecha fin debe ser posterior a fecha inicio"
+                  obs: f-
+                - cp_id: CPF-MAN-01-009
+                  inputs: "Event Date: vacío"
+                  expected: "Error: Fecha obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-01-010
+                  inputs: "Event Time Zone: vacío"
+                  expected: "Error: Zona horaria obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-01-011
+                  inputs: 'Event Time Zone: "America/Lima"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-01-012
+                  inputs: "Event Description: vacío"
+                  expected: "Error: Descripción obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-01-013
+                  inputs: 'Event Description: "caracteres"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-01-014
+                  inputs: 'Event URL: "evento"'
+                  expected: "Error: URL inválida"
+                  obs: f-
+                - cp_id: CPF-MAN-01-015
+                  inputs: 'Event URL: "https://alfio.ynoacamino.me/event/demo"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-01-016
+                  inputs: 'Website Link: "empresa"'
+                  expected: "Error: URL inválida"
+                  obs: f-
+                - cp_id: CPF-MAN-01-017
+                  inputs: 'Website Link: "https://empresa.com"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-01-018
+                  inputs: 'Terms and Conditions URL: "condiciones"'
+                  expected: "Error: URL inválida"
+                  obs: f-
+                - cp_id: CPF-MAN-01-019
+                  inputs: 'Terms and Conditions URL: "https://empresa.com/terms"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-01-020
+                  inputs: 'Privacy Policy URL: "privacidad"'
+                  expected: "Error: URL inválida"
+                  obs: f-
+                - cp_id: CPF-MAN-01-021
+                  inputs: "Privacy Policy URL: vacío"
+                  expected: "Validación correcta (campo opcional)"
+                  obs: f+
+                - cp_id: CPF-MAN-01-022
+                  inputs: "Logo: no cargado"
+                  expected: "Error: Event logo is missing"
+                  obs: f-
+                - cp_id: CPF-MAN-01-023
+                  inputs: "Logo: archivo .pdf"
+                  expected: "Error: Formato no permitido"
+                  obs: f-
+                - cp_id: CPF-MAN-01-024
+                  inputs: "Logo: imagen PNG de 900 KB"
+                  expected: Logo cargado correctamente
+                  obs: f+
+                - cp_id: CPF-MAN-01-025
+                  inputs: "Logo: imagen PNG de 1.2 MB"
+                  expected: "Error: Tamaño máximo excedido"
+                  obs: f-
+                - cp_id: CPF-MAN-01-026
+                  inputs: "Todos los campos obligatorios válidos y logo cargado"
+                  expected: Evento creado exitosamente
+                  obs: f+
+      informe_catalog:
+          - cp_id: CPF-MAN-01-001
+            expected: "El sistema debe mostrar un mensaje indicando que el nombre del evento es obligatorio."
+            execution:
+                description: "Verificar que el sistema no permita crear un evento cuando el nombre está vacío."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema impidió el registro del evento y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/01.png
+                      alt: cpf-man-01-001
+                      text: 'Validación del campo obligatorio "Event Name".'
+          - cp_id: CPF-MAN-01-002
+            expected: "El sistema debe indicar que el nombre ingresado es inválido."
+            execution:
+                description: "Verificar que el sistema rechace un nombre compuesto únicamente por espacios en blanco."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el valor ingresado y mostró el mensaje de validación."
+                evidence:
+                    - image: images/functional-tests/run/management/event/02.png
+                      alt: cpf-man-01-002
+                      text: "Validación de nombre del evento compuesto únicamente por espacios."
+          - cp_id: CPF-MAN-01-003
+            expected: "El evento debe registrarse correctamente."
+            execution:
+                description: "Verificar que el sistema permita crear un evento con un nombre de un carácter."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema creó el evento exitosamente con el nombre mínimo permitido."
+                evidence:
+                    - image: images/functional-tests/run/management/event/03.png
+                      alt: cpf-man-01-003
+                      text: "Registro exitoso de un evento con longitud mínima del nombre."
+          - cp_id: CPF-MAN-01-004
+            expected: "El sistema debe aceptar el nombre dentro del límite máximo permitido."
+            execution:
+                description: "Verificar que el sistema permita registrar un evento con un nombre de 255 caracteres."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El evento fue registrado correctamente utilizando un nombre de 255 caracteres."
+                evidence:
+                    - image: images/functional-tests/run/management/event/04.png
+                      alt: cpf-man-01-004
+                      text: "Registro exitoso con longitud máxima válida del nombre del evento."
+          - cp_id: CPF-MAN-01-005
+            expected: "El sistema debe impedir el registro del evento e indicar que se excedió la longitud permitida."
+            execution:
+                description: "Verificar que el sistema rechace un nombre de evento que exceda los 255 caracteres."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje de error correspondiente y no permitió guardar el evento."
+                evidence:
+                    - image: images/functional-tests/run/management/event/05.png
+                      alt: cpf-man-01-005
+                      text: "Validación del límite máximo permitido para el nombre del evento."
+          - cp_id: CPF-MAN-01-006
+            expected: "El sistema debe mostrar un mensaje indicando que la ubicación del evento es obligatoria."
+            execution:
+                description: "Verificar que el sistema no permita crear un evento cuando la ubicación está vacía."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema impidió el registro del evento y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/06.png
+                      alt: cpf-man-01-006
+                      text: 'Validación del campo obligatorio "Event Location".'
+          - cp_id: CPF-MAN-01-007
+            expected: "El sistema debe indicar que la fecha del evento es obligatoria."
+            execution:
+                description: "Verificar que el sistema no permita crear un evento cuando la fecha y hora no han sido especificadas."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje de validación y no permitió guardar el evento."
+                evidence:
+                    - image: images/functional-tests/run/management/event/07.png
+                      alt: cpf-man-01-007
+                      text: 'Validación del campo obligatorio "Event Date".'
+          - cp_id: CPF-MAN-01-008
+            expected: "El sistema debe impedir el registro del evento y mostrar un mensaje indicando que la fecha de finalización es inválida."
+            execution:
+                description: "Verificar que la fecha de finalización del evento sea posterior a la fecha de inicio."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema detectó la inconsistencia entre las fechas y rechazó el registro."
+                evidence:
+                    - image: images/functional-tests/run/management/event/08.png
+                      alt: cpf-man-01-008
+                      text: "Validación del intervalo de fechas del evento."
+          - cp_id: CPF-MAN-01-009
+            expected: "El sistema debe mostrar un mensaje indicando que la zona horaria es obligatoria."
+            execution:
+                description: "Verificar que el sistema no permita crear un evento cuando la zona horaria no ha sido seleccionada."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje de validación correspondiente y no permitió guardar el evento."
+                evidence:
+                    - image: images/functional-tests/run/management/event/09.png
+                      alt: cpf-man-01-009
+                      text: 'Validación del campo obligatorio "Event Time Zone".'
+          - cp_id: CPF-MAN-01-010
+            expected: "El sistema debe aceptar la zona horaria seleccionada y permitir continuar con el registro del evento."
+            execution:
+                description: "Verificar que el sistema acepte una zona horaria válida para la creación del evento."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La zona horaria fue aceptada correctamente y el formulario permaneció válido."
+                evidence:
+                    - image: images/functional-tests/run/management/event/10.png
+                      alt: cpf-man-01-010
+                      text: "Selección correcta de la zona horaria del evento."
+          - cp_id: CPF-MAN-01-011
+            expected: "La descripción debe almacenarse correctamente y permanecer visible en el formulario."
+            execution:
+                description: "Verificar que el sistema acepte una descripción válida para el evento."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La descripción fue registrada correctamente y se mostró sin alteraciones."
+                evidence:
+                    - image: images/functional-tests/run/management/event/11.png
+                      alt: cpf-man-01-011
+                      text: "Registro exitoso de una descripción válida para el evento."
+          - cp_id: CPF-MAN-01-012
+            expected: "El sistema debe mostrar un mensaje indicando que la descripción es obligatoria."
+            execution:
+                description: "Verificar que el sistema no permita crear un evento cuando la descripción está vacía."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el registro y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/12.png
+                      alt: cpf-man-01-012
+                      text: 'Validación del campo obligatorio "Event Description".'
+          - cp_id: CPF-MAN-01-013
+            expected: "La descripción debe ser aceptada y el evento debe poder registrarse."
+            execution:
+                description: "Verificar que el sistema acepte una descripción con la longitud mínima permitida."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente la descripción mínima ingresada."
+                evidence:
+                    - image: images/functional-tests/run/management/event/13.png
+                      alt: cpf-man-01-013
+                      text: "Validación de la longitud mínima de la descripción del evento."
+          - cp_id: CPF-MAN-01-014
+            expected: "El sistema debe mostrar un mensaje indicando que la URL ingresada no es válida."
+            execution:
+                description: "Verificar que el sistema rechace una URL del evento con un formato inválido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La URL fue rechazada y el sistema mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/14.png
+                      alt: cpf-man-01-014
+                      text: "Validación del formato de la URL del evento."
+          - cp_id: CPF-MAN-01-015
+            expected: "La URL debe ser aceptada y asociada correctamente al evento."
+            execution:
+                description: "Verificar que el sistema acepte una URL válida para el evento."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema validó la URL y permitió continuar con el registro del evento."
+                evidence:
+                    - image: images/functional-tests/run/management/event/15.png
+                      alt: cpf-man-01-015
+                      text: "Validación de una URL válida para el evento."
+          - cp_id: CPF-MAN-01-016
+            expected: "El sistema debe mostrar un mensaje indicando que el enlace del sitio web no tiene un formato válido."
+            execution:
+                description: "Verificar que el sistema rechace un enlace de sitio web con un formato inválido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el enlace ingresado y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/16.png
+                      alt: cpf-man-01-016
+                      text: 'Validación del formato del campo "Website Link".'
+          - cp_id: CPF-MAN-01-017
+            expected: "El enlace debe almacenarse correctamente y quedar asociado al evento."
+            execution:
+                description: "Verificar que el sistema acepte un enlace de sitio web con un formato válido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema validó correctamente el enlace y permitió continuar con la creación del evento."
+                evidence:
+                    - image: images/functional-tests/run/management/event/17.png
+                      alt: cpf-man-01-017
+                      text: "Validación de un enlace de sitio web válido."
+          - cp_id: CPF-MAN-01-018
+            expected: "El sistema debe indicar que la URL de términos y condiciones es inválida."
+            execution:
+                description: "Verificar que el sistema rechace una URL de términos y condiciones con un formato inválido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La URL fue rechazada y el sistema mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/18.png
+                      alt: cpf-man-01-018
+                      text: "Validación del formato de la URL de términos y condiciones."
+          - cp_id: CPF-MAN-01-019
+            expected: "La URL debe almacenarse correctamente y quedar asociada al evento."
+            execution:
+                description: "Verificar que el sistema acepte una URL válida de términos y condiciones."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema validó la URL correctamente y permitió guardar la configuración."
+                evidence:
+                    - image: images/functional-tests/run/management/event/19.png
+                      alt: cpf-man-01-019
+                      text: "Validación de una URL válida de términos y condiciones."
+          - cp_id: CPF-MAN-01-020
+            expected: "El sistema debe mostrar un mensaje indicando que la URL de política de privacidad es inválida."
+            execution:
+                description: "Verificar que el sistema rechace una URL de política de privacidad con un formato inválido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La URL ingresada fue rechazada y el sistema mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/20.png
+                      alt: cpf-man-01-020
+                      text: "Validación del formato de la URL de política de privacidad."
+          - cp_id: CPF-MAN-01-021
+            expected: "El sistema debe permitir continuar con el registro del evento sin especificar una política de privacidad."
+            execution:
+                description: "Verificar que el sistema permita dejar vacía la URL de la política de privacidad al ser un campo opcional."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El formulario fue validado correctamente sin ingresar una URL de política de privacidad."
+                evidence:
+                    - image: images/functional-tests/run/management/event/21.png
+                      alt: cpf-man-01-021
+                      text: 'Validación del campo opcional "Privacy Policy URL".'
+          - cp_id: CPF-MAN-01-022
+            expected: 'El sistema debe mostrar el mensaje "Event logo is missing!" y no permitir guardar el evento.'
+            execution:
+                description: "Verificar que el sistema no permita crear un evento cuando no se ha cargado un logo."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema impidió el registro del evento y mostró el mensaje correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/22.png
+                      alt: cpf-man-01-022
+                      text: "Validación del logo obligatorio del evento."
+          - cp_id: CPF-MAN-01-023
+            expected: "El sistema debe aceptar únicamente archivos PNG, JPG, GIF o SVG."
+            execution:
+                description: "Verificar que el sistema rechace archivos con formatos no permitidos como logo del evento."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El archivo con formato no permitido fue rechazado y se mostró el mensaje de validación."
+                evidence:
+                    - image: images/functional-tests/run/management/event/23.png
+                      alt: cpf-man-01-023
+                      text: "Validación del formato permitido para el logo del evento."
+          - cp_id: CPF-MAN-01-024
+            expected: "La imagen debe cargarse correctamente y mostrarse como logo del evento."
+            execution:
+                description: "Verificar que el sistema acepte un logo válido con un tamaño menor a 1 MB."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema cargó la imagen correctamente y la mostró como vista previa del evento."
+                evidence:
+                    - image: images/functional-tests/run/management/event/24.png
+                      alt: cpf-man-01-024
+                      text: "Carga exitosa de un logo válido para el evento."
+          - cp_id: CPF-MAN-01-025
+            expected: "El sistema debe impedir la carga del archivo e informar que se excedió el tamaño máximo permitido."
+            execution:
+                description: "Verificar que el sistema rechace un logo cuyo tamaño exceda el límite permitido de 1 MB."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La carga del archivo fue rechazada y el sistema mostró el mensaje correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/25.png
+                      alt: cpf-man-01-025
+                      text: "Validación del tamaño máximo permitido para el logo del evento."
+          - cp_id: CPF-MAN-01-026
+            expected: "El evento debe registrarse exitosamente y mostrarse en el listado de eventos."
+            execution:
+                description: "Verificar que el sistema permita crear un evento cuando todos los campos obligatorios son válidos y el logo ha sido cargado."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema creó correctamente el evento y lo agregó al listado correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/event/26.png
+                      alt: cpf-man-01-026
+                      text: "Registro exitoso de un nuevo evento con todos los datos obligatorios completos."
+    - title: "Creación de Grupos"
+      level: "###"
+      catalog_header: "Datos de Entrada"
+      cases:
+          - id: CPF-MAN-02
+            functionality: Creación de grupos
+            description: "Permite crear grupos de usuarios que pueden utilizarse para limitar el acceso a determinadas categorías o eventos dentro del sistema."
+            requirement: RF-MAN-02 (Creación de grupos)
+            preconditions: "El usuario debe estar autenticado con permisos de administración."
+            inputs: "Nombre, descripción, e-mail y descripción del ítem."
+            steps:
+                - "Acceder al módulo de grupos."
+                - 'Seleccionar "Add Group".'
+                - "Completar los campos obligatorios."
+                - "Agregar uno o más ítems al grupo."
+                - 'Presionar "Save".'
+            techniques:
+                - Partición por Equivalencia
+                - Análisis de Valores Límite
+                - Tabla de Decisión
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Name
+                      valid: Texto válido no vacío
+                      invalid: "Vacío, solo espacios"
+                    - field: Description
+                      valid: Texto descriptivo válido
+                      invalid: Vacío
+                    - field: E-Mail
+                      valid: Correo electrónico válido
+                      invalid: "Vacío, formato inválido"
+                    - field: Item Description
+                      valid: Texto descriptivo válido
+                      invalid: Vacío
+                boundary_values:
+                    - field: Name
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres
+                      max_valid: 255 caracteres
+                      max_invalid: 256 caracteres
+                    - field: Description
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres
+                      max_valid: 1000 caracteres
+                      max_invalid: 1001 caracteres
+                    - field: E-Mail
+                      min_valid: Longitud mínima válida
+                      min_invalid: Vacío
+                      max_valid: Longitud máxima soportada
+                      max_invalid: Excede límite
+                    - field: Item Description
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres
+                      max_valid: 1000 caracteres
+                      max_invalid: 1001 caracteres
+                decision_tables:
+                    - title: Validación de Campos Obligatorios para la Creación de Grupos
+                      raw: |-
+                        | Condición                  | C1     | C2     | C3     | C4     | C5     |
+                        | :------------------------- | :----- | :----- | :----- | :----- | :----- |
+                        | Name informado             | SI     | NO     | SI     | SI     | SI     |
+                        | Description informada      | SI     | SI     | NO     | SI     | SI     |
+                        | E-Mail informado           | SI     | SI     | SI     | NO     | SI     |
+                        | Item Description informada | SI     | SI     | SI     | SI     | NO     |
+                        | **Crear Grupo**            | **SI** | **NO** | **NO** | **NO** | **NO** |
+                    - title: Acciones
+                      raw: |-
+                        | Acción                      | C1 | C2 | C3 | C4 | C5 |
+                        | :-------------------------- | :- | :- | :- | :- | :- |
+                        | Permitir guardar grupo      | X  |    |    |    |    |
+                        | Mostrar error de validación |    | X  | X  | X  | X  |
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-MAN-02-001
+                  inputs: 'Name: ""'
+                  expected: "Error: Nombre obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-02-002
+                  inputs: 'Name: " " (solo espacios)'
+                  expected: "Error: Nombre inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-02-003
+                  inputs: 'Name: "A"'
+                  expected: Grupo creado exitosamente
+                  obs: f+
+                - cp_id: CPF-MAN-02-004
+                  inputs: "Name: (255 caracteres)"
+                  expected: Grupo creado exitosamente
+                  obs: f+
+                - cp_id: CPF-MAN-02-005
+                  inputs: "Name: (256 caracteres)"
+                  expected: "Error: Longitud excedida"
+                  obs: f-
+                - cp_id: CPF-MAN-02-006
+                  inputs: 'Description: ""'
+                  expected: "Error: Descripción obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-02-007
+                  inputs: 'Description: "Grupo de asistentes VIP"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-02-008
+                  inputs: 'E-Mail: ""'
+                  expected: "Error: Correo obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-02-009
+                  inputs: 'E-Mail: "usuario.com"'
+                  expected: "Error: Formato de correo inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-02-010
+                  inputs: 'E-Mail: "usuario@"'
+                  expected: "Error: Formato de correo inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-02-011
+                  inputs: 'E-Mail: "usuario@empresa.com"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-02-012
+                  inputs: 'Item Description: ""'
+                  expected: "Error: Descripción del ítem obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-02-013
+                  inputs: 'Item Description: "Acceso a categoría premium"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-02-014
+                  inputs: "Todos los campos obligatorios válidos"
+                  expected: Grupo creado exitosamente
+                  obs: f+
+      informe_catalog:
+          - cp_id: CPF-MAN-02-001
+            expected: "El sistema debe mostrar un mensaje indicando que el nombre del grupo es obligatorio."
+            execution:
+                description: "Verificar que el sistema no permita crear un grupo cuando el nombre está vacío."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema impidió el registro del grupo y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/group/01.png
+                      alt: cpf-man-02-001
+                      text: 'Validación del campo obligatorio "Name".'
+          - cp_id: CPF-MAN-02-002
+            expected: "El sistema debe indicar que el nombre ingresado es inválido."
+            execution:
+                description: "Verificar que el sistema rechace un nombre compuesto únicamente por espacios en blanco."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el valor ingresado y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/group/02.png
+                      alt: cpf-man-02-002
+                      text: "Validación de nombre compuesto únicamente por espacios."
+          - cp_id: CPF-MAN-02-003
+            expected: "El grupo debe registrarse correctamente utilizando la longitud mínima permitida."
+            execution:
+                description: "Verificar que el sistema permita crear un grupo con un nombre de un carácter."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema creó el grupo exitosamente con un nombre de un carácter."
+                evidence:
+                    - image: images/functional-tests/run/management/group/03.png
+                      alt: cpf-man-02-003
+                      text: "Registro exitoso con longitud mínima del nombre del grupo."
+          - cp_id: CPF-MAN-02-004
+            expected: "El sistema debe aceptar el nombre dentro del límite máximo permitido."
+            execution:
+                description: "Verificar que el sistema permita registrar un grupo con un nombre de 255 caracteres."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El grupo fue registrado correctamente utilizando un nombre de 255 caracteres."
+                evidence:
+                    - image: images/functional-tests/run/management/group/04.png
+                      alt: cpf-man-02-004
+                      text: "Registro exitoso con longitud máxima válida del nombre del grupo."
+          - cp_id: CPF-MAN-02-005
+            expected: "El sistema debe impedir el registro del grupo e indicar que se excedió la longitud permitida."
+            execution:
+                description: "Verificar que el sistema rechace un nombre de grupo que exceda los 255 caracteres."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje de error correspondiente y no permitió guardar el grupo."
+                evidence:
+                    - image: images/functional-tests/run/management/group/05.png
+                      alt: cpf-man-02-005
+                      text: "Validación del límite máximo permitido para el nombre del grupo."
+          - cp_id: CPF-MAN-02-006
+            expected: "El sistema debe mostrar un mensaje indicando que la descripción es obligatoria."
+            execution:
+                description: "Verificar que el sistema no permita crear un grupo cuando la descripción está vacía."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema impidió el registro del grupo y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/group/06.png
+                      alt: cpf-man-02-006
+                      text: 'Validación del campo obligatorio "Description".'
+          - cp_id: CPF-MAN-02-007
+            expected: "La descripción debe almacenarse correctamente y permanecer asociada al grupo."
+            execution:
+                description: "Verificar que el sistema acepte una descripción válida para el grupo."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema registró correctamente la descripción ingresada."
+                evidence:
+                    - image: images/functional-tests/run/management/group/07.png
+                      alt: cpf-man-02-007
+                      text: "Registro exitoso de una descripción válida para el grupo."
+          - cp_id: CPF-MAN-02-008
+            expected: "El sistema debe mostrar un mensaje indicando que el correo electrónico es obligatorio."
+            execution:
+                description: "Verificar que el sistema no permita agregar un miembro al grupo cuando el correo electrónico está vacío."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el registro del miembro y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/group/08.png
+                      alt: cpf-man-02-008
+                      text: 'Validación del campo obligatorio "E-Mail".'
+          - cp_id: CPF-MAN-02-009
+            expected: "El sistema debe indicar que el formato del correo electrónico es incorrecto."
+            execution:
+                description: "Verificar que el sistema rechace un correo electrónico con un formato inválido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el correo ingresado y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/group/09.png
+                      alt: cpf-man-02-009
+                      text: "Validación del formato del correo electrónico del miembro."
+          - cp_id: CPF-MAN-02-010
+            expected: "El correo electrónico debe aceptarse y agregarse correctamente al grupo."
+            execution:
+                description: "Verificar que el sistema acepte un correo electrónico con un formato válido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema validó el correo y permitió agregar el miembro al grupo."
+                evidence:
+                    - image: images/functional-tests/run/management/group/10.png
+                      alt: cpf-man-02-010
+                      text: "Registro exitoso de un miembro con correo electrónico válido."
+          - cp_id: CPF-MAN-02-011
+            expected: "El sistema debe indicar que el correo electrónico ingresado es inválido."
+            execution:
+                description: "Verificar que el sistema no permita agregar un correo electrónico compuesto únicamente por espacios en blanco."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el valor ingresado y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/group/11.png
+                      alt: cpf-man-02-011
+                      text: "Validación de correo electrónico compuesto únicamente por espacios."
+          - cp_id: CPF-MAN-02-012
+            expected: "El sistema debe permitir registrar el miembro cuando la descripción está vacía, al tratarse de un campo opcional."
+            execution:
+                description: "Verificar que el sistema permita agregar un miembro sin descripción adicional."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El miembro fue agregado correctamente sin necesidad de ingresar una descripción."
+                evidence:
+                    - image: images/functional-tests/run/management/group/12.png
+                      alt: cpf-man-02-012
+                      text: "Registro exitoso de un miembro sin descripción."
+          - cp_id: CPF-MAN-02-013
+            expected: "La descripción debe almacenarse correctamente junto con la información del miembro."
+            execution:
+                description: "Verificar que el sistema permita agregar un miembro con una descripción válida."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema registró correctamente la descripción proporcionada para el miembro."
+                evidence:
+                    - image: images/functional-tests/run/management/group/13.png
+                      alt: cpf-man-02-013
+                      text: "Registro exitoso de un miembro con descripción."
+          - cp_id: CPF-MAN-02-014
+            expected: "El grupo debe registrarse correctamente aunque no se hayan agregado elementos en la sección \"Items\"."
+            execution:
+                description: "Verificar que el sistema permita crear un grupo sin miembros registrados."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema permitió crear el grupo sin miembros y lo mostró correctamente en el listado."
+                evidence:
+                    - image: images/functional-tests/run/management/group/14.png
+                      alt: cpf-man-02-014
+                      text: "Creación exitosa de un grupo sin miembros asociados."
+    - title: "Creación de Suscripciones"
+      level: "###"
+      catalog_header: "Datos de Entrada"
+      cases:
+          - id: CPF-MAN-03
+            functionality: Creación de suscripciones
+            description: "Permite crear suscripciones que otorgan acceso a eventos según el tipo configurado: Multi-Access Pass, suscripción periódica o suscripción personalizada."
+            requirement: RF-MAN-03 (Creación de suscripciones)
+            preconditions: "El usuario debe estar autenticado con permisos de administración y debe existir una organización registrada."
+            inputs: "Organización, título, descripción, URL de términos y condiciones, URL de política de privacidad, imagen y tipo de suscripción."
+            steps:
+                - "Acceder al módulo de suscripciones."
+                - 'Seleccionar "Create New Subscription".'
+                - "Completar los campos obligatorios."
+                - "Cargar una imagen."
+                - "Seleccionar el tipo de suscripción."
+                - 'Presionar "Save".'
+            techniques:
+                - Partición por Equivalencia
+                - Análisis de Valores Límite
+                - Tabla de Decisión
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Organization
+                      valid: Organización existente
+                      invalid: Vacía
+                    - field: Title
+                      valid: Texto válido no vacío
+                      invalid: "Vacío, solo espacios"
+                    - field: Description
+                      valid: Texto descriptivo válido
+                      invalid: Vacío
+                    - field: Terms and Conditions URL
+                      valid: URL válida
+                      invalid: "Vacía, formato inválido"
+                    - field: Privacy Policy URL
+                      valid: URL válida o vacío
+                      invalid: Formato inválido
+                    - field: Image
+                      valid: "PNG, JPG, GIF o SVG ≤ 1 MB"
+                      invalid: "Ausente, formato no permitido, tamaño > 1 MB"
+                    - field: Type
+                      valid: "Multi-Access Pass, Monthly/Yearly/Daily Subscription, Custom"
+                      invalid: "Vacío, valor inexistente"
+                boundary_values:
+                    - field: Title
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres
+                      max_valid: 255 caracteres
+                      max_invalid: 256 caracteres
+                    - field: Description
+                      min_valid: 1 carácter
+                      min_invalid: 0 caracteres
+                      max_valid: 5000 caracteres
+                      max_invalid: 5001 caracteres
+                    - field: Terms and Conditions URL
+                      min_valid: Longitud mínima válida
+                      min_invalid: Vacío
+                      max_valid: Longitud máxima soportada
+                      max_invalid: Excede límite
+                    - field: Privacy Policy URL
+                      min_valid: Longitud mínima válida
+                      min_invalid: Formato inválido
+                      max_valid: Longitud máxima soportada
+                      max_invalid: Excede límite
+                    - field: Image
+                      min_valid: 1 KB
+                      min_invalid: 0 KB
+                      max_valid: 1 MB
+                      max_invalid: Mayor a 1 MB
+                decision_tables:
+                    - title: Validación de Campos Obligatorios para la Creación de Suscripciones
+                      raw: |-
+                        | Condición                        | C1     | C2     | C3     | C4     | C5     | C6     | C7     |
+                        | :------------------------------- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
+                        | Organización informada           | SI     | NO     | SI     | SI     | SI     | SI     | SI     |
+                        | Título informado                 | SI     | SI     | NO     | SI     | SI     | SI     | SI     |
+                        | Descripción informada            | SI     | SI     | SI     | NO     | SI     | SI     | SI     |
+                        | Términos y condiciones informado | SI     | SI     | SI     | SI     | NO     | SI     | SI     |
+                        | Imagen cargada                   | SI     | SI     | SI     | SI     | SI     | NO     | SI     |
+                        | Tipo seleccionado                | SI     | SI     | SI     | SI     | SI     | SI     | NO     |
+                        | **Crear Suscripción**            | **SI** | **NO** | **NO** | **NO** | **NO** | **NO** | **NO** |
+                    - title: Acciones
+                      raw: |-
+                        | Acción                       | C1 | C2 | C3 | C4 | C5 | C6 | C7 |
+                        | :--------------------------- | :- | :- | :- | :- | :- | :- | :- |
+                        | Permitir guardar suscripción | X  |    |    |    |    |    |    |
+                        | Mostrar error de validación  |    | X  | X  | X  | X  | X  | X  |
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-MAN-03-001
+                  inputs: "Organization: vacío"
+                  expected: "Error: Organización obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-03-002
+                  inputs: 'Title: ""'
+                  expected: "Error: Título obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-03-003
+                  inputs: 'Title: " " (solo espacios)'
+                  expected: "Error: Título inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-03-004
+                  inputs: 'Title: "Titulo valido"'
+                  expected: Suscripción creada exitosamente
+                  obs: f+
+                - cp_id: CPF-MAN-03-005
+                  inputs: "Title: (255 caracteres)"
+                  expected: Suscripción creada exitosamente
+                  obs: f+
+                - cp_id: CPF-MAN-03-006
+                  inputs: "Title: (256 caracteres)"
+                  expected: "Error: Longitud excedida"
+                  obs: f-
+                - cp_id: CPF-MAN-03-007
+                  inputs: 'Description: ""'
+                  expected: "Error: Descripción obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-03-008
+                  inputs: 'Description: "Acceso premium a eventos"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-03-009
+                  inputs: "Terms and Conditions URL: \"\""
+                  expected: "Error: URL obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-03-010
+                  inputs: 'Terms and Conditions URL: "condiciones"'
+                  expected: "Error: URL inválida"
+                  obs: f-
+                - cp_id: CPF-MAN-03-011
+                  inputs: 'Terms and Conditions URL: "https://empresa.com/terms"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-03-012
+                  inputs: 'Privacy Policy URL: "privacidad"'
+                  expected: "Error: URL inválida"
+                  obs: f-
+                - cp_id: CPF-MAN-03-013
+                  inputs: "Privacy Policy URL: \"\""
+                  expected: "Validación correcta (campo opcional)"
+                  obs: f+
+                - cp_id: CPF-MAN-03-014
+                  inputs: 'Privacy Policy URL: "https://empresa.com/privacy"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-03-015
+                  inputs: "Image: no cargada"
+                  expected: "Error: Image is missing"
+                  obs: f-
+                - cp_id: CPF-MAN-03-016
+                  inputs: "Image: archivo PDF"
+                  expected: "Error: Formato no permitido"
+                  obs: f-
+                - cp_id: CPF-MAN-03-017
+                  inputs: "Image: PNG de 900 KB"
+                  expected: Imagen cargada correctamente
+                  obs: f+
+                - cp_id: CPF-MAN-03-018
+                  inputs: "Image: PNG de 1.2 MB"
+                  expected: "Error: Tamaño máximo excedido"
+                  obs: f-
+                - cp_id: CPF-MAN-03-019
+                  inputs: "Type: vacío"
+                  expected: "Error: Tipo de suscripción obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-03-020
+                  inputs: 'Type: "Multi-Access Pass"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-03-021
+                  inputs: 'Type: "Monthly Subscription"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-03-022
+                  inputs: 'Type: "Custom"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-03-023
+                  inputs: "Todos los campos obligatorios válidos, imagen cargada y tipo seleccionado"
+                  expected: Suscripción creada exitosamente
+                  obs: f+
+      informe_catalog:
+          - cp_id: CPF-MAN-03-001
+            expected: "El sistema debe mostrar un mensaje indicando que el título de la suscripción es obligatorio."
+            execution:
+                description: "Verificar que el sistema no permita crear una suscripción cuando el título está vacío."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema impidió el registro de la suscripción y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/01.png
+                      alt: cpf-man-03-001
+                      text: 'Validación del campo obligatorio "Title".'
+          - cp_id: CPF-MAN-03-002
+            expected: "El sistema debe indicar que el título ingresado es inválido."
+            execution:
+                description: "Verificar que el sistema rechace un título compuesto únicamente por espacios en blanco."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el valor ingresado y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/02.png
+                      alt: cpf-man-03-002
+                      text: "Validación de título compuesto únicamente por espacios."
+          - cp_id: CPF-MAN-03-003
+            expected: "La suscripción debe registrarse correctamente utilizando la longitud mínima permitida."
+            execution:
+                description: "Verificar que el sistema permita crear una suscripción con un título de un carácter."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema creó correctamente la suscripción con un título de un carácter."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/03.png
+                      alt: cpf-man-03-003
+                      text: "Registro exitoso con longitud mínima del título."
+          - cp_id: CPF-MAN-03-004
+            expected: "El sistema debe aceptar el título dentro del límite máximo permitido."
+            execution:
+                description: "Verificar que el sistema permita registrar una suscripción con un título de 255 caracteres."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La suscripción fue registrada correctamente utilizando un título de 255 caracteres."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/04.png
+                      alt: cpf-man-03-004
+                      text: "Registro exitoso con longitud máxima válida del título."
+          - cp_id: CPF-MAN-03-005
+            expected: "El sistema debe impedir el registro de la suscripción e indicar que se excedió la longitud permitida."
+            execution:
+                description: "Verificar que el sistema rechace un título que exceda los 255 caracteres."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje de error correspondiente y no permitió guardar la suscripción."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/05.png
+                      alt: cpf-man-03-005
+                      text: "Validación del límite máximo permitido para el título de la suscripción."
+          - cp_id: CPF-MAN-03-006
+            expected: "El sistema debe mostrar un mensaje indicando que la descripción es obligatoria."
+            execution:
+                description: "Verificar que el sistema no permita crear una suscripción cuando la descripción está vacía."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema impidió el registro de la suscripción y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/06.png
+                      alt: cpf-man-03-006
+                      text: 'Validación del campo obligatorio "Description".'
+          - cp_id: CPF-MAN-03-007
+            expected: "La descripción debe almacenarse correctamente y permanecer asociada a la suscripción."
+            execution:
+                description: "Verificar que el sistema acepte una descripción válida para la suscripción."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema registró correctamente la descripción ingresada."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/07.png
+                      alt: cpf-man-03-007
+                      text: "Registro exitoso de una descripción válida para la suscripción."
+          - cp_id: CPF-MAN-03-008
+            expected: "El sistema debe indicar que la URL ingresada no tiene un formato válido."
+            execution:
+                description: "Verificar que el sistema rechace una URL de términos y condiciones con un formato inválido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó la URL y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/08.png
+                      alt: cpf-man-03-008
+                      text: "Validación del formato de la URL de términos y condiciones."
+          - cp_id: CPF-MAN-03-009
+            expected: "La URL debe almacenarse correctamente y quedar asociada a la suscripción."
+            execution:
+                description: "Verificar que el sistema acepte una URL válida de términos y condiciones."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema validó correctamente la URL y permitió continuar con el registro."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/09.png
+                      alt: cpf-man-03-009
+                      text: "Validación de una URL válida de términos y condiciones."
+          - cp_id: CPF-MAN-03-010
+            expected: "El sistema debe permitir crear la suscripción sin especificar una URL de política de privacidad."
+            execution:
+                description: "Verificar que el sistema permita dejar vacía la URL de la política de privacidad al ser un campo opcional."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La suscripción pudo registrarse correctamente sin ingresar una política de privacidad."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/10.png
+                      alt: cpf-man-03-010
+                      text: 'Validación del campo opcional "Privacy Policy URL".'
+          - cp_id: CPF-MAN-03-011
+            expected: "El sistema debe mostrar un mensaje indicando que la URL de política de privacidad no tiene un formato válido."
+            execution:
+                description: "Verificar que el sistema rechace una URL de política de privacidad con un formato inválido."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó la URL ingresada y mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/11.png
+                      alt: cpf-man-03-011
+                      text: "Validación del formato de la URL de política de privacidad."
+          - cp_id: CPF-MAN-03-012
+            expected: "La URL debe almacenarse correctamente y quedar asociada a la suscripción."
+            execution:
+                description: "Verificar que el sistema acepte una URL válida de política de privacidad."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema validó correctamente la URL y permitió guardar la configuración."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/12.png
+                      alt: cpf-man-03-012
+                      text: "Validación de una URL válida de política de privacidad."
+          - cp_id: CPF-MAN-03-013
+            expected: 'El sistema debe mostrar el mensaje "Image is missing!" e impedir el registro de la suscripción.'
+            execution:
+                description: "Verificar que el sistema no permita crear una suscripción cuando no se ha cargado una imagen."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema bloqueó la creación de la suscripción y mostró el mensaje correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/13.png
+                      alt: cpf-man-03-013
+                      text: "Validación de la imagen obligatoria para la suscripción."
+          - cp_id: CPF-MAN-03-014
+            expected: "El sistema debe aceptar únicamente archivos PNG, JPG, GIF o SVG."
+            execution:
+                description: "Verificar que el sistema rechace archivos con formatos no permitidos como imagen de la suscripción."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El archivo con formato no permitido fue rechazado y el sistema mostró el mensaje de validación correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/14.png
+                      alt: cpf-man-03-014
+                      text: "Validación del formato permitido para la imagen de la suscripción."
+          - cp_id: CPF-MAN-03-015
+            expected: "La imagen debe cargarse correctamente y mostrarse como imagen de la suscripción."
+            execution:
+                description: "Verificar que el sistema acepte una imagen válida con un tamaño menor a 1 MB."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema cargó correctamente la imagen y la mostró como vista previa de la suscripción."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/15.png
+                      alt: cpf-man-03-015
+                      text: "Carga exitosa de una imagen válida para la suscripción."
+          - cp_id: CPF-MAN-03-016
+            expected: "El sistema debe impedir la carga de la imagen y mostrar un mensaje indicando que se excedió el tamaño máximo permitido."
+            execution:
+                description: "Verificar que el sistema rechace una imagen cuyo tamaño exceda 1 MB."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema rechazó el archivo y mostró el mensaje correspondiente al límite de 1 MB."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/16.png
+                      alt: cpf-man-03-016
+                      text: "Validación del tamaño máximo permitido para la imagen."
+          - cp_id: CPF-MAN-03-017
+            expected: 'La opción "Multi-Access Pass" debe quedar seleccionada y almacenarse correctamente.'
+            execution:
+                description: 'Verificar que el sistema permita seleccionar el tipo "Multi-Access Pass".'
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema registró correctamente la selección del tipo Multi-Access Pass."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/17.png
+                      alt: cpf-man-03-017
+                      text: "Selección del tipo de suscripción Multi-Access Pass."
+          - cp_id: CPF-MAN-03-018
+            expected: 'La opción "Custom" debe quedar seleccionada y almacenarse correctamente.'
+            execution:
+                description: 'Verificar que el sistema permita seleccionar el tipo "Custom".'
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema registró correctamente la selección del tipo personalizado."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/18.png
+                      alt: cpf-man-03-018
+                      text: "Selección del tipo de suscripción personalizada."
+          - cp_id: CPF-MAN-03-019
+            expected: "La suscripción debe registrarse exitosamente y mostrarse en el listado de suscripciones disponibles."
+            execution:
+                description: "Verificar que el sistema permita crear una suscripción con todos los datos obligatorios correctamente ingresados."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema creó correctamente la suscripción y la mostró en la lista correspondiente."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/19.png
+                      alt: cpf-man-03-019
+                      text: "Creación exitosa de una suscripción con todos los datos válidos."
+          - cp_id: CPF-MAN-03-020
+            expected: "El sistema debe actualizar correctamente la opción seleccionada sin perder la información previamente ingresada."
+            execution:
+                description: "Verificar que el sistema permita modificar el tipo de suscripción antes de guardar el registro."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El tipo de suscripción fue modificado correctamente y el resto de los datos permanecieron sin cambios."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/20.png
+                      alt: cpf-man-03-020
+                      text: "Cambio del tipo de suscripción antes del registro."
+          - cp_id: CPF-MAN-03-021
+            expected: "La imagen previamente cargada debe mantenerse disponible después de seleccionar otro tipo de suscripción."
+            execution:
+                description: "Verificar que el sistema conserve la imagen cargada al cambiar el tipo de suscripción."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema conservó correctamente la imagen sin requerir una nueva carga."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/21.png
+                      alt: cpf-man-03-021
+                      text: "Persistencia de la imagen al modificar el tipo de suscripción."
+          - cp_id: CPF-MAN-03-022
+            expected: "El formulario debe cerrarse o restablecerse sin registrar la suscripción en el sistema."
+            execution:
+                description: "Verificar que el sistema permita cancelar la creación de una suscripción antes de guardar."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "La operación fue cancelada correctamente y no se creó ninguna suscripción nueva."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/22.png
+                      alt: cpf-man-03-022
+                      text: "Cancelación del proceso de creación de una suscripción."
+          - cp_id: CPF-MAN-03-023
+            expected: "La suscripción debe almacenarse correctamente con toda la información configurada y quedar disponible para su utilización."
+            execution:
+                description: "Verificar que el sistema cree correctamente una suscripción con todos los campos válidos, imagen cargada y tipo seleccionado."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema registró exitosamente la suscripción con todos los datos, imagen y tipo configurados, mostrándola en el listado de suscripciones."
+                evidence:
+                    - image: images/functional-tests/run/management/subscription/23.png
+                      alt: cpf-man-03-023
+                      text: "Registro exitoso de una suscripción completamente configurada."
+    - title: "Creación de Tickets"
+      level: "###"
+      catalog_header: "Datos de Entrada"
+      cases:
+          - id: CPF-MAN-04
+            functionality: Creación de tickets
+            description: "Permite configurar los tickets de un evento, definiendo el modelo de precio, cantidad máxima disponible, precio, impuestos y métodos de pago aceptados."
+            requirement: RF-MAN-04 (Creación de tickets)
+            preconditions: "El usuario debe estar autenticado con permisos de administración y debe existir un evento previamente creado."
+            inputs: "Modelo de precio del ticket, cantidad máxima de tickets, precio regular, moneda, porcentaje de impuestos y métodos de pago aceptados."
+            steps:
+                - "Acceder a la configuración de tickets del evento."
+                - "Seleccionar el modelo de precio."
+                - "Completar los datos de capacidad y precio."
+                - "Configurar impuestos."
+                - "Seleccionar los métodos de pago aceptados."
+                - 'Presionar "Save".'
+            techniques:
+                - Partición por Equivalencia
+                - Análisis de Valores Límite
+                - Tabla de Decisión
+            priority: Alta
+            analysis:
+                equivalency_partitions:
+                    - field: Ticket Price Model
+                      valid: "Entry fee requested, Free of charge"
+                      invalid: Vacío
+                    - field: Max Tickets
+                      valid: Número entero positivo
+                      invalid: "Vacío, cero, negativo"
+                    - field: Regular Price
+                      valid: Número mayor o igual a 0
+                      invalid: "Negativo, vacío"
+                    - field: Currency
+                      valid: Moneda válida del sistema
+                      invalid: "Vacía, inexistente"
+                    - field: "Taxes (%)"
+                      valid: "Valor entre 0 y 100"
+                      invalid: "Negativo, mayor a 100"
+                    - field: Accepted Payment Methods
+                      valid: Al menos un método seleccionado
+                      invalid: Ningún método seleccionado
+                    - field: Price Includes Taxes
+                      valid: "Activado o desactivado"
+                      invalid: N/A
+                boundary_values:
+                    - field: Max Tickets
+                      min_valid: 1
+                      min_invalid: 0
+                      max_valid: 999999
+                      max_invalid: 1000000
+                    - field: Regular Price
+                      min_valid: 0.00
+                      min_invalid: -0.01
+                      max_valid: Valor máximo soportado
+                      max_invalid: Excede límite
+                    - field: "Taxes (%)"
+                      min_valid: 0
+                      min_invalid: -1
+                      max_valid: 100
+                      max_invalid: 101
+                    - field: Payment Methods
+                      min_valid: 1 método
+                      min_invalid: 0 métodos
+                      max_valid: Todos los métodos disponibles
+                      max_invalid: N/A
+                decision_tables:
+                    - title: Validación de Campos Obligatorios para la Creación de Tickets
+                      raw: |-
+                        | Condición                     | C1     | C2     | C3     | C4     | C5     | C6     |
+                        | :---------------------------- | :----- | :----- | :----- | :----- | :----- | :----- |
+                        | Modelo de precio seleccionado | SI     | NO     | SI     | SI     | SI     | SI     |
+                        | Max Tickets informado         | SI     | SI     | NO     | SI     | SI     | SI     |
+                        | Moneda informada              | SI     | SI     | SI     | NO     | SI     | SI     |
+                        | Método de pago seleccionado   | SI     | SI     | SI     | SI     | NO     | SI     |
+                        | Precio válido (*)             | SI     | SI     | SI     | SI     | SI     | NO     |
+                        | **Crear Ticket**              | **SI** | **NO** | **NO** | **NO** | **NO** | **NO** |
+
+                        (*) Para el modelo "Free of charge", el precio debe ser igual a 0.
+                    - title: Acciones
+                      raw: |-
+                        | Acción                      | C1 | C2 | C3 | C4 | C5 | C6 |
+                        | :-------------------------- | :- | :- | :- | :- | :- | :- |
+                        | Permitir guardar ticket     | X  |    |    |    |    |    |
+                        | Mostrar error de validación |    | X  | X  | X  | X  | X  |
+                state_transitions: []
+            catalog:
+                - cp_id: CPF-MAN-04-001
+                  inputs: "Ticket Price Model: vacío"
+                  expected: "Error: Modelo de precio obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-04-002
+                  inputs: 'Ticket Price Model: "Free of charge"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-003
+                  inputs: 'Ticket Price Model: "Entry fee requested"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-004
+                  inputs: "Max Tickets: vacío"
+                  expected: "Error: Cantidad máxima obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-04-005
+                  inputs: "Max Tickets: 0"
+                  expected: "Error: Debe ser mayor a cero"
+                  obs: f-
+                - cp_id: CPF-MAN-04-006
+                  inputs: "Max Tickets: -10"
+                  expected: "Error: Valor inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-04-007
+                  inputs: "Max Tickets: 1"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-008
+                  inputs: "Max Tickets: 100"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-009
+                  inputs: 'Regular Price: vacío con modelo "Entry fee requested"'
+                  expected: "Error: Precio obligatorio"
+                  obs: f-
+                - cp_id: CPF-MAN-04-010
+                  inputs: "Regular Price: -1"
+                  expected: "Error: Precio inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-04-011
+                  inputs: "Regular Price: 0"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-012
+                  inputs: "Regular Price: 20"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-013
+                  inputs: "Currency: vacío"
+                  expected: "Error: Moneda obligatoria"
+                  obs: f-
+                - cp_id: CPF-MAN-04-014
+                  inputs: 'Currency: "EUR"'
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-015
+                  inputs: 'Currency: "XXX"'
+                  expected: "Error: Moneda inválida"
+                  obs: f-
+                - cp_id: CPF-MAN-04-016
+                  inputs: "Taxes (%): -1"
+                  expected: "Error: Impuesto inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-04-017
+                  inputs: "Taxes (%): 0"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-018
+                  inputs: "Taxes (%): 18"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-019
+                  inputs: "Taxes (%): 100"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-020
+                  inputs: "Taxes (%): 101"
+                  expected: "Error: Impuesto inválido"
+                  obs: f-
+                - cp_id: CPF-MAN-04-021
+                  inputs: "Ningún método de pago seleccionado"
+                  expected: "Error: Debe seleccionar al menos un método de pago"
+                  obs: f-
+                - cp_id: CPF-MAN-04-022
+                  inputs: "Método de pago: PayPal"
+                  expected: "Validación correcta"
+                  obs: f+
+                - cp_id: CPF-MAN-04-023
+                  inputs: "Métodos de pago: PayPal y Saferpay By SIX Payments"
+                  expected: "Validación correcta"
+                  obs: f+
+      informe_catalog:
+          - cp_id: CPF-MAN-04-001
+            expected: "Error: Modelo de precio obligatorio."
+            execution:
+                description: "No permitir guardar el formulario cuando el campo Ticket Price Model está vacío."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "Se mostró el mensaje indicando que el modelo de precio es obligatorio y no se guardó el formulario."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/01.png
+                      alt: ticket-price-model-empty
+                      text: "Validación del campo Ticket Price Model obligatorio."
+          - cp_id: CPF-MAN-04-002
+            expected: "Validación correcta."
+            execution:
+                description: 'Permitir seleccionar el modelo de precio "Free of charge".'
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: 'El sistema aceptó el modelo de precio "Free of charge" sin mostrar errores.'
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/02.png
+                      alt: ticket-price-model-free
+                      text: "Selección correcta del modelo de precio gratuito."
+          - cp_id: CPF-MAN-04-003
+            expected: "Validación correcta."
+            execution:
+                description: 'Permitir seleccionar el modelo de precio "Entry fee requested".'
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: 'El sistema aceptó el modelo de precio "Entry fee requested" correctamente.'
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/03.png
+                      alt: ticket-price-model-entry-fee
+                      text: "Selección correcta del modelo de precio con costo de entrada."
+          - cp_id: CPF-MAN-04-004
+            expected: "Error: Cantidad máxima obligatoria."
+            execution:
+                description: "No permitir guardar el formulario cuando el campo Max Tickets está vacío."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "Se mostró el mensaje indicando que la cantidad máxima de tickets es obligatoria."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/04.png
+                      alt: max-tickets-empty
+                      text: "Validación del campo Max Tickets obligatorio."
+          - cp_id: CPF-MAN-04-005
+            expected: "Error: Debe ser mayor a cero."
+            execution:
+                description: "No permitir registrar un valor de Max Tickets igual a 0."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje correspondiente y rechazó el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/05.png
+                      alt: max-tickets-zero
+                      text: "Validación del valor mínimo permitido para Max Tickets."
+          - cp_id: CPF-MAN-04-006
+            expected: "Error: Valor inválido."
+            execution:
+                description: "No permitir registrar un valor negativo en el campo Max Tickets."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje correspondiente y rechazó el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/06.png
+                      alt: max-tickets-negative
+                      text: "Validación de valores negativos en el campo Max Tickets."
+          - cp_id: CPF-MAN-04-007
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir registrar el valor mínimo válido (1) en el campo Max Tickets."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el valor mínimo permitido."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/07.png
+                      alt: max-tickets-one
+                      text: "Validación del valor mínimo permitido para Max Tickets."
+          - cp_id: CPF-MAN-04-008
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir registrar el valor 100 en el campo Max Tickets."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/08.png
+                      alt: max-tickets-hundred
+                      text: "Validación de un valor válido para Max Tickets."
+          - cp_id: CPF-MAN-04-009
+            expected: "Error: Precio obligatorio."
+            execution:
+                description: 'No permitir guardar el formulario cuando el campo Regular Price está vacío y el modelo de precio es "Entry fee requested".'
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "Se mostró el mensaje indicando que el precio es obligatorio y no se guardó el formulario."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/09.png
+                      alt: regular-price-empty
+                      text: "Validación del campo Regular Price obligatorio."
+          - cp_id: CPF-MAN-04-010
+            expected: "Error: Precio inválido."
+            execution:
+                description: "No permitir registrar un valor negativo en el campo Regular Price."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje correspondiente y rechazó el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/10.png
+                      alt: regular-price-negative
+                      text: "Validación de valores negativos en el campo Regular Price."
+          - cp_id: CPF-MAN-04-011
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir registrar el valor 0 en el campo Regular Price."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/11.png
+                      alt: regular-price-zero
+                      text: "Validación del valor cero en el campo Regular Price."
+          - cp_id: CPF-MAN-04-012
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir registrar el valor 20 en el campo Regular Price."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/12.png
+                      alt: regular-price-twenty
+                      text: "Validación de un valor válido en el campo Regular Price."
+          - cp_id: CPF-MAN-04-013
+            expected: "Error: Moneda obligatoria."
+            execution:
+                description: "No permitir guardar el formulario cuando el campo Currency está vacío."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "Se mostró el mensaje indicando que la moneda es obligatoria y no se guardó el formulario."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/13.png
+                      alt: currency-empty
+                      text: "Validación del campo Currency obligatorio."
+          - cp_id: CPF-MAN-04-014
+            expected: "Validación correcta."
+            execution:
+                description: 'Permitir seleccionar la moneda "EUR".'
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente la moneda seleccionada."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/14.png
+                      alt: currency-eur
+                      text: "Validación de una moneda válida."
+          - cp_id: CPF-MAN-04-015
+            expected: "Error: Moneda inválida."
+            execution:
+                description: "No permitir registrar una moneda inválida en el campo Currency."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje correspondiente y rechazó la moneda ingresada."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/15.png
+                      alt: currency-invalid
+                      text: "Validación de una moneda inválida."
+          - cp_id: CPF-MAN-04-016
+            expected: "Error: Impuesto inválido."
+            execution:
+                description: "No permitir registrar un valor negativo en el campo Taxes (%)."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje correspondiente y rechazó el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/16.png
+                      alt: taxes-negative
+                      text: "Validación de valores negativos en el campo Taxes (%)."
+          - cp_id: CPF-MAN-04-017
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir registrar el valor 0 en el campo Taxes (%)."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/17.png
+                      alt: taxes-zero
+                      text: "Validación del valor cero en el campo Taxes (%)."
+          - cp_id: CPF-MAN-04-018
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir registrar el valor 18 en el campo Taxes (%)."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/18.png
+                      alt: taxes-eighteen
+                      text: "Validación de un valor válido en el campo Taxes (%)."
+          - cp_id: CPF-MAN-04-019
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir registrar el valor 100 en el campo Taxes (%)."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/19.png
+                      alt: taxes-hundred
+                      text: "Validación del valor máximo permitido para Taxes (%)."
+          - cp_id: CPF-MAN-04-020
+            expected: "Error: Impuesto inválido."
+            execution:
+                description: "No permitir registrar un valor mayor a 100 en el campo Taxes (%)."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema mostró el mensaje correspondiente y rechazó el valor ingresado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/20.png
+                      alt: taxes-over-limit
+                      text: "Validación de valores superiores al máximo permitido para Taxes (%)."
+          - cp_id: CPF-MAN-04-021
+            expected: "Error: Debe seleccionar al menos un método de pago."
+            execution:
+                description: "No permitir guardar el formulario sin seleccionar al menos un Payment Method."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "Se mostró el mensaje correspondiente y no se guardó el formulario."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/21.png
+                      alt: payment-method-empty
+                      text: "Validación de selección obligatoria de al menos un método de pago."
+          - cp_id: CPF-MAN-04-022
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir seleccionar el método de pago PayPal."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente el método de pago seleccionado."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/22.png
+                      alt: payment-method-paypal
+                      text: "Validación de selección del método de pago PayPal."
+          - cp_id: CPF-MAN-04-023
+            expected: "Validación correcta."
+            execution:
+                description: "Permitir seleccionar los métodos de pago PayPal y Saferpay By SIX Payments simultáneamente."
+                type: Manual
+                status: Exitoso
+                defects: No se encontraron defectos
+                obtained: "El sistema aceptó correctamente ambos métodos de pago seleccionados."
+                evidence:
+                    - image: images/functional-tests/run/management/ticket/23.png
+                      alt: payment-method-multiple
+                      text: "Validación de selección de múltiples métodos de pago."
 traceability_matrix:
     - requirement: RF-001
       description: Gestión de información del asistente (Edición de Ticket)
@@ -4005,3 +5742,15 @@ traceability_matrix:
     - requirement: RF-RES-12
       description: Cálculo de Precios con Descuentos e Impuestos
       cases: CPF-RES-12 (001-015)
+    - requirement: RF-MAN-01
+      description: Creación de eventos
+      cases: CPF-MAN-01 (001-026)
+    - requirement: RF-MAN-02
+      description: Creación de grupos
+      cases: CPF-MAN-02 (001-014)
+    - requirement: RF-MAN-03
+      description: Creación de suscripciones
+      cases: CPF-MAN-03 (001-023)
+    - requirement: RF-MAN-04
+      description: Creación de tickets
+      cases: CPF-MAN-04 (001-023)

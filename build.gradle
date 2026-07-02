@@ -358,6 +358,24 @@ tasks.withType(Test).configureEach {
     }
 }
 
+test {
+    exclude '**/*IntegrationTest*'
+    exclude '**/*E2ETest*'
+    exclude '**/*ValidationTest*'
+    exclude '**/NormalFlowE2ETest*'
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs backend integration tests.'
+    group = 'verification'
+    
+    include '**/*IntegrationTest*'
+    include '**/*E2ETest*'
+    include '**/*ValidationTest*'
+    include '**/NormalFlowE2ETest*'
+}
+
+
 springBoot {
     mainClass = 'alfio.config.SpringBootLauncher'
 }
@@ -390,7 +408,8 @@ tasks.register('copyFrontendDev', Copy) {
 // -- code-coverage
 
 jacocoTestReport {
-    dependsOn test
+    dependsOn test, integrationTest
+    executionData(test, integrationTest)
     reports {
         xml.required = true
         html.required = true
