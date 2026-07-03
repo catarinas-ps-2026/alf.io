@@ -36,3 +36,10 @@ Las pruebas unitarias cubren los siguientes componentes de alf.io:
 - **Frontend de administración (Lit + Shoelace + Vite):** Componentes de administración de eventos, servicios compartidos y utilidades de UI.
 
 Los elementos excluidos del alcance son: pruebas de integración con base de datos real, pruebas E2E, pruebas de rendimiento, pruebas de seguridad avanzadas, pruebas con pasarelas de pago reales y pruebas de aceptación del usuario (UAT).
+
+## 4. Referencias
+
+- **ISO/IEC/IEEE 29119:** Estándar internacional para pruebas de software.
+- **Documentación oficial:** [https://alf.io](https://alf.io)
+- **Repositorio oficial:** [https://github.com/alfio-event/alf.io](https://github.com/alfio-event/alf.io)
+- **Plan de Pruebas Unitarias:** [[Plan-de-Pruebas-Unitarias]]
