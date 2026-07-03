@@ -159,3 +159,12 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Branches | 76.55% (356 / 465) |
 | Functions | 86.09% (322 / 374) |
 | Lines | 85.20% (858 / 1 007) |
+
+### 8.4 Promedio agregado de cobertura
+
+| Métrica | Backend | Frontend admin | Frontend público | Total | Promedio |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Statements / Instrucciones | 61 987 / 72 349 | 646 / 687 | 892 / 1 042 | 63 525 / 74 078 | **85.76%** |
+| Branches / Ramas | 3 228 / 4 730 | 184 / 185 | 356 / 465 | 3 768 / 5 380 | **70.04%** |
+| Functions / Métodos | 2 701 / 3 325 | 70 / 71 | 322 / 374 | 3 093 / 3 770 | **82.04%** |
+| Lines / Líneas | 5 707 / 7 570 | 646 / 687 | 858 / 1 007 | 7 211 / 9 264 | **77.84%** |
