@@ -188,3 +188,15 @@ Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los sig
 | Número total de casos de prueba ejecutados | 2 290 |
 | Tiempo de ejecución de backend (CI) | ~4m 26s |
 | Tiempo de ejecución de frontend (CI) | ~38s |
+
+## 11. Commits con Correcciones Funcionales
+
+| Código del commit (link) | Descripción | Autor |
+|---|---|---|
+| <https://github.com/catarinas-ps-2026/alf.io/commit/7e524f820e6e4a0cada190ffde743dc494fbc70d> | fix en CheckInManager: corregido cálculo de inicio/fin del día usando ZonedDateTime -> uso de instant.truncatedTo(ChronoUnit.DAYS) y plus(1, DAYS) para evitar errores por zona horaria al contar escaneos del mismo día (evita dobles conteos/errores en badge-scan). (Se introdujo en PR #108 "fix: timezone computing making tests fail") | christianmz565 |
+| <https://github.com/catarinas-ps-2026/alf.io/commit/99f17a75dd2542bc97e2d2d10e823525fc337a52> | corrección de regresión en frontend causada por imports/typing/linting: varios cambios para asegurar que servicios y utilidades se importen como valores (no solo como tipos) y evitar fallos en tiempo de ejecución — arreglo funcional que restablece el comportamiento del frontend. (merge de PR #77 "fix: frontend regression due to linting") | christianmz565 |
+| <https://github.com/catarinas-ps-2026/alf.io/commit/dc1341a5f6088d5fcf00c8e7013417f7dd9a3471> | ajuste en frontend: dispatchFeedback ahora acepta EventTarget en lugar de LitElement y cambio relacionado en el payload del evento (ajuste en la propagación/uso del evento 'alfio-feedback'); corrige comportamiento del envío/recepción de eventos en runtime. (incluido en PR #122 "fix: frontend build failing due to smaller type issues") | christianmz565 |
+
+## 12. Conclusión
+
+La suite de pruebas unitarias de alf.io alcanza una tasa de éxito del 100% con un total de 2 290 casos de prueba distribuidos en las tres aplicaciones del sistema. La cobertura de código cumple con el objetivo mínimo del 85% establecido en el [[Plan-de-Pruebas-Unitarias]] tanto en backend como en frontend, con un 85.76% de cobertura agregada en instrucciones/statements. La ejecución automatizada mediante GitHub Actions garantiza la reproducibilidad de las pruebas y la retroalimentación continua para el equipo de desarrollo.
