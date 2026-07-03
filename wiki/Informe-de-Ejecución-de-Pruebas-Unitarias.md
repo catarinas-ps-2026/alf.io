@@ -47,3 +47,23 @@ Los elementos excluidos del alcance son: pruebas de integración con base de dat
 ## 5. Entorno de pruebas
 
 Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta las suites de pruebas unitarias de backend y frontend en cada Pull Request y en cada push a la rama `main`. Los reportes de cobertura se publican automáticamente en GitHub Pages para su revisión por el contribuidor y el equipo.
+
+## 6. Configuración del entorno de ejecución
+
+### 6.1 Infraestructura de CI/CD
+
+La ejecución de pruebas unitarias está gestionada por GitHub Actions mediante dos workflows principales:
+
+#### `test-pr.yml` — Ejecución en Pull Requests
+
+Se ejecuta automáticamente ante la creación o actualización de un Pull Request hacia `main`. Realiza los siguientes pasos:
+
+1. Configura JDK 17 (Temurin), pnpm 11.1.2 y Node.js 22.
+2. Ejecuta las pruebas de backend con `./gradlew test jacocoTestReport -Dpgsql.version=16`.
+3. Ejecuta las pruebas de frontend con `pnpm --prefix frontend run coverage` (admin y público).
+4. Prepara los reportes de cobertura (JaCoCo y Vitest) y los despliega en GitHub Pages.
+5. Publica un comentario en el PR con el enlace a los reportes de cobertura.
+
+#### `test-push.yml` — Ejecución al hacer push a `main`
+
+Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de PR, pero además ejecuta las pruebas de backend contra múltiples versiones de PostgreSQL (10, 15 y 16) usando una matriz de estrategia para garantizar compatibilidad.
