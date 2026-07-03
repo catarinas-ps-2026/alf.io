@@ -180,6 +180,26 @@ class CheckInApiControllerIntegrationTest {
         assertEquals(CheckInStatus.ALREADY_CHECK_IN, secondResult.getResult().getStatus());
     }
 
+    // CPF-API-04-003: Ticket cuya reserva está en estado PENDING (sin confirmar pago)
+    // → el check-in debe retornar INVALID_TICKET_STATE.
+    // Ref: Diseño de Casos de Prueba Funcionales §7.B / CPF-API-04
+    @Test
+    void checkInTicketWithPendingReservationReturnsInvalidState() {
+        // Crear reserva SIN confirmar el pago (estado PENDING)
+        String reservationId = createReservation();
+        var ticket = ticketRepository.findTicketsInReservation(reservationId).get(0);
+        // Calcular el código de ticket (el código existe, pero el ticket no está ACQUIRED)
+        String ticketCode = ticket.ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive());
+
+        CheckInApiController.TicketCode tc = new CheckInApiController.TicketCode();
+        tc.setCode(ticketCode);
+
+        TicketAndCheckInResult result = checkInApiController.checkIn(event.getId(), ticket.getUuid(), tc, principal);
+
+        // CPF-API-04-003: ticket no pagado → estado inválido para check-in
+        assertEquals(CheckInStatus.INVALID_TICKET_STATE, result.getResult().getStatus());
+    }
+
     // ========================================================================
     // C3: GET /admin/api/check-in/event/{name}/ticket/{id}/status
     // ========================================================================

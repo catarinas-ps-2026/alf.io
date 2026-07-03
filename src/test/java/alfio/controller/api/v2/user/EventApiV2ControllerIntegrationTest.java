@@ -190,4 +190,23 @@ class EventApiV2ControllerIntegrationTest {
         var event = eventAndUser.getLeft();
         assertTrue(event.getOrganizationId() > 0);
     }
+
+    // ========================================================================
+    // CPF-API-02-003: Evento en estado DRAFT (no publicado) debe retornar 404
+    // Ref: Diseño de Casos de Prueba Funcionales §7.B / CPF-API-02
+    // ========================================================================
+
+    @Test
+    void getEventReturns404ForUnpublishedDraftEvent() {
+        // Crear evento sin activar (permanece en estado DRAFT)
+        var eventAndUser =
+                initEvent(defaultCategories(), organizationRepository, userManager, eventManager, eventRepository);
+        var event = eventAndUser.getLeft();
+        // No se llama a toggleActiveFlag → el evento queda en DRAFT
+
+        var result = eventApiV2Controller.getEvent(event.getShortName(), new MockHttpSession());
+
+        // CPF-API-02-003: evento no publicado → 404 Not Found
+        assertEquals(404, result.getStatusCode().value());
+    }
 }

@@ -559,6 +559,30 @@ class ReservationApiV2ControllerIntegrationTest {
         assertEquals(404, response.getStatusCode().value());
     }
 
+    // CPF-API-05-002: Reserva en estado COMPLETE devuelve status COMPLETE
+    // Ref: Diseño de Casos de Prueba Funcionales §7.B / CPF-API-05
+    @Test
+    void pollReservationStatusReturnsCompleteAfterConfirmedPayment() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createConfirmedReservationForEvent(inPersonEvent);
+
+        var response = reservationApiV2Controller.getReservationStatus(reservationId);
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                response.getBody().getStatus());
+    }
+
+    // CPF-API-05-004: ID con formato no-UUID (ej. "abc") → 404 Not Found
+    // El controller devuelve 404 para cualquier ID que no corresponde a una reserva existente.
+    // Ref: Diseño de Casos de Prueba Funcionales §7.B / CPF-API-05
+    @Test
+    void pollReservationStatusReturns404ForMalformedId() {
+        var response = reservationApiV2Controller.getReservationStatus("abc");
+        assertEquals(404, response.getStatusCode().value());
+    }
+
     // ========================================================================
     // E2: POST /api/v2/public/reservation/{id}/back-to-booking
     // ========================================================================
