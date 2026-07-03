@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.335s</div>
+<div class="counter">0.363s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">recoverFromFailedExecution()</td>
-<td class="success">0.335s</td>
+<td class="success">0.363s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -87,10 +87,10 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2026-06-30T22:38:01.140Z  WARN 3230 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from sync script with event: EVENT_CREATED
-2026-06-30T22:38:01.144Z  WARN 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : this is a warning message
-2026-06-30T22:38:01.145Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : parsed event dates are: begin 2026-07-05T12:00:10 end 2026-07-05T13:00:10
-2026-06-30T22:38:01.149Z  WARN 3230 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : Error while executing extension asyncExtension, which has been scheduled for retry
+<pre>2026-07-03T14:37:26.112Z  WARN 3274 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from sync script with event: EVENT_CREATED
+2026-07-03T14:37:26.116Z  WARN 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : this is a warning message
+2026-07-03T14:37:26.118Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : parsed event dates are: begin 2026-07-08T12:00:37 end 2026-07-08T13:00:37
+2026-07-03T14:37:26.121Z  WARN 3274 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : Error while executing extension asyncExtension, which has been scheduled for retry
 
 alfio.extension.exception.ScriptRuntimeException: failing script
 	at alfio.extension.ScriptingExecutionService.executeScriptFinally(ScriptingExecutionService.java:235) ~[main/:?]
@@ -230,9 +230,9 @@ Caused by: org.mozilla.javascript.JavaScriptException: failing script (asyncExte
 	at alfio.extension.ScriptingExecutionService.executeScriptFinally(ScriptingExecutionService.java:208) ~[main/:?]
 	... 124 more
 
-2026-06-30T22:38:01.165Z  WARN 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : this is a warning message
-2026-06-30T22:38:01.166Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : parsed event dates are: begin 2026-07-05T12:00:10 end 2026-07-05T13:00:10
-2026-06-30T22:38:01.167Z  WARN 3230 --- [Alf.io] [    Test worker] a.j.e.RetryFailedExtensionJobExecutor    : Caught error while retrying extension asyncExtension
+2026-07-03T14:37:26.135Z  WARN 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : this is a warning message
+2026-07-03T14:37:26.136Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : parsed event dates are: begin 2026-07-08T12:00:37 end 2026-07-08T13:00:37
+2026-07-03T14:37:26.137Z  WARN 3274 --- [Alf.io] [    Test worker] a.j.e.RetryFailedExtensionJobExecutor    : Caught error while retrying extension asyncExtension
 
 alfio.extension.exception.ScriptRuntimeException: failing script
 	at alfio.extension.ScriptingExecutionService.executeScriptFinally(ScriptingExecutionService.java:235) ~[main/:?]
@@ -386,33 +386,33 @@ Caused by: org.mozilla.javascript.JavaScriptException: failing script (asyncExte
 	at alfio.extension.ScriptingExecutionService.executeScriptFinally(ScriptingExecutionService.java:208) ~[main/:?]
 	... 138 more
 
-2026-06-30T22:38:01.169Z  WARN 3230 --- [Alf.io] [    Test worker] a.m.s.AdminJobManager                    : Processing failed for EXECUTE_EXTENSION: [failing script]
-2026-06-30T22:38:01.178Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : eventId is defined 146.0
-2026-06-30T22:38:01.178Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : event format: IN_PERSON begin 2026-07-05T12:00:10.748+02:00 end 2026-07-05T13:00:10.748+02:00 displayName event display name
-2026-06-30T22:38:01.179Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : event timezone: Europe/Zurich
-2026-06-30T22:38:01.180Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : organization ID 173.0
-2026-06-30T22:38:01.180Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : purchaseContext title en: event display name
-2026-06-30T22:38:01.181Z  INFO 3230 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : parsed event dates are: begin 2026-07-05T12:00:10 end 2026-07-05T13:00:10
-2026-06-30T22:38:01.187Z  WARN 3230 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 173 (96d72ebf-3d32-48e0-a980-da1ddaf84791) initiated by user TEST
-2026-06-30T22:38:01.188Z  WARN 3230 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : deleting 1 events linked to organization 173
-2026-06-30T22:38:01.193Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
-2026-06-30T22:38:01.194Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
-2026-06-30T22:38:01.195Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
-2026-06-30T22:38:01.209Z  WARN 3230 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 173
-2026-06-30T22:38:01.209Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
-2026-06-30T22:38:01.210Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
-2026-06-30T22:38:01.211Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
-2026-06-30T22:38:01.211Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
-2026-06-30T22:38:01.212Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
-2026-06-30T22:38:01.212Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
-2026-06-30T22:38:01.213Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
-2026-06-30T22:38:01.214Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
-2026-06-30T22:38:01.214Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
-2026-06-30T22:38:01.214Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
-2026-06-30T22:38:01.215Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
-2026-06-30T22:38:01.215Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
-2026-06-30T22:38:01.215Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
-2026-06-30T22:38:01.220Z  INFO 3230 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-03T14:37:26.140Z  WARN 3274 --- [Alf.io] [    Test worker] a.m.s.AdminJobManager                    : Processing failed for EXECUTE_EXTENSION: [failing script]
+2026-07-03T14:37:26.150Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : eventId is defined 146.0
+2026-07-03T14:37:26.150Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : event format: IN_PERSON begin 2026-07-08T12:00:37.538+02:00 end 2026-07-08T13:00:37.538+02:00 displayName event display name
+2026-07-03T14:37:26.151Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : event timezone: Europe/Zurich
+2026-07-03T14:37:26.152Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : organization ID 173.0
+2026-07-03T14:37:26.152Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : purchaseContext title en: event display name
+2026-07-03T14:37:26.153Z  INFO 3274 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : parsed event dates are: begin 2026-07-08T12:00:37 end 2026-07-08T13:00:37
+2026-07-03T14:37:26.160Z  WARN 3274 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 173 (29bfa899-c9f4-4a0f-bdbf-862c9ea1c1b5) initiated by user TEST
+2026-07-03T14:37:26.161Z  WARN 3274 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : deleting 1 events linked to organization 173
+2026-07-03T14:37:26.168Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-03T14:37:26.168Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-03T14:37:26.170Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-03T14:37:26.183Z  WARN 3274 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 173
+2026-07-03T14:37:26.183Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-03T14:37:26.184Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-03T14:37:26.185Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-03T14:37:26.186Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-03T14:37:26.186Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-03T14:37:26.186Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-03T14:37:26.187Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-03T14:37:26.188Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-03T14:37:26.188Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-03T14:37:26.189Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-03T14:37:26.189Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-03T14:37:26.190Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-03T14:37:26.190Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-03T14:37:26.194Z  INFO 3274 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
 </pre>
 </span>
 </div>
@@ -424,7 +424,7 @@ Caused by: org.mozilla.javascript.JavaScriptException: failing script (asyncExte
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.14.4</a> at Jun 30, 2026, 10:39:02 PM</p>
+<a href="https://www.gradle.org">Gradle 8.14.4</a> at Jul 3, 2026, 2:38:28 PM</p>
 </div>
 </div>
 </body>
