@@ -26,3 +26,13 @@ Este documento sirve como referencia para:
 - Presentar los resultados cuantitativos de la ejecución de pruebas unitarias por aplicación.
 - Mostrar los niveles de cobertura de código alcanzados.
 - Documentar la configuración utilizada para ejecutar las pruebas de manera reproducible.
+
+## 3. Alcance
+
+Las pruebas unitarias cubren los siguientes componentes de alf.io:
+
+- **Backend (Java 17, Spring Boot 3.5.x, Jetty):** Managers de negocio (`ReservationManager`, `PaymentManager`, `SystemManager`, `UserManager`, `WalletManager`, `CheckInManager`, `TicketManager`, `EventManager`), controladores REST, repositorios de datos, utilidades y jobs.
+- **Frontend público (Angular 17):** Componentes de compra de entradas, servicios de comunicación con la API, guards y validaciones de formularios.
+- **Frontend de administración (Lit + Shoelace + Vite):** Componentes de administración de eventos, servicios compartidos y utilidades de UI.
+
+Los elementos excluidos del alcance son: pruebas de integración con base de datos real, pruebas E2E, pruebas de rendimiento, pruebas de seguridad avanzadas, pruebas con pasarelas de pago reales y pruebas de aceptación del usuario (UAT).
