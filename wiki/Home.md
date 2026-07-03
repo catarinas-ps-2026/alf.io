@@ -22,3 +22,5 @@
 [[Plan de Pruebas de Integración]]
 
 [[Plan de Pruebas de Sistema]]
+
+[[Plantilla de Typst]]
