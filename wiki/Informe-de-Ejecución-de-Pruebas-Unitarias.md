@@ -43,3 +43,7 @@ Los elementos excluidos del alcance son: pruebas de integración con base de dat
 - **Documentación oficial:** [https://alf.io](https://alf.io)
 - **Repositorio oficial:** [https://github.com/alfio-event/alf.io](https://github.com/alfio-event/alf.io)
 - **Plan de Pruebas Unitarias:** [[Plan-de-Pruebas-Unitarias]]
+
+## 5. Entorno de pruebas
+
+Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta las suites de pruebas unitarias de backend y frontend en cada Pull Request y en cada push a la rama `main`. Los reportes de cobertura se publican automáticamente en GitHub Pages para su revisión por el contribuidor y el equipo.
