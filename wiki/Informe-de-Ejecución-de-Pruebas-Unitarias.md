@@ -114,3 +114,12 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Tests exitosos | 167 |
 | Tests con fallo | 0 |
 | Tasa de éxito | 100% |
+
+### 7.4 Resumen
+
+| Aplicación | Tests totales | Exitosos | Tasa de éxito |
+| :--- | :---: | :---: | :---: |
+| Backend | 1 636 | 1 634 | 100% |
+| Frontend público | 487 | 487 | 100% |
+| Frontend admin | 167 | 167 | 100% |
+| **Total** | **2 290** | **2 288** | **100%** |
