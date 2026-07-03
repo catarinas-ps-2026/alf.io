@@ -94,3 +94,13 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Tests con error | 0 |
 | Tests omitidos | 2 |
 | Tasa de éxito | 100% |
+
+### 7.2 Frontend público (Angular)
+
+| Métrica | Valor |
+| :--- | :---: |
+| Archivos de prueba | 38 |
+| Tests totales | 487 |
+| Tests exitosos | 487 |
+| Tests con fallo | 0 |
+| Tasa de éxito | 100% |
