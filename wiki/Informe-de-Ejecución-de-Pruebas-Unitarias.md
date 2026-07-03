@@ -137,3 +137,25 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Líneas cubiertas | 85% (5 707 / 7 570) |
 | Métodos cubiertos | 81% (2 701 / 3 325) |
 | Clases | 352 |
+
+### 8.2 Frontend admin (Vitest)
+
+<img src="images/unit-tests/frontend_admin_cov.png" alt="Cobertura Frontend Admin">
+
+| Métrica | Valor |
+| :--- | :---: |
+| Statements | 94.03% (646 / 687) |
+| Branches | 99.04% (184 / 185) |
+| Functions | 98.59% (70 / 71) |
+| Lines | 94.03% (646 / 687) |
+
+### 8.3 Frontend público (Vitest)
+
+<img src="images/unit-tests/frontend_public_cov.png" alt="Cobertura Frontend Public">
+
+| Métrica | Valor |
+| :--- | :---: |
+| Statements | 85.60% (892 / 1 042) |
+| Branches | 76.55% (356 / 465) |
+| Functions | 86.09% (322 / 374) |
+| Lines | 85.20% (858 / 1 007) |
