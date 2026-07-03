@@ -18,3 +18,11 @@
 ## 1. Introducción
 
 El presente informe documenta la ejecución y resultados de las pruebas unitarias realizadas sobre alf.io, un sistema de gestión y venta de entradas para eventos de código abierto. Se presentan las métricas de ejecución y cobertura alcanzadas por la suite de pruebas unitarias de backend (Java/Spring Boot) y frontend (Angular y Lit).
+
+## 2. Propósito
+
+Este documento sirve como referencia para:
+
+- Presentar los resultados cuantitativos de la ejecución de pruebas unitarias por aplicación.
+- Mostrar los niveles de cobertura de código alcanzados.
+- Documentar la configuración utilizada para ejecutar las pruebas de manera reproducible.
