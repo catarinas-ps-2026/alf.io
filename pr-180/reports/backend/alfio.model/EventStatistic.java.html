@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventStatistic.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model</a> &gt; <span class="el_source">EventStatistic.java</span></div><h1>EventStatistic.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model;
+
+import alfio.model.modification.StatisticsContainer;
+import alfio.model.transaction.PaymentProxy;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import org.apache.commons.lang3.builder.CompareToBuilder;
+
+public class EventStatistic implements StatisticsContainer, Comparable&lt;EventStatistic&gt; {
+
+<span class="fc" id="L29">    public static final DateTimeFormatter JSON_DATE_FORMATTER = DateTimeFormatter.ofPattern(&quot;uuuu-MM-dd HH:mm&quot;);</span>
+
+    @JsonIgnore
+    private final Event event;
+
+    @JsonIgnore
+    private final EventStatisticView eventStatisticView;
+
+    @JsonIgnore
+    private final boolean statisticsEnabled;
+
+<span class="fc" id="L40">    public EventStatistic(Event event, EventStatisticView eventStatisticView, boolean statisticsEnabled) {</span>
+<span class="fc" id="L41">        this.event = event;</span>
+<span class="fc" id="L42">        this.eventStatisticView = eventStatisticView;</span>
+<span class="fc" id="L43">        this.statisticsEnabled = statisticsEnabled;</span>
+<span class="fc" id="L44">    }</span>
+
+    public List&lt;PaymentProxy&gt; getAllowedPaymentProxies() {
+<span class="nc" id="L47">        return event.getAllowedPaymentProxies();</span>
+    }
+
+    public boolean isWarningNeeded() {
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        return !isExpired()</span>
+<span class="nc bnc" id="L52" title="All 4 branches missed.">                &amp;&amp; (eventStatisticView.isContainsOrphanTickets() || eventStatisticView.isContainsStuckReservations());</span>
+    }
+
+    public int getAvailableSeats() {
+<span class="fc" id="L56">        return eventStatisticView.getAvailableSeats();</span>
+    }
+
+    public String getFormattedBegin() {
+<span class="nc" id="L60">        return event.getBegin().format(JSON_DATE_FORMATTER);</span>
+    }
+
+    public String getFormattedEnd() {
+<span class="nc" id="L64">        return event.getEnd().format(JSON_DATE_FORMATTER);</span>
+    }
+
+    public boolean isExpired() {
+<span class="nc" id="L68">        return event.expired();</span>
+    }
+
+    public String getShortName() {
+<span class="nc" id="L72">        return event.getShortName();</span>
+    }
+
+    public String getDisplayName() {
+<span class="nc" id="L76">        return event.getDisplayName();</span>
+    }
+
+    @Override
+    public int getNotSoldTickets() {
+<span class="fc" id="L81">        return eventStatisticView.getNotSoldTickets();</span>
+    }
+
+    @Override
+    public int getSoldTickets() {
+<span class="fc" id="L86">        return eventStatisticView.getSoldTickets();</span>
+    }
+
+    @Override
+    public int getCheckedInTickets() {
+<span class="fc" id="L91">        return eventStatisticView.getCheckedInTickets();</span>
+    }
+
+    @Override
+    public int getNotAllocatedTickets() {
+<span class="nc" id="L96">        return eventStatisticView.getNotAllocatedTickets();</span>
+    }
+
+    @Override
+    public int getPendingTickets() {
+<span class="nc" id="L101">        return eventStatisticView.getPendingTickets();</span>
+    }
+
+    @Override
+    public int getDynamicAllocation() {
+<span class="nc" id="L106">        return eventStatisticView.getDynamicAllocation();</span>
+    }
+
+    @Override
+    public int getReleasedTickets() {
+<span class="nc" id="L111">        return eventStatisticView.getReleasedTickets();</span>
+    }
+
+    public int getOrganizationId() {
+<span class="nc" id="L115">        return event.getOrganizationId();</span>
+    }
+
+    public int getId() {
+<span class="nc" id="L119">        return event.getId();</span>
+    }
+
+    public Event.Status getStatus() {
+<span class="nc" id="L123">        return event.getStatus();</span>
+    }
+
+    public String getFileBlobId() {
+<span class="nc" id="L127">        return event.getFileBlobId();</span>
+    }
+
+    public boolean isVisibleForCurrentUser() {
+<span class="nc" id="L131">        return eventStatisticView.isLiveData();</span>
+    }
+
+    public boolean isDisplayStatistics() {
+<span class="nc bnc" id="L135" title="All 4 branches missed.">        return isVisibleForCurrentUser() &amp;&amp; statisticsEnabled;</span>
+    }
+
+    @Override
+    public int compareTo(EventStatistic o) {
+<span class="nc" id="L140">        CompareToBuilder builder = new CompareToBuilder();</span>
+<span class="nc" id="L141">        return builder.append(isExpired(), o.isExpired())</span>
+<span class="nc" id="L142">                .append(</span>
+<span class="nc" id="L143">                        event.getBegin().withZoneSameInstant(ZoneId.systemDefault()),</span>
+<span class="nc" id="L144">                        o.event.getBegin().withZoneSameInstant(ZoneId.systemDefault()))</span>
+<span class="nc" id="L145">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

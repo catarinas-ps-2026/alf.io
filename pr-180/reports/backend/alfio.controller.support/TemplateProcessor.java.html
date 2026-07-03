@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TemplateProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.controller.support</a> &gt; <span class="el_source">TemplateProcessor.java</span></div><h1>TemplateProcessor.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.controller.support;
+
+import alfio.controller.api.support.AdditionalServiceWithData;
+import alfio.manager.ExtensionManager;
+import alfio.manager.FileUploadManager;
+import alfio.manager.PurchaseContextFieldManager;
+import alfio.manager.support.PartialTicketTextGenerator;
+import alfio.model.*;
+import alfio.model.metadata.SubscriptionMetadata;
+import alfio.model.subscription.Subscription;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.user.Organization;
+import alfio.util.EventUtil;
+import alfio.util.ImageUtil;
+import alfio.util.TemplateManager;
+import alfio.util.TemplateResource;
+import ch.digitalfondue.jfiveparse.Parser;
+import ch.digitalfondue.jfiveparse.W3CDom;
+import com.openhtmltopdf.extend.FSStream;
+import com.openhtmltopdf.extend.FSStreamFactory;
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver;
+import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.apache.pdfbox.io.IOUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.springframework.core.io.ClassPathResource;
+
+public final class TemplateProcessor {
+
+    private TemplateProcessor() {}
+
+    public static PartialTicketTextGenerator buildPartialEmail(
+            Event event,
+            Organization organization,
+            TicketReservation ticketReservation,
+            TicketCategory category,
+            TemplateManager templateManager,
+            String baseUrl,
+            String ticketURL,
+            String calendarURL,
+            Locale language,
+            Map&lt;String, Object&gt; additionalOptions) {
+<span class="fc" id="L65">        return ticket -&gt; {</span>
+<span class="fc" id="L66">            Map&lt;String, Object&gt; model = TemplateResource.buildModelForTicketEmail(</span>
+                    organization,
+                    event,
+                    ticketReservation,
+                    baseUrl,
+                    ticketURL,
+                    calendarURL,
+                    ticket,
+                    category,
+                    additionalOptions);
+<span class="fc" id="L76">            return templateManager.renderTemplate(</span>
+                    event,
+<span class="fc bfc" id="L78" title="All 2 branches covered.">                    EventUtil.isAccessOnline(category, event)</span>
+<span class="fc" id="L79">                            ? TemplateResource.TICKET_EMAIL_FOR_ONLINE_EVENT</span>
+<span class="fc" id="L80">                            : TemplateResource.TICKET_EMAIL,</span>
+                    model,
+                    language);
+        };
+    }
+
+    public static PartialTicketTextGenerator buildEmailForOwnerChange(
+            Event e,
+            Ticket oldTicket,
+            Organization organization,
+            String ticketUrl,
+            TemplateManager templateManager,
+            Locale language) {
+<span class="fc" id="L93">        return newTicket -&gt; {</span>
+<span class="fc" id="L94">            Map&lt;String, Object&gt; emailModel = TemplateResource.buildModelForTicketHasChangedOwner(</span>
+                    organization, e, oldTicket, newTicket, ticketUrl);
+<span class="fc" id="L96">            return templateManager.renderTemplate(e, TemplateResource.TICKET_HAS_CHANGED_OWNER, emailModel, language);</span>
+        };
+    }
+
+    public static void renderPDFTicket(
+            Locale language,
+            Event event,
+            TicketReservation ticketReservation,
+            TicketWithMetadataAttributes ticketWithMetadata,
+            TicketCategory ticketCategory,
+            Organization organization,
+            TemplateManager templateManager,
+            FileUploadManager fileUploadManager,
+            String reservationID,
+            OutputStream os,
+            BiFunction&lt;Ticket, Event, List&lt;FieldConfigurationDescriptionAndValue&gt;&gt; retrieveFieldValues,
+            ExtensionManager extensionManager,
+            Map&lt;String, Object&gt; initialModel,
+            List&lt;AdditionalServiceWithData&gt; additionalServiceWithData)
+            throws IOException {
+<span class="fc" id="L116">        Optional&lt;TemplateResource.ImageData&gt; imageData = extractImageModel(event, fileUploadManager);</span>
+<span class="fc" id="L117">        List&lt;FieldConfigurationDescriptionAndValue&gt; fields =</span>
+<span class="fc" id="L118">                retrieveFieldValues.apply(ticketWithMetadata.getTicket(), event);</span>
+<span class="fc" id="L119">        var model = new HashMap&lt;&gt;(Objects.requireNonNullElse(initialModel, Map.of()));</span>
+<span class="fc" id="L120">        model.putAll(TemplateResource.buildModelForTicketPDF(</span>
+                organization,
+                event,
+                ticketReservation,
+                ticketCategory,
+                ticketWithMetadata,
+                imageData,
+                reservationID,
+<span class="fc" id="L128">                fields.stream()</span>
+<span class="fc" id="L129">                        .collect(Collectors.toMap(</span>
+                                FieldConfigurationDescriptionAndValue::getName,
+                                FieldConfigurationDescriptionAndValue::getValueDescription)),
+                additionalServiceWithData));
+
+<span class="fc" id="L134">        String page = templateManager</span>
+<span class="fc" id="L135">                .renderTemplate(event, TemplateResource.TICKET_PDF, model, language)</span>
+<span class="fc" id="L136">                .getTextPart();</span>
+<span class="fc" id="L137">        renderToPdf(page, os, extensionManager, event, fileUploadManager);</span>
+<span class="fc" id="L138">    }</span>
+
+    public static Map&lt;String, Object&gt; getSubscriptionDetailsModelForTicket(
+            Ticket ticket, Function&lt;UUID, SubscriptionDescriptor&gt; subscriptionDescriptorLoader, Locale locale) {
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        boolean hasSubscription = ticket.getSubscriptionId() != null;</span>
+<span class="fc" id="L143">        var result = new HashMap&lt;String, Object&gt;();</span>
+<span class="fc" id="L144">        result.put(&quot;hasSubscription&quot;, hasSubscription);</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">        if (hasSubscription) {</span>
+<span class="fc" id="L146">            var subscriptionDescriptor = subscriptionDescriptorLoader.apply(ticket.getSubscriptionId());</span>
+<span class="fc" id="L147">            result.put(&quot;subscriptionTitle&quot;, subscriptionDescriptor.getLocalizedTitle(locale));</span>
+        }
+<span class="fc" id="L149">        return result;</span>
+    }
+
+    public static void renderSubscriptionPDF(
+            Subscription subscription,
+            Locale locale,
+            SubscriptionDescriptor subscriptionDescriptor,
+            TicketReservation reservation,
+            SubscriptionMetadata metadata,
+            Organization organization,
+            TemplateManager templateManager,
+            FileUploadManager fileUploadManager,
+            String reservationId,
+            ByteArrayOutputStream os,
+            ExtensionManager extensionManager,
+            PurchaseContextFieldManager purchaseContextFieldManager)
+            throws IOException {
+<span class="nc" id="L166">        Optional&lt;TemplateResource.ImageData&gt; imageData = extractImageModel(subscriptionDescriptor, fileUploadManager);</span>
+<span class="nc" id="L167">        var additionalFields = purchaseContextFieldManager.getFieldDescriptionAndValues(</span>
+<span class="nc" id="L168">                subscriptionDescriptor, null, subscription, List.of(), locale.getLanguage(), true);</span>
+<span class="nc" id="L169">        Map&lt;String, Object&gt; model = TemplateResource.buildModelForSubscriptionPDF(</span>
+                subscription,
+                subscriptionDescriptor,
+                organization,
+                metadata,
+                imageData,
+                reservationId,
+                locale,
+                reservation,
+                additionalFields);
+<span class="nc" id="L179">        String page = templateManager</span>
+<span class="nc" id="L180">                .renderTemplate(subscriptionDescriptor, TemplateResource.SUBSCRIPTION_PDF, model, locale)</span>
+<span class="nc" id="L181">                .getTextPart();</span>
+<span class="nc" id="L182">        renderToPdf(page, os, extensionManager, subscriptionDescriptor, fileUploadManager);</span>
+<span class="nc" id="L183">    }</span>
+
+    public static void renderToPdf(
+            String page,
+            OutputStream os,
+            ExtensionManager extensionManager,
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager)
+            throws IOException {
+
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">        if (extensionManager.handlePdfTransformation(page, purchaseContext, os)) {</span>
+<span class="nc" id="L194">            return;</span>
+        }
+<span class="fc" id="L196">        PdfRendererBuilder builder = new PdfRendererBuilder();</span>
+<span class="fc" id="L197">        PDDocument doc = new PDDocument(IOUtils.createTempFileOnlyStreamCache());</span>
+<span class="fc" id="L198">        builder.usePDDocument(doc);</span>
+<span class="fc" id="L199">        builder.toStream(os);</span>
+<span class="fc" id="L200">        builder.useProtocolsStreamImplementation(new AlfioInternalFSStreamFactory(), &quot;alfio-internal&quot;);</span>
+<span class="fc" id="L201">        builder.useProtocolsStreamImplementation(new InvalidProtocolFSStreamFactory(), &quot;http&quot;, &quot;https&quot;, &quot;file&quot;, &quot;jar&quot;);</span>
+<span class="fc" id="L202">        builder.useFastMode();</span>
+<span class="fc" id="L203">        builder.usePdfUaAccessibility(true);</span>
+<span class="fc" id="L204">        builder.usePdfAConformance(PdfRendererBuilder.PdfAConformance.PDFA_3_U);</span>
+
+<span class="fc" id="L206">        var parser = new Parser();</span>
+
+<span class="fc" id="L208">        builder.withW3cDocument(W3CDom.toW3CDocument(parser.parse(page)), &quot;&quot;);</span>
+<span class="fc" id="L209">        try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {</span>
+<span class="fc" id="L210">            File monoFont = ImageUtil.getDejaVuSansMonoFont(fileUploadManager);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">            if (monoFont != null) {</span>
+<span class="fc" id="L212">                renderer.getFontResolver()</span>
+<span class="fc" id="L213">                        .addFont(monoFont, &quot;DejaVu Sans Mono&quot;, null, null, false, PdfBoxFontResolver.FontGroup.MAIN);</span>
+<span class="fc" id="L214">                renderer.getFontResolver()</span>
+<span class="fc" id="L215">                        .addFont(monoFont, &quot;Monospaced&quot;, null, null, false, PdfBoxFontResolver.FontGroup.MAIN);</span>
+            }
+<span class="fc" id="L217">            File sansFont = ImageUtil.getDejaVuSansFont(fileUploadManager);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">            if (sansFont != null) {</span>
+<span class="fc" id="L219">                renderer.getFontResolver()</span>
+<span class="fc" id="L220">                        .addFont(sansFont, &quot;SansSerif&quot;, null, null, false, PdfBoxFontResolver.FontGroup.MAIN);</span>
+            }
+<span class="fc" id="L222">            File serifFont = ImageUtil.getDejaVuSerifFont(fileUploadManager);</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">            if (serifFont != null) {</span>
+<span class="fc" id="L224">                renderer.getFontResolver()</span>
+<span class="fc" id="L225">                        .addFont(sansFont, &quot;Serif&quot;, null, null, false, PdfBoxFontResolver.FontGroup.MAIN);</span>
+            }
+<span class="fc" id="L227">            renderer.layout();</span>
+<span class="fc" id="L228">            renderer.createPDF();</span>
+        }
+<span class="fc" id="L230">    }</span>
+
+    private static class AlfioInternalFSStreamFactory implements FSStreamFactory {
+
+        @Override
+        public FSStream getUrl(String url) {
+            return new FSStream() {
+                @Override
+                public InputStream getStream() {
+                    String urlWithoutProtocol = url.substring(&quot;alfio-internal:/&quot;.length());
+                    try {
+                        return new ClassPathResource(&quot;/alfio/font/&quot; + urlWithoutProtocol).getInputStream();
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+
+                @Override
+                public Reader getReader() {
+                    return new InputStreamReader(getStream(), StandardCharsets.UTF_8);
+                }
+            };
+        }
+    }
+
+    private static class InvalidProtocolFSStreamFactory implements FSStreamFactory {
+
+        @Override
+        public FSStream getUrl(String url) {
+            throw new IllegalStateException(
+                    new TemplateAccessException(&quot;Protocol for resource '&quot; + url + &quot;' is not supported&quot;));
+        }
+    }
+
+    public static class TemplateAccessException extends IllegalStateException {
+        TemplateAccessException(String message) {
+            super(message);
+        }
+    }
+
+    public static Optional&lt;TemplateResource.ImageData&gt; extractImageModel(
+            PurchaseContext purchaseContext, FileUploadManager fileUploadManager) {
+<span class="fc bfc" id="L272" title="All 2 branches covered.">        if (purchaseContext.getFileBlobIdIsPresent()) {</span>
+<span class="fc" id="L273">            return fileUploadManager</span>
+<span class="fc" id="L274">                    .findMetadata(purchaseContext.getFileBlobId())</span>
+<span class="fc" id="L275">                    .map(metadata -&gt; {</span>
+<span class="fc" id="L276">                        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L277">                        fileUploadManager.outputFile(metadata.getId(), baos);</span>
+<span class="fc" id="L278">                        return TemplateResource.fillWithImageData(metadata, baos.toByteArray());</span>
+                    });
+        } else {
+<span class="fc" id="L281">            return Optional.empty();</span>
+        }
+    }
+
+    public static boolean buildReceiptOrInvoicePdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map&lt;String, Object&gt; model,
+            TemplateResource templateResource,
+            ExtensionManager extensionManager,
+            OutputStream os) {
+        try {
+<span class="fc" id="L295">            String html = renderReceiptOrInvoicePdfTemplate(</span>
+                    purchaseContext, fileUploadManager, language, templateManager, model, templateResource);
+<span class="fc" id="L297">            renderToPdf(html, os, extensionManager, purchaseContext, fileUploadManager);</span>
+<span class="fc" id="L298">            return true;</span>
+<span class="nc" id="L299">        } catch (IOException ioe) {</span>
+<span class="nc" id="L300">            return false;</span>
+        }
+    }
+
+    public static String renderReceiptOrInvoicePdfTemplate(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map&lt;String, Object&gt; model,
+            TemplateResource templateResource) {
+<span class="fc" id="L311">        extractImageModel(purchaseContext, fileUploadManager).ifPresent(imageData -&gt; {</span>
+<span class="nc" id="L312">            model.put(&quot;eventImage&quot;, imageData.getEventImage());</span>
+<span class="nc" id="L313">            model.put(&quot;imageWidth&quot;, imageData.getImageWidth());</span>
+<span class="nc" id="L314">            model.put(&quot;imageHeight&quot;, imageData.getImageHeight());</span>
+<span class="nc" id="L315">        });</span>
+<span class="fc" id="L316">        return templateManager</span>
+<span class="fc" id="L317">                .renderTemplate(purchaseContext, templateResource, model, language)</span>
+<span class="fc" id="L318">                .getTextPart();</span>
+    }
+
+    public static Optional&lt;byte[]&gt; buildBillingDocumentPdf(
+            BillingDocument.Type documentType,
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map&lt;String, Object&gt; model,
+            ExtensionManager extensionManager) {
+<span class="nc bnc" id="L329" title="All 4 branches missed.">        return switch (documentType) {</span>
+<span class="nc" id="L330">            case INVOICE -&gt; buildInvoicePdf(</span>
+                    purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
+<span class="nc" id="L332">            case RECEIPT -&gt; buildReceiptPdf(</span>
+                    purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
+<span class="nc" id="L334">            case CREDIT_NOTE -&gt; buildCreditNotePdf(</span>
+                    purchaseContext, fileUploadManager, language, templateManager, model, extensionManager);
+<span class="nc" id="L336">            default -&gt; throw new IllegalStateException(documentType + &quot; not supported&quot;);</span>
+        };
+    }
+
+    private static Optional&lt;byte[]&gt; buildFrom(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map&lt;String, Object&gt; model,
+            TemplateResource templateResource,
+            ExtensionManager extensionManager) {
+<span class="fc" id="L348">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L349">        boolean res = buildReceiptOrInvoicePdf(</span>
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                templateResource,
+                extensionManager,
+                baos);
+<span class="pc bpc" id="L358" title="1 of 2 branches missed.">        return res ? Optional.of(baos.toByteArray()) : Optional.empty();</span>
+    }
+
+    public static Optional&lt;byte[]&gt; buildReceiptPdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map&lt;String, Object&gt; model,
+            ExtensionManager extensionManager) {
+<span class="fc" id="L368">        return buildFrom(</span>
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                TemplateResource.RECEIPT_PDF,
+                extensionManager);
+    }
+
+    public static Optional&lt;byte[]&gt; buildInvoicePdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map&lt;String, Object&gt; model,
+            ExtensionManager extensionManager) {
+<span class="fc" id="L385">        return buildFrom(</span>
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                TemplateResource.INVOICE_PDF,
+                extensionManager);
+    }
+
+    public static Optional&lt;byte[]&gt; buildCreditNotePdf(
+            PurchaseContext purchaseContext,
+            FileUploadManager fileUploadManager,
+            Locale language,
+            TemplateManager templateManager,
+            Map&lt;String, Object&gt; model,
+            ExtensionManager extensionManager) {
+<span class="nc" id="L402">        return buildFrom(</span>
+                purchaseContext,
+                fileUploadManager,
+                language,
+                templateManager,
+                model,
+                TemplateResource.CREDIT_NOTE_PDF,
+                extensionManager);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
