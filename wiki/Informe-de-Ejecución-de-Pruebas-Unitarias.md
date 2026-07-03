@@ -1,6 +1,7 @@
 # Informe de Ejecución de Pruebas Unitarias del Sistema alf.io
 
 ## Índice
+
 - [1. Introducción](#1-introducción)
 - [2. Propósito](#2-propósito)
 - [3. Alcance](#3-alcance)
@@ -114,7 +115,7 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Tests con fallo | 0 |
 | Tasa de éxito | 100% |
 
-### 7.4 Resumen agregado
+### 7.4 Resumen
 
 | Aplicación | Tests totales | Exitosos | Tasa de éxito |
 | :--- | :---: | :---: | :---: |
@@ -168,7 +169,6 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Functions / Métodos | 2 701 / 3 325 | 70 / 71 | 322 / 374 | 3 093 / 3 770 | **82.04%** |
 | Lines / Líneas | 5 707 / 7 570 | 646 / 687 | 858 / 1 007 | 7 211 / 9 264 | **77.84%** |
 
-
 ## 9. Cumplimiento de criterios de finalización
 
 Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los siguientes criterios de cierre:
@@ -193,9 +193,9 @@ Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los sig
 
 | Código del commit (link) | Descripción | Autor |
 |---|---|---|
-| https://github.com/catarinas-ps-2026/alf.io/commit/7e524f820e6e4a0cada190ffde743dc494fbc70d | fix en CheckInManager: corregido cálculo de inicio/fin del día usando ZonedDateTime -> uso de instant.truncatedTo(ChronoUnit.DAYS) y plus(1, DAYS) para evitar errores por zona horaria al contar escaneos del mismo día (evita dobles conteos/errores en badge-scan). (Se introdujo en PR #108 "fix: timezone computing making tests fail") | christianmz565 |
-| https://github.com/catarinas-ps-2026/alf.io/commit/99f17a75dd2542bc97e2d2d10e823525fc337a52 | corrección de regresión en frontend causada por imports/typing/linting: varios cambios para asegurar que servicios y utilidades se importen como valores (no solo como tipos) y evitar fallos en tiempo de ejecución — arreglo funcional que restablece el comportamiento del frontend. (merge de PR #77 "fix: frontend regression due to linting") | christianmz565 |
-| https://github.com/catarinas-ps-2026/alf.io/commit/dc1341a5f6088d5fcf00c8e7013417f7dd9a3471 | ajuste en frontend: dispatchFeedback ahora acepta EventTarget en lugar de LitElement y cambio relacionado en el payload del evento (ajuste en la propagación/uso del evento 'alfio-feedback'); corrige comportamiento del envío/recepción de eventos en runtime. (incluido en PR #122 "fix: frontend build failing due to smaller type issues") | christianmz565 |
+| <https://github.com/catarinas-ps-2026/alf.io/commit/7e524f820e6e4a0cada190ffde743dc494fbc70d> | fix en CheckInManager: corregido cálculo de inicio/fin del día usando ZonedDateTime -> uso de instant.truncatedTo(ChronoUnit.DAYS) y plus(1, DAYS) para evitar errores por zona horaria al contar escaneos del mismo día (evita dobles conteos/errores en badge-scan). (Se introdujo en PR #108 "fix: timezone computing making tests fail") | christianmz565 |
+| <https://github.com/catarinas-ps-2026/alf.io/commit/99f17a75dd2542bc97e2d2d10e823525fc337a52> | corrección de regresión en frontend causada por imports/typing/linting: varios cambios para asegurar que servicios y utilidades se importen como valores (no solo como tipos) y evitar fallos en tiempo de ejecución — arreglo funcional que restablece el comportamiento del frontend. (merge de PR #77 "fix: frontend regression due to linting") | christianmz565 |
+| <https://github.com/catarinas-ps-2026/alf.io/commit/dc1341a5f6088d5fcf00c8e7013417f7dd9a3471> | ajuste en frontend: dispatchFeedback ahora acepta EventTarget en lugar de LitElement y cambio relacionado en el payload del evento (ajuste en la propagación/uso del evento 'alfio-feedback'); corrige comportamiento del envío/recepción de eventos en runtime. (incluido en PR #122 "fix: frontend build failing due to smaller type issues") | christianmz565 |
 
 ## 12. Conclusión
 
