@@ -179,3 +179,12 @@ Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los sig
 | Sin defectos de severidad alta abiertos | Cumplido | 0 fallos en ejecución (sección 7.4) |
 | Entregables completos en la Wiki | Cumplido | Reporte de ejecución, reporte de cobertura, matriz de trazabilidad y lista de defectos publicados |
 | Aprobación vía PR con checks de GitHub Actions | Cumplido | Ambos workflows `test-pr.yml` y `test-push.yml` finalizan sin errores |
+
+## 10. Métricas adicionales
+
+| Métrica | Valor |
+| :--- | :---: |
+| Cobertura de código (instrucciones/statements) | 85.76% |
+| Número total de casos de prueba ejecutados | 2 290 |
+| Tiempo de ejecución de backend (CI) | ~4m 26s |
+| Tiempo de ejecución de frontend (CI) | ~38s |
