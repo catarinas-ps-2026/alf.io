@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ReportCard from '../components/ReportCard.astro';
+import results from '../data/results.json';
+---
+<Layout title={results.title} generatedAt={results.generatedAt}>
+  {results.reports.map((report) => (
+    <ReportCard
+      name={report.name}
+      path={report.path}
+      status={report.status}
+    />
+  ))}
+</Layout>

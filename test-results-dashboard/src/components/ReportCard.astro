@@ -1,0 +1,55 @@
+---
+interface Props {
+  name: string;
+  path: string;
+  status: 'success' | 'failed' | 'skipped';
+}
+
+const { name, path, status } = Astro.props;
+---
+<a href={path} class:list={['card', status]}>
+  <span class="name">{name}</span>
+  <span class="arrow">&rarr;</span>
+</a>
+
+<style>
+  .card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--color-text-muted);
+  }
+
+  .card.success:hover {
+    border-color: var(--color-success);
+  }
+
+  .card.failed:hover {
+    border-color: var(--color-error);
+  }
+
+  .card.skipped:hover {
+    border-color: var(--color-skipped);
+  }
+
+  .name {
+    font-weight: 500;
+    font-size: 0.9375rem;
+  }
+
+  .arrow {
+    color: var(--color-text-muted);
+    font-size: 1.125rem;
+  }
+</style>
