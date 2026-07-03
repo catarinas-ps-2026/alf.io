@@ -123,3 +123,17 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Frontend público | 487 | 487 | 100% |
 | Frontend admin | 167 | 167 | 100% |
 | **Total** | **2 290** | **2 288** | **100%** |
+
+## 8. Cobertura de código
+
+### 8.1 Backend (JaCoCo)
+
+<img src="images/unit-tests/backend_cov.png" alt="Cobertura Backend JaCoCo">
+
+| Métrica | Valor |
+| :--- | :---: |
+| Instrucciones cubiertas | 85% (61 987 / 72 349) |
+| Ramas cubiertas | 68% (3 228 / 4 730) |
+| Líneas cubiertas | 85% (5 707 / 7 570) |
+| Métodos cubiertos | 81% (2 701 / 3 325) |
+| Clases | 352 |
