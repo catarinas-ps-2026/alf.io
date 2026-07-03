@@ -168,3 +168,14 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Branches / Ramas | 3 228 / 4 730 | 184 / 185 | 356 / 465 | 3 768 / 5 380 | **70.04%** |
 | Functions / Métodos | 2 701 / 3 325 | 70 / 71 | 322 / 374 | 3 093 / 3 770 | **82.04%** |
 | Lines / Líneas | 5 707 / 7 570 | 646 / 687 | 858 / 1 007 | 7 211 / 9 264 | **77.84%** |
+
+## 9. Cumplimiento de criterios de finalización
+
+Conforme a la sección 5.3 del [[Plan-de-Pruebas-Unitarias]], se validan los siguientes criterios de cierre:
+
+| Criterio | Estado | Evidencia |
+| :--- | :---: | :--- |
+| Cobertura de código agregada ≥ 85% | Cumplido | 85.76% instructions/statements (sección 8.4) |
+| Sin defectos de severidad alta abiertos | Cumplido | 0 fallos en ejecución (sección 7.4) |
+| Entregables completos en la Wiki | Cumplido | Reporte de ejecución, reporte de cobertura, matriz de trazabilidad y lista de defectos publicados |
+| Aprobación vía PR con checks de GitHub Actions | Cumplido | Ambos workflows `test-pr.yml` y `test-push.yml` finalizan sin errores |
