@@ -104,3 +104,13 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Tests exitosos | 487 |
 | Tests con fallo | 0 |
 | Tasa de éxito | 100% |
+
+### 7.3 Frontend de administración (Lit)
+
+| Métrica | Valor |
+| :--- | :---: |
+| Archivos de prueba | 8 |
+| Tests totales | 167 |
+| Tests exitosos | 167 |
+| Tests con fallo | 0 |
+| Tasa de éxito | 100% |
