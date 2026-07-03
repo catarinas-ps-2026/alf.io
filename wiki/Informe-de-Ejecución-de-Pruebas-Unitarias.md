@@ -67,3 +67,17 @@ Se ejecuta automáticamente ante la creación o actualización de un Pull Reques
 #### `test-push.yml` — Ejecución al hacer push a `main`
 
 Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de PR, pero además ejecuta las pruebas de backend contra múltiples versiones de PostgreSQL (10, 15 y 16) usando una matriz de estrategia para garantizar compatibilidad.
+
+### 6.2 Herramientas de cobertura
+
+- **Backend:** JaCoCo (integrado con Gradle vía el plugin `jacocoTestReport`).
+- **Frontend:** Vitest con `@vitest/coverage-v8`, tanto para el frontend público (Angular) como para el frontend admin (Lit).
+
+### 6.3 Comandos de ejecución
+
+| Componente | Comando | Herramienta |
+| :--- | :--- | :--- |
+| Backend | `./gradlew test jacocoTestReport -Dpgsql.version=16` | JUnit 5 + JaCoCo |
+| Frontend público | `pnpm --prefix frontend/projects/public test:run` | Vitest |
+| Frontend admin | `pnpm --prefix frontend/admin test:run` | Vitest |
+| Cobertura frontend | `pnpm --prefix frontend run coverage` | Vitest + @vitest/coverage-v8 |
