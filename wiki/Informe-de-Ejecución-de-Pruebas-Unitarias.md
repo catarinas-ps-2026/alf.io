@@ -81,3 +81,16 @@ Se ejecuta tras un merge en `main`. Realiza los mismos pasos que el workflow de 
 | Frontend público | `pnpm --prefix frontend/projects/public test:run` | Vitest |
 | Frontend admin | `pnpm --prefix frontend/admin test:run` | Vitest |
 | Cobertura frontend | `pnpm --prefix frontend run coverage` | Vitest + @vitest/coverage-v8 |
+
+## 7. Resultados de ejecución
+
+### 7.1 Backend
+
+| Métrica | Valor |
+| :--- | :---: |
+| Tests totales | 1 636 |
+| Tests exitosos | 1 634 |
+| Tests con fallo | 0 |
+| Tests con error | 0 |
+| Tests omitidos | 2 |
+| Tasa de éxito | 100% |
