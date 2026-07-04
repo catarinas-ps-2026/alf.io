@@ -177,19 +177,25 @@ Cada caso de prueba incluye, como mínimo:
 
 # 5. Preparación del Entorno de Pruebas
 
-Antes de iniciar la ejecución de las pruebas se configura un entorno controlado que reproduce las condiciones necesarias para validar correctamente el comportamiento del sistema.
+Antes de la ejecución de las pruebas, se verifica que el entorno de despliegue se encuentre correctamente actualizado y operativo. El proyecto utiliza una estrategia de **Integración Continua y Despliegue Continuo (CI/CD)** que automatiza la generación y publicación de nuevas versiones de la aplicación.
 
-Las actividades realizadas durante esta etapa incluyen:
+Cada vez que se realiza un *push* sobre la rama principal (**main**), un flujo de trabajo de **GitHub Actions** ejecuta automáticamente el proceso de compilación del proyecto, construye una nueva imagen Docker y la publica en el registro de contenedores correspondiente.
 
-- Configuración del backend.
-- Configuración del frontend.
-- Inicialización de la base de datos.
-- Aplicación de migraciones.
-- Carga de datos de prueba.
-- Configuración de herramientas de automatización.
-- Verificación de dependencias y servicios.
+El entorno de ejecución se encuentra desplegado sobre un clúster de **Kubernetes**, cuya configuración está preparada para obtener siempre la versión más reciente de la imagen publicada. Gracias a la política de actualización de imágenes configurada en los despliegues, el clúster descarga automáticamente la nueva versión y actualiza los pods de la aplicación, garantizando que las pruebas se ejecuten sobre la última versión del software.
 
-Cuando es necesario, se utilizan contenedores Docker para garantizar la reproducibilidad del entorno y facilitar la ejecución de pruebas en diferentes equipos de desarrollo e integración continua.
+Esta infraestructura permite mantener un entorno de pruebas consistente, reproducible y alineado con el código fuente almacenado en el repositorio, eliminando la necesidad de realizar despliegues manuales y reduciendo el riesgo de inconsistencias entre el entorno de desarrollo y el de validación.
+
+Antes de iniciar la ejecución de las pruebas se verifica que:
+
+- La última versión del código haya sido compilada correctamente mediante GitHub Actions.
+- La imagen Docker correspondiente se encuentre disponible en el registro de contenedores.
+- El clúster de Kubernetes haya actualizado los despliegues con la versión más reciente de la aplicación.
+- Todos los pods y servicios se encuentren en estado operativo.
+- La base de datos y los demás servicios necesarios para la ejecución de las pruebas estén disponibles y accesibles.
+
+Una vez verificadas estas condiciones, el entorno se considera preparado para la ejecución de las diferentes suites de pruebas definidas para el proyecto.
+
+Link del sitio desplegado: https://alfio.ynoacamino.me/admin#/
 
 ---
 
