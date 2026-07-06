@@ -11,16 +11,20 @@
 
 ## Índice
 
-[[Plan de Pruebas Unitarias]]
+### Pruebas Unitarias
+- [[Plan de Pruebas Unitarias]]
+- [[Informe de Ejecución de Pruebas Unitarias]]
 
-[[Informe de Ejecución de Pruebas Unitarias]]
+### Pruebas Funcionales
+- [[Diseño de Casos de Prueba Funcionales]]
+- [[Informe de Casos de Prueba Funcionales]]
 
-[[Diseño de Casos de Prueba Funcionales]]
+### Pruebas de Integración
+- [[Plan de Pruebas de Integración]]
+- [[Informe de Casos de Prueba de Integración]]
 
-[[Informe de Casos de Prueba Funcionales]]
+### Pruebas de Sistema
+- [[Plan de Pruebas de Sistema]]
+- [[Informe de Casos de Prueba de Sistema]]
 
-[[Plan de Pruebas de Integración]]
 
-[[Plan de Pruebas de Sistema]]
-
-[[Plantilla de Typst]]
