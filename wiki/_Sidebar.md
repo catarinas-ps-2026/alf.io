@@ -14,3 +14,6 @@
 
 ## Pruebas de sistema
 - [[Plan de Pruebas de Sistema]]
+
+## Documentación
+- [[Plantilla de Typst]]
