@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseMailer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.system</a> &gt; <span class="el_source">BaseMailer.java</span></div><h1>BaseMailer.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.system;
+
+import static java.util.Objects.requireNonNull;
+
+import alfio.manager.system.ConfigurationManager.MaybeConfiguration;
+import alfio.model.system.ConfigurationKeys;
+import alfio.repository.user.OrganizationRepository;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import java.time.Duration;
+import java.util.Map;
+import java.util.function.Consumer;
+import org.apache.commons.lang3.StringUtils;
+
+abstract class BaseMailer implements Mailer {
+
+    static final String MISSING_CONFIG_MESSAGE = &quot;config cannot be null&quot;;
+    private final OrganizationRepository organizationRepository;
+<span class="fc" id="L35">    private static final Cache&lt;Integer, String&gt; ORG_ADDRESS_CACHE =</span>
+<span class="fc" id="L36">            Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(1L)).build();</span>
+
+<span class="fc" id="L38">    BaseMailer(OrganizationRepository organizationRepository) {</span>
+<span class="fc" id="L39">        this.organizationRepository = organizationRepository;</span>
+<span class="fc" id="L40">    }</span>
+
+    void setReplyToIfPresent(
+            Map&lt;ConfigurationKeys, MaybeConfiguration&gt; conf, int organizationId, Consumer&lt;String&gt; replyToSetter) {
+<span class="fc" id="L44">        var replyToConfig = requireNonNull(</span>
+<span class="fc" id="L45">                        requireNonNull(conf, MISSING_CONFIG_MESSAGE).get(ConfigurationKeys.MAIL_REPLY_TO),</span>
+                        &quot;MAIL_REPLY_TO is required&quot;)
+<span class="fc" id="L47">                .getValueOrDefault(&quot;&quot;);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (StringUtils.isNotBlank(replyToConfig)) {</span>
+<span class="fc" id="L49">            replyToSetter.accept(replyToConfig);</span>
+<span class="fc" id="L50">        } else if (requireNonNull(</span>
+<span class="fc" id="L51">                        conf.get(ConfigurationKeys.MAIL_SET_ORG_REPLY_TO), &quot;MAIL_SET_ORG_REPLY_TO is required&quot;)</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">                .getValueAsBooleanOrDefault()) {</span>
+<span class="fc" id="L53">            var address = ORG_ADDRESS_CACHE.get(organizationId, id -&gt; {</span>
+<span class="fc" id="L54">                var organization = organizationRepository.getContactById(organizationId);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">                if (StringUtils.isNotBlank(organization.getEmail())) {</span>
+<span class="fc" id="L56">                    return organization.getEmail();</span>
+                }
+<span class="nc" id="L58">                return null;</span>
+            });
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">            if (StringUtils.isNotBlank(address)) {</span>
+<span class="fc" id="L61">                replyToSetter.accept(address);</span>
+            }
+        }
+<span class="fc" id="L64">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
