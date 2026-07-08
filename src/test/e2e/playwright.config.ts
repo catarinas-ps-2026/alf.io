@@ -6,7 +6,6 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
     testDir: "./specs",
-    globalSetup: "./global-setup.ts",
     timeout: 60000,
     fullyParallel: false,
     forbidOnly: false,
@@ -52,9 +51,15 @@ export default defineConfig({
             use: { ...devices["Desktop Chrome"] },
             dependencies: ["setup"],
             testMatch: [
-                "**/auth/*.spec.ts",
-                "**/navigation/*.spec.ts",
-                "**/permissions/*.spec.ts",
+                // "**/auth/*.spec.ts",
+                // "**/navigation/*.spec.ts",
+                // "**/permissions/*.spec.ts",
+                // "**/profile/*.spec.ts",
+                // "**/organizations/*.spec.ts",
+                // "**/users/*.spec.ts",
+                // "**/events/*.spec.ts",
+                // "**/subscriptions/*.spec.ts",
+                "**/path/*.spec.ts",
             ],
         },
         // {

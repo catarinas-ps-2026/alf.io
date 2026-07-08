@@ -7,6 +7,9 @@ export class EventDetailPage {
     readonly actionsDropdown: Locator;
     readonly deleteMenuItem: Locator;
     readonly addCategoryButton: Locator;
+    readonly organizedByText: Locator;
+    readonly publicUrlLink: Locator;
+    readonly editPricesButton: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -25,6 +28,17 @@ export class EventDetailPage {
         this.addCategoryButton = page
             .getByRole("button", { name: "add category" })
             .first();
+        this.organizedByText = page
+            .locator("dt", { hasText: "Organized by" })
+            .locator("xpath=following-sibling::dd[1]");
+        this.publicUrlLink = page
+            .locator("dt", { hasText: "Public URL" })
+            .locator("xpath=following-sibling::dd[1]/a");
+        // Same pattern as editLogisticInfoButton: anchor on the panel's own
+        // heading and take the next "Edit" button that follows it in the DOM.
+        this.editPricesButton = page
+            .locator("strong", { hasText: "Seats and payment info" })
+            .locator("xpath=following::button[normalize-space(text())='Edit'][1]");
     }
 
     async goto(eventShortName: string): Promise<void> {
@@ -130,5 +144,76 @@ export class EventDetailPage {
             state: "detached",
             timeout: 10000,
         });
+    }
+
+    // A freshly-created event starts as DRAFT: it's reachable at its public
+    // URL but not listed anywhere public. "Publish now" (an <a> with
+    // ng-click and no href, so no implicit ARIA "link" role - same gotcha as
+    // deleteCategory) flips it to PUBLIC.
+    async publishEvent(): Promise<void> {
+        await this.page
+            .locator("a.btn-warning", { hasText: "Publish now" })
+            .click();
+        await this.page
+            .getByText(/successfully published/)
+            .waitFor({ state: "visible", timeout: 10000 });
+    }
+
+    async getPublicUrl(): Promise<string> {
+        const href = await this.publicUrlLink.getAttribute("href");
+        if (!href) {
+            throw new Error("Could not read the event's public URL");
+        }
+        // This dev environment's "Base application url" system setting was
+        // saved with a trailing slash, so eventPublicURL (baseUrl + '/event/'
+        // + shortName) ends up with a doubled "//" - Jetty 400s that as an
+        // "ambiguous URI empty segment". Not a bug in the publish feature
+        // itself, just a config artifact - normalize it away here.
+        return href.replace(/([^:]\/)\/+/g, "$1");
+    }
+
+    async openEditPrices(): Promise<void> {
+        await this.editPricesButton.click();
+        const dialog = this.page.getByRole("dialog");
+        await dialog.locator("#availableSeats").waitFor({ state: "visible" });
+    }
+
+    // Only rendered once the event isn't free-of-charge and the event's
+    // organization has at least one subscription - see the
+    // subscriptionDescriptors block in event/fragment/edit-prices.html. Walk
+    // up from the <h4> title to its containing .row rather than filtering
+    // dialog.locator(".row", {has: ...}) - the latter matched zero elements
+    // in practice, most likely due to nested .row wrappers elsewhere in the
+    // same form confusing the containment check.
+    private subscriptionCheckbox(
+        dialog: Locator,
+        subscriptionTitle: string,
+    ): Locator {
+        return dialog
+            .locator("h4", { hasText: subscriptionTitle })
+            .locator(
+                "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' row ')][1]//input[@type='checkbox']",
+            );
+    }
+
+    async linkSubscription(subscriptionTitle: string): Promise<void> {
+        const dialog = this.page.getByRole("dialog");
+        await this.subscriptionCheckbox(dialog, subscriptionTitle).check();
+        await dialog.getByRole("button", { name: "Save" }).click();
+        await dialog.waitFor({ state: "hidden" });
+    }
+
+    async isSubscriptionLinked(subscriptionTitle: string): Promise<boolean> {
+        const dialog = this.page.getByRole("dialog");
+        return this.subscriptionCheckbox(
+            dialog,
+            subscriptionTitle,
+        ).isChecked();
+    }
+
+    async closeDialog(): Promise<void> {
+        const dialog = this.page.getByRole("dialog");
+        await dialog.getByRole("button", { name: "Cancel" }).click();
+        await dialog.waitFor({ state: "hidden" });
     }
 }
