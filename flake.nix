@@ -2,7 +2,7 @@
   description = "A multi-platform dev shell flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -32,22 +32,21 @@
               libglvnd
             ];
 
-          packages =
-            with pkgs;
-            [
+          packages = pkgs.lib.flatten [
+            (with pkgs; [
               jdk17
               jdt-language-server
               gradle
               pnpm
               nodejs
               postgresql
-              nixd
               mermaid-cli
               plantuml
               uv
               playwright-driver.browsers
               k6
-            ];
+            ])
+          ];
 
           buildInputs = [ pkgs.bashInteractive ];
 
