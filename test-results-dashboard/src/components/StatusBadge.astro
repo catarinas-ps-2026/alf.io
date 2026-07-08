@@ -1,0 +1,46 @@
+---
+type Status = 'success' | 'failed' | 'skipped';
+
+interface Props {
+  status: Status;
+}
+
+const { status } = Astro.props;
+
+const labels: Record<Status, string> = {
+  success: 'Pasado',
+  failed: 'Fallido',
+  skipped: 'Omitido',
+};
+---
+<span class:list={['badge', status]}>
+  {labels[status]}
+</span>
+
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .success {
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+  }
+
+  .failed {
+    background-color: var(--color-error-bg);
+    color: var(--color-error);
+  }
+
+  .skipped {
+    background-color: var(--color-skipped-bg);
+    color: var(--color-skipped);
+  }
+</style>

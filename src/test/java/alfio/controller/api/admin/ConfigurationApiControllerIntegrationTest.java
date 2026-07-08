@@ -20,6 +20,7 @@ import static alfio.test.util.IntegrationTestUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
@@ -36,6 +37,7 @@ import alfio.model.Event.EventFormat;
 import alfio.model.PriceContainer.VatStatus;
 import alfio.model.TicketCategory;
 import alfio.model.metadata.AlfioMetadata;
+import alfio.model.modification.ConfigurationModification;
 import alfio.model.modification.DateTimeModification;
 import alfio.model.modification.TicketCategoryModification;
 import alfio.model.transaction.PaymentProxy;
@@ -43,7 +45,9 @@ import alfio.model.transaction.UserDefinedOfflinePaymentMethod;
 import alfio.model.user.Organization;
 import alfio.repository.EventRepository;
 import alfio.repository.system.ConfigurationRepository;
+import alfio.repository.user.AuthorityRepository;
 import alfio.repository.user.OrganizationRepository;
+import alfio.repository.user.UserRepository;
 import alfio.test.util.AlfioIntegrationTest;
 import alfio.test.util.IntegrationTestUtil;
 import alfio.util.ClockProvider;
@@ -98,6 +102,12 @@ class ConfigurationApiControllerIntegrationTest {
 
     @Autowired
     private CustomOfflineConfigurationManager customOfflineConfigurationManager;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private AuthorityRepository authorityRepository;
 
     private Principal mockPrincipal;
     private Organization organization;
@@ -592,5 +602,39 @@ class ConfigurationApiControllerIntegrationTest {
                         event.getId(),
                         List.of("edc42b77-8696-4357-9164-0f09eb055855"), // Does not exist in ORG
                         mockPrincipal));
+    }
+
+    // ========================================================================
+    // A3: POST /admin/api/configuration/update — Ensure minimal config
+    // ========================================================================
+
+    @Test
+    void updateBaseUrlConfiguration() {
+        IntegrationTestUtil.initAdminUser(userRepository, authorityRepository);
+        var adminPrincipal = Mockito.mock(Principal.class);
+        when(adminPrincipal.getName()).thenReturn(UserManager.ADMIN_USERNAME);
+
+        var configUpdate = new ConfigurationModification(null, "BASE_URL", "http://test.example.com");
+
+        boolean result = configurationApiController.updateConfiguration(configUpdate, adminPrincipal);
+        assertTrue(result);
+
+        var baseUrl = configurationRepository.findByKey("BASE_URL");
+        assertEquals("http://test.example.com", baseUrl.getValue());
+    }
+
+    @Test
+    void updateSupportedLanguagesConfiguration() {
+        IntegrationTestUtil.initAdminUser(userRepository, authorityRepository);
+        var adminPrincipal = Mockito.mock(Principal.class);
+        when(adminPrincipal.getName()).thenReturn(UserManager.ADMIN_USERNAME);
+
+        var configUpdate = new ConfigurationModification(null, "SUPPORTED_LANGUAGES", "7");
+
+        boolean result = configurationApiController.updateConfiguration(configUpdate, adminPrincipal);
+        assertTrue(result);
+
+        var supportedLanguages = configurationRepository.findByKey("SUPPORTED_LANGUAGES");
+        assertEquals("7", supportedLanguages.getValue());
     }
 }
