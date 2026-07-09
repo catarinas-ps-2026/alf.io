@@ -2,7 +2,7 @@ import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * See https://playwright.dev/docs/test-configuration.
+ * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
     testDir: "./specs",
@@ -21,10 +21,8 @@ export default defineConfig({
         screenshot: "only-on-failure",
         video:
             (process.env.PLAYWRIGHT_VIDEO as
-                | "on"
-                | "off"
-                | "retain-on-failure"
-                | "on-first-retry") || "retain-on-failure",
+                "on" | "off" | "retain-on-failure" | "on-first-retry") ||
+            "retain-on-failure",
         locale: "en-US",
     },
 
