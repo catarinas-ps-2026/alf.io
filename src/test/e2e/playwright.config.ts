@@ -19,13 +19,12 @@ export default defineConfig({
 
         trace: "retain-on-failure",
         screenshot: "only-on-failure",
-        // video:
-        //     (process.env.PLAYWRIGHT_VIDEO as
-        //         | "on"
-        //         | "off"
-        //         | "retain-on-failure"
-        //         | "on-first-retry") || "retain-on-failure",
-        video: "on",
+        video:
+            (process.env.PLAYWRIGHT_VIDEO as
+                | "on"
+                | "off"
+                | "retain-on-failure"
+                | "on-first-retry") || "retain-on-failure",
         locale: "en-US",
     },
 
