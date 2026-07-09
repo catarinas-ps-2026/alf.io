@@ -9,9 +9,9 @@ import {
     EventsPage,
 } from "../../pages/events";
 import { OrganizationsPage } from "../../pages/organizations/OrganizationsPage";
-import { PublicEventPage } from "../../pages/public";
+import { PublicEventPage } from "../../pages/events";
 
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-logo.png");
+const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-event.png");
 
 test.describe("Path: organization setup to public event", () => {
     test("admin sets up an organization, creates and publishes an event, and it becomes visible at its public URL", async ({
@@ -42,9 +42,7 @@ test.describe("Path: organization setup to public event", () => {
             expect(await organizations.isOrganizationVisible(orgName)).toBe(
                 true,
             );
-            organizationId = await organizations.getOrganizationIdFor(
-                orgName,
-            );
+            organizationId = await organizations.getOrganizationIdFor(orgName);
 
             const events = new EventsPage(page);
             await events.goto();
