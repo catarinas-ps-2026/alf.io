@@ -374,6 +374,8 @@ jobs:
                     -e REPORT_FORMATS=html \
                     -v "$(pwd)/reports/sonarqube:/reports" \
                     ghcr.io/a-h-abid/sonarqube-community-reporter:latest --wait
+                  # Rename timestamped report to index.html for dashboard
+                  mv reports/sonarqube/*.html reports/sonarqube/index.html
 
             - name: Upload SonarQube Report
               uses: actions/upload-artifact@v4
