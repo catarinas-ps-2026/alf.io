@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileBlobCacheManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">FileBlobCacheManager.java</span></div><h1>FileBlobCacheManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+@Component
+public class FileBlobCacheManager {
+
+<span class="fc" id="L35">    private static final Logger log = LoggerFactory.getLogger(FileBlobCacheManager.class);</span>
+    private final String cacheDir;
+
+<span class="fc" id="L38">    public FileBlobCacheManager(Environment environment) {</span>
+<span class="fc" id="L39">        this.cacheDir = environment.getProperty(&quot;alfio.cache-dir&quot;, System.getProperty(&quot;java.io.tmpdir&quot;));</span>
+<span class="fc" id="L40">    }</span>
+
+    private Path getBlobDir(String section) {
+<span class="fc" id="L43">        return Paths.get(cacheDir, &quot;alfio-blob&quot;).resolve(section);</span>
+    }
+
+    private void checkPath(Path resourcePath, String section) {
+<span class="fc" id="L47">        var parentPath = getBlobDir(section).normalize();</span>
+<span class="fc" id="L48">        var childPath = resourcePath.normalize();</span>
+<span class="fc" id="L49">        Assert.isTrue(</span>
+<span class="fc" id="L50">                childPath.startsWith(parentPath),</span>
+<span class="nc" id="L51">                () -&gt; &quot;Resource path &quot; + childPath + &quot;must be inside the blob path &quot; + parentPath);</span>
+<span class="fc" id="L52">    }</span>
+
+    public boolean fileExists(String section, String id) {
+<span class="nc" id="L55">        var resourcePath = getBlobDir(section).resolve(id);</span>
+<span class="nc" id="L56">        checkPath(resourcePath, section);</span>
+<span class="nc" id="L57">        return Files.exists(resourcePath);</span>
+    }
+
+    public File getFile(String section, String id, Supplier&lt;File&gt; supplier) {
+<span class="fc" id="L61">        var resourcePath = getBlobDir(section).resolve(id);</span>
+<span class="fc" id="L62">        checkPath(resourcePath, section);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (Files.exists(resourcePath)) {</span>
+<span class="fc" id="L64">            return resourcePath.toFile();</span>
+        }
+<span class="fc" id="L66">        log.debug(&quot;Cache not hit for file {}&quot;, id);</span>
+<span class="fc" id="L67">        var tmpFile = supplier.get();</span>
+<span class="fc" id="L68">        var dir = getBlobDir(section);</span>
+        try {
+<span class="fc" id="L70">            Files.createDirectories(dir);</span>
+<span class="fc" id="L71">            Files.move(tmpFile.toPath(), resourcePath, StandardCopyOption.ATOMIC_MOVE);</span>
+<span class="fc" id="L72">            return resourcePath.toFile();</span>
+<span class="nc" id="L73">        } catch (IOException e) {</span>
+<span class="nc" id="L74">            throw new IllegalStateException(&quot;Was not able to cache file for section &quot; + section + &quot; id &quot; + id);</span>
+        }
+    }
+
+    public void ensureFileExists(String section, String id, Supplier&lt;byte[]&gt; supplier) {
+<span class="fc" id="L79">        var resourcePath = getBlobDir(section).resolve(id);</span>
+<span class="fc" id="L80">        checkPath(resourcePath, section);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (Files.exists(resourcePath)) {</span>
+<span class="fc" id="L82">            return;</span>
+        }
+        try {
+            // ensure directory
+<span class="fc" id="L86">            var dir = getBlobDir(section);</span>
+<span class="fc" id="L87">            Files.createDirectories(dir);</span>
+<span class="fc" id="L88">            var tmpFile = Files.createTempFile(dir, &quot;tmp&quot;, &quot;fileblob&quot;);</span>
+<span class="fc" id="L89">            Files.write(tmpFile, supplier.get());</span>
+<span class="fc" id="L90">            Files.move(tmpFile, dir.resolve(id), StandardCopyOption.ATOMIC_MOVE);</span>
+<span class="nc" id="L91">        } catch (IOException e) {</span>
+<span class="nc" id="L92">            log.warn(&quot;was not able to ensure file presence with section {} and id {}&quot;, section, id, e);</span>
+<span class="fc" id="L93">        }</span>
+<span class="fc" id="L94">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

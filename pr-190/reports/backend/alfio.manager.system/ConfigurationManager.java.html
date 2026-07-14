@@ -1,0 +1,1068 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConfigurationManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.system</a> &gt; <span class="el_source">ConfigurationManager.java</span></div><h1>ConfigurationManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.system;
+
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.model.system.ConfigurationPathLevel.*;
+import static java.util.stream.Collectors.toList;
+
+import alfio.config.Initializer;
+import alfio.controller.api.v2.model.AlfioInfo;
+import alfio.controller.api.v2.model.AnalyticsConfiguration;
+import alfio.controller.api.v2.model.ChallengeConfiguration;
+import alfio.controller.api.v2.model.WalletConfiguration;
+import alfio.controller.api.v2.user.support.PurchaseContextInfoBuilder;
+import alfio.manager.system.ConfigurationLevels.CategoryLevel;
+import alfio.manager.system.ConfigurationLevels.EventLevel;
+import alfio.manager.system.ConfigurationLevels.OrganizationLevel;
+import alfio.manager.system.ConfigurationLevels.SubscriptionDescriptorLevel;
+import alfio.manager.user.UserManager;
+import alfio.model.*;
+import alfio.model.modification.ConfigurationModification;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.system.Configuration;
+import alfio.model.system.Configuration.*;
+import alfio.model.system.ConfigurationKeyValuePathLevel;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.system.ConfigurationKeys.SettingCategory;
+import alfio.model.system.ConfigurationPathLevel;
+import alfio.model.transaction.PaymentMethod;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.transaction.UserDefinedOfflinePaymentMethod;
+import alfio.model.user.User;
+import alfio.repository.EventRepository;
+import alfio.repository.system.ConfigurationRepository;
+import alfio.util.Json;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.github.benmanes.caffeine.cache.Cache;
+import jakarta.servlet.http.HttpSession;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional
+public class ConfigurationManager {
+
+<span class="fc" id="L75">    private static final Logger log = LoggerFactory.getLogger(ConfigurationManager.class);</span>
+<span class="fc" id="L76">    private static final Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; ORGANIZATION_CONFIGURATION =</span>
+<span class="fc" id="L77">            collectConfigurationKeysByCategory(ORGANIZATION);</span>
+<span class="fc" id="L78">    private static final Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; PURCHASE_CONTEXT_CONFIGURATION =</span>
+<span class="fc" id="L79">            collectConfigurationKeysByCategory(ConfigurationPathLevel.PURCHASE_CONTEXT);</span>
+<span class="fc" id="L80">    private static final Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; CATEGORY_CONFIGURATION =</span>
+<span class="fc" id="L81">            collectConfigurationKeysByCategory(ConfigurationPathLevel.TICKET_CATEGORY);</span>
+
+    private final ConfigurationRepository configurationRepository;
+    private final UserManager userManager;
+    private final EventRepository eventRepository;
+    private final ExternalConfiguration externalConfiguration;
+    private final Environment environment;
+    private final Cache&lt;Set&lt;ConfigurationKeys&gt;, Map&lt;ConfigurationKeys, MaybeConfiguration&gt;&gt; oneMinuteCache;
+<span class="fc" id="L89">    private final SecureRandom secureRandom = new SecureRandom();</span>
+
+    public ConfigurationManager(
+            ConfigurationRepository configurationRepository,
+            UserManager userManager,
+            EventRepository eventRepository,
+            ExternalConfiguration externalConfiguration,
+            Environment environment,
+<span class="fc" id="L97">            Cache&lt;Set&lt;ConfigurationKeys&gt;, Map&lt;ConfigurationKeys, MaybeConfiguration&gt;&gt; oneMinuteCache) {</span>
+<span class="fc" id="L98">        this.configurationRepository = configurationRepository;</span>
+<span class="fc" id="L99">        this.userManager = userManager;</span>
+<span class="fc" id="L100">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L101">        this.externalConfiguration = externalConfiguration;</span>
+<span class="fc" id="L102">        this.environment = environment;</span>
+<span class="fc" id="L103">        this.oneMinuteCache = oneMinuteCache;</span>
+<span class="fc" id="L104">    }</span>
+
+    // TODO: refactor, not the most beautiful code, find a better solution...
+    private Optional&lt;Configuration&gt; findByConfigurationPathAndKey(ConfigurationPath path, ConfigurationKeys key) {
+<span class="fc" id="L108">        var keyAsString = key.getValue();</span>
+<span class="fc" id="L109">        var configList = new ArrayList&lt;&gt;(externalConfiguration.load(keyAsString));</span>
+<span class="pc bpc" id="L110" title="4 of 5 branches missed.">        switch (path.pathLevel()) {</span>
+            case SYSTEM:
+<span class="fc" id="L112">                configList.addAll(configurationRepository.findByKeyAtSystemLevel(keyAsString));</span>
+<span class="fc" id="L113">                return selectPath(configList);</span>
+            case ORGANIZATION: {
+<span class="nc" id="L115">                OrganizationConfigurationPath o = (OrganizationConfigurationPath) path;</span>
+<span class="nc" id="L116">                configList.addAll(configurationRepository.findByOrganizationAndKey(o.id(), key.getValue()));</span>
+<span class="nc" id="L117">                return selectPath(configList);</span>
+            }
+            case PURCHASE_CONTEXT: {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if (path instanceof EventConfigurationPath o) {</span>
+<span class="nc" id="L121">                    configList.addAll(</span>
+<span class="nc" id="L122">                            configurationRepository.findByEventAndKey(o.organizationId(), o.id(), keyAsString));</span>
+                } else {
+<span class="nc" id="L124">                    SubscriptionDescriptorConfigurationPath o = (SubscriptionDescriptorConfigurationPath) path;</span>
+<span class="nc" id="L125">                    configList.addAll(configurationRepository.findBySubscriptionDescriptorAndKey(</span>
+<span class="nc" id="L126">                            o.organizationId(), o.id(), keyAsString));</span>
+                }
+<span class="nc" id="L128">                return selectPath(configList);</span>
+            }
+            case TICKET_CATEGORY: {
+<span class="nc" id="L131">                TicketCategoryConfigurationPath o = (TicketCategoryConfigurationPath) path;</span>
+<span class="nc" id="L132">                configList.addAll(configurationRepository.findByTicketCategoryAndKey(</span>
+<span class="nc" id="L133">                        o.organizationId(), o.eventId(), o.id(), keyAsString));</span>
+<span class="nc" id="L134">                return selectPath(configList);</span>
+            }
+            default:
+<span class="nc" id="L137">                throw new IllegalStateException(&quot;Can't reach here&quot;);</span>
+        }
+    }
+
+    /**
+     * Select the most &quot;precise&quot; configuration in the given list.
+     *
+     * @param conf
+     * @return
+     */
+    private Optional&lt;Configuration&gt; selectPath(List&lt;Configuration&gt; conf) {
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        return conf.size() == 1</span>
+<span class="fc" id="L149">                ? Optional.of(conf.get(0))</span>
+<span class="fc" id="L150">                : conf.stream().max(Comparator.comparing(Configuration::getConfigurationPathLevel));</span>
+    }
+
+    // begin SYSTEM related configuration methods
+
+    public void saveConfig(ConfigurationPathKey pathKey, String value) {
+<span class="fc" id="L156">        ConfigurationPath path = pathKey.path();</span>
+<span class="pc bpc" id="L157" title="1 of 4 branches missed.">        switch (path.pathLevel()) {</span>
+            case SYSTEM:
+<span class="fc" id="L159">                saveSystemConfiguration(pathKey.key(), value);</span>
+<span class="fc" id="L160">                break;</span>
+            case ORGANIZATION:
+<span class="fc" id="L162">                OrganizationConfigurationPath orgPath = (OrganizationConfigurationPath) path;</span>
+<span class="fc" id="L163">                saveOrganizationConfiguration(orgPath.id(), pathKey.key().name(), value);</span>
+<span class="fc" id="L164">                break;</span>
+            case PURCHASE_CONTEXT:
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">                if (path instanceof EventConfigurationPath eventPath) {</span>
+<span class="fc" id="L167">                    saveEventConfiguration(</span>
+<span class="fc" id="L168">                            eventPath.id(),</span>
+<span class="fc" id="L169">                            eventPath.organizationId(),</span>
+<span class="fc" id="L170">                            pathKey.key().name(),</span>
+                            value);
+                } else {
+<span class="nc" id="L173">                    var subscriptionDescriptorPath = (SubscriptionDescriptorConfigurationPath) path;</span>
+<span class="nc" id="L174">                    saveSubscriptionDescriptorConfiguration(</span>
+<span class="nc" id="L175">                            subscriptionDescriptorPath.id(),</span>
+<span class="nc" id="L176">                            subscriptionDescriptorPath.organizationId(),</span>
+<span class="nc" id="L177">                            pathKey.key().name(),</span>
+                            value);
+                }
+<span class="nc" id="L180">                break;</span>
+            default:
+<span class="nc" id="L182">                throw new IllegalStateException(&quot;can't reach here&quot;);</span>
+        }
+<span class="fc" id="L184">    }</span>
+
+    public void saveAllSystemConfiguration(List&lt;ConfigurationModification&gt; list) {
+<span class="fc" id="L187">        list.forEach(c -&gt; saveSystemConfiguration(ConfigurationKeys.fromString(c.getKey()), c.getValue()));</span>
+<span class="fc" id="L188">    }</span>
+
+    private void saveOrganizationConfiguration(int organizationId, String key, String optionValue) {
+<span class="fc" id="L191">        Optional&lt;String&gt; value = evaluateValue(key, optionValue);</span>
+<span class="fc" id="L192">        Optional&lt;Configuration&gt; existing = configurationRepository.findByKeyAtOrganizationLevel(organizationId, key);</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">        if (value.isEmpty()) {</span>
+<span class="nc" id="L194">            configurationRepository.deleteOrganizationLevelByKey(key, organizationId);</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">        } else if (existing.isPresent()) {</span>
+<span class="fc" id="L196">            configurationRepository.updateOrganizationLevel(organizationId, key, value.get());</span>
+        } else {
+<span class="fc" id="L198">            configurationRepository.insertOrganizationLevel(</span>
+                    organizationId,
+                    key,
+<span class="fc" id="L201">                    value.get(),</span>
+<span class="fc" id="L202">                    ConfigurationKeys.fromString(key).getDescription());</span>
+        }
+<span class="fc" id="L204">    }</span>
+
+    public void saveAllOrganizationConfiguration(
+            int organizationId, List&lt;ConfigurationModification&gt; list, String username) {
+<span class="fc" id="L208">        Validate.isTrue(</span>
+<span class="fc" id="L209">                userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), organizationId),</span>
+                &quot;Cannot update settings, user is not owner&quot;);
+<span class="fc" id="L211">        list.stream()</span>
+<span class="fc" id="L212">                .filter(ConfigurationManager::toBeSaved)</span>
+<span class="fc" id="L213">                .forEach(c -&gt; saveOrganizationConfiguration(organizationId, c.getKey(), c.getValue()));</span>
+<span class="fc" id="L214">    }</span>
+
+    private void saveEventConfiguration(int eventId, int organizationId, String key, String optionValue) {
+<span class="fc" id="L217">        Optional&lt;Configuration&gt; existing = configurationRepository.findByKeyAtEventLevel(eventId, organizationId, key);</span>
+<span class="fc" id="L218">        Optional&lt;String&gt; value = evaluateValue(key, optionValue);</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        if (value.isEmpty()) {</span>
+<span class="nc" id="L220">            configurationRepository.deleteEventLevelByKey(key, eventId);</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        } else if (existing.isPresent()) {</span>
+<span class="fc" id="L222">            configurationRepository.updateEventLevel(eventId, organizationId, key, value.get());</span>
+        } else {
+<span class="fc" id="L224">            configurationRepository.insertEventLevel(</span>
+                    organizationId,
+                    eventId,
+                    key,
+<span class="fc" id="L228">                    value.get(),</span>
+<span class="fc" id="L229">                    ConfigurationKeys.fromString(key).getDescription());</span>
+        }
+<span class="fc" id="L231">    }</span>
+
+    private void saveSubscriptionDescriptorConfiguration(UUID id, int organizationId, String key, String optionValue) {
+<span class="fc" id="L234">        Optional&lt;Configuration&gt; existing =</span>
+<span class="fc" id="L235">                configurationRepository.findByKeyAtSubscriptionDescriptorLevel(id, organizationId, key);</span>
+<span class="fc" id="L236">        Optional&lt;String&gt; value = evaluateValue(key, optionValue);</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (value.isEmpty()) {</span>
+<span class="nc" id="L238">            configurationRepository.deleteSubscriptionDescriptorLevelByKey(key, id);</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">        } else if (existing.isPresent()) {</span>
+<span class="fc" id="L240">            configurationRepository.updateSubscriptionDescriptorLevel(id, organizationId, key, value.get());</span>
+        } else {
+<span class="fc" id="L242">            configurationRepository.insertSubscriptionDescriptorLevel(</span>
+                    organizationId,
+                    id,
+                    key,
+<span class="fc" id="L246">                    value.get(),</span>
+<span class="fc" id="L247">                    ConfigurationKeys.fromString(key).getDescription());</span>
+        }
+<span class="fc" id="L249">    }</span>
+
+    public void saveAllSubscriptionDescriptorConfiguration(
+            SubscriptionDescriptor sd, List&lt;ConfigurationModification&gt; list, String username) {
+<span class="fc" id="L253">        User user = userManager.findUserByUsername(username);</span>
+<span class="fc" id="L254">        Validate.isTrue(</span>
+<span class="fc" id="L255">                userManager.isOwnerOfOrganization(user, sd.getOrganizationId()),</span>
+                &quot;Cannot update settings, user is not owner&quot;);
+<span class="fc" id="L257">        list.stream()</span>
+<span class="fc" id="L258">                .filter(ConfigurationManager::toBeSaved)</span>
+<span class="fc" id="L259">                .forEach(c -&gt; saveSubscriptionDescriptorConfiguration(</span>
+<span class="fc" id="L260">                        sd.getId(), sd.getOrganizationId(), c.getKey(), c.getValue()));</span>
+<span class="fc" id="L261">    }</span>
+
+    public void saveAllEventConfiguration(
+            int eventId, int organizationId, List&lt;ConfigurationModification&gt; list, String username) {
+<span class="fc" id="L265">        User user = userManager.findUserByUsername(username);</span>
+<span class="fc" id="L266">        Validate.isTrue(</span>
+<span class="fc" id="L267">                userManager.isOwnerOfOrganization(user, organizationId), &quot;Cannot update settings, user is not owner&quot;);</span>
+<span class="fc" id="L268">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="fc" id="L269">        Validate.notNull(event, &quot;event does not exist&quot;);</span>
+<span class="pc bpc" id="L270" title="1 of 2 branches missed.">        if (organizationId != event.getOrganizationId()) {</span>
+<span class="nc" id="L271">            Validate.isTrue(</span>
+<span class="nc" id="L272">                    userManager.isOwnerOfOrganization(user, event.getOrganizationId()),</span>
+                    &quot;Cannot update settings, user is not owner of event&quot;);
+        }
+<span class="fc" id="L275">        list.stream()</span>
+<span class="fc" id="L276">                .filter(ConfigurationManager::toBeSaved)</span>
+<span class="fc" id="L277">                .forEach(c -&gt; saveEventConfiguration(eventId, organizationId, c.getKey(), c.getValue()));</span>
+<span class="fc" id="L278">    }</span>
+
+    public void saveCategoryConfiguration(
+            int categoryId, int eventId, List&lt;ConfigurationModification&gt; list, String username) {
+<span class="fc" id="L282">        User user = userManager.findUserByUsername(username);</span>
+<span class="fc" id="L283">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="fc" id="L284">        Validate.notNull(event, &quot;event does not exist&quot;);</span>
+<span class="fc" id="L285">        Validate.isTrue(</span>
+<span class="fc" id="L286">                userManager.isOwnerOfOrganization(user, event.getOrganizationId()),</span>
+                &quot;Cannot update settings, user is not owner of event&quot;);
+<span class="fc" id="L288">        list.stream().filter(ConfigurationManager::toBeSaved).forEach(c -&gt; {</span>
+<span class="fc" id="L289">            Optional&lt;Configuration&gt; existing = configurationRepository.findByKeyAtCategoryLevel(</span>
+<span class="fc" id="L290">                    eventId, event.getOrganizationId(), categoryId, c.getKey());</span>
+<span class="fc" id="L291">            Optional&lt;String&gt; value = evaluateValue(c.getKey(), c.getValue());</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">            if (value.isEmpty()) {</span>
+<span class="nc" id="L293">                configurationRepository.deleteCategoryLevelByKey(c.getKey(), eventId, categoryId);</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">            } else if (existing.isPresent()) {</span>
+<span class="nc" id="L295">                configurationRepository.updateCategoryLevel(</span>
+<span class="nc" id="L296">                        eventId, event.getOrganizationId(), categoryId, c.getKey(), value.get());</span>
+            } else {
+<span class="fc" id="L298">                configurationRepository.insertTicketCategoryLevel(</span>
+<span class="fc" id="L299">                        event.getOrganizationId(),</span>
+                        eventId,
+                        categoryId,
+<span class="fc" id="L302">                        c.getKey(),</span>
+<span class="fc" id="L303">                        value.get(),</span>
+<span class="fc" id="L304">                        ConfigurationKeys.fromString(c.getKey()).getDescription());</span>
+            }
+<span class="fc" id="L306">        });</span>
+<span class="fc" id="L307">    }</span>
+
+    private Optional&lt;String&gt; evaluateValue(String key, String value) {
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        if (ConfigurationKeys.fromString(key).isBooleanComponentType()) {</span>
+<span class="fc" id="L311">            return Optional.ofNullable(StringUtils.trimToNull(value));</span>
+        }
+<span class="fc" id="L313">        return Optional.of(Objects.requireNonNull(value));</span>
+    }
+
+    private Optional&lt;Boolean&gt; getThreeStateValue(String value) {
+<span class="fc" id="L317">        return Optional.ofNullable(StringUtils.trimToNull(value)).map(Boolean::parseBoolean);</span>
+    }
+
+    public void saveSystemConfiguration(ConfigurationKeys key, String value) {
+<span class="fc" id="L321">        Optional&lt;Configuration&gt; conf = findByConfigurationPathAndKey(Configuration.system(), key);</span>
+<span class="fc bfc" id="L322" title="All 2 branches covered.">        if (key.isBooleanComponentType()) {</span>
+<span class="fc" id="L323">            Optional&lt;Boolean&gt; state = getThreeStateValue(value);</span>
+<span class="pc bpc" id="L324" title="1 of 4 branches missed.">            if (conf.filter(c -&gt; c.getConfigurationPathLevel() != EXTERNAL).isPresent()) {</span>
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">                if (state.isPresent()) {</span>
+<span class="fc" id="L326">                    configurationRepository.update(key.getValue(), value);</span>
+                } else {
+<span class="nc" id="L328">                    configurationRepository.deleteByKey(key.getValue());</span>
+                }
+            } else {
+<span class="fc" id="L331">                state.ifPresent(</span>
+<span class="fc" id="L332">                        v -&gt; configurationRepository.insert(key.getValue(), v.toString(), key.getDescription()));</span>
+            }
+<span class="fc" id="L334">        } else {</span>
+<span class="fc" id="L335">            Optional&lt;String&gt; valueOpt = Optional.ofNullable(value);</span>
+<span class="fc bfc" id="L336" title="All 4 branches covered.">            if (conf.isEmpty() || conf.get().getConfigurationPathLevel() == EXTERNAL) {</span>
+<span class="fc" id="L337">                valueOpt.ifPresent(v -&gt; configurationRepository.insert(key.getValue(), v, key.getDescription()));</span>
+            } else {
+<span class="fc" id="L339">                configurationRepository.update(key.getValue(), value);</span>
+            }
+        }
+<span class="fc" id="L342">    }</span>
+
+    /**
+     * Checks if the basic options have been already configured:
+     * &lt;ul&gt;
+     *     &lt;li&gt;Google maps' api keys&lt;/li&gt;
+     *     &lt;li&gt;Base application URL&lt;/li&gt;
+     *     &lt;li&gt;E-Mail&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @return {@code true} if there are missing options, {@code true} otherwise
+     */
+    public boolean isBasicConfigurationNeeded() {
+<span class="fc" id="L354">        return ConfigurationKeys.basic().stream().anyMatch(key -&gt; {</span>
+<span class="fc" id="L355">            boolean absent = externalConfiguration</span>
+<span class="fc" id="L356">                    .getSingle(key.getValue())</span>
+<span class="fc" id="L357">                    .or(() -&gt; configurationRepository.findOptionalByKey(key.getValue()))</span>
+<span class="fc" id="L358">                    .isEmpty();</span>
+<span class="fc bfc" id="L359" title="All 2 branches covered.">            if (absent) {</span>
+<span class="fc" id="L360">                log.warn(&quot;cannot find a value for &quot; + key.getValue());</span>
+            }
+<span class="fc" id="L362">            return absent;</span>
+        });
+    }
+
+    private Predicate&lt;Configuration&gt; checkActualConfigurationLevel(boolean isAdmin, ConfigurationPathLevel level) {
+<span class="pc bpc" id="L367" title="2 of 4 branches missed.">        return conf -&gt; isAdmin || conf.getConfigurationKey().supports(level);</span>
+    }
+
+    public Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; loadOrganizationConfig(
+            int organizationId, String username) {
+<span class="fc" id="L372">        User user = userManager.findUserByUsername(username);</span>
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">        if (!userManager.isOwnerOfOrganization(user, organizationId)) {</span>
+<span class="nc" id="L374">            return Collections.emptyMap();</span>
+        }
+<span class="fc" id="L376">        boolean isAdmin = userManager.isAdmin(user);</span>
+<span class="fc" id="L377">        Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; existing =</span>
+<span class="fc" id="L378">                configurationRepository.findOrganizationConfiguration(organizationId).stream()</span>
+<span class="fc" id="L379">                        .filter(checkActualConfigurationLevel(isAdmin, ORGANIZATION))</span>
+<span class="fc" id="L380">                        .sorted()</span>
+<span class="fc" id="L381">                        .collect(groupByCategory());</span>
+<span class="fc" id="L382">        String paymentMethodsBlacklist = getFor(</span>
+                        ConfigurationKeys.PAYMENT_METHODS_BLACKLIST, new OrganizationLevel(organizationId))
+<span class="fc" id="L384">                .getValueOrDefault(&quot;&quot;);</span>
+<span class="fc" id="L385">        Map&lt;SettingCategory, List&lt;Configuration&gt;&gt; result =</span>
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">                groupByCategory(isAdmin ? union(SYSTEM, ORGANIZATION) : ORGANIZATION_CONFIGURATION, existing);</span>
+<span class="fc" id="L387">        List&lt;SettingCategory&gt; toBeRemoved = PaymentProxy.availableProxies().stream()</span>
+<span class="fc" id="L388">                .filter(pp -&gt; paymentMethodsBlacklist.contains(pp.getKey()))</span>
+<span class="pc" id="L389">                .flatMap(pp -&gt; pp.getSettingCategories().stream())</span>
+<span class="fc" id="L390">                .collect(toList());</span>
+
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">        if (toBeRemoved.isEmpty()) {</span>
+<span class="fc" id="L393">            return result;</span>
+        } else {
+<span class="nc" id="L395">            return result.entrySet().stream()</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">                    .filter(entry -&gt; !toBeRemoved.contains(entry.getKey()))</span>
+<span class="nc" id="L397">                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
+        }
+    }
+
+    /**
+     * Returns the first organization-level config, but only for keys that support ORGANIZATION as ConfigurationPathLevel.
+     */
+    public String getSingleConfigForOrganization(int organizationId, String keyAsString, String username) {
+<span class="nc" id="L405">        User user = userManager.findUserByUsername(username);</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        if (!userManager.isOwnerOfOrganization(user, organizationId)) {</span>
+<span class="nc" id="L407">            return null;</span>
+        }
+<span class="nc" id="L409">        var key = safeValueOf(keyAsString);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (!key.supports(ORGANIZATION)) {</span>
+<span class="nc" id="L411">            return null;</span>
+        }
+<span class="nc" id="L413">        return getFirstConfigurationResult(</span>
+<span class="nc" id="L414">                configurationRepository.findByOrganizationAndKey(organizationId, key.name()));</span>
+    }
+
+    public boolean isNotifyOrganizerOnReservationEnabled(Configurable configurable) {
+<span class="fc" id="L418">        return getFor(NOTIFY_ORGANIZER_ON_RESERVATION, configurable.getConfigurationLevel())</span>
+<span class="fc" id="L419">                .getValueAsBooleanOrDefault();</span>
+    }
+
+    /**
+     * Returns the first event-level config, but only for keys that support PURCHASE_CONTEXT as ConfigurationPathLevel.
+     */
+    public String getSingleConfigForEvent(int eventId, String keyAsString, String username) {
+<span class="nc" id="L426">        User user = userManager.findUserByUsername(username);</span>
+<span class="nc" id="L427">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="nc" id="L428">        int organizationId = event.getOrganizationId();</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (!userManager.isOwnerOfOrganization(user, organizationId)) {</span>
+<span class="nc" id="L430">            return null;</span>
+        }
+<span class="nc" id="L432">        var key = safeValueOf(keyAsString);</span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">        if (!key.supports(PURCHASE_CONTEXT)) {</span>
+<span class="nc" id="L434">            return null;</span>
+        }
+<span class="nc" id="L436">        return getFirstConfigurationResult(</span>
+<span class="nc" id="L437">                configurationRepository.findByEventAndKey(organizationId, eventId, key.name()));</span>
+    }
+
+    private String getFirstConfigurationResult(List&lt;Configuration&gt; results) {
+<span class="nc" id="L441">        return Objects.requireNonNull(results).stream()</span>
+<span class="nc" id="L442">                .findFirst()</span>
+<span class="nc" id="L443">                .map(Configuration::getValue)</span>
+<span class="nc" id="L444">                .orElse(null);</span>
+    }
+
+    public Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; loadEventConfig(int eventId, String username) {
+<span class="fc" id="L448">        User user = userManager.findUserByUsername(username);</span>
+<span class="fc" id="L449">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="fc" id="L450">        int organizationId = event.getOrganizationId();</span>
+<span class="pc bpc" id="L451" title="1 of 2 branches missed.">        if (!userManager.isOwnerOfOrganization(user, organizationId)) {</span>
+<span class="nc" id="L452">            return Collections.emptyMap();</span>
+        }
+<span class="fc" id="L454">        boolean isAdmin = userManager.isAdmin(user);</span>
+<span class="fc" id="L455">        Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; existing =</span>
+<span class="fc" id="L456">                configurationRepository.findEventConfiguration(organizationId, eventId).stream()</span>
+<span class="fc" id="L457">                        .filter(checkActualConfigurationLevel(isAdmin, PURCHASE_CONTEXT))</span>
+<span class="fc" id="L458">                        .sorted()</span>
+<span class="fc" id="L459">                        .collect(groupByCategory());</span>
+<span class="fc" id="L460">        boolean offlineCheckInEnabled = areBooleanSettingsEnabledForEvent(</span>
+                        ALFIO_PI_INTEGRATION_ENABLED, OFFLINE_CHECKIN_ENABLED)
+<span class="fc" id="L462">                .test(event);</span>
+<span class="fc" id="L463">        return removeAlfioPISettingsIfNeeded(</span>
+                offlineCheckInEnabled,
+<span class="pc bpc" id="L465" title="1 of 2 branches missed.">                groupByCategory(isAdmin ? union(SYSTEM, PURCHASE_CONTEXT) : PURCHASE_CONTEXT_CONFIGURATION, existing));</span>
+    }
+
+    public Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; loadSubscriptionDescriptorConfig(
+            SubscriptionDescriptor subscriptionDescriptor, String username) {
+<span class="fc" id="L470">        User user = userManager.findUserByUsername(username);</span>
+<span class="fc" id="L471">        int organizationId = subscriptionDescriptor.getOrganizationId();</span>
+<span class="pc bpc" id="L472" title="1 of 2 branches missed.">        if (!userManager.isOwnerOfOrganization(user, organizationId)) {</span>
+<span class="nc" id="L473">            return Collections.emptyMap();</span>
+        }
+<span class="fc" id="L475">        boolean isAdmin = userManager.isAdmin(user);</span>
+<span class="fc" id="L476">        Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; existing =</span>
+                configurationRepository
+<span class="fc" id="L478">                        .findSubscriptionDescriptorConfiguration(organizationId, subscriptionDescriptor.getId())</span>
+<span class="fc" id="L479">                        .stream()</span>
+<span class="fc" id="L480">                        .filter(checkActualConfigurationLevel(isAdmin, PURCHASE_CONTEXT))</span>
+<span class="fc" id="L481">                        .sorted()</span>
+<span class="fc" id="L482">                        .collect(groupByCategory());</span>
+<span class="pc bpc" id="L483" title="1 of 2 branches missed.">        return groupByCategory(isAdmin ? union(SYSTEM, PURCHASE_CONTEXT) : PURCHASE_CONTEXT_CONFIGURATION, existing);</span>
+    }
+
+    public Predicate&lt;EventAndOrganizationId&gt; areBooleanSettingsEnabledForEvent(ConfigurationKeys... keys) {
+<span class="fc" id="L487">        return event -&gt; getFor(Set.of(keys), event.getConfigurationLevel()).entrySet().stream()</span>
+<span class="fc" id="L488">                .allMatch(kv -&gt; kv.getValue().getValueAsBooleanOrDefault());</span>
+    }
+
+    private static Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; removeAlfioPISettingsIfNeeded(
+            boolean offlineCheckInEnabled, Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; settings) {
+<span class="pc bpc" id="L493" title="1 of 2 branches missed.">        if (offlineCheckInEnabled) {</span>
+<span class="fc" id="L494">            return settings;</span>
+        }
+<span class="nc" id="L496">        return settings.entrySet().stream()</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                .filter(e -&gt; e.getKey() != ConfigurationKeys.SettingCategory.ALFIO_PI)</span>
+<span class="nc" id="L498">                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
+    }
+
+    static Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; union(ConfigurationPathLevel... levels) {
+<span class="fc" id="L502">        List&lt;Configuration&gt; configurations = Arrays.stream(levels)</span>
+<span class="fc" id="L503">                .sorted(ConfigurationPathLevel.COMPARATOR.reversed())</span>
+<span class="fc" id="L504">                .flatMap(l -&gt; ConfigurationKeys.byPathLevel(l).stream().map(mapEmptyKeys(l)))</span>
+<span class="fc" id="L505">                .sorted((c1, c2) -&gt; new CompareToBuilder()</span>
+<span class="fc" id="L506">                        .append(c2.getConfigurationPathLevel(), c1.getConfigurationPathLevel())</span>
+<span class="fc" id="L507">                        .append(c1.getConfigurationKey(), c2.getConfigurationKey())</span>
+<span class="fc" id="L508">                        .toComparison())</span>
+<span class="fc" id="L509">                .collect(</span>
+                        ArrayList::new,
+                        (List&lt;Configuration&gt; list, Configuration conf) -&gt; {
+<span class="fc" id="L512">                            int existing = (int) list.stream()</span>
+<span class="fc bfc" id="L513" title="All 2 branches covered.">                                    .filter(c -&gt; c.getConfigurationKey() == conf.getConfigurationKey())</span>
+<span class="fc" id="L514">                                    .count();</span>
+<span class="fc bfc" id="L515" title="All 2 branches covered.">                            if (existing == 0) {</span>
+<span class="fc" id="L516">                                list.add(conf);</span>
+                            }
+<span class="fc" id="L518">                        },</span>
+<span class="nc" id="L519">                        (l1, l2) -&gt; {});</span>
+<span class="fc" id="L520">        return configurations.stream().collect(groupByCategory());</span>
+    }
+
+    public Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; loadCategoryConfig(
+            int eventId, int categoryId, String username) {
+<span class="nc" id="L525">        User user = userManager.findUserByUsername(username);</span>
+<span class="nc" id="L526">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="nc" id="L527">        int organizationId = event.getOrganizationId();</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">        if (!userManager.isOwnerOfOrganization(user, organizationId)) {</span>
+<span class="nc" id="L529">            return Collections.emptyMap();</span>
+        }
+<span class="nc" id="L531">        Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; existing =</span>
+<span class="nc" id="L532">                configurationRepository.findCategoryConfiguration(organizationId, eventId, categoryId).stream()</span>
+<span class="nc" id="L533">                        .sorted()</span>
+<span class="nc" id="L534">                        .collect(groupByCategory());</span>
+<span class="nc" id="L535">        return groupByCategory(CATEGORY_CONFIGURATION, existing);</span>
+    }
+
+    private Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; groupByCategory(
+            Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; all,
+            Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; existing) {
+<span class="fc" id="L541">        return all.entrySet().stream()</span>
+<span class="fc" id="L542">                .map(e -&gt; {</span>
+<span class="fc" id="L543">                    ConfigurationKeys.SettingCategory key = e.getKey();</span>
+<span class="fc" id="L544">                    Set&lt;Configuration&gt; entries = new TreeSet&lt;&gt;(e.getValue());</span>
+<span class="fc bfc" id="L545" title="All 2 branches covered.">                    if (existing.containsKey(key)) {</span>
+<span class="fc" id="L546">                        List&lt;Configuration&gt; configurations = existing.get(key).stream()</span>
+<span class="fc" id="L547">                                .filter(Predicate.not(Configuration::isInternal))</span>
+<span class="fc" id="L548">                                .collect(Collectors.toList());</span>
+<span class="fc" id="L549">                        configurations.forEach(entries::remove);</span>
+<span class="fc" id="L550">                        entries.addAll(configurations);</span>
+                    }
+<span class="fc" id="L552">                    return Pair.of(key, new ArrayList&lt;&gt;(entries));</span>
+                })
+<span class="fc" id="L554">                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
+    }
+
+    public Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; loadAllSystemConfigurationIncludingMissing(
+            String username) {
+<span class="nc bnc" id="L559" title="All 2 branches missed.">        if (!userManager.isAdmin(userManager.findUserByUsername(username))) {</span>
+<span class="nc" id="L560">            return Collections.emptyMap();</span>
+        }
+<span class="nc" id="L562">        final List&lt;Configuration&gt; existing = configurationRepository.findSystemConfiguration().stream()</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">                .filter(c -&gt; !ConfigurationKeys.fromString(c.getKey()).isInternal())</span>
+<span class="nc" id="L564">                .collect(toList());</span>
+<span class="nc" id="L565">        final List&lt;Configuration&gt; missing = Arrays.stream(ConfigurationKeys.visible())</span>
+<span class="nc" id="L566">                .filter(k -&gt; existing.stream().noneMatch(c -&gt; c.getKey().equals(k.getValue())))</span>
+<span class="nc" id="L567">                .map(mapEmptyKeys(ConfigurationPathLevel.SYSTEM))</span>
+<span class="nc" id="L568">                .collect(toList());</span>
+<span class="nc" id="L569">        List&lt;Configuration&gt; result = new ArrayList&lt;&gt;(existing);</span>
+<span class="nc" id="L570">        result.addAll(missing);</span>
+<span class="nc" id="L571">        return result.stream().sorted().collect(groupByCategory());</span>
+    }
+
+    private static Collector&lt;Configuration, ?, Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt;&gt;
+            groupByCategory() {
+<span class="fc" id="L576">        return Collectors.groupingBy(c -&gt; c.getConfigurationKey().getCategory());</span>
+    }
+
+    private static Function&lt;ConfigurationKeys, Configuration&gt; mapEmptyKeys(ConfigurationPathLevel level) {
+<span class="fc" id="L580">        return k -&gt; new Configuration(-1, k.getValue(), null, level);</span>
+    }
+
+    public void deleteKey(String key) {
+<span class="fc" id="L584">        configurationRepository.deleteByKey(key);</span>
+<span class="fc" id="L585">    }</span>
+
+    public void deleteOrganizationLevelByKey(String key, int organizationId, String username) {
+<span class="fc" id="L588">        Validate.isTrue(</span>
+<span class="fc" id="L589">                userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), organizationId),</span>
+                &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);
+<span class="fc" id="L591">        configurationRepository.deleteOrganizationLevelByKey(key, organizationId);</span>
+<span class="fc" id="L592">    }</span>
+
+    public void deleteEventLevelByKey(String key, int eventId, String username) {
+<span class="fc" id="L595">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="fc" id="L596">        Validate.notNull(event, &quot;Wrong event id&quot;);</span>
+<span class="fc" id="L597">        Validate.isTrue(</span>
+<span class="fc" id="L598">                userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), event.getOrganizationId()),</span>
+                &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);
+<span class="fc" id="L600">        configurationRepository.deleteEventLevelByKey(key, eventId);</span>
+<span class="fc" id="L601">    }</span>
+
+    public void deleteCategoryLevelByKey(String key, int eventId, int categoryId, String username) {
+<span class="fc" id="L604">        EventAndOrganizationId event = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="fc" id="L605">        Validate.notNull(event, &quot;Wrong event id&quot;);</span>
+<span class="fc" id="L606">        Validate.isTrue(</span>
+<span class="fc" id="L607">                userManager.isOwnerOfOrganization(userManager.findUserByUsername(username), event.getOrganizationId()),</span>
+                &quot;User is not owner of the organization. Therefore, delete is not allowed.&quot;);
+<span class="fc" id="L609">        configurationRepository.deleteCategoryLevelByKey(key, eventId, categoryId);</span>
+<span class="fc" id="L610">    }</span>
+
+    private static Map&lt;ConfigurationKeys.SettingCategory, List&lt;Configuration&gt;&gt; collectConfigurationKeysByCategory(
+            ConfigurationPathLevel pathLevel) {
+<span class="fc" id="L614">        return ConfigurationKeys.byPathLevel(pathLevel).stream()</span>
+<span class="fc" id="L615">                .map(mapEmptyKeys(pathLevel))</span>
+<span class="fc" id="L616">                .sorted()</span>
+<span class="fc" id="L617">                .collect(groupByCategory());</span>
+    }
+
+    public String getShortReservationID(Configurable configurable, TicketReservation reservation) {
+<span class="fc" id="L621">        var conf = getFor(</span>
+<span class="fc" id="L622">                Set.of(USE_INVOICE_NUMBER_AS_ID, PARTIAL_RESERVATION_ID_LENGTH), configurable.getConfigurationLevel());</span>
+<span class="pc bpc" id="L623" title="3 of 4 branches missed.">        if (conf.get(USE_INVOICE_NUMBER_AS_ID).getValueAsBooleanOrDefault() &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
+<span class="nc" id="L624">            return reservation.getInvoiceNumber();</span>
+        }
+<span class="fc" id="L626">        return StringUtils.substring(</span>
+<span class="fc" id="L627">                        reservation.getId(),</span>
+                        0,
+<span class="fc" id="L629">                        conf.get(PARTIAL_RESERVATION_ID_LENGTH).getValueAsIntOrDefault(8))</span>
+<span class="fc" id="L630">                .toUpperCase();</span>
+    }
+
+    public String getPublicReservationID(Configurable configurable, TicketReservation reservation) {
+<span class="fc" id="L634">        if (getFor(USE_INVOICE_NUMBER_AS_ID, configurable.getConfigurationLevel())</span>
+<span class="pc bpc" id="L635" title="1 of 2 branches missed.">                        .getValueAsBooleanOrDefault()</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">                &amp;&amp; reservation.getHasInvoiceNumber()) {</span>
+<span class="nc" id="L637">            return reservation.getInvoiceNumber();</span>
+        }
+<span class="fc" id="L639">        return reservation.getId();</span>
+    }
+
+    public boolean hasAllConfigurationsForInvoice(Configurable configurable) {
+<span class="fc" id="L643">        var r = getFor(Set.of(INVOICE_ADDRESS, VAT_NR), configurable.getConfigurationLevel());</span>
+<span class="fc" id="L644">        return hasAllConfigurationsForInvoice(r);</span>
+    }
+
+    /**
+     * @param configurationValues note: require keys INVOICE_ADDRESS, VAT_NR
+     * @return
+     */
+    public boolean hasAllConfigurationsForInvoice(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configurationValues) {
+<span class="pc bpc" id="L652" title="2 of 4 branches missed.">        Validate.isTrue(configurationValues.containsKey(INVOICE_ADDRESS) &amp;&amp; configurationValues.containsKey(VAT_NR));</span>
+<span class="pc bpc" id="L653" title="1 of 2 branches missed.">        return configurationValues.get(INVOICE_ADDRESS).isPresent()</span>
+<span class="pc bpc" id="L654" title="1 of 2 branches missed.">                &amp;&amp; configurationValues.get(VAT_NR).isPresent();</span>
+    }
+
+    public boolean isRecaptchaForOfflinePaymentAndFreeEnabled(
+            Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configurationValues) {
+<span class="pc bpc" id="L659" title="1 of 2 branches missed.">        Validate.isTrue(configurationValues.containsKey(ENABLE_CAPTCHA_FOR_OFFLINE_PAYMENTS)</span>
+<span class="pc bpc" id="L660" title="1 of 2 branches missed.">                &amp;&amp; configurationValues.containsKey(RECAPTCHA_API_KEY));</span>
+<span class="pc bpc" id="L661" title="1 of 2 branches missed.">        return configurationValues.get(ENABLE_CAPTCHA_FOR_OFFLINE_PAYMENTS).getValueAsBooleanOrDefault()</span>
+<span class="pc bnc" id="L662" title="All 2 branches missed.">                &amp;&amp; configurationValues.get(RECAPTCHA_API_KEY).getValueOrNull() != null;</span>
+    }
+
+    public boolean isRecaptchaForOfflinePaymentAndFreeEnabled(ConfigurationLevel configurationLevel) {
+<span class="fc" id="L666">        var conf = getFor(Set.of(ENABLE_CAPTCHA_FOR_OFFLINE_PAYMENTS, RECAPTCHA_API_KEY), configurationLevel);</span>
+<span class="fc" id="L667">        return isRecaptchaForOfflinePaymentAndFreeEnabled(conf);</span>
+    }
+
+    // https://github.com/alfio-event/alf.io/issues/573
+
+    public boolean canAttachBillingDocumentToConfirmationEmail(Configurable configurable) {
+<span class="fc" id="L673">        var config = getFor(</span>
+<span class="fc" id="L674">                List.of(ENABLE_ITALY_E_INVOICING, ITALY_E_INVOICING_SEND_PROFORMA),</span>
+<span class="fc" id="L675">                configurable.getConfigurationLevel());</span>
+<span class="fc bfc" id="L676" title="All 2 branches covered.">        return !isItalianEInvoicingEnabled(config)</span>
+<span class="pc bpc" id="L677" title="1 of 2 branches missed.">                || config.get(ITALY_E_INVOICING_SEND_PROFORMA).getValueAsBooleanOrDefault();</span>
+    }
+
+    public boolean canGenerateReceiptOrInvoiceToCustomer(Configurable configurable) {
+<span class="fc bfc" id="L681" title="All 2 branches covered.">        return !isItalianEInvoicingEnabled(configurable);</span>
+    }
+
+    public boolean canGenerateReceiptOrInvoiceToCustomer(
+            Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configurationValues) {
+<span class="pc bpc" id="L686" title="1 of 2 branches missed.">        return !isItalianEInvoicingEnabled(configurationValues);</span>
+    }
+
+    public boolean isInvoiceOnly(Configurable configurable) {
+<span class="fc" id="L690">        var res = getFor(Set.of(GENERATE_ONLY_INVOICE, ENABLE_ITALY_E_INVOICING), configurable.getConfigurationLevel());</span>
+<span class="fc" id="L691">        return isInvoiceOnly(res);</span>
+    }
+
+    /**
+     * @param configurationValues note: require the key GENERATE_ONLY_INVOICE and ENABLE_ITALY_E_INVOICING to be present
+     * @return
+     */
+    public boolean isInvoiceOnly(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configurationValues) {
+<span class="pc bpc" id="L699" title="1 of 2 branches missed.">        Validate.isTrue(configurationValues.containsKey(GENERATE_ONLY_INVOICE)</span>
+<span class="pc bpc" id="L700" title="1 of 2 branches missed.">                &amp;&amp; configurationValues.containsKey(ENABLE_ITALY_E_INVOICING));</span>
+<span class="fc bfc" id="L701" title="All 2 branches covered.">        return configurationValues.get(GENERATE_ONLY_INVOICE).getValueAsBooleanOrDefault()</span>
+<span class="fc bfc" id="L702" title="All 2 branches covered.">                || configurationValues.get(ENABLE_ITALY_E_INVOICING).getValueAsBooleanOrDefault();</span>
+    }
+
+    public boolean isItalianEInvoicingEnabled(Configurable configurable) {
+<span class="fc" id="L706">        return isItalianEInvoicingEnabled(configurable.getConfigurationLevel());</span>
+    }
+
+    public boolean isItalianEInvoicingEnabled(ConfigurationLevel configurationLevel) {
+<span class="fc" id="L710">        var res = getFor(List.of(ENABLE_ITALY_E_INVOICING), configurationLevel);</span>
+<span class="fc" id="L711">        return isItalianEInvoicingEnabled(res);</span>
+    }
+
+    public boolean isItalianEInvoicingEnabled(Map&lt;ConfigurationKeys, MaybeConfiguration&gt; configurationValues) {
+<span class="fc" id="L715">        Validate.isTrue(configurationValues.containsKey(ENABLE_ITALY_E_INVOICING));</span>
+<span class="fc" id="L716">        return configurationValues.get(ENABLE_ITALY_E_INVOICING).getValueAsBooleanOrDefault();</span>
+    }
+
+    //
+
+    public MaybeConfiguration getForSystem(ConfigurationKeys key) {
+<span class="fc" id="L722">        return getFor(Set.of(key), ConfigurationLevel.system()).get(key);</span>
+    }
+
+    public MaybeConfiguration getFor(ConfigurationKeys key, ConfigurationLevel configurationLevel) {
+<span class="fc" id="L726">        return getFor(Set.of(key), configurationLevel).get(key);</span>
+    }
+
+    public Map&lt;ConfigurationKeys, MaybeConfiguration&gt; getFor(
+            Collection&lt;ConfigurationKeys&gt; keys, ConfigurationLevel configurationLevel) {
+<span class="fc" id="L731">        var keysAsString = keys.stream().map(ConfigurationKeys::getValue).collect(Collectors.toSet());</span>
+<span class="fc" id="L732">        List&lt;ConfigurationKeyValuePathLevel&gt; found = new ArrayList&lt;&gt;(externalConfiguration.getAll(keysAsString));</span>
+<span class="fc bfc" id="L733" title="All 2 branches covered.">        for (ConfigurationKeys key : keys) {</span>
+<span class="fc" id="L734">            Optional.ofNullable(environment.getProperty(&quot;ALFIO_OVERRIDE_SYSTEM_SETTINGS_&quot; + key.name()))</span>
+<span class="pc" id="L735">                    .ifPresent(v -&gt; found.add(</span>
+<span class="nc" id="L736">                            new ConfigurationKeyValuePathLevel(key.getValue(), v, ConfigurationPathLevel.EXTERNAL)));</span>
+<span class="fc" id="L737">        }</span>
+<span class="pc bpc" id="L738" title="1 of 5 branches missed.">        switch (configurationLevel.getPathLevel()) {</span>
+            case SYSTEM:
+<span class="fc" id="L740">                found.addAll(configurationRepository.findByKeysAtSystemLevel(keysAsString));</span>
+<span class="fc" id="L741">                break;</span>
+            case ORGANIZATION:
+<span class="fc" id="L743">                found.addAll(configurationRepository.findByOrganizationAndKeys(</span>
+                        ((OrganizationLevel) configurationLevel).organizationId, keysAsString));
+<span class="fc" id="L745">                break;</span>
+            case PURCHASE_CONTEXT:
+<span class="fc bfc" id="L747" title="All 2 branches covered.">                if (configurationLevel instanceof EventLevel eventLevel) {</span>
+<span class="fc" id="L748">                    found.addAll(configurationRepository.findByEventAndKeys(</span>
+                            eventLevel.organizationId, eventLevel.eventId, keysAsString));
+                } else {
+<span class="fc" id="L751">                    var subscriptionDescriptorLevel = (SubscriptionDescriptorLevel) configurationLevel;</span>
+<span class="fc" id="L752">                    found.addAll(configurationRepository.findBySubscriptionDescriptorAndKeys(</span>
+                            subscriptionDescriptorLevel.organizationId,
+                            subscriptionDescriptorLevel.subscriptionDescriptorId,
+                            keysAsString));
+                }
+<span class="fc" id="L757">                break;</span>
+            case TICKET_CATEGORY:
+<span class="fc" id="L759">                var categoryLevel = (CategoryLevel) configurationLevel;</span>
+<span class="fc" id="L760">                found.addAll(configurationRepository.findByTicketCategoryAndKeys(</span>
+                        categoryLevel.organizationId, categoryLevel.eventId, categoryLevel.categoryId, keysAsString));
+<span class="fc" id="L762">                break;</span>
+            default:
+                break;
+        }
+<span class="fc" id="L766">        return buildKeyConfigurationMapResult(keys, found);</span>
+    }
+
+    private Map&lt;ConfigurationKeys, MaybeConfiguration&gt; buildKeyConfigurationMapResult(
+            Collection&lt;ConfigurationKeys&gt; keys, List&lt;ConfigurationKeyValuePathLevel&gt; found) {
+<span class="fc" id="L771">        var res = new EnumMap&lt;ConfigurationKeys, MaybeConfiguration&gt;(ConfigurationKeys.class);</span>
+
+<span class="fc bfc" id="L773" title="All 2 branches covered.">        for (var k : keys) {</span>
+<span class="fc" id="L774">            res.put(k, new MaybeConfiguration(k));</span>
+<span class="fc" id="L775">        }</span>
+
+<span class="fc bfc" id="L777" title="All 2 branches covered.">        for (var c : found) {</span>
+<span class="fc" id="L778">            res.get(c.getConfigurationKey())</span>
+<span class="fc" id="L779">                    .ifPresentOrElse(</span>
+                            alreadyPresent -&gt; {
+                                // override mechanism, if a configuration path is more precise that the one already
+                                // present, we will replace it
+<span class="fc" id="L783">                                if (alreadyPresent.getConfigurationPathLevel().getPriority()</span>
+<span class="pc bpc" id="L784" title="1 of 2 branches missed.">                                        &lt; c.getConfigurationPathLevel().getPriority()) {</span>
+<span class="fc" id="L785">                                    res.put(</span>
+<span class="fc" id="L786">                                            c.getConfigurationKey(),</span>
+<span class="fc" id="L787">                                            new MaybeConfiguration(c.getConfigurationKey(), c));</span>
+                                }
+<span class="fc" id="L789">                            },</span>
+<span class="fc" id="L790">                            () -&gt; res.put(c.getConfigurationKey(), new MaybeConfiguration(c.getConfigurationKey(), c)));</span>
+<span class="fc" id="L791">        }</span>
+
+<span class="fc" id="L793">        return res;</span>
+    }
+
+    public List&lt;PaymentMethod&gt; getBlacklistedMethodsForReservation(PurchaseContext p, Collection&lt;Integer&gt; categoryIds) {
+<span class="fc" id="L797">        return p.event()</span>
+<span class="fc" id="L798">                .map(e -&gt; {</span>
+<span class="fc bfc" id="L799" title="All 2 branches covered.">                    if (!categoryIds.isEmpty()) {</span>
+<span class="fc" id="L800">                        Map&lt;Integer, String&gt; staticPaymentMethodBlacklistForCategories =</span>
+<span class="fc" id="L801">                                configurationRepository.getAllCategoriesAndValueWith(</span>
+<span class="fc" id="L802">                                        e.getOrganizationId(), e.getId(), PAYMENT_METHODS_BLACKLIST);</span>
+<span class="fc" id="L803">                        final var paymentMethodBlacklist = categoryIds.stream()</span>
+<span class="fc" id="L804">                                .filter(staticPaymentMethodBlacklistForCategories::containsKey)</span>
+<span class="fc" id="L805">                                .flatMap(id -&gt; Arrays.stream(staticPaymentMethodBlacklistForCategories</span>
+<span class="fc" id="L806">                                        .get(id)</span>
+<span class="fc" id="L807">                                        .split(&quot;,&quot;)))</span>
+<span class="fc" id="L808">                                .filter(StringUtils::isNotBlank)</span>
+<span class="fc" id="L809">                                .map(name -&gt; PaymentProxy.valueOf(name).getPaymentMethod())</span>
+<span class="fc" id="L810">                                .collect(toList());</span>
+
+<span class="fc" id="L812">                        Map&lt;Integer, String&gt; deniedCustomPaymentMethodsForCategories =</span>
+<span class="fc" id="L813">                                configurationRepository.getAllCategoriesAndValueWith(</span>
+<span class="fc" id="L814">                                        e.getOrganizationId(), e.getId(), DENIED_CUSTOM_PAYMENTS);</span>
+
+<span class="fc" id="L816">                        var orgCustomPaymentMethodsConfigJson = configurationRepository</span>
+<span class="fc" id="L817">                                .findByKeyAtOrganizationLevel(</span>
+<span class="fc" id="L818">                                        e.getOrganizationId(), ConfigurationKeys.CUSTOM_OFFLINE_PAYMENTS.getValue())</span>
+<span class="fc" id="L819">                                .map(Configuration::getValue)</span>
+<span class="fc" id="L820">                                .orElse(null);</span>
+
+<span class="fc" id="L822">                        List&lt;UserDefinedOfflinePaymentMethod&gt; orgCustomPaymentMethods = List.of();</span>
+<span class="fc bfc" id="L823" title="All 2 branches covered.">                        if (orgCustomPaymentMethodsConfigJson != null) {</span>
+<span class="fc" id="L824">                            orgCustomPaymentMethods = Json.fromJson(</span>
+                                    orgCustomPaymentMethodsConfigJson,
+                                    new TypeReference&lt;List&lt;UserDefinedOfflinePaymentMethod&gt;&gt;() {});
+<span class="pc bpc" id="L827" title="1 of 2 branches missed.">                            if (orgCustomPaymentMethods == null) {</span>
+<span class="nc" id="L828">                                orgCustomPaymentMethods = List.of();</span>
+                            }
+                        }
+
+<span class="fc bfc" id="L832" title="All 2 branches covered.">                        if (!orgCustomPaymentMethods.isEmpty()) {</span>
+<span class="fc" id="L833">                            Map&lt;String, PaymentMethod&gt; paymentMethodMap = orgCustomPaymentMethods.stream()</span>
+<span class="fc" id="L834">                                    .collect(Collectors.toMap(PaymentMethod::getPaymentMethodId, method -&gt; method));</span>
+
+<span class="fc" id="L836">                            paymentMethodBlacklist.addAll(categoryIds.stream()</span>
+<span class="fc" id="L837">                                    .filter(deniedCustomPaymentMethodsForCategories::containsKey)</span>
+<span class="fc" id="L838">                                    .map(deniedCustomPaymentMethodsForCategories::get)</span>
+<span class="fc" id="L839">                                    .map(deniedListJson -&gt;</span>
+<span class="fc" id="L840">                                            Json.fromJson(deniedListJson, new TypeReference&lt;List&lt;String&gt;&gt;() {}))</span>
+<span class="fc" id="L841">                                    .flatMap(List::stream)</span>
+<span class="fc" id="L842">                                    .distinct()</span>
+<span class="fc" id="L843">                                    .map(paymentMethodMap::get)</span>
+<span class="fc" id="L844">                                    .toList());</span>
+                        }
+
+<span class="fc" id="L847">                        return paymentMethodBlacklist;</span>
+                    } else {
+<span class="fc" id="L849">                        return List.&lt;PaymentMethod&gt;of();</span>
+                    }
+                })
+<span class="fc" id="L852">                .orElse(List.of());</span>
+    }
+
+    private static boolean toBeSaved(ConfigurationModification c) {
+<span class="fc bfc" id="L856" title="All 4 branches covered.">        return Optional.ofNullable(c.getId()).orElse(-1) &gt; -1 || !StringUtils.isBlank(c.getValue());</span>
+    }
+
+    public List&lt;Integer&gt; getCategoriesWithNoTaxes(List&lt;Integer&gt; categoriesIds) {
+<span class="pc bpc" id="L860" title="1 of 2 branches missed.">        if (categoriesIds.isEmpty()) {</span>
+<span class="nc" id="L861">            return List.of();</span>
+        }
+<span class="fc" id="L863">        return configurationRepository.getCategoriesWithFlag(</span>
+<span class="fc" id="L864">                categoriesIds, APPLY_TAX_TO_CATEGORY.name(), BooleanUtils.FALSE);</span>
+    }
+
+    public boolean noTaxesFlagDefinedFor(List&lt;TicketCategory&gt; categories) {
+<span class="fc" id="L868">        return !getCategoriesWithNoTaxes(</span>
+<span class="fc" id="L869">                        categories.stream().map(TicketCategory::getId).collect(toList()))</span>
+<span class="pc bpc" id="L870" title="1 of 2 branches missed.">                .isEmpty();</span>
+    }
+
+    public static class MaybeConfiguration {
+        @SuppressWarnings(&quot;OptionalUsedAsFieldOrParameterType&quot;)
+        private final Optional&lt;ConfigurationKeyValuePathLevel&gt; configuration;
+
+        private final ConfigurationKeys key;
+
+        public MaybeConfiguration(ConfigurationKeys key) {
+            this.key = key;
+            this.configuration = Optional.empty();
+        }
+
+        public MaybeConfiguration(ConfigurationKeys key, ConfigurationKeyValuePathLevel configuration) {
+            this.configuration = Optional.ofNullable(configuration);
+            this.key = key;
+        }
+
+        void ifPresentOrElse(Consumer&lt;? super ConfigurationKeyValuePathLevel&gt; action, Runnable emptyAction) {
+            configuration.ifPresentOrElse(action, emptyAction);
+        }
+
+        public boolean isPresent() {
+            return configuration.isPresent();
+        }
+
+        public boolean isEmpty() {
+            return configuration.isEmpty();
+        }
+
+        public Optional&lt;String&gt; getValue() {
+            return configuration.map(ConfigurationKeyValuePathLevel::getValue);
+        }
+
+        public String getValueOrNull() {
+            return getValue().orElse(null);
+        }
+
+        public String getValueOrDefault(String defaultValue) {
+            return getValue().orElse(defaultValue);
+        }
+
+        public boolean getValueAsBooleanOrDefault() {
+            return getValue()
+                    .map(Boolean::parseBoolean)
+                    .orElseGet(() -&gt; Boolean.parseBoolean(Objects.requireNonNull(key.getDefaultValue())));
+        }
+
+        public int getValueAsIntOrDefault(int defaultValue) {
+            return getValue()
+                    .flatMap(v -&gt; {
+                        try {
+                            return Optional.of(Integer.parseInt(v));
+                        } catch (NumberFormatException ex) {
+                            return Optional.empty();
+                        }
+                    })
+                    .orElse(defaultValue);
+        }
+
+        public ConfigurationPathLevel getConfigurationPathLevelOrDefault(ConfigurationPathLevel defaultValue) {
+            return configuration
+                    .map(ConfigurationKeyValuePathLevel::getConfigurationPathLevel)
+                    .orElse(defaultValue);
+        }
+
+        public String getRequiredValue() {
+            return getValue()
+                    .orElseThrow(
+                            () -&gt; new IllegalArgumentException(&quot;Mandatory configuration key &quot; + key + &quot; not present&quot;));
+        }
+    }
+
+    /**
+     * Fetch all ticket_category_id, value that are present at the ticket category level with a given configuration key
+     *
+     * @param event
+     * @param key
+     * @return
+     */
+    public Map&lt;Integer, String&gt; getAllCategoriesAndValueWith(EventAndOrganizationId event, ConfigurationKeys key) {
+<span class="fc" id="L952">        return configurationRepository.getAllCategoriesAndValueWith(event.getOrganizationId(), event.getId(), key);</span>
+    }
+
+    public AlfioInfo getInfo(HttpSession session) {
+<span class="fc" id="L956">        var demoMode = environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO));</span>
+<span class="fc" id="L957">        var devMode = environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEV));</span>
+<span class="fc" id="L958">        var prodMode = environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_LIVE));</span>
+
+<span class="fc" id="L960">        var options = EnumSet.of(</span>
+                GOOGLE_ANALYTICS_ANONYMOUS_MODE,
+                GOOGLE_ANALYTICS_KEY,
+                GLOBAL_PRIVACY_POLICY,
+                GLOBAL_TERMS,
+                ENABLE_ITALY_E_INVOICING,
+                ENABLE_CUSTOMER_REFERENCE,
+                VAT_NUMBER_IS_REQUIRED,
+                GENERATE_ONLY_INVOICE,
+                INVOICE_ADDRESS,
+                VAT_NR,
+                ENABLE_EU_VAT_DIRECTIVE,
+                COUNTRY_OF_BUSINESS,
+                ENABLE_REVERSE_CHARGE_IN_PERSON,
+                ENABLE_REVERSE_CHARGE_ONLINE,
+                ANNOUNCEMENT_BANNER_CONTENT,
+                ENABLE_WALLET,
+                ENABLE_PASS,
+                CF_TURNSTILE_SITE_KEY,
+                CF_TURNSTILE_ENABLED);
+<span class="fc" id="L980">        var conf = getFor(options, ConfigurationLevel.system());</span>
+
+<span class="fc" id="L982">        var analyticsConf = AnalyticsConfiguration.build(conf, session);</span>
+
+<span class="fc" id="L984">        var challengeConfiguration = ChallengeConfiguration.build(conf);</span>
+
+<span class="fc" id="L986">        return new AlfioInfo(</span>
+                demoMode,
+                devMode,
+                prodMode,
+                analyticsConf,
+<span class="fc" id="L991">                conf.get(GLOBAL_PRIVACY_POLICY).getValueOrNull(),</span>
+<span class="fc" id="L992">                conf.get(GLOBAL_TERMS).getValueOrNull(),</span>
+<span class="fc" id="L993">                PurchaseContextInfoBuilder.invoicingInfo(this, conf),</span>
+<span class="fc" id="L994">                StringUtils.trimToNull(conf.get(ANNOUNCEMENT_BANNER_CONTENT).getValueOrNull()),</span>
+                new WalletConfiguration(
+<span class="fc" id="L996">                        conf.get(ENABLE_WALLET).getValueAsBooleanOrDefault(),</span>
+<span class="fc" id="L997">                        conf.get(ENABLE_PASS).getValueAsBooleanOrDefault()),</span>
+                challengeConfiguration);
+    }
+
+    public Map&lt;ConfigurationKeys, MaybeConfiguration&gt; getPublicOpenIdConfiguration() {
+<span class="fc" id="L1002">        return oneMinuteCache.get(</span>
+<span class="fc" id="L1003">                EnumSet.of(OPENID_PUBLIC_ENABLED, OPENID_CONFIGURATION_JSON),</span>
+<span class="fc" id="L1004">                k -&gt; getFor(k, ConfigurationLevel.system()));</span>
+    }
+
+    public Map&lt;ConfigurationKeys, MaybeConfiguration&gt; getTurnstileConfiguration() {
+<span class="nc" id="L1008">        return oneMinuteCache.get(</span>
+<span class="nc" id="L1009">                EnumSet.of(</span>
+                        CF_TURNSTILE_ENABLED,
+                        CF_TURNSTILE_SECRET_KEY,
+                        CF_TURNSTILE_SITE_KEY,
+                        CF_TURNSTILE_PRE_CLEARANCE),
+<span class="nc" id="L1014">                k -&gt; getFor(k, ConfigurationLevel.system()));</span>
+    }
+
+    public boolean isPublicOpenIdEnabled() {
+<span class="fc" id="L1018">        return getPublicOpenIdConfiguration().get(OPENID_PUBLIC_ENABLED).getValueAsBooleanOrDefault();</span>
+    }
+
+    public String baseUrl(PurchaseContext purchaseContext) {
+<span class="fc" id="L1022">        var configurationLevel = purchaseContext</span>
+<span class="fc" id="L1023">                .event()</span>
+<span class="fc" id="L1024">                .map(ConfigurationLevel::event)</span>
+<span class="fc" id="L1025">                .orElseGet(() -&gt; ConfigurationLevel.organization(purchaseContext.getOrganizationId()));</span>
+<span class="fc" id="L1026">        return StringUtils.removeEnd(getFor(BASE_URL, configurationLevel).getRequiredValue(), &quot;/&quot;);</span>
+    }
+
+    public String retrieveSystemApiKey(boolean rotate) {
+<span class="fc" id="L1030">        Optional&lt;Configuration&gt; existing = configurationRepository.findOptionalByKey(SYSTEM_API_KEY.name());</span>
+        String apiKeyValue;
+<span class="fc bfc" id="L1032" title="All 4 branches covered.">        if (existing.isPresent() &amp;&amp; rotate) {</span>
+<span class="fc" id="L1033">            apiKeyValue = generateApiKey();</span>
+<span class="fc" id="L1034">            configurationRepository.update(SYSTEM_API_KEY.name(), apiKeyValue);</span>
+<span class="fc bfc" id="L1035" title="All 2 branches covered.">        } else if (existing.isPresent()) {</span>
+<span class="fc" id="L1036">            apiKeyValue = existing.get().getValue();</span>
+        } else {
+<span class="fc" id="L1038">            apiKeyValue = generateApiKey();</span>
+<span class="fc" id="L1039">            configurationRepository.insert(SYSTEM_API_KEY.name(), apiKeyValue, SYSTEM_API_KEY.getDescription());</span>
+        }
+<span class="fc" id="L1041">        return apiKeyValue;</span>
+    }
+
+    public void seedSystemSettings() {
+<span class="nc bnc" id="L1045" title="All 2 branches missed.">        for (ConfigurationKeys key : ConfigurationKeys.values()) {</span>
+<span class="nc bnc" id="L1046" title="All 2 branches missed.">            if (key == NOT_RECOGNIZED) {</span>
+<span class="nc" id="L1047">                continue;</span>
+            }
+<span class="nc" id="L1049">            Optional.ofNullable(environment.getProperty(&quot;ALFIO_OVERRIDE_SYSTEM_SETTINGS_&quot; + key.name()))</span>
+<span class="nc" id="L1050">                    .or(() -&gt; Optional.ofNullable(</span>
+<span class="nc" id="L1051">                            externalConfiguration.getSettings().get(key.name())))</span>
+<span class="nc" id="L1052">                    .ifPresent(value -&gt; {</span>
+<span class="nc" id="L1053">                        if (configurationRepository</span>
+<span class="nc" id="L1054">                                .findByKeyAtSystemLevel(key.getValue())</span>
+<span class="nc bnc" id="L1055" title="All 2 branches missed.">                                .isEmpty()) {</span>
+<span class="nc" id="L1056">                            saveSystemConfiguration(key, value);</span>
+                        }
+<span class="nc" id="L1058">                    });</span>
+        }
+<span class="nc" id="L1060">    }</span>
+
+    private String generateApiKey() {
+<span class="fc" id="L1063">        var bytes = new byte[48];</span>
+<span class="fc" id="L1064">        secureRandom.nextBytes(bytes);</span>
+<span class="fc" id="L1065">        return new BigInteger(1, bytes).toString(36);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
