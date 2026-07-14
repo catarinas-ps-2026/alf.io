@@ -359,11 +359,10 @@ jobs:
                   SONAR_TOKEN: ${{ steps.sonar-setup.outputs.sonar_token }}
                   SONAR_HOST_URL: http://localhost:9000
               run: |
-                  ./gradlew sonar \
+                  ./gradlew build sonar \
                     -Dsonar.host.url=http://localhost:9000 \
                     -Dsonar.token=${{ steps.sonar-setup.outputs.sonar_token }} \
-                    -Dsonar.projectKey=alfio \
-                    -Dsonar.gradle.skipCompile=true
+                    -Dsonar.projectKey=alfio
 
             - name: Generate SonarQube HTML Report
               run: |
