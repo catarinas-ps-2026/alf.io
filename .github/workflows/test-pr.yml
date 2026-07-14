@@ -441,13 +441,13 @@ jobs:
               run: |
                   docker run --rm \
                     --network host \
-                    --user "$(id -u):$(id -g)" \
                     -e SONAR_URL=http://localhost:9000 \
                     -e SONAR_TOKEN=${{ steps.sonar-setup.outputs.sonar_token }} \
                     -e SONAR_PROJECT_KEY=alfio \
                     -e REPORT_FORMATS=html \
                     -v "$(pwd)/reports/sonarqube:/reports" \
                     ghcr.io/a-h-abid/sonarqube-community-reporter:latest --wait
+                  sudo chown -R $(id -u):$(id -g) reports/sonarqube
                   mv reports/sonarqube/*.html reports/sonarqube/index.html
 
             - name: Upload SonarQube Report
