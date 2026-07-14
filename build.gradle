@@ -282,10 +282,10 @@ license {
 
 sonarqube {
     properties {
-        property 'sonar.host.url', 'https://sonarcloud.io'
-        property 'sonar.organization', 'alfio-event'
-        property 'sonar.projectKey', 'alfio-event_alf.io'
-        property 'sonar.login', System.getenv('SONARCLOUD_TOKEN')
+        property 'sonar.host.url', System.getenv('SONAR_HOST_URL') ?: 'https://sonarcloud.io'
+        property 'sonar.organization', System.getenv('SONAR_ORGANIZATION') ?: 'alfio-event'
+        property 'sonar.projectKey', System.getenv('SONAR_PROJECT_KEY') ?: 'alfio-event_alf.io'
+        property 'sonar.token', System.getenv('SONAR_TOKEN') ?: System.getenv('SONARCLOUD_TOKEN')
         property 'sonar.gradle.skipCompile', 'true'
     }
 }
