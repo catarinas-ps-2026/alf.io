@@ -376,6 +376,7 @@ jobs:
                     ghcr.io/a-h-abid/sonarqube-community-reporter:latest --wait
                   sudo chown -R $(id -u):$(id -g) reports/sonarqube
                   mv reports/sonarqube/*.html reports/sonarqube/index.html
+                  sed -i 's|<a href="http://localhost:9000/dashboard?id=alfio">Open in SonarQube →</a>||g' reports/sonarqube/index.html
 
             - name: Upload SonarQube Report
               uses: actions/upload-artifact@v4
