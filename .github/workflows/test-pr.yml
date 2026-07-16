@@ -367,6 +367,99 @@ jobs:
                   path: k6-report.html
                   retention-days: 1
 
+    sonarqube:
+        needs: format
+        if: needs.format.outputs.changed != 'true'
+        runs-on: ubuntu-latest
+        services:
+            sonarqube:
+                image: sonarqube:community
+                ports:
+                    - 9000:9000
+                env:
+                    SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+                options: >-
+                    --health-cmd "curl -f http://localhost:9000/api/system/status || exit 1"
+                    --health-interval 30s
+                    --health-timeout 10s
+                    --health-retries 20
+                    --health-start-period 60s
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+                  fetch-depth: 0
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: temurin
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
+
+            - name: Wait for SonarQube to be ready
+              run: |
+                  echo "Waiting for SonarQube to be ready..."
+                  for i in $(seq 1 60); do
+                      STATUS=$(curl -s http://localhost:9000/api/system/status | jq -r '.status' 2>/dev/null || echo "DOWN")
+                      if [ "$STATUS" = "UP" ]; then
+                          echo "SonarQube is ready!"
+                          break
+                      fi
+                      echo "Attempt $i: SonarQube status=$STATUS, waiting..."
+                      sleep 5
+                  done
+                  curl -s http://localhost:9000/api/system/status | jq .
+
+            - name: Create SonarQube project and token
+              id: sonar-setup
+              run: |
+                  # Create a project token
+                  TOKEN_RESPONSE=$(curl -s -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate" \
+                    -d "name=ci-token" -d "type=USER_TOKEN" -d "projectKey=alfio")
+                  SONAR_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.token')
+                  echo "sonar_token=${SONAR_TOKEN}" >> "$GITHUB_OUTPUT"
+
+                  # Create the project
+                  curl -s -u "${SONAR_TOKEN}:" -X POST "http://localhost:9000/api/projects/create" \
+                    -d "name=alf.io" -d "project=alfio" -d "mainBranch=main"
+
+            - name: Run SonarQube Analysis
+              env:
+                  SONAR_TOKEN: ${{ steps.sonar-setup.outputs.sonar_token }}
+                  SONAR_HOST_URL: http://localhost:9000
+              run: |
+                  ./gradlew build sonar \
+                    -Dsonar.host.url=http://localhost:9000 \
+                    -Dsonar.token=${{ steps.sonar-setup.outputs.sonar_token }} \
+                    -Dsonar.projectKey=alfio
+
+            - name: Generate SonarQube HTML Report
+              run: |
+                  docker run --rm \
+                    --network host \
+                    -e SONAR_URL=http://localhost:9000 \
+                    -e SONAR_TOKEN=${{ steps.sonar-setup.outputs.sonar_token }} \
+                    -e SONAR_PROJECT_KEY=alfio \
+                    -e REPORT_FORMATS=html \
+                    -v "$(pwd)/reports/sonarqube:/reports" \
+                    ghcr.io/a-h-abid/sonarqube-community-reporter:latest --wait
+                  sudo chown -R $(id -u):$(id -g) reports/sonarqube
+                  mv reports/sonarqube/*.html reports/sonarqube/index.html
+                  sed -i 's|<a href="http://localhost:9000/dashboard?id=alfio">Open in SonarQube →</a>||g' reports/sonarqube/index.html
+
+            - name: Upload SonarQube Report
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: sonarqube-report
+                  path: reports/sonarqube/
+                  if-no-files-found: ignore
+                  retention-days: 1
+
     deploy-coverage:
         needs:
             [
@@ -376,6 +469,7 @@ jobs:
                 frontend-tests,
                 e2e-tests,
                 performance-test,
+                sonarqube,
             ]
         if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
@@ -392,6 +486,7 @@ jobs:
                   mkdir -p test-results-dashboard/public/reports/k6
                   mkdir -p test-results-dashboard/public/reports/integration-tests
                   mkdir -p test-results-dashboard/public/reports/api-contract
+                  mkdir -p test-results-dashboard/public/reports/sonarqube
 
             - name: Download Backend Coverage
               uses: actions/download-artifact@v4
@@ -446,6 +541,13 @@ jobs:
                   path: test-results-dashboard/public/reports/api-contract
               continue-on-error: true
 
+            - name: Download SonarQube Report
+              uses: actions/download-artifact@v4
+              with:
+                  name: sonarqube-report
+                  path: test-results-dashboard/public/reports/sonarqube
+              continue-on-error: true
+
             - name: Generate results.json
               run: |
                   cat <<EOF > test-results-dashboard/src/data/results.json
@@ -462,7 +564,8 @@ jobs:
                       { "name": "Prueba de Rendimiento k6", "path": "reports/k6/k6-report.html", "status": "success" },
                       { "name": "Pruebas de Integracion JUnit", "path": "reports/integration-tests/index.html", "status": "success" },
                       { "name": "Portal de Contrato API (Redoc)", "path": "reports/api-contract/index.html", "status": "success" },
-                      { "name": "Reporte de Diferencias API", "path": "reports/api-contract/openapi-diff.html", "status": "success" }
+                      { "name": "Reporte de Diferencias API", "path": "reports/api-contract/openapi-diff.html", "status": "success" },
+                      { "name": "SonarQube Analysis", "path": "reports/sonarqube/index.html", "status": "success" }
                     ]
                   }
                   EOF
