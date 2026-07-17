@@ -230,6 +230,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-engine"
     testImplementation "org.junit.platform:junit-platform-engine"
     testImplementation "org.mockito:mockito-inline:5.2.0"
+    testImplementation "com.code-intelligence:jazzer-junit:0.30.0"
 
     testImplementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8"
     testImplementation "org.openapitools.openapidiff:openapi-diff-core:2.1.7", {
@@ -363,6 +364,7 @@ test {
     exclude '**/*E2ETest*'
     exclude '**/*ValidationTest*'
     exclude '**/NormalFlowE2ETest*'
+    exclude '**/*FuzzTest*'
 }
 
 tasks.register('integrationTest', Test) {
@@ -373,6 +375,15 @@ tasks.register('integrationTest', Test) {
     include '**/*E2ETest*'
     include '**/*ValidationTest*'
     include '**/NormalFlowE2ETest*'
+}
+
+tasks.register('fuzzTest', Test) {
+    description = 'Runs fuzz tests using Jazzer.'
+    group = 'verification'
+    
+    include '**/fuzz/*FuzzTest*'
+    
+    systemProperty 'jazzer.max_duration', System.getenv('JAZZER_MAX_DURATION') ?: '5m'
 }
 
 

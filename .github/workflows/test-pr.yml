@@ -482,6 +482,37 @@ jobs:
                   if-no-files-found: ignore
                   retention-days: 1
 
+    fuzz-test:
+        needs: format
+        if: needs.format.outputs.changed != 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: ${{ github.event.pull_request.head.repo.full_name }}
+                  ref: ${{ github.event.pull_request.head.ref }}
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: temurin
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
+
+            - name: Run Fuzz Tests
+              run: ./gradlew fuzzTest
+
+            - name: Upload Fuzz Test Report
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: fuzz-report
+                  path: build/reports/tests/fuzzTest/
+                  if-no-files-found: ignore
+                  retention-days: 1
+
     deploy-coverage:
         needs:
             [
@@ -492,6 +523,7 @@ jobs:
                 e2e-tests,
                 performance-test,
                 sonarqube,
+                fuzz-test,
             ]
         if: needs.format.outputs.changed != 'true'
         runs-on: ubuntu-latest
@@ -509,6 +541,7 @@ jobs:
                   mkdir -p test-results-dashboard/public/reports/integration-tests
                   mkdir -p test-results-dashboard/public/reports/api-contract
                   mkdir -p test-results-dashboard/public/reports/sonarqube
+                  mkdir -p test-results-dashboard/public/reports/fuzz
 
             - name: Download Backend Coverage
               uses: actions/download-artifact@v4
@@ -570,6 +603,13 @@ jobs:
                   path: test-results-dashboard/public/reports/sonarqube
               continue-on-error: true
 
+            - name: Download Fuzz Test Report
+              uses: actions/download-artifact@v4
+              with:
+                  name: fuzz-report
+                  path: test-results-dashboard/public/reports/fuzz
+              continue-on-error: true
+
             - name: Generate results.json
               run: |
                   cat <<EOF > test-results-dashboard/src/data/results.json
@@ -587,7 +627,8 @@ jobs:
                       { "name": "Pruebas de Integracion JUnit", "path": "reports/integration-tests/index.html", "status": "success" },
                       { "name": "Portal de Contrato API (Redoc)", "path": "reports/api-contract/index.html", "status": "success" },
                       { "name": "Reporte de Diferencias API", "path": "reports/api-contract/openapi-diff.html", "status": "success" },
-                      { "name": "SonarQube Analysis", "path": "reports/sonarqube/index.html", "status": "success" }
+                      { "name": "SonarQube Analysis", "path": "reports/sonarqube/index.html", "status": "success" },
+                      { "name": "Pruebas de Fuzzing (Jazzer)", "path": "reports/fuzz/index.html", "status": "success" }
                     ]
                   }
                   EOF
