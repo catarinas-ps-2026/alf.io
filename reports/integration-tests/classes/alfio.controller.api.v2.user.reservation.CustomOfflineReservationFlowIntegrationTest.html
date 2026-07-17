@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">3.633s</div>
+<div class="counter">4.295s</div>
 <p>duration</p>
 </div>
 </td>
@@ -82,12 +82,12 @@
 </thead>
 <tr>
 <td class="success">attemptPayWithUnavailablePaymentMethod()</td>
-<td class="success">0.310s</td>
+<td class="success">0.327s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">payWithCustomPaymentMethod()</td>
-<td class="success">3.323s</td>
+<td class="success">3.968s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -95,184 +95,184 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2026-07-16T02:24:51.755Z  WARN 2950 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 105 (626c25e1-a2e0-4f96-806b-f4cfd4482c11) initiated by user TEST
-2026-07-16T02:24:51.756Z  WARN 2950 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : deleting 1 events linked to organization 105
-2026-07-16T02:24:51.759Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
-2026-07-16T02:24:51.760Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
-2026-07-16T02:24:51.761Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
-2026-07-16T02:24:51.771Z  WARN 2950 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 105
-2026-07-16T02:24:51.771Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
-2026-07-16T02:24:51.772Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
-2026-07-16T02:24:51.773Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
-2026-07-16T02:24:51.773Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
-2026-07-16T02:24:51.773Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
-2026-07-16T02:24:51.774Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
-2026-07-16T02:24:51.774Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
-2026-07-16T02:24:51.775Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
-2026-07-16T02:24:51.775Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
-2026-07-16T02:24:51.775Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
-2026-07-16T02:24:51.776Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
-2026-07-16T02:24:51.776Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
-2026-07-16T02:24:51.777Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
-2026-07-16T02:24:51.779Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
-2026-07-16T02:24:52.033Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_VALIDATE_CREATION
-2026-07-16T02:24:52.036Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_VALIDATE_CREATION&quot;}
-2026-07-16T02:24:52.037Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.094Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_CREATED
-2026-07-16T02:24:52.095Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_CREATED&quot;}
-2026-07-16T02:24:52.095Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.096Z  INFO 2950 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : created event. Here some debug info rhino js string EVENT_CREATED custom string {test=rhino js string, name=EVENT_CREATED}
-2026-07-16T02:24:52.104Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_CREATED
-2026-07-16T02:24:52.105Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_CREATED&quot;}
-2026-07-16T02:24:52.105Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.105Z  INFO 2950 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : created event. Here some debug info rhino js string EVENT_CREATED custom string {test=rhino js string, name=EVENT_CREATED}
-2026-07-16T02:24:52.111Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_METADATA_UPDATE
-2026-07-16T02:24:52.112Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_METADATA_UPDATE&quot;}
-2026-07-16T02:24:52.112Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.327Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_STATUS_CHANGE
-2026-07-16T02:24:52.328Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_STATUS_CHANGE&quot;}
-2026-07-16T02:24:52.329Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.336Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_STATUS_CHANGE
-2026-07-16T02:24:52.337Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_STATUS_CHANGE&quot;}
-2026-07-16T02:24:52.337Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.535Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: WAITING_QUEUE_SUBSCRIBED
-2026-07-16T02:24:52.536Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;WAITING_QUEUE_SUBSCRIBED&quot;}
-2026-07-16T02:24:52.536Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.603Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:52.605Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:52.605Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.692Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
-2026-07-16T02:24:52.694Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
-2026-07-16T02:24:52.694Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.715Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:52.716Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:52.716Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.761Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
-2026-07-16T02:24:52.762Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
-2026-07-16T02:24:52.762Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.774Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:52.775Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:52.775Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.807Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
-2026-07-16T02:24:52.808Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
-2026-07-16T02:24:52.808Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.835Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:52.835Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:52.835Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.853Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
-2026-07-16T02:24:52.854Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
-2026-07-16T02:24:52.854Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.873Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:52.874Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:52.874Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.897Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
-2026-07-16T02:24:52.898Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
-2026-07-16T02:24:52.898Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.916Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:52.916Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:52.916Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.934Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:52.935Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:52.935Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:52.982Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
-2026-07-16T02:24:52.984Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
-2026-07-16T02:24:52.984Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.024Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
-2026-07-16T02:24:53.025Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
-2026-07-16T02:24:53.025Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.062Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
-2026-07-16T02:24:53.063Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
-2026-07-16T02:24:53.063Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.067Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
-2026-07-16T02:24:53.068Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
-2026-07-16T02:24:53.069Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.072Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
-2026-07-16T02:24:53.072Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
-2026-07-16T02:24:53.073Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.085Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
-2026-07-16T02:24:53.086Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
-2026-07-16T02:24:53.086Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.159Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
-2026-07-16T02:24:53.160Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
-2026-07-16T02:24:53.160Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.162Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
-2026-07-16T02:24:53.163Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
-2026-07-16T02:24:53.163Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.165Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
-2026-07-16T02:24:53.166Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
-2026-07-16T02:24:53.166Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.191Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
-2026-07-16T02:24:53.191Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
-2026-07-16T02:24:53.192Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.203Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
-2026-07-16T02:24:53.204Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
-2026-07-16T02:24:53.204Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.228Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
-2026-07-16T02:24:53.229Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
-2026-07-16T02:24:53.229Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.239Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
-2026-07-16T02:24:53.240Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
-2026-07-16T02:24:53.240Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.259Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
-2026-07-16T02:24:53.259Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
-2026-07-16T02:24:53.259Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.275Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
-2026-07-16T02:24:53.275Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
-2026-07-16T02:24:53.275Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.277Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
-2026-07-16T02:24:53.278Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
-2026-07-16T02:24:53.278Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.288Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
-2026-07-16T02:24:53.289Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
-2026-07-16T02:24:53.289Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.305Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
-2026-07-16T02:24:53.306Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
-2026-07-16T02:24:53.306Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.308Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
-2026-07-16T02:24:53.309Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
-2026-07-16T02:24:53.309Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.334Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
-2026-07-16T02:24:53.335Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
-2026-07-16T02:24:53.335Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.370Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
-2026-07-16T02:24:53.371Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
-2026-07-16T02:24:53.371Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.397Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
-2026-07-16T02:24:53.398Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
-2026-07-16T02:24:53.398Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.449Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED_GENERATE_METADATA
-2026-07-16T02:24:53.450Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED_GENERATE_METADATA&quot;}
-2026-07-16T02:24:53.450Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.459Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
-2026-07-16T02:24:53.459Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
-2026-07-16T02:24:53.459Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.463Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
-2026-07-16T02:24:53.464Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
-2026-07-16T02:24:53.464Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.484Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED
-2026-07-16T02:24:53.484Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED&quot;}
-2026-07-16T02:24:53.484Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.499Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
-2026-07-16T02:24:53.500Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
-2026-07-16T02:24:53.500Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.516Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CONFIRMED
-2026-07-16T02:24:53.516Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CONFIRMED&quot;}
-2026-07-16T02:24:53.516Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.544Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
-2026-07-16T02:24:53.544Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
-2026-07-16T02:24:53.544Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:53.560Z  INFO 2950 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: email@email.com, cc: [], subject: You joined the waiting list for event display name, text: Hello first last,
+<pre>2026-07-17T02:32:38.201Z  WARN 3273 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 105 (9ce2e5cd-babe-4e2e-bbe4-c73f548932fd) initiated by user TEST
+2026-07-17T02:32:38.202Z  WARN 3273 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : deleting 1 events linked to organization 105
+2026-07-17T02:32:38.207Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T02:32:38.208Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T02:32:38.209Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T02:32:38.224Z  WARN 3273 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 105
+2026-07-17T02:32:38.225Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T02:32:38.225Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T02:32:38.226Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T02:32:38.227Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T02:32:38.227Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T02:32:38.228Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T02:32:38.228Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T02:32:38.229Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T02:32:38.229Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T02:32:38.230Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T02:32:38.230Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T02:32:38.231Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T02:32:38.231Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T02:32:38.236Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T02:32:38.529Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_VALIDATE_CREATION
+2026-07-17T02:32:38.532Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_VALIDATE_CREATION&quot;}
+2026-07-17T02:32:38.532Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:38.608Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_CREATED
+2026-07-17T02:32:38.609Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_CREATED&quot;}
+2026-07-17T02:32:38.609Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:38.610Z  INFO 3273 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : created event. Here some debug info rhino js string EVENT_CREATED custom string {test=rhino js string, name=EVENT_CREATED}
+2026-07-17T02:32:38.617Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_CREATED
+2026-07-17T02:32:38.618Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_CREATED&quot;}
+2026-07-17T02:32:38.618Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:38.618Z  INFO 3273 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : created event. Here some debug info rhino js string EVENT_CREATED custom string {test=rhino js string, name=EVENT_CREATED}
+2026-07-17T02:32:38.625Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_METADATA_UPDATE
+2026-07-17T02:32:38.626Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_METADATA_UPDATE&quot;}
+2026-07-17T02:32:38.627Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:38.842Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_STATUS_CHANGE
+2026-07-17T02:32:38.844Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_STATUS_CHANGE&quot;}
+2026-07-17T02:32:38.844Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:38.853Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_STATUS_CHANGE
+2026-07-17T02:32:38.854Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_STATUS_CHANGE&quot;}
+2026-07-17T02:32:38.854Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.066Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: WAITING_QUEUE_SUBSCRIBED
+2026-07-17T02:32:39.070Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;WAITING_QUEUE_SUBSCRIBED&quot;}
+2026-07-17T02:32:39.070Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.150Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.152Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.152Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.246Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-17T02:32:39.247Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-17T02:32:39.247Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.276Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.277Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.277Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.335Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-17T02:32:39.336Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-17T02:32:39.336Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.355Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.356Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.356Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.402Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-17T02:32:39.403Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-17T02:32:39.403Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.437Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.438Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.438Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.462Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-17T02:32:39.463Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-17T02:32:39.463Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.490Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.491Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.492Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.521Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-17T02:32:39.522Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-17T02:32:39.522Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.544Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.545Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.545Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.567Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.568Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.568Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.626Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-17T02:32:39.627Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-17T02:32:39.627Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.674Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-17T02:32:39.675Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-17T02:32:39.675Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.715Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-17T02:32:39.716Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-17T02:32:39.716Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.721Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-17T02:32:39.721Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-17T02:32:39.722Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.725Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-17T02:32:39.726Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-17T02:32:39.726Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.744Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-17T02:32:39.745Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-17T02:32:39.745Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.841Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-17T02:32:39.842Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-17T02:32:39.842Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.846Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-17T02:32:39.846Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-17T02:32:39.847Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.849Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-17T02:32:39.850Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-17T02:32:39.850Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.889Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-17T02:32:39.890Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-17T02:32:39.890Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.906Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-17T02:32:39.907Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-17T02:32:39.907Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.945Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-17T02:32:39.946Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-17T02:32:39.946Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:39.963Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-17T02:32:39.964Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-17T02:32:39.964Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.001Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-17T02:32:40.002Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-17T02:32:40.002Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.020Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-17T02:32:40.020Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-17T02:32:40.021Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.023Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-17T02:32:40.024Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-17T02:32:40.024Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.038Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-17T02:32:40.039Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-17T02:32:40.039Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.061Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-17T02:32:40.062Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-17T02:32:40.062Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.065Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-17T02:32:40.066Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-17T02:32:40.066Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.107Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-17T02:32:40.108Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-17T02:32:40.108Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.147Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-17T02:32:40.148Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-17T02:32:40.148Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.183Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-17T02:32:40.184Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-17T02:32:40.184Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.257Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED_GENERATE_METADATA
+2026-07-17T02:32:40.258Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED_GENERATE_METADATA&quot;}
+2026-07-17T02:32:40.258Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.269Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
+2026-07-17T02:32:40.270Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
+2026-07-17T02:32:40.270Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.275Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
+2026-07-17T02:32:40.276Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
+2026-07-17T02:32:40.276Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.300Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED
+2026-07-17T02:32:40.301Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED&quot;}
+2026-07-17T02:32:40.301Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.322Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-17T02:32:40.322Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-17T02:32:40.323Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.344Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CONFIRMED
+2026-07-17T02:32:40.345Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CONFIRMED&quot;}
+2026-07-17T02:32:40.345Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.395Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-17T02:32:40.396Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-17T02:32:40.396Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:40.415Z  INFO 3273 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: email@email.com, cc: [], subject: You joined the waiting list for event display name, text: Hello first last,
 
 As requested, you joined the waiting list for the event event display name. We'll keep you posted if something comes up!
 
 Kind regards,
 
-b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
+8091244f-ff48-457e-abee-d0d650ea83ec &lt;email@example.com&gt;
 , html: no html, attachments: 
-2026-07-16T02:24:53.563Z  INFO 2950 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: test@test.com, cc: [], subject: Your reservation n. B64DC918 for Event event display name, text: Hello full name,
+2026-07-17T02:32:40.418Z  INFO 3273 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: test@test.com, cc: [], subject: Your reservation n. A15D9BFF for Event event display name, text: Hello full name,
 
 
-Your order for the event event display name has been placed. Please follow the payment instructions at http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang=en
+Your order for the event event display name has been placed. Please follow the payment instructions at http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang=en
 
 
 
@@ -288,7 +288,7 @@ WARNING: You must pay the amount of 10.00 CHF in order to attend the event
 
 context.event.vat number: 42
 
-Order information: b64dc918-a2d2-4777-98f0-a6b267bc8cef
+Order information: a15d9bff-c9c7-40bd-b414-962f19222a61
 
 #### Event information ####
 
@@ -298,12 +298,12 @@ As a reminder, the event will take place at:
 
 on:
 
- Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)
+ Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)
 
 
 Kind regards,
 
-b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
+8091244f-ff48-457e-abee-d0d650ea83ec &lt;email@example.com&gt;
 , html: &lt;!doctype html&gt;
 &lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
   &lt;head&gt;
@@ -547,7 +547,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
 &lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
 &lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:left;color:#000000;&quot;&gt;
 		            
-		            Your order for the event event display name has been placed. Please follow the payment instructions at &lt;a href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot;&gt;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang&amp;#x3D;en&lt;/a&gt;
+		            Your order for the event event display name has been placed. Please follow the payment instructions at &lt;a href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot;&gt;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang&amp;#x3D;en&lt;/a&gt;
                     
 					&lt;/div&gt;
 &lt;/td&gt;
@@ -558,7 +558,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
                 &lt;tbody&gt;
                   &lt;tr&gt;
                     &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
-                      &lt;a  href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View Reservation &lt;/a&gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View Reservation &lt;/a&gt;
                     &lt;/td&gt;
                   &lt;/tr&gt;
                 &lt;/tbody&gt;
@@ -655,7 +655,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
 				
 				&lt;tr class=&quot;bottom-border&quot;&gt;
 					&lt;th&gt;Order information&lt;/th&gt;
-					&lt;td&gt;b64dc918-a2d2-4777-98f0-a6b267bc8cef&lt;/td&gt;
+					&lt;td&gt;a15d9bff-c9c7-40bd-b414-962f19222a61&lt;/td&gt;
 				&lt;/tr&gt;
 			              &lt;/table&gt;
 &lt;/td&gt;
@@ -719,7 +719,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
-&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
 &lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;&lt;/table&gt;
@@ -759,7 +759,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
   &lt;/body&gt;
 &lt;/html&gt;
   , attachments: 
-2026-07-16T02:24:53.566Z  INFO 2950 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: email@example.com, cc: [], subject: Reservation complete B64DC918, text: full name&lt;test@test.com&gt; has completed the reservation B64DC918 for event display name
+2026-07-17T02:32:40.424Z  INFO 3273 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: email@example.com, cc: [], subject: Reservation complete A15D9BFF, text: full name&lt;test@test.com&gt; has completed the reservation A15D9BFF for event display name
 
 Category: default, Quantity: 1, Subtotal: 10.00 CHF, Payment Method: CUSTOM_OFFLINE
 
@@ -769,11 +769,11 @@ Total: 10.00 CHF
 
 VAT INCL 1.00%: 0.10 CHF
 
-Reservation id: b64dc918-a2d2-4777-98f0-a6b267bc8cef.
+Reservation id: a15d9bff-c9c7-40bd-b414-962f19222a61.
 
 
 Ticket identifier:
- - 49f3e9e8-907f-4a67-a241-bd88f0e5ed21
+ - 2147ea2a-1b0c-4d39-ad63-b8a1a11a4a50
 , html: &lt;!doctype html&gt;
 &lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
   &lt;head&gt;
@@ -938,7 +938,7 @@ Ticket identifier:
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:30px;word-break:break-word;&quot;&gt;
-&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:15px;line-height:1;text-align:center;color:#000000;&quot;&gt;full name&lt;test@test.com&gt; has completed the reservation B64DC918 for event display name&lt;/div&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:15px;line-height:1;text-align:center;color:#000000;&quot;&gt;full name&lt;test@test.com&gt; has completed the reservation A15D9BFF for event display name&lt;/div&gt;
 &lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
@@ -979,7 +979,7 @@ Ticket identifier:
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
-&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;Reservation id: b64dc918-a2d2-4777-98f0-a6b267bc8cef.&lt;/div&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;Reservation id: a15d9bff-c9c7-40bd-b414-962f19222a61.&lt;/div&gt;
 &lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
@@ -994,7 +994,7 @@ Ticket identifier:
                 &lt;tbody&gt;
                   &lt;tr&gt;
                     &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
-                      &lt;a  href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View reservation &lt;/a&gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View reservation &lt;/a&gt;
                     &lt;/td&gt;
                   &lt;/tr&gt;
                 &lt;/tbody&gt;
@@ -1046,7 +1046,7 @@ Ticket identifier:
 &lt;tr&gt;
 &lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
 &lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;
-					- 49f3e9e8-907f-4a67-a241-bd88f0e5ed21
+					- 2147ea2a-1b0c-4d39-ad63-b8a1a11a4a50
 					&lt;br&gt;
 				&lt;/div&gt;
 &lt;/td&gt;
@@ -1063,7 +1063,7 @@ Ticket identifier:
   &lt;/body&gt;
 &lt;/html&gt;
   , attachments: 
-2026-07-16T02:24:53.584Z  INFO 2950 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: tickettest@test.com, cc: [], subject: Your ticket for event event display name, text: Hello ticketfull ticketname,
+2026-07-17T02:32:40.444Z  INFO 3273 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: tickettest@test.com, cc: [], subject: Your ticket for event event display name, text: Hello ticketfull ticketname,
 
 Thank you for registering. You're in!
 You are now confirmed for event display name.
@@ -1072,26 +1072,26 @@ You are now confirmed for event display name.
 Important information
 
 You can use the following link to join the event
-http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/check-in/5fc52c44863bce86522a12fe2facfd677bf47553dbe85dec5d8c8b473bfd5310
+http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/check-in/028d204cdf8e4f0bad08dcb73230f7e60c9c7c97dd324697fc730b7465480d55
 
 
 
 *********************************************
 
-You can modify/review your Ticket details at http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/update?lang=en
+You can modify/review your Ticket details at http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/update?lang=en
 
 #### Event information ####
 
 This event will be held online
 
 on:
- Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)
+ Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)
 
 
 
 Kind regards,
 
-b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
+8091244f-ff48-457e-abee-d0d650ea83ec &lt;email@example.com&gt;
 
 
 Proudly generated by Alf.io, the open source ticket reservation system., html: &lt;!doctype html&gt;
@@ -1418,7 +1418,7 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
                 &lt;tbody&gt;
                   &lt;tr&gt;
                     &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
-                      &lt;a  href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/check-in/5fc52c44863bce86522a12fe2facfd677bf47553dbe85dec5d8c8b473bfd5310&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; Join Event &lt;/a&gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/check-in/028d204cdf8e4f0bad08dcb73230f7e60c9c7c97dd324697fc730b7465480d55&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; Join Event &lt;/a&gt;
                     &lt;/td&gt;
                   &lt;/tr&gt;
                 &lt;/tbody&gt;
@@ -1484,7 +1484,7 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
-&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
 &lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;&lt;/table&gt;
@@ -1511,7 +1511,7 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
                 &lt;tbody&gt;
                   &lt;tr&gt;
                     &lt;td  align=&quot;center&quot; bgcolor=&quot;#7C8B95&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#7C8B95;&quot; valign=&quot;middle&quot; &gt;
-                      &lt;a  href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/update?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#7C8B95;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View / Modify Ticket &lt;/a&gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/update?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#7C8B95;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View / Modify Ticket &lt;/a&gt;
                     &lt;/td&gt;
                   &lt;/tr&gt;
                 &lt;/tbody&gt;
@@ -1556,12 +1556,12 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
   &lt;/body&gt;
 &lt;/html&gt;
   , attachments: {filename:calendar.ics, contentType: text/calendar}
-2026-07-16T02:24:53.595Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
-2026-07-16T02:24:53.598Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
-2026-07-16T02:24:53.598Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.136Z  INFO 2950 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: test@test.com, cc: [], subject: Your reservation n. B64DC918 for Event event display name, text: Hello full name,
+2026-07-17T02:32:40.461Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
+2026-07-17T02:32:40.462Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
+2026-07-17T02:32:40.462Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.062Z  INFO 3273 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: test@test.com, cc: [], subject: Your reservation n. A15D9BFF for Event event display name, text: Hello full name,
 
-Your reservation for the event event display name has been completed. You can modify/review it at http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang=en
+Your reservation for the event event display name has been completed. You can modify/review it at http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang=en
 
 
 
@@ -1578,7 +1578,7 @@ context.event.vat at 1.00% included: 0.10 CHF
 
 context.event.vat number: 42
 
-Order information: b64dc918-a2d2-4777-98f0-a6b267bc8cef
+Order information: a15d9bff-c9c7-40bd-b414-962f19222a61
 
 #### Event information ####
 
@@ -1588,12 +1588,12 @@ As a reminder, the event will take place at:
 
 on:
 
- Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)
+ Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)
 
 
 Kind regards,
 
-b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
+8091244f-ff48-457e-abee-d0d650ea83ec &lt;email@example.com&gt;
 , html: &lt;!doctype html&gt;
 &lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
   &lt;head&gt;
@@ -1836,7 +1836,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
 &lt;tr&gt;
 &lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
 &lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:left;color:#000000;&quot;&gt;
-		            Your reservation for the event event display name has been completed. You can modify/review it at &lt;a href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot;&gt;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang&amp;#x3D;en&lt;/a&gt;
+		            Your reservation for the event event display name has been completed. You can modify/review it at &lt;a href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot;&gt;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang&amp;#x3D;en&lt;/a&gt;
 		            
                     
 					&lt;/div&gt;
@@ -1848,7 +1848,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
                 &lt;tbody&gt;
                   &lt;tr&gt;
                     &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
-                      &lt;a  href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/reservation/b64dc918-a2d2-4777-98f0-a6b267bc8cef?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View Reservation &lt;/a&gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/reservation/a15d9bff-c9c7-40bd-b414-962f19222a61?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View Reservation &lt;/a&gt;
                     &lt;/td&gt;
                   &lt;/tr&gt;
                 &lt;/tbody&gt;
@@ -1945,7 +1945,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
 				
 				&lt;tr class=&quot;bottom-border&quot;&gt;
 					&lt;th&gt;Order information&lt;/th&gt;
-					&lt;td&gt;b64dc918-a2d2-4777-98f0-a6b267bc8cef&lt;/td&gt;
+					&lt;td&gt;a15d9bff-c9c7-40bd-b414-962f19222a61&lt;/td&gt;
 				&lt;/tr&gt;
 			              &lt;/table&gt;
 &lt;/td&gt;
@@ -2009,7 +2009,7 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
-&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
 &lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;&lt;/table&gt;
@@ -2049,13 +2049,13 @@ b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
   &lt;/body&gt;
 &lt;/html&gt;
   , attachments: {filename:receipt.pdf, contentType: application/pdf}
-2026-07-16T02:24:54.150Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
-2026-07-16T02:24:54.151Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
-2026-07-16T02:24:54.151Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.154Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
-2026-07-16T02:24:54.157Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
-2026-07-16T02:24:54.157Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.186Z  INFO 2950 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: tickettest@test.com, cc: [], subject: Your ticket for event event display name, text: Hello ticketfull ticketname,
+2026-07-17T02:32:41.080Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
+2026-07-17T02:32:41.081Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
+2026-07-17T02:32:41.081Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.084Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
+2026-07-17T02:32:41.085Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
+2026-07-17T02:32:41.085Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.117Z  INFO 3273 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: tickettest@test.com, cc: [], subject: Your ticket for event event display name, text: Hello ticketfull ticketname,
 
 Thank you for registering. You're in!
 You are now confirmed for event display name.
@@ -2064,26 +2064,26 @@ You are now confirmed for event display name.
 Important information
 
 You can use the following link to join the event
-http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/check-in/5fc52c44863bce86522a12fe2facfd677bf47553dbe85dec5d8c8b473bfd5310
+http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/check-in/028d204cdf8e4f0bad08dcb73230f7e60c9c7c97dd324697fc730b7465480d55
 
 
 
 *********************************************
 
-You can modify/review your Ticket details at http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/update?lang=en
+You can modify/review your Ticket details at http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/update?lang=en
 
 #### Event information ####
 
 This event will be held online
 
 on:
- Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)
+ Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)
 
 
 
 Kind regards,
 
-b96497eb-6b23-4b11-93b2-1133d4d58854 &lt;email@example.com&gt;
+8091244f-ff48-457e-abee-d0d650ea83ec &lt;email@example.com&gt;
 
 
 Proudly generated by Alf.io, the open source ticket reservation system., html: &lt;!doctype html&gt;
@@ -2410,7 +2410,7 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
                 &lt;tbody&gt;
                   &lt;tr&gt;
                     &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
-                      &lt;a  href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/check-in/5fc52c44863bce86522a12fe2facfd677bf47553dbe85dec5d8c8b473bfd5310&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; Join Event &lt;/a&gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/check-in/028d204cdf8e4f0bad08dcb73230f7e60c9c7c97dd324697fc730b7465480d55&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; Join Event &lt;/a&gt;
                     &lt;/td&gt;
                   &lt;/tr&gt;
                 &lt;/tbody&gt;
@@ -2476,7 +2476,7 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
-&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Tuesday 21 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Wednesday 22 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
 &lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;&lt;/table&gt;
@@ -2503,7 +2503,7 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
                 &lt;tbody&gt;
                   &lt;tr&gt;
                     &lt;td  align=&quot;center&quot; bgcolor=&quot;#7C8B95&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#7C8B95;&quot; valign=&quot;middle&quot; &gt;
-                      &lt;a  href=&quot;http://localhost:8080/event/8b795011-8dbd-41c5-aef4-5a978a67edcd/ticket/46649f6b-2ac8-46da-bbf6-87ed7eabb579/update?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#7C8B95;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View / Modify Ticket &lt;/a&gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/79c9f8b9-3e6a-43ea-83de-a5906dc1bec5/ticket/179bda2d-a2ea-4d1f-9f53-aa54dcbfaa6f/update?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#7C8B95;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View / Modify Ticket &lt;/a&gt;
                     &lt;/td&gt;
                   &lt;/tr&gt;
                 &lt;/tbody&gt;
@@ -2548,61 +2548,61 @@ Proudly generated by Alf.io, the open source ticket reservation system., html: &
   &lt;/body&gt;
 &lt;/html&gt;
   , attachments: {filename:calendar.ics, contentType: text/calendar}
-2026-07-16T02:24:54.199Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
-2026-07-16T02:24:54.199Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
-2026-07-16T02:24:54.200Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.210Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
-2026-07-16T02:24:54.212Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
-2026-07-16T02:24:54.212Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.216Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
-2026-07-16T02:24:54.217Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
-2026-07-16T02:24:54.217Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.249Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED
-2026-07-16T02:24:54.249Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED&quot;}
-2026-07-16T02:24:54.249Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.335Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
-2026-07-16T02:24:54.336Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
-2026-07-16T02:24:54.336Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.527Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
-2026-07-16T02:24:54.529Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
-2026-07-16T02:24:54.529Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.620Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_CHECKED_IN
-2026-07-16T02:24:54.621Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_CHECKED_IN&quot;}
-2026-07-16T02:24:54.621Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.653Z  WARN 2950 --- [Alf.io] [    Test worker] a.c.a.a.CheckInApiController             : for event id : 94 and ticket : 49f3e9e8-907f-4a67-a241-bd88f0e5ed21, a revert of the check in has been done by ef7246d1-d595-4958-a659-18c0a49bc644_owner
-2026-07-16T02:24:54.659Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_REVERT_CHECKED_IN
-2026-07-16T02:24:54.660Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_REVERT_CHECKED_IN&quot;}
-2026-07-16T02:24:54.660Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:54.663Z  WARN 2950 --- [Alf.io] [    Test worker] a.c.a.a.CheckInApiController             : for event id : 94 and ticket : 49f3e9e8-907f-4a67-a241-bd88f0e5ed21, a revert of the check in has been done by ef7246d1-d595-4958-a659-18c0a49bc644_owner
-2026-07-16T02:24:54.779Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_CHECKED_IN
-2026-07-16T02:24:54.781Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_CHECKED_IN&quot;}
-2026-07-16T02:24:54.781Z  WARN 2950 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
-2026-07-16T02:24:55.062Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 1 field values
-2026-07-16T02:24:55.063Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 3 field descriptions
-2026-07-16T02:24:55.065Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 3 field configurations
-2026-07-16T02:24:55.082Z  WARN 2950 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 106 (b96497eb-6b23-4b11-93b2-1133d4d58854) initiated by user TEST
-2026-07-16T02:24:55.084Z  WARN 2950 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 3 user(s) from organization 106
-2026-07-16T02:24:55.084Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
-2026-07-16T02:24:55.085Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 44 auditing rows
-2026-07-16T02:24:55.086Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
-2026-07-16T02:24:55.087Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 configurations
-2026-07-16T02:24:55.087Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
-2026-07-16T02:24:55.088Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
-2026-07-16T02:24:55.088Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
-2026-07-16T02:24:55.089Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
-2026-07-16T02:24:55.089Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
-2026-07-16T02:24:55.089Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
-2026-07-16T02:24:55.090Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
-2026-07-16T02:24:55.090Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
-2026-07-16T02:24:55.091Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 promo codes
-2026-07-16T02:24:55.095Z  INFO 2950 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T02:32:41.131Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-17T02:32:41.132Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-17T02:32:41.132Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.145Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
+2026-07-17T02:32:41.147Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
+2026-07-17T02:32:41.147Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.150Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
+2026-07-17T02:32:41.152Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
+2026-07-17T02:32:41.152Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.183Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED
+2026-07-17T02:32:41.184Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED&quot;}
+2026-07-17T02:32:41.184Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.291Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
+2026-07-17T02:32:41.292Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
+2026-07-17T02:32:41.292Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.552Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
+2026-07-17T02:32:41.553Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
+2026-07-17T02:32:41.553Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.673Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_CHECKED_IN
+2026-07-17T02:32:41.674Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_CHECKED_IN&quot;}
+2026-07-17T02:32:41.674Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.714Z  WARN 3273 --- [Alf.io] [    Test worker] a.c.a.a.CheckInApiController             : for event id : 94 and ticket : 2147ea2a-1b0c-4d39-ad63-b8a1a11a4a50, a revert of the check in has been done by 26941d21-e6c5-40ec-95b8-6ba4e2453277_owner
+2026-07-17T02:32:41.721Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_REVERT_CHECKED_IN
+2026-07-17T02:32:41.722Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_REVERT_CHECKED_IN&quot;}
+2026-07-17T02:32:41.722Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:41.725Z  WARN 3273 --- [Alf.io] [    Test worker] a.c.a.a.CheckInApiController             : for event id : 94 and ticket : 2147ea2a-1b0c-4d39-ad63-b8a1a11a4a50, a revert of the check in has been done by 26941d21-e6c5-40ec-95b8-6ba4e2453277_owner
+2026-07-17T02:32:41.847Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_CHECKED_IN
+2026-07-17T02:32:41.848Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_CHECKED_IN&quot;}
+2026-07-17T02:32:41.848Z  WARN 3273 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-17T02:32:42.161Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 1 field values
+2026-07-17T02:32:42.162Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 3 field descriptions
+2026-07-17T02:32:42.164Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 3 field configurations
+2026-07-17T02:32:42.180Z  WARN 3273 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 106 (8091244f-ff48-457e-abee-d0d650ea83ec) initiated by user TEST
+2026-07-17T02:32:42.182Z  WARN 3273 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 3 user(s) from organization 106
+2026-07-17T02:32:42.183Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T02:32:42.183Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 44 auditing rows
+2026-07-17T02:32:42.185Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T02:32:42.185Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 configurations
+2026-07-17T02:32:42.186Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T02:32:42.186Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T02:32:42.187Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T02:32:42.188Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T02:32:42.188Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T02:32:42.188Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T02:32:42.189Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T02:32:42.189Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T02:32:42.190Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 promo codes
+2026-07-17T02:32:42.195Z  INFO 3273 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
 </pre>
 </span>
 </div>
 <div class="tab">
 <h2>Standard error</h2>
 <span class="code">
-<pre>com.openhtmltopdf.load INFO:: TIME: parse stylesheets 53ms
+<pre>com.openhtmltopdf.load INFO:: TIME: parse stylesheets 61ms
 com.openhtmltopdf.match INFO:: Matcher created with 170 selectors
 com.openhtmltopdf.load INFO:: Loading font(DejaVu Sans Mono) from PDFont supplier now.
 com.openhtmltopdf.load INFO:: Loading font(Monospaced) from PDFont supplier now.
@@ -2634,7 +2634,7 @@ com.openhtmltopdf.general INFO:: Using fast-mode renderer. Prepare to fly.
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.14.4</a> at Jul 16, 2026, 2:26:28 AM</p>
+<a href="https://www.gradle.org">Gradle 8.14.4</a> at Jul 17, 2026, 2:34:34 AM</p>
 </div>
 </div>
 </body>
