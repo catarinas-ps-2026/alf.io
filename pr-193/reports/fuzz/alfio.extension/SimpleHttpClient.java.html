@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleHttpClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.extension</a> &gt; <span class="el_source">SimpleHttpClient.java</span></div><h1>SimpleHttpClient.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.extension;
+
+import alfio.util.HttpUtils;
+import java.io.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class SimpleHttpClient {
+
+<span class="nc" id="L35">    private static final Logger log = LoggerFactory.getLogger(SimpleHttpClient.class);</span>
+<span class="nc" id="L36">    private static final Set&lt;String&gt; NULL_REQUEST_BODY = Set.of(&quot;GET&quot;, &quot;HEAD&quot;);</span>
+<span class="nc" id="L37">    static final Path ALLOWED_TMP_FILE_DIR = Path.of(System.getProperty(&quot;java.io.tmpdir&quot;), &quot;alfio-extension&quot;);</span>
+<span class="nc" id="L38">    private static final Path OUTPUT_FILE_DIR = Path.of(System.getProperty(&quot;java.io.tmpdir&quot;), &quot;alfio-extension-output&quot;);</span>
+
+    static {
+        // make sure input and output directories exist
+        try {
+<span class="nc" id="L43">            Files.createDirectories(ALLOWED_TMP_FILE_DIR);</span>
+<span class="nc" id="L44">            Files.createDirectories(OUTPUT_FILE_DIR);</span>
+<span class="nc" id="L45">        } catch (IOException e) {</span>
+<span class="nc" id="L46">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L47">        }</span>
+<span class="nc" id="L48">    }</span>
+
+    private final HttpClient httpClient;
+
+<span class="nc" id="L52">    public SimpleHttpClient(HttpClient httpClient) {</span>
+<span class="nc" id="L53">        this.httpClient = httpClient;</span>
+<span class="nc" id="L54">    }</span>
+
+    public SimpleHttpClientResponse get(String url) throws IOException {
+<span class="nc" id="L57">        return get(url, Collections.emptyMap());</span>
+    }
+
+    public SimpleHttpClientResponse get(String url, Map&lt;String, String&gt; headers) throws IOException {
+<span class="nc" id="L61">        return doRequest(url, headers, &quot;GET&quot;, null);</span>
+    }
+
+    public SimpleHttpClientResponse head(String url) throws IOException {
+<span class="nc" id="L65">        return head(url, Collections.emptyMap());</span>
+    }
+
+    public SimpleHttpClientResponse head(String url, Map&lt;String, String&gt; headers) throws IOException {
+<span class="nc" id="L69">        return doRequest(url, headers, &quot;HEAD&quot;, null);</span>
+    }
+
+    public SimpleHttpClientResponse post(String url) throws IOException {
+<span class="nc" id="L73">        return post(url, Collections.emptyMap());</span>
+    }
+
+    public SimpleHttpClientResponse post(String url, Map&lt;String, String&gt; headers) throws IOException {
+<span class="nc" id="L77">        return post(url, headers, null);</span>
+    }
+
+    public SimpleHttpClientResponse post(String url, Map&lt;String, String&gt; headers, Object body) throws IOException {
+<span class="nc" id="L81">        return postJSON(url, headers, body);</span>
+    }
+
+    public SimpleHttpClientResponse postJSON(String url, Map&lt;String, String&gt; headers, Object body) throws IOException {
+<span class="nc" id="L85">        return doRequest(url, headers, &quot;POST&quot;, body);</span>
+    }
+
+    public SimpleHttpClientResponse postForm(String url, Map&lt;String, String&gt; headers, Map&lt;String, String&gt; params)
+            throws IOException {
+<span class="nc" id="L90">        HttpRequest request = buildUrlAndHeader(url, headers, HttpUtils.APPLICATION_FORM_URLENCODED)</span>
+<span class="nc" id="L91">                .POST(HttpUtils.ofFormUrlEncodedBody(params))</span>
+<span class="nc" id="L92">                .build();</span>
+<span class="nc" id="L93">        return callRemote(request);</span>
+    }
+
+    public SimpleHttpClientCachedResponse postFileAndSaveResponse(
+            String url, Map&lt;String, String&gt; headers, String file, String filename, String contentType)
+            throws IOException {
+<span class="nc" id="L99">        Path resolved = Path.of(file).normalize().toAbsolutePath();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (!resolved.startsWith(ALLOWED_TMP_FILE_DIR)) {</span>
+<span class="nc" id="L101">            throw new SecurityException(&quot;File access outside allowed base directory (&quot; + ALLOWED_TMP_FILE_DIR + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L103">        var mpb = new HttpUtils.MultiPartBodyPublisher();</span>
+<span class="nc" id="L104">        mpb.addPart(</span>
+                &quot;file&quot;,
+                () -&gt; {
+                    try {
+<span class="nc" id="L108">                        return new FileInputStream(file);</span>
+<span class="nc" id="L109">                    } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L110">                        throw new IllegalStateException(e);</span>
+                    }
+                },
+                filename,
+                contentType);
+<span class="nc" id="L115">        HttpRequest request = buildUrlAndHeader(</span>
+<span class="nc" id="L116">                        url, headers, HttpUtils.MULTIPART_FORM_DATA + &quot;;boundary=\&quot;&quot; + mpb.getBoundary() + &quot;\&quot;&quot;)</span>
+<span class="nc" id="L117">                .POST(mpb.build())</span>
+<span class="nc" id="L118">                .build();</span>
+<span class="nc" id="L119">        return callRemoteAndSaveResponse(request);</span>
+    }
+
+    public SimpleHttpClientCachedResponse postBodyAndSaveResponse(
+            String url, Map&lt;String, String&gt; headers, String content, String contentType) throws IOException {
+<span class="nc" id="L124">        HttpRequest request = buildUrlAndHeader(url, headers, contentType)</span>
+<span class="nc" id="L125">                .POST(HttpRequest.BodyPublishers.ofString(content))</span>
+<span class="nc" id="L126">                .build();</span>
+<span class="nc" id="L127">        return callRemoteAndSaveResponse(request);</span>
+    }
+
+    public SimpleHttpClientResponse delete(String url) throws IOException {
+<span class="nc" id="L131">        return delete(url, Collections.emptyMap());</span>
+    }
+
+    public SimpleHttpClientResponse delete(String url, Map&lt;String, String&gt; headers) throws IOException {
+<span class="nc" id="L135">        return delete(url, headers, null);</span>
+    }
+
+    public SimpleHttpClientResponse delete(String url, Map&lt;String, String&gt; headers, Object body) throws IOException {
+<span class="nc" id="L139">        return doRequest(url, headers, &quot;DELETE&quot;, body);</span>
+    }
+
+    public SimpleHttpClientResponse put(String url) throws IOException {
+<span class="nc" id="L143">        return put(url, Collections.emptyMap());</span>
+    }
+
+    public SimpleHttpClientResponse put(String url, Map&lt;String, String&gt; headers) throws IOException {
+<span class="nc" id="L147">        return put(url, headers, null);</span>
+    }
+
+    public SimpleHttpClientResponse put(String url, Map&lt;String, String&gt; headers, Object body) throws IOException {
+<span class="nc" id="L151">        return doRequest(url, headers, &quot;PUT&quot;, body);</span>
+    }
+
+    public SimpleHttpClientResponse patch(String url) throws IOException {
+<span class="nc" id="L155">        return patch(url, Collections.emptyMap());</span>
+    }
+
+    public SimpleHttpClientResponse patch(String url, Map&lt;String, String&gt; headers) throws IOException {
+<span class="nc" id="L159">        return patch(url, headers, null);</span>
+    }
+
+    public SimpleHttpClientResponse patch(String url, Map&lt;String, String&gt; headers, Object body) throws IOException {
+<span class="nc" id="L163">        return doRequest(url, headers, &quot;PATCH&quot;, body);</span>
+    }
+
+    public SimpleHttpClientResponse method(String method, String url, Map&lt;String, String&gt; headers, Object body)
+            throws IOException {
+<span class="nc" id="L168">        return doRequest(url, headers, method, body);</span>
+    }
+
+    private SimpleHttpClientResponse doRequest(
+            String url, Map&lt;String, String&gt; headers, String method, Object requestBody) throws IOException {
+<span class="nc" id="L173">        HttpRequest request = buildUrlAndHeader(</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">                        url, headers, NULL_REQUEST_BODY.contains(method) ? null : HttpUtils.APPLICATION_JSON)</span>
+<span class="nc" id="L175">                .method(method, buildRequestBody(requestBody))</span>
+<span class="nc" id="L176">                .build();</span>
+<span class="nc" id="L177">        return callRemote(request);</span>
+    }
+
+    private SimpleHttpClientResponse callRemote(HttpRequest request) throws IOException {
+<span class="nc" id="L181">        HttpResponse&lt;String&gt; response = null;</span>
+        try {
+<span class="nc" id="L183">            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="nc" id="L184">        } catch (InterruptedException exception) {</span>
+<span class="nc" id="L185">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L186">            logInterruption(exception);</span>
+<span class="nc" id="L187">        }</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (response != null) {</span>
+<span class="nc" id="L189">            return new SimpleHttpClientResponse(</span>
+<span class="nc" id="L190">                    HttpUtils.callSuccessful(response),</span>
+<span class="nc" id="L191">                    response.statusCode(),</span>
+<span class="nc" id="L192">                    response.headers().map(),</span>
+<span class="nc" id="L193">                    response.body());</span>
+        } else {
+<span class="nc" id="L195">            return new SimpleHttpClientResponse(false, 0, Map.of(), &quot;&quot;);</span>
+        }
+    }
+
+    private static void logInterruption(InterruptedException exception) {
+<span class="nc" id="L200">        log.warn(&quot;HTTP request interrupted&quot;, exception);</span>
+<span class="nc" id="L201">    }</span>
+
+    private SimpleHttpClientCachedResponse callRemoteAndSaveResponse(HttpRequest request) throws IOException {
+<span class="nc" id="L204">        HttpResponse&lt;InputStream&gt; response = null;</span>
+        try {
+<span class="nc" id="L206">            response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());</span>
+<span class="nc" id="L207">        } catch (InterruptedException exception) {</span>
+<span class="nc" id="L208">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L209">            logInterruption(exception);</span>
+<span class="nc" id="L210">            throw new IllegalStateException(exception);</span>
+<span class="nc" id="L211">        }</span>
+<span class="nc" id="L212">        Path tempFile = null;</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (HttpUtils.callSuccessful(response)) {</span>
+<span class="nc" id="L214">            InputStream body = response.body();</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            if (body != null) {</span>
+<span class="nc" id="L216">                tempFile = Files.createTempFile(OUTPUT_FILE_DIR, &quot;extension-out&quot;, &quot;.tmp&quot;);</span>
+<span class="nc" id="L217">                try (FileOutputStream out = new FileOutputStream(tempFile.toFile())) {</span>
+<span class="nc" id="L218">                    body.transferTo(out);</span>
+                }
+            }
+        }
+<span class="nc" id="L222">        return new SimpleHttpClientCachedResponse(</span>
+<span class="nc" id="L223">                HttpUtils.callSuccessful(response),</span>
+<span class="nc" id="L224">                response.statusCode(),</span>
+<span class="nc" id="L225">                response.headers().map(),</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                tempFile != null ? tempFile.toAbsolutePath().toString() : null);</span>
+    }
+
+    // Thanks to: https://stackoverflow.com/questions/54208945/java-11-httpclient-not-sending-basic-authentication
+    public String basicCredentials(String username, String password) {
+<span class="nc" id="L231">        return HttpUtils.basicAuth(username, password);</span>
+    }
+
+    private static HttpRequest.Builder buildUrlAndHeader(String url, Map&lt;?, ?&gt; headers, String contentType) {
+<span class="nc" id="L235">        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();</span>
+<span class="nc" id="L236">        requestBuilder.uri(URI.create(url));</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (headers != null) {</span>
+<span class="nc" id="L238">            headers.forEach((k, v) -&gt; requestBuilder.header(String.valueOf(k), String.valueOf(v)));</span>
+        }
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (contentType != null) {</span>
+<span class="nc" id="L241">            requestBuilder.header(HttpUtils.CONTENT_TYPE, contentType);</span>
+        }
+<span class="nc" id="L243">        return requestBuilder;</span>
+    }
+
+    private static HttpRequest.BodyPublisher buildRequestBody(Object body) {
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        return body == null</span>
+<span class="nc" id="L248">                ? HttpRequest.BodyPublishers.noBody()</span>
+<span class="nc" id="L249">                : HttpRequest.BodyPublishers.ofString(ExtensionUtils.convertToJson(body));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UploadedResourceManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">UploadedResourceManager.java</span></div><h1>UploadedResourceManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.model.UploadedResource;
+import alfio.model.modification.UploadBase64FileModification;
+import alfio.repository.UploadedResourceRepository;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.imageio.ImageIO;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+@Transactional
+public class UploadedResourceManager {
+
+    public static final String ATTR_IMG_WIDTH = &quot;width&quot;;
+    public static final String ATTR_IMG_HEIGHT = &quot;height&quot;;
+<span class="nc" id="L44">    private static final Logger log = LoggerFactory.getLogger(UploadedResourceManager.class);</span>
+
+    private final UploadedResourceRepository uploadedResourceRepository;
+
+<span class="nc" id="L48">    public UploadedResourceManager(UploadedResourceRepository uploadedResourceRepository) {</span>
+<span class="nc" id="L49">        this.uploadedResourceRepository = uploadedResourceRepository;</span>
+<span class="nc" id="L50">    }</span>
+
+    public boolean hasResource(String name) {
+<span class="nc" id="L53">        return uploadedResourceRepository.hasResource(name);</span>
+    }
+
+    public boolean hasResource(int organizationId, String name) {
+<span class="nc" id="L57">        return uploadedResourceRepository.hasResource(organizationId, name);</span>
+    }
+
+    public boolean hasResource(int organizationId, int eventId, String name) {
+<span class="nc" id="L61">        return uploadedResourceRepository.hasResource(organizationId, eventId, name);</span>
+    }
+
+    public UploadedResource get(String name) {
+<span class="nc" id="L65">        return uploadedResourceRepository.get(name);</span>
+    }
+
+    public UploadedResource get(int organizationId, String name) {
+<span class="nc" id="L69">        return uploadedResourceRepository.get(organizationId, name);</span>
+    }
+
+    public UploadedResource get(int organizationId, int eventId, String name) {
+<span class="nc" id="L73">        return uploadedResourceRepository.get(organizationId, eventId, name);</span>
+    }
+
+    public void outputResource(String name, OutputStream out) {
+<span class="nc" id="L77">        uploadedResourceRepository.fileContent(name, out);</span>
+<span class="nc" id="L78">    }</span>
+
+    public void outputResource(int organizationId, String name, OutputStream out) {
+<span class="nc" id="L81">        uploadedResourceRepository.fileContent(organizationId, name, out);</span>
+<span class="nc" id="L82">    }</span>
+
+    public void outputResource(int organizationId, int eventId, String name, OutputStream out) {
+<span class="nc" id="L85">        uploadedResourceRepository.fileContent(organizationId, eventId, name, out);</span>
+<span class="nc" id="L86">    }</span>
+
+    public Optional&lt;Integer&gt; saveResource(UploadBase64FileModification file) {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (hasResource(file.getName())) {</span>
+<span class="nc" id="L90">            uploadedResourceRepository.delete(file.getName());</span>
+        }
+
+<span class="nc" id="L93">        return Optional.ofNullable(uploadedResourceRepository.upload(null, null, file, getAttributes(file)));</span>
+    }
+
+    public Optional&lt;Integer&gt; saveResource(int organizationId, UploadBase64FileModification file) {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (hasResource(organizationId, file.getName())) {</span>
+<span class="nc" id="L98">            uploadedResourceRepository.delete(organizationId, file.getName());</span>
+        }
+
+<span class="nc" id="L101">        return Optional.ofNullable(uploadedResourceRepository.upload(organizationId, null, file, getAttributes(file)));</span>
+    }
+
+    public Optional&lt;Integer&gt; saveResource(int organizationId, int eventId, UploadBase64FileModification file) {
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (hasResource(organizationId, eventId, file.getName())) {</span>
+<span class="nc" id="L106">            uploadedResourceRepository.delete(organizationId, eventId, file.getName());</span>
+        }
+
+<span class="nc" id="L109">        return Optional.ofNullable(</span>
+<span class="nc" id="L110">                uploadedResourceRepository.upload(organizationId, eventId, file, getAttributes(file)));</span>
+    }
+
+    public void deleteResource(String name) {
+<span class="nc" id="L114">        uploadedResourceRepository.delete(name);</span>
+<span class="nc" id="L115">    }</span>
+
+    public void deleteResource(int organizationId, String name) {
+<span class="nc" id="L118">        uploadedResourceRepository.delete(organizationId, name);</span>
+<span class="nc" id="L119">    }</span>
+
+    public void deleteResource(int organizationId, int eventId, String name) {
+<span class="nc" id="L122">        uploadedResourceRepository.delete(organizationId, eventId, name);</span>
+<span class="nc" id="L123">    }</span>
+
+    public List&lt;UploadedResource&gt; findAll() {
+<span class="nc" id="L126">        return uploadedResourceRepository.findAll();</span>
+    }
+
+    public List&lt;UploadedResource&gt; findAll(int organizationId) {
+<span class="nc" id="L130">        return uploadedResourceRepository.findAll(organizationId);</span>
+    }
+
+    public List&lt;UploadedResource&gt; findAll(int organizationId, int eventId) {
+<span class="nc" id="L134">        return uploadedResourceRepository.findAll(organizationId, eventId);</span>
+    }
+
+    private static Map&lt;String, String&gt; getAttributes(UploadBase64FileModification file) {
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (!StringUtils.startsWith(file.getType(), &quot;image/&quot;)) {</span>
+<span class="nc" id="L139">            return file.getAttributes();</span>
+        }
+
+        try {
+<span class="nc" id="L143">            BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getFile()));</span>
+<span class="nc" id="L144">            Map&lt;String, String&gt; attributes = new HashMap&lt;&gt;(file.getAttributes());</span>
+<span class="nc" id="L145">            attributes.put(ATTR_IMG_WIDTH, String.valueOf(image.getWidth()));</span>
+<span class="nc" id="L146">            attributes.put(ATTR_IMG_HEIGHT, String.valueOf(image.getHeight()));</span>
+<span class="nc" id="L147">            return attributes;</span>
+<span class="nc" id="L148">        } catch (IOException e) {</span>
+<span class="nc" id="L149">            log.error(&quot;error while processing image: &quot;, e);</span>
+<span class="nc" id="L150">            return file.getAttributes();</span>
+        }
+    }
+
+    public Optional&lt;byte[]&gt; findCascading(int organizationId, Integer eventId, String savedName) {
+<span class="nc" id="L155">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc bnc" id="L156" title="All 4 branches missed.">        if (eventId != null &amp;&amp; hasResource(organizationId, eventId, savedName)) {</span>
+<span class="nc" id="L157">            outputResource(organizationId, eventId, savedName, baos);</span>
+<span class="nc" id="L158">            return Optional.of(baos.toByteArray());</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        } else if (hasResource(organizationId, savedName)) {</span>
+<span class="nc" id="L160">            outputResource(organizationId, savedName, baos);</span>
+<span class="nc" id="L161">            return Optional.of(baos.toByteArray());</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        } else if (hasResource(savedName)) {</span>
+<span class="nc" id="L163">            outputResource(savedName, baos);</span>
+<span class="nc" id="L164">            return Optional.of(baos.toByteArray());</span>
+        } else {
+<span class="nc" id="L166">            return Optional.empty();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

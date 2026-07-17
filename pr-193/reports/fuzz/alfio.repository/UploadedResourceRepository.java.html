@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UploadedResourceRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.repository</a> &gt; <span class="el_source">UploadedResourceRepository.java</span></div><h1>UploadedResourceRepository.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.repository;
+
+import alfio.model.UploadedResource;
+import alfio.model.modification.UploadBase64FileModification;
+import alfio.util.Json;
+import ch.digitalfondue.npjt.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.support.AbstractLobCreatingPreparedStatementCallback;
+import org.springframework.jdbc.support.lob.DefaultLobHandler;
+import org.springframework.jdbc.support.lob.LobCreator;
+import org.springframework.jdbc.support.lob.LobHandler;
+
+@QueryRepository
+public interface UploadedResourceRepository {
+
+    @Query(&quot;select exists(select name from resource_global where name = :name) as res&quot;)
+    boolean hasResource(@Bind(&quot;name&quot;) String name);
+
+    @Query(
+            &quot;select exists(select name from resource_organizer where name = :name and organization_id_fk = :organizationId) as res&quot;)
+    boolean hasResource(@Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;name&quot;) String name);
+
+    @Query(
+            &quot;select exists(select name from resource_event where name = :name and organization_id_fk = :organizationId  and event_id_fk = :eventId) as res&quot;)
+    boolean hasResource(
+            @Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;name&quot;) String name);
+
+    @Query(
+            &quot;select name, content_size, content_type, creation_time, attributes, null as organization_id_fk, null as event_id_fk  from resource_global where name = :name&quot;)
+    UploadedResource get(@Bind(&quot;name&quot;) String name);
+
+    @Query(
+            &quot;select name, content_size, content_type, creation_time, attributes, organization_id_fk, null as event_id_fk from resource_organizer where organization_id_fk = :organizationId  and name = :name&quot;)
+    UploadedResource get(@Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;name&quot;) String name);
+
+    @Query(
+            &quot;select name, content_size, content_type, creation_time, attributes, organization_id_fk, event_id_fk from resource_event where organization_id_fk = :organizationId  and event_id_fk = :eventId and name = :name&quot;)
+    UploadedResource get(
+            @Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;name&quot;) String name);
+
+    @Query(
+            &quot;select name, content_size, content_type, creation_time, attributes, null as organization_id_fk, null as event_id_fk  from resource_global order by name asc&quot;)
+    List&lt;UploadedResource&gt; findAll();
+
+    @Query(
+            &quot;select name, content_size, content_type, creation_time, attributes, organization_id_fk, null as event_id_fk from resource_organizer where organization_id_fk = :organizationId order by name asc&quot;)
+    List&lt;UploadedResource&gt; findAll(@Bind(&quot;organizationId&quot;) int organizationId);
+
+    @Query(
+            &quot;select name, content_size, content_type, creation_time, attributes, organization_id_fk, event_id_fk from resource_event where organization_id_fk = :organizationId  and event_id_fk = :eventId order by name asc&quot;)
+    List&lt;UploadedResource&gt; findAll(@Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;eventId&quot;) int eventId);
+
+    @Query(&quot;delete from resource_global where name = :name&quot;)
+    int delete(@Bind(&quot;name&quot;) String name);
+
+    @Query(&quot;delete from resource_organizer where name = :name and organization_id_fk = :organizationId&quot;)
+    int delete(@Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;name&quot;) String name);
+
+    @Query(
+            &quot;delete from resource_event where name = :name and organization_id_fk = :organizationId and event_id_fk = :eventId&quot;)
+    int delete(@Bind(&quot;organizationId&quot;) int organizationId, @Bind(&quot;eventId&quot;) int eventId, @Bind(&quot;name&quot;) String name);
+
+<span class="nc" id="L91">    Function&lt;OutputStream, RowCallbackHandler&gt; OUTPUT_CONTENT = out -&gt; rs -&gt; {</span>
+<span class="nc" id="L92">        try (InputStream is = rs.getBinaryStream(&quot;content&quot;)) {</span>
+<span class="nc" id="L93">            is.transferTo(out);</span>
+<span class="nc" id="L94">        } catch (IOException e) {</span>
+<span class="nc" id="L95">            throw new IllegalStateException(&quot;Error while copying data&quot;, e);</span>
+<span class="nc" id="L96">        }</span>
+<span class="nc" id="L97">    };</span>
+
+    default void fileContent(String name, OutputStream out) {
+<span class="nc" id="L100">        SqlParameterSource param = new MapSqlParameterSource(&quot;name&quot;, name);</span>
+<span class="nc" id="L101">        getNamedParameterJdbcTemplate()</span>
+<span class="nc" id="L102">                .query(&quot;select content from resource_global where name = :name&quot;, param, OUTPUT_CONTENT.apply(out));</span>
+<span class="nc" id="L103">    }</span>
+
+    default void fileContent(int organizationId, String name, OutputStream out) {
+<span class="nc" id="L106">        SqlParameterSource param = new MapSqlParameterSource(&quot;name&quot;, name).addValue(&quot;organizationId&quot;, organizationId);</span>
+<span class="nc" id="L107">        getNamedParameterJdbcTemplate()</span>
+<span class="nc" id="L108">                .query(</span>
+                        &quot;select content from resource_organizer where name = :name and organization_id_fk = :organizationId&quot;,
+                        param,
+<span class="nc" id="L111">                        OUTPUT_CONTENT.apply(out));</span>
+<span class="nc" id="L112">    }</span>
+
+    default void fileContent(int organizationId, int eventId, String name, OutputStream out) {
+<span class="nc" id="L115">        SqlParameterSource param = new MapSqlParameterSource(&quot;name&quot;, name)</span>
+<span class="nc" id="L116">                .addValue(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L117">                .addValue(&quot;eventId&quot;, eventId);</span>
+<span class="nc" id="L118">        getNamedParameterJdbcTemplate()</span>
+<span class="nc" id="L119">                .query(</span>
+                        &quot;select content from resource_event where name = :name and organization_id_fk = :organizationId and event_id_fk = :eventId&quot;,
+                        param,
+<span class="nc" id="L122">                        OUTPUT_CONTENT.apply(out));</span>
+<span class="nc" id="L123">    }</span>
+
+    NamedParameterJdbcTemplate getNamedParameterJdbcTemplate();
+
+    default int upload(
+            Integer organizationId,
+            Integer eventId,
+            UploadBase64FileModification file,
+            Map&lt;String, String&gt; attributes) {
+
+<span class="nc" id="L133">        LobHandler lobHandler = new DefaultLobHandler();</span>
+
+<span class="nc" id="L135">        String query =</span>
+                &quot;insert into resource_global (name, content_size, content, content_type, attributes) values(?, ?, ?, ?, ?)&quot;;
+<span class="nc bnc" id="L137" title="All 4 branches missed.">        if (organizationId != null &amp;&amp; eventId != null) {</span>
+<span class="nc" id="L138">            query =</span>
+                    &quot;insert into resource_event (name, content_size, content, content_type, attributes, organization_id_fk, event_id_fk) values(?, ?, ?, ?, ?, ?, ?)&quot;;
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        } else if (organizationId != null) {</span>
+<span class="nc" id="L141">            query =</span>
+                    &quot;insert into resource_organizer (name, content_size, content, content_type, attributes, organization_id_fk) values(?, ?, ?, ?, ?, ?)&quot;;
+        }
+
+<span class="nc" id="L145">        return Objects.requireNonNullElse(</span>
+<span class="nc" id="L146">                getNamedParameterJdbcTemplate()</span>
+<span class="nc" id="L147">                        .getJdbcOperations()</span>
+<span class="nc" id="L148">                        .execute(query, new AbstractLobCreatingPreparedStatementCallback(lobHandler) {</span>
+                            @Override
+                            protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
+                                ps.setString(1, file.getName());
+                                ps.setLong(2, file.getFile().length);
+                                lobCreator.setBlobAsBytes(ps, 3, file.getFile());
+                                ps.setString(4, file.getType());
+                                ps.setString(5, Json.GSON.toJson(attributes));
+                                if (organizationId != null) {
+                                    ps.setInt(6, organizationId);
+                                }
+                                if (eventId != null) {
+                                    ps.setInt(7, eventId);
+                                }
+                            }
+                        }),
+<span class="nc" id="L164">                0);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

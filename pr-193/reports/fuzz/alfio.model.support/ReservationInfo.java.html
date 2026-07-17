@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReservationInfo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.support</a> &gt; <span class="el_source">ReservationInfo.java</span></div><h1>ReservationInfo.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.support;
+
+import alfio.model.PriceContainer;
+import alfio.model.transaction.PaymentProxy;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
+public class ReservationInfo {
+    private final String id;
+    private final String invoiceNumber;
+    private final String firstName;
+    private final String lastName;
+    private final String companyName;
+    private final String taxId;
+    private final String email;
+    private final PaymentProxy paymentType;
+    private final Integer finalPriceCts;
+    private final Integer srcPriceCts;
+    private final Integer taxCts;
+    private final PriceContainer.VatStatus taxStatus;
+    private final String taxCode;
+    private final String currency;
+    private final String confirmationTimestamp;
+    private final List&lt;TicketInfo&gt; tickets;
+
+    @JsonCreator
+    ReservationInfo(
+            @JsonProperty(&quot;id&quot;) String id,
+            @JsonProperty(&quot;invoiceNumber&quot;) String invoiceNumber,
+            @JsonProperty(&quot;firstName&quot;) String firstName,
+            @JsonProperty(&quot;lastName&quot;) String lastName,
+            @JsonProperty(&quot;companyName&quot;) String companyName,
+            @JsonProperty(&quot;taxId&quot;) String taxId,
+            @JsonProperty(&quot;email&quot;) String email,
+            @JsonProperty(&quot;paymentType&quot;) PaymentProxy paymentType,
+            @JsonProperty(&quot;finalPriceCts&quot;) Integer finalPriceCts,
+            @JsonProperty(&quot;srcPriceCts&quot;) Integer srcPriceCts,
+            @JsonProperty(&quot;taxCts&quot;) Integer taxCts,
+            @JsonProperty(&quot;taxStatus&quot;) PriceContainer.VatStatus taxStatus,
+            @JsonProperty(&quot;taxCode&quot;) String taxCode,
+            @JsonProperty(&quot;currency&quot;) String currency,
+            @JsonProperty(&quot;confirmationTimestamp&quot;) String confirmationTimestamp,
+<span class="nc" id="L60">            @JsonProperty(&quot;tickets&quot;) List&lt;TicketInfo&gt; tickets) {</span>
+<span class="nc" id="L61">        this.id = id;</span>
+<span class="nc" id="L62">        this.invoiceNumber = invoiceNumber;</span>
+<span class="nc" id="L63">        this.firstName = firstName;</span>
+<span class="nc" id="L64">        this.lastName = lastName;</span>
+<span class="nc" id="L65">        this.companyName = companyName;</span>
+<span class="nc" id="L66">        this.taxId = taxId;</span>
+<span class="nc" id="L67">        this.email = email;</span>
+<span class="nc" id="L68">        this.paymentType = paymentType;</span>
+<span class="nc" id="L69">        this.finalPriceCts = finalPriceCts;</span>
+<span class="nc" id="L70">        this.srcPriceCts = srcPriceCts;</span>
+<span class="nc" id="L71">        this.taxCts = taxCts;</span>
+<span class="nc" id="L72">        this.taxStatus = taxStatus;</span>
+<span class="nc" id="L73">        this.taxCode = taxCode;</span>
+<span class="nc" id="L74">        this.currency = currency;</span>
+<span class="nc" id="L75">        this.confirmationTimestamp = confirmationTimestamp;</span>
+<span class="nc" id="L76">        this.tickets = tickets;</span>
+<span class="nc" id="L77">    }</span>
+
+    public String getId() {
+<span class="nc" id="L80">        return id;</span>
+    }
+
+    public String getInvoiceNumber() {
+<span class="nc" id="L84">        return invoiceNumber;</span>
+    }
+
+    public String getFirstName() {
+<span class="nc" id="L88">        return firstName;</span>
+    }
+
+    public String getLastName() {
+<span class="nc" id="L92">        return lastName;</span>
+    }
+
+    public String getEmail() {
+<span class="nc" id="L96">        return email;</span>
+    }
+
+    public PaymentProxy getPaymentType() {
+<span class="nc" id="L100">        return paymentType;</span>
+    }
+
+    public String getCurrency() {
+<span class="nc" id="L104">        return currency;</span>
+    }
+
+    public String getConfirmationTimestamp() {
+<span class="nc" id="L108">        return confirmationTimestamp;</span>
+    }
+
+    public List&lt;TicketInfo&gt; getTickets() {
+<span class="nc" id="L112">        return tickets;</span>
+    }
+
+    public Integer getFinalPriceCts() {
+<span class="nc" id="L116">        return finalPriceCts;</span>
+    }
+
+    public Integer getSrcPriceCts() {
+<span class="nc" id="L120">        return srcPriceCts;</span>
+    }
+
+    public PriceContainer.VatStatus getTaxStatus() {
+<span class="nc" id="L124">        return taxStatus;</span>
+    }
+
+    public String getTaxCode() {
+<span class="nc" id="L128">        return taxCode;</span>
+    }
+
+    public String getCompanyName() {
+<span class="nc" id="L132">        return companyName;</span>
+    }
+
+    public String getTaxId() {
+<span class="nc" id="L136">        return taxId;</span>
+    }
+
+    public Integer getTaxCts() {
+<span class="nc" id="L140">        return taxCts;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

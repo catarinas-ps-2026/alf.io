@@ -1,0 +1,1414 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">EventManager.java</span></div><h1>EventManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.model.TicketCategory.TicketCheckInStrategy.ONCE_PER_EVENT;
+import static alfio.model.modification.DateTimeModification.atZone;
+import static alfio.model.system.ConfigurationKeys.CHECK_IN_COLOR_CONFIGURATION;
+import static alfio.util.EventUtil.*;
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+import static alfio.util.Wrappers.optionally;
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNullElse;
+import static java.util.Objects.requireNonNullElseGet;
+import static java.util.stream.Collectors.*;
+
+import alfio.config.Initializer;
+import alfio.controller.form.SearchOptions;
+import alfio.manager.support.CategoryEvaluator;
+import alfio.manager.support.extension.ExtensionCapability;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.user.UserManager;
+import alfio.model.*;
+import alfio.model.Event.EventFormat;
+import alfio.model.PromoCodeDiscount.DiscountType;
+import alfio.model.Ticket.TicketStatus;
+import alfio.model.TicketCategory.TicketAccessType;
+import alfio.model.metadata.AlfioMetadata;
+import alfio.model.modification.CategoryOrdinalModification;
+import alfio.model.modification.EventModification;
+import alfio.model.modification.PromoCodeDiscountWithFormattedTimeAndAmount;
+import alfio.model.modification.TicketCategoryModification;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import alfio.model.subscription.EventSubscriptionLink;
+import alfio.model.subscription.LinkSubscriptionsToEventRequest;
+import alfio.model.support.CheckInOutputColorConfiguration;
+import alfio.model.support.CheckInOutputColorConfiguration.ColorConfiguration;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.user.Organization;
+import alfio.repository.*;
+import alfio.repository.system.ConfigurationRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.util.ClockProvider;
+import alfio.util.Json;
+import alfio.util.MonetaryUtil;
+import alfio.util.RequestUtils;
+import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Triple;
+import org.flywaydb.core.Flyway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+@Component
+@Transactional
+@AllArgsConstructor
+public class EventManager {
+
+<span class="nc" id="L100">    private static final Logger log = LoggerFactory.getLogger(EventManager.class);</span>
+<span class="nc" id="L101">    private static final Predicate&lt;TicketCategory&gt; IS_CATEGORY_BOUNDED = TicketCategory::isBounded;</span>
+    static final String ERROR_ONLINE_ON_SITE_NOT_COMPATIBLE =
+            &quot;Cannot switch to Online. Please remove On-Site payment method first.&quot;;
+    private final UserManager userManager;
+    private final EventRepository eventRepository;
+    private final EventDescriptionRepository eventDescriptionRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final TicketCategoryDescriptionRepository ticketCategoryDescriptionRepository;
+    private final TicketRepository ticketRepository;
+    private final SpecialPriceRepository specialPriceRepository;
+    private final PromoCodeDiscountRepository promoCodeRepository;
+    private final ConfigurationManager configurationManager;
+    private final EventDeleterRepository eventDeleterRepository;
+    private final PurchaseContextFieldManager purchaseContextFieldManager;
+    private final Flyway flyway;
+    private final Environment environment;
+    private final OrganizationRepository organizationRepository;
+    private final AuditingRepository auditingRepository;
+    private final ExtensionManager extensionManager;
+    private final GroupRepository groupRepository;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final ConfigurationRepository configurationRepository;
+    private final PaymentManager paymentManager;
+    private final ClockProvider clockProvider;
+    private final SubscriptionRepository subscriptionRepository;
+    private final AdditionalServiceManager additionalServiceManager;
+
+    public Event getSingleEvent(String eventName, String username) {
+<span class="nc" id="L129">        return getOptionalByName(eventName, username).orElseThrow(IllegalStateException::new);</span>
+    }
+
+    public EventAndOrganizationId getEventAndOrganizationId(String eventName, String username) {
+<span class="nc" id="L133">        return getOptionalEventAndOrganizationIdByName(eventName, username).orElseThrow(IllegalStateException::new);</span>
+    }
+
+    public Optional&lt;Event&gt; getOptionalByName(String eventName, String username) {
+<span class="nc" id="L137">        return eventRepository</span>
+<span class="nc" id="L138">                .findOptionalByShortName(eventName)</span>
+<span class="nc" id="L139">                .filter(checkOwnership(username, organizationRepository));</span>
+    }
+
+    public Optional&lt;EventAndOrganizationId&gt; getOptionalEventAndOrganizationIdByName(String eventName, String username) {
+<span class="nc" id="L143">        return eventRepository</span>
+<span class="nc" id="L144">                .findOptionalEventAndOrganizationIdByShortName(eventName)</span>
+<span class="nc" id="L145">                .filter(checkOwnership(username, organizationRepository));</span>
+    }
+
+    public Event getSingleEventById(int eventId, String username) {
+<span class="nc" id="L149">        return eventRepository</span>
+<span class="nc" id="L150">                .findOptionalById(eventId)</span>
+<span class="nc" id="L151">                .filter(checkOwnership(username, organizationRepository))</span>
+<span class="nc" id="L152">                .orElseThrow(IllegalStateException::new);</span>
+    }
+
+    public void checkOwnership(EventAndOrganizationId event, String username, int organizationId) {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        Validate.isTrue(organizationId == event.getOrganizationId(), &quot;invalid organizationId&quot;);</span>
+<span class="nc" id="L157">        Validate.isTrue(checkOwnership(username, organizationRepository).test(event), &quot;User is not authorized&quot;);</span>
+<span class="nc" id="L158">    }</span>
+
+    public static Predicate&lt;EventAndOrganizationId&gt; checkOwnership(
+            String username, OrganizationRepository organizationRepository) {
+<span class="nc" id="L162">        return event -&gt; checkOwnership(organizationRepository, username, event.getOrganizationId());</span>
+    }
+
+    private static IntPredicate checkOwnershipByOrgId(String username, OrganizationRepository organizationRepository) {
+<span class="nc" id="L166">        return id -&gt; checkOwnership(organizationRepository, username, id);</span>
+    }
+
+    private static boolean checkOwnership(
+            OrganizationRepository organizationRepository, String username, Integer orgId) {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        return orgId != null</span>
+                &amp;&amp; organizationRepository
+<span class="nc" id="L173">                        .findOrganizationForUser(username, orgId)</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">                        .isPresent();</span>
+    }
+
+    public List&lt;TicketCategory&gt; loadTicketCategories(EventAndOrganizationId event) {
+<span class="nc" id="L178">        return ticketCategoryRepository.findAllTicketCategories(event.getId());</span>
+    }
+
+    public Organization loadOrganizer(EventAndOrganizationId event, String username) {
+<span class="nc" id="L182">        return userManager.findOrganizationById(event.getOrganizationId(), username);</span>
+    }
+
+    /**
+     * Internal method used by automated jobs
+     * @return
+     */
+    Organization loadOrganizerUsingSystemPrincipal(EventAndOrganizationId event) {
+<span class="nc" id="L190">        return loadOrganizer(event, UserManager.ADMIN_USERNAME);</span>
+    }
+
+    public boolean eventExistsById(int eventId) {
+<span class="nc" id="L194">        return eventRepository.existsById(eventId);</span>
+    }
+
+    public void createEvent(EventModification em, String username) {
+<span class="nc" id="L198">        Assert.isNull(em.getId(), &quot;id must be null&quot;);</span>
+<span class="nc" id="L199">        var organization = organizationRepository.findAllForUser(username).stream()</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                .filter(org -&gt; org.getId() == em.getOrganizationId())</span>
+<span class="nc" id="L201">                .findFirst()</span>
+<span class="nc" id="L202">                .orElseThrow();</span>
+        // pre-create request validation
+<span class="nc" id="L204">        extensionManager.handleEventValidation(em);</span>
+<span class="nc" id="L205">        int eventId = insertEvent(em);</span>
+<span class="nc" id="L206">        Optional&lt;EventAndOrganizationId&gt; srcEvent = getCopiedFrom(em, username);</span>
+<span class="nc" id="L207">        Event event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L208">        createOrUpdateEventDescription(eventId, em);</span>
+<span class="nc" id="L209">        additionalServiceManager.createAllAdditionalServices(event, em.getAdditionalServices());</span>
+<span class="nc" id="L210">        createAdditionalFields(event, em);</span>
+<span class="nc" id="L211">        createCategoriesForEvent(em, event, srcEvent);</span>
+<span class="nc" id="L212">        createAllTicketsForEvent(event, em);</span>
+<span class="nc" id="L213">        createSubscriptionLinks(eventId, organization.getId(), toSubscriptionLinkRequests(em.getLinkedSubscriptions()));</span>
+<span class="nc" id="L214">        srcEvent.ifPresent(eventAndOrganizationId -&gt; copySettings(event, eventAndOrganizationId));</span>
+<span class="nc" id="L215">        extensionManager.handleEventCreation(event);</span>
+<span class="nc" id="L216">        var eventMetadata = extensionManager.handleMetadataUpdate(event, organization, AlfioMetadata.empty());</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (eventMetadata != null) {</span>
+<span class="nc" id="L218">            eventRepository.updateMetadata(eventMetadata, eventId);</span>
+        }
+<span class="nc" id="L220">    }</span>
+
+    private Optional&lt;EventAndOrganizationId&gt; getCopiedFrom(EventModification em, String username) {
+<span class="nc bnc" id="L223" title="All 4 branches missed.">        if (em.getMetadata() != null &amp;&amp; StringUtils.isNotBlank(em.getMetadata().getCopiedFrom())) {</span>
+<span class="nc" id="L224">            return getOptionalEventAndOrganizationIdByName(em.getMetadata().getCopiedFrom(), username);</span>
+        }
+<span class="nc" id="L226">        return Optional.empty();</span>
+    }
+
+    /**
+     * Copies settings from a copied event into the new one
+     * Supported settings are:
+     * - Event-specific configuration
+     * @param event event
+     * @param srcEvent source event
+     */
+    private void copySettings(Event event, EventAndOrganizationId srcEvent) {
+<span class="nc" id="L237">        int count = configurationRepository.copyEventConfiguration(</span>
+<span class="nc" id="L238">                event.getId(), event.getOrganizationId(), srcEvent.getId(), srcEvent.getOrganizationId());</span>
+<span class="nc" id="L239">        log.info(&quot;copied {} settings from source event&quot;, count);</span>
+<span class="nc" id="L240">    }</span>
+
+    private void createSubscriptionLinks(
+            int eventId, int organizationId, List&lt;LinkSubscriptionsToEventRequest&gt; linkedSubscriptions) {
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (CollectionUtils.isNotEmpty(linkedSubscriptions)) {</span>
+<span class="nc" id="L245">            var parameters = linkedSubscriptions.stream()</span>
+<span class="nc" id="L246">                    .map(s -&gt; new MapSqlParameterSource(&quot;eventId&quot;, eventId)</span>
+<span class="nc" id="L247">                            .addValue(&quot;subscriptionId&quot;, s.getDescriptorId())</span>
+<span class="nc" id="L248">                            .addValue(&quot;pricePerTicket&quot;, 0)</span>
+<span class="nc" id="L249">                            .addValue(&quot;organizationId&quot;, organizationId)</span>
+<span class="nc" id="L250">                            .addValue(&quot;compatibleCategories&quot;, Json.toJson(s.getCategories())))</span>
+<span class="nc" id="L251">                    .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L252">            var result = jdbcTemplate.batchUpdate(SubscriptionRepository.INSERT_SUBSCRIPTION_LINK, parameters);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            Validate.isTrue(Arrays.stream(result).allMatch(r -&gt; r == 1), &quot;Cannot link subscription&quot;);</span>
+        }
+<span class="nc" id="L255">    }</span>
+
+    public void toggleActiveFlag(int id, String username, boolean activate) {
+<span class="nc" id="L258">        Event event = eventRepository.findById(id);</span>
+<span class="nc" id="L259">        checkOwnership(event, username, event.getOrganizationId());</span>
+
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (environment.acceptsProfiles(Profiles.of(Initializer.PROFILE_DEMO))) {</span>
+<span class="nc" id="L262">            throw new IllegalStateException(&quot;demo mode&quot;);</span>
+        }
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        Event.Status status = activate ? Event.Status.PUBLIC : Event.Status.DRAFT;</span>
+<span class="nc" id="L265">        eventRepository.updateEventStatus(id, status);</span>
+<span class="nc" id="L266">        extensionManager.handleEventStatusChange(event, status);</span>
+<span class="nc" id="L267">    }</span>
+
+    private void createOrUpdateEventDescription(int eventId, EventModification em) {
+<span class="nc" id="L270">        eventDescriptionRepository.delete(eventId, EventDescription.EventDescriptionType.DESCRIPTION);</span>
+
+<span class="nc" id="L272">        Set&lt;String&gt; validLocales = ContentLanguage.findAllFor(em.getLocales()).stream()</span>
+<span class="nc" id="L273">                .map(ContentLanguage::getLanguage)</span>
+<span class="nc" id="L274">                .collect(Collectors.toSet());</span>
+
+<span class="nc" id="L276">        Optional.ofNullable(em.getDescription())</span>
+<span class="nc" id="L277">                .ifPresent(descriptions -&gt; descriptions.forEach((locale, description) -&gt; {</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">                    if (validLocales.contains(locale)) {</span>
+<span class="nc" id="L279">                        eventDescriptionRepository.insert(</span>
+                                eventId, locale, EventDescription.EventDescriptionType.DESCRIPTION, description);
+                    }
+<span class="nc" id="L282">                }));</span>
+<span class="nc" id="L283">    }</span>
+
+    private void createAdditionalFields(Event event, EventModification em) {
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (!CollectionUtils.isEmpty(em.getTicketFields())) {</span>
+<span class="nc" id="L287">            em.getTicketFields()</span>
+<span class="nc" id="L288">                    .forEach(f -&gt; purchaseContextFieldManager.insertAdditionalField(event, f, f.getOrder()));</span>
+        }
+<span class="nc" id="L290">    }</span>
+
+    public void updateEventHeader(Event original, EventModification em, String username) {
+<span class="nc" id="L293">        IntPredicate ownershipChecker = checkOwnershipByOrgId(username, organizationRepository);</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        boolean sameOrganization = original.getOrganizationId() == em.getOrganizationId();</span>
+<span class="nc" id="L295">        Validate.isTrue(</span>
+<span class="nc bnc" id="L296" title="All 4 branches missed.">                ownershipChecker.test(original.getOrganizationId())</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">                        &amp;&amp; (sameOrganization || ownershipChecker.test(em.getOrganizationId())),</span>
+                &quot;Invalid organizationId&quot;);
+<span class="nc" id="L299">        int eventId = original.getId();</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">        Validate.isTrue(</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                sameOrganization || groupRepository.countByEventId(eventId) == 0,</span>
+                &quot;Cannot change organization because there is a group linked to this event.&quot;);
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        Validate.isTrue(</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                sameOrganization || !subscriptionRepository.hasLinkedSubscription(eventId),</span>
+                &quot;Cannot change organization because there are one or more subscriptions linked.&quot;);
+
+<span class="nc bnc" id="L307" title="All 2 branches missed.">        boolean formatUpdated = em.getFormat() != original.getFormat();</span>
+<span class="nc bnc" id="L308" title="All 4 branches missed.">        if (em.getFormat() == EventFormat.ONLINE &amp;&amp; formatUpdated) {</span>
+<span class="nc" id="L309">            Validate.isTrue(</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">                    original.getAllowedPaymentProxies().stream().allMatch(p -&gt; p != PaymentProxy.ON_SITE),</span>
+                    ERROR_ONLINE_ON_SITE_NOT_COMPATIBLE);
+        }
+
+<span class="nc" id="L314">        String timeZone = ObjectUtils.firstNonNull(</span>
+<span class="nc" id="L315">                em.getZoneId(),</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                em.getGeolocation() != null ? em.getGeolocation().timeZone() : null);</span>
+<span class="nc" id="L317">        String latitude = ObjectUtils.firstNonNull(</span>
+<span class="nc" id="L318">                em.getLatitude(),</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">                em.getGeolocation() != null ? em.getGeolocation().latitude() : null);</span>
+<span class="nc" id="L320">        String longitude = ObjectUtils.firstNonNull(</span>
+<span class="nc" id="L321">                em.getLongitude(),</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                em.getGeolocation() != null ? em.getGeolocation().longitude() : null);</span>
+
+<span class="nc" id="L324">        final ZoneId zoneId = ZoneId.of(timeZone);</span>
+<span class="nc" id="L325">        final ZonedDateTime begin = em.getBegin().toZonedDateTime(zoneId);</span>
+<span class="nc" id="L326">        final ZonedDateTime end = em.getEnd().toZonedDateTime(zoneId);</span>
+<span class="nc" id="L327">        eventRepository.updateHeader(</span>
+                eventId,
+<span class="nc" id="L329">                em.getDisplayName(),</span>
+<span class="nc" id="L330">                em.getWebsiteUrl(),</span>
+<span class="nc" id="L331">                em.getExternalUrl(),</span>
+<span class="nc" id="L332">                em.getTermsAndConditionsUrl(),</span>
+<span class="nc" id="L333">                em.getPrivacyPolicyUrl(),</span>
+<span class="nc" id="L334">                em.getImageUrl(),</span>
+<span class="nc" id="L335">                em.getFileBlobId(),</span>
+<span class="nc" id="L336">                em.getLocation(),</span>
+                latitude,
+                longitude,
+                begin,
+                end,
+                timeZone,
+<span class="nc" id="L342">                em.getOrganizationId(),</span>
+<span class="nc" id="L343">                em.getLocales(),</span>
+<span class="nc" id="L344">                em.getFormat());</span>
+
+<span class="nc" id="L346">        createOrUpdateEventDescription(eventId, em);</span>
+
+<span class="nc bnc" id="L348" title="All 4 branches missed.">        if (!original.getBegin().equals(begin) || !original.getEnd().equals(end)) {</span>
+<span class="nc" id="L349">            fixOutOfRangeCategories(em, username, zoneId, end);</span>
+        }
+
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        if (formatUpdated) {</span>
+            // update ticket access type for categories if the format has been updated
+<span class="nc" id="L354">            var ticketAccessType = evaluateTicketAccessType(original.getFormat(), em.getFormat());</span>
+<span class="nc" id="L355">            ticketCategoryRepository.updateTicketAccessTypeForEvent(eventId, ticketAccessType);</span>
+        }
+
+<span class="nc" id="L358">        extensionManager.handleEventHeaderUpdate(</span>
+<span class="nc" id="L359">                eventRepository.findById(eventId),</span>
+                organizationRepository
+<span class="nc" id="L361">                        .findOrganizationForUser(username, em.getOrganizationId())</span>
+<span class="nc" id="L362">                        .orElseThrow());</span>
+<span class="nc" id="L363">    }</span>
+
+    private TicketAccessType evaluateTicketAccessType(EventFormat oldFormat, EventFormat newFormat) {
+<span class="nc bnc" id="L366" title="All 2 branches missed.">        if (newFormat == EventFormat.HYBRID) {</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">            return oldFormat == EventFormat.ONLINE ? TicketAccessType.ONLINE : TicketAccessType.IN_PERSON;</span>
+        }
+<span class="nc" id="L369">        return TicketAccessType.INHERIT;</span>
+    }
+
+    public void updateEventSeatsAndPrices(Event original, EventModification em, String username) {
+<span class="nc" id="L373">        updateEventSeatsAndPrices(original, em, username, true);</span>
+<span class="nc" id="L374">    }</span>
+
+    public void updateEventSeatsAndPrices(
+            Event original, EventModification em, String username, boolean updateSubscriptions) {
+<span class="nc" id="L378">        Validate.notNull(em.getAvailableSeats(), &quot;Available Seats cannot be null&quot;);</span>
+<span class="nc" id="L379">        checkOwnership(original, username, em.getOrganizationId());</span>
+<span class="nc" id="L380">        extensionManager.handleEventSeatsPricesUpdateValidation(original, em);</span>
+<span class="nc" id="L381">        int eventId = original.getId();</span>
+<span class="nc" id="L382">        int seatsDifference = em.getAvailableSeats() - eventRepository.countExistingTickets(original.getId());</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">        if (seatsDifference &lt; 0) {</span>
+<span class="nc" id="L384">            int allocatedSeats = ticketCategoryRepository.findAllTicketCategories(original.getId()).stream()</span>
+<span class="nc" id="L385">                    .filter(TicketCategory::isBounded)</span>
+<span class="nc" id="L386">                    .mapToInt(TicketCategory::getMaxTickets)</span>
+<span class="nc" id="L387">                    .sum();</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">            if (em.getAvailableSeats() &lt; allocatedSeats) {</span>
+<span class="nc" id="L389">                throw new IllegalArgumentException(format(</span>
+                        &quot;cannot reduce max tickets to %d. There are already %d tickets allocated. Try updating categories first.&quot;,
+<span class="nc" id="L391">                        em.getAvailableSeats(), allocatedSeats));</span>
+            }
+        }
+<span class="nc" id="L394">        validatePaymentProxies(em.getAllowedPaymentProxies(), em.getOrganizationId());</span>
+<span class="nc" id="L395">        String paymentProxies = collectPaymentProxies(em);</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">        BigDecimal vat = em.isFreeOfCharge() ? BigDecimal.ZERO : em.getVatPercentage();</span>
+<span class="nc" id="L397">        eventRepository.updatePrices(</span>
+<span class="nc" id="L398">                em.getCurrency(),</span>
+<span class="nc" id="L399">                em.getAvailableSeats(),</span>
+<span class="nc" id="L400">                em.isVatIncluded(),</span>
+                vat,
+                paymentProxies,
+                eventId,
+<span class="nc" id="L404">                em.getVatStatus(),</span>
+<span class="nc" id="L405">                em.getPriceInCents());</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        if (seatsDifference != 0) {</span>
+<span class="nc" id="L407">            Event modified = eventRepository.findById(eventId);</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">            if (seatsDifference &gt; 0) {</span>
+<span class="nc" id="L409">                final MapSqlParameterSource[] params = generateEmptyTickets(</span>
+                                modified,
+<span class="nc" id="L411">                                Date.from(ZonedDateTime.now(clockProvider.withZone(modified.getZoneId()))</span>
+<span class="nc" id="L412">                                        .toInstant()),</span>
+                                seatsDifference,
+                                TicketStatus.RELEASED)
+<span class="nc" id="L415">                        .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L416">                ticketRepository.bulkTicketInitialization(params);</span>
+<span class="nc" id="L417">            } else {</span>
+<span class="nc" id="L418">                List&lt;Integer&gt; ids = ticketRepository.selectNotAllocatedTicketsForUpdate(</span>
+<span class="nc" id="L419">                        eventId, Math.abs(seatsDifference), singletonList(TicketStatus.FREE.name()));</span>
+<span class="nc bnc" id="L420" title="All 2 branches missed.">                Validate.isTrue(ids.size() == Math.abs(seatsDifference), &quot;cannot lock enough tickets for deletion.&quot;);</span>
+<span class="nc" id="L421">                int invalidatedTickets = ticketRepository.invalidateTickets(ids);</span>
+<span class="nc" id="L422">                Validate.isTrue(</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">                        ids.size() == invalidatedTickets,</span>
+                        &quot;error during ticket invalidation: expected %d, got %d&quot;
+<span class="nc" id="L425">                                .formatted(ids.size(), invalidatedTickets));</span>
+            }
+        }
+<span class="nc bnc" id="L428" title="All 4 branches missed.">        if (updateSubscriptions &amp;&amp; em.getLinkedSubscriptions() != null) {</span>
+<span class="nc" id="L429">            var requests = toSubscriptionLinkRequests(em.getLinkedSubscriptions());</span>
+<span class="nc" id="L430">            updateLinkedSubscriptions(requests, eventId, original.getOrganizationId());</span>
+        }
+<span class="nc" id="L432">    }</span>
+
+    // temporary until we support full subscription link on the admin UI
+    private static List&lt;LinkSubscriptionsToEventRequest&gt; toSubscriptionLinkRequests(List&lt;UUID&gt; subscriptionIds) {
+<span class="nc" id="L436">        return requireNonNullElse(subscriptionIds, List.&lt;UUID&gt;of()).stream()</span>
+<span class="nc" id="L437">                .map(s -&gt; new LinkSubscriptionsToEventRequest(s, List.of()))</span>
+<span class="nc" id="L438">                .collect(Collectors.toList());</span>
+    }
+
+    public void updateLinkedSubscriptions(
+            List&lt;LinkSubscriptionsToEventRequest&gt; linkedSubscriptions, int eventId, int organizationId) {
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        if (CollectionUtils.isNotEmpty(linkedSubscriptions)) {</span>
+<span class="nc" id="L444">            var descriptorIds = linkedSubscriptions.stream()</span>
+<span class="nc" id="L445">                    .map(LinkSubscriptionsToEventRequest::getDescriptorId)</span>
+<span class="nc" id="L446">                    .collect(Collectors.toList());</span>
+<span class="nc" id="L447">            int removed = subscriptionRepository.removeStaleSubscriptions(eventId, organizationId, descriptorIds);</span>
+<span class="nc" id="L448">            log.trace(&quot;removed {} subscription links&quot;, removed);</span>
+<span class="nc" id="L449">            createSubscriptionLinks(eventId, organizationId, linkedSubscriptions);</span>
+<span class="nc bnc" id="L450" title="All 2 branches missed.">        } else if (linkedSubscriptions != null) {</span>
+            // the user removed all the subscriptions
+<span class="nc" id="L452">            int removed = subscriptionRepository.removeAllSubscriptionsForEvent(eventId, organizationId);</span>
+<span class="nc" id="L453">            log.trace(&quot;removed all subscription links ({}) for event {}&quot;, removed, eventId);</span>
+        }
+<span class="nc" id="L455">    }</span>
+
+    private void validatePaymentProxies(List&lt;PaymentProxy&gt; paymentProxies, int organizationId) {
+<span class="nc" id="L458">        var conflicts = paymentManager.validateSelection(paymentProxies, organizationId);</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        if (!conflicts.isEmpty()) {</span>
+<span class="nc" id="L460">            var firstConflict = IterableUtils.get(conflicts, 0);</span>
+<span class="nc" id="L461">            throw new IllegalStateException(&quot;Conflicting providers found: &quot; + firstConflict.getValue());</span>
+        }
+<span class="nc" id="L463">    }</span>
+
+    /**
+     * This method has been modified to use the new Result&lt;T&gt; mechanism.
+     * It will be replaced by {@link #insertCategory(Event, TicketCategoryModification, String)} in the next releases
+     */
+    public void insertCategory(int eventId, TicketCategoryModification tcm, String username) {
+<span class="nc" id="L470">        final Event event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L471">        Result&lt;Integer&gt; result = insertCategory(event, tcm, username);</span>
+<span class="nc" id="L472">        failIfError(result);</span>
+<span class="nc" id="L473">    }</span>
+
+    public Result&lt;Integer&gt; insertCategory(Event event, TicketCategoryModification tcm, String username) {
+<span class="nc" id="L476">        return optionally(() -&gt; {</span>
+<span class="nc" id="L477">                    checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="nc" id="L478">                    return true;</span>
+                })
+<span class="nc" id="L480">                .map(b -&gt; {</span>
+<span class="nc" id="L481">                    int eventId = event.getId();</span>
+<span class="nc" id="L482">                    int sum = ticketCategoryRepository.getTicketAllocation(eventId);</span>
+<span class="nc" id="L483">                    int notAllocated = ticketRepository.countNotAllocatedFreeAndReleasedTicket(eventId);</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">                    int requestedTickets = tcm.isBounded() ? tcm.getMaxTickets() : 1;</span>
+<span class="nc" id="L485">                    return new Result.Builder&lt;Integer&gt;()</span>
+<span class="nc" id="L486">                            .checkPrecondition(</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">                                    () -&gt; sum + requestedTickets &lt;= eventRepository.countExistingTickets(eventId),</span>
+                                    ErrorCode.CategoryError.NOT_ENOUGH_SEATS)
+<span class="nc" id="L489">                            .checkPrecondition(</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">                                    () -&gt; requestedTickets &lt;= notAllocated,</span>
+                                    ErrorCode.CategoryError.ALL_TICKETS_ASSIGNED)
+<span class="nc" id="L492">                            .checkPrecondition(</span>
+<span class="nc" id="L493">                                    () -&gt; tcm.getExpiration()</span>
+<span class="nc" id="L494">                                            .toZonedDateTime(event.getZoneId())</span>
+<span class="nc" id="L495">                                            .isBefore(event.getEnd()),</span>
+                                    ErrorCode.CategoryError.EXPIRATION_AFTER_EVENT_END)
+<span class="nc" id="L497">                            .build(() -&gt; insertCategory(tcm, event));</span>
+                })
+<span class="nc" id="L499">                .orElseGet(() -&gt; Result.error(ErrorCode.EventError.ACCESS_DENIED));</span>
+    }
+
+    /**
+     * This method has been modified to use the new Result&lt;T&gt; mechanism.
+     * It will be replaced by {@link #updateCategory(int, Event, TicketCategoryModification, String)} in the next releases
+     */
+    public void updateCategory(int categoryId, int eventId, TicketCategoryModification tcm, String username) {
+<span class="nc" id="L507">        final Event event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L508">        checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="nc" id="L509">        Result&lt;TicketCategory&gt; result = updateCategory(categoryId, event, tcm, username);</span>
+<span class="nc" id="L510">        failIfError(result);</span>
+<span class="nc" id="L511">    }</span>
+
+    private &lt;T&gt; void failIfError(Result&lt;T&gt; result) {
+<span class="nc bnc" id="L514" title="All 2 branches missed.">        if (!result.isSuccess()) {</span>
+<span class="nc" id="L515">            Optional&lt;ErrorCode&gt; firstError = result.getErrors().stream().findFirst();</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">            if (firstError.isPresent()) {</span>
+<span class="nc" id="L517">                throw new IllegalArgumentException(firstError.get().getDescription());</span>
+            }
+<span class="nc" id="L519">            throw new IllegalArgumentException(&quot;unknown error&quot;);</span>
+        }
+<span class="nc" id="L521">    }</span>
+
+    Result&lt;TicketCategory&gt; updateCategory(
+            int categoryId, Event event, TicketCategoryModification tcm, String username, boolean resetTicketsToFree) {
+<span class="nc" id="L525">        checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="nc" id="L526">        int eventId = event.getId();</span>
+<span class="nc" id="L527">        return Optional.of(ticketCategoryRepository.getById(categoryId))</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">                .filter(tc -&gt; tc.getId() == categoryId)</span>
+<span class="nc" id="L529">                .map(existing -&gt; new Result.Builder&lt;TicketCategory&gt;()</span>
+<span class="nc" id="L530">                        .checkPrecondition(</span>
+<span class="nc" id="L531">                                () -&gt; tcm.getExpiration()</span>
+<span class="nc" id="L532">                                        .toZonedDateTime(event.getZoneId())</span>
+<span class="nc" id="L533">                                        .isBefore(event.getEnd()),</span>
+                                ErrorCode.CategoryError.EXPIRATION_AFTER_EVENT_END)
+<span class="nc" id="L535">                        .checkPrecondition(</span>
+<span class="nc bnc" id="L536" title="All 2 branches missed.">                                () -&gt; !existing.isBounded()</span>
+<span class="nc" id="L537">                                        || tcm.getMaxTickets()</span>
+<span class="nc" id="L538">                                                        - existing.getMaxTickets()</span>
+<span class="nc" id="L539">                                                        + ticketRepository.countAllocatedTicketsForEvent(eventId)</span>
+<span class="nc bnc" id="L540" title="All 2 branches missed.">                                                &lt;= eventRepository.countExistingTickets(eventId),</span>
+                                ErrorCode.CategoryError.NOT_ENOUGH_SEATS)
+<span class="nc" id="L542">                        .checkPrecondition(</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">                                () -&gt; tcm.isTokenGenerationRequested() == existing.isAccessRestricted()</span>
+<span class="nc bnc" id="L544" title="All 2 branches missed.">                                        || ticketRepository.countConfirmedAndPendingTickets(eventId, categoryId) == 0,</span>
+<span class="nc" id="L545">                                ErrorCode.custom(&quot;&quot;, &quot;cannot update category: there are tickets already sold.&quot;))</span>
+<span class="nc" id="L546">                        .checkPrecondition(</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                                () -&gt; tcm.isBounded() == existing.isBounded()</span>
+<span class="nc bnc" id="L548" title="All 2 branches missed.">                                        || ticketRepository.countPendingOrReleasedForCategory(eventId, existing.getId())</span>
+                                                == 0,
+<span class="nc" id="L550">                                ErrorCode.custom(</span>
+                                        &quot;&quot;,
+                                        &quot;It is not safe to change allocation strategy right now because there are pending reservations.&quot;))
+<span class="nc" id="L553">                        .checkPrecondition(</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">                                () -&gt; !existing.isAccessRestricted()</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                                        || tcm.isBounded() == existing.isAccessRestricted(),</span>
+<span class="nc" id="L556">                                ErrorCode.custom(&quot;&quot;, &quot;Dynamic allocation is not compatible with restricted access&quot;))</span>
+<span class="nc" id="L557">                        .checkPrecondition(</span>
+                                () -&gt; {
+                                    // see https://github.com/exteso/alf.io/issues/335
+                                    // handle the case when the user try to shrink a category with tokens that are
+                                    // already sent
+                                    // we should fail if there are not enough free token left
+<span class="nc" id="L563">                                    int addedTicket = tcm.getMaxTickets() - existing.getMaxTickets();</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">                                    return addedTicket &gt;= 0</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">                                            || !existing.isAccessRestricted()</span>
+<span class="nc" id="L566">                                            || specialPriceRepository.countNotSentToken(categoryId)</span>
+<span class="nc bnc" id="L567" title="All 2 branches missed.">                                                    &gt;= Math.abs(addedTicket);</span>
+                                },
+                                ErrorCode.CategoryError.NOT_ENOUGH_FREE_TOKEN_FOR_SHRINK)
+<span class="nc" id="L570">                        .checkPrecondition(</span>
+                                () -&gt; {
+<span class="nc bnc" id="L572" title="All 4 branches missed.">                                    if (tcm.isBounded() &amp;&amp; !existing.isBounded()) {</span>
+<span class="nc" id="L573">                                        int newSize = tcm.getMaxTickets();</span>
+<span class="nc" id="L574">                                        int confirmed =</span>
+<span class="nc" id="L575">                                                ticketRepository.countConfirmedForCategory(eventId, existing.getId());</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">                                        return newSize &gt;= confirmed;</span>
+                                    } else {
+<span class="nc" id="L578">                                        return true;</span>
+                                    }
+                                },
+<span class="nc" id="L581">                                ErrorCode.custom(&quot;&quot;, &quot;Not enough tickets&quot;))</span>
+<span class="nc" id="L582">                        .build(() -&gt; {</span>
+<span class="nc" id="L583">                            updateCategory(tcm, event.isFreeOfCharge(), event.getZoneId(), event, resetTicketsToFree);</span>
+<span class="nc" id="L584">                            return ticketCategoryRepository.getByIdAndActive(categoryId, eventId);</span>
+                        }))
+<span class="nc" id="L586">                .orElseGet(() -&gt; Result.error(ErrorCode.CategoryError.NOT_FOUND));</span>
+    }
+
+    Result&lt;TicketCategory&gt; updateCategory(
+            int categoryId, Event event, TicketCategoryModification tcm, String username) {
+<span class="nc" id="L591">        return updateCategory(categoryId, event, tcm, username, tcm.isSkipWaitingList());</span>
+    }
+
+    void fixOutOfRangeCategories(EventModification em, String username, ZoneId zoneId, ZonedDateTime end) {
+<span class="nc" id="L595">        EventAndOrganizationId event = getEventAndOrganizationId(em.getShortName(), username);</span>
+<span class="nc" id="L596">        ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
+<span class="nc" id="L597">                .map(tc -&gt; Triple.of(tc, tc.getInception(zoneId), tc.getExpiration(zoneId)))</span>
+<span class="nc" id="L598">                .filter(t -&gt; t.getRight().isAfter(end))</span>
+<span class="nc" id="L599">                .forEach(t -&gt; fixTicketCategoryDates(end, t.getLeft(), t.getMiddle(), t.getRight()));</span>
+<span class="nc" id="L600">    }</span>
+
+    private void fixTicketCategoryDates(
+            ZonedDateTime end, TicketCategory tc, ZonedDateTime inception, ZonedDateTime expiration) {
+<span class="nc" id="L604">        final ZonedDateTime newExpiration = ObjectUtils.min(end, expiration);</span>
+<span class="nc" id="L605">        Objects.requireNonNull(newExpiration);</span>
+<span class="nc" id="L606">        Validate.isTrue(</span>
+<span class="nc" id="L607">                inception.isBefore(newExpiration),</span>
+<span class="nc" id="L608">                format(</span>
+                        &quot;Cannot fix dates for category \&quot;%s\&quot; (id: %d), try updating that category first.&quot;,
+<span class="nc" id="L610">                        tc.getName(), tc.getId()));</span>
+<span class="nc" id="L611">        ticketCategoryRepository.fixDates(tc.getId(), inception, newExpiration);</span>
+<span class="nc" id="L612">    }</span>
+
+    public void reallocateTickets(int srcCategoryId, int targetCategoryId, EventAndOrganizationId event) {
+<span class="nc" id="L615">        reallocateTickets(</span>
+<span class="nc" id="L616">                ticketCategoryRepository.findStatisticWithId(srcCategoryId, event.getId()),</span>
+<span class="nc" id="L617">                Optional.of(ticketCategoryRepository.getByIdAndActive(targetCategoryId, event.getId())),</span>
+                event);
+<span class="nc" id="L619">    }</span>
+
+    void reallocateTickets(
+            TicketCategoryStatisticView src, Optional&lt;TicketCategory&gt; target, EventAndOrganizationId event) {
+<span class="nc" id="L623">        int notSoldTickets = src.getNotSoldTicketsCount();</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">        if (notSoldTickets == 0) {</span>
+<span class="nc" id="L625">            log.debug(&quot;since all the ticket have been sold, ticket moving is not needed anymore.&quot;);</span>
+<span class="nc" id="L626">            return;</span>
+        }
+<span class="nc" id="L628">        List&lt;Integer&gt; lockedTickets = ticketRepository.selectTicketInCategoryForUpdate(</span>
+<span class="nc" id="L629">                event.getId(), src.getId(), notSoldTickets, singletonList(TicketStatus.FREE.name()));</span>
+<span class="nc" id="L630">        int locked = lockedTickets.size();</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">        if (locked != notSoldTickets) {</span>
+<span class="nc" id="L632">            throw new IllegalStateException(&quot;Expected %d free tickets, got %d.&quot;.formatted(notSoldTickets, locked));</span>
+        }
+<span class="nc" id="L634">        ticketCategoryRepository.updateSeatsAvailability(src.getId(), src.getMaxTickets() - locked);</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">        if (target.isPresent()) {</span>
+<span class="nc" id="L636">            TicketCategory targetCategory = target.get();</span>
+<span class="nc" id="L637">            ticketCategoryRepository.updateSeatsAvailability(</span>
+<span class="nc" id="L638">                    targetCategory.getId(), targetCategory.getMaxTickets() + locked);</span>
+<span class="nc" id="L639">            ticketRepository.moveToAnotherCategory(</span>
+<span class="nc" id="L640">                    lockedTickets, targetCategory.getId(), targetCategory.getSrcPriceCts());</span>
+<span class="nc bnc" id="L641" title="All 2 branches missed.">            if (targetCategory.isAccessRestricted()) {</span>
+<span class="nc" id="L642">                insertTokens(targetCategory, locked);</span>
+            } else {
+<span class="nc" id="L644">                ticketRepository.resetTickets(lockedTickets);</span>
+            }
+<span class="nc" id="L646">        } else {</span>
+<span class="nc" id="L647">            int result = ticketRepository.unbindTicketsFromCategory(event.getId(), src.getId(), lockedTickets);</span>
+<span class="nc bnc" id="L648" title="All 2 branches missed.">            Validate.isTrue(result == locked, &quot;Expected %d modified tickets, got %d.&quot;.formatted(locked, result));</span>
+<span class="nc" id="L649">            ticketRepository.resetTickets(lockedTickets);</span>
+        }
+<span class="nc" id="L651">        specialPriceRepository.cancelExpiredTokens(src.getId());</span>
+<span class="nc" id="L652">    }</span>
+
+    public void unbindTickets(String eventName, int categoryId, String username) {
+<span class="nc" id="L655">        EventAndOrganizationId event = getEventAndOrganizationId(eventName, username);</span>
+<span class="nc" id="L656">        Validate.isTrue(</span>
+<span class="nc bnc" id="L657" title="All 2 branches missed.">                ticketCategoryRepository.countUnboundedCategoriesByEventId(event.getId()) &gt; 0,</span>
+                &quot;cannot unbind tickets: there aren't any unbounded categories&quot;);
+<span class="nc" id="L659">        TicketCategoryStatisticView ticketCategory =</span>
+<span class="nc" id="L660">                ticketCategoryRepository.findStatisticWithId(categoryId, event.getId());</span>
+<span class="nc" id="L661">        Validate.isTrue(ticketCategory.isBounded(), &quot;cannot unbind tickets from an unbounded category!&quot;);</span>
+<span class="nc" id="L662">        reallocateTickets(ticketCategory, Optional.empty(), event);</span>
+<span class="nc" id="L663">    }</span>
+
+    public List&lt;TicketCategory&gt; findCategoriesById(Collection&lt;Integer&gt; categoryIds, EventAndOrganizationId event) {
+<span class="nc" id="L666">        return ticketCategoryRepository.getByIdsAndActive(categoryIds, event.getId());</span>
+    }
+
+    MapSqlParameterSource[] prepareTicketsBulkInsertParameters(
+            ZonedDateTime creation, Event event, int requestedTickets, TicketStatus ticketStatus) {
+
+        // FIXME: the date should be inserted as ZonedDateTime !
+<span class="nc" id="L673">        Date creationDate = Date.from(creation.toInstant());</span>
+
+<span class="nc" id="L675">        List&lt;TicketCategory&gt; categories = ticketCategoryRepository.findAllTicketCategories(event.getId());</span>
+<span class="nc" id="L676">        Stream&lt;MapSqlParameterSource&gt; boundedTickets = categories.stream()</span>
+<span class="nc" id="L677">                .filter(IS_CATEGORY_BOUNDED)</span>
+<span class="nc" id="L678">                .flatMap(tc -&gt; generateTicketsForCategory(tc, event, creationDate, 0));</span>
+<span class="nc" id="L679">        int generatedTickets = categories.stream()</span>
+<span class="nc" id="L680">                .filter(IS_CATEGORY_BOUNDED)</span>
+<span class="nc" id="L681">                .mapToInt(TicketCategory::getMaxTickets)</span>
+<span class="nc" id="L682">                .sum();</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">        if (generatedTickets &gt;= requestedTickets) {</span>
+<span class="nc" id="L684">            return boundedTickets.toArray(MapSqlParameterSource[]::new);</span>
+        }
+
+<span class="nc" id="L687">        return Stream.concat(</span>
+                        boundedTickets,
+<span class="nc" id="L689">                        generateEmptyTickets(event, creationDate, requestedTickets - generatedTickets, ticketStatus))</span>
+<span class="nc" id="L690">                .toArray(MapSqlParameterSource[]::new);</span>
+    }
+
+    private Stream&lt;MapSqlParameterSource&gt; generateTicketsForCategory(
+            TicketCategory tc, Event event, Date creationDate, int existing) {
+<span class="nc" id="L695">        Optional&lt;TicketCategory&gt; filteredTC = Optional.of(tc).filter(TicketCategory::isBounded);</span>
+<span class="nc" id="L696">        int missingTickets = filteredTC</span>
+<span class="nc" id="L697">                .map(c -&gt; Math.abs(c.getMaxTickets() - existing))</span>
+<span class="nc" id="L698">                .orElseGet(() -&gt; eventRepository.countExistingTickets(event.getId()) - existing);</span>
+<span class="nc" id="L699">        return generateStreamForTicketCreation(missingTickets)</span>
+<span class="nc" id="L700">                .map(ps -&gt; buildTicketParams(event.getId(), creationDate, filteredTC, tc.getSrcPriceCts(), ps));</span>
+    }
+
+    private void createCategoriesForEvent(
+            EventModification em, Event event, Optional&lt;EventAndOrganizationId&gt; srcEventOptional) {
+<span class="nc" id="L705">        boolean freeOfCharge = em.isFreeOfCharge();</span>
+<span class="nc" id="L706">        ZoneId zoneId = TimeZone.getTimeZone(event.getTimeZone()).toZoneId();</span>
+<span class="nc" id="L707">        int eventId = event.getId();</span>
+
+<span class="nc" id="L709">        int requestedSeats = em.getTicketCategories().stream()</span>
+<span class="nc" id="L710">                .filter(TicketCategoryModification::isBounded)</span>
+<span class="nc" id="L711">                .mapToInt(TicketCategoryModification::getMaxTickets)</span>
+<span class="nc" id="L712">                .sum();</span>
+<span class="nc" id="L713">        Validate.notNull(em.getAvailableSeats(), &quot;Available Seats cannot be null&quot;);</span>
+<span class="nc" id="L714">        int notAssignedTickets = em.getAvailableSeats() - requestedSeats;</span>
+<span class="nc bnc" id="L715" title="All 2 branches missed.">        Validate.isTrue(notAssignedTickets &gt;= 0, &quot;Total categories' seats cannot be more than the actual event seats&quot;);</span>
+<span class="nc bnc" id="L716" title="All 2 branches missed.">        Validate.isTrue(</span>
+                notAssignedTickets &gt; 0
+<span class="nc bnc" id="L718" title="All 2 branches missed.">                        || em.getTicketCategories().stream().allMatch(TicketCategoryModification::isBounded),</span>
+                &quot;Cannot add an unbounded category if there aren't any free tickets&quot;);
+
+<span class="nc" id="L721">        em.getTicketCategories().forEach(tc -&gt; {</span>
+<span class="nc" id="L722">            final int price = evaluatePrice(tc.getPrice(), freeOfCharge, event.getCurrency());</span>
+<span class="nc bnc" id="L723" title="All 2 branches missed.">            final int maxTickets = tc.isBounded() ? tc.getMaxTickets() : 0;</span>
+<span class="nc" id="L724">            var accessType = requireNonNullElse(tc.getTicketAccessType(), TicketAccessType.INHERIT);</span>
+<span class="nc bnc" id="L725" title="All 4 branches missed.">            if (event.getFormat() == EventFormat.HYBRID &amp;&amp; accessType == TicketAccessType.INHERIT) {</span>
+                // if the event is hybrid the default is IN_PERSON
+<span class="nc" id="L727">                accessType = TicketAccessType.IN_PERSON;</span>
+            }
+<span class="nc" id="L729">            final AffectedRowCountAndKey&lt;Integer&gt; category = ticketCategoryRepository.insert(</span>
+<span class="nc" id="L730">                    tc.getInception().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L731">                    tc.getExpiration().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L732">                    tc.getName(),</span>
+                    maxTickets,
+<span class="nc" id="L734">                    tc.isTokenGenerationRequested(),</span>
+                    eventId,
+<span class="nc" id="L736">                    tc.isBounded(),</span>
+                    price,
+<span class="nc" id="L738">                    StringUtils.trimToNull(tc.getCode()),</span>
+<span class="nc" id="L739">                    atZone(tc.getValidCheckInFrom(), zoneId),</span>
+<span class="nc" id="L740">                    atZone(tc.getValidCheckInTo(), zoneId),</span>
+<span class="nc" id="L741">                    atZone(tc.getTicketValidityStart(), zoneId),</span>
+<span class="nc" id="L742">                    atZone(tc.getTicketValidityEnd(), zoneId),</span>
+<span class="nc" id="L743">                    tc.getOrdinal(),</span>
+<span class="nc" id="L744">                    Optional.ofNullable(tc.getTicketCheckInStrategy()).orElse(ONCE_PER_EVENT),</span>
+<span class="nc" id="L745">                    requireNonNullElseGet(tc.getMetadata(), AlfioMetadata::empty),</span>
+                    accessType);
+
+<span class="nc" id="L748">            insertOrUpdateTicketCategoryDescription(category.getKey(), tc, event);</span>
+
+<span class="nc bnc" id="L750" title="All 2 branches missed.">            if (tc.isTokenGenerationRequested()) {</span>
+<span class="nc" id="L751">                final TicketCategory ticketCategory =</span>
+<span class="nc" id="L752">                        ticketCategoryRepository.getByIdAndActive(category.getKey(), event.getId());</span>
+<span class="nc" id="L753">                specialPriceRepository.bulkInsert(ticketCategory, ticketCategory.getMaxTickets());</span>
+            }
+
+<span class="nc bnc" id="L756" title="All 2 branches missed.">            if (srcEventOptional.isPresent()</span>
+<span class="nc bnc" id="L757" title="All 2 branches missed.">                    &amp;&amp; tc.getMetadata() != null</span>
+<span class="nc bnc" id="L758" title="All 2 branches missed.">                    &amp;&amp; StringUtils.isNumeric(tc.getMetadata().getCopiedFrom())) {</span>
+<span class="nc" id="L759">                int count = configurationRepository.copyCategoryConfiguration(</span>
+<span class="nc" id="L760">                        event.getId(),</span>
+<span class="nc" id="L761">                        event.getOrganizationId(),</span>
+<span class="nc" id="L762">                        category.getKey(),</span>
+<span class="nc" id="L763">                        srcEventOptional.get().getId(),</span>
+<span class="nc" id="L764">                        srcEventOptional.get().getOrganizationId(),</span>
+<span class="nc" id="L765">                        Integer.parseInt(tc.getMetadata().getCopiedFrom()));</span>
+<span class="nc" id="L766">                log.info(&quot;Copied {} settings for category {}&quot;, count, tc.getName());</span>
+            }
+<span class="nc" id="L768">        });</span>
+<span class="nc" id="L769">    }</span>
+
+    private Integer insertCategory(TicketCategoryModification tc, Event event) {
+<span class="nc" id="L772">        ZoneId zoneId = event.getZoneId();</span>
+<span class="nc" id="L773">        int eventId = event.getId();</span>
+<span class="nc" id="L774">        final int price = evaluatePrice(tc.getPrice(), event.isFreeOfCharge(), event.getCurrency());</span>
+<span class="nc" id="L775">        final AffectedRowCountAndKey&lt;Integer&gt; category = ticketCategoryRepository.insert(</span>
+<span class="nc" id="L776">                tc.getInception().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L777">                tc.getExpiration().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L778">                tc.getName(),</span>
+<span class="nc bnc" id="L779" title="All 2 branches missed.">                tc.isBounded() ? tc.getMaxTickets() : 0,</span>
+<span class="nc" id="L780">                tc.isTokenGenerationRequested(),</span>
+                eventId,
+<span class="nc" id="L782">                tc.isBounded(),</span>
+                price,
+<span class="nc" id="L784">                StringUtils.trimToNull(tc.getCode()),</span>
+<span class="nc" id="L785">                atZone(tc.getValidCheckInFrom(), zoneId),</span>
+<span class="nc" id="L786">                atZone(tc.getValidCheckInTo(), zoneId),</span>
+<span class="nc" id="L787">                atZone(tc.getTicketValidityStart(), zoneId),</span>
+<span class="nc" id="L788">                atZone(tc.getTicketValidityEnd(), zoneId),</span>
+<span class="nc" id="L789">                tc.getOrdinal(),</span>
+<span class="nc" id="L790">                requireNonNullElse(tc.getTicketCheckInStrategy(), ONCE_PER_EVENT),</span>
+<span class="nc" id="L791">                requireNonNullElseGet(tc.getMetadata(), AlfioMetadata::empty),</span>
+<span class="nc" id="L792">                requireNonNullElse(tc.getTicketAccessType(), TicketAccessType.INHERIT));</span>
+<span class="nc" id="L793">        TicketCategory ticketCategory = ticketCategoryRepository.getByIdAndActive(category.getKey(), eventId);</span>
+<span class="nc bnc" id="L794" title="All 2 branches missed.">        if (tc.isBounded()) {</span>
+<span class="nc" id="L795">            List&lt;Integer&gt; lockedTickets = ticketRepository.selectNotAllocatedTicketsForUpdate(</span>
+                    eventId,
+<span class="nc" id="L797">                    ticketCategory.getMaxTickets(),</span>
+<span class="nc" id="L798">                    asList(TicketStatus.FREE.name(), TicketStatus.RELEASED.name()));</span>
+<span class="nc" id="L799">            ticketRepository.bulkTicketUpdate(lockedTickets, ticketCategory);</span>
+<span class="nc bnc" id="L800" title="All 2 branches missed.">            if (tc.isTokenGenerationRequested()) {</span>
+<span class="nc" id="L801">                insertTokens(ticketCategory);</span>
+<span class="nc" id="L802">                ticketRepository.revertToFree(eventId, ticketCategory.getId(), lockedTickets);</span>
+            } else {
+<span class="nc" id="L804">                ticketRepository.resetTickets(lockedTickets); // reset to RELEASED</span>
+            }
+        }
+
+<span class="nc" id="L808">        insertOrUpdateTicketCategoryDescription(category.getKey(), tc, event);</span>
+<span class="nc" id="L809">        saveBadgeColorConfiguration(tc.getBadgeColor(), event, category.getKey());</span>
+<span class="nc" id="L810">        return category.getKey();</span>
+    }
+
+    void saveBadgeColorConfiguration(String badgeColor, Event event, Integer categoryId) {
+<span class="nc bnc" id="L814" title="All 2 branches missed.">        if (StringUtils.isNotBlank(badgeColor)) {</span>
+<span class="nc" id="L815">            var chosenColor = badgeColor.toLowerCase();</span>
+<span class="nc" id="L816">            var colorConfiguration = CheckInManager.getOutputColorConfiguration(event, configurationManager);</span>
+<span class="nc bnc" id="L817" title="All 2 branches missed.">            boolean existingConfiguration = colorConfiguration != null;</span>
+<span class="nc bnc" id="L818" title="All 2 branches missed.">            if (!existingConfiguration) {</span>
+<span class="nc" id="L819">                colorConfiguration = new CheckInOutputColorConfiguration(</span>
+<span class="nc" id="L820">                        &quot;success&quot;, List.of(new ColorConfiguration(chosenColor, List.of(categoryId))));</span>
+            } else {
+<span class="nc" id="L822">                var configurationWithoutCategory = colorConfiguration.getConfigurations().stream()</span>
+<span class="nc" id="L823">                        .map(cc -&gt; new ColorConfiguration(</span>
+<span class="nc" id="L824">                                cc.getColorName(),</span>
+<span class="nc" id="L825">                                cc.getCategories().stream()</span>
+<span class="nc bnc" id="L826" title="All 2 branches missed.">                                        .filter(c -&gt; !c.equals(categoryId))</span>
+<span class="nc" id="L827">                                        .collect(toUnmodifiableList())))</span>
+<span class="nc bnc" id="L828" title="All 2 branches missed.">                        .filter(cc -&gt; !cc.getCategories().isEmpty())</span>
+<span class="nc" id="L829">                        .collect(toList());</span>
+<span class="nc" id="L830">                boolean colorExists = configurationWithoutCategory.stream()</span>
+<span class="nc" id="L831">                        .anyMatch(cc -&gt; cc.getColorName().equals(chosenColor));</span>
+<span class="nc bnc" id="L832" title="All 2 branches missed.">                if (colorExists) {</span>
+<span class="nc" id="L833">                    colorConfiguration = new CheckInOutputColorConfiguration(</span>
+<span class="nc" id="L834">                            colorConfiguration.getDefaultColorName(),</span>
+<span class="nc" id="L835">                            configurationWithoutCategory.stream()</span>
+<span class="nc" id="L836">                                    .map(cc -&gt; {</span>
+<span class="nc bnc" id="L837" title="All 2 branches missed.">                                        if (cc.getColorName().equals(chosenColor)) {</span>
+<span class="nc" id="L838">                                            var newList = new ArrayList&lt;&gt;(cc.getCategories());</span>
+<span class="nc" id="L839">                                            newList.add(categoryId);</span>
+<span class="nc" id="L840">                                            return new ColorConfiguration(chosenColor, newList);</span>
+                                        }
+<span class="nc" id="L842">                                        return cc;</span>
+                                    })
+<span class="nc" id="L844">                                    .collect(toUnmodifiableList()));</span>
+                } else {
+<span class="nc" id="L846">                    var newList = new ArrayList&lt;&gt;(configurationWithoutCategory);</span>
+<span class="nc" id="L847">                    newList.add(new ColorConfiguration(chosenColor, List.of(categoryId)));</span>
+<span class="nc" id="L848">                    colorConfiguration =</span>
+<span class="nc" id="L849">                            new CheckInOutputColorConfiguration(colorConfiguration.getDefaultColorName(), newList);</span>
+                }
+            }
+<span class="nc bnc" id="L852" title="All 2 branches missed.">            if (existingConfiguration) {</span>
+<span class="nc" id="L853">                configurationRepository.updateEventLevel(</span>
+<span class="nc" id="L854">                        event.getId(),</span>
+<span class="nc" id="L855">                        event.getOrganizationId(),</span>
+<span class="nc" id="L856">                        CHECK_IN_COLOR_CONFIGURATION.name(),</span>
+<span class="nc" id="L857">                        Json.toJson(colorConfiguration));</span>
+            } else {
+<span class="nc" id="L859">                configurationRepository.insertEventLevel(</span>
+<span class="nc" id="L860">                        event.getOrganizationId(),</span>
+<span class="nc" id="L861">                        event.getId(),</span>
+<span class="nc" id="L862">                        CHECK_IN_COLOR_CONFIGURATION.name(),</span>
+<span class="nc" id="L863">                        Json.toJson(colorConfiguration),</span>
+                        null);
+            }
+        }
+<span class="nc" id="L867">    }</span>
+
+    private void insertTokens(TicketCategory ticketCategory) {
+<span class="nc" id="L870">        insertTokens(ticketCategory, ticketCategory.getMaxTickets());</span>
+<span class="nc" id="L871">    }</span>
+
+    private void insertTokens(TicketCategory ticketCategory, int requiredTokens) {
+<span class="nc" id="L874">        specialPriceRepository.bulkInsert(ticketCategory, requiredTokens);</span>
+<span class="nc" id="L875">    }</span>
+
+    private void insertOrUpdateTicketCategoryDescription(int tcId, TicketCategoryModification tc, Event event) {
+<span class="nc" id="L878">        ticketCategoryDescriptionRepository.delete(tcId);</span>
+
+<span class="nc" id="L880">        Set&lt;String&gt; eventLang = ContentLanguage.findAllFor(event.getLocales()).stream()</span>
+<span class="nc" id="L881">                .map(ContentLanguage::getLanguage)</span>
+<span class="nc" id="L882">                .collect(Collectors.toSet());</span>
+
+<span class="nc" id="L884">        Optional.ofNullable(tc.getDescription())</span>
+<span class="nc" id="L885">                .ifPresent(descriptions -&gt; descriptions.forEach((locale, desc) -&gt; {</span>
+<span class="nc bnc" id="L886" title="All 2 branches missed.">                    if (eventLang.contains(locale)) {</span>
+<span class="nc" id="L887">                        ticketCategoryDescriptionRepository.insert(tcId, locale, desc);</span>
+                    }
+<span class="nc" id="L889">                }));</span>
+<span class="nc" id="L890">    }</span>
+
+    private void updateCategory(
+            TicketCategoryModification tc,
+            boolean freeOfCharge,
+            ZoneId zoneId,
+            Event event,
+            boolean resetTicketsToFree) {
+
+<span class="nc" id="L899">        int eventId = event.getId();</span>
+<span class="nc" id="L900">        final int price = evaluatePrice(tc.getPrice(), freeOfCharge, event.getCurrency());</span>
+<span class="nc" id="L901">        TicketCategory original = ticketCategoryRepository.getByIdAndActive(tc.getId(), eventId);</span>
+<span class="nc" id="L902">        ticketCategoryRepository.update(</span>
+<span class="nc" id="L903">                tc.getId(),</span>
+<span class="nc" id="L904">                tc.getName(),</span>
+<span class="nc" id="L905">                tc.getInception().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L906">                tc.getExpiration().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L907">                tc.getMaxTickets(),</span>
+<span class="nc" id="L908">                tc.isTokenGenerationRequested(),</span>
+                price,
+<span class="nc" id="L910">                StringUtils.trimToNull(tc.getCode()),</span>
+<span class="nc" id="L911">                atZone(tc.getValidCheckInFrom(), zoneId),</span>
+<span class="nc" id="L912">                atZone(tc.getValidCheckInTo(), zoneId),</span>
+<span class="nc" id="L913">                atZone(tc.getTicketValidityStart(), zoneId),</span>
+<span class="nc" id="L914">                atZone(tc.getTicketValidityEnd(), zoneId),</span>
+<span class="nc" id="L915">                requireNonNullElse(tc.getTicketCheckInStrategy(), ONCE_PER_EVENT),</span>
+<span class="nc" id="L916">                tc.getTicketAccessType());</span>
+<span class="nc" id="L917">        TicketCategory updated = ticketCategoryRepository.getByIdAndActive(tc.getId(), eventId);</span>
+<span class="nc" id="L918">        int addedTickets = 0;</span>
+<span class="nc bnc" id="L919" title="All 2 branches missed.">        if (original.isBounded() ^ tc.isBounded()) {</span>
+<span class="nc" id="L920">            handleTicketAllocationStrategyChange(event, original, tc);</span>
+        } else {
+<span class="nc" id="L922">            addedTickets = updated.getMaxTickets() - original.getMaxTickets();</span>
+<span class="nc" id="L923">            handleTicketNumberModification(event, updated, addedTickets, resetTicketsToFree);</span>
+        }
+<span class="nc" id="L925">        handleTokenModification(original, updated, addedTickets);</span>
+<span class="nc" id="L926">        handlePriceChange(event, original, updated);</span>
+
+<span class="nc" id="L928">        insertOrUpdateTicketCategoryDescription(tc.getId(), tc, event);</span>
+
+        //
+<span class="nc" id="L931">        saveBadgeColorConfiguration(tc.getBadgeColor(), event, tc.getId());</span>
+
+<span class="nc" id="L933">        auditingRepository.insertUpdateTicketInCategoryId(tc.getId());</span>
+<span class="nc" id="L934">    }</span>
+
+    private void handleTicketAllocationStrategyChange(
+            EventAndOrganizationId event, TicketCategory original, TicketCategoryModification updated) {
+<span class="nc bnc" id="L938" title="All 2 branches missed.">        if (updated.isBounded()) {</span>
+            // the ticket allocation strategy has been changed to &quot;bounded&quot;,
+            // therefore we have to link the tickets which have not yet been acquired to this category
+<span class="nc" id="L941">            int eventId = event.getId();</span>
+<span class="nc" id="L942">            int newSize = updated.getMaxTickets();</span>
+<span class="nc" id="L943">            int confirmed = ticketRepository.countConfirmedForCategory(eventId, original.getId());</span>
+<span class="nc" id="L944">            int addedTickets = newSize - confirmed;</span>
+<span class="nc" id="L945">            List&lt;Integer&gt; ids = ticketRepository.selectNotAllocatedTicketsForUpdate(</span>
+<span class="nc" id="L946">                    eventId, addedTickets, singletonList(TicketStatus.FREE.name()));</span>
+<span class="nc bnc" id="L947" title="All 2 branches missed.">            Validate.isTrue(</span>
+                    addedTickets &gt;= 0,
+                    &quot;Cannot reduce capacity to &quot; + newSize + &quot;. Minimum size allowed is &quot; + confirmed);
+<span class="nc bnc" id="L950" title="All 2 branches missed.">            Validate.isTrue(ids.size() &gt;= addedTickets, &quot;not enough tickets&quot;);</span>
+<span class="nc" id="L951">            Validate.isTrue(</span>
+<span class="nc bnc" id="L952" title="All 2 branches missed.">                    ids.isEmpty()</span>
+<span class="nc" id="L953">                            || ticketRepository.moveToAnotherCategory(</span>
+                                            ids,
+<span class="nc" id="L955">                                            original.getId(),</span>
+<span class="nc" id="L956">                                            MonetaryUtil.unitToCents(updated.getPrice(), original.getCurrencyCode()))</span>
+<span class="nc bnc" id="L957" title="All 2 branches missed.">                                    == ids.size(),</span>
+                    &quot;not enough tickets&quot;);
+<span class="nc" id="L959">        } else {</span>
+<span class="nc" id="L960">            reallocateTickets(</span>
+<span class="nc" id="L961">                    ticketCategoryRepository.findStatisticWithId(original.getId(), event.getId()),</span>
+<span class="nc" id="L962">                    Optional.empty(),</span>
+                    event);
+        }
+<span class="nc" id="L965">        ticketCategoryRepository.updateBoundedFlag(original.getId(), updated.isBounded());</span>
+<span class="nc" id="L966">    }</span>
+
+    void handlePriceChange(EventAndOrganizationId event, TicketCategory original, TicketCategory updated) {
+<span class="nc bnc" id="L969" title="All 4 branches missed.">        if (original.getSrcPriceCts() == updated.getSrcPriceCts() || !original.isBounded()) {</span>
+<span class="nc" id="L970">            return;</span>
+        }
+<span class="nc" id="L972">        final List&lt;Integer&gt; ids = ticketRepository.selectTicketInCategoryForUpdate(</span>
+<span class="nc" id="L973">                event.getId(), updated.getId(), updated.getMaxTickets(), singletonList(TicketStatus.FREE.name()));</span>
+<span class="nc bnc" id="L974" title="All 2 branches missed.">        if (ids.size() &lt; updated.getMaxTickets()) {</span>
+<span class="nc" id="L975">            throw new IllegalStateException(</span>
+                    &quot;Tickets have already been sold (or are in the process of being sold) for this category. Therefore price update is not allowed.&quot;);
+        }
+        // there's no need to calculate final price, vat etc, since these values will be updated at the time of
+        // reservation
+<span class="nc" id="L980">        ticketRepository.updateTicketPrice(</span>
+<span class="nc" id="L981">                updated.getId(), event.getId(), updated.getSrcPriceCts(), 0, 0, 0, original.getCurrencyCode());</span>
+<span class="nc" id="L982">    }</span>
+
+    void handleTokenModification(TicketCategory original, TicketCategory updated, int addedTickets) {
+<span class="nc bnc" id="L985" title="All 2 branches missed.">        if (original.isAccessRestricted() ^ updated.isAccessRestricted()) {</span>
+<span class="nc bnc" id="L986" title="All 2 branches missed.">            if (updated.isAccessRestricted()) {</span>
+<span class="nc" id="L987">                specialPriceRepository.bulkInsert(updated, updated.getMaxTickets());</span>
+            } else {
+<span class="nc" id="L989">                specialPriceRepository.cancelExpiredTokens(updated.getId());</span>
+            }
+<span class="nc bnc" id="L991" title="All 4 branches missed.">        } else if (updated.isAccessRestricted() &amp;&amp; addedTickets != 0) {</span>
+<span class="nc bnc" id="L992" title="All 2 branches missed.">            if (addedTickets &gt; 0) {</span>
+<span class="nc" id="L993">                specialPriceRepository.bulkInsert(updated, addedTickets);</span>
+            } else {
+<span class="nc" id="L995">                int absDifference = Math.abs(addedTickets);</span>
+<span class="nc" id="L996">                final List&lt;Integer&gt; ids = specialPriceRepository.lockNotSentTokens(updated.getId(), absDifference);</span>
+<span class="nc bnc" id="L997" title="All 2 branches missed.">                Validate.isTrue(ids.size() - absDifference == 0, &quot;not enough tokens&quot;);</span>
+<span class="nc" id="L998">                specialPriceRepository.cancelTokens(ids);</span>
+            }
+        }
+<span class="nc" id="L1001">    }</span>
+
+    void handleTicketNumberModification(Event event, TicketCategory updated, int addedTickets, boolean resetToFree) {
+<span class="nc bnc" id="L1004" title="All 2 branches missed.">        if (addedTickets == 0) {</span>
+<span class="nc" id="L1005">            log.debug(&quot;ticket handling not required since the number of ticket wasn't modified&quot;);</span>
+<span class="nc" id="L1006">            return;</span>
+        }
+
+<span class="nc" id="L1009">        log.debug(&quot;modification detected in ticket number. The difference is: {}&quot;, addedTickets);</span>
+
+<span class="nc bnc" id="L1011" title="All 2 branches missed.">        if (addedTickets &gt; 0) {</span>
+            // the updated category contains more tickets than the older one
+<span class="nc" id="L1013">            List&lt;Integer&gt; lockedTickets = ticketRepository.selectNotAllocatedTicketsForUpdate(</span>
+<span class="nc" id="L1014">                    event.getId(), addedTickets, asList(TicketStatus.FREE.name(), TicketStatus.RELEASED.name()));</span>
+<span class="nc" id="L1015">            Validate.isTrue(</span>
+<span class="nc bnc" id="L1016" title="All 2 branches missed.">                    addedTickets == lockedTickets.size(),</span>
+                    &quot;Cannot add %d tickets. There are only %d free tickets.&quot;,
+<span class="nc" id="L1018">                    addedTickets,</span>
+<span class="nc" id="L1019">                    lockedTickets.size());</span>
+<span class="nc" id="L1020">            ticketRepository.bulkTicketUpdate(lockedTickets, updated);</span>
+<span class="nc bnc" id="L1021" title="All 2 branches missed.">            if (updated.isAccessRestricted()) {</span>
+                // since the updated category is not public, the tickets shouldn't be distributed to waiting people.
+<span class="nc" id="L1023">                ticketRepository.revertToFree(event.getId(), updated.getId(), lockedTickets);</span>
+<span class="nc bnc" id="L1024" title="All 2 branches missed.">            } else if (!resetToFree) {</span>
+<span class="nc" id="L1025">                ticketRepository.resetTickets(lockedTickets);</span>
+            }
+
+<span class="nc" id="L1028">        } else {</span>
+<span class="nc" id="L1029">            int absDifference = Math.abs(addedTickets);</span>
+<span class="nc" id="L1030">            final List&lt;Integer&gt; ids =</span>
+<span class="nc" id="L1031">                    ticketRepository.lockTicketsToInvalidate(event.getId(), updated.getId(), absDifference);</span>
+<span class="nc" id="L1032">            int actualDifference = ids.size();</span>
+<span class="nc bnc" id="L1033" title="All 2 branches missed.">            if (actualDifference &lt; absDifference) {</span>
+<span class="nc" id="L1034">                throw new IllegalStateException(&quot;Cannot invalidate &quot; + absDifference + &quot; tickets. There are only &quot;</span>
+                        + actualDifference + &quot; free tickets&quot;);
+            }
+<span class="nc" id="L1037">            ticketRepository.invalidateTickets(ids);</span>
+<span class="nc" id="L1038">            final MapSqlParameterSource[] params = generateEmptyTickets(</span>
+                            event,
+<span class="nc" id="L1040">                            Date.from(event.now(clockProvider).toInstant()),</span>
+                            absDifference,
+<span class="nc bnc" id="L1042" title="All 2 branches missed.">                            resetToFree ? TicketStatus.FREE : TicketStatus.RELEASED)</span>
+<span class="nc" id="L1043">                    .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L1044">            ticketRepository.bulkTicketInitialization(params);</span>
+        }
+<span class="nc" id="L1046">    }</span>
+
+    private void createAllTicketsForEvent(Event event, EventModification em) {
+<span class="nc" id="L1049">        Objects.requireNonNull(em.getAvailableSeats());</span>
+<span class="nc" id="L1050">        final MapSqlParameterSource[] params = prepareTicketsBulkInsertParameters(</span>
+<span class="nc" id="L1051">                event.now(clockProvider), event, em.getAvailableSeats(), TicketStatus.FREE);</span>
+<span class="nc" id="L1052">        ticketRepository.bulkTicketInitialization(params);</span>
+<span class="nc" id="L1053">    }</span>
+
+    private int insertEvent(EventModification em) {
+<span class="nc" id="L1056">        Objects.requireNonNull(em.getAvailableSeats());</span>
+<span class="nc" id="L1057">        validatePaymentProxies(em.getAllowedPaymentProxies(), em.getOrganizationId());</span>
+<span class="nc" id="L1058">        String paymentProxies = collectPaymentProxies(em);</span>
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">        BigDecimal vat = em.isFreeOfCharge() ? BigDecimal.ZERO : em.getVatPercentage();</span>
+<span class="nc" id="L1060">        String privateKey = UUID.randomUUID().toString();</span>
+<span class="nc" id="L1061">        ZoneId zoneId = ZoneId.of(em.getZoneId());</span>
+<span class="nc" id="L1062">        String currentVersion = flyway.info().current().getVersion().getVersion();</span>
+<span class="nc" id="L1063">        var eventMetadata = requireNonNullElseGet(em.getMetadata(), AlfioMetadata::empty);</span>
+<span class="nc" id="L1064">        return eventRepository</span>
+<span class="nc" id="L1065">                .insert(</span>
+<span class="nc" id="L1066">                        em.getShortName(),</span>
+<span class="nc" id="L1067">                        em.getFormat(),</span>
+<span class="nc" id="L1068">                        em.getDisplayName(),</span>
+<span class="nc" id="L1069">                        em.getWebsiteUrl(),</span>
+<span class="nc" id="L1070">                        em.getExternalUrl(),</span>
+<span class="nc" id="L1071">                        em.getTermsAndConditionsUrl(),</span>
+<span class="nc" id="L1072">                        em.getPrivacyPolicyUrl(),</span>
+<span class="nc" id="L1073">                        em.getImageUrl(),</span>
+<span class="nc" id="L1074">                        em.getFileBlobId(),</span>
+<span class="nc" id="L1075">                        em.getLocation(),</span>
+<span class="nc" id="L1076">                        em.getLatitude(),</span>
+<span class="nc" id="L1077">                        em.getLongitude(),</span>
+<span class="nc" id="L1078">                        em.getBegin().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L1079">                        em.getEnd().toZonedDateTime(zoneId),</span>
+<span class="nc" id="L1080">                        em.getZoneId(),</span>
+<span class="nc" id="L1081">                        em.getCurrency(),</span>
+<span class="nc" id="L1082">                        em.getAvailableSeats(),</span>
+<span class="nc" id="L1083">                        em.isVatIncluded(),</span>
+                        vat,
+                        paymentProxies,
+                        privateKey,
+<span class="nc" id="L1087">                        em.getOrganizationId(),</span>
+<span class="nc" id="L1088">                        em.getLocales(),</span>
+<span class="nc" id="L1089">                        em.getVatStatus(),</span>
+<span class="nc" id="L1090">                        em.getPriceInCents(),</span>
+                        currentVersion,
+                        Event.Status.DRAFT,
+                        eventMetadata)
+<span class="nc" id="L1094">                .getKey();</span>
+    }
+
+    private String collectPaymentProxies(EventModification em) {
+<span class="nc" id="L1098">        return em.getAllowedPaymentProxies().stream()</span>
+<span class="nc" id="L1099">                .map(PaymentProxy::name)</span>
+<span class="nc" id="L1100">                .distinct()</span>
+<span class="nc" id="L1101">                .collect(joining(&quot;,&quot;));</span>
+    }
+
+    public TicketCategory getTicketCategoryById(int id, int eventId) {
+<span class="nc" id="L1105">        return ticketCategoryRepository.getByIdAndActive(id, eventId);</span>
+    }
+
+    public boolean toggleTicketLocking(String eventName, int categoryId, int ticketId, String username) {
+<span class="nc" id="L1109">        EventAndOrganizationId event = getEventAndOrganizationId(eventName, username);</span>
+<span class="nc" id="L1110">        checkOwnership(event, username, event.getOrganizationId());</span>
+        // FIXME: can search directly by id
+<span class="nc" id="L1112">        var existingCategory = ticketCategoryRepository.findAllTicketCategories(event.getId()).stream()</span>
+<span class="nc bnc" id="L1113" title="All 2 branches missed.">                .filter(tc -&gt; tc.getId() == categoryId)</span>
+<span class="nc" id="L1114">                .findFirst();</span>
+<span class="nc bnc" id="L1115" title="All 2 branches missed.">        if (existingCategory.isPresent()) {</span>
+<span class="nc" id="L1116">            Ticket ticket = ticketRepository.findById(ticketId, categoryId);</span>
+<span class="nc" id="L1117">            Validate.isTrue(</span>
+<span class="nc bnc" id="L1118" title="All 4 branches missed.">                    ticketRepository.toggleTicketLocking(ticketId, categoryId, !ticket.getLockedAssignment()) == 1,</span>
+                    &quot;unwanted result from ticket locking&quot;);
+<span class="nc" id="L1120">            return true;</span>
+        }
+<span class="nc" id="L1122">        throw new IllegalArgumentException(&quot;Invalid category&quot;);</span>
+    }
+
+    public void addPromoCode(
+            String promoCode,
+            Integer eventId,
+            Integer organizationId,
+            ZonedDateTime start,
+            ZonedDateTime end,
+            int discountAmount,
+            DiscountType discountType,
+            List&lt;Integer&gt; categoriesId,
+            Integer maxUsage,
+            String description,
+            String emailReference,
+            PromoCodeDiscount.CodeType codeType,
+            Integer hiddenCategoryId,
+            String currencyCode) {
+
+<span class="nc bnc" id="L1141" title="All 2 branches missed.">        Validate.isTrue(promoCode.length() &gt;= 7, &quot;min length is 7 chars&quot;);</span>
+<span class="nc bnc" id="L1142" title="All 8 branches missed.">        Validate.isTrue(</span>
+                (eventId != null &amp;&amp; organizationId == null) || (eventId == null &amp;&amp; organizationId != null),
+                &quot;eventId or organizationId must be not null&quot;);
+<span class="nc bnc" id="L1145" title="All 2 branches missed.">        Validate.isTrue(StringUtils.length(description) &lt; 1025, &quot;Description can be maximum 1024 chars&quot;);</span>
+<span class="nc bnc" id="L1146" title="All 2 branches missed.">        Validate.isTrue(StringUtils.length(emailReference) &lt; 257, &quot;Description can be maximum 256 chars&quot;);</span>
+<span class="nc" id="L1147">        Validate.isTrue(</span>
+<span class="nc bnc" id="L1148" title="All 2 branches missed.">                !PromoCodeDiscount.supportsCurrencyCode(codeType, discountType)</span>
+<span class="nc bnc" id="L1149" title="All 2 branches missed.">                        || StringUtils.length(currencyCode) == 3,</span>
+                &quot;Currency code is not valid&quot;);
+
+<span class="nc bnc" id="L1152" title="All 2 branches missed.">        if (maxUsage != null) {</span>
+<span class="nc bnc" id="L1153" title="All 2 branches missed.">            Validate.isTrue(maxUsage &gt; 0, &quot;Invalid max usage&quot;);</span>
+        }
+<span class="nc bnc" id="L1155" title="All 2 branches missed.">        if (DiscountType.PERCENTAGE == discountType) {</span>
+<span class="nc" id="L1156">            Validate.inclusiveBetween(0, 100, discountAmount, &quot;percentage discount must be between 0 and 100&quot;);</span>
+        }
+<span class="nc bnc" id="L1158" title="All 4 branches missed.">        if (DiscountType.FIXED_AMOUNT == discountType || DiscountType.FIXED_AMOUNT_RESERVATION == discountType) {</span>
+<span class="nc bnc" id="L1159" title="All 2 branches missed.">            Validate.isTrue(discountAmount &gt;= 0, &quot;fixed discount amount cannot be less than zero&quot;);</span>
+        }
+
+<span class="nc bnc" id="L1162" title="All 2 branches missed.">        if (PromoCodeDiscount.CodeType.ACCESS == codeType) {</span>
+<span class="nc" id="L1163">            Validate.notNull(hiddenCategoryId, &quot;Hidden category is required&quot;);</span>
+        }
+
+        //
+<span class="nc" id="L1167">        categoriesId = Optional.ofNullable(categoriesId).orElse(Collections.emptyList()).stream()</span>
+<span class="nc" id="L1168">                .filter(Objects::nonNull)</span>
+<span class="nc" id="L1169">                .collect(toList());</span>
+        //
+
+<span class="nc bnc" id="L1172" title="All 2 branches missed.">        if (organizationId == null) {</span>
+<span class="nc" id="L1173">            organizationId = eventRepository.findOrganizationIdByEventId(eventId);</span>
+        }
+
+<span class="nc bnc" id="L1176" title="All 2 branches missed.">        if (codeType == PromoCodeDiscount.CodeType.ACCESS) {</span>
+<span class="nc" id="L1177">            discountType = DiscountType.NONE;</span>
+        }
+
+<span class="nc" id="L1180">        promoCodeRepository.addPromoCode(</span>
+                promoCode,
+                eventId,
+<span class="nc" id="L1183">                organizationId,</span>
+                start,
+                end,
+                discountAmount,
+                discountType,
+<span class="nc" id="L1188">                Json.GSON.toJson(categoriesId),</span>
+                maxUsage,
+                description,
+                emailReference,
+                codeType,
+                hiddenCategoryId,
+                currencyCode);
+<span class="nc" id="L1195">    }</span>
+
+    public void deletePromoCode(int promoCodeId) {
+<span class="nc" id="L1198">        promoCodeRepository.deletePromoCode(promoCodeId);</span>
+<span class="nc" id="L1199">    }</span>
+
+    public void updatePromoCode(
+            int promoCodeId,
+            ZonedDateTime start,
+            ZonedDateTime end,
+            Integer maxUsage,
+            List&lt;Integer&gt; categories,
+            String description,
+            String emailReference,
+            Integer hiddenCategoryId) {
+<span class="nc bnc" id="L1210" title="All 2 branches missed.">        Validate.isTrue(StringUtils.length(description) &lt; 1025, &quot;Description can be maximum 1024 chars&quot;);</span>
+<span class="nc bnc" id="L1211" title="All 2 branches missed.">        Validate.isTrue(StringUtils.length(emailReference) &lt; 257, &quot;Description can be maximum 256 chars&quot;);</span>
+<span class="nc bnc" id="L1212" title="All 2 branches missed.">        String categoriesJson = CollectionUtils.isEmpty(categories) ? null : Json.toJson(categories);</span>
+
+<span class="nc" id="L1214">        promoCodeRepository.updateEventPromoCode(</span>
+                promoCodeId, start, end, maxUsage, categoriesJson, description, emailReference, hiddenCategoryId);
+<span class="nc" id="L1216">    }</span>
+
+    public List&lt;PromoCodeDiscountWithFormattedTimeAndAmount&gt; findPromoCodesInEvent(int eventId) {
+<span class="nc" id="L1219">        var event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L1220">        return promoCodeRepository.findAllInEvent(eventId).stream()</span>
+<span class="nc" id="L1221">                .map(p -&gt; new PromoCodeDiscountWithFormattedTimeAndAmount(p, event.getZoneId(), event.getCurrency()))</span>
+<span class="nc" id="L1222">                .collect(toList());</span>
+    }
+
+    public List&lt;PromoCodeDiscountWithFormattedTimeAndAmount&gt; findPromoCodesInOrganization(int organizationId) {
+<span class="nc" id="L1226">        ZoneId zoneId = ZoneId.systemDefault();</span>
+<span class="nc" id="L1227">        return promoCodeRepository.findAllInOrganization(organizationId).stream()</span>
+<span class="nc" id="L1228">                .map(p -&gt; new PromoCodeDiscountWithFormattedTimeAndAmount(p, zoneId, null))</span>
+<span class="nc" id="L1229">                .collect(toList());</span>
+    }
+
+    public String getEventUrl(Event event) {
+<span class="nc" id="L1233">        var baseUrl = configurationManager</span>
+<span class="nc" id="L1234">                .getFor(ConfigurationKeys.BASE_URL, event.getConfigurationLevel())</span>
+<span class="nc" id="L1235">                .getRequiredValue();</span>
+<span class="nc" id="L1236">        return StringUtils.removeEnd(baseUrl, &quot;/&quot;) + &quot;/event/&quot; + event.getShortName() + &quot;/&quot;;</span>
+    }
+
+    public List&lt;TicketWithReservationAndTransaction&gt; findAllConfirmedTicketsForCSV(String eventName, String username) {
+<span class="nc" id="L1240">        EventAndOrganizationId event = getEventAndOrganizationId(eventName, username);</span>
+<span class="nc" id="L1241">        checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="nc" id="L1242">        return ticketRepository.findAllConfirmedForCSV(event.getId());</span>
+    }
+
+    public List&lt;Event&gt; getPublishedEvents(SearchOptions searchOptions) {
+<span class="nc" id="L1246">        return eventRepository.findVisibleBySearchOptions(</span>
+<span class="nc" id="L1247">                searchOptions.getSubscriptionCodeUUIDOrNull(),</span>
+<span class="nc" id="L1248">                searchOptions.getOrganizer(),</span>
+<span class="nc" id="L1249">                searchOptions.getOrganizerSlug(),</span>
+<span class="nc" id="L1250">                searchOptions.getTags());</span>
+    }
+
+    public List&lt;Event&gt; getActiveEvents() {
+<span class="nc" id="L1254">        return getActiveEventsStream(1).toList();</span>
+    }
+
+    public List&lt;Event&gt; getEventsByDateRange(int days) {
+<span class="nc" id="L1258">        return getActiveEventsStream(days).toList();</span>
+    }
+
+    private Stream&lt;Event&gt; getActiveEventsStream(int days) {
+<span class="nc" id="L1262">        return eventRepository.findAll().stream().filter(e -&gt; e.getEnd()</span>
+<span class="nc" id="L1263">                .truncatedTo(ChronoUnit.DAYS)</span>
+<span class="nc" id="L1264">                .plusDays(days)</span>
+<span class="nc" id="L1265">                .isAfter(</span>
+<span class="nc" id="L1266">                        ZonedDateTime.now(clockProvider.withZone(e.getZoneId())).truncatedTo(ChronoUnit.DAYS)));</span>
+    }
+
+    public Function&lt;Ticket, Boolean&gt; checkTicketCancellationPrerequisites() {
+<span class="nc" id="L1270">        return CategoryEvaluator.ticketCancellationAvailabilityChecker(ticketCategoryRepository);</span>
+    }
+
+    void resetReleasedTickets(EventAndOrganizationId event) {
+<span class="nc" id="L1274">        int reverted = ticketRepository.revertToFree(event.getId());</span>
+<span class="nc bnc" id="L1275" title="All 2 branches missed.">        if (reverted &gt; 0) {</span>
+<span class="nc" id="L1276">            log.debug(&quot;Reverted {} tickets to FREE for event {}&quot;, reverted, event.getId());</span>
+        }
+<span class="nc" id="L1278">    }</span>
+
+    public void deleteEvent(int eventId, String username) {
+<span class="nc" id="L1281">        final Event event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L1282">        checkOwnership(event, username, event.getOrganizationId());</span>
+<span class="nc" id="L1283">        eventDeleterRepository.deleteAllForEvent(eventId);</span>
+<span class="nc" id="L1284">    }</span>
+
+    public Optional&lt;TicketCategory&gt; getOptionalByIdAndActive(int ticketCategoryId, int eventId) {
+<span class="nc" id="L1287">        return ticketCategoryRepository.getOptionalByIdAndActive(ticketCategoryId, eventId);</span>
+    }
+
+    public void deleteCategory(String eventName, int categoryId, String username) {
+<span class="nc" id="L1291">        var optionalEvent = getOptionalEventAndOrganizationIdByName(eventName, username);</span>
+<span class="nc bnc" id="L1292" title="All 2 branches missed.">        if (optionalEvent.isEmpty()) {</span>
+<span class="nc" id="L1293">            throw new IllegalArgumentException(&quot;Event not found&quot;);</span>
+        }
+<span class="nc" id="L1295">        int eventId = optionalEvent.get().getId();</span>
+<span class="nc bnc" id="L1296" title="All 2 branches missed.">        if (ticketCategoryRepository.countActiveByEventId(eventId) &lt; 2) {</span>
+<span class="nc" id="L1297">            throw new IllegalArgumentException(&quot;At least one category is required&quot;);</span>
+        }
+<span class="nc" id="L1299">        var optionalCategory = getOptionalByIdAndActive(categoryId, eventId);</span>
+<span class="nc bnc" id="L1300" title="All 2 branches missed.">        if (optionalCategory.isEmpty()) {</span>
+<span class="nc" id="L1301">            throw new IllegalArgumentException(&quot;Category not found&quot;);</span>
+        }
+<span class="nc" id="L1303">        var category = optionalCategory.get();</span>
+<span class="nc" id="L1304">        int result = ticketCategoryRepository.deleteCategoryIfEmpty(category.getId());</span>
+<span class="nc bnc" id="L1305" title="All 2 branches missed.">        if (result != 1) {</span>
+<span class="nc" id="L1306">            log.debug(&quot;cannot delete category. Expected result 1, got {}&quot;, result);</span>
+<span class="nc" id="L1307">            throw new IllegalStateException(&quot;Cannot delete category&quot;);</span>
+        }
+<span class="nc bnc" id="L1309" title="All 2 branches missed.">        if (category.isBounded()) {</span>
+<span class="nc" id="L1310">            int ticketsCount = category.getMaxTickets();</span>
+<span class="nc" id="L1311">            var ticketIds = ticketRepository.selectTicketInCategoryForUpdate(</span>
+<span class="nc" id="L1312">                    eventId, categoryId, ticketsCount, List.of(TicketStatus.FREE.name(), TicketStatus.RELEASED.name()));</span>
+<span class="nc" id="L1313">            Validate.isTrue(</span>
+<span class="nc bnc" id="L1314" title="All 2 branches missed.">                    ticketIds.size() == ticketsCount,</span>
+                    &quot;Error while deleting category. Please ensure that there is no pending reservation.&quot;);
+<span class="nc" id="L1316">            ticketRepository.resetTickets(ticketIds);</span>
+<span class="nc" id="L1317">            Validate.isTrue(</span>
+<span class="nc bnc" id="L1318" title="All 2 branches missed.">                    ticketsCount == ticketRepository.unbindTicketsFromCategory(eventId, categoryId, ticketIds),</span>
+                    &quot;Cannot remove tickets from category.&quot;);
+        }
+<span class="nc bnc" id="L1321" title="All 2 branches missed.">        if (category.isAccessRestricted()) {</span>
+<span class="nc" id="L1322">            int count = specialPriceRepository.cancelExpiredTokens(category.getId());</span>
+<span class="nc" id="L1323">            log.debug(&quot;Invalidated {} tokens for category {}&quot;, count, categoryId);</span>
+        }
+<span class="nc" id="L1325">    }</span>
+
+    public void rearrangeCategories(String eventName, List&lt;CategoryOrdinalModification&gt; categories, String username) {
+<span class="nc" id="L1328">        var optionalEvent = getOptionalEventAndOrganizationIdByName(eventName, username);</span>
+<span class="nc bnc" id="L1329" title="All 2 branches missed.">        if (optionalEvent.isPresent()) {</span>
+<span class="nc" id="L1330">            int eventId = optionalEvent.get().getId();</span>
+<span class="nc" id="L1331">            var parameterSources = categories.stream()</span>
+<span class="nc" id="L1332">                    .map(category -&gt; new MapSqlParameterSource(&quot;ordinal&quot;, category.getOrdinal())</span>
+<span class="nc" id="L1333">                            .addValue(&quot;id&quot;, category.getId())</span>
+<span class="nc" id="L1334">                            .addValue(&quot;eventId&quot;, eventId))</span>
+<span class="nc" id="L1335">                    .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L1336">            int[] results = jdbcTemplate.batchUpdate(ticketCategoryRepository.updateOrdinal(), parameterSources);</span>
+<span class="nc bnc" id="L1337" title="All 2 branches missed.">            Validate.isTrue(IntStream.of(results).sum() == categories.size(), &quot;Unexpected result from update.&quot;);</span>
+<span class="nc" id="L1338">        } else {</span>
+<span class="nc" id="L1339">            log.warn(&quot;unauthorized access to event {}&quot;, removeTabsAndNewlines(eventName));</span>
+        }
+<span class="nc" id="L1341">    }</span>
+
+    public Map&lt;Integer, String&gt; getEventNamesByIds(List&lt;Integer&gt; eventIds, Principal principal) {
+<span class="nc bnc" id="L1344" title="All 2 branches missed.">        if (!RequestUtils.isAdmin(principal)) {</span>
+<span class="nc" id="L1345">            throw new IllegalStateException(&quot;User must be admin&quot;);</span>
+        }
+<span class="nc" id="L1347">        return eventRepository.getEventNamesByIds(eventIds).stream()</span>
+<span class="nc" id="L1348">                .collect(Collectors.toMap(EventIdShortName::getId, EventIdShortName::getShortName));</span>
+    }
+
+    public Map&lt;Integer, String&gt; getEventsNameInOrganization(int orgId, Principal principal) {
+<span class="nc bnc" id="L1352" title="All 2 branches missed.">        if (!RequestUtils.isAdmin(principal)) {</span>
+<span class="nc" id="L1353">            throw new IllegalStateException(&quot;User must be admin&quot;);</span>
+        }
+<span class="nc" id="L1355">        return eventRepository.getEventsNameInOrganization(orgId).stream()</span>
+<span class="nc" id="L1356">                .collect(Collectors.toMap(EventIdShortName::getId, EventIdShortName::getShortName));</span>
+    }
+
+    public boolean updateMetadata(Event event, AlfioMetadata metadata) {
+<span class="nc" id="L1360">        var existing = eventRepository.getMetadataForEvent(event.getId());</span>
+<span class="nc" id="L1361">        var updatedMetadata = extensionManager.handleMetadataUpdate(</span>
+<span class="nc" id="L1362">                event, organizationRepository.getById(event.getOrganizationId()), metadata);</span>
+<span class="nc" id="L1363">        eventRepository.updateMetadata(</span>
+<span class="nc" id="L1364">                existing.merge(Objects.requireNonNullElse(updatedMetadata, metadata)), event.getId());</span>
+<span class="nc" id="L1365">        return true;</span>
+    }
+
+    public boolean updateCategoryMetadata(EventAndOrganizationId event, int categoryId, AlfioMetadata metadata) {
+<span class="nc" id="L1369">        var existing = ticketCategoryRepository.getMetadata(event.getId(), categoryId);</span>
+<span class="nc bnc" id="L1370" title="All 2 branches missed.">        return ticketCategoryRepository.updateMetadata(existing.merge(metadata), event.getId(), categoryId) == 1;</span>
+    }
+
+    public AlfioMetadata getMetadataForEvent(EventAndOrganizationId event) {
+<span class="nc" id="L1374">        return eventRepository.getMetadataForEvent(event.getId());</span>
+    }
+
+    public AlfioMetadata getMetadataForCategory(EventAndOrganizationId event, int categoryId) {
+<span class="nc" id="L1378">        return ticketCategoryRepository.getMetadata(event.getId(), categoryId);</span>
+    }
+
+    public Optional&lt;String&gt; executeCapability(
+            String eventName, String username, ExtensionCapability capability, Map&lt;String, String&gt; requestParams) {
+<span class="nc" id="L1383">        return getOptionalByName(eventName, username).flatMap(event -&gt; {</span>
+<span class="nc bnc" id="L1384" title="All 2 branches missed.">            if (capability == ExtensionCapability.GENERATE_MEETING_LINK) {</span>
+<span class="nc" id="L1385">                var organization = organizationRepository.getById(event.getOrganizationId());</span>
+<span class="nc" id="L1386">                return extensionManager</span>
+<span class="nc" id="L1387">                        .handleGenerateMeetingLinkCapability(</span>
+<span class="nc" id="L1388">                                event, organization, getMetadataForEvent(event), requestParams)</span>
+<span class="nc" id="L1389">                        .map(metadata -&gt; {</span>
+<span class="nc" id="L1390">                            eventRepository.updateMetadata(</span>
+<span class="nc" id="L1391">                                    requireNonNullElseGet(metadata, AlfioMetadata::empty), event.getId());</span>
+<span class="nc" id="L1392">                            return &quot;metadata updated&quot;;</span>
+                        });
+<span class="nc bnc" id="L1394" title="All 2 branches missed.">            } else if (capability == ExtensionCapability.LINK_EXTERNAL_APPLICATION) {</span>
+<span class="nc" id="L1395">                return extensionManager.handleGenerateLinkCapability(event, getMetadataForEvent(event), requestParams);</span>
+            } else {
+<span class="nc" id="L1397">                return extensionManager.executeCapability(capability, requestParams, event, String.class);</span>
+            }
+        });
+    }
+
+    public List&lt;UUID&gt; getLinkedSubscriptionIds(int eventId, int organizationId) {
+<span class="nc" id="L1403">        return subscriptionRepository.findLinkedSubscriptionIds(eventId, organizationId);</span>
+    }
+
+    public List&lt;EventSubscriptionLink&gt; getLinkedSubscriptions(int eventId, int organizationId) {
+<span class="nc" id="L1407">        return subscriptionRepository.findLinkedSubscriptions(eventId, organizationId);</span>
+    }
+
+    public int getEventsCount() {
+<span class="nc" id="L1411">        return eventRepository.countEvents();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

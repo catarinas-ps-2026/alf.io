@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventReservationManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">EventReservationManager.java</span></div><h1>EventReservationManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import alfio.model.AdditionalServiceItem;
+import alfio.model.Event;
+import alfio.model.PurchaseContext.PurchaseContextType;
+import alfio.model.ReservationIdAndEventId;
+import alfio.model.system.command.CleanupReservations;
+import alfio.repository.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.stereotype.Component;
+
+@Component
+public class EventReservationManager {
+
+<span class="nc" id="L42">    private static final Logger log = LoggerFactory.getLogger(EventReservationManager.class);</span>
+    private final SpecialPriceRepository specialPriceRepository;
+    private final GroupManager groupManager;
+    private final TicketRepository ticketRepository;
+    private final AdditionalServiceItemRepository additionalServiceItemRepository;
+    private final AdditionalServiceManager additionalServiceManager;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final EventRepository eventRepository;
+    private final ExtensionManager extensionManager;
+    private final BillingDocumentRepository billingDocumentRepository;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    public EventReservationManager(
+            SpecialPriceRepository specialPriceRepository,
+            GroupManager groupManager,
+            TicketRepository ticketRepository,
+            AdditionalServiceItemRepository additionalServiceItemRepository,
+            AdditionalServiceManager additionalServiceManager,
+            TicketReservationRepository ticketReservationRepository,
+            EventRepository eventRepository,
+            ExtensionManager extensionManager,
+            BillingDocumentRepository billingDocumentRepository,
+<span class="nc" id="L64">            NamedParameterJdbcTemplate jdbcTemplate) {</span>
+<span class="nc" id="L65">        this.specialPriceRepository = specialPriceRepository;</span>
+<span class="nc" id="L66">        this.groupManager = groupManager;</span>
+<span class="nc" id="L67">        this.ticketRepository = ticketRepository;</span>
+<span class="nc" id="L68">        this.additionalServiceItemRepository = additionalServiceItemRepository;</span>
+<span class="nc" id="L69">        this.additionalServiceManager = additionalServiceManager;</span>
+<span class="nc" id="L70">        this.ticketReservationRepository = ticketReservationRepository;</span>
+<span class="nc" id="L71">        this.eventRepository = eventRepository;</span>
+<span class="nc" id="L72">        this.extensionManager = extensionManager;</span>
+<span class="nc" id="L73">        this.billingDocumentRepository = billingDocumentRepository;</span>
+<span class="nc" id="L74">        this.jdbcTemplate = jdbcTemplate;</span>
+<span class="nc" id="L75">    }</span>
+
+    @EventListener(CleanupReservations.class)
+    public void cleanupReservations(CleanupReservations cleanupReservations) {
+
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (cleanupReservations.purchaseContext() != null</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                &amp;&amp; !cleanupReservations.purchaseContext().ofType(PurchaseContextType.event)) {</span>
+<span class="nc" id="L82">            return;</span>
+        }
+<span class="nc" id="L84">        specialPriceRepository.resetToFreeAndCleanupForReservation(cleanupReservations.reservationIds());</span>
+<span class="nc" id="L85">        ticketRepository.resetCategoryIdForUnboundedCategories(cleanupReservations.reservationIds());</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (cleanupReservations.purchaseContext() instanceof Event event) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            for (String reservationId : cleanupReservations.reservationIds()) {</span>
+<span class="nc" id="L88">                cleanupReferences(</span>
+<span class="nc" id="L89">                        cleanupReservations.expired(), reservationId, event, cleanupReservations.afterRelease());</span>
+<span class="nc" id="L90">            }</span>
+<span class="nc" id="L91">            notifyExtensions(event, cleanupReservations.reservationIds(), cleanupReservations);</span>
+        } else {
+<span class="nc" id="L93">            Map&lt;Integer, List&lt;ReservationIdAndEventId&gt;&gt; reservationIdsByEvent =</span>
+                    ticketReservationRepository
+<span class="nc" id="L95">                            .getReservationIdAndEventId(cleanupReservations.reservationIds())</span>
+<span class="nc" id="L96">                            .stream()</span>
+<span class="nc" id="L97">                            .collect(Collectors.groupingBy(ReservationIdAndEventId::getEventId));</span>
+<span class="nc" id="L98">            reservationIdsByEvent.forEach((eventId, reservations) -&gt; {</span>
+<span class="nc" id="L99">                Event event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L100">                List&lt;String&gt; reservationIds = reservations.stream()</span>
+<span class="nc" id="L101">                        .map(ReservationIdAndEventId::getId)</span>
+<span class="nc" id="L102">                        .toList();</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                for (String reservationId : reservationIds) {</span>
+<span class="nc" id="L104">                    cleanupReferences(</span>
+<span class="nc" id="L105">                            cleanupReservations.expired(), reservationId, event, cleanupReservations.afterRelease());</span>
+<span class="nc" id="L106">                }</span>
+<span class="nc" id="L107">                notifyExtensions(event, reservationIds, cleanupReservations);</span>
+<span class="nc" id="L108">                billingDocumentRepository.deleteForReservations(reservationIds, eventId);</span>
+<span class="nc" id="L109">            });</span>
+        }
+<span class="nc" id="L111">    }</span>
+
+    private void cleanupReferences(boolean expired, String reservationId, Event event, boolean afterRelease) {
+<span class="nc" id="L114">        groupManager.deleteWhitelistedTicketsForReservation(reservationId);</span>
+<span class="nc" id="L115">        int deletedItems = additionalServiceItemRepository.deleteAdditionalServiceItemsByReservationId(</span>
+<span class="nc" id="L116">                event.getId(), reservationId);</span>
+<span class="nc" id="L117">        int updatedItems = additionalServiceItemRepository.revertAdditionalServiceItemsByReservationId(</span>
+<span class="nc" id="L118">                event.getId(), reservationId);</span>
+<span class="nc" id="L119">        log.debug(</span>
+                &quot;Deleted {} and updated {} additionalServiceItems for reservation {}&quot;,
+<span class="nc" id="L121">                deletedItems,</span>
+<span class="nc" id="L122">                updatedItems,</span>
+                reservationId);
+<span class="nc" id="L124">        int updatedAS = additionalServiceManager.updateStatusForReservationId(</span>
+<span class="nc" id="L125">                event.getId(),</span>
+                reservationId,
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                expired</span>
+<span class="nc" id="L128">                        ? AdditionalServiceItem.AdditionalServiceItemStatus.EXPIRED</span>
+<span class="nc" id="L129">                        : AdditionalServiceItem.AdditionalServiceItemStatus.CANCELLED);</span>
+
+<span class="nc" id="L131">        var batchUpdate = ticketRepository.findTicketIdsInReservation(reservationId).stream()</span>
+<span class="nc" id="L132">                .map(id -&gt; new MapSqlParameterSource(&quot;ticketId&quot;, id)</span>
+<span class="nc" id="L133">                        .addValue(&quot;reservationId&quot;, reservationId)</span>
+<span class="nc" id="L134">                        .addValue(&quot;eventId&quot;, event.getId())</span>
+<span class="nc" id="L135">                        .addValue(&quot;newUuid&quot;, UUID.randomUUID().toString())</span>
+<span class="nc" id="L136">                        .addValue(&quot;newPublicUuid&quot;, UUID.randomUUID()))</span>
+<span class="nc" id="L137">                .toArray(SqlParameterSource[]::new);</span>
+
+<span class="nc" id="L139">        int updatedTickets = Arrays.stream(</span>
+<span class="nc" id="L140">                        jdbcTemplate.batchUpdate(ticketRepository.batchReleaseTickets(), batchUpdate))</span>
+<span class="nc" id="L141">                .sum();</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">        Validate.isTrue(afterRelease || updatedTickets + updatedAS &gt; 0, &quot;no items have been updated&quot;);</span>
+<span class="nc" id="L143">    }</span>
+
+    private void notifyExtensions(Event event, List&lt;String&gt; reservationIds, CleanupReservations cleanupReservations) {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (cleanupReservations.expired()) {</span>
+<span class="nc" id="L147">            extensionManager.handleReservationsExpired(event, reservationIds);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        } else if (cleanupReservations.creditNoteIssued()) {</span>
+<span class="nc" id="L149">            extensionManager.handleReservationsCreditNoteIssuedForEvent(event, reservationIds);</span>
+        } else {
+<span class="nc" id="L151">            extensionManager.handleReservationsCancelled(event, reservationIds);</span>
+        }
+<span class="nc" id="L153">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RetryFinalizeReservation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.support</a> &gt; <span class="el_source">RetryFinalizeReservation.java</span></div><h1>RetryFinalizeReservation.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.support;
+
+import alfio.model.TicketReservation.TicketReservationStatus;
+import alfio.model.system.command.FinalizeReservation;
+import alfio.model.transaction.PaymentProxy;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class RetryFinalizeReservation {
+
+    private final String reservationId;
+    private final PaymentProxy paymentProxy;
+    private final boolean sendReservationConfirmationEmail;
+    private final boolean sendTickets;
+    private final String username;
+    private final boolean tcAccepted;
+    private final boolean privacyPolicyAccepted;
+    private final TicketReservationStatus originalStatus;
+
+    @JsonCreator
+    public RetryFinalizeReservation(
+            @JsonProperty(&quot;reservationId&quot;) String reservationId,
+            @JsonProperty(&quot;paymentProxy&quot;) PaymentProxy paymentProxy,
+            @JsonProperty(&quot;sendReservationConfirmationEmail&quot;) boolean sendReservationConfirmationEmail,
+            @JsonProperty(&quot;sendTickets&quot;) boolean sendTickets,
+            @JsonProperty(&quot;username&quot;) String username,
+            @JsonProperty(&quot;tcAccepted&quot;) boolean tcAccepted,
+            @JsonProperty(&quot;privacyPolicyAccepted&quot;) boolean privacyPolicyAccepted,
+<span class="nc" id="L45">            @JsonProperty(&quot;originalStatus&quot;) TicketReservationStatus originalStatus) {</span>
+<span class="nc" id="L46">        this.reservationId = reservationId;</span>
+<span class="nc" id="L47">        this.paymentProxy = paymentProxy;</span>
+<span class="nc" id="L48">        this.sendReservationConfirmationEmail = sendReservationConfirmationEmail;</span>
+<span class="nc" id="L49">        this.sendTickets = sendTickets;</span>
+<span class="nc" id="L50">        this.username = username;</span>
+<span class="nc" id="L51">        this.tcAccepted = tcAccepted;</span>
+<span class="nc" id="L52">        this.privacyPolicyAccepted = privacyPolicyAccepted;</span>
+<span class="nc" id="L53">        this.originalStatus = originalStatus;</span>
+<span class="nc" id="L54">    }</span>
+
+    public String getReservationId() {
+<span class="nc" id="L57">        return reservationId;</span>
+    }
+
+    public PaymentProxy getPaymentProxy() {
+<span class="nc" id="L61">        return paymentProxy;</span>
+    }
+
+    public boolean isSendReservationConfirmationEmail() {
+<span class="nc" id="L65">        return sendReservationConfirmationEmail;</span>
+    }
+
+    public boolean isSendTickets() {
+<span class="nc" id="L69">        return sendTickets;</span>
+    }
+
+    public String getUsername() {
+<span class="nc" id="L73">        return username;</span>
+    }
+
+    public boolean isTcAccepted() {
+<span class="nc" id="L77">        return tcAccepted;</span>
+    }
+
+    public boolean isPrivacyPolicyAccepted() {
+<span class="nc" id="L81">        return privacyPolicyAccepted;</span>
+    }
+
+    public TicketReservationStatus getOriginalStatus() {
+<span class="nc" id="L85">        return originalStatus;</span>
+    }
+
+    public static RetryFinalizeReservation fromFinalizeReservation(FinalizeReservation finalizeReservation) {
+<span class="nc" id="L89">        var paymentSpecification = finalizeReservation.getPaymentSpecification();</span>
+<span class="nc" id="L90">        return new RetryFinalizeReservation(</span>
+<span class="nc" id="L91">                paymentSpecification.getReservationId(),</span>
+<span class="nc" id="L92">                finalizeReservation.getPaymentProxy(),</span>
+<span class="nc" id="L93">                finalizeReservation.isSendReservationConfirmationEmail(),</span>
+<span class="nc" id="L94">                finalizeReservation.isSendTickets(),</span>
+<span class="nc" id="L95">                finalizeReservation.getUsername(),</span>
+<span class="nc" id="L96">                paymentSpecification.isTcAccepted(),</span>
+<span class="nc" id="L97">                paymentSpecification.isPrivacyAccepted(),</span>
+<span class="nc" id="L98">                finalizeReservation.getOriginalStatus());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

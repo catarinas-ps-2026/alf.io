@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MonetaryUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">MonetaryUtil.java</span></div><h1>MonetaryUtil.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import static java.math.RoundingMode.*;
+
+import java.math.BigDecimal;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.function.Function;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.money.CurrencyUnit;
+
+public final class MonetaryUtil {
+
+<span class="nc" id="L30">    public static final BigDecimal HUNDRED = new BigDecimal(&quot;100.00&quot;);</span>
+    private static final int ROUNDING_SCALE = 10;
+
+    private MonetaryUtil() {}
+
+    public static int addVAT(int priceInCents, BigDecimal vat) {
+<span class="nc" id="L36">        return addVAT(new BigDecimal(priceInCents), vat).intValueExact();</span>
+    }
+
+    private static BigDecimal addVAT(BigDecimal price, BigDecimal vat) {
+<span class="nc" id="L40">        return price.add(price.multiply(vat.divide(HUNDRED, ROUNDING_SCALE, UP)))</span>
+<span class="nc" id="L41">                .setScale(0, HALF_UP);</span>
+    }
+
+    public static BigDecimal extractVAT(BigDecimal price, BigDecimal vat) {
+<span class="nc" id="L45">        return price.subtract(</span>
+<span class="nc" id="L46">                price.divide(BigDecimal.ONE.add(vat.divide(HUNDRED, ROUNDING_SCALE, UP)), ROUNDING_SCALE, HALF_DOWN));</span>
+    }
+
+    public static &lt;T extends Number&gt; T calcPercentage(
+            long priceInCents, BigDecimal vat, Function&lt;BigDecimal, T&gt; converter) {
+<span class="nc" id="L51">        BigDecimal result = new BigDecimal(priceInCents)</span>
+<span class="nc" id="L52">                .multiply(vat.divide(HUNDRED, ROUNDING_SCALE, UP))</span>
+<span class="nc" id="L53">                .setScale(0, HALF_UP);</span>
+<span class="nc" id="L54">        return converter.apply(result);</span>
+    }
+
+    public static BigDecimal calcVat(BigDecimal price, BigDecimal percentage) {
+<span class="nc" id="L58">        return price.multiply(percentage.divide(HUNDRED, ROUNDING_SCALE, HALF_UP));</span>
+    }
+
+    public static BigDecimal centsToUnit(int cents, String currencyCode) {
+<span class="nc" id="L62">        return centsToUnit((long) cents, currencyCode);</span>
+    }
+
+    public static BigDecimal centsToUnit(long cents, String currencyCode) {
+<span class="nc" id="L66">        return centsToUnit(cents, currencyCode, false);</span>
+    }
+
+    public static BigDecimal centsToUnit(long cents, String currencyCode, boolean formatZero) {
+<span class="nc bnc" id="L70" title="All 6 branches missed.">        if ((cents == 0 &amp;&amp; !formatZero) || StringUtils.isEmpty(currencyCode)) {</span>
+<span class="nc" id="L71">            return BigDecimal.ZERO;</span>
+        }
+<span class="nc" id="L73">        var currencyUnit = CurrencyUnit.of(currencyCode.toUpperCase(Locale.ENGLISH));</span>
+<span class="nc" id="L74">        int scale = currencyUnit.getDecimalPlaces();</span>
+<span class="nc" id="L75">        return new BigDecimal(cents).divide(BigDecimal.TEN.pow(scale), scale, HALF_UP);</span>
+    }
+
+    public static BigDecimal fixScale(BigDecimal raw, String currencyCode) {
+<span class="nc" id="L79">        var currencyUnit = CurrencyUnit.of(currencyCode.toUpperCase(Locale.ENGLISH));</span>
+<span class="nc" id="L80">        return raw.setScale(currencyUnit.getDecimalPlaces(), HALF_UP);</span>
+    }
+
+    public static int unitToCents(BigDecimal unit, String currencyCode) {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (StringUtils.isEmpty(currencyCode)) {</span>
+<span class="nc" id="L85">            return 0;</span>
+        }
+<span class="nc" id="L87">        return unitToCents(unit, currencyCode, BigDecimal::intValueExact);</span>
+    }
+
+    public static &lt;T extends Number&gt; T unitToCents(
+            BigDecimal unit, String currencyCode, Function&lt;BigDecimal, T&gt; converter) {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        int scale = StringUtils.isEmpty(currencyCode)</span>
+<span class="nc" id="L93">                ? 2</span>
+<span class="nc" id="L94">                : CurrencyUnit.of(currencyCode.toUpperCase(Locale.ENGLISH)).getDecimalPlaces();</span>
+<span class="nc" id="L95">        BigDecimal result = unit.multiply(BigDecimal.TEN.pow(scale)).setScale(0, HALF_UP);</span>
+<span class="nc" id="L96">        return converter.apply(result);</span>
+    }
+
+    public static String formatCents(int cents, String currencyCode) {
+<span class="nc" id="L100">        return formatCents((long) cents, currencyCode);</span>
+    }
+
+    public static String formatCents(long cents, String currencyCode, boolean formatZero) {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (StringUtils.isEmpty(currencyCode)) {</span>
+<span class="nc" id="L105">            return &quot;0&quot;;</span>
+        }
+<span class="nc" id="L107">        return centsToUnit(cents, currencyCode, formatZero).toPlainString();</span>
+    }
+
+    public static String formatCents(long cents, String currencyCode) {
+<span class="nc" id="L111">        return formatCents(cents, currencyCode, false);</span>
+    }
+
+    public static String formatUnit(BigDecimal unit, String currencyCode) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (StringUtils.isEmpty(currencyCode)) {</span>
+<span class="nc" id="L116">            return &quot;0&quot;;</span>
+        }
+
+<span class="nc" id="L119">        var currencyUnit = CurrencyUnit.of(Objects.requireNonNull(currencyCode).toUpperCase(Locale.ENGLISH));</span>
+<span class="nc" id="L120">        return Objects.requireNonNull(unit)</span>
+<span class="nc" id="L121">                .setScale(currencyUnit.getDecimalPlaces(), HALF_UP)</span>
+<span class="nc" id="L122">                .toPlainString();</span>
+    }
+
+    public static String formatPercentage(int percentageCts) {
+<span class="nc" id="L126">        return formatPercentage(</span>
+<span class="nc" id="L127">                new BigDecimal(percentageCts).divide(HUNDRED, HALF_UP).setScale(2, HALF_UP));</span>
+    }
+
+    public static String formatPercentage(BigDecimal unit) {
+<span class="nc" id="L131">        return unit.stripTrailingZeros().toPlainString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

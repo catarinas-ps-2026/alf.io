@@ -1,0 +1,941 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Validator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">Validator.java</span></div><h1>Validator.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import static org.apache.commons.lang3.StringUtils.isAnyBlank;
+
+import alfio.controller.form.AdditionalFieldsContainer;
+import alfio.controller.form.AdditionalServiceLinkForm;
+import alfio.controller.form.UpdateTicketOwnerForm;
+import alfio.controller.form.WaitingQueueSubscriptionForm;
+import alfio.manager.ExtensionManager;
+import alfio.manager.GroupManager;
+import alfio.manager.SameCountryValidator;
+import alfio.model.*;
+import alfio.model.modification.AdditionalFieldRequest;
+import alfio.model.modification.DateTimeModification;
+import alfio.model.modification.EventModification;
+import alfio.model.modification.TicketCategoryModification;
+import alfio.model.modification.support.LocationDescriptor;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import alfio.model.result.ValidationResult;
+import java.math.BigDecimal;
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ValidationUtils;
+
+public final class Validator {
+
+    // source:
+    // https://commons.apache.org/proper/commons-validator/apidocs/src-html/org/apache/commons/validator/routines/EmailValidator.html
+<span class="nc" id="L58">    private static final Pattern SIMPLE_E_MAIL_PATTERN =</span>
+<span class="nc" id="L59">            Pattern.compile(&quot;^\\p{javaLetterOrDigit}[^\\s@]*@\\p{javaLetterOrDigit}[^\\s]*$&quot;);</span>
+    // this regex validates the e-mail to be a canonical address (i.e. test@example.org)
+<span class="nc" id="L61">    private static final Pattern CANONICAL_MAIL_VALIDATOR = Pattern.compile(</span>
+            &quot;^\\p{javaLetterOrDigit}[^\\s@]*@\\p{javaLetterOrDigit}[^\\s@]*\\.\\p{javaAlphabetic}{2,}$&quot;);
+<span class="nc" id="L63">    private static final Pattern FIELD_NAME_VALIDATOR = Pattern.compile(&quot;^[a-zA-Z0-9][a-zA-Z0-9-_]*$&quot;);</span>
+    private static final String ERROR_DESCRIPTION = &quot;error.description&quot;;
+    private static final String EMAIL_KEY = &quot;email&quot;;
+    private static final String ERROR_EMAIL = &quot;error.email&quot;;
+    private static final String FIRST_NAME = &quot;firstName&quot;;
+    private static final String LAST_NAME = &quot;lastName&quot;;
+    private static final String FULL_NAME = &quot;fullName&quot;;
+    private static final String ADDITIONAL_PREFIX = &quot;additional[&quot;;
+    private static final String ADDITIONAL_SERVICES = &quot;additionalServices&quot;;
+    private static final String ERROR_RESTRICTED_VALUE = &quot;error.restrictedValue&quot;;
+<span class="nc" id="L73">    private static final Supplier&lt;LocalDate&gt; LOCAL_DATE_SUPPLIER = () -&gt; LocalDate.now(ClockProvider.clock());</span>
+    private static final String DESCRIPTION = &quot;description&quot;;
+    private static final String TITLE = &quot;title&quot;;
+
+    private Validator() {}
+
+    public static ValidationResult validateEventHeader(
+            Optional&lt;Event&gt; event, EventModification ev, int descriptionMaxLength, Errors errors) {
+
+<span class="nc" id="L82">        ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;shortName&quot;, &quot;error.shortname&quot;);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (ev.getOrganizationId() &lt; 0) {</span>
+<span class="nc" id="L84">            errors.rejectValue(&quot;organizationId&quot;, &quot;error.organizationId&quot;);</span>
+        }
+
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (allowsInPersonAccess(event, ev)) {</span>
+<span class="nc" id="L88">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;location&quot;, &quot;error.location&quot;);</span>
+        }
+
+<span class="nc" id="L91">        ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;websiteUrl&quot;, &quot;error.websiteurl&quot;);</span>
+
+<span class="nc" id="L93">        validateUrl(ev.getWebsiteUrl(), errors, &quot;websiteUrl&quot;, &quot;error.websiteurl&quot;);</span>
+<span class="nc" id="L94">        validateUrl(ev.getTermsAndConditionsUrl(), errors, &quot;websiteUrl&quot;, &quot;error.restrictedValue&quot;);</span>
+
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (StringUtils.isNotBlank(ev.getPrivacyPolicyUrl())) {</span>
+<span class="nc" id="L97">            validateUrl(ev.getPrivacyPolicyUrl(), errors, &quot;privacyPolicyUrl&quot;, &quot;error.restrictedValue&quot;);</span>
+        }
+
+<span class="nc bnc" id="L100" title="All 4 branches missed.">        if (allowsInPersonAccess(event, ev) &amp;&amp; isLocationMissing(ev)) {</span>
+<span class="nc" id="L101">            errors.rejectValue(&quot;locationDescriptor&quot;, &quot;error.coordinates&quot;);</span>
+        }
+
+<span class="nc" id="L104">        var descriptions = ev.getDescription();</span>
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (descriptions == null</span>
+<span class="nc" id="L107">                || descriptions.values().stream()</span>
+<span class="nc bnc" id="L108" title="All 8 branches missed.">                        .anyMatch(v -&gt; v == null || v.isBlank() || v.length() &gt; descriptionMaxLength)) {</span>
+<span class="nc" id="L109">            errors.rejectValue(DESCRIPTION, ERROR_DESCRIPTION);</span>
+        }
+
+<span class="nc" id="L112">        ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;termsAndConditionsUrl&quot;, &quot;error.termsandconditionsurl&quot;);</span>
+
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (ev.getFileBlobId() == null) {</span>
+<span class="nc" id="L115">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;imageUrl&quot;, &quot;error.imageurl&quot;);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            if (!StringUtils.startsWith(ev.getImageUrl(), &quot;https://&quot;)) {</span>
+<span class="nc" id="L117">                errors.rejectValue(&quot;imageUrl&quot;, &quot;error.imageurl&quot;);</span>
+            }
+        }
+
+<span class="nc" id="L121">        return evaluateValidationResult(errors);</span>
+    }
+
+    static void validateUrl(String value, Errors errors, String propertyKey, String errorCode) {
+<span class="nc bnc" id="L125" title="All 4 branches missed.">        if (!(StringUtils.startsWith(value, &quot;http://&quot;) || StringUtils.startsWith(value, &quot;https://&quot;))) {</span>
+<span class="nc" id="L126">            errors.rejectValue(propertyKey, errorCode);</span>
+        }
+<span class="nc" id="L128">    }</span>
+
+    private static boolean isLocationMissing(EventModification em) {
+<span class="nc" id="L131">        LocationDescriptor descriptor = em.getLocationDescriptor();</span>
+<span class="nc bnc" id="L132" title="All 4 branches missed.">        return descriptor == null || isAnyBlank(descriptor.timeZone());</span>
+    }
+
+    public static ValidationResult validateTicketCategories(EventModification ev, Errors errors) {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (CollectionUtils.isEmpty(ev.getTicketCategories())) {</span>
+<span class="nc" id="L137">            errors.rejectValue(&quot;ticketCategories&quot;, &quot;error.ticketCategories&quot;);</span>
+        }
+<span class="nc" id="L139">        if (ev.getTicketCategories().stream()</span>
+<span class="nc bnc" id="L140" title="All 4 branches missed.">                .anyMatch(tc -&gt; tc.getTicketAccessType() == TicketCategory.TicketAccessType.INHERIT</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                        &amp;&amp; ev.getFormat() == Event.EventFormat.HYBRID)) {</span>
+<span class="nc" id="L142">            errors.rejectValue(&quot;ticketCategories&quot;, &quot;error.ticketCategories.format&quot;);</span>
+        }
+<span class="nc" id="L144">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static ValidationResult validateEventDates(EventModification ev, Errors errors) {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (ev.getBegin() == null</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                || ev.getBegin().getDate() == null</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                || ev.getBegin().getTime() == null) {</span>
+<span class="nc" id="L151">            errors.rejectValue(&quot;begin&quot;, &quot;error.beginDate&quot;);</span>
+        }
+<span class="nc bnc" id="L153" title="All 6 branches missed.">        if (ev.getEnd() == null || ev.getEnd().getDate() == null || ev.getEnd().getTime() == null) {</span>
+<span class="nc" id="L154">            errors.rejectValue(&quot;end&quot;, &quot;error.endDate&quot;);</span>
+        }
+<span class="nc bnc" id="L156" title="All 4 branches missed.">        if (!errors.hasErrors() &amp;&amp; !ev.getEnd().isAfter(ev.getBegin())) {</span>
+<span class="nc" id="L157">            errors.rejectValue(&quot;end&quot;, &quot;error.endDate&quot;);</span>
+        }
+<span class="nc" id="L159">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static ValidationResult validateEventPrices(EventModification ev, Errors errors) {
+
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (!ev.isFreeOfCharge()) {</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">            if (isCollectionEmpty(ev.getAllowedPaymentProxies())) {</span>
+<span class="nc" id="L166">                errors.rejectValue(&quot;allowedPaymentProxies&quot;, &quot;error.allowedpaymentproxies&quot;);</span>
+            }
+<span class="nc bnc" id="L168" title="All 4 branches missed.">            if (ev.getRegularPrice() == null || BigDecimal.ZERO.compareTo(ev.getRegularPrice()) &gt;= 0) {</span>
+<span class="nc" id="L169">                errors.rejectValue(&quot;regularPrice&quot;, &quot;error.regularprice&quot;);</span>
+            }
+<span class="nc bnc" id="L171" title="All 4 branches missed.">            if (ev.getVatPercentage() == null || BigDecimal.ZERO.compareTo(ev.getVatPercentage()) &gt; 0) {</span>
+<span class="nc" id="L172">                errors.rejectValue(&quot;vatPercentage&quot;, &quot;error.vat&quot;);</span>
+            }
+<span class="nc" id="L174">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, &quot;currency&quot;, &quot;error.currency&quot;);</span>
+        }
+<span class="nc bnc" id="L176" title="All 4 branches missed.">        if (ev.getAvailableSeats() == null || ev.getAvailableSeats() &lt; 1) {</span>
+<span class="nc" id="L177">            errors.rejectValue(&quot;availableSeats&quot;, &quot;error.availableseats&quot;);</span>
+        }
+<span class="nc" id="L179">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static ValidationResult validateCategory(
+            TicketCategoryModification category,
+            Errors errors,
+            String prefix,
+            EventModification eventModification,
+            int descriptionMaxLength) {
+<span class="nc" id="L188">        return validateCategory(</span>
+                category,
+                prefix,
+<span class="nc" id="L191">                eventModification.getBegin().toLocalDateTime(),</span>
+<span class="nc" id="L192">                eventModification.getEnd().toLocalDateTime(),</span>
+                errors,
+                descriptionMaxLength);
+    }
+
+    public static ValidationResult validateCategory(
+            TicketCategoryModification category,
+            String prefix,
+            LocalDateTime eventBegin,
+            LocalDateTime eventEnd,
+            Errors errors,
+            int descriptionMaxLength) {
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (StringUtils.isBlank(category.getName())) {</span>
+<span class="nc" id="L205">            errors.rejectValue(prefix + &quot;name&quot;, &quot;error.category.name&quot;);</span>
+        }
+<span class="nc bnc" id="L207" title="All 4 branches missed.">        if (category.isBounded() &amp;&amp; category.getMaxTickets() &lt; 1) {</span>
+<span class="nc" id="L208">            errors.rejectValue(prefix + &quot;maxTickets&quot;, &quot;error.category.maxtickets&quot;);</span>
+        }
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (!category.getInception().isBefore(category.getExpiration())) {</span>
+<span class="nc" id="L211">            errors.rejectValue(prefix + &quot;dateString&quot;, &quot;error.date&quot;);</span>
+        }
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (isCategoryExpirationAfterEventEnd(category, eventEnd)) {</span>
+<span class="nc" id="L214">            errors.rejectValue(prefix + &quot;expiration&quot;, &quot;error.date.overflow&quot;);</span>
+        }
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (isCategoryDescriptionTooLong(category, descriptionMaxLength)) {</span>
+<span class="nc" id="L217">            errors.rejectValue(prefix + DESCRIPTION, ERROR_DESCRIPTION);</span>
+        }
+
+        // ticket validity dates
+<span class="nc" id="L221">        var ticketValidityCheckStatus = checkDateRange(</span>
+<span class="nc" id="L222">                category::getTicketValidityStart, category::getTicketValidityEnd, eventBegin, eventEnd, true);</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (ticketValidityCheckStatus != RangeValidationResultType.OK) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            String propertyName = ticketValidityCheckStatus == RangeValidationResultType.FAILED_BEGIN</span>
+<span class="nc" id="L225">                    ? &quot;ticketValidityStart&quot;</span>
+<span class="nc" id="L226">                    : &quot;ticketValidityEnd&quot;;</span>
+<span class="nc" id="L227">            errors.rejectValue(prefix + propertyName, &quot;error.validity.date.overflow&quot;);</span>
+        }
+
+        // check-in dates
+<span class="nc" id="L231">        var checkInDateCheckStatus =</span>
+<span class="nc" id="L232">                checkDateRange(category::getValidCheckInFrom, category::getValidCheckInTo, eventBegin, eventEnd, false);</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (checkInDateCheckStatus != RangeValidationResultType.OK) {</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            String propertyName = checkInDateCheckStatus == RangeValidationResultType.FAILED_BEGIN</span>
+<span class="nc" id="L235">                    ? &quot;validCheckInFrom&quot;</span>
+<span class="nc" id="L236">                    : &quot;validCheckInTo&quot;;</span>
+<span class="nc" id="L237">            errors.rejectValue(prefix + propertyName, &quot;error.checkin.date.overflow&quot;);</span>
+        }
+
+<span class="nc" id="L240">        return evaluateValidationResult(errors);</span>
+    }
+
+    enum RangeValidationResultType {
+        OK,
+        FAILED_BEGIN,
+        FAILED_END
+    }
+
+    static RangeValidationResultType checkDateRange(
+            Supplier&lt;DateTimeModification&gt; dateFromSupplier,
+            Supplier&lt;DateTimeModification&gt; dateToSupplier,
+            LocalDateTime eventBegin,
+            LocalDateTime eventEnd,
+            boolean strictBegin) {
+<span class="nc" id="L255">        var start = toLocalDateTimeOrElse(dateFromSupplier.get(), eventBegin);</span>
+<span class="nc" id="L256">        var end = toLocalDateTimeOrElse(dateToSupplier.get(), eventEnd);</span>
+
+<span class="nc bnc" id="L258" title="All 6 branches missed.">        if (start.isAfter(end) || (strictBegin &amp;&amp; start.isBefore(eventBegin))) {</span>
+<span class="nc" id="L259">            return RangeValidationResultType.FAILED_BEGIN;</span>
+<span class="nc bnc" id="L260" title="All 4 branches missed.">        } else if (!end.isAfter(eventBegin) || end.isAfter(eventEnd)) {</span>
+<span class="nc" id="L261">            return RangeValidationResultType.FAILED_END;</span>
+        }
+<span class="nc" id="L263">        return RangeValidationResultType.OK;</span>
+    }
+
+    private static LocalDateTime toLocalDateTimeOrElse(DateTimeModification input, LocalDateTime defaultValue) {
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        if (input != null) {</span>
+<span class="nc" id="L268">            return input.toLocalDateTime();</span>
+        }
+<span class="nc" id="L270">        return Objects.requireNonNull(defaultValue);</span>
+    }
+
+    private static boolean isCategoryDescriptionTooLong(TicketCategoryModification category, int descriptionMaxLength) {
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        return category.getDescription() != null</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">                &amp;&amp; !category.getDescription().isEmpty()</span>
+<span class="nc" id="L276">                &amp;&amp; category.getDescription().values().stream()</span>
+<span class="nc" id="L277">                        .filter(Objects::nonNull)</span>
+<span class="nc bnc" id="L278" title="All 4 branches missed.">                        .anyMatch(v -&gt; v.length() &gt; descriptionMaxLength);</span>
+    }
+
+    private static boolean isCategoryExpirationAfterEventEnd(
+            TicketCategoryModification category, LocalDateTime eventEnd) {
+<span class="nc" id="L283">        return category.getExpiration().toLocalDateTime().isAfter(eventEnd);</span>
+    }
+
+    public static ValidationResult validateCategory(
+            TicketCategoryModification category,
+            LocalDateTime eventBegin,
+            LocalDateTime eventEnd,
+            Errors errors,
+            int descriptionMaxLength) {
+<span class="nc" id="L292">        return validateCategory(category, &quot;&quot;, eventBegin, eventEnd, errors, descriptionMaxLength);</span>
+    }
+
+    private static boolean isCollectionEmpty(Collection&lt;?&gt; collection) {
+<span class="nc bnc" id="L296" title="All 4 branches missed.">        return collection == null || collection.isEmpty();</span>
+    }
+
+    public static ValidationResult evaluateValidationResult(Errors errors) {
+<span class="nc bnc" id="L300" title="All 2 branches missed.">        if (errors.hasFieldErrors()) {</span>
+<span class="nc" id="L301">            return ValidationResult.failed(errors.getFieldErrors().stream()</span>
+<span class="nc" id="L302">                    .map(ValidationResult.ErrorDescriptor::fromFieldError)</span>
+<span class="nc" id="L303">                    .toList());</span>
+        }
+<span class="nc" id="L305">        return ValidationResult.success();</span>
+    }
+
+    public static ValidationResult performAdvancedValidation(
+            AdvancedTicketAssignmentValidator advancedValidator, AdvancedValidationContext context, Errors errors) {
+<span class="nc bnc" id="L310" title="All 2 branches missed.">        if (errors == null) {</span>
+<span class="nc" id="L311">            return ValidationResult.success();</span>
+        }
+<span class="nc" id="L313">        Result&lt;Void&gt; advancedValidation = advancedValidator.apply(context);</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">        if (!advancedValidation.isSuccess()) {</span>
+<span class="nc" id="L315">            ErrorCode error = advancedValidation.getFirstErrorOrNull();</span>
+<span class="nc" id="L316">            Validate.notNull(error, &quot;unexpected error&quot;);</span>
+<span class="nc" id="L317">            errors.rejectValue(StringUtils.defaultString(context.prefix) + error.getDescription(), error.getCode());</span>
+        }
+<span class="nc" id="L319">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static class AdditionalFieldsFilterer {
+
+        private final List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFields;
+        private final List&lt;Ticket&gt; ticketsInReservation;
+        private final Set&lt;Integer&gt; additionalFieldsForReservation;
+        private final Optional&lt;Ticket&gt; firstTicketInReservation;
+        private final boolean eventSupportsAdditionalFieldsLink;
+        private final List&lt;AdditionalServiceItem&gt; additionalServiceItems;
+
+        public AdditionalFieldsFilterer(
+                List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFields,
+                List&lt;Ticket&gt; ticketsInReservation,
+                boolean eventSupportsAdditionalFieldsLink,
+                List&lt;AdditionalServiceItem&gt; additionalServiceItems) {
+            this.purchaseContextFields = purchaseContextFields;
+            this.ticketsInReservation = ticketsInReservation;
+            this.additionalFieldsForReservation = additionalServiceItems.stream()
+                    .map(AdditionalServiceItem::getAdditionalServiceId)
+                    .collect(Collectors.toSet());
+            this.firstTicketInReservation = ticketsInReservation.stream().findFirst();
+            this.eventSupportsAdditionalFieldsLink = eventSupportsAdditionalFieldsLink;
+            this.additionalServiceItems = additionalServiceItems;
+        }
+
+        public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForTicket(
+                UUID publicUuid, Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
+            var ticketOptional = ticketsInReservation.stream()
+                    .filter(t -&gt; t.getPublicUuid().equals(publicUuid))
+                    .findFirst();
+            if (ticketOptional.isEmpty()) {
+                return List.of();
+            }
+            var ticket = ticketOptional.get();
+            var isFirstTicket = firstTicketInReservation
+                    .map(first -&gt; ticket.getId() == first.getId())
+                    .orElse(false);
+            return filterFieldsForTicket(
+                    purchaseContextFields,
+                    ticket,
+                    additionalFieldsForReservation,
+                    isFirstTicket,
+                    eventSupportsAdditionalFieldsLink,
+                    additionalServiceItems,
+                    requestedContexts);
+        }
+
+        public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForSubscription() {
+            return purchaseContextFields;
+        }
+
+        private static List&lt;PurchaseContextFieldConfiguration&gt; filterFieldsForTicket(
+                List&lt;PurchaseContextFieldConfiguration&gt; additionalFieldsForEvent,
+                Ticket ticket,
+                Set&lt;Integer&gt; additionalServiceIds,
+                boolean isFirstTicket,
+                boolean eventSupportsAdditionalFieldsLink,
+                List&lt;AdditionalServiceItem&gt; additionalServiceItems,
+                Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
+            return additionalFieldsForEvent.stream()
+                    .filter(field -&gt; field.rulesApply(ticket.getCategoryId()))
+                    .filter(f -&gt; {
+                        if (!requestedContexts.contains(f.getContext())) {
+                            return false;
+                        }
+                        if (f.getContext() == PurchaseContextFieldConfiguration.Context.ATTENDEE) {
+                            return true;
+                        }
+                        // field context is &quot;Additional Service&quot;
+                        if (!isFirstTicket &amp;&amp; !eventSupportsAdditionalFieldsLink) {
+                            return false;
+                        }
+                        boolean included = isAdditionalServiceIncluded(f, additionalServiceIds);
+                        return included
+                                &amp;&amp; (!eventSupportsAdditionalFieldsLink
+                                        || checkLinked(ticket, additionalServiceItems, f));
+                    })
+                    .toList();
+        }
+
+        private static boolean checkLinked(
+                Ticket ticket,
+                List&lt;AdditionalServiceItem&gt; additionalServiceItems,
+                PurchaseContextFieldConfiguration tfc) {
+            return additionalServiceItems.stream()
+                    .anyMatch(asi -&gt; tfc.getAdditionalServiceId() == asi.getAdditionalServiceId()
+                            &amp;&amp; Objects.equals(ticket.getId(), asi.getTicketId()));
+        }
+
+        private static boolean isAdditionalServiceIncluded(
+                PurchaseContextFieldConfiguration f, Set&lt;Integer&gt; additionalServiceIds) {
+            if (f.getAdditionalServiceId() == null) {
+                return false;
+            }
+            return additionalServiceIds.contains(f.getAdditionalServiceId());
+        }
+    }
+
+    public static ValidationResult validateTicketAssignment(
+            UpdateTicketOwnerForm form,
+            List&lt;PurchaseContextFieldConfiguration&gt; additionalFieldsForTicket,
+            Optional&lt;BindingResult&gt; errorsOptional,
+            Event event,
+            String baseField,
+            SameCountryValidator vatValidator,
+            ExtensionManager extensionManager) {
+<span class="nc bnc" id="L427" title="All 2 branches missed.">        if (errorsOptional.isEmpty()) {</span>
+<span class="nc" id="L428">            return ValidationResult.success(); // already validated</span>
+        }
+
+<span class="nc" id="L431">        String prefix = StringUtils.trimToEmpty(baseField);</span>
+
+<span class="nc bnc" id="L433" title="All 4 branches missed.">        if (!prefix.isEmpty() &amp;&amp; !prefix.endsWith(&quot;.&quot;)) {</span>
+<span class="nc" id="L434">            prefix = prefix + &quot;.&quot;;</span>
+        }
+
+<span class="nc" id="L437">        var errors = errorsOptional.get();</span>
+<span class="nc" id="L438">        ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + EMAIL_KEY, ERROR_EMAIL);</span>
+<span class="nc" id="L439">        String email = form.getEmail();</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">        if (!isEmailValid(email)) {</span>
+<span class="nc" id="L441">            errors.rejectValue(prefix + EMAIL_KEY, ERROR_EMAIL);</span>
+        }
+
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        if (event.mustUseFirstAndLastName()) {</span>
+<span class="nc" id="L445">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + FIRST_NAME, ErrorsCode.STEP_2_EMPTY_FIRSTNAME);</span>
+<span class="nc" id="L446">            validateMaxLength(</span>
+<span class="nc" id="L447">                    form.getFirstName(), prefix + FIRST_NAME, ErrorsCode.STEP_2_MAX_LENGTH_FIRSTNAME, 255, errors);</span>
+
+<span class="nc" id="L449">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + LAST_NAME, ErrorsCode.STEP_2_EMPTY_LASTNAME);</span>
+<span class="nc" id="L450">            validateMaxLength(</span>
+<span class="nc" id="L451">                    form.getLastName(), prefix + LAST_NAME, ErrorsCode.STEP_2_MAX_LENGTH_LASTNAME, 255, errors);</span>
+        } else {
+<span class="nc" id="L453">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, prefix + FULL_NAME, ErrorsCode.STEP_2_EMPTY_FULLNAME);</span>
+<span class="nc" id="L454">            validateMaxLength(</span>
+<span class="nc" id="L455">                    form.getFullName(), prefix + FULL_NAME, ErrorsCode.STEP_2_MAX_LENGTH_FULLNAME, 255, errors);</span>
+        }
+
+        //
+<span class="nc" id="L459">        final String prefixForLambda = prefix;</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">        for (PurchaseContextFieldConfiguration fieldConf : additionalFieldsForTicket) {</span>
+<span class="nc" id="L461">            validateFieldConfiguration(form, vatValidator, errors, prefixForLambda, fieldConf);</span>
+<span class="nc" id="L462">        }</span>
+
+<span class="nc bnc" id="L464" title="All 2 branches missed.">        if (!errors.hasErrors()) {</span>
+<span class="nc" id="L465">            extensionManager.handleTicketUpdateValidation(event, form, errors, prefix);</span>
+        }
+
+<span class="nc" id="L468">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static ValidationResult validateAdditionalItemFieldsForTicket(
+            AdditionalServiceLinkForm form,
+            List&lt;PurchaseContextFieldConfiguration&gt; additionalFieldsForTicket,
+            BindingResult errors,
+            String prefix,
+            SameCountryValidator vatValidator,
+            List&lt;AdditionalServiceLinkForm&gt; allForms,
+            List&lt;AdditionalServiceItem&gt; additionalServiceItems) {
+        // ticket may be linked to different additional items, each one requiring fields
+<span class="nc" id="L480">        var allKeys = allForms.stream()</span>
+<span class="nc" id="L481">                .flatMap(f -&gt; f.getAdditional().keySet().stream())</span>
+<span class="nc" id="L482">                .collect(Collectors.toSet());</span>
+<span class="nc" id="L483">        var foundKeys = additionalFieldsForTicket.stream()</span>
+<span class="nc" id="L484">                .map(PurchaseContextFieldConfiguration::getName)</span>
+<span class="nc" id="L485">                .filter(allKeys::contains)</span>
+<span class="nc" id="L486">                .collect(Collectors.toSet());</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">        for (PurchaseContextFieldConfiguration fieldConf : additionalFieldsForTicket) {</span>
+<span class="nc" id="L488">            validateFieldConfiguration(</span>
+<span class="nc" id="L489">                    form, vatValidator, errors, prefix + &quot;.&quot;, fieldConf, foundKeys.contains(fieldConf.getName()));</span>
+<span class="nc" id="L490">        }</span>
+<span class="nc" id="L491">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static void validateFieldConfiguration(
+            AdditionalFieldsContainer form,
+            SameCountryValidator vatValidator,
+            Errors errors,
+            String prefixForLambda,
+            PurchaseContextFieldConfiguration fieldConf) {
+<span class="nc" id="L500">        validateFieldConfiguration(form, vatValidator, errors, prefixForLambda, fieldConf, false);</span>
+<span class="nc" id="L501">    }</span>
+
+    private static void validateFieldConfiguration(
+            AdditionalFieldsContainer form,
+            SameCountryValidator vatValidator,
+            Errors errors,
+            String prefixForLambda,
+            PurchaseContextFieldConfiguration fieldConf,
+            boolean skipPresenceCheck) {
+<span class="nc" id="L510">        boolean isFieldPresent =</span>
+<span class="nc bnc" id="L511" title="All 4 branches missed.">                form.getAdditional() != null &amp;&amp; form.getAdditional().containsKey(fieldConf.getName());</span>
+
+<span class="nc bnc" id="L513" title="All 4 branches missed.">        if (!skipPresenceCheck &amp;&amp; !isFieldPresent) {</span>
+<span class="nc" id="L514">            if (fieldConf</span>
+<span class="nc bnc" id="L515" title="All 2 branches missed.">                    .isRequired()) { // sometimes the field is not propagated, so, if it's required, we need to do some</span>
+                // additional work
+<span class="nc bnc" id="L517" title="All 2 branches missed.">                if (form.getAdditional() == null) {</span>
+<span class="nc" id="L518">                    form.setAdditional(new HashMap&lt;&gt;());</span>
+                }
+<span class="nc" id="L520">                form.getAdditional().put(fieldConf.getName(), Collections.singletonList(&quot;&quot;));</span>
+<span class="nc" id="L521">                errors.rejectValue(</span>
+<span class="nc" id="L522">                        prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][0]&quot;, ErrorsCode.EMPTY_FIELD);</span>
+            }
+<span class="nc" id="L524">            return;</span>
+        }
+<span class="nc" id="L526">        var values = form.getAdditional().computeIfAbsent(fieldConf.getName(), k -&gt; List.of());</span>
+
+        // handle required for multiple choice (checkbox) where required is interpreted as at least one!
+<span class="nc bnc" id="L529" title="All 2 branches missed.">        if (fieldConf.isRequired()</span>
+<span class="nc bnc" id="L530" title="All 2 branches missed.">                &amp;&amp; fieldConf.getCount() &gt; 1</span>
+<span class="nc bnc" id="L531" title="All 2 branches missed.">                &amp;&amp; values.stream().allMatch(StringUtils::isBlank)) {</span>
+<span class="nc" id="L532">            errors.rejectValue(prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;]&quot;, ErrorsCode.EMPTY_FIELD);</span>
+        }
+
+<span class="nc bnc" id="L535" title="All 2 branches missed.">        for (int i = 0; i &lt; values.size(); i++) {</span>
+<span class="nc" id="L536">            validateFieldValue(vatValidator, errors, prefixForLambda, fieldConf, values, i);</span>
+        }
+<span class="nc" id="L538">    }</span>
+
+    private static void validateFieldValue(
+            SameCountryValidator vatValidator,
+            Errors errors,
+            String prefixForLambda,
+            PurchaseContextFieldConfiguration fieldConf,
+            List&lt;String&gt; values,
+            int i) {
+<span class="nc" id="L547">        String formValue = values.get(i);</span>
+
+<span class="nc" id="L549">        fieldValueBasicValidation(errors, prefixForLambda, fieldConf, i, formValue);</span>
+
+        try {
+<span class="nc bnc" id="L552" title="All 4 branches missed.">            if (fieldConf.isEuVat() &amp;&amp; !vatValidator.test(formValue)) {</span>
+<span class="nc" id="L553">                errors.rejectValue(</span>
+<span class="nc" id="L554">                        prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + i + &quot;]&quot;,</span>
+                        ErrorsCode.STEP_2_INVALID_VAT);
+            }
+<span class="nc" id="L557">        } catch (IllegalStateException e) {</span>
+<span class="nc" id="L558">            errors.rejectValue(</span>
+<span class="nc" id="L559">                    prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + i + &quot;]&quot;,</span>
+                    ErrorsCode.VIES_IS_DOWN);
+<span class="nc" id="L561">        }</span>
+<span class="nc" id="L562">    }</span>
+
+    private static void fieldValueBasicValidation(
+            Errors errors,
+            String prefixForLambda,
+            PurchaseContextFieldConfiguration fieldConf,
+            int i,
+            String formValue) {
+
+<span class="nc" id="L571">        validateLength(errors, prefixForLambda, fieldConf, i, formValue);</span>
+
+<span class="nc bnc" id="L573" title="All 2 branches missed.">        if (!fieldConf.getRestrictedValues().isEmpty()) {</span>
+<span class="nc" id="L574">            validateRestrictedValue(</span>
+                    formValue,
+<span class="nc" id="L576">                    prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + i + &quot;]&quot;,</span>
+                    ERROR_RESTRICTED_VALUE,
+<span class="nc" id="L578">                    fieldConf.getRestrictedValues(),</span>
+                    errors);
+        }
+
+<span class="nc bnc" id="L582" title="All 6 branches missed.">        if (fieldConf.isRequired() &amp;&amp; fieldConf.getCount() == 1 &amp;&amp; StringUtils.isBlank(formValue)) {</span>
+<span class="nc" id="L583">            errors.rejectValue(</span>
+<span class="nc" id="L584">                    prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + i + &quot;]&quot;, ErrorsCode.EMPTY_FIELD);</span>
+        }
+
+<span class="nc bnc" id="L587" title="All 4 branches missed.">        if (fieldConf.hasDisabledValues() &amp;&amp; fieldConf.getDisabledValues().contains(formValue)) {</span>
+<span class="nc" id="L588">            errors.rejectValue(</span>
+<span class="nc" id="L589">                    prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + i + &quot;]&quot;,</span>
+                    &quot;error.disabledValue&quot;,
+                    null,
+                    null);
+        }
+
+<span class="nc bnc" id="L595" title="All 6 branches missed.">        if (!errors.hasFieldErrors() &amp;&amp; StringUtils.isNotBlank(formValue) &amp;&amp; fieldConf.isDateOfBirth()) {</span>
+<span class="nc" id="L596">            int age = calculateAge(formValue, true, LOCAL_DATE_SUPPLIER);</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">            if (age &lt; 0) {</span>
+                // age was not provided in the right format
+<span class="nc" id="L599">                errors.rejectValue(</span>
+<span class="nc" id="L600">                        prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + i + &quot;]&quot;,</span>
+                        ErrorsCode.EMPTY_FIELD);
+            }
+        }
+<span class="nc" id="L604">    }</span>
+
+    private static void validateLength(
+            Errors errors,
+            String prefixForLambda,
+            PurchaseContextFieldConfiguration fieldConf,
+            int fieldIndex,
+            String formValue) {
+
+<span class="nc" id="L613">        boolean isDateOfBirth = fieldConf.isDateOfBirth();</span>
+
+<span class="nc bnc" id="L615" title="All 2 branches missed.">        if (isDateOfBirth) {</span>
+            // we require date of birth to be in the past
+<span class="nc" id="L617">            validateDateInThePast(</span>
+                    formValue,
+<span class="nc" id="L619">                    prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + fieldIndex + &quot;]&quot;,</span>
+                    errors);
+        }
+
+<span class="nc bnc" id="L623" title="All 2 branches missed.">        if (fieldConf.isMaxLengthDefined()) {</span>
+<span class="nc" id="L624">            validateMaxLength(</span>
+                    formValue,
+<span class="nc" id="L626">                    prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + fieldIndex + &quot;]&quot;,</span>
+<span class="nc bnc" id="L627" title="All 2 branches missed.">                    isDateOfBirth ? &quot;error.tooOld&quot; : &quot;error.tooLong&quot;,</span>
+                    fieldConf,
+                    errors);
+        }
+
+<span class="nc bnc" id="L632" title="All 4 branches missed.">        if (StringUtils.isNotBlank(formValue) &amp;&amp; fieldConf.isMinLengthDefined()) {</span>
+<span class="nc" id="L633">            validateMinLength(</span>
+                    formValue,
+<span class="nc" id="L635">                    prefixForLambda + ADDITIONAL_PREFIX + fieldConf.getName() + &quot;][&quot; + fieldIndex + &quot;]&quot;,</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">                    isDateOfBirth ? &quot;error.tooYoung&quot; : &quot;error.tooShort&quot;,</span>
+                    fieldConf,
+                    errors);
+        }
+<span class="nc" id="L640">    }</span>
+
+    private static void validateRestrictedValue(
+            String value, String fieldName, String errorCode, List&lt;String&gt; restrictedValues, Errors errors) {
+<span class="nc bnc" id="L644" title="All 4 branches missed.">        if (StringUtils.isNotBlank(value) &amp;&amp; !restrictedValues.contains(value)) {</span>
+<span class="nc" id="L645">            errors.rejectValue(fieldName, errorCode);</span>
+        }
+<span class="nc" id="L647">    }</span>
+
+    private static boolean allowsInPersonAccess(Optional&lt;Event&gt; event, EventModification ev) {
+<span class="nc bnc" id="L650" title="All 2 branches missed.">        return event.map(Event::getFormat).orElse(ev.getFormat()) != Event.EventFormat.ONLINE;</span>
+    }
+
+    public static boolean isEmailValid(String email) {
+<span class="nc bnc" id="L654" title="All 2 branches missed.">        return StringUtils.isNotEmpty(email)</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">                &amp;&amp; !email.strip().endsWith(&quot;.&quot;)</span>
+<span class="nc bnc" id="L656" title="All 2 branches missed.">                &amp;&amp; SIMPLE_E_MAIL_PATTERN.matcher(email).matches();</span>
+    }
+
+    public static boolean isCanonicalMailAddress(String email) {
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        return StringUtils.isNotEmpty(email)</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">                &amp;&amp; CANONICAL_MAIL_VALIDATOR.matcher(email).matches();</span>
+    }
+
+    private static void validateMinLength(
+            String value,
+            String fieldName,
+            String errorCode,
+            PurchaseContextFieldConfiguration fieldConfiguration,
+            Errors errors) {
+<span class="nc bnc" id="L670" title="All 2 branches missed.">        if (fieldConfiguration.isDateOfBirth()) {</span>
+<span class="nc" id="L671">            validateMinAge(value, fieldName, errorCode, fieldConfiguration, errors);</span>
+<span class="nc bnc" id="L672" title="All 2 branches missed.">        } else if (StringUtils.length(value) &lt; fieldConfiguration.getMinLength()) {</span>
+<span class="nc" id="L673">            errors.rejectValue(fieldName, errorCode, new Object[] {fieldConfiguration.getMinLength()}, null);</span>
+        }
+<span class="nc" id="L675">    }</span>
+
+    static void validateMinAge(
+            String value,
+            String fieldName,
+            String errorCode,
+            PurchaseContextFieldConfiguration fieldConfiguration,
+            Errors errors) {
+<span class="nc" id="L683">        validateMinAge(value, fieldName, errorCode, fieldConfiguration, errors, LOCAL_DATE_SUPPLIER);</span>
+<span class="nc" id="L684">    }</span>
+
+    static void validateMinAge(
+            String value,
+            String fieldName,
+            String errorCode,
+            PurchaseContextFieldConfiguration fieldConfiguration,
+            Errors errors,
+            Supplier&lt;LocalDate&gt; currentDateSupplier) {
+<span class="nc" id="L693">        int minAge = fieldConfiguration.getMinLength();</span>
+<span class="nc" id="L694">        int age = calculateAge(value, false, currentDateSupplier);</span>
+<span class="nc bnc" id="L695" title="All 4 branches missed.">        if (age &gt;= 0 &amp;&amp; age &lt; minAge) {</span>
+<span class="nc" id="L696">            errors.rejectValue(fieldName, errorCode, new Object[] {minAge}, null);</span>
+        }
+<span class="nc" id="L698">    }</span>
+
+    static void validateDateInThePast(String value, String fieldName, Errors errors) {
+<span class="nc bnc" id="L701" title="All 2 branches missed.">        if (StringUtils.isBlank(value)) {</span>
+            // value is not present. We cannot check it.
+<span class="nc" id="L703">            return;</span>
+        }
+        try {
+<span class="nc" id="L706">            var period = Period.between(LocalDate.parse(value), LocalDate.now(ClockProvider.clock()));</span>
+<span class="nc bnc" id="L707" title="All 4 branches missed.">            if (period.isNegative() || period.isZero()) {</span>
+<span class="nc" id="L708">                errors.rejectValue(fieldName, ERROR_RESTRICTED_VALUE, null, null);</span>
+            }
+<span class="nc" id="L710">        } catch (DateTimeException dex) {</span>
+<span class="nc" id="L711">            errors.rejectValue(fieldName, ERROR_RESTRICTED_VALUE, null, null);</span>
+<span class="nc" id="L712">        }</span>
+<span class="nc" id="L713">    }</span>
+
+    private static void validateMaxLength(
+            String value,
+            String fieldName,
+            String errorCode,
+            PurchaseContextFieldConfiguration fieldConfiguration,
+            Errors errors) {
+<span class="nc bnc" id="L721" title="All 2 branches missed.">        if (fieldConfiguration.isDateOfBirth()) {</span>
+<span class="nc" id="L722">            validateMaxAge(value, fieldName, errorCode, fieldConfiguration, errors);</span>
+        } else {
+<span class="nc" id="L724">            validateMaxLength(value, fieldName, errorCode, fieldConfiguration.getMaxLength(), errors);</span>
+        }
+<span class="nc" id="L726">    }</span>
+
+    static void validateMaxAge(
+            String value,
+            String fieldName,
+            String errorCode,
+            PurchaseContextFieldConfiguration fieldConfiguration,
+            Errors errors) {
+<span class="nc" id="L734">        validateMaxAge(value, fieldName, errorCode, fieldConfiguration, errors, LOCAL_DATE_SUPPLIER);</span>
+<span class="nc" id="L735">    }</span>
+
+    static void validateMaxAge(
+            String value,
+            String fieldName,
+            String errorCode,
+            PurchaseContextFieldConfiguration fieldConfiguration,
+            Errors errors,
+            Supplier&lt;LocalDate&gt; localDateSupplier) {
+<span class="nc" id="L744">        int maxAge = fieldConfiguration.getMaxLength();</span>
+<span class="nc" id="L745">        int age = calculateAge(value, true, localDateSupplier);</span>
+<span class="nc bnc" id="L746" title="All 2 branches missed.">        if (age &gt; maxAge) {</span>
+<span class="nc" id="L747">            errors.rejectValue(fieldName, errorCode, new Object[] {maxAge}, null);</span>
+        }
+<span class="nc" id="L749">    }</span>
+
+    private static int calculateAge(String value, boolean addRemainder, Supplier&lt;LocalDate&gt; currentDateSupplier) {
+        try {
+<span class="nc" id="L753">            var period = Period.between(LocalDate.parse(value), currentDateSupplier.get());</span>
+<span class="nc" id="L754">            int years = period.getYears();</span>
+<span class="nc bnc" id="L755" title="All 6 branches missed.">            if (addRemainder &amp;&amp; (period.getMonths() &gt; 0 || period.getDays() &gt; 0)) {</span>
+<span class="nc" id="L756">                years += 1;</span>
+            }
+<span class="nc" id="L758">            return years;</span>
+<span class="nc" id="L759">        } catch (DateTimeException ex) {</span>
+<span class="nc" id="L760">            return -1;</span>
+        }
+    }
+
+    private static void validateMaxLength(
+            String value, String fieldName, String errorCode, int maxLength, Errors errors) {
+<span class="nc bnc" id="L766" title="All 4 branches missed.">        if (StringUtils.isNotBlank(value) &amp;&amp; StringUtils.length(value) &gt; maxLength) {</span>
+<span class="nc" id="L767">            errors.rejectValue(fieldName, errorCode, new Object[] {maxLength}, null);</span>
+        }
+<span class="nc" id="L769">    }</span>
+
+    public static ValidationResult validateWaitingQueueSubscription(
+            WaitingQueueSubscriptionForm form, Errors errors, Event event) {
+<span class="nc bnc" id="L773" title="All 2 branches missed.">        if (!form.isTermAndConditionsAccepted()) {</span>
+<span class="nc" id="L774">            errors.rejectValue(&quot;termAndConditionsAccepted&quot;, ErrorsCode.STEP_2_TERMS_NOT_ACCEPTED);</span>
+        }
+
+<span class="nc bnc" id="L777" title="All 4 branches missed.">        if (StringUtils.isNotEmpty(event.getPrivacyPolicyUrl()) &amp;&amp; !form.isPrivacyPolicyAccepted()) {</span>
+<span class="nc" id="L778">            errors.rejectValue(&quot;privacyPolicyAccepted&quot;, ErrorsCode.STEP_2_TERMS_NOT_ACCEPTED);</span>
+        }
+
+<span class="nc bnc" id="L781" title="All 2 branches missed.">        if (event.mustUseFirstAndLastName()) {</span>
+<span class="nc" id="L782">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, FIRST_NAME, &quot;error.firstname&quot;);</span>
+<span class="nc" id="L783">            validateMaxLength(form.getFirstName(), FIRST_NAME, &quot;error.firstname&quot;, 255, errors);</span>
+
+<span class="nc" id="L785">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, LAST_NAME, &quot;lastname.fullname&quot;);</span>
+<span class="nc" id="L786">            validateMaxLength(form.getLastName(), LAST_NAME, &quot;error.lastname&quot;, 255, errors);</span>
+        } else {
+<span class="nc" id="L788">            validateMaxLength(form.getFullName(), FULL_NAME, &quot;error.fullname&quot;, 255, errors);</span>
+<span class="nc" id="L789">            ValidationUtils.rejectIfEmptyOrWhitespace(errors, FULL_NAME, &quot;error.fullname&quot;);</span>
+        }
+
+<span class="nc bnc" id="L792" title="All 2 branches missed.">        if (!isEmailValid(form.getEmail())) {</span>
+<span class="nc" id="L793">            errors.rejectValue(EMAIL_KEY, ERROR_EMAIL);</span>
+        }
+<span class="nc bnc" id="L795" title="All 2 branches missed.">        if (form.getUserLanguage() == null) {</span>
+<span class="nc" id="L796">            errors.rejectValue(&quot;userLanguage&quot;, &quot;error.userLanguage&quot;);</span>
+        }
+<span class="nc" id="L798">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static ValidationResult validateAdditionalService(
+            EventModification.AdditionalService additionalService, Errors errors) {
+<span class="nc" id="L803">        return validateAdditionalService(additionalService, null, errors);</span>
+    }
+
+    public static ValidationResult validateAdditionalService(
+            EventModification.AdditionalService additionalService, EventModification eventModification, Errors errors) {
+<span class="nc bnc" id="L808" title="All 2 branches missed.">        boolean eventModificationIsNotNull = eventModification != null;</span>
+<span class="nc bnc" id="L809" title="All 2 branches missed.">        if (additionalService.isFixPrice()</span>
+<span class="nc" id="L810">                &amp;&amp; Optional.ofNullable(additionalService.getPrice())</span>
+<span class="nc bnc" id="L811" title="All 2 branches missed.">                        .filter(p -&gt; p.compareTo(BigDecimal.ZERO) &gt;= 0)</span>
+<span class="nc bnc" id="L812" title="All 2 branches missed.">                        .isEmpty()) {</span>
+<span class="nc" id="L813">            rejectFieldForAdditionalService(&quot;price&quot;, eventModificationIsNotNull, errors);</span>
+        }
+
+<span class="nc" id="L816">        List&lt;EventModification.AdditionalServiceText&gt; descriptions = additionalService.getDescription();</span>
+<span class="nc" id="L817">        List&lt;EventModification.AdditionalServiceText&gt; titles = additionalService.getTitle();</span>
+<span class="nc bnc" id="L818" title="All 6 branches missed.">        if (descriptions == null || titles == null || titles.size() != descriptions.size()) {</span>
+<span class="nc" id="L819">            rejectFieldForAdditionalService(TITLE, eventModificationIsNotNull, errors);</span>
+<span class="nc" id="L820">            rejectFieldForAdditionalService(DESCRIPTION, eventModificationIsNotNull, errors);</span>
+        } else {
+<span class="nc bnc" id="L822" title="All 4 branches missed.">            if (!validateDescriptionList(titles) || !containsAllRequiredTranslations(eventModification, titles)) {</span>
+<span class="nc" id="L823">                rejectFieldForAdditionalService(TITLE, eventModificationIsNotNull, errors);</span>
+            }
+<span class="nc bnc" id="L825" title="All 2 branches missed.">            if (!validateDescriptionList(descriptions)</span>
+<span class="nc bnc" id="L826" title="All 2 branches missed.">                    || !containsAllRequiredTranslations(eventModification, descriptions)) {</span>
+<span class="nc" id="L827">                rejectFieldForAdditionalService(DESCRIPTION, eventModificationIsNotNull, errors);</span>
+            }
+        }
+
+<span class="nc" id="L831">        DateTimeModification inception = additionalService.getInception();</span>
+<span class="nc" id="L832">        DateTimeModification expiration = additionalService.getExpiration();</span>
+<span class="nc bnc" id="L833" title="All 6 branches missed.">        if (inception == null || expiration == null || expiration.isBefore(inception)) {</span>
+<span class="nc" id="L834">            rejectFieldForAdditionalService(&quot;inception&quot;, eventModificationIsNotNull, errors);</span>
+<span class="nc" id="L835">            rejectFieldForAdditionalService(&quot;expiration&quot;, eventModificationIsNotNull, errors);</span>
+<span class="nc bnc" id="L836" title="All 4 branches missed.">        } else if (eventModification != null &amp;&amp; expiration.isAfter(eventModification.getEnd())) {</span>
+<span class="nc" id="L837">            rejectFieldForAdditionalService(&quot;expiration&quot;, true, errors);</span>
+        }
+
+<span class="nc" id="L840">        return evaluateValidationResult(errors);</span>
+    }
+
+    private static void rejectFieldForAdditionalService(String field, boolean eventModification, Errors errors) {
+<span class="nc bnc" id="L844" title="All 2 branches missed.">        var errorField = eventModification ? ADDITIONAL_SERVICES : field;</span>
+<span class="nc" id="L845">        errors.rejectValue(errorField, &quot;error.&quot; + field);</span>
+<span class="nc" id="L846">    }</span>
+
+    private static boolean containsAllRequiredTranslations(
+            EventModification eventModification, List&lt;EventModification.AdditionalServiceText&gt; descriptions) {
+<span class="nc" id="L850">        Optional&lt;EventModification&gt; optional = Optional.ofNullable(eventModification);</span>
+<span class="nc bnc" id="L851" title="All 2 branches missed.">        return optional.isEmpty()</span>
+<span class="nc" id="L852">                || optional.map(e -&gt; ContentLanguage.findAllFor(e.getLocales()))</span>
+<span class="nc" id="L853">                        .filter(l -&gt; l.stream().allMatch(l1 -&gt; descriptions.stream()</span>
+<span class="nc" id="L854">                                .anyMatch(d -&gt; d.getLocale().equals(l1.getLanguage()))))</span>
+<span class="nc bnc" id="L855" title="All 2 branches missed.">                        .isPresent();</span>
+    }
+
+    private static boolean validateDescriptionList(List&lt;EventModification.AdditionalServiceText&gt; descriptions) {
+<span class="nc" id="L859">        return descriptions.stream().allMatch(t -&gt; StringUtils.isNotBlank(t.getValue()));</span>
+    }
+
+    public static ValidationResult validateAdditionalFields(
+            List&lt;PurchaseContextFieldConfiguration&gt; fieldConf, AdditionalFieldRequest field, Errors errors) {
+<span class="nc" id="L864">        String duplicateName = fieldConf.stream()</span>
+<span class="nc" id="L865">                .map(PurchaseContextFieldConfiguration::getName)</span>
+<span class="nc" id="L866">                .filter(name -&gt; name.equalsIgnoreCase(field.getName()))</span>
+<span class="nc" id="L867">                .findAny()</span>
+<span class="nc" id="L868">                .orElse(&quot;&quot;);</span>
+<span class="nc bnc" id="L869" title="All 2 branches missed.">        if (StringUtils.isNotBlank(duplicateName)) {</span>
+<span class="nc" id="L870">            errors.rejectValue(&quot;name&quot;, ErrorCode.DUPLICATE);</span>
+<span class="nc bnc" id="L871" title="All 2 branches missed.">        } else if (!validateAdditionalInfoName(field.getName())) {</span>
+<span class="nc" id="L872">            errors.rejectValue(&quot;name&quot;, &quot;pattern&quot;);</span>
+        }
+<span class="nc" id="L874">        return evaluateValidationResult(errors);</span>
+    }
+
+    public static boolean validateAdditionalInfoName(String additionalInfoName) {
+<span class="nc" id="L878">        return FIELD_NAME_VALIDATOR.matcher(additionalInfoName).matches();</span>
+    }
+
+    public static class AdvancedTicketAssignmentValidator implements Function&lt;AdvancedValidationContext, Result&lt;Void&gt;&gt; {
+
+        private final SameCountryValidator vatValidator;
+        private final GroupManager.WhitelistValidator whitelistValidator;
+
+        public AdvancedTicketAssignmentValidator(
+                SameCountryValidator vatValidator, GroupManager.WhitelistValidator whitelistValidator) {
+            this.vatValidator = vatValidator;
+            this.whitelistValidator = whitelistValidator;
+        }
+
+        @Override
+        public Result&lt;Void&gt; apply(AdvancedValidationContext context) {
+
+            Optional&lt;PurchaseContextFieldConfiguration&gt; vatField = context.purchaseContextFieldConfigurations.stream()
+                    .filter(PurchaseContextFieldConfiguration::isEuVat)
+                    .filter(f -&gt; context.updateTicketOwnerForm.getAdditional() != null
+                            &amp;&amp; context.updateTicketOwnerForm.getAdditional().containsKey(f.getName()))
+                    .findFirst();
+
+            Optional&lt;String&gt; vatNr =
+                    vatField.map(c -&gt; Objects.requireNonNull(context.updateTicketOwnerForm.getAdditional())
+                            .get(c.getName())
+                            .get(0));
+            String vatFieldName =
+                    vatField.map(PurchaseContextFieldConfiguration::getName).orElse(&quot;&quot;);
+
+            return new Result.Builder&lt;Void&gt;()
+                    .checkPrecondition(
+                            () -&gt; vatNr.isEmpty() || vatValidator.test(vatNr.get()),
+                            ErrorCode.custom(ErrorsCode.STEP_2_INVALID_VAT, &quot;additional['&quot; + vatFieldName + &quot;']&quot;))
+                    .checkPrecondition(
+                            () -&gt; whitelistValidator.test(new GroupManager.WhitelistValidationItem(
+                                    context.categoryId, context.updateTicketOwnerForm.getEmail())),
+                            ErrorCode.custom(ErrorsCode.STEP_2_WHITELIST_CHECK_FAILED, EMAIL_KEY))
+                    .build(() -&gt; null);
+        }
+    }
+
+    public static class AdvancedValidationContext {
+        private final UpdateTicketOwnerForm updateTicketOwnerForm;
+        private final List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFieldConfigurations;
+        private final int categoryId;
+        private final String ticketUuid;
+        private final String prefix;
+
+        public AdvancedValidationContext(
+                UpdateTicketOwnerForm updateTicketOwnerForm,
+                List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFieldConfigurations,
+                int categoryId,
+                String ticketUuid,
+                String prefix) {
+            this.updateTicketOwnerForm = updateTicketOwnerForm;
+            this.purchaseContextFieldConfigurations = purchaseContextFieldConfigurations;
+            this.categoryId = categoryId;
+            this.ticketUuid = ticketUuid;
+            this.prefix = prefix;
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

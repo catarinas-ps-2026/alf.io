@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PollManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">PollManager.java</span></div><h1>PollManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static java.util.Objects.requireNonNullElse;
+
+import alfio.model.EventAndOrganizationId;
+import alfio.model.Ticket;
+import alfio.model.modification.PollModification;
+import alfio.model.modification.PollOptionModification;
+import alfio.model.poll.*;
+import alfio.model.result.ErrorCode;
+import alfio.model.result.Result;
+import alfio.repository.*;
+import alfio.util.Json;
+import alfio.util.PinGenerator;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import lombok.AllArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+@AllArgsConstructor
+@Transactional
+public class PollManager {
+    private final PollRepository pollRepository;
+    private final EventRepository eventRepository;
+    private final TicketRepository ticketRepository;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final TicketSearchRepository ticketSearchRepository;
+    private final AuditingRepository auditingRepository;
+
+    public Result&lt;List&lt;Poll&gt;&gt; getActiveForEvent(String eventName, String pin) {
+<span class="nc" id="L56">        return validatePinAndEvent(pin, eventName)</span>
+<span class="nc" id="L57">                .flatMap(eventAndTicket -&gt; Result.success(pollRepository.findActiveForEvent(</span>
+<span class="nc" id="L58">                        eventAndTicket.getLeft().getId())));</span>
+    }
+
+    public Result&lt;PollWithOptions&gt; getSingleActiveForEvent(String eventName, Long id, String pin) {
+<span class="nc" id="L62">        return validatePinAndEvent(pin, eventName).flatMap(eventAndTicket -&gt; {</span>
+<span class="nc" id="L63">            var optionalPoll = pollRepository.findSingleActiveForEvent(</span>
+<span class="nc" id="L64">                    eventAndTicket.getLeft().getId(), id);</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (optionalPoll.isEmpty()) {</span>
+<span class="nc" id="L66">                return Result.error(ErrorCode.custom(&quot;not_found&quot;, &quot;&quot;));</span>
+            }
+<span class="nc" id="L68">            return Result.success(new PollWithOptions(optionalPoll.get(), pollRepository.getOptionsForPoll(id)));</span>
+        });
+    }
+
+    public Result&lt;Boolean&gt; registerAnswer(String eventName, Long pollId, Long optionId, String pin) {
+
+<span class="nc bnc" id="L74" title="All 4 branches missed.">        if (pollId == null || optionId == null) {</span>
+<span class="nc" id="L75">            return Result.error(ErrorCode.custom(&quot;not_found&quot;, &quot;&quot;));</span>
+        }
+
+<span class="nc" id="L78">        return validatePinAndEvent(pin, eventName).flatMap(eventAndTicket -&gt; {</span>
+<span class="nc" id="L79">            var event = eventAndTicket.getLeft();</span>
+<span class="nc" id="L80">            var ticket = eventAndTicket.getRight();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            Validate.isTrue(pollRepository.checkPollOption(optionId, pollId, event.getId()) == 1, &quot;Invalid selection&quot;);</span>
+<span class="nc" id="L82">            Validate.isTrue(</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                    pollRepository.registerAnswer(pollId, optionId, ticket.getId(), event.getOrganizationId()) == 1,</span>
+                    &quot;Unexpected error while inserting answer&quot;);
+<span class="nc" id="L85">            return Result.success(true);</span>
+        });
+    }
+
+    // admin
+    public List&lt;Poll&gt; getAllForEvent(String eventName) {
+<span class="nc" id="L91">        var eventOptional = eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (eventOptional.isEmpty()) {</span>
+<span class="nc" id="L93">            return List.of();</span>
+        }
+<span class="nc" id="L95">        return pollRepository.findAllForEvent(eventOptional.get().getId());</span>
+    }
+
+    public Optional&lt;PollWithOptions&gt; getSingleForEvent(Long pollId, String eventName) {
+<span class="nc" id="L99">        return eventRepository</span>
+<span class="nc" id="L100">                .findOptionalEventAndOrganizationIdByShortName(eventName)</span>
+<span class="nc" id="L101">                .flatMap(event -&gt; getSingleForEvent(pollId, event));</span>
+    }
+
+    private Optional&lt;PollWithOptions&gt; getSingleForEvent(Long pollId, EventAndOrganizationId event) {
+<span class="nc" id="L105">        return pollRepository</span>
+<span class="nc" id="L106">                .findSingleForEvent(event.getId(), Objects.requireNonNull(pollId))</span>
+<span class="nc" id="L107">                .map(poll -&gt; new PollWithOptions(poll, pollRepository.getOptionsForPoll(pollId)));</span>
+    }
+
+    public Optional&lt;Long&gt; createNewPoll(String eventName, PollModification form) {
+<span class="nc" id="L111">        Validate.isTrue(form.isValid());</span>
+<span class="nc" id="L112">        return eventRepository</span>
+<span class="nc" id="L113">                .findOptionalEventAndOrganizationIdByShortName(eventName)</span>
+<span class="nc" id="L114">                .map(event -&gt; {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                    List&lt;String&gt; tags = form.isAccessRestricted()</span>
+<span class="nc" id="L116">                            ? List.of(UUID.randomUUID().toString())</span>
+<span class="nc" id="L117">                            : List.of();</span>
+<span class="nc" id="L118">                    var pollKey = pollRepository.insert(</span>
+<span class="nc" id="L119">                            form.getTitle(),</span>
+<span class="nc" id="L120">                            requireNonNullElse(form.getDescription(), Map.of()),</span>
+                            tags,
+<span class="nc" id="L122">                            form.getOrder(),</span>
+<span class="nc" id="L123">                            event.getId(),</span>
+<span class="nc" id="L124">                            event.getOrganizationId());</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                    Validate.isTrue(pollKey.getAffectedRowCount() == 1);</span>
+<span class="nc" id="L126">                    insertOptions(form.getOptions(), event, pollKey.getKey());</span>
+<span class="nc" id="L127">                    return pollKey.getKey();</span>
+                });
+    }
+
+    public boolean deletePoll(EventAndOrganizationId event, Long pollId) {
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        Validate.isTrue(pollId != null);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        Validate.isTrue(pollRepository.deletePoll(pollId, event.getId(), event.getOrganizationId()) == 1);</span>
+<span class="nc" id="L134">        return true;</span>
+    }
+
+    public Optional&lt;PollWithOptions&gt; updatePoll(String eventName, PollModification form) {
+<span class="nc" id="L138">        Validate.isTrue(form.isValid(form.getId()));</span>
+<span class="nc" id="L139">        return eventRepository</span>
+<span class="nc" id="L140">                .findOptionalEventAndOrganizationIdByShortName(eventName)</span>
+<span class="nc" id="L141">                .flatMap(event -&gt; {</span>
+<span class="nc" id="L142">                    var pollId = form.getId();</span>
+<span class="nc" id="L143">                    var existingPollWithOptions =</span>
+<span class="nc" id="L144">                            getSingleForEvent(pollId, event).orElseThrow();</span>
+<span class="nc" id="L145">                    var existingPoll = existingPollWithOptions.getPoll();</span>
+<span class="nc" id="L146">                    var tags = existingPoll.allowedTags();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                    if (form.isAccessRestricted() == existingPoll.allowedTags().isEmpty()) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                        tags = form.isAccessRestricted()</span>
+<span class="nc" id="L149">                                ? List.of(UUID.randomUUID().toString())</span>
+<span class="nc" id="L150">                                : List.of();</span>
+                    }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                    Validate.isTrue(pollRepository.update(</span>
+<span class="nc" id="L153">                                    form.getTitle(),</span>
+<span class="nc" id="L154">                                    form.getDescription(),</span>
+                                    tags,
+<span class="nc" id="L156">                                    form.getOrder(),</span>
+<span class="nc" id="L157">                                    pollId,</span>
+<span class="nc" id="L158">                                    event.getId())</span>
+                            == 1);
+                    // options
+                    // find if there is any new option
+<span class="nc" id="L162">                    var newOptions = form.getOptions().stream()</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">                            .filter(pm -&gt; pm.getId() == null)</span>
+<span class="nc" id="L164">                            .collect(Collectors.toList());</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">                    if (!newOptions.isEmpty()) {</span>
+<span class="nc" id="L166">                        insertOptions(newOptions, event, pollId);</span>
+                    }
+                    // update existing options
+<span class="nc" id="L169">                    var existingOptions = form.getOptions().stream()</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                            .filter(pm -&gt; pm.getId() != null)</span>
+<span class="nc" id="L171">                            .collect(Collectors.toList());</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                    if (!existingOptions.isEmpty()) {</span>
+<span class="nc" id="L173">                        updateOptions(existingOptions, event, pollId);</span>
+                    }
+
+<span class="nc" id="L176">                    return getSingleForEvent(pollId, event);</span>
+                });
+    }
+
+    public Optional&lt;PollWithOptions&gt; updateStatus(
+            Long pollId, EventAndOrganizationId event, Poll.PollStatus newStatus) {
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        Validate.isTrue(newStatus != Poll.PollStatus.DRAFT, &quot;can't revert to draft&quot;);</span>
+<span class="nc" id="L183">        Validate.isTrue(</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                pollRepository.updateStatus(newStatus, pollId, event.getId()) == 1, &quot;Error while updating status&quot;);</span>
+<span class="nc" id="L185">        return getSingleForEvent(pollId, event);</span>
+    }
+
+    public Optional&lt;List&lt;PollParticipant&gt;&gt; searchTicketsToAllow(
+            EventAndOrganizationId event, Long pollId, String filter) {
+<span class="nc" id="L190">        Validate.isTrue(StringUtils.isNotBlank(filter));</span>
+<span class="nc" id="L191">        return pollRepository</span>
+<span class="nc" id="L192">                .findSingleForEvent(event.getId(), pollId)</span>
+<span class="nc" id="L193">                .map(p -&gt; ticketSearchRepository.filterConfirmedTicketsInEventForPoll(</span>
+<span class="nc" id="L194">                        event.getId(), 20, &quot;%&quot; + filter + &quot;%&quot;, p.allowedTags()));</span>
+    }
+
+    public boolean allowTicketsToVote(EventAndOrganizationId event, List&lt;Integer&gt; ids, long pollId) {
+<span class="nc" id="L198">        Validate.isTrue(CollectionUtils.isNotEmpty(ids));</span>
+<span class="nc" id="L199">        var poll = pollRepository.findSingleForEvent(event.getId(), pollId).orElseThrow();</span>
+<span class="nc" id="L200">        Validate.isTrue(CollectionUtils.isNotEmpty(poll.allowedTags()));</span>
+<span class="nc" id="L201">        var tag = poll.allowedTags().get(0);</span>
+<span class="nc" id="L202">        var result = ticketRepository.tagTickets(ids, event.getId(), tag);</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        Validate.isTrue(ids.size() == result, &quot;Unable to tag tickets&quot;);</span>
+<span class="nc" id="L204">        var auditingResults = auditingRepository.registerTicketTag(ids, List.of(Map.of(&quot;tag&quot;, tag)));</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        Validate.isTrue(auditingResults == ids.size(), &quot;Error while writing auditing&quot;);</span>
+<span class="nc" id="L206">        return true;</span>
+    }
+
+    public List&lt;PollParticipant&gt; removeParticipants(
+            EventAndOrganizationId event, List&lt;Integer&gt; ticketIds, long pollId) {
+<span class="nc" id="L211">        var poll = pollRepository.findSingleForEvent(event.getId(), pollId).orElseThrow();</span>
+<span class="nc" id="L212">        Validate.isTrue(CollectionUtils.isNotEmpty(poll.allowedTags()));</span>
+<span class="nc" id="L213">        var tag = poll.allowedTags().get(0);</span>
+<span class="nc" id="L214">        var result = ticketRepository.untagTickets(ticketIds, event.getId(), tag);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        Validate.isTrue(result == 1, &quot;Error while removing tag&quot;);</span>
+<span class="nc" id="L216">        var auditingResults = auditingRepository.registerTicketUntag(ticketIds, List.of(Map.of(&quot;tag&quot;, tag)));</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        Validate.isTrue(auditingResults == ticketIds.size(), &quot;Error while writing auditing&quot;);</span>
+<span class="nc" id="L218">        return ticketRepository.getTicketsForEventByTags(event.getId(), poll.allowedTags());</span>
+    }
+
+    public Optional&lt;PollWithOptions&gt; removeOption(EventAndOrganizationId event, Long pollId, Long optionId) {
+<span class="nc" id="L222">        var poll = pollRepository.findSingleForEvent(event.getId(), pollId).orElseThrow();</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        Validate.isTrue(pollRepository.deleteOption(pollId, optionId) == 1, &quot;Error while deleting option&quot;);</span>
+<span class="nc" id="L224">        return getSingleForEvent(poll.id(), event);</span>
+    }
+
+    public List&lt;PollParticipant&gt; fetchAllowedTickets(EventAndOrganizationId event, long pollId) {
+<span class="nc" id="L228">        var poll = pollRepository.findSingleForEvent(event.getId(), pollId).orElseThrow();</span>
+<span class="nc" id="L229">        return ticketRepository.getTicketsForEventByTags(event.getId(), poll.allowedTags());</span>
+    }
+
+    public Optional&lt;PollStatistics&gt; getStatisticsFor(EventAndOrganizationId event, long pollId) {
+<span class="nc" id="L233">        return pollRepository.findSingleForEvent(event.getId(), pollId).map(p -&gt; {</span>
+            int allowedParticipants;
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            if (p.allowedTags().isEmpty()) {</span>
+<span class="nc" id="L236">                allowedParticipants =</span>
+<span class="nc" id="L237">                        eventRepository.findStatisticsFor(event.getId()).getCheckedInTickets();</span>
+            } else {
+<span class="nc" id="L239">                allowedParticipants = ticketRepository.countTicketsMatchingTagsAndStatus(</span>
+<span class="nc" id="L240">                        event.getId(), p.allowedTags(), List.of(Ticket.TicketStatus.CHECKED_IN.name()));</span>
+            }
+<span class="nc" id="L242">            var statistics = pollRepository.getStatisticsFor(p.id(), event.getId());</span>
+<span class="nc" id="L243">            return new PollStatistics(</span>
+<span class="nc" id="L244">                    statistics.stream().mapToInt(PollOptionStatistics::getVotes).sum(),</span>
+                    allowedParticipants,
+                    statistics);
+        });
+    }
+
+    private void insertOptions(List&lt;PollOptionModification&gt; options, EventAndOrganizationId event, Long pollId) {
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        if (options.size() == 1) {</span>
+<span class="nc" id="L252">            var option = options.get(0);</span>
+<span class="nc" id="L253">            pollRepository.insertOption(</span>
+                    pollId,
+<span class="nc" id="L255">                    option.getTitle(),</span>
+<span class="nc" id="L256">                    requireNonNullElse(option.getDescription(), Map.of()),</span>
+<span class="nc" id="L257">                    event.getOrganizationId());</span>
+<span class="nc" id="L258">        } else {</span>
+<span class="nc" id="L259">            var parameterSources = options.stream()</span>
+<span class="nc" id="L260">                    .map(option -&gt; new MapSqlParameterSource(&quot;pollId&quot;, pollId)</span>
+<span class="nc" id="L261">                            .addValue(&quot;title&quot;, Json.toJson(requireNonNullElse(option.getTitle(), Map.of())))</span>
+<span class="nc" id="L262">                            .addValue(&quot;description&quot;, Json.toJson(requireNonNullElse(option.getDescription(), Map.of())))</span>
+<span class="nc" id="L263">                            .addValue(&quot;organizationId&quot;, event.getOrganizationId()))</span>
+<span class="nc" id="L264">                    .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L265">            int[] results = jdbcTemplate.batchUpdate(pollRepository.bulkInsertOptions(), parameterSources);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">            Validate.isTrue(IntStream.of(results).sum() == options.size(), &quot;Unexpected result from update.&quot;);</span>
+        }
+<span class="nc" id="L268">    }</span>
+
+    private void updateOptions(
+            List&lt;PollOptionModification&gt; existingOptions, EventAndOrganizationId event, Long pollId) {
+<span class="nc" id="L272">        var parameterSources = existingOptions.stream()</span>
+<span class="nc" id="L273">                .map(option -&gt; new MapSqlParameterSource(&quot;pollId&quot;, pollId)</span>
+<span class="nc" id="L274">                        .addValue(&quot;title&quot;, Json.toJson(requireNonNullElse(option.getTitle(), Map.of())))</span>
+<span class="nc" id="L275">                        .addValue(&quot;description&quot;, Json.toJson(requireNonNullElse(option.getDescription(), Map.of())))</span>
+<span class="nc" id="L276">                        .addValue(&quot;id&quot;, option.getId()))</span>
+<span class="nc" id="L277">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L278">        int[] results = jdbcTemplate.batchUpdate(pollRepository.bulkUpdateOptions(), parameterSources);</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">        Validate.isTrue(IntStream.of(results).sum() == existingOptions.size(), &quot;Unexpected result from update.&quot;);</span>
+<span class="nc" id="L280">    }</span>
+
+    private Result&lt;Pair&lt;EventAndOrganizationId, Ticket&gt;&gt; validatePinAndEvent(String pin, String eventName) {
+<span class="nc" id="L283">        var eventOptional = eventRepository.findOptionalEventAndOrganizationIdByShortName(eventName);</span>
+<span class="nc" id="L284">        return new Result.Builder&lt;EventAndOrganizationId&gt;()</span>
+<span class="nc" id="L285">                .checkPrecondition(eventOptional::isPresent, ErrorCode.EventError.NOT_FOUND)</span>
+<span class="nc" id="L286">                .checkPrecondition(() -&gt; PinGenerator.isPinValid(pin), ErrorCode.custom(&quot;pin.invalid&quot;, &quot;&quot;))</span>
+<span class="nc" id="L287">                .build(eventOptional::get)</span>
+<span class="nc" id="L288">                .flatMap(event -&gt; {</span>
+<span class="nc" id="L289">                    var partialUuid = PinGenerator.pinToPartialUuid(pin);</span>
+                    // find checkedIn ticket
+<span class="nc" id="L291">                    var tickets = ticketRepository.findByEventIdAndPartialUUIDForUpdate(</span>
+<span class="nc" id="L292">                            event.getId(), partialUuid + &quot;%&quot;, Ticket.TicketStatus.CHECKED_IN);</span>
+<span class="nc" id="L293">                    int numResults = tickets.size();</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                    if (numResults != 1) {</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">                        return Result.error(ErrorCode.custom(numResults &gt; 1 ? &quot;pin.duplicate&quot; : &quot;pin.invalid&quot;, &quot;&quot;));</span>
+                    }
+<span class="nc" id="L297">                    return Result.success(Pair.of(event, tickets.get(0)));</span>
+                });
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

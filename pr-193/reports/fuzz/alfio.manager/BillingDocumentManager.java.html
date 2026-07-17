@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BillingDocumentManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">BillingDocumentManager.java</span></div><h1>BillingDocumentManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.model.Audit.EntityType.RESERVATION;
+import static alfio.model.Audit.EventType.EXTERNAL_CREDIT_NOTE_NUMBER;
+import static alfio.model.Audit.EventType.EXTERNAL_INVOICE_NUMBER;
+import static alfio.model.BillingDocument.Type.*;
+import static alfio.model.TicketReservation.TicketReservationStatus.CANCELLED;
+import static alfio.model.TicketReservation.TicketReservationStatus.PENDING;
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.ReservationUtil.collectTicketsWithCategory;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.groupingBy;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+
+import alfio.manager.payment.PaymentSpecification;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.system.Mailer;
+import alfio.model.*;
+import alfio.model.PurchaseContext.PurchaseContextType;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.user.Organization;
+import alfio.repository.*;
+import alfio.repository.user.OrganizationRepository;
+import alfio.repository.user.UserRepository;
+import alfio.util.ClockProvider;
+import alfio.util.Json;
+import alfio.util.TemplateResource;
+import ch.digitalfondue.npjt.AffectedRowCountAndKey;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Supplier;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+@AllArgsConstructor
+public class BillingDocumentManager {
+    static final String CREDIT_NOTE_NUMBER = &quot;creditNoteNumber&quot;;
+<span class="nc" id="L61">    private static final Logger log = LoggerFactory.getLogger(BillingDocumentManager.class);</span>
+    private static final String APPLICATION_PDF = &quot;application/pdf&quot;;
+    private final BillingDocumentRepository billingDocumentRepository;
+    private final Json json;
+    private final ConfigurationManager configurationManager;
+    private final TicketRepository ticketRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
+    private final AuditingRepository auditingRepository;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final ClockProvider clockProvider;
+    private final ExtensionManager extensionManager;
+    private final InvoiceSequencesRepository invoiceSequencesRepository;
+
+    public Optional&lt;ZonedDateTime&gt; findFirstInvoiceDate(int eventId) {
+<span class="nc" id="L77">        return billingDocumentRepository.findFirstInvoiceGenerationDate(eventId);</span>
+    }
+
+    public List&lt;Integer&gt; findMatchingInvoiceIds(Integer eventId, ZonedDateTime from, ZonedDateTime to) {
+<span class="nc" id="L81">        return billingDocumentRepository.findMatchingInvoiceIds(eventId, from, to);</span>
+    }
+
+    static boolean mustGenerateBillingDocument(OrderSummary summary, TicketReservation ticketReservation) {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        return !summary.getFree()</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                &amp;&amp; (!summary.getNotYetPaid()</span>
+<span class="nc bnc" id="L87" title="All 4 branches missed.">                        || (summary.getWaitingForPayment() &amp;&amp; ticketReservation.isInvoiceRequested()));</span>
+    }
+
+    public List&lt;Mailer.Attachment&gt; generateBillingDocumentAttachment(
+            PurchaseContext purchaseContext,
+            TicketReservation ticketReservation,
+            Locale language,
+            BillingDocument.Type documentType,
+            String username,
+            OrderSummary orderSummary) {
+<span class="nc" id="L97">        Map&lt;String, String&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L98">        model.put(&quot;reservationId&quot;, ticketReservation.getId());</span>
+<span class="nc" id="L99">        model.put(</span>
+                &quot;eventId&quot;,
+<span class="nc" id="L101">                purchaseContext.event().map(ev -&gt; Integer.toString(ev.getId())).orElse(null));</span>
+<span class="nc" id="L102">        model.put(&quot;language&quot;, json.asJsonString(language));</span>
+<span class="nc" id="L103">        model.put(</span>
+                &quot;reservationEmailModel&quot;,
+<span class="nc" id="L105">                json.asJsonString(internalGetOrCreate(purchaseContext, ticketReservation, username, orderSummary)</span>
+<span class="nc" id="L106">                        .getModel()));</span>
+<span class="nc bnc" id="L107" title="All 3 branches missed.">        return switch (documentType) {</span>
+<span class="nc" id="L108">            case INVOICE -&gt; Collections.singletonList(new Mailer.Attachment(</span>
+                    &quot;invoice.pdf&quot;, null, APPLICATION_PDF, model, Mailer.AttachmentIdentifier.INVOICE_PDF));
+<span class="nc" id="L110">            case RECEIPT -&gt; Collections.singletonList(new Mailer.Attachment(</span>
+                    &quot;receipt.pdf&quot;, null, APPLICATION_PDF, model, Mailer.AttachmentIdentifier.RECEIPT_PDF));
+<span class="nc" id="L112">            case CREDIT_NOTE -&gt; Collections.singletonList(new Mailer.Attachment(</span>
+                    &quot;credit-note.pdf&quot;, null, APPLICATION_PDF, model, Mailer.AttachmentIdentifier.CREDIT_NOTE_PDF));
+        };
+    }
+
+    @Transactional
+    public void ensureBillingDocumentIsPresent(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            String username,
+            Supplier&lt;OrderSummary&gt; orderSummarySupplier) {
+<span class="nc bnc" id="L123" title="All 4 branches missed.">        if (reservation.getStatus() == PENDING || reservation.getStatus() == CANCELLED) {</span>
+<span class="nc" id="L124">            return;</span>
+        }
+<span class="nc" id="L126">        var orderSummary = orderSummarySupplier.get();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (mustGenerateBillingDocument(orderSummary, reservation)) {</span>
+<span class="nc" id="L128">            getOrCreateBillingDocument(purchaseContext, reservation, username, orderSummary);</span>
+        }
+<span class="nc" id="L130">    }</span>
+
+    @Transactional
+    public BillingDocument createBillingDocument(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            String username,
+            OrderSummary orderSummary) {
+<span class="nc" id="L138">        return createBillingDocument(</span>
+                purchaseContext,
+                reservation,
+                username,
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                reservation.getHasInvoiceNumber() ? INVOICE : RECEIPT,</span>
+                orderSummary);
+    }
+
+    BillingDocument createBillingDocument(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            String username,
+            BillingDocument.Type type,
+            OrderSummary orderSummary) {
+<span class="nc" id="L152">        Map&lt;String, Object&gt; model = prepareModelForBillingDocument(purchaseContext, reservation, orderSummary, type);</span>
+        String number;
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (type == INVOICE) {</span>
+<span class="nc" id="L155">            number = reservation.getInvoiceNumber();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        } else if (type == CREDIT_NOTE) {</span>
+<span class="nc" id="L157">            number = (String) model.get(CREDIT_NOTE_NUMBER);</span>
+        } else {
+<span class="nc" id="L159">            number = UUID.randomUUID().toString();</span>
+        }
+<span class="nc" id="L161">        var eventId = purchaseContext.event().map(Event::getId).orElse(null);</span>
+<span class="nc" id="L162">        AffectedRowCountAndKey&lt;Long&gt; doc = billingDocumentRepository.insert(</span>
+                eventId,
+<span class="nc" id="L164">                reservation.getId(),</span>
+                number,
+                type,
+<span class="nc" id="L167">                json.asJsonString(model),</span>
+<span class="nc" id="L168">                purchaseContext.now(clockProvider),</span>
+<span class="nc" id="L169">                purchaseContext.getOrganizationId());</span>
+<span class="nc" id="L170">        log.trace(&quot;billing document #{} created&quot;, doc.getKey());</span>
+<span class="nc" id="L171">        auditingRepository.insert(</span>
+<span class="nc" id="L172">                reservation.getId(),</span>
+<span class="nc" id="L173">                userRepository.nullSafeFindIdByUserName(username).orElse(null),</span>
+                purchaseContext,
+                Audit.EventType.BILLING_DOCUMENT_GENERATED,
+                new Date(),
+                Audit.EntityType.RESERVATION,
+<span class="nc" id="L178">                reservation.getId(),</span>
+<span class="nc" id="L179">                singletonList(singletonMap(&quot;documentId&quot;, doc.getKey())));</span>
+<span class="nc" id="L180">        return billingDocumentRepository</span>
+<span class="nc" id="L181">                .findByIdAndReservationId(doc.getKey(), reservation.getId())</span>
+<span class="nc" id="L182">                .orElseThrow(IllegalStateException::new);</span>
+    }
+
+    @Transactional
+    public BillingDocument getOrCreateBillingDocument(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            String username,
+            OrderSummary orderSummary) {
+<span class="nc" id="L191">        return internalGetOrCreate(purchaseContext, reservation, username, orderSummary);</span>
+    }
+
+    private BillingDocument internalGetOrCreate(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            String username,
+            OrderSummary orderSummary) {
+<span class="nc" id="L199">        Optional&lt;BillingDocument&gt; existing = billingDocumentRepository.findLatestByReservationId(reservation.getId());</span>
+<span class="nc" id="L200">        return existing.orElseGet(() -&gt; createBillingDocument(purchaseContext, reservation, username, orderSummary));</span>
+    }
+
+    public Optional&lt;BillingDocument&gt; getDocumentById(long id) {
+<span class="nc" id="L204">        return billingDocumentRepository.findById(id);</span>
+    }
+
+    @Transactional
+    public Optional&lt;String&gt; generateInvoiceNumber(PaymentSpecification spec, TotalPrice reservationCost) {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (!reservationCost.requiresPayment()</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                || !spec.isInvoiceRequested()</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                || !configurationManager.hasAllConfigurationsForInvoice(spec.getPurchaseContext())) {</span>
+<span class="nc" id="L212">            return Optional.empty();</span>
+        }
+
+<span class="nc" id="L215">        String reservationId = spec.getReservationId();</span>
+<span class="nc" id="L216">        var billingDetails = ticketReservationRepository.getBillingDetailsForReservation(reservationId);</span>
+<span class="nc" id="L217">        var optionalInvoiceNumber = extensionManager</span>
+<span class="nc" id="L218">                .handleInvoiceGeneration(</span>
+                        spec,
+                        reservationCost,
+                        billingDetails,
+<span class="nc" id="L222">                        Map.of(</span>
+                                &quot;organization&quot;,
+<span class="nc" id="L224">                                organizationRepository.getById(</span>
+<span class="nc" id="L225">                                        spec.getPurchaseContext().getOrganizationId())))</span>
+<span class="nc" id="L226">                .flatMap(invoiceGeneration -&gt; Optional.ofNullable(trimToNull(invoiceGeneration.getInvoiceNumber())));</span>
+
+<span class="nc" id="L228">        optionalInvoiceNumber.ifPresent(invoiceNumber -&gt; {</span>
+<span class="nc" id="L229">            List&lt;Map&lt;String, Object&gt;&gt; modifications = List.of(Map.of(&quot;invoiceNumber&quot;, invoiceNumber));</span>
+<span class="nc" id="L230">            auditingRepository.insert(</span>
+                    reservationId,
+                    null,
+<span class="nc" id="L233">                    spec.getPurchaseContext(),</span>
+                    EXTERNAL_INVOICE_NUMBER,
+                    new Date(),
+                    RESERVATION,
+                    reservationId,
+                    modifications);
+<span class="nc" id="L239">        });</span>
+
+<span class="nc" id="L241">        return optionalInvoiceNumber.or(() -&gt; {</span>
+<span class="nc" id="L242">            int invoiceSequence = invoiceSequencesRepository.lockSequenceForUpdate(</span>
+<span class="nc" id="L243">                    spec.getPurchaseContext().getOrganizationId());</span>
+<span class="nc" id="L244">            invoiceSequencesRepository.incrementSequenceFor(</span>
+<span class="nc" id="L245">                    spec.getPurchaseContext().getOrganizationId());</span>
+<span class="nc" id="L246">            return Optional.of(formatDocumentNumber(spec.getPurchaseContext(), invoiceSequence));</span>
+        });
+    }
+
+    String generateCreditNoteNumber(PurchaseContext purchaseContext, TicketReservation reservation) {
+
+<span class="nc" id="L252">        return extensionManager</span>
+<span class="nc" id="L253">                .handleCreditNoteGeneration(</span>
+                        purchaseContext,
+<span class="nc" id="L255">                        reservation.getId(),</span>
+<span class="nc" id="L256">                        reservation.getInvoiceNumber(),</span>
+<span class="nc" id="L257">                        organizationRepository.getById(purchaseContext.getOrganizationId()))</span>
+<span class="nc" id="L258">                .map(cng -&gt; {</span>
+<span class="nc" id="L259">                    var reservationId = reservation.getId();</span>
+<span class="nc" id="L260">                    var creditNoteNumber = cng.getCreditNoteNumber();</span>
+<span class="nc" id="L261">                    auditingRepository.insert(</span>
+                            reservationId,
+                            null,
+                            purchaseContext,
+                            EXTERNAL_CREDIT_NOTE_NUMBER,
+                            new Date(),
+                            RESERVATION,
+                            reservationId,
+<span class="nc" id="L269">                            List.of(Map.of(CREDIT_NOTE_NUMBER, creditNoteNumber)));</span>
+<span class="nc" id="L270">                    return creditNoteNumber;</span>
+                })
+<span class="nc" id="L272">                .orElseGet(() -&gt; {</span>
+<span class="nc" id="L273">                    if (configurationManager</span>
+<span class="nc" id="L274">                            .getFor(REUSE_INVOICE_NUMBER_FOR_CREDIT_NOTE, purchaseContext.getConfigurationLevel())</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">                            .getValueAsBooleanOrDefault()) {</span>
+<span class="nc" id="L276">                        return reservation.getInvoiceNumber();</span>
+                    } else {
+<span class="nc" id="L278">                        int creditNoteSequence = invoiceSequencesRepository.lockSequenceForUpdate(</span>
+<span class="nc" id="L279">                                purchaseContext.getOrganizationId(), CREDIT_NOTE);</span>
+<span class="nc" id="L280">                        invoiceSequencesRepository.incrementSequenceFor(</span>
+<span class="nc" id="L281">                                purchaseContext.getOrganizationId(), CREDIT_NOTE);</span>
+<span class="nc" id="L282">                        return formatDocumentNumber(purchaseContext, creditNoteSequence);</span>
+                    }
+                });
+    }
+
+    private String formatDocumentNumber(PurchaseContext purchaseContext, int sequence) {
+<span class="nc" id="L288">        String pattern = configurationManager</span>
+<span class="nc" id="L289">                .getFor(ConfigurationKeys.INVOICE_NUMBER_PATTERN, purchaseContext.getConfigurationLevel())</span>
+<span class="nc" id="L290">                .getValueOrDefault(&quot;%d&quot;);</span>
+<span class="nc" id="L291">        return ObjectUtils.firstNonNull(StringUtils.trimToNull(pattern), &quot;%d&quot;).formatted(sequence);</span>
+    }
+
+    private Map&lt;String, Object&gt; prepareModelForBillingDocument(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            OrderSummary summary,
+            BillingDocument.Type type) {
+<span class="nc" id="L299">        Organization organization = organizationRepository.getById(purchaseContext.getOrganizationId());</span>
+
+<span class="nc" id="L301">        String creditNoteNumber = null;</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (type == CREDIT_NOTE) {</span>
+            // override credit note number
+<span class="nc" id="L304">            creditNoteNumber = generateCreditNoteNumber(purchaseContext, reservation);</span>
+        }
+
+<span class="nc" id="L307">        var bankingInfo = configurationManager.getFor(</span>
+<span class="nc" id="L308">                Set.of(VAT_NR, INVOICE_ADDRESS, BANK_ACCOUNT_NR, BANK_ACCOUNT_OWNER),</span>
+<span class="nc" id="L309">                purchaseContext.getConfigurationLevel());</span>
+<span class="nc" id="L310">        Optional&lt;String&gt; invoiceAddress = bankingInfo.get(INVOICE_ADDRESS).getValue();</span>
+<span class="nc" id="L311">        Optional&lt;String&gt; bankAccountNr = bankingInfo.get(BANK_ACCOUNT_NR).getValue();</span>
+<span class="nc" id="L312">        Optional&lt;String&gt; bankAccountOwner = bankingInfo.get(BANK_ACCOUNT_OWNER).getValue();</span>
+<span class="nc" id="L313">        Optional&lt;String&gt; vat = bankingInfo.get(VAT_NR).getValue();</span>
+
+<span class="nc" id="L315">        Map&lt;Integer, List&lt;Ticket&gt;&gt; ticketsByCategory =</span>
+<span class="nc" id="L316">                ticketRepository.findTicketsInReservation(reservation.getId()).stream()</span>
+<span class="nc" id="L317">                        .collect(groupingBy(Ticket::getCategoryId));</span>
+<span class="nc" id="L318">        List&lt;TicketWithCategory&gt; ticketsWithCategory =</span>
+<span class="nc" id="L319">                collectTicketsWithCategory(ticketsByCategory, ticketCategoryRepository);</span>
+<span class="nc" id="L320">        var reservationShortId = configurationManager.getShortReservationID(purchaseContext, reservation);</span>
+<span class="nc" id="L321">        Map&lt;String, Object&gt; model = TemplateResource.prepareModelForConfirmationEmail(</span>
+                organization,
+                purchaseContext,
+                reservation,
+                vat,
+                ticketsWithCategory,
+                summary,
+                &quot;&quot;,
+                &quot;&quot;,
+                reservationShortId,
+                invoiceAddress,
+                bankAccountNr,
+                bankAccountOwner,
+<span class="nc" id="L334">                Map.of());</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        boolean euBusiness = StringUtils.isNotBlank(reservation.getVatCountryCode())</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">                &amp;&amp; StringUtils.isNotBlank(reservation.getVatNr())</span>
+                &amp;&amp; configurationManager
+<span class="nc" id="L338">                        .getForSystem(ConfigurationKeys.EU_COUNTRIES_LIST)</span>
+<span class="nc" id="L339">                        .getRequiredValue()</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">                        .contains(reservation.getVatCountryCode())</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">                &amp;&amp; PriceContainer.VatStatus.isVatExempt(reservation.getVatStatus());</span>
+<span class="nc" id="L342">        model.put(&quot;isEvent&quot;, purchaseContext.ofType(PurchaseContextType.event));</span>
+<span class="nc" id="L343">        model.put(&quot;euBusiness&quot;, euBusiness);</span>
+<span class="nc" id="L344">        model.put(&quot;publicId&quot;, configurationManager.getPublicReservationID(purchaseContext, reservation));</span>
+<span class="nc" id="L345">        var additionalInfo = ticketReservationRepository.getAdditionalInfo(reservation.getId());</span>
+<span class="nc" id="L346">        model.put(&quot;invoicingAdditionalInfo&quot;, additionalInfo.getInvoicingAdditionalInfo());</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">        model.put(&quot;proforma&quot;, !additionalInfo.getInvoicingAdditionalInfo().isEmpty());</span>
+<span class="nc" id="L348">        model.put(&quot;billingDetails&quot;, additionalInfo.getBillingDetails());</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">        if (type == CREDIT_NOTE) {</span>
+<span class="nc" id="L350">            model.put(CREDIT_NOTE_NUMBER, creditNoteNumber);</span>
+        }
+<span class="nc" id="L352">        return model;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

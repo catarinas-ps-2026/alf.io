@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExtensionManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">ExtensionManager.java</span></div><h1>ExtensionManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.extension.ExtensionService.toPath;
+import static alfio.manager.support.extension.ExtensionEvent.*;
+import static alfio.model.PromoCodeDiscount.DiscountType.PERCENTAGE;
+import static alfio.model.system.ConfigurationKeys.*;
+
+import alfio.controller.form.ContactAndTicketsForm;
+import alfio.controller.form.UpdateTicketOwnerForm;
+import alfio.extension.ExtensionService;
+import alfio.extension.exception.AlfioScriptingException;
+import alfio.manager.payment.PaymentSpecification;
+import alfio.manager.support.extension.ExtensionCapability;
+import alfio.manager.support.extension.ExtensionEvent;
+import alfio.manager.support.extension.ValidationErrorNotifier;
+import alfio.manager.system.ConfigurationLevel;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.PromoCodeDiscount.CodeType;
+import alfio.model.checkin.EventWithCheckInInfo;
+import alfio.model.extension.*;
+import alfio.model.metadata.AlfioMetadata;
+import alfio.model.metadata.SubscriptionMetadata;
+import alfio.model.metadata.TicketMetadata;
+import alfio.model.metadata.TicketMetadataContainer;
+import alfio.model.modification.AttendeeResources;
+import alfio.model.modification.EventModification;
+import alfio.model.subscription.Subscription;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.user.Organization;
+import alfio.model.user.PublicUserProfile;
+import alfio.model.user.User;
+import alfio.repository.*;
+import alfio.util.ClockProvider;
+import alfio.util.EventUtil;
+import alfio.util.MonetaryUtil;
+import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.BindingResult;
+
+@Component
+@AllArgsConstructor
+public class ExtensionManager {
+
+<span class="nc" id="L74">    private static final Logger log = LoggerFactory.getLogger(ExtensionManager.class);</span>
+    private static final String TICKET = &quot;ticket&quot;;
+    private static final String EVENT_METADATA = &quot;eventMetadata&quot;;
+    private static final String ORGANIZATION = &quot;organization&quot;;
+    private static final String RESERVATION = &quot;reservation&quot;;
+    private static final String BILLING_DETAILS = &quot;billingDetails&quot;;
+    private static final String ADDITIONAL_INFO = &quot;additionalInfo&quot;;
+    private static final String RESERVATIONS = &quot;reservations&quot;;
+    private static final String RESERVATION_IDS = &quot;reservationIds&quot;;
+    private static final String ORGANIZATION_ID = &quot;organizationId&quot;;
+    private static final String RESERVATION_ID = &quot;reservationId&quot;;
+    private static final String EVENT = &quot;event&quot;;
+    private static final String REQUEST = &quot;request&quot;;
+    private static final String METADATA = &quot;metadata&quot;;
+    public static final String TICKET_METADATA = &quot;ticketMetadata&quot;;
+    private final ExtensionService extensionService;
+    private final EventRepository eventRepository;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final TicketRepository ticketRepository;
+    private final ConfigurationManager configurationManager;
+    private final TransactionRepository transactionRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+
+    boolean isSupported(ExtensionCapability extensionCapability, PurchaseContext purchaseContext) {
+<span class="nc" id="L98">        return extensionService.isCapabilitySupported(extensionCapability, purchaseContext);</span>
+    }
+
+    Set&lt;ExtensionCapabilitySummary&gt; getSupportedCapabilities(
+            Set&lt;ExtensionCapability&gt; requested, PurchaseContext purchaseContext) {
+<span class="nc" id="L103">        return extensionService.getSupportedCapabilities(requested, purchaseContext);</span>
+    }
+
+    void handleEventValidation(EventModification request) {
+<span class="nc" id="L107">        Map&lt;String, Object&gt; payload = Map.of(REQUEST, request);</span>
+<span class="nc" id="L108">        syncCall(EVENT_VALIDATE_CREATION, null, payload, Boolean.class, false);</span>
+<span class="nc" id="L109">    }</span>
+
+    void handleEventSeatsUpdateValidation(Event event, int seatsNumber) {
+<span class="nc" id="L112">        var request = new EventModification(</span>
+<span class="nc" id="L113">                event.getId(),</span>
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+<span class="nc" id="L123">                event.getOrganizationId(),</span>
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+<span class="nc" id="L131">                event.getRegularPrice(),</span>
+<span class="nc" id="L132">                event.getCurrency(),</span>
+<span class="nc" id="L133">                seatsNumber,</span>
+<span class="nc" id="L134">                event.getVat(),</span>
+<span class="nc" id="L135">                event.isVatIncluded(),</span>
+<span class="nc" id="L136">                event.getAllowedPaymentProxies(),</span>
+                null,
+<span class="nc" id="L138">                event.isFreeOfCharge(),</span>
+                null,
+<span class="nc" id="L140">                event.getLocales(),</span>
+                null,
+                null,
+                null,
+                null);
+<span class="nc" id="L145">        Map&lt;String, Object&gt; payload = Map.of(REQUEST, request);</span>
+<span class="nc" id="L146">        syncCall(EVENT_VALIDATE_SEATS_PRICES_UPDATE, event, payload, Boolean.class, false);</span>
+<span class="nc" id="L147">    }</span>
+
+    void handleEventSeatsPricesUpdateValidation(Event event, EventModification request) {
+<span class="nc" id="L150">        Map&lt;String, Object&gt; payload = Map.of(REQUEST, request);</span>
+<span class="nc" id="L151">        syncCall(EVENT_VALIDATE_SEATS_PRICES_UPDATE, event, payload, Boolean.class, false);</span>
+<span class="nc" id="L152">    }</span>
+
+    void handleEventCreation(Event event) {
+<span class="nc" id="L155">        Map&lt;String, Object&gt; payload = Collections.emptyMap();</span>
+<span class="nc" id="L156">        syncCall(ExtensionEvent.EVENT_CREATED, event, payload, Boolean.class);</span>
+<span class="nc" id="L157">        asyncCall(ExtensionEvent.EVENT_CREATED, event, payload);</span>
+<span class="nc" id="L158">    }</span>
+
+    void handleEventStatusChange(Event event, Event.Status status) {
+<span class="nc" id="L161">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L162">        payload.put(&quot;status&quot;, status.name());</span>
+<span class="nc" id="L163">        syncCall(ExtensionEvent.EVENT_STATUS_CHANGE, event, payload, Boolean.class);</span>
+<span class="nc" id="L164">        asyncCall(ExtensionEvent.EVENT_STATUS_CHANGE, event, payload);</span>
+<span class="nc" id="L165">    }</span>
+
+    AlfioMetadata handleMetadataUpdate(Event event, Organization organization, AlfioMetadata metadata) {
+<span class="nc" id="L168">        Map&lt;String, Object&gt; payload = buildMetadataUpdatePayload(organization, metadata);</span>
+<span class="nc" id="L169">        return syncCall(ExtensionEvent.EVENT_METADATA_UPDATE, event, payload, AlfioMetadata.class, false);</span>
+    }
+
+    Optional&lt;AlfioMetadata&gt; handleGenerateMeetingLinkCapability(
+            Event event, Organization organization, AlfioMetadata existingMetadata, Map&lt;String, String&gt; requestParams) {
+<span class="nc" id="L174">        Map&lt;String, Object&gt; context = buildMetadataUpdatePayload(organization, existingMetadata);</span>
+<span class="nc" id="L175">        context.put(REQUEST, requestParams);</span>
+<span class="nc" id="L176">        return internalExecuteCapability(</span>
+                ExtensionCapability.GENERATE_MEETING_LINK, context, event, AlfioMetadata.class);
+    }
+
+    Optional&lt;String&gt; handleGenerateLinkCapability(
+            Event event, AlfioMetadata existingMetadata, Map&lt;String, String&gt; requestParams) {
+<span class="nc" id="L182">        Map&lt;String, Object&gt; context = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L183">        context.put(METADATA, existingMetadata);</span>
+<span class="nc" id="L184">        context.put(REQUEST, requestParams);</span>
+<span class="nc" id="L185">        return internalExecuteCapability(ExtensionCapability.LINK_EXTERNAL_APPLICATION, context, event, String.class);</span>
+    }
+
+    private Map&lt;String, Object&gt; buildMetadataUpdatePayload(Organization organization, AlfioMetadata metadata) {
+<span class="nc" id="L189">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L190">        payload.put(METADATA, metadata);</span>
+<span class="nc" id="L191">        payload.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L192">        payload.put(</span>
+                &quot;baseUrl&quot;,
+                configurationManager
+<span class="nc" id="L195">                        .getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.organization(organization.getId()))</span>
+<span class="nc" id="L196">                        .getRequiredValue());</span>
+<span class="nc" id="L197">        return payload;</span>
+    }
+
+    void handleReservationConfirmation(
+            TicketReservation reservation, BillingDetails billingDetails, PurchaseContext purchaseContext) {
+<span class="nc" id="L202">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L203">        payload.put(RESERVATION, reservation);</span>
+<span class="nc" id="L204">        payload.put(BILLING_DETAILS, billingDetails);</span>
+<span class="nc" id="L205">        payload.put(ADDITIONAL_INFO, Map.of());</span>
+<span class="nc" id="L206">        transactionRepository</span>
+<span class="nc" id="L207">                .loadOptionalByReservationId(reservation.getId())</span>
+<span class="nc" id="L208">                .ifPresent(tr -&gt; payload.put(&quot;transaction&quot;, tr));</span>
+<span class="nc" id="L209">        asyncCall(ExtensionEvent.RESERVATION_CONFIRMED, purchaseContext, payload);</span>
+<span class="nc" id="L210">    }</span>
+
+    public void handleTicketAssignment(
+            Ticket ticket, TicketCategory category, Map&lt;String, List&lt;String&gt;&gt; additionalInfo) {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        if (!ticket.hasBeenSold()) {</span>
+<span class="nc" id="L215">            return; // ignore tickets if the reservation is not yet confirmed</span>
+        }
+<span class="nc" id="L217">        int eventId = ticket.getEventId();</span>
+<span class="nc" id="L218">        Event event = eventRepository.findById(eventId);</span>
+<span class="nc" id="L219">        asyncCall(</span>
+                ExtensionEvent.TICKET_ASSIGNED,
+                event,
+<span class="nc" id="L222">                Map.of(</span>
+                        TICKET,
+                        ticket,
+                        ADDITIONAL_INFO,
+<span class="nc" id="L226">                        Objects.requireNonNullElse(additionalInfo, Map.of()),</span>
+                        EVENT_METADATA,
+<span class="nc" id="L228">                        Objects.requireNonNullElseGet(</span>
+<span class="nc" id="L229">                                eventRepository.getMetadataForEvent(event.getId()), AlfioMetadata::empty),</span>
+                        &quot;onlineAccessTicket&quot;,
+<span class="nc" id="L231">                        EventUtil.isAccessOnline(category, event)));</span>
+<span class="nc" id="L232">    }</span>
+
+    void handleWaitingQueueSubscription(WaitingQueueSubscription waitingQueueSubscription) {
+<span class="nc" id="L235">        Event event = eventRepository.findById(waitingQueueSubscription.getEventId());</span>
+<span class="nc" id="L236">        asyncCall(</span>
+                ExtensionEvent.WAITING_QUEUE_SUBSCRIBED,
+                event,
+<span class="nc" id="L239">                Map.of(&quot;waitingQueueSubscription&quot;, waitingQueueSubscription, ADDITIONAL_INFO, Map.of()));</span>
+<span class="nc" id="L240">    }</span>
+
+    void handleReservationsExpired(PurchaseContext purchaseContext, Collection&lt;String&gt; reservationIdsToRemove) {
+<span class="nc" id="L243">        handleReservationRemoval(purchaseContext, reservationIdsToRemove, ExtensionEvent.RESERVATION_EXPIRED);</span>
+<span class="nc" id="L244">    }</span>
+
+    void handleReservationsCancelled(PurchaseContext purchaseContext, Collection&lt;String&gt; reservationIdsToRemove) {
+<span class="nc" id="L247">        handleReservationRemoval(purchaseContext, reservationIdsToRemove, ExtensionEvent.RESERVATION_CANCELLED);</span>
+<span class="nc" id="L248">    }</span>
+
+    void handleTicketCancelledForEvent(Event event, Collection&lt;String&gt; ticketUUIDs) {
+<span class="nc" id="L251">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L252">        payload.put(&quot;ticketUUIDs&quot;, ticketUUIDs);</span>
+<span class="nc" id="L253">        payload.put(EVENT_METADATA, eventRepository.getMetadataForEvent(event.getId()));</span>
+<span class="nc" id="L254">        syncCall(ExtensionEvent.TICKET_CANCELLED, event, payload, Boolean.class);</span>
+<span class="nc" id="L255">    }</span>
+
+    void handleOfflineReservationsWillExpire(Event event, List&lt;TicketReservationInfo&gt; reservations) {
+<span class="nc" id="L258">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L259">        payload.put(RESERVATIONS, reservations);</span>
+<span class="nc" id="L260">        asyncCall(ExtensionEvent.OFFLINE_RESERVATIONS_WILL_EXPIRE, event, payload);</span>
+<span class="nc" id="L261">    }</span>
+
+    void handleStuckReservations(Event event, List&lt;String&gt; stuckReservationsId) {
+<span class="nc" id="L264">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L265">        payload.put(RESERVATION_IDS, stuckReservationsId);</span>
+<span class="nc" id="L266">        asyncCall(ExtensionEvent.STUCK_RESERVATIONS, event, payload);</span>
+<span class="nc" id="L267">    }</span>
+
+    public Optional&lt;CustomEmailText&gt; handleReservationEmailCustomText(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            TicketReservationAdditionalInfo additionalInfo) {
+<span class="nc" id="L273">        Map&lt;String, Object&gt; payload =</span>
+<span class="nc" id="L274">                Map.of(RESERVATION, reservation, &quot;purchaseContext&quot;, purchaseContext, &quot;billingData&quot;, additionalInfo);</span>
+        try {
+<span class="nc" id="L276">            return Optional.ofNullable(syncCall(</span>
+                    ExtensionEvent.CONFIRMATION_MAIL_CUSTOM_TEXT, purchaseContext, payload, CustomEmailText.class));
+<span class="nc" id="L278">        } catch (Exception ex) {</span>
+<span class="nc" id="L279">            log.warn(&quot;Cannot get confirmation mail additional text&quot;, ex);</span>
+<span class="nc" id="L280">            return Optional.empty();</span>
+        }
+    }
+
+    public Optional&lt;CustomEmailText&gt; handleTicketEmailCustomText(
+            Event event,
+            TicketReservation reservation,
+            TicketReservationAdditionalInfo additionalInfo,
+            List&lt;PurchaseContextFieldValue&gt; fields) {
+<span class="nc" id="L289">        Map&lt;String, Object&gt; payload = Map.of(</span>
+                RESERVATION, reservation, EVENT, event, &quot;billingData&quot;, additionalInfo, &quot;additionalFields&quot;, fields);
+        try {
+<span class="nc" id="L292">            return Optional.ofNullable(</span>
+<span class="nc" id="L293">                    syncCall(ExtensionEvent.TICKET_MAIL_CUSTOM_TEXT, event, payload, CustomEmailText.class));</span>
+<span class="nc" id="L294">        } catch (Exception ex) {</span>
+<span class="nc" id="L295">            log.warn(&quot;Cannot get ticket mail additional text&quot;, ex);</span>
+<span class="nc" id="L296">            return Optional.empty();</span>
+        }
+    }
+
+    private void handleReservationRemoval(
+            PurchaseContext purchaseContext, Collection&lt;String&gt; reservationIds, ExtensionEvent extensionEvent) {
+<span class="nc" id="L302">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L303">        payload.put(RESERVATION_IDS, reservationIds);</span>
+<span class="nc" id="L304">        payload.put(RESERVATIONS, ticketReservationRepository.findByIds(reservationIds));</span>
+
+<span class="nc" id="L306">        syncCall(extensionEvent, purchaseContext, payload, Boolean.class);</span>
+<span class="nc" id="L307">    }</span>
+
+    public void handleCreditNoteGenerated(
+            TicketReservation reservation,
+            PurchaseContext purchaseContext,
+            TotalPrice cost,
+            Long billingDocumentId,
+            Map&lt;String, Object&gt; contextData) {
+<span class="nc" id="L315">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;(contextData);</span>
+<span class="nc" id="L316">        payload.put(RESERVATION_ID, reservation.getId());</span>
+<span class="nc" id="L317">        payload.put(RESERVATION, reservation);</span>
+<span class="nc" id="L318">        payload.put(BILLING_DETAILS, ticketReservationRepository.getBillingDetailsForReservation(reservation.getId()));</span>
+<span class="nc" id="L319">        payload.put(&quot;reservationCost&quot;, cost);</span>
+<span class="nc" id="L320">        payload.put(&quot;billingDocumentId&quot;, billingDocumentId);</span>
+<span class="nc" id="L321">        asyncCall(ExtensionEvent.CREDIT_NOTE_GENERATED, purchaseContext, payload);</span>
+<span class="nc" id="L322">    }</span>
+
+    public Optional&lt;InvoiceGeneration&gt; handleInvoiceGeneration(
+            PaymentSpecification spec,
+            TotalPrice reservationCost,
+            BillingDetails billingDetails,
+            Map&lt;String, Object&gt; contextData) {
+<span class="nc" id="L329">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;(contextData);</span>
+<span class="nc" id="L330">        payload.put(RESERVATION_ID, spec.getReservationId());</span>
+<span class="nc" id="L331">        payload.put(&quot;email&quot;, spec.getEmail());</span>
+<span class="nc" id="L332">        payload.put(&quot;customerName&quot;, spec.getCustomerName());</span>
+<span class="nc" id="L333">        payload.put(&quot;userLanguage&quot;, spec.getLocale().getLanguage());</span>
+<span class="nc" id="L334">        payload.put(&quot;billingAddress&quot;, spec.getBillingAddress());</span>
+<span class="nc" id="L335">        payload.put(BILLING_DETAILS, billingDetails);</span>
+<span class="nc" id="L336">        payload.put(&quot;customerReference&quot;, spec.getCustomerReference());</span>
+<span class="nc" id="L337">        payload.put(&quot;reservationCost&quot;, reservationCost);</span>
+<span class="nc" id="L338">        payload.put(&quot;invoiceRequested&quot;, spec.isInvoiceRequested());</span>
+<span class="nc" id="L339">        payload.put(&quot;vatCountryCode&quot;, billingDetails.getCountry());</span>
+<span class="nc" id="L340">        payload.put(&quot;vatNr&quot;, billingDetails.getTaxId());</span>
+<span class="nc" id="L341">        payload.put(&quot;vatStatus&quot;, spec.getVatStatus());</span>
+
+<span class="nc" id="L343">        return Optional.ofNullable(syncCall(</span>
+<span class="nc" id="L344">                ExtensionEvent.INVOICE_GENERATION, spec.getPurchaseContext(), payload, InvoiceGeneration.class, false));</span>
+    }
+
+    public Optional&lt;CreditNoteGeneration&gt; handleCreditNoteGeneration(
+            PurchaseContext purchaseContext, String reservationId, String invoiceNumber, Organization organization) {
+<span class="nc" id="L349">        return Optional.ofNullable(syncCall(</span>
+                ExtensionEvent.CREDIT_NOTE_GENERATION,
+                purchaseContext,
+<span class="nc" id="L352">                Map.of(RESERVATION_ID, reservationId, &quot;invoiceNumber&quot;, invoiceNumber, ORGANIZATION, organization),</span>
+                CreditNoteGeneration.class));
+    }
+
+    public Optional&lt;String&gt; handleOnlineCheckInLink(
+            String originalUrl, Ticket ticket, EventWithCheckInInfo event, Map&lt;String, List&lt;String&gt;&gt; additionalInfo) {
+<span class="nc" id="L358">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L359">        payload.put(EVENT, event);</span>
+<span class="nc" id="L360">        payload.put(&quot;eventId&quot;, event.getId());</span>
+<span class="nc" id="L361">        payload.put(ORGANIZATION_ID, event.getOrganizationId());</span>
+<span class="nc" id="L362">        payload.put(TICKET, ticket);</span>
+<span class="nc" id="L363">        payload.put(&quot;originalURL&quot;, originalUrl);</span>
+<span class="nc" id="L364">        payload.put(ADDITIONAL_INFO, Objects.requireNonNullElse(additionalInfo, Map.of()));</span>
+
+<span class="nc" id="L366">        return Optional.ofNullable(extensionService.executeScriptsForEvent(</span>
+<span class="nc" id="L367">                ONLINE_CHECK_IN_REDIRECT.name(), toPath(event), payload, String.class));</span>
+    }
+
+    boolean handleTaxIdValidation(PurchaseContext purchaseContext, String taxIdNumber, String countryCode) {
+<span class="nc" id="L371">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L372">        payload.put(&quot;taxIdNumber&quot;, taxIdNumber);</span>
+<span class="nc" id="L373">        payload.put(&quot;countryCode&quot;, countryCode);</span>
+<span class="nc" id="L374">        return Optional.ofNullable(</span>
+<span class="nc" id="L375">                        syncCall(ExtensionEvent.TAX_ID_NUMBER_VALIDATION, purchaseContext, payload, Boolean.class))</span>
+<span class="nc" id="L376">                .orElse(false);</span>
+    }
+
+    void handleTicketCheckedIn(Ticket ticket) {
+<span class="nc" id="L380">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L381">        Event event = eventRepository.findById(ticket.getEventId());</span>
+<span class="nc" id="L382">        payload.put(TICKET, ticket);</span>
+<span class="nc" id="L383">        asyncCall(ExtensionEvent.TICKET_CHECKED_IN, event, payload);</span>
+<span class="nc" id="L384">    }</span>
+
+    void handleTicketRevertCheckedIn(Ticket ticket) {
+<span class="nc" id="L387">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L388">        Event event = eventRepository.findById(ticket.getEventId());</span>
+<span class="nc" id="L389">        payload.put(TICKET, ticket);</span>
+<span class="nc" id="L390">        asyncCall(ExtensionEvent.TICKET_REVERT_CHECKED_IN, event, payload);</span>
+<span class="nc" id="L391">    }</span>
+
+    public void handleReservationValidation(
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            Object clientForm,
+            BindingResult bindingResult) {
+<span class="nc" id="L398">        Map&lt;String, Object&gt; payload = Map.of(</span>
+                RESERVATION_ID,
+<span class="nc" id="L400">                reservation.getId(),</span>
+                RESERVATION,
+                reservation,
+                &quot;form&quot;,
+                clientForm,
+                &quot;bindingResult&quot;,
+                bindingResult);
+
+<span class="nc" id="L408">        syncCall(ExtensionEvent.RESERVATION_VALIDATION, purchaseContext, payload, Void.class);</span>
+<span class="nc" id="L409">    }</span>
+
+    public void handleTicketUpdateValidation(
+            PurchaseContext purchaseContext,
+            UpdateTicketOwnerForm form,
+            BindingResult bindingResult,
+            String keyPrefix) {
+<span class="nc" id="L416">        Map&lt;String, Object&gt; payload =</span>
+<span class="nc" id="L417">                Map.of(&quot;form&quot;, form, &quot;validationErrorNotifier&quot;, new ValidationErrorNotifier(bindingResult, keyPrefix));</span>
+
+<span class="nc" id="L419">        syncCall(TICKET_UPDATE_VALIDATION, purchaseContext, payload, Void.class);</span>
+<span class="nc" id="L420">    }</span>
+
+    public void handleUserProfileValidation(Object clientForm, BindingResult bindingResult) {
+<span class="nc" id="L423">        Map&lt;String, Object&gt; payload = Map.of(</span>
+                &quot;form&quot;, clientForm,
+                &quot;bindingResult&quot;, bindingResult);
+
+<span class="nc" id="L427">        syncCall(ExtensionEvent.PUBLIC_USER_PROFILE_VALIDATION, null, payload, Void.class);</span>
+<span class="nc" id="L428">    }</span>
+
+    void handleEventHeaderUpdate(Event event, Organization organization) {
+<span class="nc" id="L431">        Map&lt;String, Object&gt; payload =</span>
+<span class="nc" id="L432">                Map.of(EVENT_METADATA, eventRepository.getMetadataForEvent(event.getId()), ORGANIZATION, organization);</span>
+<span class="nc" id="L433">        asyncCall(ExtensionEvent.EVENT_HEADER_UPDATED, event, payload);</span>
+<span class="nc" id="L434">    }</span>
+
+    void handleReservationsCreditNoteIssuedForEvent(Event event, List&lt;String&gt; reservationIds) {
+<span class="nc" id="L437">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L438">        payload.put(RESERVATION_IDS, reservationIds);</span>
+<span class="nc" id="L439">        payload.put(RESERVATIONS, ticketReservationRepository.findByIds(reservationIds));</span>
+
+<span class="nc" id="L441">        syncCall(ExtensionEvent.RESERVATION_CREDIT_NOTE_ISSUED, event, payload, Boolean.class);</span>
+<span class="nc" id="L442">    }</span>
+
+    void handleRefund(PurchaseContext purchaseContext, TicketReservation reservation, TransactionAndPaymentInfo info) {
+<span class="nc" id="L445">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L446">        payload.put(RESERVATION, reservation);</span>
+<span class="nc" id="L447">        payload.put(&quot;transaction&quot;, info.getTransaction());</span>
+<span class="nc" id="L448">        payload.put(&quot;paymentInfo&quot;, info.getPaymentInformation());</span>
+<span class="nc" id="L449">        asyncCall(ExtensionEvent.REFUND_ISSUED, purchaseContext, payload);</span>
+<span class="nc" id="L450">    }</span>
+
+    /**
+     * returns the keys to save from the given map
+     *
+     * @param purchaseContext the current Purchase Context
+     * @param userAdditionalData user data to filter
+     * @param userProfile existing user profile, may be null
+     * @return the keys to persist, or {@code null}
+     */
+    public Optional&lt;List&lt;AdditionalInfoItem&gt;&gt; filterAdditionalInfoToSave(
+            PurchaseContext purchaseContext,
+            Map&lt;String, List&lt;String&gt;&gt; userAdditionalData,
+            PublicUserProfile userProfile) {
+<span class="nc" id="L464">        var payload = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L465">        payload.put(&quot;userAdditionalData&quot;, userAdditionalData);</span>
+<span class="nc" id="L466">        payload.put(&quot;userProfile&quot;, userProfile);</span>
+<span class="nc" id="L467">        var result = syncCall(</span>
+                ExtensionEvent.USER_ADDITIONAL_INFO_FILTER, purchaseContext, payload, AdditionalInfoFilterResult.class);
+<span class="nc bnc" id="L469" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc" id="L470">            return Optional.of(result.getItems());</span>
+        }
+<span class="nc" id="L472">        return Optional.empty();</span>
+    }
+
+    public boolean handlePdfTransformation(String html, PurchaseContext purchaseContext, OutputStream outputStream) {
+<span class="nc" id="L476">        Map&lt;String, Object&gt; payload = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L477">        payload.put(&quot;html&quot;, html);</span>
+        try {
+<span class="nc" id="L479">            PdfGenerationResult response =</span>
+<span class="nc" id="L480">                    syncCall(ExtensionEvent.PDF_GENERATION, purchaseContext, payload, PdfGenerationResult.class);</span>
+<span class="nc bnc" id="L481" title="All 4 branches missed.">            if (response == null || response.isEmpty()) {</span>
+<span class="nc" id="L482">                return false;</span>
+            }
+<span class="nc" id="L484">            Path tempFilePath = Paths.get(response.getTempFilePath());</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">            if (Files.exists(tempFilePath)) {</span>
+<span class="nc" id="L486">                Files.copy(tempFilePath, outputStream);</span>
+<span class="nc" id="L487">                Files.delete(tempFilePath);</span>
+<span class="nc" id="L488">                return true;</span>
+            }
+<span class="nc" id="L490">            return false;</span>
+<span class="nc" id="L491">        } catch (Exception e) {</span>
+<span class="nc" id="L492">            return false;</span>
+        }
+    }
+
+    public Optional&lt;String&gt; generateOAuth2StateParam(int organizationId) {
+        try {
+<span class="nc" id="L498">            return Optional.ofNullable(extensionService.executeScriptsForEvent(</span>
+<span class="nc" id="L499">                    ExtensionEvent.OAUTH2_STATE_GENERATION.name(),</span>
+                    &quot;-&quot; + organizationId,
+<span class="nc" id="L501">                    Map.of(</span>
+                            &quot;baseUrl&quot;,
+                            configurationManager
+<span class="nc" id="L504">                                    .getFor(ConfigurationKeys.BASE_URL, ConfigurationLevel.organization(organizationId))</span>
+<span class="nc" id="L505">                                    .getRequiredValue(),</span>
+                            ORGANIZATION_ID,
+<span class="nc" id="L507">                            organizationId),</span>
+                    String.class));
+<span class="nc" id="L509">        } catch (Exception ex) {</span>
+<span class="nc" id="L510">            log.error(&quot;got exception while generating OAuth2 State Param&quot;, ex);</span>
+<span class="nc" id="L511">            throw new IllegalStateException(ex);</span>
+        }
+    }
+
+    public Optional&lt;PromoCodeDiscount&gt; handleDynamicDiscount(
+            Event event, Map&lt;Integer, Long&gt; quantityByCategory, String reservationId) {
+        try {
+<span class="nc" id="L518">            var values = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L519">            values.put(</span>
+                    &quot;quantityByCategory&quot;,
+<span class="nc" id="L521">                    quantityByCategory.entrySet().stream()</span>
+<span class="nc" id="L522">                            .map(entry -&gt; new QuantityByCategoryId(</span>
+<span class="nc" id="L523">                                    entry.getKey(), entry.getValue().intValue()))</span>
+<span class="nc" id="L524">                            .collect(Collectors.toList()));</span>
+<span class="nc" id="L525">            values.put(RESERVATION_ID, reservationId);</span>
+<span class="nc" id="L526">            var dynamicDiscountResult =</span>
+<span class="nc" id="L527">                    syncCall(ExtensionEvent.DYNAMIC_DISCOUNT_APPLICATION, event, values, DynamicDiscount.class);</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">            if (dynamicDiscountResult == null</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">                    || dynamicDiscountResult.getDiscountType() == PromoCodeDiscount.DiscountType.NONE) {</span>
+<span class="nc" id="L530">                return Optional.empty();</span>
+            }
+<span class="nc" id="L532">            var now = ZonedDateTime.now(ClockProvider.clock());</span>
+            // dynamic discount is supposed to return a formatted amount in the event's currency
+<span class="nc" id="L534">            var discountAmount = new BigDecimal(dynamicDiscountResult.getAmount());</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">            int discountAmountInCents = dynamicDiscountResult.getDiscountType() == PERCENTAGE</span>
+<span class="nc" id="L536">                    ? discountAmount.intValue()</span>
+<span class="nc" id="L537">                    : MonetaryUtil.unitToCents(discountAmount, event.getCurrency());</span>
+<span class="nc" id="L538">            return Optional.of(new PromoCodeDiscount(</span>
+                    Integer.MIN_VALUE,
+<span class="nc" id="L540">                    dynamicDiscountResult.getCode(),</span>
+<span class="nc" id="L541">                    event.getId(),</span>
+<span class="nc" id="L542">                    event.getOrganizationId(),</span>
+<span class="nc" id="L543">                    now.minusSeconds(1),</span>
+<span class="nc" id="L544">                    event.getBegin().withZoneSameInstant(now.getZone()),</span>
+                    discountAmountInCents,
+<span class="nc" id="L546">                    dynamicDiscountResult.getDiscountType(),</span>
+                    null,
+                    null,
+                    null,
+                    null,
+                    CodeType.DYNAMIC,
+                    null,
+<span class="nc" id="L553">                    event.getCurrency()));</span>
+<span class="nc" id="L554">        } catch (Exception ex) {</span>
+<span class="nc" id="L555">            log.warn(&quot;got exception while firing DYNAMIC_DISCOUNT_APPLICATION event&quot;, ex);</span>
+        }
+<span class="nc" id="L557">        return Optional.empty();</span>
+    }
+
+    private void asyncCall(ExtensionEvent extensionEvent, PurchaseContext event, Map&lt;String, Object&gt; payload) {
+<span class="nc" id="L561">        extensionService.executeScriptAsync(extensionEvent.name(), toPath(event), fillWithBasicInfo(payload, event));</span>
+<span class="nc" id="L562">    }</span>
+
+    private &lt;T&gt; T syncCall(
+            ExtensionEvent extensionEvent,
+            PurchaseContext purchaseContext,
+            Map&lt;String, Object&gt; payload,
+            Class&lt;T&gt; clazz) {
+<span class="nc" id="L569">        return syncCall(extensionEvent, purchaseContext, payload, clazz, true);</span>
+    }
+
+    private &lt;T&gt; T syncCall(
+            ExtensionEvent extensionEvent,
+            PurchaseContext purchaseContext,
+            Map&lt;String, Object&gt; payload,
+            Class&lt;T&gt; clazz,
+            boolean ignoreErrors) {
+        try {
+<span class="nc" id="L579">            return extensionService.executeScriptsForEvent(</span>
+<span class="nc" id="L580">                    extensionEvent.name(), toPath(purchaseContext), fillWithBasicInfo(payload, purchaseContext), clazz);</span>
+<span class="nc" id="L581">        } catch (AlfioScriptingException ex) {</span>
+<span class="nc" id="L582">            log.warn(&quot;Unexpected exception while executing script:&quot;, ex);</span>
+<span class="nc bnc" id="L583" title="All 2 branches missed.">            if (!ignoreErrors) {</span>
+<span class="nc" id="L584">                throw new IllegalStateException(ex);</span>
+            }
+        }
+<span class="nc" id="L587">        return null;</span>
+    }
+
+    private Map&lt;String, Object&gt; fillWithBasicInfo(Map&lt;String, ?&gt; payload, PurchaseContext purchaseContext) {
+<span class="nc" id="L591">        Map&lt;String, Object&gt; payloadCopy = new HashMap&lt;&gt;(payload);</span>
+<span class="nc bnc" id="L592" title="All 2 branches missed.">        if (purchaseContext != null) {</span>
+            // FIXME ugly
+<span class="nc" id="L594">            purchaseContext.event().ifPresent(event -&gt; {</span>
+<span class="nc" id="L595">                payloadCopy.put(EVENT, event);</span>
+<span class="nc" id="L596">                payloadCopy.put(&quot;eventId&quot;, event.getId());</span>
+<span class="nc" id="L597">            });</span>
+<span class="nc" id="L598">            payloadCopy.put(&quot;purchaseContext&quot;, purchaseContext);</span>
+<span class="nc" id="L599">            payloadCopy.put(ORGANIZATION_ID, purchaseContext.getOrganizationId());</span>
+        }
+<span class="nc" id="L601">        return payloadCopy;</span>
+    }
+
+    public &lt;T&gt; Optional&lt;T&gt; executeCapability(
+            ExtensionCapability capability,
+            Map&lt;String, String&gt; params,
+            PurchaseContext purchaseContext,
+            Class&lt;T&gt; resultType) {
+<span class="nc" id="L609">        var contextParams = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L610">        contextParams.put(REQUEST, params);</span>
+<span class="nc" id="L611">        return internalExecuteCapability(capability, contextParams, purchaseContext, resultType);</span>
+    }
+
+    private &lt;T&gt; Optional&lt;T&gt; internalExecuteCapability(
+            ExtensionCapability capability,
+            Map&lt;String, Object&gt; contextParams,
+            PurchaseContext purchaseContext,
+            Class&lt;T&gt; resultType) {
+<span class="nc" id="L619">        return extensionService.executeCapability(</span>
+<span class="nc" id="L620">                capability, toPath(purchaseContext), fillWithBasicInfo(contextParams, purchaseContext), resultType);</span>
+    }
+
+    public void handlePublicUserSignUp(User user) {
+<span class="nc" id="L624">        asyncCall(PUBLIC_USER_SIGN_UP, null, Map.of(&quot;user&quot;, user));</span>
+<span class="nc" id="L625">    }</span>
+
+    public void handlePublicUserDelete(OAuth2AuthenticationToken authentication, User user) {
+<span class="nc" id="L628">        syncCall(PUBLIC_USER_DELETE, null, Map.of(&quot;user&quot;, user, &quot;subject&quot;, authentication.getPrincipal()), Void.class);</span>
+<span class="nc" id="L629">    }</span>
+
+    public Optional&lt;TicketMetadata&gt; handleCustomOnlineJoinUrl(
+            Event event, Ticket ticket, Map&lt;String, List&lt;String&gt;&gt; ticketAdditionalInfo) {
+<span class="nc" id="L633">        var ticketMetadataContainer = Objects.requireNonNullElseGet(</span>
+<span class="nc" id="L634">                ticketRepository.getTicketMetadata(ticket.getId()), TicketMetadataContainer::empty);</span>
+<span class="nc" id="L635">        var context = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L636">        var key = ExtensionEvent.CUSTOM_ONLINE_JOIN_URL.name();</span>
+<span class="nc" id="L637">        context.put(TICKET, ticket);</span>
+<span class="nc" id="L638">        context.put(ADDITIONAL_INFO, ticketAdditionalInfo);</span>
+<span class="nc" id="L639">        var existingMetadata = ticketMetadataContainer.getMetadataForKey(key);</span>
+<span class="nc" id="L640">        existingMetadata.ifPresent(m -&gt; context.put(TICKET_METADATA, m));</span>
+<span class="nc" id="L641">        var result = Optional.ofNullable(</span>
+<span class="nc" id="L642">                syncCall(ExtensionEvent.CUSTOM_ONLINE_JOIN_URL, event, context, TicketMetadata.class, false));</span>
+<span class="nc" id="L643">        result.ifPresent(m -&gt; {</span>
+            // we update the value only if it's changed
+<span class="nc" id="L645">            boolean changed =</span>
+<span class="nc bnc" id="L646" title="All 4 branches missed.">                    existingMetadata.isEmpty() || !existingMetadata.get().equals(m);</span>
+<span class="nc bnc" id="L647" title="All 4 branches missed.">            if (changed &amp;&amp; ticketMetadataContainer.putMetadata(key, m)) {</span>
+<span class="nc" id="L648">                ticketRepository.updateTicketMetadata(ticket.getId(), ticketMetadataContainer);</span>
+            }
+<span class="nc" id="L650">        });</span>
+<span class="nc" id="L651">        return result.or(() -&gt; existingMetadata);</span>
+    }
+
+    public Optional&lt;TicketMetadata&gt; handleTicketAssignmentMetadata(
+            TicketWithMetadataAttributes ticketWithMetadata, Event event, Map&lt;String, List&lt;String&gt;&gt; additionalInfo) {
+
+<span class="nc" id="L657">        var context = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L658">        context.put(TICKET, ticketWithMetadata.getTicket());</span>
+<span class="nc" id="L659">        context.put(</span>
+                TICKET_METADATA,
+                ticketWithMetadata
+<span class="nc" id="L662">                        .getMetadata()</span>
+<span class="nc" id="L663">                        .getMetadataForKey(TicketMetadataContainer.GENERAL)</span>
+<span class="nc" id="L664">                        .orElseGet(TicketMetadata::empty));</span>
+<span class="nc" id="L665">        context.put(ADDITIONAL_INFO, Objects.requireNonNullElse(additionalInfo, Map.of()));</span>
+<span class="nc" id="L666">        context.put(</span>
+                &quot;attendeeResources&quot;,
+<span class="nc" id="L668">                new AttendeeResourcesContainer(AttendeeResources.fromTicket(</span>
+<span class="nc" id="L669">                        ticketWithMetadata.getTicket(),</span>
+                        event,
+<span class="nc" id="L671">                        configurationManager.getFor(</span>
+<span class="nc" id="L672">                                EnumSet.of(ENABLE_WALLET, ENABLE_PASS, BASE_URL), event.getConfigurationLevel()),</span>
+                        true)));
+<span class="nc" id="L674">        return Optional.ofNullable(syncCall(</span>
+                ExtensionEvent.TICKET_ASSIGNED_GENERATE_METADATA, event, context, TicketMetadata.class, false));
+    }
+
+    public Optional&lt;SubscriptionMetadata&gt; handleSubscriptionAssignmentMetadata(
+            Subscription subscription,
+            SubscriptionDescriptor descriptor,
+            SubscriptionMetadata subscriptionMetadata,
+            Map&lt;String, List&lt;String&gt;&gt; additionalInfo) {
+<span class="nc" id="L683">        var context = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L684">        context.put(&quot;subscription&quot;, subscription);</span>
+<span class="nc" id="L685">        context.put(METADATA, Objects.requireNonNullElseGet(subscriptionMetadata, SubscriptionMetadata::empty));</span>
+<span class="nc" id="L686">        context.put(&quot;subscriptionDescriptor&quot;, descriptor);</span>
+<span class="nc" id="L687">        context.put(ADDITIONAL_INFO, additionalInfo);</span>
+<span class="nc" id="L688">        return Optional.ofNullable(syncCall(</span>
+                ExtensionEvent.SUBSCRIPTION_ASSIGNED_GENERATE_METADATA,
+                descriptor,
+                context,
+                SubscriptionMetadata.class,
+                false));
+    }
+
+    public Optional&lt;CustomTaxPolicy&gt; handleCustomTaxPolicy(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            ContactAndTicketsForm form,
+            TotalPrice reservationCost) {
+<span class="nc bnc" id="L701" title="All 4 branches missed.">        if (!purchaseContext.ofType(PurchaseContext.PurchaseContextType.event) || !reservationCost.requiresPayment()) {</span>
+<span class="nc" id="L702">            return Optional.empty();</span>
+        }
+<span class="nc" id="L704">        var event = (Event) purchaseContext;</span>
+<span class="nc" id="L705">        var categoriesById = ticketCategoryRepository.findCategoriesInReservation(reservationId).stream()</span>
+<span class="nc" id="L706">                .collect(Collectors.toMap(TicketCategory::getId, Function.identity()));</span>
+<span class="nc" id="L707">        var ticketInfoById = ticketRepository.findBasicTicketInfoForReservation(event.getId(), reservationId).stream()</span>
+<span class="nc" id="L708">                .collect(Collectors.toMap(ti -&gt; ti.getTicketPublicUUID().toString(), Function.identity()));</span>
+<span class="nc" id="L709">        var context = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L710">        context.put(EVENT, event);</span>
+<span class="nc" id="L711">        context.put(RESERVATION_ID, reservationId);</span>
+<span class="nc" id="L712">        context.put(&quot;reservationForm&quot;, form);</span>
+<span class="nc" id="L713">        context.put(&quot;categoriesById&quot;, categoriesById);</span>
+<span class="nc" id="L714">        context.put(&quot;ticketInfoByUuid&quot;, ticketInfoById);</span>
+<span class="nc" id="L715">        return Optional.ofNullable(</span>
+<span class="nc" id="L716">                syncCall(CUSTOM_TAX_POLICY_APPLICATION, event, context, CustomTaxPolicy.class, false));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

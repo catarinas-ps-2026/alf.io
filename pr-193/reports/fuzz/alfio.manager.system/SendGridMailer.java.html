@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SendGridMailer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager.system</a> &gt; <span class="el_source">SendGridMailer.java</span></div><h1>SendGridMailer.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager.system;
+
+import alfio.model.Configurable;
+import alfio.model.system.ConfigurationKeys;
+import alfio.repository.user.OrganizationRepository;
+import alfio.util.HttpUtils;
+import alfio.util.Json;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+
+class SendGridMailer extends BaseMailer {
+
+    private static final String EMAIL = &quot;email&quot;;
+<span class="nc" id="L41">    private static final Logger log = LoggerFactory.getLogger(SendGridMailer.class);</span>
+    private final HttpClient client;
+
+    private final ConfigurationManager configurationManager;
+
+    SendGridMailer(
+            HttpClient client,
+            ConfigurationManager configurationManager,
+            OrganizationRepository organizationRepository) {
+<span class="nc" id="L50">        super(organizationRepository);</span>
+<span class="nc" id="L51">        this.client = client;</span>
+<span class="nc" id="L52">        this.configurationManager = configurationManager;</span>
+<span class="nc" id="L53">    }</span>
+
+    @Override
+    public void send(
+            Configurable configurable,
+            final String fromName,
+            final String to,
+            final List&lt;String&gt; cc,
+            final String subject,
+            final String text,
+            final Optional&lt;String&gt; html,
+            final Attachment... attachment) {
+<span class="nc" id="L65">        final var config = configurationManager.getFor(</span>
+<span class="nc" id="L66">                EnumSet.of(</span>
+                        ConfigurationKeys.SENDGRID_API_KEY,
+                        ConfigurationKeys.SENDGRID_FROM,
+                        ConfigurationKeys.MAIL_REPLY_TO,
+                        ConfigurationKeys.MAIL_SET_ORG_REPLY_TO),
+<span class="nc" id="L71">                configurable.getConfigurationLevel());</span>
+<span class="nc" id="L72">        final var from = config.get(ConfigurationKeys.SENDGRID_FROM).getRequiredValue();</span>
+<span class="nc" id="L73">        final var personalizations = createPersonalizations(to, cc, subject);</span>
+<span class="nc" id="L74">        final var contents = createContents(text, html);</span>
+<span class="nc" id="L75">        final var payload = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (ArrayUtils.isNotEmpty(attachment)) {</span>
+<span class="nc" id="L77">            addAttachments(payload, attachment);</span>
+        }
+<span class="nc" id="L79">        payload.put(&quot;from&quot;, Map.of(EMAIL, from, &quot;name&quot;, fromName));</span>
+<span class="nc" id="L80">        payload.put(&quot;personalizations&quot;, personalizations);</span>
+<span class="nc" id="L81">        payload.put(&quot;content&quot;, contents);</span>
+<span class="nc" id="L82">        setReplyToIfPresent(</span>
+<span class="nc" id="L83">                config, configurable.getOrganizationId(), replyTo -&gt; payload.put(&quot;reply_to&quot;, Map.of(EMAIL, replyTo)));</span>
+        // prepare request
+<span class="nc" id="L85">        final var body = Json.GSON.toJson(payload);</span>
+<span class="nc" id="L86">        final var request = HttpRequest.newBuilder(URI.create(&quot;https://api.sendgrid.com/v3/mail/send&quot;))</span>
+<span class="nc" id="L87">                .header(</span>
+                        HttpUtils.AUTHORIZATION,
+                        &quot;Bearer %s&quot;
+<span class="nc" id="L90">                                .formatted(config.get(ConfigurationKeys.SENDGRID_API_KEY)</span>
+<span class="nc" id="L91">                                        .getRequiredValue()))</span>
+<span class="nc" id="L92">                .header(HttpUtils.CONTENT_TYPE, HttpUtils.APPLICATION_JSON)</span>
+<span class="nc" id="L93">                .POST(HttpRequest.BodyPublishers.ofString(body))</span>
+<span class="nc" id="L94">                .build();</span>
+        try {
+<span class="nc" id="L96">            HttpResponse&lt;Void&gt; response = client.send(request, HttpResponse.BodyHandlers.discarding());</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (!HttpUtils.callSuccessful(response)) {</span>
+<span class="nc" id="L98">                log.warn(&quot;sending email was not successful: {} &quot;, response);</span>
+<span class="nc" id="L99">                throw new IllegalStateException(</span>
+<span class="nc" id="L100">                        &quot;Attempt to send a message failed. Result is: &quot; + response.statusCode());</span>
+            }
+<span class="nc" id="L102">        } catch (IOException e) {</span>
+<span class="nc" id="L103">            log.warn(&quot;error while sending email&quot;, e);</span>
+<span class="nc" id="L104">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L105">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L106">            log.warn(&quot;error while sending email&quot;, e);</span>
+<span class="nc" id="L107">        }</span>
+<span class="nc" id="L108">    }</span>
+
+    private List&lt;Map&lt;String, Object&gt;&gt; createPersonalizations(
+            final String to, final List&lt;String&gt; cc, final String subject) {
+<span class="nc" id="L112">        final var recipients = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L113">        recipients.add(Map.of(EMAIL, to));</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (CollectionUtils.isNotEmpty(cc)) {</span>
+<span class="nc" id="L115">            recipients.addAll(cc.stream().map(email -&gt; Map.of(EMAIL, email)).toList());</span>
+        }
+<span class="nc" id="L117">        return List.of(Map.of(&quot;to&quot;, recipients, &quot;subject&quot;, subject));</span>
+    }
+
+    private List&lt;Map&lt;String, String&gt;&gt; createContents(final String text, final Optional&lt;String&gt; html) {
+<span class="nc" id="L121">        final var contents = new ArrayList&lt;Map&lt;String, String&gt;&gt;();</span>
+<span class="nc" id="L122">        contents.add(Map.of(&quot;type&quot;, MediaType.TEXT_PLAIN_VALUE, &quot;value&quot;, text));</span>
+<span class="nc" id="L123">        Objects.requireNonNull(html)</span>
+<span class="nc" id="L124">                .ifPresent(</span>
+<span class="nc" id="L125">                        htmlContent -&gt; contents.add(Map.of(&quot;type&quot;, MediaType.TEXT_HTML_VALUE, &quot;value&quot;, htmlContent)));</span>
+<span class="nc" id="L126">        return contents;</span>
+    }
+
+    private void addAttachments(final Map&lt;String, Object&gt; payload, final Attachment[] attachment) {
+<span class="nc" id="L130">        final var attachments = Stream.of(attachment)</span>
+<span class="nc" id="L131">                .map(attach -&gt; Map.of(</span>
+                        &quot;filename&quot;,
+<span class="nc" id="L133">                        attach.getFilename(),</span>
+                        &quot;content&quot;,
+<span class="nc" id="L135">                        attach.getSource(),</span>
+                        &quot;content_id&quot;,
+<span class="nc" id="L137">                        attach.getIdentifier().name(),</span>
+                        &quot;type&quot;,
+<span class="nc" id="L139">                        attach.getContentType()))</span>
+<span class="nc" id="L140">                .collect(Collectors.toList());</span>
+<span class="nc" id="L141">        payload.put(&quot;attachments&quot;, attachments);</span>
+<span class="nc" id="L142">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

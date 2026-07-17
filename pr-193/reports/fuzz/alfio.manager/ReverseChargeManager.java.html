@@ -1,0 +1,571 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReverseChargeManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">ReverseChargeManager.java</span></div><h1>ReverseChargeManager.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.model.Audit.EntityType.RESERVATION;
+import static alfio.model.PriceContainer.VatStatus.*;
+import static alfio.model.system.ConfigurationKeys.*;
+import static alfio.util.MonetaryUtil.unitToCents;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+
+import alfio.controller.form.ContactAndTicketsForm;
+import alfio.controller.support.CustomBindingResult;
+import alfio.manager.system.ConfigurationManager;
+import alfio.manager.system.ReservationPriceCalculator;
+import alfio.model.*;
+import alfio.model.PurchaseContext.PurchaseContextType;
+import alfio.model.decorator.TicketPriceContainer;
+import alfio.model.extension.CustomTaxPolicy;
+import alfio.repository.*;
+import alfio.util.MonetaryUtil;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ValidationUtils;
+
+@AllArgsConstructor
+@Component
+public class ReverseChargeManager {
+
+<span class="nc" id="L56">    private static final Logger log = LoggerFactory.getLogger(ReverseChargeManager.class);</span>
+    private final PromoCodeDiscountRepository promoCodeDiscountRepository;
+    private final AdditionalServiceItemRepository additionalServiceItemRepository;
+    private final AdditionalServiceRepository additionalServiceRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final ConfigurationManager configurationManager;
+    private final TicketReservationRepository ticketReservationRepository;
+    private final EuVatChecker vatChecker;
+    private final TicketReservationManager ticketReservationManager;
+    private final TicketRepository ticketRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final AuditingRepository auditingRepository;
+
+    public void checkAndApplyVATRules(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            ContactAndTicketsForm contactAndTicketsForm,
+            BindingResult bindingResult) {
+<span class="nc" id="L75">        String country = contactAndTicketsForm.getVatCountryCode();</span>
+
+        // validate VAT presence if Reverse Charge is enabled
+<span class="nc" id="L78">        var reverseChargeConfiguration =</span>
+<span class="nc" id="L79">                EuVatChecker.loadConfigurationForReverseChargeCheck(configurationManager, purchaseContext);</span>
+
+<span class="nc bnc" id="L81" title="All 4 branches missed.">        if (EuVatChecker.reverseChargeEnabled(reverseChargeConfiguration)</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                &amp;&amp; (country == null || isEUCountry(country))) {</span>
+<span class="nc" id="L83">            ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, &quot;vatNr&quot;, &quot;error.emptyField&quot;);</span>
+        }
+
+<span class="nc" id="L86">        boolean isEvent = purchaseContext.ofType(PurchaseContextType.event);</span>
+        // we must take into account specific configuration only if the purchase context is an Event.
+        // Otherwise, specific settings do not apply
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        boolean reverseChargeInPerson = !isEvent</span>
+                || reverseChargeConfiguration
+<span class="nc" id="L91">                        .get(ENABLE_REVERSE_CHARGE_IN_PERSON)</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                        .getValueAsBooleanOrDefault();</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        boolean reverseChargeOnline = !isEvent</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                || reverseChargeConfiguration.get(ENABLE_REVERSE_CHARGE_ONLINE).getValueAsBooleanOrDefault();</span>
+
+        try {
+<span class="nc" id="L97">            var optionalReservation = ticketReservationRepository.findOptionalReservationById(reservationId);</span>
+
+<span class="nc" id="L99">            List&lt;TicketCategory&gt; categoriesList = optionalReservation</span>
+<span class="nc" id="L100">                    .filter(res -&gt; isEvent) // skip load if the current context is not &quot;event&quot;</span>
+<span class="nc" id="L101">                    .map(res -&gt; ticketCategoryRepository.findCategoriesInReservation(res.getId()))</span>
+<span class="nc" id="L102">                    .orElse(List.of());</span>
+
+<span class="nc" id="L104">            List&lt;Integer&gt; noTaxCategories = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (!categoriesList.isEmpty()) {</span>
+<span class="nc" id="L106">                noTaxCategories.addAll(configurationManager.getCategoriesWithNoTaxes(</span>
+<span class="nc" id="L107">                        categoriesList.stream().map(TicketCategory::getId).collect(Collectors.toList())));</span>
+            }
+
+<span class="nc" id="L110">            Optional&lt;VatDetail&gt; vatDetail = performReverseChargeCheck(</span>
+                    purchaseContext,
+                    contactAndTicketsForm,
+                    country,
+                    reverseChargeInPerson,
+                    reverseChargeOnline,
+                    optionalReservation,
+                    categoriesList);
+
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (vatDetail.isPresent()) {</span>
+<span class="nc" id="L120">                handleValidationResult(</span>
+                        purchaseContext,
+                        reservationId,
+                        contactAndTicketsForm,
+                        bindingResult,
+                        country,
+                        isEvent,
+                        reverseChargeInPerson,
+                        reverseChargeOnline,
+                        categoriesList,
+                        noTaxCategories,
+<span class="nc" id="L131">                        vatDetail.get());</span>
+<span class="nc bnc" id="L132" title="All 4 branches missed.">            } else if (optionalReservation.isPresent() &amp;&amp; contactAndTicketsForm.isItalyEInvoicingSplitPayment()) {</span>
+<span class="nc" id="L133">                handleSplitPayment(</span>
+                        purchaseContext,
+                        reservationId,
+                        contactAndTicketsForm,
+                        country,
+<span class="nc" id="L138">                        optionalReservation.get(),</span>
+                        categoriesList,
+                        noTaxCategories);
+<span class="nc bnc" id="L141" title="All 4 branches missed.">            } else if (optionalReservation.isPresent() &amp;&amp; !noTaxCategories.isEmpty()) {</span>
+                // if there is at least one category with custom tax policy, we need to update its tickets
+<span class="nc" id="L143">                var reservation = optionalReservation.get();</span>
+<span class="nc" id="L144">                updateTicketsWithNoTaxSetting(</span>
+                        purchaseContext, reservationId, reservation, categoriesList, noTaxCategories);
+<span class="nc" id="L146">                updateBillingData(</span>
+                        contactAndTicketsForm,
+                        purchaseContext,
+                        country,
+<span class="nc" id="L150">                        trimToNull(contactAndTicketsForm.getVatNr()),</span>
+                        reservation,
+<span class="nc" id="L152">                        reservation.getVatStatus());</span>
+            }
+<span class="nc" id="L154">        } catch (IllegalStateException ise) { // vat checker failure</span>
+<span class="nc" id="L155">            bindingResult.rejectValue(&quot;vatNr&quot;, &quot;error.vatVIESDown&quot;);</span>
+<span class="nc" id="L156">        }</span>
+<span class="nc" id="L157">    }</span>
+
+    private Optional&lt;VatDetail&gt; performReverseChargeCheck(
+            PurchaseContext purchaseContext,
+            ContactAndTicketsForm contactAndTicketsForm,
+            String country,
+            boolean reverseChargeInPerson,
+            boolean reverseChargeOnline,
+            Optional&lt;TicketReservation&gt; optionalReservation,
+            List&lt;TicketCategory&gt; categoriesList) {
+<span class="nc" id="L167">        return optionalReservation</span>
+<span class="nc" id="L168">                .filter(e -&gt; {</span>
+<span class="nc bnc" id="L169" title="All 6 branches missed.">                    if (purchaseContext.ofType(PurchaseContextType.event)</span>
+                            &amp;&amp; (!reverseChargeInPerson || !reverseChargeOnline)) {
+<span class="nc" id="L171">                        var eventFormat = purchaseContext.event().orElseThrow().getFormat();</span>
+                        // if we find at least one category matching the criteria, then we can proceed
+<span class="nc" id="L173">                        return categoriesList.stream()</span>
+<span class="nc" id="L174">                                .anyMatch(findReverseChargeCategory(</span>
+                                        reverseChargeInPerson, reverseChargeOnline, eventFormat));
+                    }
+<span class="nc" id="L177">                    var vatStatus = purchaseContext.getVatStatus();</span>
+<span class="nc bnc" id="L178" title="All 4 branches missed.">                    return vatStatus == INCLUDED || vatStatus == NOT_INCLUDED;</span>
+                })
+<span class="nc" id="L180">                .filter(e -&gt; vatChecker.isReverseChargeEnabledFor(purchaseContext))</span>
+<span class="nc" id="L181">                .flatMap(e -&gt; vatChecker.checkVat(contactAndTicketsForm.getVatNr(), country, purchaseContext));</span>
+    }
+
+    private void updateTicketsWithNoTaxSetting(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            TicketReservation reservation,
+            List&lt;TicketCategory&gt; categoriesList,
+            List&lt;Integer&gt; noTaxCategories) {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="nc" id="L191">            var currencyCode = reservation.getCurrencyCode();</span>
+<span class="nc" id="L192">            var event = purchaseContext.event().orElseThrow();</span>
+<span class="nc" id="L193">            var priceContainers = mapPriceContainersByCategoryId(</span>
+                    categoriesList,
+<span class="nc" id="L195">                    c -&gt; noTaxCategories.contains(c.getId()),</span>
+                    currencyCode,
+<span class="nc" id="L197">                    reservation.getVatStatus(),</span>
+<span class="nc" id="L198">                    reservation.getDiscount().orElse(null),</span>
+                    event,
+                    noTaxCategories);
+<span class="nc" id="L201">            updateTicketPricesByCategory(reservationId, currencyCode, event, priceContainers);</span>
+        }
+<span class="nc" id="L203">    }</span>
+
+    private void handleSplitPayment(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            ContactAndTicketsForm contactAndTicketsForm,
+            String country,
+            TicketReservation reservation,
+            List&lt;TicketCategory&gt; categoriesList,
+            List&lt;Integer&gt; noTaxCategories) {
+<span class="nc" id="L213">        updateTicketsWithNoTaxSetting(purchaseContext, reservationId, reservation, categoriesList, noTaxCategories);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        var vatStatus = purchaseContext.getVatStatus() == INCLUDED ? INCLUDED_NOT_CHARGED : NOT_INCLUDED_NOT_CHARGED;</span>
+<span class="nc" id="L215">        updateBillingData(</span>
+                contactAndTicketsForm,
+                purchaseContext,
+                country,
+<span class="nc" id="L219">                trimToNull(contactAndTicketsForm.getVatNr()),</span>
+                reservation,
+                vatStatus);
+<span class="nc" id="L222">    }</span>
+
+    private void handleValidationResult(
+            PurchaseContext purchaseContext,
+            String reservationId,
+            ContactAndTicketsForm contactAndTicketsForm,
+            BindingResult bindingResult,
+            String country,
+            boolean isEvent,
+            boolean reverseChargeInPerson,
+            boolean reverseChargeOnline,
+            List&lt;TicketCategory&gt; categoriesList,
+            List&lt;Integer&gt; noTaxCategories,
+            VatDetail vatValidation) {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (!vatValidation.isValid()) {</span>
+<span class="nc" id="L237">            bindingResult.rejectValue(&quot;vatNr&quot;, &quot;error.STEP_2_INVALID_VAT&quot;);</span>
+        } else {
+<span class="nc" id="L239">            var reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
+<span class="nc" id="L240">            var currencyCode = reservation.getCurrencyCode();</span>
+<span class="nc" id="L241">            PriceContainer.VatStatus vatStatus =</span>
+<span class="nc" id="L242">                    determineVatStatus(purchaseContext.getVatStatus(), vatValidation.isVatExempt());</span>
+            // standard case: Reverse Charge is applied to the entire reservation
+<span class="nc" id="L244">            var discount = getDiscountOrNull(reservation);</span>
+<span class="nc bnc" id="L245" title="All 6 branches missed.">            if (!isEvent || (reverseChargeOnline &amp;&amp; reverseChargeInPerson)) {</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                if (isEvent) {</span>
+<span class="nc" id="L247">                    var event = purchaseContext.event().orElseThrow();</span>
+<span class="nc" id="L248">                    var priceContainers = mapPriceContainersByCategoryId(</span>
+<span class="nc" id="L249">                            categoriesList, a -&gt; true, currencyCode, vatStatus, discount, event, noTaxCategories);</span>
+                    // update all tickets in reservation to match the VAT_STATUS
+<span class="nc" id="L251">                    ticketRepository.updateVatStatusForReservation(reservationId, vatStatus);</span>
+<span class="nc" id="L252">                    updateTicketPricesByCategory(reservationId, currencyCode, event, priceContainers);</span>
+                }
+<span class="nc" id="L254">                updateBillingData(</span>
+                        contactAndTicketsForm,
+                        purchaseContext,
+                        country,
+<span class="nc" id="L258">                        trimToNull(vatValidation.getVatNr()),</span>
+                        reservation,
+                        vatStatus);
+            } else {
+<span class="nc" id="L262">                var event = purchaseContext.event().orElseThrow();</span>
+<span class="nc" id="L263">                var eventFormat = event.getFormat();</span>
+<span class="nc" id="L264">                var matchingCategories = mapPriceContainersByCategoryId(</span>
+                        categoriesList,
+<span class="nc" id="L266">                        findReverseChargeCategory(reverseChargeInPerson, reverseChargeOnline, eventFormat),</span>
+                        currencyCode,
+                        vatStatus,
+                        discount,
+                        event,
+                        noTaxCategories);
+
+<span class="nc" id="L273">                updateTicketPricesByCategory(reservationId, currencyCode, event, matchingCategories);</span>
+                // update billing data for the reservation, using the original VatStatus from reservation
+<span class="nc" id="L275">                updateBillingData(</span>
+                        contactAndTicketsForm,
+                        purchaseContext,
+                        country,
+<span class="nc" id="L279">                        trimToNull(vatValidation.getVatNr()),</span>
+                        reservation,
+<span class="nc" id="L281">                        reservation.getVatStatus());</span>
+            }
+<span class="nc" id="L283">            vatChecker.logSuccessfulValidation(vatValidation, reservationId, purchaseContext);</span>
+        }
+<span class="nc" id="L285">    }</span>
+
+    private PromoCodeDiscount getDiscountOrNull(TicketReservation reservation) {
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (reservation.getPromoCodeDiscountId() != null) {</span>
+<span class="nc" id="L289">            return promoCodeDiscountRepository.findById(reservation.getPromoCodeDiscountId());</span>
+        }
+<span class="nc" id="L291">        return null;</span>
+    }
+
+    public void applyCustomTaxPolicy(
+            PurchaseContext purchaseContext,
+            CustomTaxPolicy customTaxPolicy,
+            String reservationId,
+            ContactAndTicketsForm contactAndTicketsForm,
+            CustomBindingResult bindingResult) {
+
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (!purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="nc" id="L302">            throw new IllegalStateException(&quot;Custom tax policy is only supported for events&quot;);</span>
+        }
+
+<span class="nc" id="L305">        var event = (Event) purchaseContext;</span>
+        // first, validate that categories in CustomTaxPolicy are actually present in the form
+<span class="nc" id="L307">        var reservation = ticketReservationManager.findById(reservationId).orElseThrow();</span>
+<span class="nc" id="L308">        var currencyCode = reservation.getCurrencyCode();</span>
+<span class="nc" id="L309">        var ticketsInReservation = ticketRepository.findTicketsInReservation(reservationId).stream()</span>
+<span class="nc" id="L310">                .collect(toMap(t -&gt; t.getPublicUuid().toString(), Function.identity()));</span>
+<span class="nc" id="L311">        var ticketIds = ticketsInReservation.keySet();</span>
+<span class="nc bnc" id="L312" title="All 4 branches missed.">        if (customTaxPolicy.getTicketPolicies().stream().anyMatch(tp -&gt; !ticketIds.contains(tp.getUuid()))) {</span>
+<span class="nc" id="L313">            log.warn(&quot;Error in custom tax policy: some tickets are not included in reservation {}&quot;, reservationId);</span>
+<span class="nc" id="L314">            bindingResult.reject(&quot;error.generic&quot;);</span>
+        } else {
+            // log the received policy to the auditing
+<span class="nc" id="L317">            auditingRepository.insert(</span>
+                    reservationId,
+                    null,
+                    purchaseContext,
+                    Audit.EventType.VAT_CUSTOM_CONFIGURATION_APPLIED,
+                    new Date(),
+                    RESERVATION,
+                    reservationId,
+<span class="nc" id="L325">                    List.of(Map.of(&quot;policy&quot;, customTaxPolicy)));</span>
+<span class="nc" id="L326">            var priceMapping = customTaxPolicy.getTicketPolicies().stream()</span>
+<span class="nc" id="L327">                    .map(tcp -&gt; toTicketPriceContainer(</span>
+<span class="nc" id="L328">                            ticketsInReservation.get(tcp.getUuid()), tcp, getDiscountOrNull(reservation), event))</span>
+<span class="nc" id="L329">                    .collect(Collectors.toList());</span>
+<span class="nc" id="L330">            updateTicketPrices(priceMapping, currencyCode, event);</span>
+            // update billing data for the reservation, using the original VatStatus from reservation
+<span class="nc" id="L332">            updateBillingData(</span>
+                    contactAndTicketsForm,
+                    purchaseContext,
+<span class="nc" id="L335">                    reservation.getVatCountryCode(),</span>
+<span class="nc" id="L336">                    trimToNull(reservation.getVatNr()),</span>
+                    reservation,
+<span class="nc" id="L338">                    reservation.getVatStatus());</span>
+        }
+<span class="nc" id="L340">    }</span>
+
+    private static TicketPriceContainer toTicketPriceContainer(
+            Ticket ticket, CustomTaxPolicy.TicketTaxPolicy categoryTaxPolicy, PromoCodeDiscount discount, Event event) {
+<span class="nc" id="L344">        return TicketPriceContainer.from(</span>
+<span class="nc" id="L345">                ticket.withVatStatus(categoryTaxPolicy.getTaxPolicy()),</span>
+<span class="nc" id="L346">                categoryTaxPolicy.getTaxPolicy(),</span>
+<span class="nc" id="L347">                event.getVat(),</span>
+<span class="nc" id="L348">                event.getVatStatus(),</span>
+                discount);
+    }
+
+    public void resetVat(PurchaseContext purchaseContext, String reservationId) {
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        if (purchaseContext.ofType(PurchaseContextType.event)) {</span>
+<span class="nc" id="L354">            var reservation = ticketReservationRepository.findReservationById(reservationId);</span>
+<span class="nc" id="L355">            var categoriesList = ticketCategoryRepository.findCategoriesInReservation(reservationId);</span>
+<span class="nc" id="L356">            var discount = getDiscountOrNull(reservation);</span>
+<span class="nc" id="L357">            var event = purchaseContext.event().orElseThrow();</span>
+<span class="nc" id="L358">            var priceContainers = mapPriceContainersByCategoryId(</span>
+                    categoriesList,
+<span class="nc" id="L360">                    (a) -&gt; true,</span>
+<span class="nc" id="L361">                    reservation.getCurrencyCode(),</span>
+<span class="nc" id="L362">                    reservation.getVatStatus(),</span>
+                    discount,
+                    event,
+<span class="nc" id="L365">                    List.of());</span>
+            // update all tickets in reservation to match the VAT_STATUS
+<span class="nc" id="L367">            ticketRepository.updateVatStatusForReservation(reservationId, reservation.getVatStatus());</span>
+<span class="nc" id="L368">            updateTicketPricesByCategory(reservationId, reservation.getCurrencyCode(), event, priceContainers);</span>
+        }
+<span class="nc" id="L370">    }</span>
+
+    private Map&lt;Integer, TicketCategoryPriceContainer&gt; mapPriceContainersByCategoryId(
+            List&lt;TicketCategory&gt; categoriesList,
+            Predicate&lt;TicketCategory&gt; filter,
+            String currencyCode,
+            PriceContainer.VatStatus vatStatus,
+            PromoCodeDiscount discount,
+            Event event,
+            List&lt;Integer&gt; noTaxCategories) {
+<span class="nc" id="L380">        return categoriesList.stream()</span>
+<span class="nc" id="L381">                .filter(filter)</span>
+<span class="nc" id="L382">                .map(c -&gt; {</span>
+<span class="nc" id="L383">                    var categoryVatStatus = vatStatus;</span>
+<span class="nc bnc" id="L384" title="All 2 branches missed.">                    if (noTaxCategories.contains(c.getId())) {</span>
+<span class="nc" id="L385">                        categoryVatStatus = PriceContainer.VatStatus.forceExempt(vatStatus);</span>
+                    }
+<span class="nc" id="L387">                    return new TicketCategoryPriceContainer(</span>
+<span class="nc" id="L388">                            c.getId(), c.getSrcPriceCts(), currencyCode, event.getVat(), categoryVatStatus, discount);</span>
+                })
+<span class="nc" id="L390">                .collect(toMap(o -&gt; o.categoryId, Function.identity()));</span>
+    }
+
+    private void updateTicketPricesByCategory(
+            String reservationId,
+            String currencyCode,
+            Event event,
+            Map&lt;Integer, TicketCategoryPriceContainer&gt; matchingCategories) {
+<span class="nc" id="L398">        MapSqlParameterSource[] parameterSources = matchingCategories.entrySet().stream()</span>
+<span class="nc" id="L399">                .map(entry -&gt; buildParameterSourceForPriceUpdate(</span>
+<span class="nc" id="L400">                        entry.getValue(),</span>
+<span class="nc" id="L401">                        event.getId(),</span>
+<span class="nc" id="L402">                        entry.getKey(),</span>
+                        currencyCode,
+<span class="nc" id="L404">                        m -&gt; m.addValue(&quot;reservationId&quot;, reservationId)))</span>
+<span class="nc" id="L405">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L406">        jdbcTemplate.batchUpdate(ticketRepository.updateTicketPriceForCategoryInReservation(), parameterSources);</span>
+<span class="nc" id="L407">    }</span>
+
+    private void updateTicketPrices(List&lt;TicketPriceContainer&gt; ticketPrices, String currencyCode, Event event) {
+<span class="nc" id="L410">        MapSqlParameterSource[] parameterSources = ticketPrices.stream()</span>
+<span class="nc" id="L411">                .map(entry -&gt; buildParameterSourceForPriceUpdate(</span>
+                        entry,
+<span class="nc" id="L413">                        event.getId(),</span>
+<span class="nc" id="L414">                        entry.getCategoryId(),</span>
+                        currencyCode,
+<span class="nc" id="L416">                        m -&gt; m.addValue(&quot;uuid&quot;, entry.getUuid())))</span>
+<span class="nc" id="L417">                .toArray(MapSqlParameterSource[]::new);</span>
+<span class="nc" id="L418">        var updateResult = jdbcTemplate.batchUpdate(ticketRepository.bulkUpdateTicketPrice(), parameterSources);</span>
+<span class="nc bnc" id="L419" title="All 2 branches missed.">        Validate.isTrue(Arrays.stream(updateResult).allMatch(i -&gt; i == 1), &quot;Error while updating ticket prices&quot;);</span>
+<span class="nc" id="L420">    }</span>
+
+    private static MapSqlParameterSource buildParameterSourceForPriceUpdate(
+            PriceContainer value,
+            int eventId,
+            int categoryId,
+            String currencyCode,
+            UnaryOperator&lt;MapSqlParameterSource&gt; modifier) {
+<span class="nc" id="L428">        return modifier.apply(new MapSqlParameterSource()</span>
+<span class="nc" id="L429">                .addValue(&quot;categoryId&quot;, categoryId)</span>
+<span class="nc" id="L430">                .addValue(&quot;eventId&quot;, eventId)</span>
+<span class="nc" id="L431">                .addValue(&quot;srcPriceCts&quot;, value.getSrcPriceCts())</span>
+<span class="nc" id="L432">                .addValue(&quot;finalPriceCts&quot;, MonetaryUtil.unitToCents(value.getFinalPrice(), currencyCode))</span>
+<span class="nc" id="L433">                .addValue(&quot;vatCts&quot;, MonetaryUtil.unitToCents(value.getVAT(), currencyCode))</span>
+<span class="nc" id="L434">                .addValue(&quot;discountCts&quot;, MonetaryUtil.unitToCents(value.getAppliedDiscount(), currencyCode))</span>
+<span class="nc" id="L435">                .addValue(&quot;currencyCode&quot;, currencyCode)</span>
+<span class="nc" id="L436">                .addValue(&quot;vatStatus&quot;, value.getVatStatus().name()));</span>
+    }
+
+    private Predicate&lt;TicketCategory&gt; findReverseChargeCategory(
+            boolean reverseChargeInPerson, boolean reverseChargeOnline, Event.EventFormat eventFormat) {
+<span class="nc" id="L441">        return tc -&gt; {</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">            if (eventFormat == Event.EventFormat.HYBRID) {</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">                return tc.getTicketAccessType() == TicketCategory.TicketAccessType.IN_PERSON</span>
+<span class="nc" id="L444">                        ? reverseChargeInPerson</span>
+<span class="nc" id="L445">                        : reverseChargeOnline;</span>
+            } else {
+<span class="nc bnc" id="L447" title="All 2 branches missed.">                return eventFormat == Event.EventFormat.IN_PERSON ? reverseChargeInPerson : reverseChargeOnline;</span>
+            }
+        };
+    }
+
+    private void updateBillingData(
+            ContactAndTicketsForm contactAndTicketsForm,
+            PurchaseContext purchaseContext,
+            String country,
+            String vatNr,
+            TicketReservation reservation,
+            PriceContainer.VatStatus vatStatus) {
+<span class="nc" id="L459">        var reservationId = reservation.getId();</span>
+<span class="nc" id="L460">        var discount = getDiscountOrNull(reservation);</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">        List&lt;AdditionalServiceItem&gt; additionalServiceItems = purchaseContext.ofType(PurchaseContextType.event)</span>
+<span class="nc" id="L462">                ? additionalServiceItemRepository.findByReservationUuid(</span>
+<span class="nc" id="L463">                        purchaseContext.event().orElseThrow().getId(), reservation.getId())</span>
+<span class="nc" id="L464">                : List.of();</span>
+<span class="nc" id="L465">        var tickets = ticketReservationManager.findTicketsInReservation(reservation.getId());</span>
+<span class="nc" id="L466">        var additionalServices = purchaseContext</span>
+<span class="nc" id="L467">                .event()</span>
+<span class="nc" id="L468">                .map(event -&gt; additionalServiceRepository.loadAllForEvent(event.getId()))</span>
+<span class="nc" id="L469">                .orElse(List.of());</span>
+<span class="nc" id="L470">        var subscriptions = subscriptionRepository.findSubscriptionsByReservationId(reservationId);</span>
+<span class="nc" id="L471">        var appliedSubscription = subscriptionRepository.findAppliedSubscriptionByReservationId(reservationId);</span>
+<span class="nc" id="L472">        var calculator = new ReservationPriceCalculator(</span>
+<span class="nc" id="L473">                reservation.withVatStatus(vatStatus),</span>
+                discount,
+                tickets,
+                additionalServiceItems,
+                additionalServices,
+                purchaseContext,
+                subscriptions,
+                appliedSubscription);
+<span class="nc" id="L481">        var currencyCode = reservation.getCurrencyCode();</span>
+<span class="nc" id="L482">        ticketReservationRepository.updateBillingData(</span>
+                vatStatus,
+<span class="nc" id="L484">                reservation.getSrcPriceCts(),</span>
+<span class="nc" id="L485">                unitToCents(calculator.getFinalPrice(), currencyCode),</span>
+<span class="nc" id="L486">                unitToCents(calculator.getVAT(), currencyCode),</span>
+<span class="nc" id="L487">                unitToCents(calculator.getAppliedDiscount(), currencyCode),</span>
+<span class="nc" id="L488">                reservation.getCurrencyCode(),</span>
+                vatNr,
+                country,
+<span class="nc" id="L491">                contactAndTicketsForm.isInvoiceRequested(),</span>
+                reservationId);
+<span class="nc" id="L493">    }</span>
+
+    private boolean isEUCountry(String countryCode) {
+<span class="nc" id="L496">        return configurationManager</span>
+<span class="nc" id="L497">                .getForSystem(EU_COUNTRIES_LIST)</span>
+<span class="nc" id="L498">                .getRequiredValue()</span>
+<span class="nc" id="L499">                .contains(countryCode);</span>
+    }
+
+    private static PriceContainer.VatStatus determineVatStatus(PriceContainer.VatStatus current, boolean isVatExempt) {
+<span class="nc bnc" id="L503" title="All 2 branches missed.">        if (!isVatExempt) {</span>
+<span class="nc" id="L504">            return current;</span>
+        }
+<span class="nc bnc" id="L506" title="All 2 branches missed.">        return current == NOT_INCLUDED ? NOT_INCLUDED_EXEMPT : INCLUDED_EXEMPT;</span>
+    }
+
+    private static class TicketCategoryPriceContainer implements PriceContainer {
+
+        private final int categoryId;
+        private final int srcPriceCts;
+        private final String currencyCode;
+        private final BigDecimal vatPercentage;
+        private final VatStatus vatStatus;
+        private final PromoCodeDiscount promoCodeDiscount;
+
+        private TicketCategoryPriceContainer(
+                int categoryId,
+                int srcPriceCts,
+                String currencyCode,
+                BigDecimal vatPercentage,
+                VatStatus vatStatus,
+                PromoCodeDiscount promoCodeDiscount) {
+            this.categoryId = categoryId;
+            this.srcPriceCts = srcPriceCts;
+            this.currencyCode = currencyCode;
+            this.vatPercentage = vatPercentage;
+            this.vatStatus = vatStatus;
+            this.promoCodeDiscount = promoCodeDiscount;
+        }
+
+        @Override
+        public int getSrcPriceCts() {
+            return srcPriceCts;
+        }
+
+        @Override
+        public String getCurrencyCode() {
+            return currencyCode;
+        }
+
+        @Override
+        public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
+            return Optional.ofNullable(vatPercentage);
+        }
+
+        @Override
+        public VatStatus getVatStatus() {
+            return vatStatus;
+        }
+
+        public int getFinalPriceCts() {
+            return unitToCents(getFinalPrice(), currencyCode);
+        }
+
+        public int getVatCts() {
+            return unitToCents(getVAT(), currencyCode);
+        }
+
+        public int getDiscountCts() {
+            return unitToCents(getAppliedDiscount(), currencyCode);
+        }
+
+        @Override
+        public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
+            return Optional.ofNullable(promoCodeDiscount);
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,749 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AccessService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">AccessService.java</span></div><h1>AccessService.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.config.authentication.support.AuthenticationConstants.SYSTEM_API_CLIENT;
+import static alfio.manager.user.UserManager.ADMIN_USERNAME;
+import static alfio.util.MiscUtils.removeTabsAndNewlines;
+
+import alfio.config.authentication.support.APITokenAuthentication;
+import alfio.controller.form.ReservationCreate;
+import alfio.manager.support.AccessDeniedException;
+import alfio.model.EventAndOrganizationId;
+import alfio.model.PurchaseContext;
+import alfio.model.modification.AdditionalServiceReservationModification;
+import alfio.model.modification.GroupModification;
+import alfio.model.modification.ReservationRequest;
+import alfio.model.subscription.LinkEventsToSubscriptionRequest;
+import alfio.model.subscription.LinkSubscriptionsToEventRequest;
+import alfio.model.user.Organization;
+import alfio.model.user.Role;
+import alfio.repository.*;
+import alfio.repository.user.AuthorityRepository;
+import alfio.repository.user.OrganizationRepository;
+import alfio.repository.user.UserRepository;
+import alfio.repository.user.join.UserOrganizationRepository;
+import alfio.util.MiscUtils;
+import java.security.Principal;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Centralized service for checking if a given Principal can
+ *  - read a given resource with a specific id (example, get data of a user with a specific id)
+ *  - update/delete a given resource with a specific id (example: update/delete an event)
+ *  - do some specific action which affect a resource with a specific id (example: add a new event in a given organization)
+ */
+@Service
+@Transactional(readOnly = true)
+public class AccessService {
+
+<span class="nc" id="L60">    private static final Logger log = LogManager.getLogger(AccessService.class);</span>
+
+    private final UserRepository userRepository;
+
+    private final EventRepository eventRepository;
+
+    private final AuthorityRepository authorityRepository;
+    private final UserOrganizationRepository userOrganizationRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final TicketReservationRepository reservationRepository;
+    private final TicketRepository ticketRepository;
+    private final BillingDocumentRepository billingDocumentRepository;
+    private final GroupRepository groupRepository;
+    private final TicketCategoryRepository ticketCategoryRepository;
+    private final PromoCodeDiscountRepository promoCodeDiscountRepository;
+    private final OrganizationRepository organizationRepository;
+    private final AdditionalServiceRepository additionalServiceRepository;
+    private final WaitingQueueRepository waitingQueueRepository;
+    private final PurchaseContextFieldRepository purchaseContextFieldRepository;
+
+    public AccessService(
+            UserRepository userRepository,
+            AuthorityRepository authorityRepository,
+            UserOrganizationRepository userOrganizationRepository,
+            EventRepository eventRepository,
+            SubscriptionRepository subscriptionRepository,
+            TicketReservationRepository reservationRepository,
+            TicketRepository ticketRepository,
+            BillingDocumentRepository billingDocumentRepository,
+            GroupRepository groupRepository,
+            TicketCategoryRepository ticketCategoryRepository,
+            PromoCodeDiscountRepository promoCodeDiscountRepository,
+            OrganizationRepository organizationRepository,
+            AdditionalServiceRepository additionalServiceRepository,
+            WaitingQueueRepository waitingQueueRepository,
+<span class="nc" id="L95">            PurchaseContextFieldRepository purchaseContextFieldRepository) {</span>
+<span class="nc" id="L96">        this.userRepository = userRepository;</span>
+<span class="nc" id="L97">        this.authorityRepository = authorityRepository;</span>
+<span class="nc" id="L98">        this.userOrganizationRepository = userOrganizationRepository;</span>
+<span class="nc" id="L99">        this.eventRepository = eventRepository;</span>
+<span class="nc" id="L100">        this.subscriptionRepository = subscriptionRepository;</span>
+<span class="nc" id="L101">        this.reservationRepository = reservationRepository;</span>
+<span class="nc" id="L102">        this.ticketRepository = ticketRepository;</span>
+<span class="nc" id="L103">        this.billingDocumentRepository = billingDocumentRepository;</span>
+<span class="nc" id="L104">        this.groupRepository = groupRepository;</span>
+<span class="nc" id="L105">        this.ticketCategoryRepository = ticketCategoryRepository;</span>
+<span class="nc" id="L106">        this.promoCodeDiscountRepository = promoCodeDiscountRepository;</span>
+<span class="nc" id="L107">        this.organizationRepository = organizationRepository;</span>
+<span class="nc" id="L108">        this.additionalServiceRepository = additionalServiceRepository;</span>
+<span class="nc" id="L109">        this.waitingQueueRepository = waitingQueueRepository;</span>
+<span class="nc" id="L110">        this.purchaseContextFieldRepository = purchaseContextFieldRepository;</span>
+<span class="nc" id="L111">    }</span>
+
+<span class="nc" id="L113">    public static final Set&lt;Role&gt; MEMBERSHIP_ROLES = Set.of(Role.ADMIN, Role.OWNER, Role.API_CONSUMER, Role.SUPERVISOR);</span>
+
+<span class="nc" id="L115">    public static final Set&lt;Role&gt; CHECKIN_ROLES =</span>
+<span class="nc" id="L116">            Set.of(Role.ADMIN, Role.OWNER, Role.API_CONSUMER, Role.SUPERVISOR, Role.OPERATOR);</span>
+
+    public void checkAccessToUser(Principal principal, Integer userId) {
+<span class="nc bnc" id="L119" title="All 4 branches missed.">        if (userId == null || principal == null) {</span>
+<span class="nc" id="L120">            throw new AccessDeniedException();</span>
+        }
+<span class="nc bnc" id="L122" title="All 4 branches missed.">        if (isAdmin(principal) || isSystemApiUser(principal)) {</span>
+<span class="nc" id="L123">            log.trace(</span>
+                    &quot;principal {} identified as ADMIN is allowed to retrieve user details for user {}&quot;,
+<span class="nc" id="L125">                    principal.getName(),</span>
+                    userId);
+<span class="nc" id="L127">            return;</span>
+        }
+<span class="nc" id="L129">        var targetUser = userRepository.findOptionalById(userId).orElseThrow(AccessDeniedException::new);</span>
+        // target user cannot be an admin because current user is NOT an admin
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (targetUser.getUsername().equals(ADMIN_USERNAME)</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                || checkRole(targetUser.getUsername(), EnumSet.of(Role.ADMIN))) {</span>
+<span class="nc" id="L133">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L135">        var targetUserOrgs = organizationRepository.findAllForUser(targetUser.getUsername());</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (targetUserOrgs.size() != 1) {</span>
+<span class="nc" id="L137">            log.warn(</span>
+                    &quot;denied access to user {} which is member of {} organizations&quot;,
+<span class="nc" id="L139">                    targetUser.getUsername(),</span>
+<span class="nc" id="L140">                    targetUserOrgs.size());</span>
+<span class="nc" id="L141">            throw new AccessDeniedException();</span>
+        }
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        for (Organization targetUserOrg : targetUserOrgs) {</span>
+<span class="nc" id="L144">            checkOrganizationOwnership(principal, targetUserOrg.getId());</span>
+<span class="nc" id="L145">        }</span>
+<span class="nc" id="L146">    }</span>
+
+    public void checkOrganizationMembership(Principal principal, int organizationId, Set&lt;Role&gt; roles) {
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (principal == null) {</span>
+<span class="nc" id="L150">            log.trace(&quot;No user present, we will allow it&quot;);</span>
+<span class="nc" id="L151">            return;</span>
+        }
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        if (isSystemApiUser(principal)) {</span>
+<span class="nc" id="L154">            log.trace(&quot;Allowing ownership to Organization {} to System API Key&quot;, organizationId);</span>
+<span class="nc" id="L155">            return;</span>
+        }
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (hasRole(principal, organizationId, roles)) {</span>
+<span class="nc" id="L158">            log.trace(&quot;Allowing ownership to Organization {} to user {}&quot;, organizationId, principal.getName());</span>
+<span class="nc" id="L159">            return;</span>
+        }
+
+<span class="nc" id="L162">        log.warn(&quot;User {} is NOT an owner or supervisor of organizationId {}&quot;, principal.getName(), organizationId);</span>
+<span class="nc" id="L163">        throw new AccessDeniedException();</span>
+    }
+
+    public void checkOrganizationOwnership(Principal principal, Integer organizationId) {
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        if (principal == null) {</span>
+<span class="nc" id="L168">            log.trace(&quot;No user present, we will allow it&quot;);</span>
+<span class="nc" id="L169">            return;</span>
+        }
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (isSystemApiUser(principal)) {</span>
+<span class="nc" id="L172">            log.trace(&quot;Allowing ownership to Organization {} to System API Key&quot;, organizationId);</span>
+<span class="nc" id="L173">            return;</span>
+        }
+<span class="nc bnc" id="L175" title="All 4 branches missed.">        if (organizationId == null &amp;&amp; isAdmin(principal)) {</span>
+<span class="nc" id="L176">            log.trace(&quot;Allowing Organization create to ADMIN&quot;);</span>
+<span class="nc" id="L177">            return;</span>
+        }
+<span class="nc bnc" id="L179" title="All 4 branches missed.">        if (organizationId != null &amp;&amp; isOwnerOfOrganization(principal, organizationId)) {</span>
+<span class="nc" id="L180">            log.trace(&quot;Allowing ownership to Organization {} to user {}&quot;, organizationId, principal.getName());</span>
+<span class="nc" id="L181">            return;</span>
+        }
+<span class="nc" id="L183">        log.warn(&quot;User {} is NOT an owner of organizationId {}&quot;, principal.getName(), organizationId);</span>
+<span class="nc" id="L184">        throw new AccessDeniedException(); // &quot;User &quot; + principal.getName() + &quot; don't have ownership to organizationId &quot;</span>
+        // + organizationId
+    }
+
+    public void ensureAdmin(Principal principal) {
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (!isAdmin(principal)) {</span>
+<span class="nc" id="L190">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L192">    }</span>
+
+    public void ensureSystemApiKey(Principal principal) {
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (!isSystemApiUser(principal)) {</span>
+<span class="nc" id="L196">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L198">    }</span>
+
+    public EventAndOrganizationId checkEventOwnership(Principal principal, int eventId) {
+<span class="nc" id="L201">        var eventAndOrgId = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="nc" id="L202">        checkOrganizationOwnership(principal, eventAndOrgId.getOrganizationId());</span>
+<span class="nc" id="L203">        return eventAndOrgId;</span>
+    }
+
+    public EventAndOrganizationId checkEventOwnership(Principal principal, int eventId, int organizationId) {
+<span class="nc" id="L207">        var eventAndOrgId = checkEventOwnership(principal, eventId);</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (organizationId != eventAndOrgId.getOrganizationId()) {</span>
+<span class="nc" id="L209">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L211">        return eventAndOrgId;</span>
+    }
+
+    public EventAndOrganizationId checkEventOwnership(Principal principal, String eventShortName) {
+<span class="nc" id="L215">        var eventAndOrgId = eventRepository</span>
+<span class="nc" id="L216">                .findOptionalEventAndOrganizationIdByShortName(eventShortName)</span>
+<span class="nc" id="L217">                .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L218">        checkOrganizationOwnership(principal, eventAndOrgId.getOrganizationId());</span>
+<span class="nc" id="L219">        return eventAndOrgId;</span>
+    }
+
+    /**
+     * Access for admin, owner and supervisor (and API_CONSUMER, SYSTEM_API_CLIENT)
+     * @param principal
+     * @param eventShortName
+     * @return
+     */
+    public EventAndOrganizationId checkEventMembership(Principal principal, String eventShortName, Set&lt;Role&gt; roles) {
+<span class="nc" id="L229">        var eventAndOrgId = eventRepository</span>
+<span class="nc" id="L230">                .findOptionalEventAndOrganizationIdByShortName(eventShortName)</span>
+<span class="nc" id="L231">                .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L232">        checkOrganizationMembership(principal, eventAndOrgId.getOrganizationId(), roles);</span>
+<span class="nc" id="L233">        return eventAndOrgId;</span>
+    }
+
+    public EventAndOrganizationId checkEventMembership(Principal principal, int eventId, Set&lt;Role&gt; roles) {
+<span class="nc" id="L237">        var eventAndOrgId = eventRepository.findEventAndOrganizationIdById(eventId);</span>
+<span class="nc" id="L238">        checkOrganizationMembership(principal, eventAndOrgId.getOrganizationId(), roles);</span>
+<span class="nc" id="L239">        return eventAndOrgId;</span>
+    }
+
+    public EventAndOrganizationId checkCategoryOwnership(Principal principal, int eventId, int categoryId) {
+<span class="nc" id="L243">        return checkCategoryOwnership(principal, eventId, Set.of(categoryId));</span>
+    }
+
+    public EventAndOrganizationId checkCategoryOwnership(Principal principal, int eventId, Set&lt;Integer&gt; categoryIds) {
+<span class="nc" id="L247">        var eventAndOrganizationId = checkEventOwnership(principal, eventId);</span>
+<span class="nc" id="L248">        if (categoryIds.size()</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                != ticketCategoryRepository.countCategoryForEvent(categoryIds, eventAndOrganizationId.getId())) {</span>
+<span class="nc" id="L250">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L252">        return eventAndOrganizationId;</span>
+    }
+
+    public EventAndOrganizationId checkCategoryOwnership(
+            Principal principal, String eventShortName, Set&lt;Integer&gt; categoryIds) {
+<span class="nc" id="L257">        var eventAndOrganizationId = checkEventOwnership(principal, eventShortName);</span>
+<span class="nc" id="L258">        if (categoryIds.size()</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                != ticketCategoryRepository.countCategoryForEvent(categoryIds, eventAndOrganizationId.getId())) {</span>
+<span class="nc" id="L260">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L262">        return eventAndOrganizationId;</span>
+    }
+
+    public EventAndOrganizationId checkCategoryOwnership(Principal principal, String eventShortName, int categoryId) {
+<span class="nc" id="L266">        return checkCategoryOwnership(principal, eventShortName, Set.of(categoryId));</span>
+    }
+
+    public void checkEventReservationCreationRequest(
+            Principal principal, String eventShortName, ReservationCreate&lt;? extends ReservationRequest&gt; createRequest) {
+<span class="nc" id="L271">        checkEventReservationCreationRequest(principal, eventShortName, List.of(createRequest));</span>
+<span class="nc" id="L272">    }</span>
+
+    public void checkEventReservationCreationRequest(
+            Principal principal,
+            String eventShortName,
+            List&lt;? extends ReservationCreate&lt;? extends ReservationRequest&gt;&gt; createRequests) {
+<span class="nc" id="L278">        var eventAndOrganizationId = checkEventOwnership(principal, eventShortName);</span>
+<span class="nc" id="L279">        var categoryIds = createRequests.stream()</span>
+<span class="nc" id="L280">                .flatMap(createRequest -&gt; createRequest.getTickets().stream())</span>
+<span class="nc" id="L281">                .map(ReservationRequest::getTicketCategoryId)</span>
+<span class="nc" id="L282">                .collect(Collectors.toSet());</span>
+<span class="nc" id="L283">        int eventId = eventAndOrganizationId.getId();</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        if (categoryIds.size() != ticketCategoryRepository.countCategoriesBelongingToEvent(eventId, categoryIds)) {</span>
+<span class="nc" id="L285">            throw new AccessDeniedException();</span>
+        }
+
+<span class="nc" id="L288">        var additionalServicesIds = createRequests.stream()</span>
+<span class="nc" id="L289">                .filter(createRequest -&gt; CollectionUtils.isNotEmpty(createRequest.getAdditionalServices()))</span>
+<span class="nc" id="L290">                .flatMap(createRequest -&gt; createRequest.getAdditionalServices().stream())</span>
+<span class="nc" id="L291">                .map(AdditionalServiceReservationModification::getAdditionalServiceId)</span>
+<span class="nc" id="L292">                .collect(Collectors.toSet());</span>
+
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        if (!additionalServicesIds.isEmpty()</span>
+<span class="nc" id="L295">                &amp;&amp; additionalServicesIds.size()</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                        != additionalServiceRepository.countAdditionalServicesBelongingToEvent(</span>
+                                eventId, additionalServicesIds)) {
+<span class="nc" id="L298">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L300">    }</span>
+
+    public EventAndOrganizationId checkEventOwnership(Principal principal, String eventShortName, int organizationId) {
+<span class="nc" id="L303">        var eventAndOrganizationId = checkEventOwnership(principal, eventShortName);</span>
+<span class="nc" id="L304">        int orgId = eventAndOrganizationId.getOrganizationId();</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">        if (orgId != organizationId) {</span>
+<span class="nc" id="L306">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L308">        return eventAndOrganizationId;</span>
+    }
+
+    private static boolean isSystemApiUser(Principal principal) {
+<span class="nc" id="L312">        return principal instanceof APITokenAuthentication apita</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">                &amp;&amp; apita.getAuthorities().stream()</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">                        .allMatch(authority -&gt; authority.getAuthority().equals(&quot;ROLE_&quot; + SYSTEM_API_CLIENT));</span>
+    }
+
+    private boolean isAdmin(Principal user) {
+<span class="nc" id="L318">        return checkRole(user, Collections.singleton(Role.ADMIN));</span>
+    }
+
+    private boolean isOwner(Principal principal) {
+<span class="nc" id="L322">        return checkRole(principal, EnumSet.of(Role.ADMIN, Role.OWNER, Role.API_CONSUMER));</span>
+    }
+
+    private boolean checkRole(Principal principal, Set&lt;Role&gt; expectedRoles) {
+<span class="nc" id="L326">        return checkRole(principal.getName(), expectedRoles);</span>
+    }
+
+    private boolean checkRole(String username, Set&lt;Role&gt; expectedRoles) {
+<span class="nc" id="L330">        var roleNames = expectedRoles.stream().map(Role::getRoleName).collect(Collectors.toSet());</span>
+<span class="nc" id="L331">        return authorityRepository.checkRole(username, roleNames);</span>
+    }
+
+    private boolean isOwnerOfOrganization(Principal principal, int organizationId) {
+<span class="nc" id="L335">        return userRepository</span>
+<span class="nc" id="L336">                .findIdByUserName(principal.getName())</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">                .filter(userId -&gt; isAdmin(principal)</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                        || (isOwner(principal)</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">                                &amp;&amp; userOrganizationRepository.userIsInOrganization(userId, organizationId)))</span>
+<span class="nc" id="L340">                .isPresent();</span>
+    }
+
+    private boolean hasRole(Principal principal, int organizationId, Set&lt;Role&gt; roles) {
+<span class="nc" id="L344">        return userRepository</span>
+<span class="nc" id="L345">                .findIdByUserName(principal.getName())</span>
+<span class="nc bnc" id="L346" title="All 2 branches missed.">                .filter(userId -&gt; isAdmin(principal)</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">                        || (checkRole(principal, roles)</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                                &amp;&amp; userOrganizationRepository.userIsInOrganization(userId, organizationId)))</span>
+<span class="nc" id="L349">                .isPresent();</span>
+    }
+
+    public void checkReservationOwnership(
+            Principal principal,
+            PurchaseContext.PurchaseContextType purchaseContextType,
+            String publicIdentifier,
+            String reservationId) {
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="nc" id="L358">            checkReservationOwnershipForEvent(principal, publicIdentifier, reservationId);</span>
+        } else {
+<span class="nc" id="L360">            var subscriptionDescriptor = subscriptionRepository</span>
+<span class="nc" id="L361">                    .findDescriptorByReservationId(reservationId)</span>
+<span class="nc" id="L362">                    .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L363">            checkOrganizationOwnership(principal, subscriptionDescriptor.getOrganizationId());</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">            if (!subscriptionDescriptor.getPublicIdentifier().equals(publicIdentifier)) {</span>
+<span class="nc" id="L365">                throw new AccessDeniedException();</span>
+            }
+        }
+<span class="nc" id="L368">    }</span>
+
+    public void checkReservationMembership(
+            Principal principal,
+            PurchaseContext.PurchaseContextType purchaseContextType,
+            String publicIdentifier,
+            String reservationId) {
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="nc" id="L376">            checkReservationMembershipForEvent(principal, publicIdentifier, reservationId, MEMBERSHIP_ROLES);</span>
+        } else {
+<span class="nc" id="L378">            var subscriptionDescriptor = subscriptionRepository</span>
+<span class="nc" id="L379">                    .findDescriptorByReservationId(reservationId)</span>
+<span class="nc" id="L380">                    .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L381">            checkOrganizationMembership(principal, subscriptionDescriptor.getOrganizationId(), MEMBERSHIP_ROLES);</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">            if (!subscriptionDescriptor.getPublicIdentifier().equals(publicIdentifier)) {</span>
+<span class="nc" id="L383">                throw new AccessDeniedException();</span>
+            }
+        }
+<span class="nc" id="L386">    }</span>
+
+    public void checkPurchaseContextOwnership(
+            Principal principal, PurchaseContext.PurchaseContextType purchaseContextType, String publicIdentifier) {
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="nc" id="L391">            checkEventOwnership(principal, publicIdentifier);</span>
+        } else {
+<span class="nc" id="L393">            checkSubscriptionDescriptorOwnership(principal, publicIdentifier);</span>
+        }
+<span class="nc" id="L395">    }</span>
+
+    public void checkPurchaseContextOwnership(
+            Principal principal, int organizationId, Integer eventId, UUID subscriptionDescriptorId) {
+<span class="nc bnc" id="L399" title="All 2 branches missed.">        if (eventId != null) {</span>
+<span class="nc" id="L400">            checkEventOwnership(principal, eventId, organizationId);</span>
+        } else {
+<span class="nc" id="L402">            checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L403">            int subscriptionOrg = subscriptionRepository</span>
+<span class="nc" id="L404">                    .findOrganizationIdForDescriptor(subscriptionDescriptorId)</span>
+<span class="nc" id="L405">                    .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">            if (subscriptionOrg != organizationId) {</span>
+<span class="nc" id="L407">                throw new AccessDeniedException();</span>
+            }
+        }
+<span class="nc" id="L410">    }</span>
+
+    public EventAndOrganizationId checkDescriptorsLinkRequest(
+            Principal principal, String eventSlug, List&lt;LinkSubscriptionsToEventRequest&gt; descriptorsToLink) {
+<span class="nc" id="L414">        var event = checkEventOwnership(principal, eventSlug);</span>
+<span class="nc bnc" id="L415" title="All 2 branches missed.">        if (descriptorsToLink.isEmpty()) {</span>
+            // user is requesting to remove all subscriptions from event
+<span class="nc" id="L417">            return event;</span>
+        }
+<span class="nc" id="L419">        var descriptorsId = descriptorsToLink.stream()</span>
+<span class="nc" id="L420">                .map(LinkSubscriptionsToEventRequest::getDescriptorId)</span>
+<span class="nc" id="L421">                .toList();</span>
+<span class="nc" id="L422">        var count = subscriptionRepository.countDescriptorsBelongingToOrganization(</span>
+<span class="nc" id="L423">                descriptorsId, event.getOrganizationId());</span>
+<span class="nc bnc" id="L424" title="All 4 branches missed.">        if (count == null || descriptorsToLink.size() != count) {</span>
+<span class="nc" id="L425">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L427">        var categoriesToLink = descriptorsToLink.stream()</span>
+<span class="nc" id="L428">                .flatMap(sl -&gt; sl.getCategories().stream())</span>
+<span class="nc" id="L429">                .collect(Collectors.toSet());</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">        if (!categoriesToLink.isEmpty()) {</span>
+<span class="nc" id="L431">            count = ticketCategoryRepository.countCategoryForEvent(categoriesToLink, event.getId());</span>
+<span class="nc bnc" id="L432" title="All 2 branches missed.">            if (categoriesToLink.size() != count) {</span>
+<span class="nc" id="L433">                throw new AccessDeniedException();</span>
+            }
+        }
+<span class="nc" id="L436">        return event;</span>
+    }
+
+    public void checkSubscriptionDescriptorOwnership(Principal principal, String publicIdentifier) {
+<span class="nc" id="L440">        int organizationId = subscriptionRepository</span>
+<span class="nc" id="L441">                .findOrganizationIdForDescriptor(UUID.fromString(publicIdentifier))</span>
+<span class="nc" id="L442">                .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L443">        checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L444">    }</span>
+
+    private void checkReservationOwnershipForEvent(Principal principal, String publicIdentifier, String reservationId) {
+<span class="nc" id="L447">        var event = eventRepository</span>
+<span class="nc" id="L448">                .findOptionalEventAndOrganizationIdByShortName(publicIdentifier)</span>
+<span class="nc" id="L449">                .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L450">        checkOrganizationOwnership(principal, event.getOrganizationId());</span>
+<span class="nc" id="L451">        var reservations = reservationRepository.getReservationIdAndEventId(List.of(reservationId));</span>
+<span class="nc bnc" id="L452" title="All 4 branches missed.">        if (reservations.size() != 1 || reservations.get(0).getEventId() != event.getId()) {</span>
+<span class="nc" id="L453">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L455">    }</span>
+
+    private void checkReservationMembershipForEvent(
+            Principal principal, String publicIdentifier, String reservationId, Set&lt;Role&gt; roles) {
+<span class="nc" id="L459">        var event = eventRepository</span>
+<span class="nc" id="L460">                .findOptionalEventAndOrganizationIdByShortName(publicIdentifier)</span>
+<span class="nc" id="L461">                .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L462">        checkEventMembership(principal, event.getId(), roles);</span>
+<span class="nc" id="L463">        var reservations = reservationRepository.getReservationIdAndEventId(List.of(reservationId));</span>
+<span class="nc bnc" id="L464" title="All 4 branches missed.">        if (reservations.size() != 1 || reservations.get(0).getEventId() != event.getId()) {</span>
+<span class="nc" id="L465">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L467">    }</span>
+
+    public void checkBillingDocumentOwnership(
+            Principal principal,
+            PurchaseContext.PurchaseContextType purchaseContextType,
+            String publicIdentifier,
+            String reservationId,
+            long billingDocumentId) {
+<span class="nc" id="L475">        checkReservationOwnership(principal, purchaseContextType, publicIdentifier, reservationId);</span>
+<span class="nc bnc" id="L476" title="All 2 branches missed.">        if (!Boolean.TRUE.equals(</span>
+<span class="nc" id="L477">                billingDocumentRepository.checkBillingDocumentExistsForReservation(billingDocumentId, reservationId))) {</span>
+<span class="nc" id="L478">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L480">    }</span>
+
+    public void checkGroupLinkOwnership(
+            Principal principal, int groupLinkId, int organizationId, int eventId, Integer categoryId) {
+<span class="nc" id="L484">        var eventAndOrgId = checkEventOwnership(principal, eventId);</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">        if (eventAndOrgId.getOrganizationId() != organizationId) {</span>
+<span class="nc" id="L486">            throw new AccessDeniedException();</span>
+        }
+<span class="nc bnc" id="L488" title="All 2 branches missed.">        if (!Boolean.TRUE.equals(</span>
+<span class="nc" id="L489">                groupRepository.checkGroupLinkExists(groupLinkId, organizationId, eventId, categoryId))) {</span>
+<span class="nc" id="L490">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L492">    }</span>
+
+    public void checkGroupOwnership(Principal principal, int groupId, int organizationId) {
+<span class="nc" id="L495">        checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc bnc" id="L496" title="All 2 branches missed.">        if (!Boolean.TRUE.equals(groupRepository.checkGroupExists(groupId, organizationId))) {</span>
+<span class="nc" id="L497">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L499">    }</span>
+
+    public void checkGroupUpdateRequest(
+            Principal principal, int groupId, int organizationId, GroupModification groupModification) {
+<span class="nc bnc" id="L503" title="All 4 branches missed.">        if (groupModification.getOrganizationId() != organizationId || groupModification.getId() != groupId) {</span>
+<span class="nc" id="L504">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L506">        checkGroupOwnership(principal, groupId, organizationId);</span>
+<span class="nc" id="L507">    }</span>
+
+    public void checkGroupCreateRequest(Principal principal, int organizationId, GroupModification groupModification) {
+<span class="nc bnc" id="L510" title="All 2 branches missed.">        if (groupModification.getOrganizationId() != organizationId) {</span>
+<span class="nc" id="L511">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L513">        checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L514">    }</span>
+
+    public void checkAccessToPromoCode(Principal principal, int promoCodeId) {
+<span class="nc" id="L517">        var promoCode =</span>
+<span class="nc" id="L518">                promoCodeDiscountRepository.findOptionalById(promoCodeId).orElseThrow(AccessDeniedException::new);</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">        if (promoCode.getEventId() != null) {</span>
+<span class="nc" id="L520">            checkEventOwnership(principal, promoCode.getEventId(), promoCode.getOrganizationId());</span>
+        } else {
+<span class="nc" id="L522">            checkOrganizationOwnership(principal, promoCode.getOrganizationId());</span>
+        }
+<span class="nc" id="L524">    }</span>
+
+    public int checkAccessToPromoCodeEventOrganization(Principal principal, Integer eventId, Integer organizationId) {
+<span class="nc bnc" id="L527" title="All 4 branches missed.">        if (eventId == null &amp;&amp; organizationId == null) {</span>
+<span class="nc" id="L528">            throw new AccessDeniedException();</span>
+        }
+<span class="nc bnc" id="L530" title="All 4 branches missed.">        if (eventId != null &amp;&amp; organizationId != null) {</span>
+<span class="nc" id="L531">            return checkEventOwnership(principal, eventId, organizationId).getOrganizationId();</span>
+<span class="nc bnc" id="L532" title="All 2 branches missed.">        } else if (eventId != null) {</span>
+<span class="nc" id="L533">            return checkEventOwnership(principal, eventId).getOrganizationId();</span>
+        } else {
+<span class="nc" id="L535">            checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L536">            return organizationId;</span>
+        }
+    }
+
+    public void checkEventLinkRequest(
+            Principal principal, String subscriptionId, List&lt;LinkEventsToSubscriptionRequest&gt; linkRequests) {
+<span class="nc" id="L542">        int organizationId = subscriptionRepository</span>
+<span class="nc" id="L543">                .findOrganizationIdForDescriptor(UUID.fromString(subscriptionId))</span>
+<span class="nc" id="L544">                .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L545">        checkOrganizationOwnership(principal, organizationId);</span>
+<span class="nc" id="L546">        var eventSlugs = linkRequests.stream()</span>
+<span class="nc" id="L547">                .map(LinkEventsToSubscriptionRequest::getSlug)</span>
+<span class="nc" id="L548">                .collect(Collectors.toSet());</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        if (!eventSlugs.isEmpty()</span>
+<span class="nc bnc" id="L550" title="All 2 branches missed.">                &amp;&amp; eventSlugs.size() != eventRepository.countEventsInOrganization(organizationId, eventSlugs)) {</span>
+<span class="nc" id="L551">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L553">        linkRequests.forEach(request -&gt; {</span>
+<span class="nc" id="L554">            var categoriesToLink = request.getCategories();</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">            if (!categoriesToLink.isEmpty()) {</span>
+<span class="nc" id="L556">                int count = ticketCategoryRepository.countCategoryForEvent(</span>
+<span class="nc" id="L557">                        Set.copyOf(request.getCategories()), request.getSlug());</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">                if (categoriesToLink.size() != count) {</span>
+<span class="nc" id="L559">                    throw new AccessDeniedException();</span>
+                }
+            }
+<span class="nc" id="L562">        });</span>
+<span class="nc" id="L563">    }</span>
+
+    public EventAndOrganizationId canAccessEvent(Principal principal, String eventShortName) {
+<span class="nc" id="L566">        var eventAndOrgId = eventRepository</span>
+<span class="nc" id="L567">                .findOptionalEventAndOrganizationIdByShortName(eventShortName)</span>
+<span class="nc" id="L568">                .orElseThrow(AccessDeniedException::new);</span>
+<span class="nc" id="L569">        var user = userRepository.getByUsername(principal.getName());</span>
+<span class="nc bnc" id="L570" title="All 2 branches missed.">        if (!userOrganizationRepository.userIsInOrganization(user.getId(), eventAndOrgId.getOrganizationId())) {</span>
+<span class="nc" id="L571">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L573">        return eventAndOrgId;</span>
+    }
+
+    public void canAccessTicket(Principal principal, String eventShortName, String uuid) {
+<span class="nc" id="L577">        var eventAndOrgId = canAccessEvent(principal, eventShortName);</span>
+<span class="nc" id="L578">        var ticket = ticketRepository.findByUUID(uuid);</span>
+<span class="nc bnc" id="L579" title="All 2 branches missed.">        if (ticket.getEventId() != eventAndOrgId.getId()) {</span>
+<span class="nc" id="L580">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L582">    }</span>
+
+    public EventAndOrganizationId checkWaitingQueueSubscriberInEvent(
+            Principal principal, int subscriberId, String eventName) {
+<span class="nc" id="L586">        var eventAndOrgId = checkEventOwnership(principal, eventName);</span>
+<span class="nc bnc" id="L587" title="All 2 branches missed.">        if (!waitingQueueRepository.exists(subscriberId, eventAndOrgId.getId())) {</span>
+<span class="nc bnc" id="L588" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L589">                log.warn(&quot;subscriberId {} does not exists in event {}&quot;, subscriberId, removeTabsAndNewlines(eventName));</span>
+            }
+<span class="nc" id="L591">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L593">        return eventAndOrgId;</span>
+    }
+
+    public void checkBillingDocumentsOwnership(Principal principal, Integer eventId, List&lt;Long&gt; documentIds) {
+<span class="nc" id="L597">        checkEventOwnership(principal, eventId);</span>
+<span class="nc" id="L598">        if (!new HashSet&lt;&gt;(documentIds)</span>
+<span class="nc bnc" id="L599" title="All 2 branches missed.">                .equals(new HashSet&lt;&gt;(billingDocumentRepository.findByIdsAndEvent(documentIds, eventId)))) {</span>
+<span class="nc" id="L600">            log.warn(&quot;Some document ids {} are not inside eventId {}&quot;, documentIds, eventId);</span>
+<span class="nc" id="L601">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L603">    }</span>
+
+    public void checkPurchaseContextOwnershipAndTicketAdditionalFieldIds(
+            Principal principal,
+            PurchaseContext.PurchaseContextType purchaseContextType,
+            String publicIdentifier,
+            Set&lt;Long&gt; additionalFieldIds) {
+<span class="nc" id="L610">        checkPurchaseContextOwnership(principal, purchaseContextType, publicIdentifier);</span>
+<span class="nc" id="L611">        UUID subscriptionUuid = null;</span>
+<span class="nc" id="L612">        Integer eventId = null;</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">        if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="nc" id="L614">            eventId = eventRepository</span>
+<span class="nc" id="L615">                    .findOptionalEventAndOrganizationIdByShortName(publicIdentifier)</span>
+<span class="nc" id="L616">                    .orElseThrow()</span>
+<span class="nc" id="L617">                    .getId();</span>
+        } else {
+<span class="nc" id="L619">            subscriptionUuid = UUID.fromString(publicIdentifier);</span>
+        }
+<span class="nc" id="L621">        if (additionalFieldIds.size()</span>
+<span class="nc bnc" id="L622" title="All 2 branches missed.">                != purchaseContextFieldRepository.countMatchingAdditionalFieldsForPurchaseContext(</span>
+                        eventId, subscriptionUuid, additionalFieldIds)) {
+<span class="nc bnc" id="L624" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L625">                log.warn(</span>
+                        &quot;Some additional field ids {} are not inside purchaseContext {}&quot;,
+                        additionalFieldIds,
+<span class="nc" id="L628">                        removeTabsAndNewlines(publicIdentifier));</span>
+            }
+<span class="nc" id="L630">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L632">    }</span>
+
+    public void checkCategoryOwnershipAndTicket(Principal principal, String eventName, int categoryId, int ticketId) {
+<span class="nc" id="L635">        checkCategoryOwnership(principal, eventName, categoryId);</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">        if (!ticketRepository.isInCategory(ticketId, categoryId)) {</span>
+<span class="nc" id="L637">            log.warn(&quot;Ticket with id {} is not in category id {}&quot;, ticketId, categoryId);</span>
+<span class="nc" id="L638">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L640">    }</span>
+
+    public void checkEventAndReservationOwnership(Principal principal, String eventName, Set&lt;String&gt; reservationIds) {
+<span class="nc" id="L643">        checkEventAndReservationOwnership(principal, eventName, reservationIds, false);</span>
+<span class="nc" id="L644">    }</span>
+
+    public void checkEventAndReservationOwnership(
+            Principal principal, String eventName, Set&lt;String&gt; reservationIds, boolean partialIds) {
+<span class="nc" id="L648">        var eventAndOrgId = checkEventOwnership(principal, eventName);</span>
+        int countExisting;
+<span class="nc bnc" id="L650" title="All 2 branches missed.">        if (partialIds) {</span>
+<span class="nc" id="L651">            countExisting = reservationRepository.countReservationWithShortIdsForEvent(</span>
+<span class="nc" id="L652">                    reservationIds.stream().map(String::toLowerCase).toList(), eventAndOrgId.getId());</span>
+        } else {
+<span class="nc" id="L654">            countExisting = reservationRepository.countReservationsWithEventId(reservationIds, eventAndOrgId.getId());</span>
+        }
+<span class="nc bnc" id="L656" title="All 2 branches missed.">        if (reservationIds.size() != countExisting) {</span>
+<span class="nc bnc" id="L657" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L658">                log.warn(</span>
+                        &quot;Some reservation ids {} are not in the event {}&quot;,
+<span class="nc" id="L660">                        reservationIds.stream()</span>
+<span class="nc" id="L661">                                .map(MiscUtils::removeTabsAndNewlines)</span>
+<span class="nc" id="L662">                                .collect(Collectors.toSet()),</span>
+<span class="nc" id="L663">                        removeTabsAndNewlines(eventName));</span>
+            }
+<span class="nc" id="L665">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L667">    }</span>
+
+    public void checkEventAndReservationAndTransactionOwnership(
+            Principal principal, String eventName, String reservationId, int transactionId) {
+<span class="nc" id="L671">        checkEventAndReservationOwnership(principal, eventName, Set.of(reservationId));</span>
+<span class="nc bnc" id="L672" title="All 2 branches missed.">        if (!reservationRepository.hasReservationWithTransactionId(reservationId, transactionId)) {</span>
+<span class="nc bnc" id="L673" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L674">                log.warn(</span>
+                        &quot;Reservation id {} does not have transaction id {}&quot;,
+<span class="nc" id="L676">                        removeTabsAndNewlines(reservationId),</span>
+<span class="nc" id="L677">                        transactionId);</span>
+            }
+<span class="nc" id="L679">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L681">    }</span>
+
+    public void checkTicketMembership(
+            Principal principal, String publicIdentifier, String reservationId, int ticketId) {
+<span class="nc" id="L685">        checkReservationMembershipForEvent(principal, publicIdentifier, reservationId, AccessService.MEMBERSHIP_ROLES);</span>
+<span class="nc" id="L686">        var tickets = ticketRepository.findByIds(List.of(ticketId));</span>
+<span class="nc bnc" id="L687" title="All 4 branches missed.">        if (tickets.size() != 1 || !tickets.get(0).getTicketsReservationId().equals(reservationId)) {</span>
+<span class="nc" id="L688">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L690">    }</span>
+
+    public void checkEventTicketIdentifierMembership(
+            Principal principal, int eventId, String ticketIdentifier, Set&lt;Role&gt; roles) {
+<span class="nc" id="L694">        checkEventMembership(principal, eventId, roles);</span>
+<span class="nc bnc" id="L695" title="All 2 branches missed.">        if (!ticketRepository.isTicketInEvent(eventId, ticketIdentifier)) {</span>
+<span class="nc bnc" id="L696" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L697">                log.warn(&quot;ticket {} is not in eventId {}&quot;, removeTabsAndNewlines(ticketIdentifier), eventId);</span>
+            }
+<span class="nc" id="L699">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L701">    }</span>
+
+    public EventAndOrganizationId checkEventTicketIdentifierMembership(
+            Principal principal, String eventName, String ticketIdentifier, Set&lt;Role&gt; roles) {
+<span class="nc" id="L705">        var eventAndOrgId = checkEventMembership(principal, eventName, roles);</span>
+<span class="nc bnc" id="L706" title="All 2 branches missed.">        if (!ticketRepository.isTicketInEvent(eventAndOrgId.getId(), ticketIdentifier)) {</span>
+<span class="nc bnc" id="L707" title="All 2 branches missed.">            if (log.isWarnEnabled()) {</span>
+<span class="nc" id="L708">                log.warn(</span>
+                        &quot;ticket {} is not in eventId {}&quot;,
+<span class="nc" id="L710">                        removeTabsAndNewlines(ticketIdentifier),</span>
+<span class="nc" id="L711">                        eventAndOrgId.getId());</span>
+            }
+<span class="nc" id="L713">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L715">        return eventAndOrgId;</span>
+    }
+
+    public void checkAdditionalServiceOwnership(Principal principal, int eventId, int additionalServiceId) {
+<span class="nc" id="L719">        checkEventOwnership(principal, eventId);</span>
+<span class="nc bnc" id="L720" title="All 2 branches missed.">        if (!additionalServiceRepository.additionalServiceExistsForEvent(additionalServiceId, eventId)) {</span>
+<span class="nc" id="L721">            log.warn(&quot;denying access to additional service {}&quot;, additionalServiceId);</span>
+<span class="nc" id="L722">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L724">    }</span>
+
+    public void checkAccessToAdditionalField(
+            Principal principal,
+            PurchaseContext.PurchaseContextType purchaseContextType,
+            String publicIdentifier,
+            long id) {
+<span class="nc" id="L731">        checkPurchaseContextOwnership(principal, purchaseContextType, publicIdentifier);</span>
+        int count;
+<span class="nc bnc" id="L733" title="All 2 branches missed.">        if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="nc" id="L734">            int eventId = eventRepository</span>
+<span class="nc" id="L735">                    .findOptionalEventAndOrganizationIdByShortName(publicIdentifier)</span>
+<span class="nc" id="L736">                    .orElseThrow()</span>
+<span class="nc" id="L737">                    .getId();</span>
+<span class="nc" id="L738">            count = purchaseContextFieldRepository.countMatchingAdditionalFieldsForPurchaseContext(</span>
+<span class="nc" id="L739">                    eventId, null, Set.of(id));</span>
+<span class="nc" id="L740">        } else {</span>
+<span class="nc" id="L741">            count = purchaseContextFieldRepository.countMatchingAdditionalFieldsForPurchaseContext(</span>
+<span class="nc" id="L742">                    null, UUID.fromString(publicIdentifier), Set.of(id));</span>
+        }
+<span class="nc bnc" id="L744" title="All 2 branches missed.">        if (count != 1) {</span>
+<span class="nc" id="L745">            throw new AccessDeniedException();</span>
+        }
+<span class="nc" id="L747">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
