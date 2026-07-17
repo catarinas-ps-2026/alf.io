@@ -17,10 +17,8 @@
 package alfio.fuzz;
 
 import alfio.model.PromoCodeDiscount;
-import alfio.util.Json;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
-import java.util.Map;
 
 public class PromoCodeDiscountFuzzTest {
 

@@ -40,9 +40,7 @@ public class LocaleUtilFuzzTest {
         try {
             long epochSecond = data.consumeLong();
             String zoneId = data.consumeString(30);
-            ZonedDateTime zdt = ZonedDateTime.ofInstant(
-                    java.time.Instant.ofEpochSecond(epochSecond),
-                    ZoneId.of("UTC"));
+            ZonedDateTime zdt = ZonedDateTime.ofInstant(java.time.Instant.ofEpochSecond(epochSecond), ZoneId.of("UTC"));
             LocaleUtil.atZone(zdt, ZoneId.of(zoneId));
         } catch (NullPointerException | IllegalArgumentException e) {
             // catch exceptions from invalid inputs

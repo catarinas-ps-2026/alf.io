@@ -67,7 +67,8 @@ public class PurchaseContextFieldConfigurationFuzzTest {
             String restrictedValuesJson = data.consumeString(500);
             // Directly test the JSON deserialization path used in PurchaseContextFieldConfiguration
             // using Gson (same as the production code)
-            alfio.util.Json.GSON.fromJson(restrictedValuesJson, new com.google.gson.reflect.TypeToken<java.util.List<String>>() {}.getType());
+            alfio.util.Json.GSON.fromJson(
+                    restrictedValuesJson, new com.google.gson.reflect.TypeToken<java.util.List<String>>() {}.getType());
         } catch (Exception e) {
             // catch exceptions from invalid inputs
         }
@@ -79,7 +80,8 @@ public class PurchaseContextFieldConfigurationFuzzTest {
             String categoryIdsJson = data.consumeString(500);
             // Directly test the JSON deserialization path used in PurchaseContextFieldConfiguration
             // using Gson (same as the production code)
-            alfio.util.Json.GSON.fromJson(categoryIdsJson, new com.google.gson.reflect.TypeToken<java.util.List<Integer>>() {}.getType());
+            alfio.util.Json.GSON.fromJson(
+                    categoryIdsJson, new com.google.gson.reflect.TypeToken<java.util.List<Integer>>() {}.getType());
         } catch (Exception e) {
             // catch exceptions from invalid inputs
         }
@@ -91,7 +93,8 @@ public class PurchaseContextFieldConfigurationFuzzTest {
             String disabledValuesJson = data.consumeString(500);
             // Directly test the JSON deserialization path
             // using Gson (same as the production code)
-            alfio.util.Json.GSON.fromJson(disabledValuesJson, new com.google.gson.reflect.TypeToken<java.util.List<String>>() {}.getType());
+            alfio.util.Json.GSON.fromJson(
+                    disabledValuesJson, new com.google.gson.reflect.TypeToken<java.util.List<String>>() {}.getType());
         } catch (Exception e) {
             // catch exceptions from invalid inputs
         }

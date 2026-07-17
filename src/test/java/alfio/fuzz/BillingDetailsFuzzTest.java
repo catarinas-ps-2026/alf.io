@@ -16,7 +16,6 @@
  */
 package alfio.fuzz;
 
-import alfio.model.BillingDetails;
 import alfio.model.TicketReservationInvoicingAdditionalInfo;
 import alfio.util.Json;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;

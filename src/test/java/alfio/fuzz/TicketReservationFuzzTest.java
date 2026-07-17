@@ -16,7 +16,6 @@
  */
 package alfio.fuzz;
 
-import alfio.model.TicketReservation;
 import alfio.util.Json;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
