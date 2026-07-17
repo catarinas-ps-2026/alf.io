@@ -472,6 +472,10 @@ jacocoTestReport {
 tasks.register('jacocoFuzzTestReport', JacocoReport) {
     dependsOn fuzzTest
     executionData(fuzzTest)
+    
+    sourceDirectories.setFrom(files(sourceSets.main.allSource.srcDirs))
+    classDirectories.setFrom(files(sourceSets.main.output.classesDirs))
+    
     reports {
         xml.required = true
         html.required = true
