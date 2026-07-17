@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdditionalServiceItemPriceContainer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model.decorator</a> &gt; <span class="el_source">AdditionalServiceItemPriceContainer.java</span></div><h1>AdditionalServiceItemPriceContainer.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model.decorator;
+
+import alfio.model.*;
+import alfio.util.MonetaryUtil;
+import java.beans.ConstructorProperties;
+import java.math.BigDecimal;
+import java.util.Optional;
+import lombok.experimental.Delegate;
+
+public class AdditionalServiceItemPriceContainer implements SummaryPriceContainer {
+    @Delegate(excludes = PriceContainer.class)
+    private final AdditionalServiceItem additionalServiceItem;
+
+    private final AdditionalService additionalService;
+    private final String currencyCode;
+    private final PromoCodeDiscount discount;
+    private final VatStatus eventVatStatus;
+    private final BigDecimal eventVatPercentage;
+
+    @ConstructorProperties({
+        &quot;additionalServiceItem&quot;,
+        &quot;additionalService&quot;,
+        &quot;currencyCode&quot;,
+        &quot;discount&quot;,
+        &quot;eventVatStatus&quot;,
+        &quot;eventVatPercentage&quot;
+    })
+    private AdditionalServiceItemPriceContainer(
+            AdditionalServiceItem additionalServiceItem,
+            AdditionalService additionalService,
+            String currencyCode,
+            PromoCodeDiscount discount,
+            VatStatus eventVatStatus,
+<span class="fc" id="L50">            BigDecimal eventVatPercentage) {</span>
+<span class="fc" id="L51">        this.additionalServiceItem = additionalServiceItem;</span>
+<span class="fc" id="L52">        this.additionalService = additionalService;</span>
+<span class="fc" id="L53">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L54">        this.discount = discount;</span>
+<span class="fc" id="L55">        this.eventVatStatus = eventVatStatus;</span>
+<span class="fc" id="L56">        this.eventVatPercentage = eventVatPercentage;</span>
+<span class="fc" id="L57">    }</span>
+
+    @Override
+    public int getSrcPriceCts() {
+<span class="fc" id="L61">        return Optional.ofNullable(additionalServiceItem.getSrcPriceCts()).orElse(0);</span>
+    }
+
+    @Override
+    public Optional&lt;PromoCodeDiscount&gt; getDiscount() {
+<span class="fc" id="L66">        return Optional.ofNullable(discount)</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">                .filter(d -&gt; d.getDiscountType() != PromoCodeDiscount.DiscountType.FIXED_AMOUNT_RESERVATION);</span>
+    }
+
+    @Override
+    public String getCurrencyCode() {
+<span class="fc" id="L72">        return currencyCode;</span>
+    }
+
+    @Override
+    public Optional&lt;BigDecimal&gt; getOptionalVatPercentage() {
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (additionalService.vatType() == AdditionalService.VatType.INHERITED) {</span>
+<span class="fc" id="L78">            return Optional.ofNullable(eventVatPercentage);</span>
+        } else {
+<span class="nc" id="L80">            return Optional.empty();</span>
+        }
+    }
+
+    @Override
+    public VatStatus getVatStatus() {
+<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (additionalService.vatType() == AdditionalService.VatType.INHERITED) {</span>
+<span class="fc" id="L87">            return eventVatStatus;</span>
+        } else {
+<span class="fc" id="L89">            return VatStatus.NONE;</span>
+        }
+    }
+
+    @Override
+    public BigDecimal getTaxablePrice() {
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (getVatStatus() == VatStatus.NONE) {</span>
+<span class="fc" id="L96">            return BigDecimal.ZERO;</span>
+        }
+<span class="fc" id="L98">        return MonetaryUtil.centsToUnit(getSrcPriceCts(), getCurrencyCode()).subtract(getAppliedDiscount());</span>
+    }
+
+    public static AdditionalServiceItemPriceContainer from(
+            AdditionalServiceItem item,
+            AdditionalService additionalService,
+            PurchaseContext purchaseContext,
+            PromoCodeDiscount discount) {
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        var discountToApply = isDiscountCompatible(discount)</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">                        &amp;&amp; additionalService.type() != AdditionalService.AdditionalServiceType.DONATION</span>
+<span class="fc" id="L108">                ? discount</span>
+<span class="fc" id="L109">                : null;</span>
+<span class="fc" id="L110">        return new AdditionalServiceItemPriceContainer(</span>
+                item,
+                additionalService,
+<span class="fc" id="L113">                purchaseContext.getCurrency(),</span>
+                discountToApply,
+<span class="fc" id="L115">                purchaseContext.getVatStatus(),</span>
+<span class="fc" id="L116">                purchaseContext.getVat());</span>
+    }
+
+    private static boolean isDiscountCompatible(PromoCodeDiscount discount) {
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        return discount != null</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">                &amp;&amp; discount.getCodeType() == PromoCodeDiscount.CodeType.DISCOUNT</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">                &amp;&amp; discount.getDiscountType() == PromoCodeDiscount.DiscountType.PERCENTAGE;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

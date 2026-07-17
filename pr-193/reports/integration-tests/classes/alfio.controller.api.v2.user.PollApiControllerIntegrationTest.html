@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - PollApiControllerIntegrationTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>PollApiControllerIntegrationTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/alfio.controller.api.v2.user.html">alfio.controller.api.v2.user</a> &gt; PollApiControllerIntegrationTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">7</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">2.355s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">getAll()</td>
+<td class="success">0.354s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getAllFailedTicketNotCheckedIn()</td>
+<td class="success">0.332s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getAllFailedTicketNotCheckedInAndPollDraft()</td>
+<td class="success">0.341s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getAllPollClosedEmptyList()</td>
+<td class="success">0.329s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getSingle()</td>
+<td class="success">0.338s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">registerAnswer()</td>
+<td class="success">0.331s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">registerAnswerFailedTicketNotCheckedIn()</td>
+<td class="success">0.330s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2026-07-17T17:42:40.727Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : init
+2026-07-17T17:42:40.959Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : pollId 3
+2026-07-17T17:42:40.980Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : updated visibility [Poll[id=3, status=OPEN, title={en=test poll}, description=null, allowedTags=[], order=0, eventId=79, organizationId=84]]
+2026-07-17T17:42:40.986Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : active [Poll[id=3, status=OPEN, title={en=test poll}, description=null, allowedTags=[], order=0, eventId=79, organizationId=84]]
+2026-07-17T17:42:41.027Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T17:42:41.028Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T17:42:41.029Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T17:42:41.044Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 84 (66ed9749-c11e-4749-806b-07d56229c856) initiated by user TEST
+2026-07-17T17:42:41.045Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 84
+2026-07-17T17:42:41.046Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T17:42:41.046Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-17T17:42:41.047Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:41.048Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:41.048Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:41.049Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:41.049Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:41.050Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:41.050Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:41.051Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:41.051Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:41.051Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:41.052Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:41.056Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:41.057Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 85 (fe710ae2-6e7f-4b4b-a3a1-286554497087) initiated by user TEST
+2026-07-17T17:42:41.058Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 1 user(s) from organization 85
+2026-07-17T17:42:41.059Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 invoice sequences
+2026-07-17T17:42:41.059Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T17:42:41.060Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:41.061Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:41.061Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:41.061Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:41.062Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:41.062Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:41.063Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:41.063Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:41.063Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:41.064Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:41.064Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:41.066Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:41.082Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : init
+2026-07-17T17:42:41.312Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : pollId 4
+2026-07-17T17:42:41.359Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T17:42:41.360Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T17:42:41.361Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T17:42:41.375Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 86 (46f365a0-ea59-4b18-82bf-20db638c6f71) initiated by user TEST
+2026-07-17T17:42:41.377Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 86
+2026-07-17T17:42:41.377Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T17:42:41.378Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-17T17:42:41.379Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:41.379Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:41.380Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:41.380Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:41.380Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:41.381Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:41.382Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:41.382Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:41.382Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:41.383Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:41.383Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:41.387Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:41.388Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 87 (7537692d-c019-4ae7-9ce6-8d954eb99317) initiated by user TEST
+2026-07-17T17:42:41.390Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 1 user(s) from organization 87
+2026-07-17T17:42:41.390Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 invoice sequences
+2026-07-17T17:42:41.391Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T17:42:41.392Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:41.392Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:41.393Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:41.393Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:41.393Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:41.394Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:41.395Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:41.395Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:41.395Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:41.396Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:41.396Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:41.400Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:41.415Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : init
+2026-07-17T17:42:41.642Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : pollId 5
+2026-07-17T17:42:41.694Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T17:42:41.694Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T17:42:41.696Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T17:42:41.710Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 88 (ca3e926d-fb73-4b34-bfd4-0bded35ded07) initiated by user TEST
+2026-07-17T17:42:41.712Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 88
+2026-07-17T17:42:41.713Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T17:42:41.713Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-17T17:42:41.714Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:41.715Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:41.715Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:41.715Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:41.716Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:41.717Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:41.717Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:41.717Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:41.718Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:41.718Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:41.718Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:41.723Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:41.723Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 89 (22b1ae37-80bd-4b72-b3e7-3cd28dba961b) initiated by user TEST
+2026-07-17T17:42:41.725Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 1 user(s) from organization 89
+2026-07-17T17:42:41.725Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 invoice sequences
+2026-07-17T17:42:41.726Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T17:42:41.727Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:41.727Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:41.728Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:41.728Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:41.728Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:41.729Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:41.729Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:41.730Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:41.730Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:41.730Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:41.731Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:41.733Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:41.747Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : init
+2026-07-17T17:42:41.975Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : pollId 6
+2026-07-17T17:42:42.023Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T17:42:42.023Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T17:42:42.024Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T17:42:42.038Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 90 (ceb10b3d-a945-4ef6-ab33-31a3e76dad99) initiated by user TEST
+2026-07-17T17:42:42.039Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 90
+2026-07-17T17:42:42.040Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T17:42:42.041Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-17T17:42:42.042Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:42.043Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:42.043Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:42.044Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:42.044Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:42.045Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:42.045Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:42.046Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:42.046Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:42.047Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:42.047Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:42.054Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:42.055Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 91 (2b435fa7-1afa-4ffa-9ddc-ee253cb15364) initiated by user TEST
+2026-07-17T17:42:42.056Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 1 user(s) from organization 91
+2026-07-17T17:42:42.057Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 invoice sequences
+2026-07-17T17:42:42.057Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T17:42:42.058Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:42.059Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:42.059Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:42.060Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:42.060Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:42.061Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:42.061Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:42.062Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:42.062Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:42.062Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:42.063Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:42.065Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:42.080Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : init
+2026-07-17T17:42:42.308Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : pollId 7
+2026-07-17T17:42:42.362Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T17:42:42.363Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T17:42:42.364Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T17:42:42.379Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 92 (6cc75c27-90e6-48b2-8e9e-4c5bfe1454f0) initiated by user TEST
+2026-07-17T17:42:42.381Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 92
+2026-07-17T17:42:42.381Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T17:42:42.382Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-17T17:42:42.384Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:42.384Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:42.385Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:42.385Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:42.386Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:42.386Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:42.387Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:42.387Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:42.388Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:42.388Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:42.388Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:42.393Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:42.393Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 93 (174473bf-a222-4ac3-8dfe-f40aae12c75c) initiated by user TEST
+2026-07-17T17:42:42.395Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 1 user(s) from organization 93
+2026-07-17T17:42:42.396Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 invoice sequences
+2026-07-17T17:42:42.396Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T17:42:42.397Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:42.397Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:42.398Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:42.398Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:42.399Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:42.399Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:42.400Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:42.400Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:42.400Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:42.401Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:42.401Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:42.404Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:42.421Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : init
+2026-07-17T17:42:42.651Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : pollId 8
+2026-07-17T17:42:42.698Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T17:42:42.699Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T17:42:42.700Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T17:42:42.714Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 94 (5442b72a-2b28-48f8-9445-321ef7d7c72f) initiated by user TEST
+2026-07-17T17:42:42.716Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 94
+2026-07-17T17:42:42.716Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T17:42:42.717Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-17T17:42:42.718Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:42.718Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:42.719Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:42.719Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:42.720Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:42.721Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:42.721Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:42.721Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:42.722Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:42.722Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:42.722Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:42.727Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:42.727Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 95 (2afd7baa-1a23-4f1a-ba38-a6626d76683c) initiated by user TEST
+2026-07-17T17:42:42.729Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 1 user(s) from organization 95
+2026-07-17T17:42:42.729Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 invoice sequences
+2026-07-17T17:42:42.730Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T17:42:42.730Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:42.731Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:42.731Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:42.732Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:42.732Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:42.733Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:42.733Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:42.733Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:42.734Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:42.734Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:42.735Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:42.737Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:42.753Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : init
+2026-07-17T17:42:42.983Z  INFO 3253 --- [Alf.io] [    Test worker] c.a.v.u.PollApiControllerIntegrationTest : pollId 9
+2026-07-17T17:42:43.031Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-17T17:42:43.032Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-17T17:42:43.033Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-17T17:42:43.047Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 96 (bc727e52-9286-4a4e-ae6c-88748623bd5b) initiated by user TEST
+2026-07-17T17:42:43.048Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 96
+2026-07-17T17:42:43.049Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-17T17:42:43.049Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 auditing rows
+2026-07-17T17:42:43.051Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:43.051Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:43.051Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:43.052Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:43.052Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:43.053Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:43.054Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:43.054Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:43.055Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:43.055Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:43.055Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:43.063Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-17T17:42:43.063Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 97 (cfb047c3-da21-415f-bebc-1a3d24b435b1) initiated by user TEST
+2026-07-17T17:42:43.065Z  WARN 3253 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 1 user(s) from organization 97
+2026-07-17T17:42:43.066Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 invoice sequences
+2026-07-17T17:42:43.066Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-17T17:42:43.067Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-17T17:42:43.068Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-17T17:42:43.068Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-17T17:42:43.069Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-17T17:42:43.069Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-17T17:42:43.070Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-17T17:42:43.070Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-17T17:42:43.071Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-17T17:42:43.071Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-17T17:42:43.071Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-17T17:42:43.072Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-17T17:42:43.074Z  INFO 3253 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.14.4</a> at Jul 17, 2026, 5:44:42 PM</p>
+</div>
+</div>
+</body>
+</html>
