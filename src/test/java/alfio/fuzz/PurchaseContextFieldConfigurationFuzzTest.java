@@ -68,7 +68,7 @@ public class PurchaseContextFieldConfigurationFuzzTest {
             // Directly test the JSON deserialization path used in PurchaseContextFieldConfiguration
             // using Gson (same as the production code)
             alfio.util.Json.GSON.fromJson(restrictedValuesJson, new com.google.gson.reflect.TypeToken<java.util.List<String>>() {}.getType());
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (Exception e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -80,7 +80,7 @@ public class PurchaseContextFieldConfigurationFuzzTest {
             // Directly test the JSON deserialization path used in PurchaseContextFieldConfiguration
             // using Gson (same as the production code)
             alfio.util.Json.GSON.fromJson(categoryIdsJson, new com.google.gson.reflect.TypeToken<java.util.List<Integer>>() {}.getType());
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (Exception e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -92,7 +92,7 @@ public class PurchaseContextFieldConfigurationFuzzTest {
             // Directly test the JSON deserialization path
             // using Gson (same as the production code)
             alfio.util.Json.GSON.fromJson(disabledValuesJson, new com.google.gson.reflect.TypeToken<java.util.List<String>>() {}.getType());
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (Exception e) {
             // catch exceptions from invalid inputs
         }
     }

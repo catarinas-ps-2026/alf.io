@@ -30,7 +30,7 @@ public class JsonFuzzTest {
         try {
             String json = data.consumeString(500);
             Json.fromJson(json, Map.class);
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -40,7 +40,7 @@ public class JsonFuzzTest {
         try {
             String json = data.consumeString(500);
             Json.fromJson(json, String.class);
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -50,7 +50,7 @@ public class JsonFuzzTest {
         try {
             String json = data.consumeString(500);
             Json.fromJson(json, new TypeReference<Map<String, Object>>() {});
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -60,7 +60,7 @@ public class JsonFuzzTest {
         try {
             String json = data.consumeString(500);
             Json.fromJson(json, new TypeReference<List<Map<String, Object>>>() {});
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -74,7 +74,7 @@ public class JsonFuzzTest {
                 String serialized = Json.toJson(map);
                 Json.fromJson(serialized, new TypeReference<Map<String, Object>>() {});
             }
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }

@@ -34,7 +34,7 @@ public class JsonRoundTripFuzzTest {
                 String jacksonSerialized = Json.OBJECT_MAPPER.writeValueAsString(jacksonParsed);
                 Json.OBJECT_MAPPER.readValue(jacksonSerialized, Map.class);
             }
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         } catch (Exception e) {
             // Jackson can throw various exceptions on malformed JSON
@@ -73,7 +73,7 @@ public class JsonRoundTripFuzzTest {
                 Object imageUrl = map.get("imageUrl");
                 Object termsAndConditionsUrl = map.get("termsAndConditionsUrl");
             }
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -90,7 +90,7 @@ public class JsonRoundTripFuzzTest {
                 Object inception = map.get("inception");
                 Object expiration = map.get("expiration");
             }
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }

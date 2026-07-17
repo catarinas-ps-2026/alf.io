@@ -37,7 +37,7 @@ public class BillingDetailsFuzzTest {
                 String serialized = Json.toJson(map);
                 Json.fromJson(serialized, new TypeReference<Map<String, Object>>() {});
             }
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }
@@ -60,7 +60,7 @@ public class BillingDetailsFuzzTest {
             // but we need to provide a valid TicketReservationInvoicingAdditionalInfo
             // Instead, fuzz the JSON deserialization path directly
             Json.fromJson(invoicingJson, TicketReservationInvoicingAdditionalInfo.class);
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }

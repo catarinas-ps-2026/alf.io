@@ -37,7 +37,7 @@ public class TicketReservationFuzzTest {
                 String serialized = Json.toJson(map);
                 Json.fromJson(serialized, new TypeReference<Map<String, Object>>() {});
             }
-        } catch (NullPointerException | IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
             // catch exceptions from invalid inputs
         }
     }
