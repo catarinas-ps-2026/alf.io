@@ -59,7 +59,7 @@ import java.io.IOException;
 
     public static &lt;T&gt; T fromJson(String value, Class&lt;T&gt; valueType) {
         try {
-<span class="fc" id="L62">            return OBJECT_MAPPER.readValue(value, valueType);</span>
+<span class="nc" id="L62">            return OBJECT_MAPPER.readValue(value, valueType);</span>
 <span class="fc" id="L63">        } catch (IOException e) {</span>
 <span class="fc" id="L64">            throw new IllegalStateException(e);</span>
         }
@@ -68,8 +68,8 @@ import java.io.IOException;
     public static &lt;T&gt; T fromJson(String value, TypeReference&lt;T&gt; reference) {
         try {
 <span class="nc" id="L70">            return OBJECT_MAPPER.readValue(value, reference);</span>
-<span class="nc" id="L71">        } catch (IOException e) {</span>
-<span class="nc" id="L72">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L71">        } catch (IOException e) {</span>
+<span class="fc" id="L72">            throw new IllegalStateException(e);</span>
         }
     }
 }

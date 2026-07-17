@@ -32,13 +32,13 @@ import org.mozilla.javascript.ast.*;
  */
 class JSSymbol {
     private final AstNode node;
-<span class="nc" id="L35">    private final ArrayList&lt;JSSymbol&gt; children = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L36">    private final Map&lt;String, JSSymbol&gt; localVars = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L37">    private JSSymbol parent = null;</span>
+<span class="fc" id="L35">    private final ArrayList&lt;JSSymbol&gt; children = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L36">    private final Map&lt;String, JSSymbol&gt; localVars = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L37">    private JSSymbol parent = null;</span>
 
-<span class="nc" id="L39">    public JSSymbol(AstNode node) {</span>
-<span class="nc" id="L40">        this.node = node;</span>
-<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (node instanceof FunctionNode funcNode) {</span>
+<span class="fc" id="L39">    public JSSymbol(AstNode node) {</span>
+<span class="fc" id="L40">        this.node = node;</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (node instanceof FunctionNode funcNode) {</span>
 <span class="nc" id="L42">            List&lt;AstNode&gt; args = funcNode.getParams();</span>
 <span class="nc bnc" id="L43" title="All 2 branches missed.">            if (args != null) {</span>
 <span class="nc bnc" id="L44" title="All 2 branches missed.">                for (AstNode argNode : args) {</span>
@@ -46,7 +46,7 @@ class JSSymbol {
 <span class="nc" id="L46">                }</span>
             }
         }
-<span class="nc" id="L49">    }</span>
+<span class="fc" id="L49">    }</span>
 
     public int getType() {
 <span class="nc" id="L52">        return node.getType();</span>

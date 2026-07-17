@@ -160,16 +160,16 @@ public class ScriptingExecutionService {
         private final Map&lt;String, Class&lt;?&gt;&gt; mapping;
         private final Scriptable scope;
 
-        JavaClassInterop(Map&lt;String, Class&lt;?&gt;&gt; mapping, Scriptable scope) {
-            this.mapping = mapping;
-            this.scope = scope;
-        }
+<span class="nc" id="L163">        JavaClassInterop(Map&lt;String, Class&lt;?&gt;&gt; mapping, Scriptable scope) {</span>
+<span class="nc" id="L164">            this.mapping = mapping;</span>
+<span class="nc" id="L165">            this.scope = scope;</span>
+<span class="nc" id="L166">        }</span>
 
         public NativeJavaClass type(String clazz) {
-            if (mapping.containsKey(clazz)) {
-                return new NativeJavaClass(scope, mapping.get(clazz));
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            if (mapping.containsKey(clazz)) {</span>
+<span class="nc" id="L170">                return new NativeJavaClass(scope, mapping.get(clazz));</span>
             } else {
-                throw new IllegalArgumentException(&quot;Type &quot; + clazz + &quot; is not recognized&quot;);
+<span class="nc" id="L172">                throw new IllegalArgumentException(&quot;Type &quot; + clazz + &quot; is not recognized&quot;);</span>
             }
         }
     }

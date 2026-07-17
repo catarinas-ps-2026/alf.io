@@ -28,19 +28,19 @@ public class ScriptValidation {
 
     private final String script;
 
-<span class="nc" id="L31">    public ScriptValidation(String script) {</span>
-<span class="nc" id="L32">        this.script = script;</span>
-<span class="nc" id="L33">    }</span>
+<span class="fc" id="L31">    public ScriptValidation(String script) {</span>
+<span class="fc" id="L32">        this.script = script;</span>
+<span class="fc" id="L33">    }</span>
 
     public void validate() {
-<span class="nc" id="L36">        CompilerEnvirons env = new CompilerEnvirons();</span>
-<span class="nc" id="L37">        env.setRecoverFromErrors(true);</span>
+<span class="fc" id="L36">        CompilerEnvirons env = new CompilerEnvirons();</span>
+<span class="fc" id="L37">        env.setRecoverFromErrors(true);</span>
 
-<span class="nc" id="L39">        Parser parser = new Parser(env, new JSErrorReporter());</span>
-<span class="nc" id="L40">        AstRoot rootNode = parser.parse(script, null, 0);</span>
+<span class="fc" id="L39">        Parser parser = new Parser(env, new JSErrorReporter());</span>
+<span class="fc" id="L40">        AstRoot rootNode = parser.parse(script, null, 0);</span>
 
-<span class="nc" id="L42">        JSNodeVisitor nodeVisitor = new JSNodeVisitor();</span>
-<span class="nc" id="L43">        rootNode.visit(nodeVisitor);</span>
-<span class="nc" id="L44">    }</span>
+<span class="fc" id="L42">        JSNodeVisitor nodeVisitor = new JSNodeVisitor();</span>
+<span class="fc" id="L43">        rootNode.visit(nodeVisitor);</span>
+<span class="fc" id="L44">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

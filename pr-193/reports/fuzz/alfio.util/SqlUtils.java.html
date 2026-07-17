@@ -37,10 +37,10 @@ public class SqlUtils {
     }
 
     public static ZonedDateTime timestampToZoneDateTime(Timestamp timestamp) {
-<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (timestamp == null) {</span>
-<span class="nc" id="L41">            return null;</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (timestamp == null) {</span>
+<span class="fc" id="L41">            return null;</span>
         }
-<span class="nc" id="L43">        return ZonedDateTime.ofInstant(</span>
+<span class="pc" id="L43">        return ZonedDateTime.ofInstant(</span>
 <span class="nc" id="L44">                timestamp.toInstant(), ClockProvider.clock().getZone());</span>
     }
 }

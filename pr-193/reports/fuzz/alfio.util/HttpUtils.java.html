@@ -45,7 +45,7 @@ public final class HttpUtils {
     }
 
     public static boolean statusCodeIsSuccessful(int statusCode) {
-<span class="nc bnc" id="L48" title="All 4 branches missed.">        return statusCode &gt;= 200 &amp;&amp; statusCode &lt; 300;</span>
+<span class="pc bpc" id="L48" title="3 of 4 branches missed.">        return statusCode &gt;= 200 &amp;&amp; statusCode &lt; 300;</span>
     }
 
     public static HttpResponse&lt;String&gt; postForm(HttpClient httpClient, String url, Map&lt;String, String&gt; params)
@@ -59,14 +59,14 @@ public final class HttpUtils {
     }
 
     public static String basicAuth(String username, String password) {
-<span class="nc" id="L62">        return &quot;Basic &quot;</span>
-<span class="nc" id="L63">                + Base64.getEncoder().encodeToString((username + &quot;:&quot; + password).getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L62">        return &quot;Basic &quot;</span>
+<span class="fc" id="L63">                + Base64.getEncoder().encodeToString((username + &quot;:&quot; + password).getBytes(StandardCharsets.UTF_8));</span>
     }
 
     public static &lt;K, V&gt; HttpRequest.BodyPublisher ofFormUrlEncodedBody(Map&lt;K, V&gt; data) {
-<span class="nc" id="L67">        Objects.requireNonNull(data);</span>
-<span class="nc" id="L68">        StringBuilder sb = new StringBuilder();</span>
-<span class="nc" id="L69">        data.forEach((k, v) -&gt; {</span>
+<span class="fc" id="L67">        Objects.requireNonNull(data);</span>
+<span class="fc" id="L68">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L69">        data.forEach((k, v) -&gt; {</span>
 <span class="nc bnc" id="L70" title="All 2 branches missed.">            if (sb.length() &gt; 0) {</span>
 <span class="nc" id="L71">                sb.append(&quot;&amp;&quot;);</span>
             }
@@ -74,60 +74,60 @@ public final class HttpUtils {
 <span class="nc" id="L74">                    .append(&quot;=&quot;)</span>
 <span class="nc" id="L75">                    .append(URLEncoder.encode(v.toString(), StandardCharsets.UTF_8));</span>
 <span class="nc" id="L76">        });</span>
-<span class="nc" id="L77">        return HttpRequest.BodyPublishers.ofString(sb.toString());</span>
+<span class="fc" id="L77">        return HttpRequest.BodyPublishers.ofString(sb.toString());</span>
     }
 
     // https://stackoverflow.com/a/54675316
-    public static class MultiPartBodyPublisher {
-        private final List&lt;PartsSpecification&gt; partsSpecificationList = new ArrayList&lt;&gt;();
-        private final String boundary = UUID.randomUUID().toString();
+<span class="nc" id="L81">    public static class MultiPartBodyPublisher {</span>
+<span class="nc" id="L82">        private final List&lt;PartsSpecification&gt; partsSpecificationList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L83">        private final String boundary = UUID.randomUUID().toString();</span>
 
         public HttpRequest.BodyPublisher build() {
-            if (partsSpecificationList.size() == 0) {
-                throw new IllegalStateException(&quot;Must have at least one part to build multipart message.&quot;);
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (partsSpecificationList.size() == 0) {</span>
+<span class="nc" id="L87">                throw new IllegalStateException(&quot;Must have at least one part to build multipart message.&quot;);</span>
             }
-            addFinalBoundaryPart();
-            return HttpRequest.BodyPublishers.ofByteArrays(PartsIterator::new);
+<span class="nc" id="L89">            addFinalBoundaryPart();</span>
+<span class="nc" id="L90">            return HttpRequest.BodyPublishers.ofByteArrays(PartsIterator::new);</span>
         }
 
         public String getBoundary() {
-            return boundary;
+<span class="nc" id="L94">            return boundary;</span>
         }
 
         public MultiPartBodyPublisher addPart(String name, String value) {
-            PartsSpecification newPart = new PartsSpecification();
-            newPart.type = PartsSpecification.TYPE.STRING;
-            newPart.name = name;
-            newPart.value = value;
-            partsSpecificationList.add(newPart);
-            return this;
+<span class="nc" id="L98">            PartsSpecification newPart = new PartsSpecification();</span>
+<span class="nc" id="L99">            newPart.type = PartsSpecification.TYPE.STRING;</span>
+<span class="nc" id="L100">            newPart.name = name;</span>
+<span class="nc" id="L101">            newPart.value = value;</span>
+<span class="nc" id="L102">            partsSpecificationList.add(newPart);</span>
+<span class="nc" id="L103">            return this;</span>
         }
 
         public MultiPartBodyPublisher addPart(
                 String name, Supplier&lt;InputStream&gt; value, String filename, String contentType) {
-            PartsSpecification newPart = new PartsSpecification();
-            newPart.type = PartsSpecification.TYPE.STREAM;
-            newPart.name = name;
-            newPart.stream = value;
-            newPart.filename = filename;
-            newPart.contentType = contentType;
-            partsSpecificationList.add(newPart);
-            return this;
+<span class="nc" id="L108">            PartsSpecification newPart = new PartsSpecification();</span>
+<span class="nc" id="L109">            newPart.type = PartsSpecification.TYPE.STREAM;</span>
+<span class="nc" id="L110">            newPart.name = name;</span>
+<span class="nc" id="L111">            newPart.stream = value;</span>
+<span class="nc" id="L112">            newPart.filename = filename;</span>
+<span class="nc" id="L113">            newPart.contentType = contentType;</span>
+<span class="nc" id="L114">            partsSpecificationList.add(newPart);</span>
+<span class="nc" id="L115">            return this;</span>
         }
 
         private void addFinalBoundaryPart() {
-            PartsSpecification newPart = new PartsSpecification();
-            newPart.type = PartsSpecification.TYPE.FINAL_BOUNDARY;
-            newPart.value = &quot;--&quot; + boundary + &quot;--&quot;;
-            partsSpecificationList.add(newPart);
-        }
+<span class="nc" id="L119">            PartsSpecification newPart = new PartsSpecification();</span>
+<span class="nc" id="L120">            newPart.type = PartsSpecification.TYPE.FINAL_BOUNDARY;</span>
+<span class="nc" id="L121">            newPart.value = &quot;--&quot; + boundary + &quot;--&quot;;</span>
+<span class="nc" id="L122">            partsSpecificationList.add(newPart);</span>
+<span class="nc" id="L123">        }</span>
 
-        static class PartsSpecification {
+<span class="nc" id="L125">        static class PartsSpecification {</span>
 
-            public enum TYPE {
-                STRING,
-                STREAM,
-                FINAL_BOUNDARY
+<span class="nc" id="L127">            public enum TYPE {</span>
+<span class="nc" id="L128">                STRING,</span>
+<span class="nc" id="L129">                STREAM,</span>
+<span class="nc" id="L130">                FINAL_BOUNDARY</span>
             }
 
             PartsSpecification.TYPE type;
@@ -146,77 +146,77 @@ public final class HttpUtils {
             private boolean done;
             private byte[] next;
 
-            PartsIterator() {
-                iter = partsSpecificationList.iterator();
-            }
+<span class="nc" id="L149">            PartsIterator() {</span>
+<span class="nc" id="L150">                iter = partsSpecificationList.iterator();</span>
+<span class="nc" id="L151">            }</span>
 
             @Override
             public boolean hasNext() {
-                if (done) {
-                    return false;
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                if (done) {</span>
+<span class="nc" id="L156">                    return false;</span>
                 }
-                if (next != null) {
-                    return true;
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                if (next != null) {</span>
+<span class="nc" id="L159">                    return true;</span>
                 }
                 try {
-                    next = computeNext();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+<span class="nc" id="L162">                    next = computeNext();</span>
+<span class="nc" id="L163">                } catch (IOException e) {</span>
+<span class="nc" id="L164">                    throw new UncheckedIOException(e);</span>
+<span class="nc" id="L165">                }</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                if (next == null) {</span>
+<span class="nc" id="L167">                    done = true;</span>
+<span class="nc" id="L168">                    return false;</span>
                 }
-                if (next == null) {
-                    done = true;
-                    return false;
-                }
-                return true;
+<span class="nc" id="L170">                return true;</span>
             }
 
             @Override
             public byte[] next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                if (!hasNext()) {</span>
+<span class="nc" id="L176">                    throw new NoSuchElementException();</span>
                 }
-                byte[] res = next;
-                next = null;
-                return res;
+<span class="nc" id="L178">                byte[] res = next;</span>
+<span class="nc" id="L179">                next = null;</span>
+<span class="nc" id="L180">                return res;</span>
             }
 
             private byte[] computeNext() throws IOException {
-                if (currentFileInput == null) {
-                    if (!iter.hasNext()) return null;
-                    PartsSpecification nextPart = iter.next();
-                    if (PartsSpecification.TYPE.STRING.equals(nextPart.type)) {
-                        String part = &quot;--&quot; + boundary + &quot;\r\n&quot; + &quot;Content-Disposition: form-data; name=&quot;
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                if (currentFileInput == null) {</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                    if (!iter.hasNext()) return null;</span>
+<span class="nc" id="L186">                    PartsSpecification nextPart = iter.next();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                    if (PartsSpecification.TYPE.STRING.equals(nextPart.type)) {</span>
+<span class="nc" id="L188">                        String part = &quot;--&quot; + boundary + &quot;\r\n&quot; + &quot;Content-Disposition: form-data; name=&quot;</span>
                                 + nextPart.name + &quot;\r\n&quot; + &quot;Content-Type: text/plain; charset=UTF-8\r\n\r\n&quot;
                                 + nextPart.value
                                 + &quot;\r\n&quot;;
-                        return part.getBytes(StandardCharsets.UTF_8);
+<span class="nc" id="L192">                        return part.getBytes(StandardCharsets.UTF_8);</span>
                     }
-                    if (PartsSpecification.TYPE.FINAL_BOUNDARY.equals(nextPart.type)) {
-                        return nextPart.value.getBytes(StandardCharsets.UTF_8);
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                    if (PartsSpecification.TYPE.FINAL_BOUNDARY.equals(nextPart.type)) {</span>
+<span class="nc" id="L195">                        return nextPart.value.getBytes(StandardCharsets.UTF_8);</span>
                     }
-                    String filename = nextPart.filename;
-                    String contentType = nextPart.contentType;
+<span class="nc" id="L197">                    String filename = nextPart.filename;</span>
+<span class="nc" id="L198">                    String contentType = nextPart.contentType;</span>
 
-                    if (contentType == null) {
-                        contentType = &quot;application/octet-stream&quot;;
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                    if (contentType == null) {</span>
+<span class="nc" id="L201">                        contentType = &quot;application/octet-stream&quot;;</span>
                     }
-                    currentFileInput = nextPart.stream.get();
+<span class="nc" id="L203">                    currentFileInput = nextPart.stream.get();</span>
 
-                    String partHeader = &quot;--&quot; + boundary + &quot;\r\n&quot; + &quot;Content-Disposition: form-data; name=&quot;
+<span class="nc" id="L205">                    String partHeader = &quot;--&quot; + boundary + &quot;\r\n&quot; + &quot;Content-Disposition: form-data; name=&quot;</span>
                             + nextPart.name + &quot;; filename=&quot; + filename + &quot;\r\n&quot; + &quot;Content-Type: &quot;
                             + contentType + &quot;\r\n\r\n&quot;;
-                    return partHeader.getBytes(StandardCharsets.UTF_8);
+<span class="nc" id="L208">                    return partHeader.getBytes(StandardCharsets.UTF_8);</span>
                 } else {
-                    byte[] buf = new byte[8192];
-                    int r = currentFileInput.read(buf);
-                    if (r &gt; 0) {
-                        byte[] actualBytes = new byte[r];
-                        System.arraycopy(buf, 0, actualBytes, 0, r);
-                        return actualBytes;
+<span class="nc" id="L210">                    byte[] buf = new byte[8192];</span>
+<span class="nc" id="L211">                    int r = currentFileInput.read(buf);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                    if (r &gt; 0) {</span>
+<span class="nc" id="L213">                        byte[] actualBytes = new byte[r];</span>
+<span class="nc" id="L214">                        System.arraycopy(buf, 0, actualBytes, 0, r);</span>
+<span class="nc" id="L215">                        return actualBytes;</span>
                     } else {
-                        currentFileInput.close();
-                        currentFileInput = null;
-                        return &quot;\r\n&quot;.getBytes(StandardCharsets.UTF_8);
+<span class="nc" id="L217">                        currentFileInput.close();</span>
+<span class="nc" id="L218">                        currentFileInput = null;</span>
+<span class="nc" id="L219">                        return &quot;\r\n&quot;.getBytes(StandardCharsets.UTF_8);</span>
                     }
                 }
             }

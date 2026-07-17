@@ -22,14 +22,14 @@ public class MiscUtils {
     private MiscUtils() {}
 
     public static &lt;T&gt; T getAtIndexOrNull(List&lt;T&gt; elements, int index) {
-<span class="nc bnc" id="L25" title="All 6 branches missed.">        if (elements == null || index &lt; 0 || index &gt;= elements.size()) {</span>
-<span class="nc" id="L26">            return null;</span>
+<span class="pc bpc" id="L25" title="3 of 6 branches missed.">        if (elements == null || index &lt; 0 || index &gt;= elements.size()) {</span>
+<span class="fc" id="L26">            return null;</span>
         }
 <span class="nc" id="L28">        return elements.get(index);</span>
     }
 
     public static String removeTabsAndNewlines(String input) {
-<span class="nc bnc" id="L32" title="All 2 branches missed.">        return input != null ? input.replaceAll(&quot;[\n\r]&quot;, &quot;_&quot;) : &quot;&quot;;</span>
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        return input != null ? input.replaceAll(&quot;[\n\r]&quot;, &quot;_&quot;) : &quot;&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

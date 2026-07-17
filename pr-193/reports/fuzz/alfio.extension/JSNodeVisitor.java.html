@@ -28,23 +28,23 @@ import org.mozilla.javascript.ast.*;
  *
  * Implements Rhino’s NodeVisitor interface and builds hierarchy of JSSymbol
  */
-<span class="nc" id="L31">class JSNodeVisitor implements NodeVisitor {</span>
-<span class="nc" id="L32">    private JSSymbol root = null;</span>
-<span class="nc" id="L33">    private final ArrayList&lt;String&gt; functionCalls = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L31">class JSNodeVisitor implements NodeVisitor {</span>
+<span class="fc" id="L32">    private JSSymbol root = null;</span>
+<span class="fc" id="L33">    private final ArrayList&lt;String&gt; functionCalls = new ArrayList&lt;&gt;();</span>
 
     @Override
     public boolean visit(AstNode node) {
-<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (node == null) {</span>
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (node == null) {</span>
 <span class="nc" id="L38">            return false;</span>
         }
-<span class="nc" id="L40">        checkNode(node);</span>
-<span class="nc" id="L41">        return true;</span>
+<span class="fc" id="L40">        checkNode(node);</span>
+<span class="fc" id="L41">        return true;</span>
     }
 
     private void checkNode(AstNode node) {
-<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (root == null) {</span>
-<span class="nc" id="L46">            root = new JSSymbol(node);</span>
-<span class="nc" id="L47">            return;</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        if (root == null) {</span>
+<span class="fc" id="L46">            root = new JSSymbol(node);</span>
+<span class="fc" id="L47">            return;</span>
         }
 <span class="nc" id="L49">        int nodeType = node.getType();</span>
         // we will track variables and functions, function calls, loops,

@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 
 public class JSON {
 
-<span class="nc" id="L28">    private static final Logger log = LoggerFactory.getLogger(JSON.class);</span>
-<span class="nc" id="L29">    private static final Type PARSE_RETURN_TYPE = new TypeToken&lt;Map&lt;String, Object&gt;&gt;() {}.getType();</span>
+<span class="fc" id="L28">    private static final Logger log = LoggerFactory.getLogger(JSON.class);</span>
+<span class="fc" id="L29">    private static final Type PARSE_RETURN_TYPE = new TypeToken&lt;Map&lt;String, Object&gt;&gt;() {}.getType();</span>
 
     private JSON() {}
 
@@ -46,7 +46,7 @@ public class JSON {
 
     public static Map&lt;String, ?&gt; parse(String s) {
         try {
-<span class="nc" id="L49">            return Json.GSON.fromJson(s, PARSE_RETURN_TYPE);</span>
+<span class="fc" id="L49">            return Json.GSON.fromJson(s, PARSE_RETURN_TYPE);</span>
 <span class="nc" id="L50">        } catch (Exception e) {</span>
 <span class="nc" id="L51">            log.error(&quot;malformed JSON&quot;, e);</span>
 <span class="nc" id="L52">            return null;</span>
@@ -54,8 +54,8 @@ public class JSON {
     }
 
     public static Map&lt;String, ?&gt; parse(String s, Object reviver) {
-<span class="nc" id="L57">        log.warn(&quot;JSON.parse: Ignoring reviver param&quot;);</span>
-<span class="nc" id="L58">        return parse(s);</span>
+<span class="fc" id="L57">        log.warn(&quot;JSON.parse: Ignoring reviver param&quot;);</span>
+<span class="fc" id="L58">        return parse(s);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

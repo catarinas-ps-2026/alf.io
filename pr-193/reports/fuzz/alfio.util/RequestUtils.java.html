@@ -36,7 +36,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 
 public class RequestUtils {
 
-<span class="nc" id="L39">    private static final Logger log = LoggerFactory.getLogger(RequestUtils.class);</span>
+<span class="fc" id="L39">    private static final Logger log = LoggerFactory.getLogger(RequestUtils.class);</span>
 
     private RequestUtils() {}
 
@@ -49,11 +49,11 @@ public class RequestUtils {
         }
     }
 
-<span class="nc" id="L52">    private static final Pattern SOCIAL_MEDIA_UA = Pattern.compile(</span>
+<span class="fc" id="L52">    private static final Pattern SOCIAL_MEDIA_UA = Pattern.compile(</span>
             &quot;facebookexternalhit/|XING-contenttabreceiver/|LinkedInBot/|Twitterbot/|WhatsApp|Slackbot|TelegramBot&quot;);
 
     public static boolean isSocialMediaShareUA(String ua) {
-<span class="nc bnc" id="L56" title="All 4 branches missed.">        return ua != null &amp;&amp; SOCIAL_MEDIA_UA.matcher(ua).find();</span>
+<span class="pc bpc" id="L56" title="2 of 4 branches missed.">        return ua != null &amp;&amp; SOCIAL_MEDIA_UA.matcher(ua).find();</span>
     }
 
     public static Locale getMatchingLocale(ServletWebRequest request, List&lt;String&gt; allowedLanguages) {

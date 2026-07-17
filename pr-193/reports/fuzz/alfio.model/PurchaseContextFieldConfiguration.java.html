@@ -29,9 +29,9 @@ import org.apache.commons.collections4.CollectionUtils;
 @Getter
 public class PurchaseContextFieldConfiguration {
 
-<span class="nc" id="L32">    public static final Set&lt;Context&gt; EVENT_RELATED_CONTEXTS =</span>
-<span class="nc" id="L33">            Set.copyOf(EnumSet.of(Context.ATTENDEE, Context.ADDITIONAL_SERVICE));</span>
-<span class="nc" id="L34">    private static final Pattern COLON_SPLITTER = Pattern.compile(&quot;:&quot;);</span>
+<span class="fc" id="L32">    public static final Set&lt;Context&gt; EVENT_RELATED_CONTEXTS =</span>
+<span class="fc" id="L33">            Set.copyOf(EnumSet.of(Context.ATTENDEE, Context.ADDITIONAL_SERVICE));</span>
+<span class="fc" id="L34">    private static final Pattern COLON_SPLITTER = Pattern.compile(&quot;:&quot;);</span>
 
     public enum Context {
         ATTENDEE,
@@ -77,30 +77,30 @@ public class PurchaseContextFieldConfiguration {
             @Column(&quot;additional_service_id&quot;) Integer additionalServiceId,
             @Column(&quot;ticket_category_ids&quot;) String ticketCategoryIds,
             @Column(&quot;field_disabled_values&quot;) String disabledValues,
-<span class="nc" id="L80">            @Column(&quot;display_at_check_in&quot;) boolean displayAtCheckIn) {</span>
-<span class="nc" id="L81">        this.id = id;</span>
-<span class="nc" id="L82">        this.eventId = eventId;</span>
-<span class="nc" id="L83">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
-<span class="nc" id="L84">        this.name = name;</span>
-<span class="nc" id="L85">        this.order = order;</span>
-<span class="nc" id="L86">        this.type = type;</span>
-<span class="nc" id="L87">        this.maxLength = maxLength;</span>
-<span class="nc" id="L88">        this.minLength = minLength;</span>
-<span class="nc" id="L89">        this.required = required;</span>
-<span class="nc" id="L90">        this.editable = editable;</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        this.restrictedValues = restrictedValues == null</span>
+<span class="fc" id="L80">            @Column(&quot;display_at_check_in&quot;) boolean displayAtCheckIn) {</span>
+<span class="fc" id="L81">        this.id = id;</span>
+<span class="fc" id="L82">        this.eventId = eventId;</span>
+<span class="fc" id="L83">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
+<span class="fc" id="L84">        this.name = name;</span>
+<span class="fc" id="L85">        this.order = order;</span>
+<span class="fc" id="L86">        this.type = type;</span>
+<span class="fc" id="L87">        this.maxLength = maxLength;</span>
+<span class="fc" id="L88">        this.minLength = minLength;</span>
+<span class="fc" id="L89">        this.required = required;</span>
+<span class="fc" id="L90">        this.editable = editable;</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        this.restrictedValues = restrictedValues == null</span>
 <span class="nc" id="L92">                ? Collections.emptyList()</span>
-<span class="nc" id="L93">                : Json.GSON.fromJson(restrictedValues, new TypeToken&lt;List&lt;String&gt;&gt;() {}.getType());</span>
-<span class="nc bnc" id="L94" title="All 2 branches missed.">        this.disabledValues = disabledValues == null</span>
+<span class="fc" id="L93">                : Json.GSON.fromJson(restrictedValues, new TypeToken&lt;List&lt;String&gt;&gt;() {}.getType());</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        this.disabledValues = disabledValues == null</span>
 <span class="nc" id="L95">                ? Collections.emptyList()</span>
-<span class="nc" id="L96">                : Json.GSON.fromJson(disabledValues, new TypeToken&lt;List&lt;String&gt;&gt;() {}.getType());</span>
-<span class="nc" id="L97">        this.context = context;</span>
-<span class="nc" id="L98">        this.additionalServiceId = additionalServiceId;</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        this.categoryIds = ticketCategoryIds == null</span>
+<span class="fc" id="L96">                : Json.GSON.fromJson(disabledValues, new TypeToken&lt;List&lt;String&gt;&gt;() {}.getType());</span>
+<span class="fc" id="L97">        this.context = context;</span>
+<span class="fc" id="L98">        this.additionalServiceId = additionalServiceId;</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        this.categoryIds = ticketCategoryIds == null</span>
 <span class="nc" id="L100">                ? Collections.emptyList()</span>
-<span class="nc" id="L101">                : Json.GSON.fromJson(ticketCategoryIds, new TypeToken&lt;List&lt;Integer&gt;&gt;() {}.getType());</span>
-<span class="nc" id="L102">        this.displayAtCheckIn = displayAtCheckIn;</span>
-<span class="nc" id="L103">    }</span>
+<span class="fc" id="L101">                : Json.GSON.fromJson(ticketCategoryIds, new TypeToken&lt;List&lt;Integer&gt;&gt;() {}.getType());</span>
+<span class="fc" id="L102">        this.displayAtCheckIn = displayAtCheckIn;</span>
+<span class="fc" id="L103">    }</span>
 
     public boolean isInputField() {
 <span class="nc" id="L106">        return type.startsWith(&quot;input:&quot;);</span>

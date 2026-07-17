@@ -55,12 +55,12 @@ public final class Validator {
 
     // source:
     // https://commons.apache.org/proper/commons-validator/apidocs/src-html/org/apache/commons/validator/routines/EmailValidator.html
-<span class="nc" id="L58">    private static final Pattern SIMPLE_E_MAIL_PATTERN =</span>
-<span class="nc" id="L59">            Pattern.compile(&quot;^\\p{javaLetterOrDigit}[^\\s@]*@\\p{javaLetterOrDigit}[^\\s]*$&quot;);</span>
+<span class="fc" id="L58">    private static final Pattern SIMPLE_E_MAIL_PATTERN =</span>
+<span class="fc" id="L59">            Pattern.compile(&quot;^\\p{javaLetterOrDigit}[^\\s@]*@\\p{javaLetterOrDigit}[^\\s]*$&quot;);</span>
     // this regex validates the e-mail to be a canonical address (i.e. test@example.org)
-<span class="nc" id="L61">    private static final Pattern CANONICAL_MAIL_VALIDATOR = Pattern.compile(</span>
+<span class="fc" id="L61">    private static final Pattern CANONICAL_MAIL_VALIDATOR = Pattern.compile(</span>
             &quot;^\\p{javaLetterOrDigit}[^\\s@]*@\\p{javaLetterOrDigit}[^\\s@]*\\.\\p{javaAlphabetic}{2,}$&quot;);
-<span class="nc" id="L63">    private static final Pattern FIELD_NAME_VALIDATOR = Pattern.compile(&quot;^[a-zA-Z0-9][a-zA-Z0-9-_]*$&quot;);</span>
+<span class="fc" id="L63">    private static final Pattern FIELD_NAME_VALIDATOR = Pattern.compile(&quot;^[a-zA-Z0-9][a-zA-Z0-9-_]*$&quot;);</span>
     private static final String ERROR_DESCRIPTION = &quot;error.description&quot;;
     private static final String EMAIL_KEY = &quot;email&quot;;
     private static final String ERROR_EMAIL = &quot;error.email&quot;;
@@ -70,7 +70,7 @@ public final class Validator {
     private static final String ADDITIONAL_PREFIX = &quot;additional[&quot;;
     private static final String ADDITIONAL_SERVICES = &quot;additionalServices&quot;;
     private static final String ERROR_RESTRICTED_VALUE = &quot;error.restrictedValue&quot;;
-<span class="nc" id="L73">    private static final Supplier&lt;LocalDate&gt; LOCAL_DATE_SUPPLIER = () -&gt; LocalDate.now(ClockProvider.clock());</span>
+<span class="pc" id="L73">    private static final Supplier&lt;LocalDate&gt; LOCAL_DATE_SUPPLIER = () -&gt; LocalDate.now(ClockProvider.clock());</span>
     private static final String DESCRIPTION = &quot;description&quot;;
     private static final String TITLE = &quot;title&quot;;
 
@@ -240,10 +240,10 @@ public final class Validator {
 <span class="nc" id="L240">        return evaluateValidationResult(errors);</span>
     }
 
-    enum RangeValidationResultType {
-        OK,
-        FAILED_BEGIN,
-        FAILED_END
+<span class="nc" id="L243">    enum RangeValidationResultType {</span>
+<span class="nc" id="L244">        OK,</span>
+<span class="nc" id="L245">        FAILED_BEGIN,</span>
+<span class="nc" id="L246">        FAILED_END</span>
     }
 
     static RangeValidationResultType checkDateRange(
@@ -332,41 +332,41 @@ public final class Validator {
                 List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFields,
                 List&lt;Ticket&gt; ticketsInReservation,
                 boolean eventSupportsAdditionalFieldsLink,
-                List&lt;AdditionalServiceItem&gt; additionalServiceItems) {
-            this.purchaseContextFields = purchaseContextFields;
-            this.ticketsInReservation = ticketsInReservation;
-            this.additionalFieldsForReservation = additionalServiceItems.stream()
-                    .map(AdditionalServiceItem::getAdditionalServiceId)
-                    .collect(Collectors.toSet());
-            this.firstTicketInReservation = ticketsInReservation.stream().findFirst();
-            this.eventSupportsAdditionalFieldsLink = eventSupportsAdditionalFieldsLink;
-            this.additionalServiceItems = additionalServiceItems;
-        }
+<span class="nc" id="L335">                List&lt;AdditionalServiceItem&gt; additionalServiceItems) {</span>
+<span class="nc" id="L336">            this.purchaseContextFields = purchaseContextFields;</span>
+<span class="nc" id="L337">            this.ticketsInReservation = ticketsInReservation;</span>
+<span class="nc" id="L338">            this.additionalFieldsForReservation = additionalServiceItems.stream()</span>
+<span class="nc" id="L339">                    .map(AdditionalServiceItem::getAdditionalServiceId)</span>
+<span class="nc" id="L340">                    .collect(Collectors.toSet());</span>
+<span class="nc" id="L341">            this.firstTicketInReservation = ticketsInReservation.stream().findFirst();</span>
+<span class="nc" id="L342">            this.eventSupportsAdditionalFieldsLink = eventSupportsAdditionalFieldsLink;</span>
+<span class="nc" id="L343">            this.additionalServiceItems = additionalServiceItems;</span>
+<span class="nc" id="L344">        }</span>
 
         public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForTicket(
                 UUID publicUuid, Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
-            var ticketOptional = ticketsInReservation.stream()
-                    .filter(t -&gt; t.getPublicUuid().equals(publicUuid))
-                    .findFirst();
-            if (ticketOptional.isEmpty()) {
-                return List.of();
+<span class="nc" id="L348">            var ticketOptional = ticketsInReservation.stream()</span>
+<span class="nc" id="L349">                    .filter(t -&gt; t.getPublicUuid().equals(publicUuid))</span>
+<span class="nc" id="L350">                    .findFirst();</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">            if (ticketOptional.isEmpty()) {</span>
+<span class="nc" id="L352">                return List.of();</span>
             }
-            var ticket = ticketOptional.get();
-            var isFirstTicket = firstTicketInReservation
-                    .map(first -&gt; ticket.getId() == first.getId())
-                    .orElse(false);
-            return filterFieldsForTicket(
+<span class="nc" id="L354">            var ticket = ticketOptional.get();</span>
+<span class="nc" id="L355">            var isFirstTicket = firstTicketInReservation</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">                    .map(first -&gt; ticket.getId() == first.getId())</span>
+<span class="nc" id="L357">                    .orElse(false);</span>
+<span class="nc" id="L358">            return filterFieldsForTicket(</span>
                     purchaseContextFields,
                     ticket,
                     additionalFieldsForReservation,
-                    isFirstTicket,
+<span class="nc" id="L362">                    isFirstTicket,</span>
                     eventSupportsAdditionalFieldsLink,
                     additionalServiceItems,
                     requestedContexts);
         }
 
         public List&lt;PurchaseContextFieldConfiguration&gt; getFieldsForSubscription() {
-            return purchaseContextFields;
+<span class="nc" id="L369">            return purchaseContextFields;</span>
         }
 
         private static List&lt;PurchaseContextFieldConfiguration&gt; filterFieldsForTicket(
@@ -377,42 +377,42 @@ public final class Validator {
                 boolean eventSupportsAdditionalFieldsLink,
                 List&lt;AdditionalServiceItem&gt; additionalServiceItems,
                 Set&lt;PurchaseContextFieldConfiguration.Context&gt; requestedContexts) {
-            return additionalFieldsForEvent.stream()
-                    .filter(field -&gt; field.rulesApply(ticket.getCategoryId()))
-                    .filter(f -&gt; {
-                        if (!requestedContexts.contains(f.getContext())) {
-                            return false;
+<span class="nc" id="L380">            return additionalFieldsForEvent.stream()</span>
+<span class="nc" id="L381">                    .filter(field -&gt; field.rulesApply(ticket.getCategoryId()))</span>
+<span class="nc" id="L382">                    .filter(f -&gt; {</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">                        if (!requestedContexts.contains(f.getContext())) {</span>
+<span class="nc" id="L384">                            return false;</span>
                         }
-                        if (f.getContext() == PurchaseContextFieldConfiguration.Context.ATTENDEE) {
-                            return true;
+<span class="nc bnc" id="L386" title="All 2 branches missed.">                        if (f.getContext() == PurchaseContextFieldConfiguration.Context.ATTENDEE) {</span>
+<span class="nc" id="L387">                            return true;</span>
                         }
                         // field context is &quot;Additional Service&quot;
-                        if (!isFirstTicket &amp;&amp; !eventSupportsAdditionalFieldsLink) {
-                            return false;
+<span class="nc bnc" id="L390" title="All 4 branches missed.">                        if (!isFirstTicket &amp;&amp; !eventSupportsAdditionalFieldsLink) {</span>
+<span class="nc" id="L391">                            return false;</span>
                         }
-                        boolean included = isAdditionalServiceIncluded(f, additionalServiceIds);
-                        return included
+<span class="nc" id="L393">                        boolean included = isAdditionalServiceIncluded(f, additionalServiceIds);</span>
+<span class="nc bnc" id="L394" title="All 4 branches missed.">                        return included</span>
                                 &amp;&amp; (!eventSupportsAdditionalFieldsLink
-                                        || checkLinked(ticket, additionalServiceItems, f));
+<span class="nc bnc" id="L396" title="All 2 branches missed.">                                        || checkLinked(ticket, additionalServiceItems, f));</span>
                     })
-                    .toList();
+<span class="nc" id="L398">                    .toList();</span>
         }
 
         private static boolean checkLinked(
                 Ticket ticket,
                 List&lt;AdditionalServiceItem&gt; additionalServiceItems,
                 PurchaseContextFieldConfiguration tfc) {
-            return additionalServiceItems.stream()
-                    .anyMatch(asi -&gt; tfc.getAdditionalServiceId() == asi.getAdditionalServiceId()
-                            &amp;&amp; Objects.equals(ticket.getId(), asi.getTicketId()));
+<span class="nc" id="L405">            return additionalServiceItems.stream()</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">                    .anyMatch(asi -&gt; tfc.getAdditionalServiceId() == asi.getAdditionalServiceId()</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">                            &amp;&amp; Objects.equals(ticket.getId(), asi.getTicketId()));</span>
         }
 
         private static boolean isAdditionalServiceIncluded(
                 PurchaseContextFieldConfiguration f, Set&lt;Integer&gt; additionalServiceIds) {
-            if (f.getAdditionalServiceId() == null) {
-                return false;
+<span class="nc bnc" id="L412" title="All 2 branches missed.">            if (f.getAdditionalServiceId() == null) {</span>
+<span class="nc" id="L413">                return false;</span>
             }
-            return additionalServiceIds.contains(f.getAdditionalServiceId());
+<span class="nc" id="L415">            return additionalServiceIds.contains(f.getAdditionalServiceId());</span>
         }
     }
 
@@ -651,14 +651,14 @@ public final class Validator {
     }
 
     public static boolean isEmailValid(String email) {
-<span class="nc bnc" id="L654" title="All 2 branches missed.">        return StringUtils.isNotEmpty(email)</span>
+<span class="pc bpc" id="L654" title="1 of 2 branches missed.">        return StringUtils.isNotEmpty(email)</span>
 <span class="nc bnc" id="L655" title="All 2 branches missed.">                &amp;&amp; !email.strip().endsWith(&quot;.&quot;)</span>
-<span class="nc bnc" id="L656" title="All 2 branches missed.">                &amp;&amp; SIMPLE_E_MAIL_PATTERN.matcher(email).matches();</span>
+<span class="pc bnc" id="L656" title="All 2 branches missed.">                &amp;&amp; SIMPLE_E_MAIL_PATTERN.matcher(email).matches();</span>
     }
 
     public static boolean isCanonicalMailAddress(String email) {
-<span class="nc bnc" id="L660" title="All 2 branches missed.">        return StringUtils.isNotEmpty(email)</span>
-<span class="nc bnc" id="L661" title="All 2 branches missed.">                &amp;&amp; CANONICAL_MAIL_VALIDATOR.matcher(email).matches();</span>
+<span class="pc bpc" id="L660" title="1 of 2 branches missed.">        return StringUtils.isNotEmpty(email)</span>
+<span class="pc bnc" id="L661" title="All 2 branches missed.">                &amp;&amp; CANONICAL_MAIL_VALIDATOR.matcher(email).matches();</span>
     }
 
     private static void validateMinLength(
@@ -875,7 +875,7 @@ public final class Validator {
     }
 
     public static boolean validateAdditionalInfoName(String additionalInfoName) {
-<span class="nc" id="L878">        return FIELD_NAME_VALIDATOR.matcher(additionalInfoName).matches();</span>
+<span class="fc" id="L878">        return FIELD_NAME_VALIDATOR.matcher(additionalInfoName).matches();</span>
     }
 
     public static class AdvancedTicketAssignmentValidator implements Function&lt;AdvancedValidationContext, Result&lt;Void&gt;&gt; {
@@ -884,36 +884,36 @@ public final class Validator {
         private final GroupManager.WhitelistValidator whitelistValidator;
 
         public AdvancedTicketAssignmentValidator(
-                SameCountryValidator vatValidator, GroupManager.WhitelistValidator whitelistValidator) {
-            this.vatValidator = vatValidator;
-            this.whitelistValidator = whitelistValidator;
-        }
+<span class="nc" id="L887">                SameCountryValidator vatValidator, GroupManager.WhitelistValidator whitelistValidator) {</span>
+<span class="nc" id="L888">            this.vatValidator = vatValidator;</span>
+<span class="nc" id="L889">            this.whitelistValidator = whitelistValidator;</span>
+<span class="nc" id="L890">        }</span>
 
         @Override
         public Result&lt;Void&gt; apply(AdvancedValidationContext context) {
 
-            Optional&lt;PurchaseContextFieldConfiguration&gt; vatField = context.purchaseContextFieldConfigurations.stream()
-                    .filter(PurchaseContextFieldConfiguration::isEuVat)
-                    .filter(f -&gt; context.updateTicketOwnerForm.getAdditional() != null
-                            &amp;&amp; context.updateTicketOwnerForm.getAdditional().containsKey(f.getName()))
-                    .findFirst();
+<span class="nc" id="L895">            Optional&lt;PurchaseContextFieldConfiguration&gt; vatField = context.purchaseContextFieldConfigurations.stream()</span>
+<span class="nc" id="L896">                    .filter(PurchaseContextFieldConfiguration::isEuVat)</span>
+<span class="nc bnc" id="L897" title="All 2 branches missed.">                    .filter(f -&gt; context.updateTicketOwnerForm.getAdditional() != null</span>
+<span class="nc bnc" id="L898" title="All 2 branches missed.">                            &amp;&amp; context.updateTicketOwnerForm.getAdditional().containsKey(f.getName()))</span>
+<span class="nc" id="L899">                    .findFirst();</span>
 
-            Optional&lt;String&gt; vatNr =
-                    vatField.map(c -&gt; Objects.requireNonNull(context.updateTicketOwnerForm.getAdditional())
-                            .get(c.getName())
-                            .get(0));
-            String vatFieldName =
-                    vatField.map(PurchaseContextFieldConfiguration::getName).orElse(&quot;&quot;);
+<span class="nc" id="L901">            Optional&lt;String&gt; vatNr =</span>
+<span class="nc" id="L902">                    vatField.map(c -&gt; Objects.requireNonNull(context.updateTicketOwnerForm.getAdditional())</span>
+<span class="nc" id="L903">                            .get(c.getName())</span>
+<span class="nc" id="L904">                            .get(0));</span>
+<span class="nc" id="L905">            String vatFieldName =</span>
+<span class="nc" id="L906">                    vatField.map(PurchaseContextFieldConfiguration::getName).orElse(&quot;&quot;);</span>
 
-            return new Result.Builder&lt;Void&gt;()
-                    .checkPrecondition(
-                            () -&gt; vatNr.isEmpty() || vatValidator.test(vatNr.get()),
-                            ErrorCode.custom(ErrorsCode.STEP_2_INVALID_VAT, &quot;additional['&quot; + vatFieldName + &quot;']&quot;))
-                    .checkPrecondition(
-                            () -&gt; whitelistValidator.test(new GroupManager.WhitelistValidationItem(
-                                    context.categoryId, context.updateTicketOwnerForm.getEmail())),
-                            ErrorCode.custom(ErrorsCode.STEP_2_WHITELIST_CHECK_FAILED, EMAIL_KEY))
-                    .build(() -&gt; null);
+<span class="nc" id="L908">            return new Result.Builder&lt;Void&gt;()</span>
+<span class="nc" id="L909">                    .checkPrecondition(</span>
+<span class="nc bnc" id="L910" title="All 4 branches missed.">                            () -&gt; vatNr.isEmpty() || vatValidator.test(vatNr.get()),</span>
+<span class="nc" id="L911">                            ErrorCode.custom(ErrorsCode.STEP_2_INVALID_VAT, &quot;additional['&quot; + vatFieldName + &quot;']&quot;))</span>
+<span class="nc" id="L912">                    .checkPrecondition(</span>
+<span class="nc" id="L913">                            () -&gt; whitelistValidator.test(new GroupManager.WhitelistValidationItem(</span>
+<span class="nc" id="L914">                                    context.categoryId, context.updateTicketOwnerForm.getEmail())),</span>
+<span class="nc" id="L915">                            ErrorCode.custom(ErrorsCode.STEP_2_WHITELIST_CHECK_FAILED, EMAIL_KEY))</span>
+<span class="nc" id="L916">                    .build(() -&gt; null);</span>
         }
     }
 
@@ -929,13 +929,13 @@ public final class Validator {
                 List&lt;PurchaseContextFieldConfiguration&gt; purchaseContextFieldConfigurations,
                 int categoryId,
                 String ticketUuid,
-                String prefix) {
-            this.updateTicketOwnerForm = updateTicketOwnerForm;
-            this.purchaseContextFieldConfigurations = purchaseContextFieldConfigurations;
-            this.categoryId = categoryId;
-            this.ticketUuid = ticketUuid;
-            this.prefix = prefix;
-        }
+<span class="nc" id="L932">                String prefix) {</span>
+<span class="nc" id="L933">            this.updateTicketOwnerForm = updateTicketOwnerForm;</span>
+<span class="nc" id="L934">            this.purchaseContextFieldConfigurations = purchaseContextFieldConfigurations;</span>
+<span class="nc" id="L935">            this.categoryId = categoryId;</span>
+<span class="nc" id="L936">            this.ticketUuid = ticketUuid;</span>
+<span class="nc" id="L937">            this.prefix = prefix;</span>
+<span class="nc" id="L938">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

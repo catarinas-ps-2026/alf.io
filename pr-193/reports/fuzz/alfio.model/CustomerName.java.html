@@ -33,25 +33,25 @@ public class CustomerName {
 <span class="nc" id="L33">    }</span>
 
     public CustomerName(
-<span class="nc" id="L36">            String fullName, String firstName, String lastName, boolean mustUseFirstAndLastName, boolean validate) {</span>
-<span class="nc" id="L37">        this.firstName = StringUtils.trimToNull(firstName);</span>
-<span class="nc" id="L38">        this.lastName = StringUtils.trimToNull(lastName);</span>
-<span class="nc" id="L39">        hasFirstAndLastName = mustUseFirstAndLastName;</span>
-<span class="nc" id="L40">        fullName = StringUtils.trimToNull(fullName);</span>
-<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (hasFirstAndLastName) {</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">            if (validate) {</span>
+<span class="fc" id="L36">            String fullName, String firstName, String lastName, boolean mustUseFirstAndLastName, boolean validate) {</span>
+<span class="fc" id="L37">        this.firstName = StringUtils.trimToNull(firstName);</span>
+<span class="fc" id="L38">        this.lastName = StringUtils.trimToNull(lastName);</span>
+<span class="fc" id="L39">        hasFirstAndLastName = mustUseFirstAndLastName;</span>
+<span class="fc" id="L40">        fullName = StringUtils.trimToNull(fullName);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (hasFirstAndLastName) {</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">            if (validate) {</span>
 <span class="nc bnc" id="L43" title="All 2 branches missed.">                Validate.isTrue(this.firstName != null, &quot;firstName must not be null&quot;);</span>
 <span class="nc bnc" id="L44" title="All 2 branches missed.">                Validate.isTrue(this.lastName != null, &quot;lastName must not be null&quot;);</span>
             }
 
-<span class="nc" id="L47">            this.fullName = firstName + &quot; &quot; + lastName;</span>
+<span class="fc" id="L47">            this.fullName = firstName + &quot; &quot; + lastName;</span>
         } else {
-<span class="nc bnc" id="L49" title="All 2 branches missed.">            if (validate) {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            if (validate) {</span>
 <span class="nc bnc" id="L50" title="All 2 branches missed.">                Validate.isTrue(fullName != null, &quot;fullName must not be null&quot;);</span>
             }
-<span class="nc" id="L52">            this.fullName = fullName;</span>
+<span class="fc" id="L52">            this.fullName = fullName;</span>
         }
-<span class="nc" id="L54">    }</span>
+<span class="fc" id="L54">    }</span>
 
     @Override
     public String toString() {

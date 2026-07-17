@@ -35,28 +35,28 @@ import org.mozilla.javascript.*;
 
 public class ExtensionUtils {
 
-<span class="nc" id="L38">    private static final Gson JSON_SERIALIZER = Json.GSON</span>
-<span class="nc" id="L39">            .newBuilder()</span>
-<span class="nc" id="L40">            .registerTypeAdapter(Double.class, new DoubleSerializer())</span>
-<span class="nc" id="L41">            .create();</span>
+<span class="fc" id="L38">    private static final Gson JSON_SERIALIZER = Json.GSON</span>
+<span class="fc" id="L39">            .newBuilder()</span>
+<span class="fc" id="L40">            .registerTypeAdapter(Double.class, new DoubleSerializer())</span>
+<span class="fc" id="L41">            .create();</span>
 
     private ExtensionUtils() {}
 
     public static String format(String str, String... params) {
-<span class="nc" id="L46">        return str.formatted((Object[]) params);</span>
+<span class="fc" id="L46">        return str.formatted((Object[]) params);</span>
     }
 
     public static String md5(String str) {
         try {
-<span class="nc" id="L51">            return Hex.encodeHexString(MessageDigest.getInstance(&quot;MD5&quot;).digest(str.getBytes(StandardCharsets.UTF_8)));</span>
+<span class="fc" id="L51">            return Hex.encodeHexString(MessageDigest.getInstance(&quot;MD5&quot;).digest(str.getBytes(StandardCharsets.UTF_8)));</span>
 <span class="nc" id="L52">        } catch (NoSuchAlgorithmException nae) {</span>
 <span class="nc" id="L53">            throw new IllegalStateException(nae);</span>
         }
     }
 
     public static String computeHMAC(String secret, String... parts) {
-<span class="nc bnc" id="L58" title="All 4 branches missed.">        if (parts == null || parts.length == 0) {</span>
-<span class="nc" id="L59">            return &quot;&quot;;</span>
+<span class="pc bpc" id="L58" title="2 of 4 branches missed.">        if (parts == null || parts.length == 0) {</span>
+<span class="fc" id="L59">            return &quot;&quot;;</span>
         }
 <span class="nc" id="L61">        var text = Arrays.stream(parts).map(StringUtils::trimToEmpty).collect(Collectors.joining(&quot;&quot;));</span>
 <span class="nc" id="L62">        return new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret).hmacHex(text);</span>
@@ -77,7 +77,7 @@ public class ExtensionUtils {
     }
 
     public static String base64UrlSafe(String input) {
-<span class="nc" id="L80">        return Base64.getUrlEncoder().withoutPadding().encodeToString(input.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L80">        return Base64.getUrlEncoder().withoutPadding().encodeToString(input.getBytes(StandardCharsets.UTF_8));</span>
     }
 
     /**
@@ -92,11 +92,11 @@ public class ExtensionUtils {
      * @return
      */
     public static String convertToJson(Object o) {
-<span class="nc" id="L95">        return JSON_SERIALIZER.toJson(unwrap(o));</span>
+<span class="fc" id="L95">        return JSON_SERIALIZER.toJson(unwrap(o));</span>
     }
 
     static Object unwrap(Object o) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (o instanceof Scriptable) {</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (o instanceof Scriptable) {</span>
 <span class="nc bnc" id="L100" title="All 2 branches missed.">            if (o instanceof NativeArray na) {</span>
 <span class="nc" id="L101">                List&lt;Object&gt; res = new ArrayList&lt;&gt;();</span>
 <span class="nc bnc" id="L102" title="All 2 branches missed.">                for (var a : na) {</span>
@@ -114,8 +114,8 @@ public class ExtensionUtils {
 <span class="nc bnc" id="L114" title="All 2 branches missed.">            } else if (o instanceof IdScriptableObject object) {</span>
 <span class="nc" id="L115">                return parseIdScriptableObject(object);</span>
             }
-<span class="nc bnc" id="L117" title="All 2 branches missed.">        } else if (o instanceof CharSequence) {</span>
-<span class="nc" id="L118">            return o.toString();</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        } else if (o instanceof CharSequence) {</span>
+<span class="fc" id="L118">            return o.toString();</span>
         }
 <span class="nc" id="L120">        return o;</span>
     }
@@ -142,14 +142,14 @@ public class ExtensionUtils {
         @Override
         public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
 
-            if (src == null) {
-                return null;
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            if (src == null) {</span>
+<span class="nc" id="L146">                return null;</span>
             }
 
-            if (Math.floor(src) == src) {
-                return new JsonPrimitive(src.longValue());
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            if (Math.floor(src) == src) {</span>
+<span class="nc" id="L150">                return new JsonPrimitive(src.longValue());</span>
             } else {
-                return new JsonPrimitive(src);
+<span class="nc" id="L152">                return new JsonPrimitive(src);</span>
             }
         }
     }

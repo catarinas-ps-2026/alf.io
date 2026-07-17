@@ -22,11 +22,11 @@ public class NameNormalizer {
     private NameNormalizer() {}
 
     public static String normalize(String input) {
-<span class="nc" id="L25">        StringBuilder sb = new StringBuilder(input.length());</span>
-<span class="nc bnc" id="L26" title="All 2 branches missed.">        for (int i = 0; i &lt; input.length(); i++) {</span>
+<span class="fc" id="L25">        StringBuilder sb = new StringBuilder(input.length());</span>
+<span class="pc bpc" id="L26" title="1 of 2 branches missed.">        for (int i = 0; i &lt; input.length(); i++) {</span>
 <span class="nc" id="L27">            sb.append(replaceCharIfNotSupported(input.charAt(i)));</span>
         }
-<span class="nc" id="L29">        return sb.toString();</span>
+<span class="fc" id="L29">        return sb.toString();</span>
     }
 
     private static String replaceCharIfNotSupported(char in) {

@@ -81,29 +81,29 @@ public class PromoCodeDiscount {
             @Column(&quot;email_reference&quot;) String emailReference,
             @Column(&quot;code_type&quot;) CodeType codeType,
             @Column(&quot;hidden_category_id&quot;) Integer hiddenCategoryId,
-<span class="nc" id="L84">            @Column(&quot;currency_code&quot;) String currencyCode) {</span>
+<span class="fc" id="L84">            @Column(&quot;currency_code&quot;) String currencyCode) {</span>
 
-<span class="nc" id="L86">        this.id = id;</span>
-<span class="nc" id="L87">        this.promoCode = promoCode;</span>
-<span class="nc" id="L88">        this.eventId = eventId;</span>
-<span class="nc" id="L89">        this.organizationId = organizationId;</span>
-<span class="nc" id="L90">        this.utcStart = utcStart;</span>
-<span class="nc" id="L91">        this.utcEnd = utcEnd;</span>
-<span class="nc" id="L92">        this.discountAmount = discountAmount;</span>
-<span class="nc" id="L93">        this.discountType = discountType;</span>
-<span class="nc" id="L94">        this.maxUsage = maxUsage;</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (categories != null) {</span>
-<span class="nc" id="L96">            List&lt;Integer&gt; categoriesId = Json.GSON.fromJson(categories, new TypeToken&lt;List&lt;Integer&gt;&gt;() {}.getType());</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">            this.categories = categoriesId == null ? Collections.emptySet() : new TreeSet&lt;&gt;(categoriesId);</span>
-<span class="nc" id="L98">        } else {</span>
+<span class="fc" id="L86">        this.id = id;</span>
+<span class="fc" id="L87">        this.promoCode = promoCode;</span>
+<span class="fc" id="L88">        this.eventId = eventId;</span>
+<span class="fc" id="L89">        this.organizationId = organizationId;</span>
+<span class="fc" id="L90">        this.utcStart = utcStart;</span>
+<span class="fc" id="L91">        this.utcEnd = utcEnd;</span>
+<span class="fc" id="L92">        this.discountAmount = discountAmount;</span>
+<span class="fc" id="L93">        this.discountType = discountType;</span>
+<span class="fc" id="L94">        this.maxUsage = maxUsage;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (categories != null) {</span>
+<span class="fc" id="L96">            List&lt;Integer&gt; categoriesId = Json.GSON.fromJson(categories, new TypeToken&lt;List&lt;Integer&gt;&gt;() {}.getType());</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            this.categories = categoriesId == null ? Collections.emptySet() : new TreeSet&lt;&gt;(categoriesId);</span>
+<span class="fc" id="L98">        } else {</span>
 <span class="nc" id="L99">            this.categories = Collections.emptySet();</span>
         }
-<span class="nc" id="L101">        this.description = description;</span>
-<span class="nc" id="L102">        this.emailReference = emailReference;</span>
-<span class="nc" id="L103">        this.codeType = codeType;</span>
-<span class="nc" id="L104">        this.hiddenCategoryId = hiddenCategoryId;</span>
-<span class="nc" id="L105">        this.currencyCode = currencyCode;</span>
-<span class="nc" id="L106">    }</span>
+<span class="fc" id="L101">        this.description = description;</span>
+<span class="fc" id="L102">        this.emailReference = emailReference;</span>
+<span class="fc" id="L103">        this.codeType = codeType;</span>
+<span class="fc" id="L104">        this.hiddenCategoryId = hiddenCategoryId;</span>
+<span class="fc" id="L105">        this.currencyCode = currencyCode;</span>
+<span class="fc" id="L106">    }</span>
 
     public boolean isCurrentlyValid(ZoneId eventZoneId, ZonedDateTime now) {
 <span class="nc bnc" id="L109" title="All 2 branches missed.">        return utcStart.withZoneSameInstant(eventZoneId).isBefore(now)</span>
