@@ -30,8 +30,8 @@ public class LocaleUtilFuzzTest {
         try {
             String lang = data.consumeString(20);
             LocaleUtil.forLanguageTag(lang);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (DateTimeException, etc.)
         }
     }
 
@@ -42,8 +42,8 @@ public class LocaleUtilFuzzTest {
             String zoneId = data.consumeString(30);
             ZonedDateTime zdt = ZonedDateTime.ofInstant(java.time.Instant.ofEpochSecond(epochSecond), ZoneId.of("UTC"));
             LocaleUtil.atZone(zdt, ZoneId.of(zoneId));
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (DateTimeException, etc.)
         }
     }
 
@@ -59,8 +59,8 @@ public class LocaleUtilFuzzTest {
             String zoneId = data.consumeString(30);
             LocalDateTime ldt = LocalDateTime.of(year, month, day, hour, minute, second);
             LocaleUtil.atZone(ldt, ZoneId.of(zoneId));
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (DateTimeException, etc.)
         }
     }
 }

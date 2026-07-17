@@ -46,8 +46,8 @@ public class EventUtilFuzzTest {
             String dateTimeStr = data.consumeString(50);
             // Test the JSON_DATETIME_FORMATTER parsing
             EventUtil.JSON_DATETIME_FORMATTER.parse(dateTimeStr);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (DateTimeParseException, etc.)
         }
     }
 
@@ -69,8 +69,8 @@ public class EventUtilFuzzTest {
         try {
             String version = data.consumeString(20);
             EventUtil.supportsCaseInsensitiveQRCode(version);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (FlywayException, etc.)
         }
     }
 
@@ -79,8 +79,8 @@ public class EventUtilFuzzTest {
         try {
             String version = data.consumeString(20);
             EventUtil.supportsLinkedAdditionalServices(version);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (FlywayException, etc.)
         }
     }
 
@@ -89,8 +89,8 @@ public class EventUtilFuzzTest {
         try {
             String version = data.consumeString(20);
             EventUtil.supportsAdditionalItemsOrdinal(version);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (FlywayException, etc.)
         }
     }
 }

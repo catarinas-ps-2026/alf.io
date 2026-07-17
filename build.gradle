@@ -378,11 +378,24 @@ tasks.register('integrationTest', Test) {
 }
 
 tasks.register('fuzzTest', Test) {
-    description = 'Runs fuzz tests using Jazzer.'
+    description = 'Runs fuzz tests using Jazzer in JUnit mode (single-iteration, for coverage collection).'
     group = 'verification'
-    
+
     include '**/fuzz/*FuzzTest*'
-    
+
+    systemProperty 'jazzer.max_duration', '0s'
+
+    extensions.configure(JacocoTaskExtension) {
+        enabled = true
+    }
+}
+
+tasks.register('fuzzTestFuzz', Test) {
+    description = 'Runs fuzz tests using Jazzer in fuzzing mode (coverage-guided).'
+    group = 'verification'
+
+    include '**/fuzz/*FuzzTest*'
+
     environment 'JAZZER_FUZZ', '1'
     systemProperty 'jazzer.max_duration', System.getenv('JAZZER_MAX_DURATION') ?: '5m'
 }

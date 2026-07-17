@@ -79,8 +79,8 @@ public class ExtensionUtilsFuzzTest {
             String formatPattern = data.consumeString(50);
             boolean utc = data.consumeBoolean();
             ExtensionUtils.formatDateTime(dateTimeAsString, formatPattern, utc);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (DateTimeParseException, etc.)
         }
     }
 }

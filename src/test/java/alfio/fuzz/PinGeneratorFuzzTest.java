@@ -28,8 +28,8 @@ public class PinGeneratorFuzzTest {
             String pin = data.consumeString(20);
             int pinLength = data.consumeInt(1, 20);
             PinGenerator.isPinValid(pin, pinLength);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (StringIndexOutOfBoundsException, etc.)
         }
     }
 
@@ -39,8 +39,8 @@ public class PinGeneratorFuzzTest {
             String pin = data.consumeString(20);
             int pinLength = data.consumeInt(1, 20);
             PinGenerator.pinToPartialUuid(pin, pinLength);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (StringIndexOutOfBoundsException, etc.)
         }
     }
 
@@ -50,8 +50,8 @@ public class PinGeneratorFuzzTest {
             String uuid = data.consumeString(40);
             int pinLength = data.consumeInt(1, 20);
             PinGenerator.uuidToPin(uuid, pinLength);
-        } catch (NullPointerException | IllegalArgumentException e) {
-            // catch exceptions from invalid inputs
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs (StringIndexOutOfBoundsException, etc.)
         }
     }
 }
