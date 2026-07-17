@@ -364,6 +364,28 @@ jobs:
                     -Dsonar.token=${{ steps.sonar-setup.outputs.sonar_token }} \
                     -Dsonar.projectKey=alfio
 
+            - name: Wait for SonarQube Analysis to be completed
+              env:
+                  SONAR_TOKEN: ${{ steps.sonar-setup.outputs.sonar_token }}
+              run: |
+                  echo "Waiting for SonarQube analysis task to complete..."
+                  for i in $(seq 1 60); do
+                      STATUS_CE=$(curl -s -u "${SONAR_TOKEN}:" "http://localhost:9000/api/ce/component?component=alfio")
+                      QUEUE_SIZE=$(echo "$STATUS_CE" | jq '.queue | length' 2>/dev/null || echo "0")
+                      CURRENT_STATUS=$(echo "$STATUS_CE" | jq -r '.current.status // empty')
+                      
+                      echo "Attempt $i: Queue size=$QUEUE_SIZE, Current task status=$CURRENT_STATUS"
+                      
+                      if [ "$QUEUE_SIZE" -eq 0 ] && [ "$CURRENT_STATUS" != "IN_PROGRESS" ] && [ "$CURRENT_STATUS" != "PENDING" ]; then
+                          ANALYSES_COUNT=$(curl -s -u "${SONAR_TOKEN}:" "http://localhost:9000/api/project_analyses/search?project=alfio" | jq '.analyses | length' 2>/dev/null || echo "0")
+                          if [ "$ANALYSES_COUNT" -gt 0 ]; then
+                              echo "SonarQube analysis completed successfully!"
+                              break
+                          fi
+                      fi
+                      sleep 5
+                  done
+
             - name: Generate SonarQube HTML Report
               run: |
                   docker run --rm \
