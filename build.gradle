@@ -383,6 +383,7 @@ tasks.register('fuzzTest', Test) {
     
     include '**/fuzz/*FuzzTest*'
     
+    environment 'JAZZER_FUZZ', '1'
     systemProperty 'jazzer.max_duration', System.getenv('JAZZER_MAX_DURATION') ?: '5m'
 }
 
