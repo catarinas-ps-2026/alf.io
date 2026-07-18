@@ -1,0 +1,34 @@
+@startuml testing-strategy
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+
+title Testing Strategy Overview - alf.io
+
+package "Testing Levels" {
+  rectangle "Unit Tests\n(JUnit 5 + Vitest)" as UT #E8F5E9
+  rectangle "Integration Tests\n(Testcontainers + Playwright)" as IT #E3F2FD
+  rectangle "Functional Tests\n(Manual + Automated)" as FT #FFF3E0
+  rectangle "System Tests\n(K6 + Jazzer + SonarQube)" as ST #F3E5F5
+}
+
+rectangle "GitHub Actions CI/CD" as CI #FFECB3
+
+database "PostgreSQL\n(10, 15, 16)" as DB
+
+cloud "External Services" as ES {
+  rectangle "Stripe Mock" as SM
+  rectangle "PayPal Sandbox" as PS
+  rectangle "SMTP (Gmail)" as SMTP
+}
+
+UT -down-> CI : "Automated on\nPR & Push"
+IT -down-> CI : "Automated on\nPR & Push"
+FT -down-> CI : "Manual\nVerification"
+ST -down-> CI : "Automated on\nPR & Push"
+
+CI -down-> DB : "Testcontainers\nEphemeral"
+CI -down-> ES : "Mock/Sandbox\nServices"
+
+@enduml

@@ -1,0 +1,24 @@
+@startuml test-results-summary
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+
+title Test Results Summary - alf.io
+
+rectangle "Unit Tests: 2,290 (100% pass, 85.76% coverage)" as UT #E8F5E9
+rectangle "Integration Tests: 354 (100% pass, 100% endpoints)" as IT #E3F2FD
+rectangle "E2E Tests: 88 (100% pass, 2 browsers)" as E2E #FFF3E0
+rectangle "Functional Tests: 120+ (97.5% pass)" as FT #F3E5F5
+rectangle "Performance Tests: 54,176 req (91.57% pass, 190 RPS)" as PT #FFECB3
+rectangle "Fuzzing Tests: 35 classes (0 crashes)" as FZ #FFCDD2
+rectangle "Static Analysis: 1,438 issues (Quality Gate OK)" as SA #E0F7FA
+
+UT -down-> IT
+IT -down-> E2E
+E2E -down-> FT
+FT -down-> PT
+PT -down-> FZ
+FZ -down-> SA
+
+@enduml
