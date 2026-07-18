@@ -27911,14 +27911,14 @@
           "key" : {
             "$ref" : "#/components/schemas/TicketCategory"
           },
-          "left" : {
-            "$ref" : "#/components/schemas/TicketCategory"
-          },
           "right" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/Ticket"
             }
+          },
+          "left" : {
+            "$ref" : "#/components/schemas/TicketCategory"
           }
         }
       },
@@ -28510,12 +28510,12 @@
           "billingAddress" : {
             "type" : "string"
           },
-          "invoiceNumber" : {
-            "type" : "string"
-          },
           "paymentMethod" : {
             "type" : "string",
             "enum" : [ "STRIPE", "ON_SITE", "OFFLINE", "NONE", "ADMIN", "PAYPAL", "MOLLIE", "SAFERPAY", "CUSTOM_OFFLINE" ]
+          },
+          "invoiceNumber" : {
+            "type" : "string"
           },
           "invoiceRequested" : {
             "type" : "boolean"
@@ -31142,11 +31142,11 @@
           "key" : {
             "type" : "boolean"
           },
-          "left" : {
-            "type" : "boolean"
-          },
           "right" : {
             "type" : "string"
+          },
+          "left" : {
+            "type" : "boolean"
           }
         }
       },
@@ -31485,11 +31485,11 @@
       "TripleBooleanStringString" : {
         "type" : "object",
         "properties" : {
-          "left" : {
-            "type" : "boolean"
-          },
           "right" : {
             "type" : "string"
+          },
+          "left" : {
+            "type" : "boolean"
           },
           "middle" : {
             "type" : "string"
@@ -32363,15 +32363,15 @@
             "type" : "string",
             "enum" : [ "DAYS", "MONTHS", "YEARS" ]
           },
+          "usageType" : {
+            "type" : "string",
+            "enum" : [ "ONCE_PER_EVENT", "UNLIMITED" ]
+          },
           "title" : {
             "type" : "object",
             "additionalProperties" : {
               "type" : "string"
             }
-          },
-          "usageType" : {
-            "type" : "string",
-            "enum" : [ "ONCE_PER_EVENT", "UNLIMITED" ]
           },
           "vat" : {
             "type" : "string"
@@ -33075,11 +33075,11 @@
               "$ref" : "#/components/schemas/ContentLanguage"
             }
           },
-          "regularPrice" : {
-            "type" : "number"
-          },
           "freeOfCharge" : {
             "type" : "boolean"
+          },
+          "regularPrice" : {
+            "type" : "number"
           },
           "privacyPolicyLinkOrNull" : {
             "type" : "string"
@@ -34029,6 +34029,9 @@
           "vatPercentage" : {
             "type" : "number"
           },
+          "freeOfCharge" : {
+            "type" : "boolean"
+          },
           "regularPrice" : {
             "type" : "number"
           },
@@ -34057,9 +34060,6 @@
           "locales" : {
             "type" : "integer",
             "format" : "int32"
-          },
-          "freeOfCharge" : {
-            "type" : "boolean"
           },
           "dynamicAllocation" : {
             "type" : "integer",
@@ -34108,8 +34108,16 @@
             "type" : "integer",
             "format" : "int32"
           },
-          "warningNeeded" : {
-            "type" : "boolean"
+          "pendingTickets" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "releasedTickets" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "formattedEnd" : {
+            "type" : "string"
           },
           "formattedBegin" : {
             "type" : "string"
@@ -34118,6 +34126,9 @@
             "type" : "boolean"
           },
           "displayStatistics" : {
+            "type" : "boolean"
+          },
+          "warningNeeded" : {
             "type" : "boolean"
           },
           "addCategoryEnabled" : {
@@ -34131,17 +34142,6 @@
           },
           "supportsAdditionalServicesOrdinal" : {
             "type" : "boolean"
-          },
-          "pendingTickets" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "releasedTickets" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "formattedEnd" : {
-            "type" : "string"
           },
           "finalPrice" : {
             "type" : "number"
@@ -34498,6 +34498,14 @@
             "type" : "integer",
             "format" : "int32"
           },
+          "pendingTickets" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "releasedTickets" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
           "soldTicketsPercent" : {
             "type" : "number"
           },
@@ -34524,14 +34532,6 @@
           },
           "actualPrice" : {
             "type" : "number"
-          },
-          "pendingTickets" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "releasedTickets" : {
-            "type" : "integer",
-            "format" : "int32"
           },
           "finalPrice" : {
             "type" : "number"
@@ -34819,10 +34819,10 @@
             "type" : "string",
             "format" : "date-time"
           },
-          "pending" : {
+          "stuck" : {
             "type" : "boolean"
           },
-          "stuck" : {
+          "pending" : {
             "type" : "boolean"
           },
           "netPrice" : {
@@ -35333,10 +35333,10 @@
             "type" : "string",
             "format" : "date-time"
           },
-          "pending" : {
+          "stuck" : {
             "type" : "boolean"
           },
-          "stuck" : {
+          "pending" : {
             "type" : "boolean"
           },
           "netPrice" : {
@@ -35565,14 +35565,6 @@
             "type" : "integer",
             "format" : "int32"
           },
-          "requestTimestamp" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "attempts" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
           "recipient" : {
             "type" : "string"
           },
@@ -35581,6 +35573,14 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "attempts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "requestTimestamp" : {
+            "type" : "string",
+            "format" : "date-time"
           },
           "subject" : {
             "type" : "string"
@@ -35652,15 +35652,15 @@
             "type" : "integer",
             "format" : "int32"
           },
-          "order" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
           "subscriptionDescriptorId" : {
             "type" : "string",
             "format" : "uuid"
           },
           "eventId" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "order" : {
             "type" : "integer",
             "format" : "int32"
           },
@@ -36897,18 +36897,6 @@
             "type" : "integer",
             "format" : "int32"
           },
-          "warningNeeded" : {
-            "type" : "boolean"
-          },
-          "formattedBegin" : {
-            "type" : "string"
-          },
-          "visibleForCurrentUser" : {
-            "type" : "boolean"
-          },
-          "displayStatistics" : {
-            "type" : "boolean"
-          },
           "pendingTickets" : {
             "type" : "integer",
             "format" : "int32"
@@ -36919,6 +36907,18 @@
           },
           "formattedEnd" : {
             "type" : "string"
+          },
+          "formattedBegin" : {
+            "type" : "string"
+          },
+          "visibleForCurrentUser" : {
+            "type" : "boolean"
+          },
+          "displayStatistics" : {
+            "type" : "boolean"
+          },
+          "warningNeeded" : {
+            "type" : "boolean"
           }
         }
       },
@@ -37060,10 +37060,10 @@
           "key" : {
             "type" : "string"
           },
-          "left" : {
+          "right" : {
             "type" : "string"
           },
-          "right" : {
+          "left" : {
             "type" : "string"
           }
         }
@@ -37184,10 +37184,10 @@
           "key" : {
             "type" : "string"
           },
-          "left" : {
+          "right" : {
             "type" : "string"
           },
-          "right" : {
+          "left" : {
             "type" : "string"
           }
         }
