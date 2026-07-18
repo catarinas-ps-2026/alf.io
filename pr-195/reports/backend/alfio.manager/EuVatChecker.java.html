@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EuVatChecker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.manager</a> &gt; <span class="el_source">EuVatChecker.java</span></div><h1>EuVatChecker.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.manager;
+
+import static alfio.model.Audit.EntityType.RESERVATION;
+import static alfio.model.Audit.EventType.*;
+import static alfio.model.system.ConfigurationKeys.*;
+import static ch.digitalfondue.vatchecker.EUVatCheckResponse.FaultType.*;
+
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.Audit;
+import alfio.model.Configurable;
+import alfio.model.PurchaseContext;
+import alfio.model.VatDetail;
+import alfio.model.system.ConfigurationKeys;
+import alfio.repository.AuditingRepository;
+import alfio.util.ItalianTaxIdValidator;
+import ch.digitalfondue.vatchecker.EUVatCheckResponse;
+import ch.digitalfondue.vatchecker.EUVatChecker;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import java.time.Duration;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+@Component
+@AllArgsConstructor
+public class EuVatChecker {
+
+<span class="fc" id="L52">    private static final Logger LOGGER = LoggerFactory.getLogger(EuVatChecker.class);</span>
+<span class="fc" id="L53">    private static final Set&lt;EUVatCheckResponse.FaultType&gt; REMOTE_FAULTS =</span>
+<span class="fc" id="L54">            EnumSet.of(GLOBAL_MAX_CONCURRENT_REQ, TIMEOUT, MS_MAX_CONCURRENT_REQ, SERVICE_UNAVAILABLE, MS_UNAVAILABLE);</span>
+    private final ConfigurationManager configurationManager;
+    private final AuditingRepository auditingRepository;
+    private final EUVatChecker client = new EUVatChecker();
+    private final ExtensionManager extensionManager;
+
+<span class="fc" id="L60">    private static final Cache&lt;Pair&lt;String, String&gt;, EUVatCheckResponse&gt; validationCache =</span>
+<span class="fc" id="L61">            Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(15)).build();</span>
+
+    public boolean isReverseChargeEnabledFor(PurchaseContext configurable) {
+<span class="fc" id="L64">        return reverseChargeEnabled(configurationManager, configurable);</span>
+    }
+
+    public Optional&lt;VatDetail&gt; checkVat(String vatNr, String countryCode, PurchaseContext purchaseContext) {
+<span class="fc" id="L68">        Optional&lt;VatDetail&gt; res =</span>
+<span class="fc" id="L69">                performCheck(vatNr, countryCode, purchaseContext).apply(configurationManager, client);</span>
+<span class="fc" id="L70">        return res.map(detail -&gt; {</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">            if (!detail.isValid()) {</span>
+<span class="nc" id="L72">                String organizerCountry = organizerCountry(configurationManager, purchaseContext);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                boolean valid = (&quot;IT&quot;.equals(organizerCountry)</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                                &amp;&amp; &quot;IT&quot;.equals(countryCode)</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                                &amp;&amp; ItalianTaxIdValidator.validateVatId(vatNr))</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                        || extensionManager.handleTaxIdValidation(purchaseContext, vatNr, organizerCountry);</span>
+<span class="nc" id="L77">                return new VatDetail(</span>
+<span class="nc" id="L78">                        detail.getVatNr(),</span>
+<span class="nc" id="L79">                        detail.getCountry(),</span>
+                        valid,
+<span class="nc" id="L81">                        detail.getName(),</span>
+<span class="nc" id="L82">                        detail.getAddress(),</span>
+                        VatDetail.Type.FORMAL,
+                        false);
+            } else {
+<span class="fc" id="L86">                return detail;</span>
+            }
+        });
+    }
+
+    static BiFunction&lt;ConfigurationManager, EUVatChecker, Optional&lt;VatDetail&gt;&gt; performCheck(
+            String vatNr, String countryCode, Configurable configurable) {
+<span class="fc" id="L93">        return (configurationManager, client) -&gt; {</span>
+<span class="fc" id="L94">            boolean vatNrNotEmpty = StringUtils.isNotEmpty(vatNr);</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">            boolean validCountryCode = StringUtils.length(StringUtils.trimToNull(countryCode)) == 2;</span>
+
+<span class="pc bpc" id="L97" title="2 of 4 branches missed.">            if (!vatNrNotEmpty || !validCountryCode) {</span>
+<span class="nc" id="L98">                return Optional.empty();</span>
+            }
+
+<span class="fc" id="L101">            boolean euCountryCode = configurationManager</span>
+<span class="fc" id="L102">                    .getForSystem(EU_COUNTRIES_LIST)</span>
+<span class="fc" id="L103">                    .getRequiredValue()</span>
+<span class="fc" id="L104">                    .contains(countryCode);</span>
+
+<span class="fc" id="L106">            boolean validationEnabled = validationEnabled(configurationManager, configurable);</span>
+<span class="fc bfc" id="L107" title="All 4 branches covered.">            if (euCountryCode &amp;&amp; validationEnabled) {</span>
+<span class="fc" id="L108">                EUVatCheckResponse validationResult = validateEUVat(vatNr, countryCode, client);</span>
+<span class="fc" id="L109">                return Optional.ofNullable(validationResult)</span>
+<span class="fc" id="L110">                        .map(r -&gt; getVatDetail(</span>
+<span class="fc" id="L111">                                reverseChargeEnabled(configurationManager, configurable),</span>
+                                r,
+                                vatNr,
+                                countryCode,
+<span class="fc" id="L115">                                organizerCountry(configurationManager, configurable)));</span>
+            }
+
+<span class="fc" id="L118">            String organizerCountry = organizerCountry(configurationManager, configurable);</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">            if (StringUtils.isEmpty(organizerCountry(configurationManager, configurable))) {</span>
+<span class="nc" id="L120">                return Optional.empty();</span>
+            }
+
+<span class="fc" id="L123">            BooleanSupplier applyVatToForeignBusiness = () -&gt; configurationManager</span>
+<span class="fc" id="L124">                    .getFor(APPLY_VAT_FOREIGN_BUSINESS, configurable.getConfigurationLevel())</span>
+<span class="fc" id="L125">                    .getValueAsBooleanOrDefault();</span>
+<span class="pc bpc" id="L126" title="1 of 4 branches missed.">            boolean vatExempt = !organizerCountry.equals(countryCode)</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">                    &amp;&amp; (euCountryCode || !applyVatToForeignBusiness.getAsBoolean());</span>
+<span class="fc" id="L128">            return Optional.of(new VatDetail(</span>
+                    vatNr,
+                    countryCode,
+                    true,
+                    &quot;&quot;,
+                    &quot;&quot;,
+<span class="fc bfc" id="L134" title="All 2 branches covered.">                    euCountryCode ? VatDetail.Type.SKIPPED : VatDetail.Type.EXTRA_EU,</span>
+                    vatExempt));
+        };
+    }
+
+    public void logSuccessfulValidation(VatDetail detail, String reservationId, PurchaseContext purchaseContext) {
+<span class="fc" id="L140">        List&lt;Map&lt;String, Object&gt;&gt; modifications = List.of(Map.of(</span>
+<span class="fc" id="L141">                &quot;vatNumber&quot;, detail.getVatNr(), &quot;country&quot;, detail.getCountry(), &quot;validationType&quot;, detail.getType()));</span>
+<span class="fc" id="L142">        Audit.EventType eventType =</span>
+<span class="pc bpc" id="L143" title="2 of 3 branches missed.">                switch (detail.getType()) {</span>
+<span class="fc" id="L144">                    case VIES, EXTRA_EU -&gt; VAT_VALIDATION_SUCCESSFUL;</span>
+<span class="nc" id="L145">                    case SKIPPED -&gt; VAT_VALIDATION_SKIPPED;</span>
+<span class="pc" id="L146">                    case FORMAL -&gt; VAT_FORMAL_VALIDATION_SUCCESSFUL;</span>
+                };
+<span class="fc" id="L148">        auditingRepository.insert(</span>
+                reservationId, null, purchaseContext, eventType, new Date(), RESERVATION, reservationId, modifications);
+<span class="fc" id="L150">    }</span>
+
+    static EUVatCheckResponse validateEUVat(String vat, String countryCode, EUVatChecker client) {
+
+<span class="pc bpc" id="L154" title="2 of 4 branches missed.">        if (StringUtils.isEmpty(vat) || StringUtils.length(countryCode) != 2) {</span>
+<span class="nc" id="L155">            return null;</span>
+        }
+
+<span class="fc" id="L158">        return validationCache.get(Pair.of(vat, countryCode), k -&gt; client.check(countryCode.toUpperCase(), vat));</span>
+    }
+
+    private static VatDetail getVatDetail(
+            boolean reverseChargeEnabled,
+            EUVatCheckResponse response,
+            String vatNr,
+            String countryCode,
+            String organizerCountryCode) {
+<span class="fc" id="L167">        checkServerErrors(response, countryCode);</span>
+<span class="fc" id="L168">        boolean isValid = response.isValid();</span>
+<span class="fc" id="L169">        return new VatDetail(</span>
+                vatNr,
+                countryCode,
+                isValid,
+<span class="fc" id="L173">                response.getName(),</span>
+<span class="pc bpc" id="L174" title="1 of 4 branches missed.">                response.getAddress(),</span>
+                VatDetail.Type.VIES,
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                isValid &amp;&amp; reverseChargeEnabled &amp;&amp; !organizerCountryCode.equals(countryCode));</span>
+    }
+
+    private static void checkServerErrors(EUVatCheckResponse response, String countryCode) {
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        if (response.isError()</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                &amp;&amp; response.getFault() != null</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                &amp;&amp; REMOTE_FAULTS.contains(response.getFault().getFaultType())) {</span>
+<span class="nc" id="L183">            LOGGER.warn(&quot;received {} for country {}&quot;, response.getFault().getFaultType(), countryCode);</span>
+<span class="nc" id="L184">            throw new IllegalStateException(&quot;Unable to validate VAT&quot;);</span>
+        }
+<span class="fc" id="L186">    }</span>
+
+    static String organizerCountry(ConfigurationManager configurationManager, Configurable configurable) {
+<span class="fc" id="L189">        return configurationManager</span>
+<span class="fc" id="L190">                .getFor(COUNTRY_OF_BUSINESS, configurable.getConfigurationLevel())</span>
+<span class="fc" id="L191">                .getValueOrNull();</span>
+    }
+
+    private static boolean reverseChargeEnabled(ConfigurationManager configurationManager, Configurable configurable) {
+<span class="fc" id="L195">        return reverseChargeEnabled(loadConfigurationForReverseChargeCheck(configurationManager, configurable));</span>
+    }
+
+    public static Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt;
+            loadConfigurationForReverseChargeCheck(
+                    ConfigurationManager configurationManager, Configurable configurable) {
+<span class="fc" id="L201">        return configurationManager.getFor(</span>
+<span class="fc" id="L202">                Set.of(</span>
+                        ENABLE_EU_VAT_DIRECTIVE,
+                        COUNTRY_OF_BUSINESS,
+                        ENABLE_REVERSE_CHARGE_IN_PERSON,
+                        ENABLE_REVERSE_CHARGE_ONLINE),
+<span class="fc" id="L207">                configurable.getConfigurationLevel());</span>
+    }
+
+    /**
+     * In order for Reverse Charge to be enabled, the global flag must be active (ENABLE_EU_VAT_DIRECTIVE) plus one of ENABLE_REVERSE_CHARGE_IN_PERSON, ENABLE_REVERSE_CHARGE_ONLINE
+     * which are active by default.
+     * @param res require the keys ENABLE_EU_VAT_DIRECTIVE, COUNTRY_OF_BUSINESS, ENABLE_REVERSE_CHARGE_IN_PERSON, ENABLE_REVERSE_CHARGE_ONLINE
+     * @return true if Reverse Charge is enabled
+     */
+    public static boolean reverseChargeEnabled(Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; res) {
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        Validate.isTrue(res.containsKey(ENABLE_EU_VAT_DIRECTIVE)</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">                &amp;&amp; res.containsKey(COUNTRY_OF_BUSINESS)</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">                &amp;&amp; res.containsKey(ENABLE_REVERSE_CHARGE_IN_PERSON)</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">                &amp;&amp; res.containsKey(ENABLE_REVERSE_CHARGE_ONLINE));</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        return (res.get(ENABLE_EU_VAT_DIRECTIVE).getValueAsBooleanOrDefault()</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">                        &amp;&amp; (res.get(ENABLE_REVERSE_CHARGE_IN_PERSON).getValueAsBooleanOrDefault()</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">                                || res.get(ENABLE_REVERSE_CHARGE_ONLINE).getValueAsBooleanOrDefault()))</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">                &amp;&amp; res.get(COUNTRY_OF_BUSINESS).isPresent();</span>
+    }
+
+    static boolean validationEnabled(ConfigurationManager configurationManager, Configurable configurable) {
+<span class="fc" id="L228">        return configurationManager</span>
+<span class="fc" id="L229">                .getFor(ConfigurationKeys.ENABLE_VIES_VALIDATION, configurable.getConfigurationLevel())</span>
+<span class="fc" id="L230">                .getValueAsBooleanOrDefault();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
