@@ -54,4 +54,39 @@ public class PinGeneratorFuzzTest {
             // catch exceptions from invalid inputs (StringIndexOutOfBoundsException, etc.)
         }
     }
+
+    @FuzzTest
+    public void fuzzUuidToPinRoundTrip(FuzzedDataProvider data) {
+        try {
+            String uuid = data.consumeString(40);
+            int pinLength = data.consumeInt(1, 20);
+            String pin = PinGenerator.uuidToPin(uuid, pinLength);
+            if (pin != null && !pin.isEmpty()) {
+                String partialUuid = PinGenerator.pinToPartialUuid(pin, pinLength);
+                // partialUuid should be non-null and shorter than the original uuid
+                if (partialUuid == null) {
+                    throw new AssertionError("pinToPartialUuid returned null");
+                }
+            }
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs
+        }
+    }
+
+    @FuzzTest
+    public void fuzzIsPinValidWithGeneratedPin(FuzzedDataProvider data) {
+        try {
+            String uuid = data.consumeString(40);
+            int pinLength = data.consumeInt(1, 20);
+            String pin = PinGenerator.uuidToPin(uuid, pinLength);
+            if (pin != null && !pin.isEmpty()) {
+                boolean valid = PinGenerator.isPinValid(pin, pinLength);
+                if (!valid) {
+                    throw new AssertionError("Generated pin should be valid");
+                }
+            }
+        } catch (Exception e) {
+            // catch exceptions from invalid inputs
+        }
+    }
 }

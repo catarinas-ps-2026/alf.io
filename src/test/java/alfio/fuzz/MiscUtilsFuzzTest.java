@@ -48,4 +48,33 @@ public class MiscUtilsFuzzTest {
             // catch exceptions from invalid inputs
         }
     }
+
+    @FuzzTest
+    public void fuzzRemoveTabsAndNewlinesEdgeCases(FuzzedDataProvider data) {
+        try {
+            String input = data.consumeString(2000);
+            String result = MiscUtils.removeTabsAndNewlines(input);
+            // result should not contain \n or \r
+            if (result != null && (result.contains("\n") || result.contains("\r"))) {
+                throw new AssertionError("Result still contains newlines");
+            }
+        } catch (NullPointerException | IllegalArgumentException e) {
+            // catch exceptions from invalid inputs
+        }
+    }
+
+    @FuzzTest
+    public void fuzzGetAtIndexOrNullWithDifferentTypes(FuzzedDataProvider data) {
+        try {
+            int size = data.consumeInt(0, 20);
+            List<Integer> list = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                list.add(data.consumeInt());
+            }
+            int index = data.consumeInt(-100, 100);
+            MiscUtils.getAtIndexOrNull(list, index);
+        } catch (NullPointerException | IllegalArgumentException e) {
+            // catch exceptions from invalid inputs
+        }
+    }
 }

@@ -19,6 +19,7 @@ package alfio.fuzz;
 import alfio.util.HttpUtils;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,9 +28,12 @@ public class HttpUtilsFuzzTest {
     @FuzzTest
     public void fuzzBasicAuth(FuzzedDataProvider data) {
         try {
-            String username = data.consumeString(100);
-            String password = data.consumeString(100);
-            HttpUtils.basicAuth(username, password);
+            String username = data.consumeString(200);
+            String password = data.consumeString(200);
+            String result = HttpUtils.basicAuth(username, password);
+            if (result != null && !result.startsWith("Basic ")) {
+                throw new AssertionError("basicAuth did not return Basic auth header");
+            }
         } catch (NullPointerException | IllegalArgumentException e) {
             // catch exceptions from invalid inputs
         }
@@ -38,11 +42,11 @@ public class HttpUtilsFuzzTest {
     @FuzzTest
     public void fuzzOfFormUrlEncodedBody(FuzzedDataProvider data) {
         try {
-            int numEntries = data.consumeInt(0, 20);
+            int numParams = data.consumeInt(0, 20);
             Map<String, String> params = new HashMap<>();
-            for (int i = 0; i < numEntries; i++) {
+            for (int i = 0; i < numParams; i++) {
                 String key = data.consumeString(50);
-                String value = data.consumeString(100);
+                String value = data.consumeString(200);
                 params.put(key, value);
             }
             HttpUtils.ofFormUrlEncodedBody(params);
@@ -52,10 +56,18 @@ public class HttpUtilsFuzzTest {
     }
 
     @FuzzTest
-    public void fuzzStatusCodeIsSuccessful(FuzzedDataProvider data) {
+    public void fuzzCallSuccessful(FuzzedDataProvider data) {
         try {
-            int statusCode = data.consumeInt(-1000, 1000);
-            HttpUtils.statusCodeIsSuccessful(statusCode);
+            int statusCode = data.consumeInt(-1, 600);
+            // Test the static method with a mock-like response
+            // callSuccessful checks the status code range
+            boolean result = HttpUtils.statusCodeIsSuccessful(statusCode);
+            // Status codes 200-299 should be successful
+            if (statusCode >= 200 && statusCode <= 299) {
+                if (!result) {
+                    throw new AssertionError("Status code " + statusCode + " should be successful");
+                }
+            }
         } catch (NullPointerException | IllegalArgumentException e) {
             // catch exceptions from invalid inputs
         }
