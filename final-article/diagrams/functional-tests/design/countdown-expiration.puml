@@ -1,0 +1,21 @@
+@startuml
+skinparam state {
+  BackgroundColor White
+  BorderColor Black
+}
+
+state "S0: Inicio (24min)" as S0
+state "S1: Azul\n(tiempo > 5min)" as S1
+state "S2: Amarillo\n(1min < tiempo <= 5min)" as S2
+state "S3: Rojo\n(tiempo <= 1min)" as S3
+state "S4: Expirado\n(Modal)" as S4
+
+[*] --> S0
+
+S0 --> S1 : tiempo > 5min
+S1 --> S2 : tiempo <= 5min
+S2 --> S3 : tiempo <= 1min
+S3 --> S4 : tiempo = 0
+
+S4 --> [*]
+@enduml
