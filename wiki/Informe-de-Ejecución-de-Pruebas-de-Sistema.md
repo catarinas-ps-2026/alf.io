@@ -51,11 +51,11 @@ Los elementos excluidos del alcance son: pruebas funcionales E2E (se ejecutan co
 
 Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta las suites de pruebas de sistema en cada Pull Request y en cada push a la rama `main`. Los reportes se publican automáticamente en GitHub Pages para su revisión.
 
-| Componente | Entorno |
-| :--- | :--- |
-| K6 (Rendimiento) | GitHub Actions, ubuntu-latest, JDK 17, PostgreSQL 16 |
-| Jazzer (Fuzzing) | GitHub Actions, ubuntu-latest, JDK 17 |
-| SonarQube (Análisis) | GitHub Actions, ubuntu-latest, JDK 17, SonarQube Community (Docker) |
+| Componente | Entorno | Reporte |
+| :--- | :--- | :--- |
+| K6 (Rendimiento) | GitHub Actions, ubuntu-latest, JDK 17, PostgreSQL 16 | **[Reporte de Rendimiento – K6](https://catarinas-ps-2026.github.io/alf.io/reports/k6/k6-report.html)** |
+| Jazzer (Fuzzing) | GitHub Actions, ubuntu-latest, JDK 17 | **[Reporte de Fuzzing – Jazzer](https://catarinas-ps-2026.github.io/alf.io/reports/fuzz/index.html)** |
+| SonarQube (Análisis) | GitHub Actions, ubuntu-latest, JDK 17, SonarQube Community (Docker) | — |
 
 ## 6. Configuración del entorno de ejecución
 

@@ -54,11 +54,11 @@ Los elementos excluidos del alcance son: pruebas de rendimiento y carga, pruebas
 
 Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta las suites de integración en cada Pull Request y en cada push a la rama `main`. Los reportes se publican automáticamente en GitHub Pages para su revisión.
 
-| Componente | Entorno |
-| :--- | :--- |
-| Backend (JUnit) | GitHub Actions, ubuntu-latest, JDK 17, Docker (Testcontainers) |
-| Playwright | GitHub Actions, ubuntu-latest, Node.js 22, PostgreSQL 16, Chromium + Firefox |
-| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit |
+| Componente | Entorno | Reporte |
+| :--- | :--- | :--- |
+| Backend (JUnit) | GitHub Actions, ubuntu-latest, JDK 17, Docker (Testcontainers) | **[Reporte de Integración – JUnit](https://catarinas-ps-2026.github.io/alf.io/reports/integration-tests/index.html)** |
+| Playwright (Acciones Singulares) | GitHub Actions, ubuntu-latest, Node.js 22, PostgreSQL 16, Chromium + Firefox | **[Reporte Playwright](https://catarinas-ps-2026.github.io/alf.io/reports/playwright/index.html)** |
+| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit | — |
 
 ## 6. Configuración del entorno de ejecución
 

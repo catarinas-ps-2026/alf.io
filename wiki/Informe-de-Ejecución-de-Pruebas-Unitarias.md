@@ -48,6 +48,12 @@ Los elementos excluidos del alcance son: pruebas de integración con base de dat
 
 Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta las suites de pruebas unitarias de backend y frontend en cada Pull Request y en cada push a la rama `main`. Los reportes de cobertura se publican automáticamente en GitHub Pages para su revisión por el contribuidor y el equipo.
 
+| Componente | Entorno | Reporte |
+| :--- | :--- | :--- |
+| Backend (JUnit + JaCoCo) | GitHub Actions, ubuntu-latest, JDK 17, PostgreSQL 16 | **[Cobertura Backend – JaCoCo](https://catarinas-ps-2026.github.io/alf.io/reports/backend/index.html)** |
+| Frontend admin (Vitest) | GitHub Actions, ubuntu-latest, Node.js 22, pnpm | **[Cobertura Frontend Admin – Vitest](https://catarinas-ps-2026.github.io/alf.io/reports/frontend-admin/index.html)** |
+| Frontend público (Vitest) | GitHub Actions, ubuntu-latest, Node.js 22, pnpm | **[Cobertura Frontend Público – Vitest](https://catarinas-ps-2026.github.io/alf.io/reports/frontend-public/index.html)** |
+
 ## 6. Configuración del entorno de ejecución
 
 ### 6.1 Infraestructura de CI/CD
