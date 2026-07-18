@@ -13,10 +13,11 @@
 ## 1. Información General
 
 ### 1.1 Alcance
-El plan se centra en las pruebas de sistema para la plataforma de reserva de entradas alf.io. El objetivo principal es evaluar el comportamiento global del sistema integrado de extremo a extremo (E2E), garantizando el cumplimiento tanto de los requisitos funcionales desde la perspectiva del usuario final como de los requisitos no funcionales (rendimiento y estabilidad bajo carga masiva). La estrategia de pruebas de sistema se basa en una estrategia basada en requisitos (Requirement-Based) y Casos de Uso, combinada con una estrategia no funcional dirgida por objetivos.
+El plan se centra en las pruebas de sistema para la plataforma de reserva de entradas alf.io. El objetivo principal es evaluar el comportamiento global del sistema integrado, garantizando el cumplimiento de los requisitos no funcionales (rendimiento, estabilidad bajo carga masiva, seguridad y calidad de código). La estrategia de pruebas de sistema se basa en una estrategia no funcional dirigida por objetivos.
 
-- *Validación Funcional Web E2E*: Automatización de flujos de interacción del usuario mediante Playwright.
 - *Validación de Rendimiento*: Pruebas de carga y estrés concurrentes sobre los servicios del sistema mediante K6.
+- *Pruebas de Fuzzing*: Pruebas de mutación guiadas por cobertura mediante Jazzer para detectar crashes y vulnerabilidades en clases utilitarias y de modelo.
+- *Análisis Estático de Seguridad*: Análisis de vulnerabilidades, bugs y code smells mediante SonarQube Community.
 
 ### 1.2 Referencias
 1. Estándares de Ingeniería de Software y Pruebas
@@ -29,8 +30,9 @@ El plan se centra en las pruebas de sistema para la plataforma de reserva de ent
    - [[Plan de Pruebas de Integración]] - Pruebas de interacción entre módulos.
    - [[Diseño de Casos de Prueba Funcionales]] - Diseño de pruebas funcionales.
 5. Herramientas de automatización:
-   - Documentación oficial de Playwright: [playwright.dev](https://playwright.dev/)
    - Documentación oficial de K6: [grafana.com/docs/k6](https://grafana.com/docs/k6/)
+   - Documentación de Jazzer (fuzzing): [github.com/CodeIntelligenceTesting/jazzer](https://github.com/CodeIntelligenceTesting/jazzer)
+   - Documentación de SonarQube: [docs.sonarsource.com/sonarqube](https://docs.sonarsource.com/sonarqube/)
 6. Stack técnico del proyecto:
    - Backend: Java 17, Spring Boot 3.5.x, Jetty, PostgreSQL
    - Frontend público: Angular 17
@@ -38,8 +40,6 @@ El plan se centra en las pruebas de sistema para la plataforma de reserva de ent
 
 ### 1.3 Glosario
 
-- **E2E (End-to-End):** Pruebas que validan flujos completos del sistema desde la interfaz de usuario hasta la persistencia de datos.
-- **Playwright:** Framework de automatización de navegadores web para pruebas E2E, soportado por Chromium, Firefox y WebKit.
 - **K6:** Herramienta de pruebas de rendimiento y carga escrita en Go, con scripts en JavaScript.
 - **SPA (Single Page Application):** Aplicación web que carga una sola página HTML y actualiza dinámicamente el contenido.
 - **Check-in:** Proceso de validación y registro de asistencia de un participante al evento mediante escaneo de código QR o entrada manual.
@@ -47,6 +47,10 @@ El plan se centra en las pruebas de sistema para la plataforma de reserva de ent
 - **Stress Test:** Prueba que lleva el sistema más allá de su carga máxima para identificar puntos de quiebre.
 - **RPS (Requests Per Second):** Métrica que indica el número de peticiones por segundo que procesa el sistema.
 - VU (Virtual User): Hilo de ejecución concurrente utilizado por K6 que simula el comportamiento continuo de un usuario real en el sistema.
+- **Jazzer:** Herramienta de fuzzing guiada por cobertura para JVM, basada en libFuzzer. Detecta crashes, exception errors y vulnerabilidades de seguridad mutando inputs.
+- **Fuzzing:** Técnica de prueba automatizada que genera datos de entrada aleatorios o mutados para encontrar comportamientos inesperados, crashes y vulnerabilidades.
+- **SonarQube:** Plataforma de análisis estático de código que detecta bugs, vulnerabilidades de seguridad, code smells y deuda técnica.
+- **SAST (Static Application Security Testing):** Análisis estático de seguridad del código fuente para identificar vulnerabilidades sin ejecutar la aplicación.
 
 ## 2. Especificaciones de las Pruebas
 El sistema de venta de entradas se divide en los siguientes subprocesos funcionales y de rendimiento para la cobertura del sistema completo:
@@ -56,16 +60,7 @@ Esta sección detalla la estrategia de pruebas de sistema para alf.io, validando
 
 El proceso de pruebas de sistema se divide en los siguientes subprocesos:
 
-#### Subproceso 1 - Pruebas E2E con Playwright
-- **Objetivo:** Validar flujos completos de usuario a través de la interfaz de navegador, verificando la interacción entre frontend y backend.
-- **Técnica:** Automatización de navegador con Playwright, ejecución en Chromium y Firefox.
-- **Foco de Validación:**
-  - Flujo completo de compra de entradas (selección → checkout → pago → confirmación).
-  - Gestión de eventos desde el panel de administración.
-  - Proceso de check-in de asistentes.
-  - Comportamiento en múltiples navegadores y resoluciones.
-
-#### Subproceso 2 - Pruebas de Rendimiento con K6
+#### Subproceso 1 - Pruebas de Rendimiento con K6
 - **Objetivo:** Evaluar el comportamiento del sistema bajo cargas variables de trabajo, midiendo tiempos de respuesta, throughput y estabilidad.
 - **Técnica:** Scripts de pruebas de carga, estrés y resistencia con K6.
 - **Foco de Validación:**
@@ -74,13 +69,29 @@ El proceso de pruebas de sistema se divide en los siguientes subprocesos:
   - Comportamiento bajo estrés extremo (pico de ventas de un evento popular).
   - Degradação graceful del sistema bajo sobrecarga.
 
-#### Subproceso 3 - Pruebas de Compatibilidad Cross-Browser
-- **Objetivo:** Garantizar que la aplicación funcione correctamente en los navegadores principales utilizados por los usuarios.
-- **Técnica:** Ejecución paralela de suites E2E en Chromium y Firefox mediante la configuración de proyectos de Playwright.
+#### Subproceso 2 - Pruebas de Fuzzing con Jazzer
+- **Objetivo:** Detectar crashes, excepciones no manejadas y vulnerabilidades de seguridad en clases utilitarias, de modelo y de procesamiento de datos mediante mutación guiada por cobertura.
+- **Técnica:** Fuzzing guiado por cobertura (coverage-guided fuzzing) usando Jazzer en modo JUnit, con mutación de inputs para explorar caminos de ejecución no convencionales.
 - **Foco de Validación:**
-  - Renderizado consistente de formularios y componentes UI.
-  - Compatibilidad de JavaScript/TypeScript en diferentes motores de renderizado.
-  - Comportamiento de APIs del navegador (localStorage, sessionStorage, Service Workers).
+  - Deserialización de JSON (modelos Event, Ticket, TicketReservation, BillingDocument).
+  - Validadores (email, nombre italiano, código fiscal, PIN).
+  - Utilidades criptográficas (CheckInManager.encrypt, HMAC, MD5).
+  - Utilidades de plantillas (Mustache, traducciones i18n).
+  - Utilidades de negocio (precios, impuestos, moneda, rangos de horario).
+  - Procesamiento de extensiones (JSON.parse/stringify, conversión de tipos).
+- **Herramienta:** `com.code-intelligence:jazzer-junit:0.30.0`
+- **Archivos de prueba:** 35 clases fuzz bajo `src/test/java/alfio/fuzz/`
+
+#### Subproceso 3 - Análisis Estático de Seguridad con SonarQube
+- **Objetivo:** Identificar bugs, vulnerabilidades de seguridad, code smells y deuda técnica en el código fuente del backend Java.
+- **Técnica:** Análisis estático (SAST) mediante SonarQube Community Edition ejecutado en un contenedor Docker efímero durante el pipeline de CI.
+- **Foco de Validación:**
+  - Bugs de confiabilidad (métodos transaccionales llamados vía `this`, assertions en try-catch).
+  - Vulnerabilidades de seguridad (hash débil, cifrado inseguro, CSRF deshabilitado, directorios escribibles).
+  - Code smells de mantenibilidad (complejidad cognitiva excesiva, literales duplicados, imports wildcard).
+  - Deuda técnica y ratio de duplicación de código.
+- **Herramienta:** SonarQube Community Edition (`sonarqube:community`) + `sonarqube-community-reporter` para generación de HTML.
+- **Integration:** Plugin Gradle `org.sonarqube` v7.3.0.8198, ejecutado como job en GitHub Actions.
 
 ### 2.2 Elementos de Prueba
 Para garantizar la repetibilidad y el control absoluto del estado físico del sistema sin afectar ambientes reales, las pruebas de sistema se configuran sobre un entorno local orquestado dentro de contenedores:
@@ -112,20 +123,17 @@ Para garantizar la repetibilidad y el control absoluto del estado físico del si
 
 #### Elementos Incluidos en el Alcance
 
-**Flujos Críticos de Negocio (E2E):**
+**Requisitos No Funcionales Seleccionados para Validación:**
 
-| ID | Flujo Crítico | Descripción | Prioridad |
-|:---|:---|:---|:---:|
-| FC-01 | Flujo completo de compra de entradas | Navegación desde listado de eventos hasta confirmación de compra con pago exitoso | Alta |
-| FC-02 | Creación y configuración de eventos | Panel admin crea evento, configura categorías, precios y fechas de venta | Alta |
-| FC-03 | Check-in de asistentes | Escaneo de código QR y validación de entrada al evento | Alta |
-| FC-04 | Gestión de reservas y cancelaciones | Flujo de reserva con tiempo límite, cancelación y reembolso | Alta |
-| FC-05 | Generación de tickets digitales | Emisión de tickets en formato PDF, Apple Wallet y Google Wallet | Media |
-| FC-06 | Autenticación y autorización | Login de administrador, control de acceso por roles (admin, organizador, check-in) | Alta |
-| FC-07 | Cola de espera | Comportamiento del sistema bajo alta demanda con cola virtual | Media |
-| FC-08 | Gestión de descuentos y promociones | Aplicación de códigos de descuento y precios dinámicos | Media |
+Los requisitos no funcionales seleccionados para pruebas de sistema son **seguridad** y **rendimiento**:
 
-**Pruebas de Rendimiento:**
+| Categoría NR | Descripción | Herramienta | Subproceso |
+|:---|:---|:---|:---|
+| **Rendimiento** | Validar tiempos de respuesta, throughput y estabilidad bajo carga concurrente | K6 | Subproceso 1 |
+| **Seguridad (Fuzzing)** | Detectar crashes, excepciones no manejadas y vulnerabilidades en procesamiento de datos | Jazzer | Subproceso 2 |
+| **Seguridad (SAST)** | Identificar bugs, vulnerabilidades de seguridad y code smells mediante análisis estático | SonarQube | Subproceso 3 |
+
+**Pruebas de Rendimiento (K6):**
 
 | ID | Escenario de Rendimiento | Descripción | Métrica Objetivo |
 |:---|:---|:---|:---|
@@ -133,6 +141,26 @@ Para garantizar la repetibilidad y el control absoluto del estado físico del si
 | PR-02 | Pico de ventas | 200 usuarios concurrentes en los primeros 5 minutos de apertura de venta | Throughput > 100 RPS |
 | PR-03 | Estrés extremo | 500+ usuarios concurrentes para identificar puntos de quiebre | Degradación gradual, sin caída completa |
 | PR-04 | Resistencia | Carga sostenida de 100 usuarios durante 30 minutos | Sin memory leaks, tiempos estables |
+
+**Pruebas de Fuzzing (Jazzer):**
+
+| ID | Objetivo Fuzzing | Clases Objetivo | Herramienta |
+|:---|:---|:---|:---|
+| FZ-01 | Deserialización de modelos JSON | Event, Ticket, TicketReservation, BillingDocument, PromoCodeDiscount | Jazzer |
+| FZ-02 | Validadores de entrada | ItalianTaxIdValidator, Validator (email), PinGenerator | Jazzer |
+| FZ-03 | Utilidades criptográficas | CheckInManager.encrypt, ExtensionUtils (HMAC, MD5, Base64) | Jazzer |
+| FZ-04 | Utilidades de plantillas | MustacheCustomTag, TemplateManager (i18n) | Jazzer |
+| FZ-05 | Utilidades de negocio | MonetaryUtil, HoursRange, EventUtil, WorkingDaysAdjusters | Jazzer |
+| FZ-06 | Procesamiento de extensiones | ExtensionJSON, ExtensionUtils, SqlUtils, HttpUtils | Jazzer |
+
+**Análisis Estático de Seguridad (SonarQube):**
+
+| ID | Categoría | Descripción | Herramienta |
+|:---|:---|:---|:---|
+| SQ-01 | Bugs | Defectos de confiabilidad detectados por análisis estático | SonarQube |
+| SQ-02 | Vulnerabilities | Vulnerabilidades de seguridad (hash débil, cifrado, CSRF) | SonarQube |
+| SQ-03 | Code Smells | Problemas de mantenibilidad y deuda técnica | SonarQube |
+| SQ-04 | Security Hotspots | Código que requiere revisión manual de seguridad | SonarQube |
 
 **Endpoints de API críticos a probar:**
 - `GET /api/v1/public/events` - Listado de eventos públicos.
@@ -144,24 +172,22 @@ Para garantizar la repetibilidad y el control absoluto del estado físico del si
 
 #### Elementos Excluidos del Alcance
 
-- **Pruebas de Seguridad Avanzadas (Penetration Testing):** Auditoría activa de vulnerabilidades, inyección SQL, XSS y CSRF quedan fuera de este plan (se abordan en revisiones de código estático y herramientas SAST/DAST separadas).
-- **Pruebas de Usabilidad (UX Testing):** Evaluación subjetiva de la experiencia de usuario con usuarios reales.
-- **Pruebas de Regresión Completa:** Se priorizan los flujos críticos; la regresión total se cubre con las suites de pruebas unitarias y de integración existentes.
+- **Pruebas funcionales E2E:** Las pruebas de flujos completos de usuario (Playwright) se ejecutan como pruebas de aceptación, no como pruebas de sistema.
+- **Pruebas de Regresión Completa:** Se priorizan los requisitos no funcionales seleccionados; la regresión funcional se cubre con las suites de pruebas unitarias y de integración existentes.
 - **Pruebas con Pasarelas de Pago Reales:** Todas las transacciones de pago se simulán en entorno de sandbox o se mockearán para evitar cargos reales.
-- **Pruebas de Accesibilidad (a11y):** Auditoría completa de accesibilidad WCAG, aunque se verificarán aspectos básicos de navegación por teclado y lectores de pantalla en flujos críticos.
-- **Pruebas de Internacionalización (i18n):** Validación completa de traducciones; se cubrirán solo los idiomas principales (inglés y español).
+- **Pruebas de Usabilidad (UX Testing):** Evaluación subjetiva de la experiencia de usuario con usuarios reales.
+- **Pruebas de Accesibilidad (a11y):** Auditoría completa de accesibilidad WCAG.
+- **Pruebas de Internacionalización (i18n):** Validación completa de traducciones.
 
 ### 2.4 Suposiciones y Restricciones
 
 **Suposiciones**
 - El entorno de pruebas está desplegado y accesible (localmente vía Docker o en un entorno de staging).
-- Se dispone de las credenciales de administrador necesarias para ejecutar pruebas E2E que requieran autenticación.
-- La base de datos de pruebas está en un estado conocido y reproducible al inicio de cada suite de pruebas.
-- El equipo tiene acceso a las herramientas de pruebas: Playwright (v1.59.1) y K6.
-- Los navegadores Chromium y Firefox están instalados y configurados para Playwright.
+- La base de datos de pruebas está en un estado conocido y reproducible al inicio de cada ejecución.
+- El equipo tiene acceso a las herramientas de pruebas: K6, Jazzer y SonarQube.
+- Docker está disponible para ejecutar el contenedor de SonarQube y el entorno de pruebas.
 
 **Restricciones**
-- Las pruebas E2E deben completarse en menos de 15 minutos por ejecución completa.
 - Las pruebas de rendimiento se ejecutarán en horarios que no afecten el desarrollo del equipo.
 - No se realizarán pruebas de sistema contra el entorno de producción.
 - Los datos de prueba serán generados dinámicamente y eliminados después de cada ejecución.
@@ -204,12 +230,14 @@ En esta sección se identifican los riesgos que afectan directamente al proceso 
 | N° | Riesgo | Probabilidad | Impacto | Severidad | Plan de Mitigación |
 |:---|:---|:---:|:---:|:---:|:---|
 | 1 | Entorno de pruebas inestable o no disponible | 3 | 5 | 15 | Contenedor Docker autocontenido con datos de prueba semilla. Verificación del entorno antes de cada ejecución. |
-| 2 | Flujos E2E frágiles por cambios en selectores CSS/HTML | 4 | 3 | 12 | Uso de selectores robustos (data-testid), Page Object Model para abstraer la interfaz. |
-| 3 | Tiempo de ejecución de pruebas E2E excesivo | 3 | 3 | 9 | Paralelización con `fullyParallel: true`, ejecución selectiva por tags, optimización de wait times. |
+| 2 | Flujos de prueba frágiles por cambios en selectores CSS/HTML | 4 | 3 | 12 | Uso de selectores robustos (data-testid), abstracción de interfaz. |
+| 3 | Tiempo de ejecución de pruebas excesivo | 3 | 3 | 9 | Ejecución selectiva por tags, optimización de wait times. |
 | 4 | Resultados inconsistentes en pruebas de rendimiento (flaky) | 3 | 4 | 12 | Múltiples iteraciones, warm-up previo, aislamiento de red, ejecución en horarios de baja actividad. |
-| 5 | Falta de experiencia del equipo con Playwright/K6 | 3 | 3 | 9 | Sesiones de capacitación inicial, documentación de referencia, pair programming. |
+| 5 | Falta de experiencia del equipo con K6/Jazzer/SonarQube | 3 | 3 | 9 | Sesiones de capacitación inicial, documentación de referencia, pair programming. |
 | 6 | Datos de prueba que dejan estados residuales | 2 | 4 | 8 | Generación dinámica de datos con slugs aleatorios, limpieza automática post-ejecución via API helper. |
 | 7 | Dificultades con la integración de pago en sandbox | 2 | 3 | 6 | Mock de respuestas de pago, uso de entorno sandbox de Stripe/PayPal con credenciales de prueba. |
+| 8 | Fuzzing encuentra crashes en código legado sin plan de corrección | 3 | 3 | 9 | Clasificar crashes por severidad; los crashes en utilidades puras se corrigen inmediatamente; los de baja prioridad se documentan como deuda técnica. |
+| 9 | SonarQube reporta vulnerabilidades críticas sin corrección inmediata | 2 | 4 | 8 | Priorizar corrección de vulnerabilidades BLOCKER/CRITICAL; documentar las demás como deuda técnica con plan de resolución. |
 
 ## 5. Metodología
 
@@ -217,35 +245,17 @@ En esta sección se identifican los riesgos que afectan directamente al proceso 
 
 Para el proceso de pruebas de sistema de `alf.io`, se generarán los siguientes artefactos como evidencia del cumplimiento de los objetivos de calidad:
 
-- **Scripts de Pruebas E2E (Playwright):** Suite completa de pruebas automatizadas de extremo a extremo cubriendo los flujos críticos de negocio.
 - **Scripts de Pruebas de Rendimiento (K6):** Conjunto de scripts para pruebas de carga, estrés y resistencia con métricas documentadas.
-- **Reporte de Ejecución de Pruebas E2E:** Resultados detallados de la ejecución de pruebas en Chromium y Firefox, incluyendo capturas de pantalla en caso de fallos.
+- **Scripts de Pruebas de Fuzzing (Jazzer):** 35 clases fuzz target cubriendo utilidades, modelos, validadores y procesamiento de extensiones.
 - **Reporte de Pruebas de Rendimiento:** Análisis de métricas de rendimiento (tiempos de respuesta, throughput, errores) con gráficas y comparativas.
-- **Matriz de Trazabilidad:** Documento que vincula los casos de prueba de sistema con los requisitos funcionales del sistema.
+- **Reporte de Pruebas de Fuzzing:** Resultados del fuzzing guiado por cobertura, incluyendo cobertura de código y crashes encontrados.
+- **Reporte de Análisis Estático (SonarQube):** Análisis de bugs, vulnerabilidades, code smells y deuda técnica con desglose por severidad.
+- **Matriz de Trazabilidad:** Documento que vincula los casos de prueba de sistema con los requisitos no funcionales del sistema.
 - **Lista de Defectos Encontrados:** Registro de todos los bugs identificados durante la ejecución de las pruebas, con severidad, prioridad y estado.
 
 Los entregables se encuentran en la sección correspondiente de esta Wiki.
 
 ### 5.2 Técnicas de Diseño de Prueba
-
-#### Pruebas E2E (Playwright)
-
-- **Pruebas de Flujo de Usuario (Happy Path):** Se ejecutan los flujos principales del sistema desde la perspectiva del usuario final:
-  - Navegación → Selección → Checkout → Pago → Confirmación.
-  - Login → Creación de evento → Configuración → Publicación.
-
-- **Partición por Equivalencia:** Los datos de entrada se agrupan en clases válidas e inválidas:
-  - Categorías de tickets con diferentes precios y estados (activa, inactiva, agotada).
-  - Tipos de usuario con diferentes permisos (admin, organizador, check-in operator).
-
-- **Análisis de Valores Límite:**
-  - Campos de formulario con límites de caracteres.
-  - Fechas límite de venta de tickets (venta cerrada vs. venta activa).
-  - Stock mínimo de tickets (último ticket disponible vs. agotado).
-
-- **Pruebas de Compatibilidad Cross-Browser:** Ejecución en Chromium y Firefox para validar diferencias de renderizado y comportamiento JavaScript.
-
-- **Page Object Model (POM):** Patrón de diseño para abstraer la interfaz de usuario en objetos reutilizables, facilitando el mantenimiento de los scripts.
 
 #### Pruebas de Rendimiento (K6)
 
@@ -263,12 +273,12 @@ Los entregables se encuentran en la sección correspondiente de esta Wiki.
 
 El proceso de pruebas de sistema se dará por concluido únicamente cuando se cumplan satisfactoriamente los siguientes criterios:
 
-1. **Cobertura de Flujos Críticos:** Se deben haber ejecutado y aprobado el 100% de los flujos críticos definidos en la matriz de trazabilidad (FC-01 a FC-08).
-2. **Tasa de Éxito E2E:** Las pruebas E2E deben alcanzar una tasa de éxito mínima del 95% en cada ejecución.
-3. **Objetivos de Rendimiento:** Los resultados de las pruebas de rendimiento deben cumplir con las métricas definidas:
+1. **Objetivos de Rendimiento:** Los resultados de las pruebas de rendimiento deben cumplir con las métricas definidas:
    - Tiempo de respuesta promedio < 2 segundos bajo carga normal.
    - Throughput mínimo de 100 RPS en escenario de pico.
    - Tasa de error < 1% bajo carga normal.
+2. **Cobertura de Fuzzing:** Se deben ejecutar las 35 clases fuzz target sin crashes críticos.
+3. **Análisis de Seguridad:** SonarQube debe completar el análisis con Quality Gate OK.
 4. **Severidad de Defectos:** No deben existir defectos abiertos con severidad crítica o alta sin plan de resolución.
 5. **Integridad de Entregables:** Todos los entregables definidos en la sección 5.1 deben estar completos y publicados en la Wiki.
 6. **Aprobación y Verificación:** Toda contribución debe pasar por un Pull Request (PR) hacia `main` con:
@@ -283,9 +293,9 @@ Esta sección detalla el conjunto de métricas que se recogerán durante la ejec
 
 | Categoría | Métricas Clave y Objetivos |
 | :--- | :--- |
-| **Efectividad** | • **Cobertura:** 100% de flujos críticos.<br>• **Defectos:** Tasa por cada 100 horas y porcentaje de detección temprana (antes de producción). |
-| **Eficiencia** | • **Tiempo E2E:** Menor a 15 minutos.<br>• **Automatización:** Porcentaje de casos automatizados vs. manuales.<br>• **Mantenibilidad:** Cambios requeridos tras cada release. |
 | **Rendimiento (K6)** | • **Tiempos:** Promedio < 2s, percentiles p95 y p99.<br>• **Carga:** Throughput (RPS) y tasa de error (4xx/5xx).<br>• **Conexión:** Tiempo de TLS handshake. |
+| **Fuzzing (Jazzer)** | • **Cobertura de fuzzing:** Número de clases fuzz target ejecutadas.<br>• **Crashes encontrados:** Número de crashes o exceptions inesperadas.<br>• **Cobertura de código:** Instrucciones cubiertas por las clases fuzzed. |
+| **Seguridad (SonarQube)** | • **Quality Gate:** Estado (OK/BLOCKED).<br>• **Bugs:** Número total y por severidad.<br>• **Vulnerabilities:** Número total y por severidad.<br>• **Code Smells:** Número total y ratio de deuda técnica. |
 
 ### 5.5 Requisitos del Entorno de Pruebas
 
@@ -293,54 +303,9 @@ Esta sección detalla el conjunto de métricas que se recogerán durante la ejec
 
 | Variable | Descripción | Valor por defecto |
 |:---|:---|:---|
-| `PLAYWRIGHT_BASE_URL` | URL base del sistema bajo prueba | `http://localhost:8080` |
-| `E2E_SERVER_APIKEY` | API Key de administrador para crear/eliminar eventos de prueba | (requerida) |
+| `BASE_URL` | URL base del sistema bajo prueba (K6) | `http://localhost:8080` |
+| `API_KEY` | API Key de administrador para crear eventos de prueba (K6) | (requerida) |
 | `CI` | Indica entorno de integración continua | `false` |
-
-#### Entorno de Pruebas E2E
-
-| Componente | Especificación |
-|:---|:---|
-| **URL base** | `http://localhost:8080` (configurable via `PLAYWRIGHT_BASE_URL`) |
-| **Navegadores** | Chromium (Desktop Chrome), Firefox (Desktop Firefox) |
-| **Framework** | Playwright v1.59.1 |
-| **Lenguaje** | TypeScript |
-| **Package Manager** | pnpm |
-| **Node.js** | v22.x |
-| **Sistema Operativo** | Linux (NixOS compatible, Ubuntu, Kde) |
-
-<!--#### Configuración de Playwright
-
-La configuración de Playwright se encuentra en `src/test/e2e/playwright.config.ts`:
-
-```typescript
-export default defineConfig({
-    testDir: "./tests",
-    fullyParallel: true,
-    forbidOnly: false,
-    retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : undefined,
-    reporter: [["html", { open: "never" }], ["list"]],
-    use: {
-        baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8080",
-        trace: "on-first-retry",
-        screenshot: "only-on-failure",
-        video: "retain-on-failure",
-    },
-    projects: [
-        { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-        { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-    ],
-});
-```
-
-**Configuración clave:**
-- **`fullyParallel: true`**: Ejecución paralela de tests para reducir tiempo total.
-- **`retries: 2` en CI**: Reintentos automáticos en entorno de integración continua.
-- **`workers: 1` en CI**: Ejecución secuencial en CI para evitar conflictos de recursos.
-- **`trace: "on-first-retry"`**: Captura de traza completa solo en el primer reintento (para debugging).
-- **`screenshot: "only-on-failure"`**: Capturas de pantalla automáticas al fallar.
-- **`video: "retain-on-failure"`**: Grabación de video conservada solo si el test falla.-->
 
 #### Entorno de Pruebas de Rendimiento
 | Componente | Especificación |
@@ -354,7 +319,6 @@ export default defineConfig({
 #### Infraestructura de CI/CD
 - **Plataforma:** GitHub Actions con runners `ubuntu-latest`.
 - **Disparadores:** Pull Request hacia `main` y push a `main`.
-- **Cache:** Dependencias de pnpm y binarios de Playwright para acelerar ejecuciones.
 
 #### Base de Datos y Servicios
 - **PostgreSQL:** Entorno de pruebas con datos semilla para escenarios de prueba.
@@ -363,81 +327,16 @@ export default defineConfig({
 
 ### 5.6 Matriz de Trazabilidad
 
-La matriz de trazabilidad vincula los requisitos funcionales del sistema con los casos de prueba de sistema correspondientes:
+La matriz de trazabilidad vincula los requisitos no funcionales del sistema con los casos de prueba de sistema correspondientes:
 
 | ID Requisito | Descripción del Requisito | Caso de Prueba | Herramienta | Estado |
 |:---|:---|:---|:---|:---|
-| REQ-01 | El sistema debe permitir a los usuarios comprar entradas para eventos | FC-01: Flujo completo de compra | Playwright | Pendiente |
-| REQ-02 | El sistema debe permitir a los administradores crear y gestionar eventos | FC-02: Creación y configuración de eventos | Playwright | Pendiente |
-| REQ-03 | El sistema debe validar la asistencia mediante check-in | FC-03: Check-in de asistentes | Playwright | Pendiente |
-| REQ-04 | El sistema debe gestionar reservas con tiempo límite | FC-04: Gestión de reservas y cancelaciones | Playwright | Pendiente |
-| REQ-05 | El sistema debe generar tickets digitales (PDF, Apple Wallet, Google Wallet) | FC-05: Generación de tickets digitales | Playwright | Pendiente |
-| REQ-06 | El sistema debe controlar el acceso por roles | FC-06: Autenticación y autorización | Playwright | Pendiente |
-| REQ-07 | El sistema debe manejar colas de espera en eventos de alta demanda | FC-07: Cola de espera | Playwright | Pendiente |
-| REQ-08 | El sistema debe soportar códigos de descuento y precios dinámicos | FC-08: Gestión de descuentos | Playwright | Pendiente |
-| REQ-09 | El sistema debe responder en menos de 2s bajo carga normal | PR-01: Carga normal | K6 | Pendiente |
-| REQ-10 | El sistema debe soportar al menos 100 RPS en pico de ventas | PR-02: Pico de ventas | K6 | Pendiente |
-| REQ-11 | El sistema debe degradarse graceful bajo sobrecarga | PR-03: Estrés extremo | K6 | Pendiente |
-| REQ-12 | El sistema no debe presentar memory leaks en uso prolongado | PR-04: Resistencia | K6 | Pendiente |
-
-<!--## 6. Estructura de Pruebas
-
-En este capítulo se presenta la organización general de las pruebas de sistema.
-
-### 6.1 Estructura de Directorios-->
-<!--
-```
-src/test/e2e/
-├── playwright.config.ts          # Configuración de Playwright
-├── package.json                  # Dependencias y scripts
-├── tsconfig.json                 # Configuración TypeScript
-├── biome.json                    # Linter/formatter
-├── README.md                     # Documentación de configuración
-├── tests/
-│   ├── smoke.spec.ts             # Pruebas de smoke (carga de página)
-│   ├── purchase-flow.spec.ts     # Flujo completo de compra
-│   ├── admin-event.spec.ts       # Gestión de eventos desde admin
-│   ├── check-in.spec.ts          # Flujo de check-in
-│   ├── reservation.spec.ts       # Reservas y cancelaciones
-│   └── authentication.spec.ts    # Login y control de acceso
-├── fixtures/
-│   └── test-fixtures.ts          # Fixtures personalizados de Playwright
-├── helpers/
-│   └── api-helper.ts             # Utilidades para crear/eliminar eventos vía API
-└── resources/
-    └── e2e/
-        └── create-event-for-e2e.json  # Template JSON para creación de eventos
-```-->
-
-<!--### 6.2 Patrón Page Object Model (POM)
-
-Las pruebas E2E se organizan utilizando el patrón Page Object Model para abstraer la interacción con la interfaz de usuario:
-
-```typescript
-// Ejemplo de estructura POM
-pages/
-├── EventListPage.ts      # Interacción con el listado de eventos
-├── EventDetailPage.ts    # Interacción con el detalle de un evento
-├── CheckoutPage.ts       # Interacción con el formulario de checkout
-├── ConfirmationPage.ts   # Interacción con la página de confirmación
-├── AdminDashboard.ts     # Interacción con el panel de administración
-└── CheckInPage.ts        # Interacción con la funcionalidad de check-in
-```
--->
-
-<!--
-### 6.3 Organización de Pruebas de Rendimiento
-
-```
-tests/performance/
-├── load-test.ts          # Prueba de carga normal
-├── stress-test.ts        # Prueba de estrés
-├── soak-test.ts          # Prueba de resistencia
-├── spike-test.ts         # Prueba de pico
-└── utils/
-    ├── thresholds.ts     # Umbrales de aceptación
-    └── scenarios.ts      # Configuración de escenarios
-```-->
+| REQ-NF-01 | El sistema debe responder en menos de 2s bajo carga normal | PR-01: Carga normal | K6 | Pendiente |
+| REQ-NF-02 | El sistema debe soportar al menos 100 RPS en pico de ventas | PR-02: Pico de ventas | K6 | Pendiente |
+| REQ-NF-03 | El sistema debe degradarse graceful bajo sobrecarga | PR-03: Estrés extremo | K6 | Pendiente |
+| REQ-NF-04 | El sistema no debe presentar memory leaks en uso prolongado | PR-04: Resistencia | K6 | Pendiente |
+| REQ-NF-05 | El sistema no debe contener crashes en procesamiento de datos inválidos | FZ-01 a FZ-06: Fuzzing | Jazzer | Pendiente |
+| REQ-NF-06 | El código no debe contener vulnerabilidades de seguridad conocidas | SQ-01 a SQ-04: Análisis estático | SonarQube | Pendiente |
 
 ## 6. Organización
 
@@ -450,27 +349,29 @@ Se utiliza una matriz RACI para las actividades clave del plan de pruebas de sis
 | Actividad Clave / Tarea | Christian Mestas (Lead) | Mariel Jara (DEV) | Gustavo Sequeiros (DEV) | Mathias Barrios (DEV) | Rodrigo Fernandez (DEV) | Alvaro Quispe (DEV) | Docente |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **1. Definición del Plan de Pruebas de Sistema** | **A** | **R** | **R** | **C** | **C** | **C** | **I** |
-| **2. Configuración del Entorno de Pruebas (Docker, Playwright, K6)** | **A** | **R** | **C** | **C** | **C** | **C** | **I** |
-| **3. Diseño de Casos de Prueba E2E** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
-| **4. Implementación de Scripts Playwright** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
-| **5. Implementación de Scripts K6 (Rendimiento)** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
-| **6. Ejecución y Reporte de Pruebas E2E** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
+| **2. Configuración del Entorno de Pruebas (Docker, K6, Jazzer, SonarQube)** | **A** | **R** | **C** | **C** | **C** | **C** | **I** |
+| **3. Diseño de Casos de Prueba No Funcionales** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
+| **4. Implementación de Scripts K6 (Rendimiento)** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
+| **5. Implementación de Pruebas Fuzzing (Jazzer)** | **A** | **C** | **R** | **C** | **C** | **C** | **I** |
+| **6. Configuración de Análisis Estático (SonarQube)** | **A** | **R** | **C** | **C** | **C** | **C** | **I** |
 | **7. Ejecución y Análisis de Pruebas de Rendimiento** | **A** | **R** | **R** | **R** | **R** | **R** | **I** |
-| **8. Consolidación de Reportes y Matriz de Trazabilidad** | **R** | **C** | **C** | **C** | **C** | **C** | **I** |
+| **8. Ejecución de Pruebas Fuzzing y Análisis de Resultados** | **A** | **C** | **R** | **C** | **C** | **C** | **I** |
+| **11. Consolidación de Reportes y Matriz de Trazabilidad** | **R** | **C** | **C** | **C** | **C** | **C** | **I** |
 
 ## 8. Cronograma
 El cronograma de actividades para el ciclo de pruebas de sistema se distribuye de la siguiente manera:
 
 | Semana | Actividad | Entregable |
 |:---:|:---|:---|
-| **1** | Configuración del entorno de pruebas (Docker, Playwright, K6) | Entorno funcional documentado |
-| **1** | Diseño de casos de prueba E2E para flujos críticos | Documento de diseño de pruebas |
-| **1** | Implementación de scripts Playwright (Flujos FC-01 a FC-04) | Scripts de pruebas E2E |
-| **2** | Implementación de scripts Playwright (Flujos FC-05 a FC-08) | Scripts de pruebas E2E completos |
-| **2** | Implementación de scripts K6 (Escenarios PR-01 a PR-04) | Scripts de pruebas de rendimiento |
-| **2** | Ejecución de pruebas E2E y reporte de defectos | Reporte de ejecución E2E |
-| **3** | Ejecución de pruebas de rendimiento y análisis de métricas | Reporte de rendimiento |
-| **3** | Corrección de defectos críticos y re-ejecución | Defectos resueltos |
+| **1** | Configuración del entorno de pruebas (Docker, K6, Jazzer, SonarQube) | Entorno funcional documentado |
+| **1** | Diseño de casos de prueba no funcionales (rendimiento, fuzzing, seguridad) | Documento de diseño de pruebas |
+| **1** | Implementación de scripts K6 (Escenarios PR-01 a PR-04) | Scripts de pruebas de rendimiento |
+| **2** | Configuración e implementación de pruebas fuzzing con Jazzer | 35 clases fuzz target implementadas |
+| **2** | Configuración de SonarQube en pipeline de CI | Análisis estático configurado |
+| **2** | Ejecución de pruebas de rendimiento y análisis de métricas | Reporte de rendimiento |
+| **3** | Ejecución de pruebas fuzzing y análisis de crashes | Reporte de fuzzing |
+| **3** | Ejecución de análisis SonarQube y análisis de vulnerabilidades | Reporte de SonarQube |
+| **3** | Corrección de defectos críticos y re-ejeción | Defectos resueltos |
 | **3** | Consolidación de matriz de trazabilidad y entregables finales | Todos los entregables publicados |
 | **3** | Revisión final y aprobación del plan | Plan cerrado y aprobado |
 
