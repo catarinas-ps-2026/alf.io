@@ -1,7 +1,7 @@
-import { test, expect } from "../fixtures/test-fixtures";
-import { AdminEventPage } from "../pages/admin-event.page";
-import { PublicEventPage } from "../pages/public-event.page";
-import { loginViaUI, completeBasicConfigIfVisible } from "../helpers/auth-helper";
+import { test, expect } from "../../fixtures/test-fixtures";
+import { AdminEventPage } from "../../pages/admin-event.page";
+import { PublicEventPage } from "../../pages/public-event.page";
+import { loginViaUI, completeBasicConfigIfVisible } from "../../helpers/auth-helper";
 
 test.describe("Event Creation: Admin → Create Event → Configure Categories", () => {
     test("admin can access the event creation page", async ({

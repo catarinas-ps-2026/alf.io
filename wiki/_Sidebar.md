@@ -11,9 +11,8 @@
 
 ## Pruebas de integración
 - [[Plan de Pruebas de Integración]]
+- [[Informe de Ejecución de Pruebas de Integración]]
 
 ## Pruebas de sistema
 - [[Plan de Pruebas de Sistema]]
-
-## Documentación
-- [[Plantilla de Typst]]
+- [[Informe de Ejecución de Pruebas de Sistema]]
