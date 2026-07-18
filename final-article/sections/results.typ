@@ -13,7 +13,8 @@ The testing strategy covered all major components of the alf.io system across th
     [Public Frontend], [Angular 17], [487], [100%],
     [Admin Frontend], [Lit 3], [167], [100%],
     [Integration Backend], [JUnit + Testcontainers], [354], [100%],
-    [E2E Tests], [Playwright], [88], [100%],
+    [Integration Frontend], [Playwright], [56], [100%],
+    [Acceptance Tests], [Playwright], [22], [100%],
     [Functional Tests], [Manual], [120+], [97.5%],
   ),
   caption: [Components tested and their results.],
@@ -44,7 +45,7 @@ Figures 3 and 4 show the frontend coverage reports. The administration frontend 
 
 == Integration Test Results
 
-Integration testing executed 442 test cases across four components @testcontainers2024. All tests achieved 100% pass rates. Figure 5 shows the backend integration test results.
+Integration testing executed 410 test cases (354 JUnit backend + 56 Playwright frontend) across four components @testcontainers2024. All tests achieved 100% pass rates. Figure 5 shows the backend integration test results.
 
 #figure(
   image("../diagrams/integration-tests/integration_tests_backend.png", width: 100%),

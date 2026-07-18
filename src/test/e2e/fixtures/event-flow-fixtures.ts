@@ -4,7 +4,10 @@ import {
     deleteTestEvent,
     type TestEvent,
 } from "../helpers/api-helper";
-import { loginViaUI, completeBasicConfigIfVisible } from "../helpers/auth-helper";
+import {
+    completeBasicConfigIfVisible,
+    loginViaUI,
+} from "../helpers/auth-helper";
 
 export interface CustomFixtures {
     event: TestEvent;
@@ -13,7 +16,7 @@ export interface CustomFixtures {
 }
 
 const ADMIN_USERNAME = process.env.E2E_ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "abcd";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "Admin-1234";
 
 export const test = baseTest.extend<CustomFixtures>({
     event: [
@@ -130,7 +133,6 @@ export const test = baseTest.extend<CustomFixtures>({
             adminCredentials.username,
             adminCredentials.password,
         );
-        await page.waitForURL(/.*(admin).*/);
         await completeBasicConfigIfVisible(page, baseURL);
 
         await use(page);

@@ -13,7 +13,8 @@ La estrategia de pruebas cubrió todos los componentes principales del sistema a
     [Frontend Público], [Angular 17], [487], [100%],
     [Frontend Admin], [Lit 3], [167], [100%],
     [Integración Backend], [JUnit + Testcontainers], [354], [100%],
-    [Pruebas E2E], [Playwright], [88], [100%],
+    [Integración Frontend], [Playwright], [56], [100%],
+    [Pruebas de Aceptación], [Playwright], [22], [100%],
     [Pruebas Funcionales], [Manual], [120+], [97.5%],
   ),
   caption: [Componentes evaluados y sus resultados.],
@@ -44,7 +45,7 @@ Las Figuras 3 y 4 muestran los reportes de cobertura del frontend. El frontend d
 
 == Resultados de Pruebas de Integración
 
-Las pruebas de integración ejecutaron 442 casos de prueba en cuatro componentes @testcontainers2024. Todas las pruebas alcanzaron tasas de aprobación del 100%. La Figura 5 muestra los resultados de las pruebas de integración del backend.
+Las pruebas de integración ejecutaron 410 casos de prueba (354 JUnit backend + 56 Playwright frontend) en cuatro componentes @testcontainers2024. Todas las pruebas alcanzaron tasas de aprobación del 100%. La Figura 5 muestra los resultados de las pruebas de integración del backend.
 
 #figure(
   image("../diagrams/integration-tests/integration_tests_backend.png", width: 100%),

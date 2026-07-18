@@ -1,6 +1,6 @@
 = Conclusion <sec:conclusion>
 
-The comprehensive testing strategy implemented for alf.io demonstrated the effectiveness of a multi-layered approach to software quality assurance. The project achieved 100% pass rates across unit tests, integration tests, and end-to-end tests, while maintaining an aggregated code coverage of 85.76%. These results validated the testing methodology and confirmed the system's functional correctness.
+The comprehensive testing strategy implemented for alf.io demonstrated the effectiveness of a multi-layered approach to software quality assurance. The project achieved 100% pass rates across unit tests, integration tests, and acceptance tests, while maintaining an aggregated code coverage of 85.76%. These results validated the testing methodology and confirmed the system's functional correctness.
 
 The unit testing phase established a solid foundation by validating individual components in isolation. The combination of JUnit 5 with Mockito for backend and Vitest for frontend provided comprehensive coverage of business logic, API controllers, and user interface components. The automated execution through GitHub Actions ensured consistent test results and rapid feedback for developers.
 

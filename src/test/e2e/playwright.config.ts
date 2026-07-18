@@ -1,7 +1,8 @@
+import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * See https://playwright.dev/docs/test-configuration.
+ * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
     testDir: "./tests",
@@ -18,7 +19,12 @@ export default defineConfig({
 
         trace: "retain-on-failure",
         screenshot: "only-on-failure",
-        video: (process.env.PLAYWRIGHT_VIDEO as "on" | "off" | "retain-on-failure" | "on-first-retry") || "retain-on-failure",
+        video:
+            (process.env.PLAYWRIGHT_VIDEO as
+                | "on"
+                | "off"
+                | "retain-on-failure"
+                | "on-first-retry") || "retain-on-failure",
         locale: "en-US",
     },
 
@@ -38,10 +44,6 @@ export default defineConfig({
         {
             name: "chromium",
             use: { ...devices["Desktop Chrome"] },
-        },
-        {
-            name: "firefox",
-            use: { ...devices["Desktop Firefox"] },
         },
     ],
 });

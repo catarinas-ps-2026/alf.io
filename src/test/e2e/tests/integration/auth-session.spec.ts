@@ -1,6 +1,6 @@
 import { expect, test } from "../../fixtures/test-fixtures";
-import { AdminPage } from "../../pages/admin.page";
 import { completeBasicConfigIfVisible } from "../../helpers/auth-helper";
+import { AdminPage } from "../../pages/admin.page";
 
 test.describe("Authentication: Session Persistence", () => {
     test("should keep user authenticated after page reload", async ({

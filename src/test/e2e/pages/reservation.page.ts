@@ -79,15 +79,24 @@ export class ReservationPage {
     }
 
     async isOnBookingPage(): Promise<boolean> {
-        return this.page.url().includes("/reservation/") && this.page.url().includes("/book");
+        return (
+            this.page.url().includes("/reservation/") &&
+            this.page.url().includes("/book")
+        );
     }
 
     async isOnOverviewPage(): Promise<boolean> {
-        return this.page.url().includes("/reservation/") && this.page.url().includes("/overview");
+        return (
+            this.page.url().includes("/reservation/") &&
+            this.page.url().includes("/overview")
+        );
     }
 
     async isOnSuccessPage(): Promise<boolean> {
-        return this.page.url().includes("/reservation/") && this.page.url().includes("/success");
+        return (
+            this.page.url().includes("/reservation/") &&
+            this.page.url().includes("/success")
+        );
     }
 
     async getReservationId(): Promise<string> {

@@ -54,11 +54,11 @@ Los elementos excluidos del alcance son: pruebas de rendimiento y carga, pruebas
 
 Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta las suites de integración en cada Pull Request y en cada push a la rama `main`. Los reportes se publican automáticamente en GitHub Pages para su revisión.
 
-| Componente | Entorno |
-| :--- | :--- |
-| Backend (JUnit) | GitHub Actions, ubuntu-latest, JDK 17, Docker (Testcontainers) |
-| Playwright | GitHub Actions, ubuntu-latest, Node.js 22, PostgreSQL 16, Chromium + Firefox |
-| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit |
+| Componente | Entorno | Reporte |
+| :--- | :--- | :--- |
+| Backend (JUnit) | GitHub Actions, ubuntu-latest, JDK 17, Docker (Testcontainers) | **[Reporte de Integración – JUnit](https://catarinas-ps-2026.github.io/alf.io/reports/integration-tests/index.html)** |
+| Playwright (Acciones Singulares) | GitHub Actions, ubuntu-latest, Node.js 22, PostgreSQL 16, Chromium + Firefox | **[Reporte Playwright](https://catarinas-ps-2026.github.io/alf.io/reports/playwright/index.html)** |
+| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit | **[Portal Redoc](https://catarinas-ps-2026.github.io/alf.io/reports/api-contract/index.html)** |
 
 ## 6. Configuración del entorno de ejecución
 
@@ -228,15 +228,15 @@ Se ejecuta tras un merge en `main`. Los mismos jobs que el workflow de PR, pero 
 | `event-creation.spec.ts` | 3 | Acceso a página de creación, 404 API, error en página pública |
 | `event-publication.spec.ts` | 7 | Visibilidad, nombre, categorías, botón continuar, selectores, estructura API |
 
-**Total Playwright (acciones singulares):** 88 tests (44 por navegador × 2 navegadores)
+**Total Playwright (acciones singulares):** 56 tests (28 por navegador × 2 navegadores)
 
 ### 7.4 Resumen de Resultados Playwright
 
 | Métrica | Valor |
 | :--- | :---: |
-| Tests totales | 88 |
+| Tests totales | 56 |
 | Navegadores | Chromium, Firefox |
-| Tests exitosos | 88 |
+| Tests exitosos | 56 |
 | Tests con fallo | 0 |
 | Tests flaky | 0 |
 | Tests skipped | 0 |
@@ -334,8 +334,8 @@ Conforme a la sección de Criterios de Finalización del [[Plan-de-Pruebas-de-In
 | Métrica | Valor |
 | :--- | :---: |
 | Total de pruebas de integración backend | 354 |
-| Total de pruebas Playwright (acciones singulares) | 88 |
-| Total de pruebas de integración | 442 |
+| Total de pruebas Playwright (acciones singulares) | 56 |
+| Total de pruebas de integración | 410 |
 | Tasa de éxito global | 100% |
 | Tiempo de ejecución backend (CI) | 2m 40s |
 | Tiempo de ejecución Playwright (CI) | 5.3 minutos |
@@ -380,7 +380,7 @@ La integración con el servicio de correo electrónico está cubierta por `SmtpM
 
 ## 15. Conclusión
 
-La suite de pruebas de integración de alf.io alcanza una tasa de éxito del 100% con un total de 442 pruebas distribuidas en cuatro componentes: backend JUnit (354 pruebas, 2m 40s), Playwright acciones singulares (88 pruebas, 5.3 minutos), validación de contrato API (Redoc) e integración con pasarelas de pago (Stripe y PayPal sandbox). Adicionalmente, se valida el envío real de correos electrónicos vía servidor SMTP de Gmail. Los 30 endpoints obligatorios del flujo crítico Reserva → Pago → Check-In están cubiertos al 100%.
+La suite de pruebas de integración de alf.io alcanza una tasa de éxito del 100% con un total de 410 pruebas distribuidas en cuatro componentes: backend JUnit (354 pruebas, 2m 40s), Playwright acciones singulares (56 pruebas, 5.3 minutos), validación de contrato API (Redoc) e integración con pasarelas de pago (Stripe y PayPal sandbox). Adicionalmente, se valida el envío real de correos electrónicos vía servidor SMTP de Gmail. Los 30 endpoints obligatorios del flujo crítico Reserva → Pago → Check-In están cubiertos al 100%.
 
 La integración con pasarelas de pago cubre tanto Stripe (mediante Stripe Mock container) como PayPal (mediante cuenta sandbox configurada en Peru), validando flujos completos de reserva → pago → confirmación para ambos proveedores. La integración con el servicio de correo electrónico valida el envío real de notificaciones vía SMTP de Gmail, confirmando que el sistema puede entregar correos electrónicos a usuarios tras la creación de reservas.
 

@@ -1,6 +1,6 @@
 = Conclusión <sec:conclusion>
 
-La estrategia integral de pruebas implementada para alf.io demostró la efectividad de un enfoque multicapa para el aseguramiento de calidad de software. El proyecto alcanzó tasas de aprobación del 100% en pruebas unitarias, de integración y de extremo a extremo, manteniendo una cobertura de código agregada del 85.76%. Estos resultados validaron la metodología de pruebas y confirmaron la corrección funcional del sistema.
+La estrategia integral de pruebas implementada para alf.io demostró la efectividad de un enfoque multicapa para el aseguramiento de calidad de software. El proyecto alcanzó tasas de aprobación del 100% en pruebas unitarias, de integración y de aceptación, manteniendo una cobertura de código agregada del 85.76%. Estos resultados validaron la metodología de pruebas y confirmaron la corrección funcional del sistema.
 
 La fase de pruebas unitarias estableció una base sólida validando componentes individuales de forma aislada. La combinación de JUnit 5 con Mockito para backend y Vitest para frontend proporcionó cobertura integral de lógica de negocio, controladores API y componentes de interfaz de usuario. La ejecución automatizada a través de GitHub Actions aseguró resultados consistentes de pruebas y retroalimentación rápida para los desarrolladores.
 

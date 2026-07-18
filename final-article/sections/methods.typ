@@ -37,7 +37,7 @@ Integration testing validated the interaction between multiple components using 
 
 Backend integration tests used Testcontainers to manage ephemeral PostgreSQL instances, providing real database interactions without external dependencies. The tests validated complete flows from controllers through managers to repositories. Stripe Mock container was used for payment gateway testing, while PayPal sandbox accounts enabled real payment flow validation.
 
-API contract validation was performed using SpringDoc OpenAPI to generate descriptors automatically from controllers. End-to-end testing with Playwright validated the administration interface against the running backend @playwright2024.
+API contract validation was performed using SpringDoc OpenAPI to generate descriptors automatically from controllers. Playwright frontend integration tests validated singular admin actions (authentication, event CRUD, user management, navigation) against the running backend @playwright2024.
 
 == Functional Testing
 
@@ -69,7 +69,7 @@ Table IV summarizes the tools used for system testing.
 
 Acceptance testing validated complete user workflows from the end-user perspective. The acceptance test suite covered the admin panel interface, including authentication, event management, reservation processing, and check-in operations. These tests were executed against a running instance of alf.io deployed in a Kubernetes cluster.
 
-The acceptance tests used Playwright for browser automation, testing against both Chromium and Firefox browsers @playwright2024. The tests validated that the system met the specified acceptance criteria and functioned correctly in a production-like environment.
+The acceptance tests used Playwright for browser automation, testing against the Chromium browser @playwright2024. The tests validated that the system met the specified acceptance criteria and functioned correctly in a production-like environment.
 
 == CI/CD Automation
 
