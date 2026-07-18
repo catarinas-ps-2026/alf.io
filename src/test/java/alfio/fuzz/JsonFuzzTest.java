@@ -17,7 +17,6 @@
 package alfio.fuzz;
 
 import alfio.model.BillingDocument;
-import alfio.model.ContentLanguage;
 import alfio.model.CustomerName;
 import alfio.model.Event;
 import alfio.model.PromoCodeDiscount;

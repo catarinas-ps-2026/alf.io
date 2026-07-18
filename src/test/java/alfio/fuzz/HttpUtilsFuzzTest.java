@@ -19,7 +19,6 @@ package alfio.fuzz;
 import alfio.util.HttpUtils;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
-import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 

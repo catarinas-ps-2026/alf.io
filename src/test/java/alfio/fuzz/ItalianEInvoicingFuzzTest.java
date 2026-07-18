@@ -38,7 +38,7 @@ public class ItalianEInvoicingFuzzTest {
         try {
             String json = data.consumeString(2000);
             TicketReservationInvoicingAdditionalInfo info =
-                Json.fromJson(json, TicketReservationInvoicingAdditionalInfo.class);
+                    Json.fromJson(json, TicketReservationInvoicingAdditionalInfo.class);
             if (info != null) {
                 String serialized = Json.toJson(info);
                 Json.fromJson(serialized, TicketReservationInvoicingAdditionalInfo.class);
@@ -73,7 +73,7 @@ public class ItalianEInvoicingFuzzTest {
         try {
             String json = data.consumeString(2000);
             TicketReservationInvoicingAdditionalInfo info =
-                Json.fromJson(json, TicketReservationInvoicingAdditionalInfo.class);
+                    Json.fromJson(json, TicketReservationInvoicingAdditionalInfo.class);
             if (info != null && info.getItalianEInvoicing() != null) {
                 info.getItalianEInvoicing().getReferenceTypeAsString();
                 info.getItalianEInvoicing().getReference();
@@ -88,7 +88,7 @@ public class ItalianEInvoicingFuzzTest {
         try {
             String json = data.consumeString(2000);
             TicketReservationInvoicingAdditionalInfo info =
-                Json.fromJson(json, TicketReservationInvoicingAdditionalInfo.class);
+                    Json.fromJson(json, TicketReservationInvoicingAdditionalInfo.class);
             if (info != null) {
                 info.isEmpty();
                 info.getEmpty();

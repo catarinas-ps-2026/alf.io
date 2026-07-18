@@ -25,8 +25,8 @@ import java.time.Duration;
 
 public class SimpleHttpClientFuzzTest {
 
-    private static final SimpleHttpClient CLIENT =
-        new SimpleHttpClient(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(1)).build());
+    private static final SimpleHttpClient CLIENT = new SimpleHttpClient(
+            HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(1)).build());
 
     @FuzzTest
     public void fuzzUriCreation(FuzzedDataProvider data) {
