@@ -1,7 +1,7 @@
-import { test, expect } from "../fixtures/event-flow-fixtures";
-import { PublicEventPage } from "../pages/public-event.page";
-import { ReservationPage } from "../pages/reservation.page";
-import { CheckInPage } from "../pages/check-in.page";
+import { test, expect } from "../../../fixtures/event-flow-fixtures";
+import { PublicEventPage } from "../../../pages/public-event.page";
+import { ReservationPage } from "../../../pages/reservation.page";
+import { CheckInPage } from "../../../pages/check-in.page";
 
 
 const ATTENDEE_FIRST_NAME = "Test";

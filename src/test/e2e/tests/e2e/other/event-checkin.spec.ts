@@ -1,11 +1,11 @@
-import { test, expect } from "../fixtures/event-flow-fixtures";
-import { PublicEventPage } from "../pages/public-event.page";
-import { ReservationPage } from "../pages/reservation.page";
-import { CheckInPage } from "../pages/check-in.page";
+import { test, expect } from "../../../fixtures/event-flow-fixtures";
+import { PublicEventPage } from "../../../pages/public-event.page";
+import { ReservationPage } from "../../../pages/reservation.page";
+import { CheckInPage } from "../../../pages/check-in.page";
 import {
     loginViaUI,
     completeBasicConfigIfVisible,
-} from "../helpers/auth-helper";
+} from "../../../helpers/auth-helper";
 
 const ATTENDEE_FIRST_NAME = "CheckIn";
 const ATTENDEE_LAST_NAME = "TestUser";
@@ -66,7 +66,6 @@ test.describe.serial("Event Check-in: QR Validation → Manual Check-in → Veri
             adminCredentials.username,
             adminCredentials.password,
         );
-        await page.waitForURL(/.*(admin).*/);
         await completeBasicConfigIfVisible(
             page,
             baseURL || "http://localhost:8080",

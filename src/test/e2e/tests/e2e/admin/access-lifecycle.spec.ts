@@ -1,15 +1,15 @@
-import { expect, test } from "../../fixtures/auth";
+import { expect, test } from "../../../fixtures/auth";
 import {
     deleteOrganizationViaApi,
     logoutViaUI,
-} from "../../helpers/auth-helper";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
-import { EventsPage } from "../../pages/events";
-import { OrganizationsPage } from "../../pages/organizations/OrganizationsPage";
-import { CreateUserPage } from "../../pages/users/CreateUserPage";
-import { EditUserPage } from "../../pages/users/EditUserPage";
-import { UsersPage } from "../../pages/users/UsersPage";
+} from "../../../helpers/auth-helper";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
+import { EventsPage } from "../../../pages/events";
+import { OrganizationsPage } from "../../../pages/organizations";
+import { CreateUserPage } from "../../../pages/users/CreateUserPage";
+import { EditUserPage } from "../../../pages/users/EditUserPage";
+import { UsersPage } from "../../../pages/users/UsersPage";
 
 test.describe("Path: access lifecycle", () => {
     test("a user's access is scoped to their organization and changes when admin changes their role", async ({

@@ -1,6 +1,6 @@
-import { test, expect } from "../fixtures/event-flow-fixtures";
-import { PublicEventPage } from "../pages/public-event.page";
-import { ReservationPage } from "../pages/reservation.page";
+import { test, expect } from "../../../fixtures/event-flow-fixtures";
+import { PublicEventPage } from "../../../pages/public-event.page";
+import { ReservationPage } from "../../../pages/reservation.page";
 
 const ATTENDEE_FIRST_NAME = "Test";
 const ATTENDEE_LAST_NAME = "Purchaser";

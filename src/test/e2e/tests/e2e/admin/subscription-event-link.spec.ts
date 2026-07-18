@@ -1,19 +1,18 @@
-import { expect, test } from "../../fixtures/auth";
-import { deleteOrganizationViaApi } from "../../helpers/auth-helper";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
+import { expect, test } from "../../../fixtures/auth";
+import { deleteOrganizationViaApi } from "../../../helpers/auth-helper";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
 import {
     CreateEventPage,
     EventDetailPage,
     EventsPage,
-} from "../../pages/events";
-import { OrganizationsPage } from "../../pages/organizations/OrganizationsPage";
+} from "../../../pages/events";
+import { OrganizationsPage } from "../../../pages/organizations/OrganizationsPage";
 import {
     SubscriptionFormPage,
     SubscriptionsListPage,
-} from "../../pages/subscriptions";
-import { TEST_LOGO_PATH } from "./subscription-event-link.spec";
-export { TEST_LOGO_PATH } from "../../helpers/paths";
+} from "../../../pages/subscriptions";
+import { TEST_LOGO_PATH } from "../../../helpers/paths";
 
 test.describe("Path: subscription linked to event", () => {
     test("a subscription created for an organization can be linked to one of its events", async ({

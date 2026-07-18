@@ -30,6 +30,7 @@ export async function loginViaUI(
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login(username, password);
+    await page.waitForURL(/.*(admin).*/);
 }
 
 export async function loginAs(
