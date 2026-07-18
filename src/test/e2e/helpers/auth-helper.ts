@@ -347,6 +347,44 @@ export async function findUserByUsername(
     return resp;
 }
 
+const E2E_ORG_NAME = "E2E Org";
+
+export async function ensureE2eOrgExists(
+    request: APIRequestContext,
+): Promise<void> {
+    const baseURL =
+        process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_BASE_URL ||
+        "http://localhost:8080";
+    const apiKey = process.env.E2E_SERVER_APIKEY || "e2e-test-api-key";
+    const listResp = await request.get(
+        `${baseURL}/api/v1/admin/system/organization/list`,
+        { headers: { Authorization: `ApiKey ${apiKey}` } },
+    );
+    if (listResp.ok()) {
+        const orgs = await listResp.json();
+        if (
+            Array.isArray(orgs) &&
+            orgs.some((o: { name: string }) => o.name === E2E_ORG_NAME)
+        ) {
+            return;
+        }
+    }
+    await request.post(
+        `${baseURL}/api/v1/admin/system/organization/create`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `ApiKey ${apiKey}`,
+            },
+            data: {
+                name: E2E_ORG_NAME,
+                email: "e2e@localhost",
+                description: "E2E Org",
+            },
+        },
+    );
+}
+
 export async function ensureOrganizationExists(page: Page): Promise<number> {
     const baseURL = getBaseURL(page);
     const orgName = `E2E Org ${Date.now()}`;

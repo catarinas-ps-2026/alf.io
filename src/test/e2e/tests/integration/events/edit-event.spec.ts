@@ -8,7 +8,7 @@ import {
     EventsPage,
 } from "../../../pages/events";
 
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-logo.png");
+const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-event.png");
 
 test.describe("Events - Edit", () => {
     test("admin can edit an event's general information and the changes are saved", async ({
@@ -30,7 +30,8 @@ test.describe("Events - Edit", () => {
         const originalName = `ZZZ E2E Edit Event ${randomString(4)}`;
         const createForm = new CreateEventPage(page);
         await createForm.waitUntilReady();
-        await createForm.selectOrganization("E2E Org");
+        const orgName = await createForm.getFirstAvailableOrganization();
+        await createForm.selectOrganization(orgName);
         await createForm.fillBasicInfo({
             displayName: originalName,
             location: "Remote Test Location",

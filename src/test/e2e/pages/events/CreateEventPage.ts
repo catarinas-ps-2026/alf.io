@@ -63,11 +63,46 @@ export class CreateEventPage {
         await this.displayNameInput.waitFor({ state: "visible" });
     }
 
+    async getFirstAvailableOrganization(): Promise<string> {
+        await this.page.waitForFunction(() => {
+            const sel = document.querySelector(
+                "#organizationId",
+            ) as HTMLSelectElement | null;
+            return (
+                !!sel &&
+                Array.from(sel.options).some((o) => o.text.trim() !== "")
+            );
+        });
+        const labels = await this.organizationSelect
+            .locator("option")
+            .allTextContents();
+        const org = labels.map((l) => l.trim()).filter(Boolean)[0];
+        if (!org) throw new Error("No organizations available in dropdown");
+        return org;
+    }
+
     async isOrganizerRequiredMessageVisible(): Promise<boolean> {
         return this.organizerRequiredMessage.isVisible();
     }
 
     async selectOrganization(name: string): Promise<void> {
+        // AngularJS ng-options populates <option> elements asynchronously
+        // after the controller loads organizations from the API. Wait for
+        // the specific option to be present before attempting selection.
+        await this.page.waitForFunction(
+            (optLabel: string) => {
+                const sel = document.querySelector(
+                    "#organizationId",
+                ) as HTMLSelectElement | null;
+                return (
+                    !!sel &&
+                    Array.from(sel.options).some(
+                        (o) => o.text.trim() === optLabel,
+                    )
+                );
+            },
+            name,
+        );
         await this.organizationSelect.selectOption({ label: name });
         // Selecting an organizer reveals the rest of the form (seats,
         // payment, categories) - wait for it before filling further fields.

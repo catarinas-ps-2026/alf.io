@@ -8,7 +8,7 @@ import {
     EventsPage,
 } from "../../../pages/events";
 
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-logo.png");
+const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-event.png");
 
 test.describe("Events - delete", () => {
     test("admin can delete an event and it no longer appears in the list", async ({
@@ -30,7 +30,8 @@ test.describe("Events - delete", () => {
         const displayName = `ZZZ E2E Delete Event ${randomString(4)}`;
         const createForm = new CreateEventPage(page);
         await createForm.waitUntilReady();
-        await createForm.selectOrganization("E2E Org");
+        const orgName = await createForm.getFirstAvailableOrganization();
+        await createForm.selectOrganization(orgName);
         await createForm.fillBasicInfo({
             displayName,
             location: "Remote Test Location",

@@ -7,7 +7,7 @@ import {
     SubscriptionsListPage,
 } from "../../../pages/subscriptions";
 
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-logo.png");
+const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-event.png");
 
 test.describe("Subscriptions", () => {
     // Single end-to-end flow: create, view it in the list, modify it, and

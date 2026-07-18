@@ -39,14 +39,29 @@ export class CreateUserPage {
             const select = document.querySelector(
                 "#organizationId",
             ) as HTMLSelectElement | null;
-            return !!select && select.options.length > 0;
+            return (
+                !!select &&
+                Array.from(select.options).some((o) => o.text.trim() !== "")
+            );
         });
         await this.page.waitForFunction(() => {
             const select = document.querySelector(
                 "#role",
             ) as HTMLSelectElement | null;
-            return !!select && select.options.length > 0;
+            return (
+                !!select &&
+                Array.from(select.options).some((o) => o.text.trim() !== "")
+            );
         });
+    }
+
+    async getFirstAvailableOrganization(): Promise<string> {
+        const labels = await this.organizationSelect
+            .locator("option")
+            .allTextContents();
+        const org = labels.map((l) => l.trim()).filter(Boolean)[0];
+        if (!org) throw new Error("No organizations available in dropdown");
+        return org;
     }
 
     // Angular inserts an empty placeholder option until ng-model resolves -
@@ -67,6 +82,22 @@ export class CreateUserPage {
         email: string;
     }): Promise<void> {
         if (data.organization) {
+            // AngularJS ng-options populates <option> elements asynchronously.
+            // Wait for the specific option label to be present before selecting.
+            await this.page.waitForFunction(
+                (optLabel: string) => {
+                    const sel = document.querySelector(
+                        "#organizationId",
+                    ) as HTMLSelectElement | null;
+                    return (
+                        !!sel &&
+                        Array.from(sel.options).some(
+                            (o) => o.text.trim() === optLabel,
+                        )
+                    );
+                },
+                data.organization,
+            );
             await this.organizationSelect.selectOption({
                 label: data.organization,
             });

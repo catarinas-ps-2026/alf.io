@@ -26,8 +26,9 @@ test.describe("Users - Edit", () => {
         await users.openCreateForm();
         const createForm = new CreateUserPage(page);
         await createForm.waitUntilReady();
+        const orgName = await createForm.getFirstAvailableOrganization();
         await createForm.fillForm({
-            organization: "E2E Org",
+            organization: orgName,
             role: "Organization owner",
             username,
             firstName: "Original",
@@ -71,8 +72,9 @@ test.describe("Users - Edit", () => {
         await users.openCreateForm();
         const createForm = new CreateUserPage(page);
         await createForm.waitUntilReady();
+        const orgName = await createForm.getFirstAvailableOrganization();
         await createForm.fillForm({
-            organization: "E2E Org",
+            organization: orgName,
             role: "Organization owner",
             username,
             firstName: "Role",
@@ -147,8 +149,9 @@ test.describe("Users - Edit", () => {
         await users.openCreateForm();
         const createForm = new CreateUserPage(page);
         await createForm.waitUntilReady();
+        const orgName = await createForm.getFirstAvailableOrganization();
         await createForm.fillForm({
-            organization: "E2E Org",
+            organization: orgName,
             role: "Check-in supervisor",
             username,
             firstName: "Owner",
