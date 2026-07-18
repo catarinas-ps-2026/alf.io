@@ -1,5 +1,5 @@
-import { expect, test } from "../fixtures/test-fixtures";
-import { completeBasicConfigIfVisible } from "../helpers/auth-helper";
+import { expect, test } from "../../fixtures/test-fixtures";
+import { completeBasicConfigIfVisible } from "../../helpers/auth-helper";
 
 test.describe("Authorization: Access Control", () => {
     test("should redirect unauthenticated users trying to access administrative UI to login page", async ({

@@ -1,6 +1,6 @@
-import { expect, test } from "../fixtures/test-fixtures";
-import { getCurrentUserId, resetUserPassword } from "../helpers/auth-helper";
-import { AdminPage } from "../pages/admin.page";
+import { expect, test } from "../../fixtures/test-fixtures";
+import { getCurrentUserId, resetUserPassword } from "../../helpers/auth-helper";
+import { AdminPage } from "../../pages/admin.page";
 
 test.describe("Authentication: Password Management", () => {
     test("should successfully change password and then revert it", async ({

@@ -89,6 +89,9 @@ jobs:
 
             - name: Run Backend Tests
               run: ./gradlew test integrationTest jacocoTestReport -Dpgsql.version=16
+              env:
+                  SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+                  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
 
             - name: Upload Jacoco Coverage
               uses: actions/upload-artifact@v4
@@ -582,7 +585,7 @@ jobs:
                       { "name": "Cobertura Frontend Publico", "path": "reports/frontend-public/index.html", "status": "success" },
                       { "name": "Checkstyle - Fuentes Principales", "path": "reports/checkstyle/main.html", "status": "success" },
                       { "name": "Checkstyle - Fuentes de Prueba", "path": "reports/checkstyle/test.html", "status": "success" },
-                      { "name": "Pruebas E2E con Playwright", "path": "reports/playwright/index.html", "status": "success" },
+                      { "name": "Playwright", "path": "reports/playwright/index.html", "status": "success" },
                       { "name": "Prueba de Rendimiento k6", "path": "reports/k6/k6-report.html", "status": "success" },
                       { "name": "Pruebas de Integracion JUnit", "path": "reports/integration-tests/index.html", "status": "success" },
                       { "name": "Portal de Contrato API (Redoc)", "path": "reports/api-contract/index.html", "status": "success" },
