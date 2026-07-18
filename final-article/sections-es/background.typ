@@ -1,0 +1,23 @@
+= Antecedentes <sec:background>
+
+== Estado del Arte en Pruebas de Software
+
+Las pruebas de software han evolucionado significativamente en las últimas décadas, transitando de la verificación manual a marcos y metodologías automatizadas sofisticadas @iso29119. El estándar ISO/IEC/IEEE 29119 proporciona un marco integral para las pruebas de software, definiendo conceptos, procesos, documentación y técnicas que guían las actividades de prueba en todos los niveles del desarrollo de software. Este estándar enfatiza la importancia de la planificación sistemática, ejecución y reporte de pruebas para asegurar la calidad del software.
+
+El modelo de pirámide de pruebas, propuesto originalmente por Mike Cohn, permanece como un concepto fundamental en el diseño de estrategias de prueba @cohn2004. Este modelo sugiere que los equipos deben invertir predominantemente en pruebas unitarias, seguido de pruebas de integración, con menos pruebas de extremo a extremo en la cima. Las adaptaciones modernas de este modelo consideran capas adicionales como pruebas de contrato y pruebas de rendimiento @testingpyramid2021.
+
+La automatización de pruebas se ha convertido en un pilar fundamental de las prácticas modernas de desarrollo de software, particularmente en el contexto de pipelines de integración continua y despliegue continuo @cicd2016. La investigación ha demostrado que las pruebas automatizadas reducen significativamente el tiempo de comercialización mientras mejoran la calidad del código @cicd2017. Los estudios han mostrado que los defectos encontrados en producción cuestan significativamente más de corregir que aquellos identificados durante el desarrollo.
+
+Las estrategias modernas de pruebas abarcan múltiples enfoques especializados más allá de las pruebas funcionales tradicionales. Las herramientas de pruebas de rendimiento como K6 permiten a los equipos validar el comportamiento del sistema bajo diversas condiciones de carga @k6performance2024. Las pruebas de seguridad mediante herramientas de fuzzing como Jazzer pueden identificar vulnerabilities que las pruebas tradicionales podrían pasar por alto @jazzer2023. Las herramientas de análisis estático como SonarQube proporcionan monitoreo continuo de calidad de código, detectando bugs, vulnerabilidades y code smells antes de llegar a producción @sonarqube2024.
+
+== Sistemas de Gestión de Eventos y Software de Código Abierto
+
+Los sistemas de gestión de eventos representan una categoría especializada de aplicaciones web que deben manejar lógica de negocio compleja, transacciones financieras y operaciones en tiempo real. El modelo de código abierto ha resultado particularmente exitoso en este dominio, ya que permite a las organizaciones personalizar y extender el software para satisfacer sus necesidades específicas mientras evitan el bloqueo de proveedores @ossquality2002.
+
+El proyecto alf.io, creado en 2014 por Celestino Bellone en Ticino, Suiza, ejemplifica la evolución del software de gestión de eventos de código abierto @alfio2014. Lo que comenzó como una aplicación simple de Spring Boot ha crecido hasta convertirse en un ecosistema maduro con 1,596 estrellas en GitHub, más de 141,000 descargas en Docker Hub y 100 versiones. El nombre del proyecto deriva del nombre italiano Alfio, reflejando sus orígenes en la región de habla italiana de Suiza.
+
+La pila tecnológica de alf.io ha evolucionado significativamente a lo largo de sus 12 años de historia. El backend transitó de Spring Boot 1.x a 3.x, con Java evolucionando de la versión 8 a la 17 @springboot2024. El frontend experimentó una transformación importante de AngularJS a componentes web Lit, reflejando la tendencia general de la industria hacia frameworks ligeros y basados en estándares. La capa de base de datos se consolidó del soporte múltiple de bases de datos a PostgreSQL exclusivamente, aprovechando funciones avanzadas como Row-Level Security para multi-tenencia.
+
+La arquitectura del proyecto sigue un diseño inspirado en microservicios manteniendo un modelo de despliegue monolítico. El backend implementa una arquitectura por capas con controladores, managers, repositorios y modelos. El frontend consiste en dos aplicaciones de página única separadas: una aplicación Angular pública para compras de entradas y una interfaz de administración basada en Lit para organizadores de eventos.
+
+La integración de pasarelas de pago representa un aspecto crítico de los sistemas de gestión de eventos. Alf.io soporta múltiples proveedores de pago incluyendo Stripe, PayPal, Mollie y transferencias bancarias. El mecanismo de extensiones del sistema permite integraciones personalizadas y lógica de negocio, haciéndolo adaptable a diversos requisitos organizacionales.
