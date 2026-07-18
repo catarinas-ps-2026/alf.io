@@ -58,7 +58,7 @@ Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta la
 | :--- | :--- | :--- |
 | Backend (JUnit) | GitHub Actions, ubuntu-latest, JDK 17, Docker (Testcontainers) | **[Reporte de Integración – JUnit](https://catarinas-ps-2026.github.io/alf.io/reports/integration-tests/index.html)** |
 | Playwright (Acciones Singulares) | GitHub Actions, ubuntu-latest, Node.js 22, PostgreSQL 16, Chromium + Firefox | **[Reporte Playwright](https://catarinas-ps-2026.github.io/alf.io/reports/playwright/index.html)** |
-| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit | — |
+| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit | **[Portal Redoc](https://catarinas-ps-2026.github.io/alf.io/reports/api-contract/index.html)** |
 
 ## 6. Configuración del entorno de ejecución
 

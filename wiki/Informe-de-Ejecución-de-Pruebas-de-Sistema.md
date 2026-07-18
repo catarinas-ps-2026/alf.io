@@ -55,7 +55,7 @@ Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta la
 | :--- | :--- | :--- |
 | K6 (Rendimiento) | GitHub Actions, ubuntu-latest, JDK 17, PostgreSQL 16 | **[Reporte de Rendimiento – K6](https://catarinas-ps-2026.github.io/alf.io/reports/k6/k6-report.html)** |
 | Jazzer (Fuzzing) | GitHub Actions, ubuntu-latest, JDK 17 | **[Reporte de Fuzzing – Jazzer](https://catarinas-ps-2026.github.io/alf.io/reports/fuzz/index.html)** |
-| SonarQube (Análisis) | GitHub Actions, ubuntu-latest, JDK 17, SonarQube Community (Docker) | — |
+| SonarQube (Análisis) | GitHub Actions, ubuntu-latest, JDK 17, SonarQube Community (Docker) | **[Reporte de Análisis – SonarQube](https://catarinas-ps-2026.github.io/alf.io/reports/sonarqube/index.html)** |
 
 ## 6. Configuración del entorno de ejecución
 
