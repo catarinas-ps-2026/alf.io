@@ -22,7 +22,9 @@ export class EventDetailPage {
         // take the next "Edit" button that follows it in the DOM.
         this.editLogisticInfoButton = page
             .locator("strong", { hasText: "Logistic info and description" })
-            .locator("xpath=following::button[normalize-space(text())='Edit'][1]");
+            .locator(
+                "xpath=following::button[normalize-space(text())='Edit'][1]",
+            );
         this.actionsDropdown = page.locator("#actions-dpdwn");
         this.deleteMenuItem = page.getByRole("menuitem", { name: "Delete" });
         this.addCategoryButton = page
@@ -38,7 +40,9 @@ export class EventDetailPage {
         // heading and take the next "Edit" button that follows it in the DOM.
         this.editPricesButton = page
             .locator("strong", { hasText: "Seats and payment info" })
-            .locator("xpath=following::button[normalize-space(text())='Edit'][1]");
+            .locator(
+                "xpath=following::button[normalize-space(text())='Edit'][1]",
+            );
     }
 
     async goto(eventShortName: string): Promise<void> {
@@ -69,15 +73,11 @@ export class EventDetailPage {
         await this.deleteMenuItem.click();
 
         const dialog = this.page.getByRole("dialog");
-        await dialog
-            .getByPlaceholder("Enter short name")
-            .fill(shortName);
+        await dialog.getByPlaceholder("Enter short name").fill(shortName);
         await dialog
             .getByRole("checkbox", { name: /I confirm that I want to delete/ })
             .check();
-        await dialog
-            .getByRole("button", { name: "Confirm deletion" })
-            .click();
+        await dialog.getByRole("button", { name: "Confirm deletion" }).click();
         await this.page.waitForURL((url) => !url.href.includes("/detail"));
     }
 
@@ -205,10 +205,7 @@ export class EventDetailPage {
 
     async isSubscriptionLinked(subscriptionTitle: string): Promise<boolean> {
         const dialog = this.page.getByRole("dialog");
-        return this.subscriptionCheckbox(
-            dialog,
-            subscriptionTitle,
-        ).isChecked();
+        return this.subscriptionCheckbox(dialog, subscriptionTitle).isChecked();
     }
 
     async closeDialog(): Promise<void> {

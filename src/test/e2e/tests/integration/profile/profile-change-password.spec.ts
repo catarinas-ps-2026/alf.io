@@ -1,6 +1,6 @@
-import { expect, test } from "../../fixtures/auth";
-import { withDisposableUser } from "../../helpers/auth-helper";
-import { ProfilePage } from "../../pages/profile/ProfilePage";
+import { expect, test } from "../../../fixtures/auth";
+import { withDisposableUser } from "../../../helpers/auth-helper";
+import { ProfilePage } from "../../../pages/profile/ProfilePage";
 
 test.describe("Owner Profile - Change password", () => {
     test("user can change their password providing the correct current password", async ({

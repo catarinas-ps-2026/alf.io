@@ -1,16 +1,14 @@
-import { test, expect } from "../../../fixtures/event-flow-fixtures";
+import { expect, test } from "../../../fixtures/event-flow-fixtures";
+import { CheckInPage } from "../../../pages/check-in.page";
 import { PublicEventPage } from "../../../pages/public-event.page";
 import { ReservationPage } from "../../../pages/reservation.page";
-import { CheckInPage } from "../../../pages/check-in.page";
-
 
 const ATTENDEE_FIRST_NAME = "Test";
 const ATTENDEE_LAST_NAME = "Attendee";
 const ATTENDEE_EMAIL = "test.attendee@e2e.test";
 
-test.describe.serial(
-    "Event Flow: Creation → Purchase → Check-in",
-    () => {
+test.describe
+    .serial("Event Flow: Creation → Purchase → Check-in", () => {
         let eventSlug: string;
         let reservationId: string;
 
@@ -101,9 +99,7 @@ test.describe.serial(
             expect(page.url()).toMatch(/\/success/);
         });
 
-        test("Test 5: Check-in via admin UI", async ({
-            authenticatedPage,
-        }) => {
+        test("Test 5: Check-in via admin UI", async ({ authenticatedPage }) => {
             const checkInPage = new CheckInPage(authenticatedPage);
             await checkInPage.goto(eventSlug);
 
@@ -125,5 +121,4 @@ test.describe.serial(
             const checkedInCount = await checkInPage.getCheckedInRowCount();
             expect(checkedInCount).toBeGreaterThanOrEqual(1);
         });
-    },
-);
+    });

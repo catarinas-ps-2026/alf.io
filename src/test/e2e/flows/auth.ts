@@ -91,7 +91,11 @@ export async function fullAuthLifecycle(
     credentials: Credentials,
     baseURL: string,
 ): Promise<AuthFlowResult> {
-    const loginResult = await loginAndVerifyFullFlow(page, credentials, baseURL);
+    const loginResult = await loginAndVerifyFullFlow(
+        page,
+        credentials,
+        baseURL,
+    );
     if (!loginResult.success) return loginResult;
 
     const logoutResult = await logoutViaUI(page);

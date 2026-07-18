@@ -4,7 +4,10 @@ import {
     deleteTestEvent,
     type TestEvent,
 } from "../helpers/api-helper";
-import { loginViaUI, completeBasicConfigIfVisible } from "../helpers/auth-helper";
+import {
+    completeBasicConfigIfVisible,
+    loginViaUI,
+} from "../helpers/auth-helper";
 
 export interface CustomFixtures {
     event: TestEvent;

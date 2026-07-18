@@ -1,4 +1,4 @@
-import { test, expect } from "../../fixtures/event-flow-fixtures";
+import { expect, test } from "../../fixtures/event-flow-fixtures";
 import { PublicEventPage } from "../../pages/public-event.page";
 
 test.describe("Event Publication: Public Visibility and Details", () => {

@@ -27,7 +27,7 @@ export class Modal {
         this.title = page.locator(".modal-title");
         this.body = page.locator(".modal-body");
         this.confirmButton = page.locator(
-            '.modal-footer button.btn-success, .modal-footer button.btn-primary',
+            ".modal-footer button.btn-success, .modal-footer button.btn-primary",
         );
         this.cancelButton = page.locator(
             '.modal-footer button.btn-default, .modal-footer button[data-dismiss="modal"]',

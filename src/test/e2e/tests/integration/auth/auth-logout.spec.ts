@@ -1,5 +1,5 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs, logoutViaUI } from "../../flows/auth";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs, logoutViaUI } from "../../../flows/auth";
 
 test.describe("Authentication - Logout", () => {
     test("logout redirects user to login page", async ({

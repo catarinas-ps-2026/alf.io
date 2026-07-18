@@ -5,7 +5,7 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-    testDir: "./specs",
+    testDir: "./tests",
     timeout: 60000,
     fullyParallel: false,
     forbidOnly: false,
@@ -21,8 +21,10 @@ export default defineConfig({
         screenshot: "only-on-failure",
         video:
             (process.env.PLAYWRIGHT_VIDEO as
-                "on" | "off" | "retain-on-failure" | "on-first-retry") ||
-            "retain-on-failure",
+                | "on"
+                | "off"
+                | "retain-on-failure"
+                | "on-first-retry") || "retain-on-failure",
         locale: "en-US",
     },
 

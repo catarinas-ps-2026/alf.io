@@ -1,11 +1,11 @@
-import { expect, test } from "../../fixtures/auth";
-import { logoutViaUI } from "../../helpers/auth-helper";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
-import { CreateUserPage } from "../../pages/users/CreateUserPage";
-import { EditUserPage } from "../../pages/users/EditUserPage";
-import { UsersPage } from "../../pages/users/UsersPage";
-import { EventsPage } from "../../pages/events";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { logoutViaUI } from "../../../helpers/auth-helper";
+import { randomString } from "../../../helpers/random";
+import { EventsPage } from "../../../pages/events";
+import { CreateUserPage } from "../../../pages/users/CreateUserPage";
+import { EditUserPage } from "../../../pages/users/EditUserPage";
+import { UsersPage } from "../../../pages/users/UsersPage";
 
 test.describe("Users - Edit", () => {
     test("admin can edit an organization owner's personal information and the changes are saved", async ({

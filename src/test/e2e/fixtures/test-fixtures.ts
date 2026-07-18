@@ -1,4 +1,4 @@
-import { test as baseTest, type Browser, type Page } from "@playwright/test";
+import { type Browser, test as baseTest, type Page } from "@playwright/test";
 import {
     createTestEvent,
     deleteTestEvent,

@@ -1,10 +1,13 @@
 import path from "node:path";
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
-import { SubscriptionFormPage, SubscriptionsListPage } from "../../pages/subscriptions";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
+import {
+    SubscriptionFormPage,
+    SubscriptionsListPage,
+} from "../../../pages/subscriptions";
 
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-logo.png");
+const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-logo.png");
 
 test.describe("Subscriptions", () => {
     // Single end-to-end flow: create, view it in the list, modify it, and

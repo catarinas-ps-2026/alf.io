@@ -1,8 +1,8 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { getCurrentUser, type Credentials } from "../../helpers/auth-helper";
-import { LoginPage } from "../../pages/common/LoginPage";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { type Credentials, getCurrentUser } from "../../../helpers/auth-helper";
+import { LoginPage } from "../../../pages/common/LoginPage";
 
 async function expectSuccessfulLogin(
     page: Page,

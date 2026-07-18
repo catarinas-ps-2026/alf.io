@@ -93,7 +93,8 @@ export class CreateUserPage {
         await this.dismissDevModeBanner();
         await this.saveButton.click();
         await this.credentialsModal.waitFor({ state: "visible" });
-        const text = (await this.page.getByText(/Password:/).textContent()) ?? "";
+        const text =
+            (await this.page.getByText(/Password:/).textContent()) ?? "";
         const password = text.match(/Password:\s*(\S+)/)?.[1] ?? "";
         await this.credentialsModalCloseButton.click();
         return password;

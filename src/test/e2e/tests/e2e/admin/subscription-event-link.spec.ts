@@ -1,6 +1,7 @@
 import { expect, test } from "../../../fixtures/auth";
-import { deleteOrganizationViaApi } from "../../../helpers/auth-helper";
 import { loginAs } from "../../../flows/auth";
+import { deleteOrganizationViaApi } from "../../../helpers/auth-helper";
+import { TEST_LOGO_PATH } from "../../../helpers/paths";
 import { randomString } from "../../../helpers/random";
 import {
     CreateEventPage,
@@ -12,7 +13,6 @@ import {
     SubscriptionFormPage,
     SubscriptionsListPage,
 } from "../../../pages/subscriptions";
-import { TEST_LOGO_PATH } from "../../../helpers/paths";
 
 test.describe("Path: subscription linked to event", () => {
     test("a subscription created for an organization can be linked to one of its events", async ({
@@ -40,9 +40,7 @@ test.describe("Path: subscription linked to event", () => {
                 description: "Created by the subscription-event-link path test",
             });
             await organizations.save();
-            organizationId = await organizations.getOrganizationIdFor(
-                orgName,
-            );
+            organizationId = await organizations.getOrganizationIdFor(orgName);
 
             const events = new EventsPage(page);
             await events.goto();
@@ -109,9 +107,9 @@ test.describe("Path: subscription linked to event", () => {
 
             await subscriptions.gotoOrg(organizationId);
             await subscriptions.openLinkedEventsFor(subscriptionTitle);
-            expect(
-                await subscriptions.isEventLinkedInModal(displayName),
-            ).toBe(true);
+            expect(await subscriptions.isEventLinkedInModal(displayName)).toBe(
+                true,
+            );
             await subscriptions.closeLinkedEventsModal();
 
             await detail.goto(shortName);

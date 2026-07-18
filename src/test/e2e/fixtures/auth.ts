@@ -4,7 +4,7 @@ import {
     deleteTestEvent,
     type TestEvent,
 } from "../helpers/api-helper";
-import { loginAs, type Credentials } from "../helpers/auth-helper";
+import { type Credentials, loginAs } from "../helpers/auth-helper";
 
 export interface AuthFixtures {
     event: TestEvent | null;

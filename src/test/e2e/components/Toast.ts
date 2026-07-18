@@ -6,11 +6,15 @@ export class Toast {
 
     constructor(page: Page) {
         this.page = page;
-        this.toastContainer = page.locator(".toast-container, .alert, [role='alert']");
+        this.toastContainer = page.locator(
+            ".toast-container, .alert, [role='alert']",
+        );
     }
 
     async getSuccessMessage(): Promise<string | null> {
-        const successToast = this.page.locator(".alert-success, .toast-success");
+        const successToast = this.page.locator(
+            ".alert-success, .toast-success",
+        );
         if (await successToast.isVisible()) {
             return successToast.textContent();
         }
@@ -26,7 +30,9 @@ export class Toast {
     }
 
     async getWarningMessage(): Promise<string | null> {
-        const warningToast = this.page.locator(".alert-warning, .toast-warning");
+        const warningToast = this.page.locator(
+            ".alert-warning, .toast-warning",
+        );
         if (await warningToast.isVisible()) {
             return warningToast.textContent();
         }
@@ -35,7 +41,9 @@ export class Toast {
 
     async waitForSuccess(timeout = 5000): Promise<string | null> {
         try {
-            const successToast = this.page.locator(".alert-success, .toast-success");
+            const successToast = this.page.locator(
+                ".alert-success, .toast-success",
+            );
             await successToast.waitFor({ state: "visible", timeout });
             return successToast.textContent();
         } catch {

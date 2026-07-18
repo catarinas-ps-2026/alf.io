@@ -1,17 +1,17 @@
 import path from "node:path";
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
 import {
     CreateEventPage,
     EventDetailPage,
     EventsPage,
-} from "../../pages/events";
+} from "../../../pages/events";
 
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-logo.png");
+const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-logo.png");
 
-test.describe("Events - Edit", () => {
-    test("admin can edit an event's general information and the changes are saved", async ({
+test.describe("Events - delete", () => {
+    test("admin can delete an event and it no longer appears in the list", async ({
         page,
         adminCredentials,
         baseURL,
@@ -26,15 +26,15 @@ test.describe("Events - Edit", () => {
         await events.goto();
         await events.openCreateEventForm();
 
-        const shortName = `zzz-e2e-edit-event-${randomString(6)}`;
-        const originalName = `ZZZ E2E Edit Event ${randomString(4)}`;
+        const shortName = `zzz-e2e-delete-event-${randomString(6)}`;
+        const displayName = `ZZZ E2E Delete Event ${randomString(4)}`;
         const createForm = new CreateEventPage(page);
         await createForm.waitUntilReady();
         await createForm.selectOrganization("E2E Org");
         await createForm.fillBasicInfo({
-            displayName: originalName,
+            displayName,
             location: "Remote Test Location",
-            description: "Will be edited by the Events E2E suite",
+            description: "Will be deleted by the Events E2E suite",
             shortName,
             websiteUrl: "https://e2e.test",
             termsAndConditionsUrl: "https://e2e.test/terms",
@@ -50,14 +50,11 @@ test.describe("Events - Edit", () => {
         await createForm.save();
 
         const detail = new EventDetailPage(page);
-        try {
-            const updatedName = `${originalName} Updated`;
-            await detail.openEditBasicInfo();
-            await detail.editDisplayName(updatedName);
+        await detail.delete(shortName);
 
-            await expect(detail.eventTitle).toContainText(updatedName);
-        } finally {
-            await detail.delete(shortName);
-        }
+        await events.goto();
+        await page.reload();
+        await events.waitForEventRemoved(displayName);
+        expect(await events.isEventVisible(displayName)).toBe(false);
     });
 });

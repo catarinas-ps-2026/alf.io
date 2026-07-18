@@ -70,7 +70,10 @@ export class UsersPage {
     // still present in the DOM for user rows, so it always counts towards
     // nth() even though ng-show keeps it empty and invisible.
     async getRoleFor(username: string): Promise<string | null> {
-        return this.findRowByUsername(username).locator("td").nth(3).textContent();
+        return this.findRowByUsername(username)
+            .locator("td")
+            .nth(3)
+            .textContent();
     }
 
     roleCellFor(username: string): Locator {
@@ -101,7 +104,9 @@ export class UsersPage {
 
     // Reset Password / Disable / Delete all trigger a native confirm() -
     // Playwright auto-dismisses dialogs unless a handler is registered first.
-    private async withConfirmAccepted(action: () => Promise<void>): Promise<void> {
+    private async withConfirmAccepted(
+        action: () => Promise<void>,
+    ): Promise<void> {
         this.page.once("dialog", (dialog) => {
             // Guards against an occasional duplicate dialog event for the
             // same confirm() - accepting an already-resolved dialog throws.

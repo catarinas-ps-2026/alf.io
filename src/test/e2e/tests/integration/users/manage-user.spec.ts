@@ -1,8 +1,8 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
-import { CreateUserPage } from "../../pages/users/CreateUserPage";
-import { UsersPage } from "../../pages/users/UsersPage";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
+import { CreateUserPage } from "../../../pages/users/CreateUserPage";
+import { UsersPage } from "../../../pages/users/UsersPage";
 
 // Disable, reset password, and delete are one continuous admin workflow on
 // the same user rather than independent behaviors, so they share one test.

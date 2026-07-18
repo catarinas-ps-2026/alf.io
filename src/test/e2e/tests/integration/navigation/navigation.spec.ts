@@ -1,6 +1,6 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { NavigationComponent } from "../../pages/navigation/NavigationComponent";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { NavigationComponent } from "../../../pages/navigation/NavigationComponent";
 
 test.describe("Admin Panel: Navigation", () => {
     test("should display limited navigation for owner user", async ({

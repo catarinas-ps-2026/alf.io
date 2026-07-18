@@ -1,2 +1,2 @@
-export { SubscriptionsListPage } from "./SubscriptionsListPage";
 export { SubscriptionFormPage } from "./SubscriptionFormPage";
+export { SubscriptionsListPage } from "./SubscriptionsListPage";

@@ -1,7 +1,7 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
-import { ProfilePage } from "../../pages/profile/ProfilePage";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
+import { ProfilePage } from "../../../pages/profile/ProfilePage";
 
 test.describe("User Profile - Personal information", () => {
     test("user can update first name, last name and email, and the changes are saved", async ({

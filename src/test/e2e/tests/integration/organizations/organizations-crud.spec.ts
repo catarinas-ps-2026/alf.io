@@ -1,8 +1,8 @@
-import { expect, test } from "../../fixtures/auth";
-import { deleteOrganizationViaApi } from "../../helpers/auth-helper";
-import { loginAs } from "../../flows/auth";
-import { OrganizationsPage } from "../../pages/organizations/OrganizationsPage";
-import { randomString } from "../../helpers/random";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { deleteOrganizationViaApi } from "../../../helpers/auth-helper";
+import { randomString } from "../../../helpers/random";
+import { OrganizationsPage } from "../../../pages/organizations/OrganizationsPage";
 
 test.describe("Organizations", () => {
     test("admin can create a new organization and it appears in the list", async ({

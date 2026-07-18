@@ -32,9 +32,7 @@ export class SubscriptionsListPage {
     }
 
     async gotoNewFor(organizationId: number): Promise<void> {
-        await this.page.goto(
-            `/admin/#/subscriptions/${organizationId}/create`,
-        );
+        await this.page.goto(`/admin/#/subscriptions/${organizationId}/create`);
     }
 
     linkedEventsButtonFor(title: string): Locator {

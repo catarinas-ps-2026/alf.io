@@ -1,9 +1,9 @@
 import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
 import {
     deleteOrganizationViaApi,
     logoutViaUI,
 } from "../../../helpers/auth-helper";
-import { loginAs } from "../../../flows/auth";
 import { randomString } from "../../../helpers/random";
 import { EventsPage } from "../../../pages/events";
 import { OrganizationsPage } from "../../../pages/organizations";
@@ -37,9 +37,7 @@ test.describe("Path: access lifecycle", () => {
                 description: "Created by the access-lifecycle path test",
             });
             await organizations.save();
-            organizationId = await organizations.getOrganizationIdFor(
-                orgName,
-            );
+            organizationId = await organizations.getOrganizationIdFor(orgName);
 
             await organizations.openCreateForm();
             await organizations.fillForm({
@@ -48,9 +46,8 @@ test.describe("Path: access lifecycle", () => {
                 description: "Sibling org used to prove access scoping",
             });
             await organizations.save();
-            otherOrganizationId = await organizations.getOrganizationIdFor(
-                otherOrgName,
-            );
+            otherOrganizationId =
+                await organizations.getOrganizationIdFor(otherOrgName);
 
             const users = new UsersPage(page);
             await users.goto();

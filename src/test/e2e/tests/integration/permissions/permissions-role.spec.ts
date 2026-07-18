@@ -1,8 +1,8 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { ConfigurationPage } from "../../pages/configuration/ConfigurationPage";
-import { EventsPage } from "../../pages/events";
-import { NavigationComponent } from "../../pages/navigation/NavigationComponent";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { ConfigurationPage } from "../../../pages/configuration/ConfigurationPage";
+import { EventsPage } from "../../../pages/events";
+import { NavigationComponent } from "../../../pages/navigation/NavigationComponent";
 
 test.describe("Authorization", () => {
     test("admin can open the system configuration section", async ({

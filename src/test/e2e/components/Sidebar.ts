@@ -9,7 +9,9 @@ export class Sidebar {
     constructor(page: Page) {
         this.page = page;
         this.sidebar = page.locator(".sidebar.menu-spacer");
-        this.categoriesSection = this.sidebar.locator("h4:has-text('Categories')");
+        this.categoriesSection = this.sidebar.locator(
+            "h4:has-text('Categories')",
+        );
         this.actionsDropdown = this.sidebar.locator("#actions-dpdwn");
     }
 
@@ -34,7 +36,9 @@ export class Sidebar {
 
     async clickAction(actionText: string): Promise<void> {
         await this.actionsDropdown.click();
-        const actionLink = this.page.locator(`.dropdown-menu a:has-text("${actionText}")`);
+        const actionLink = this.page.locator(
+            `.dropdown-menu a:has-text("${actionText}")`,
+        );
         await actionLink.click();
     }
 

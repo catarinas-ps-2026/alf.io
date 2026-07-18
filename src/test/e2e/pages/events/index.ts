@@ -1,4 +1,4 @@
-export { EventsPage } from "./EventsListPage";
+export { PublicEventPage } from "../events/PublicEventPage";
 export { CreateEventPage } from "./CreateEventPage";
 export { EventDetailPage } from "./EventDetailPage";
-export { PublicEventPage } from "../events/PublicEventPage";
+export { EventsPage } from "./EventsListPage";

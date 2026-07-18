@@ -1,7 +1,7 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
-import { EventDetailPage } from "../../pages/events";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
+import { EventDetailPage } from "../../../pages/events";
 
 test.describe("Events - Ticket categories", () => {
     // Uses the `event` fixture (an already-existing event created via API,

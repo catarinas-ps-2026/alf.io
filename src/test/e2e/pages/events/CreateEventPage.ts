@@ -53,10 +53,10 @@ export class CreateEventPage {
         this.organizerRequiredMessage = page.getByText(
             "Please select an Organizer to continue",
         );
-        this.saveButton = page
-            .getByRole("button", { name: "Save" })
+        this.saveButton = page.getByRole("button", { name: "Save" }).first();
+        this.cancelButton = page
+            .getByRole("button", { name: "Cancel" })
             .first();
-        this.cancelButton = page.getByRole("button", { name: "Cancel" }).first();
     }
 
     async waitUntilReady(): Promise<void> {
@@ -77,7 +77,10 @@ export class CreateEventPage {
     // Angular's own binding on these two url fields doesn't clear a
     // pre-filled default on a plain .fill() - dispatching via the native
     // input value setter avoids ending up with a duplicated prefix.
-    private async setNativeValue(locator: Locator, value: string): Promise<void> {
+    private async setNativeValue(
+        locator: Locator,
+        value: string,
+    ): Promise<void> {
         await locator.evaluate((el: HTMLInputElement, val: string) => {
             const nativeSetter = Object.getOwnPropertyDescriptor(
                 window.HTMLInputElement.prototype,

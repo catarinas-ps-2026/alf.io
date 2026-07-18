@@ -1,6 +1,6 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { AdminPage } from "../../pages/admin/AdminPage";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { AdminPage } from "../../../pages/admin/AdminPage";
 
 test.describe("Authentication - Session", () => {
     test("authenticated user stays logged after page reload", async ({

@@ -1,8 +1,8 @@
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
-import { CreateUserPage } from "../../pages/users/CreateUserPage";
-import { UsersPage } from "../../pages/users/UsersPage";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
+import { CreateUserPage } from "../../../pages/users/CreateUserPage";
+import { UsersPage } from "../../../pages/users/UsersPage";
 
 test.describe("Users - Create", () => {
     test("admin can create a user associated to an existing organization and it appears in the list", async ({

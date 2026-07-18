@@ -9,9 +9,9 @@ export class CheckInPage {
 
     constructor(page: Page) {
         this.page = page;
-        this.searchInput = page.locator(
-            'input.form-control[placeholder*="Search"]',
-        ).first();
+        this.searchInput = page
+            .locator('input.form-control[placeholder*="Search"]')
+            .first();
         this.pendingTable = page.locator("table.check-in-data").first();
         this.checkedInTable = page.locator("table.check-in-data").nth(1);
         this.checkedInTab = page.locator("ul.nav-tabs li").nth(1);
@@ -54,9 +54,7 @@ export class CheckInPage {
 
     async manualCheckIn(rowIndex: number): Promise<void> {
         const row = this.pendingTable.locator("tbody tr").nth(rowIndex);
-        const checkInButton = row.locator(
-            'button:has-text("Check-In")',
-        );
+        const checkInButton = row.locator('button:has-text("Check-In")');
         await checkInButton.click();
         // Wait for the success notification
         await this.page.waitForTimeout(2000);
@@ -79,9 +77,9 @@ export class CheckInPage {
     }
 
     async refresh(): Promise<void> {
-        const refreshButton = this.page.locator(
-            'button:has-text("Refresh")',
-        ).first();
+        const refreshButton = this.page
+            .locator('button:has-text("Refresh")')
+            .first();
         await refreshButton.click();
         await this.page.waitForTimeout(1000);
     }

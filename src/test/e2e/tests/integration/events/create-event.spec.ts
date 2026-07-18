@@ -1,14 +1,14 @@
 import path from "node:path";
-import { expect, test } from "../../fixtures/auth";
-import { loginAs } from "../../flows/auth";
-import { randomString } from "../../helpers/random";
+import { expect, test } from "../../../fixtures/auth";
+import { loginAs } from "../../../flows/auth";
+import { randomString } from "../../../helpers/random";
 import {
     CreateEventPage,
     EventDetailPage,
     EventsPage,
-} from "../../pages/events";
+} from "../../../pages/events";
 
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-logo.png");
+const TEST_LOGO_PATH = path.resolve(__dirname, "../../../data/test-logo.png");
 
 test.describe("Events - Creae", () => {
     test("admin can create an event with a valid organization and the required information", async ({
