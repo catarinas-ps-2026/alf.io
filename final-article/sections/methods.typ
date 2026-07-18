@@ -37,7 +37,7 @@ Integration testing validated the interaction between multiple components using 
 
 Backend integration tests used Testcontainers to manage ephemeral PostgreSQL instances, providing real database interactions without external dependencies. The tests validated complete flows from controllers through managers to repositories. Stripe Mock container was used for payment gateway testing, while PayPal sandbox accounts enabled real payment flow validation.
 
-API contract validation was performed using SpringDoc OpenAPI to generate descriptors automatically from controllers. End-to-end testing with Playwright validated the administration interface against the running backend @playwright2024.
+API contract validation was performed using SpringDoc OpenAPI to generate descriptors automatically from controllers. Playwright frontend integration tests validated singular admin actions (authentication, event CRUD, user management, navigation) against the running backend @playwright2024.
 
 == Functional Testing
 

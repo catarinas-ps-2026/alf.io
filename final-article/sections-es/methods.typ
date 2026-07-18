@@ -37,7 +37,7 @@ Las pruebas de integración validaron la interacción entre múltiples component
 
 Las pruebas de integración del backend utilizaron Testcontainers para gestionar instancias efímeras de PostgreSQL, proporcionando interacciones reales con la base de datos sin dependencias externas. Las pruebas validaron flujos completos desde controladores hasta repositorios a través de managers. El contenedor Stripe Mock se utilizó para pruebas de integración con pasarelas de pago, mientras que cuentas sandbox de PayPal permitieron la validación de flujos de pago reales.
 
-La validación de contratos de API se realizó usando SpringDoc OpenAPI para generar descriptores automáticamente desde los controladores. Las pruebas de extremo a extremo con Playwright validaron la interfaz de administración contra el backend en ejecución @playwright2024.
+La validación de contratos de API se realizó usando SpringDoc OpenAPI para generar descriptores automáticamente desde los controladores. Las pruebas de integración frontend con Playwright validaron acciones singulares de administración (autenticación, CRUD de eventos, gestión de usuarios, navegación) contra el backend en ejecución @playwright2024.
 
 == Pruebas Funcionales
 

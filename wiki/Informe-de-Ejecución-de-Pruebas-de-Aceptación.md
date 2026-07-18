@@ -80,12 +80,12 @@ Este reporte se genera automáticamente en cada ejecución del pipeline de CI y 
 
 | Métrica | Valor |
 | :--- | :---: |
-| Total de flujos E2E | 7 |
-| Flujos públicos | 4 |
-| Flujos de administración | 3 |
-| Flujos exitosos | 7 |
-| Flujos fallidos | 0 |
-| Flujos flaky | 0 |
+| Total de tests de aceptación | 22 |
+| Tests de administración | 10 |
+| Tests de otros flujos | 12 |
+| Tests exitosos | 22 |
+| Tests fallidos | 0 |
+| Tests flaky | 0 |
 | Tasa de éxito | 100% |
 | Navegador principal | Chromium |
 | Duración total | 2m 21s |
@@ -335,7 +335,7 @@ Conforme a la sección de Criterios de Finalización del [[Plan-de-Pruebas-de-Ac
 
 | Criterio | Estado | Evidencia |
 | :--- | :---: | :--- |
-| Todos los flujos aprobados | Cumplido | Los 7 flujos E2E pasan al 100% en el pipeline de CI (sección 7) |
+| Todos los flujos aprobados | Cumplido | Los 22 tests de aceptación pasan al 100% en el pipeline de CI (sección 7) |
 | Sin defectos críticos abiertos | Cumplido | 0 fallos en ejecución, 0 defectos registrados |
 | Entregables completos | Cumplido | Reporte de ejecución y scripts publicados en la Wiki |
 | Pipeline verde | Cumplido | Workflow de GitHub Actions finaliza sin errores |
@@ -343,9 +343,9 @@ Conforme a la sección de Criterios de Finalización del [[Plan-de-Pruebas-de-Ac
 
 ## 8. Conclusión
 
-La suite de pruebas de aceptación de alf.io alcanza una tasa de éxito del 100% con un total de 7 flujos E2E ejecutados con Playwright: 4 flujos públicos de compra (OFFLINE, ON_SITE, validación de entradas, descarga de tickets) y 3 flujos de administración (creación de eventos, gestión de reservas, autenticación). Todos los flujos se ejecutaron en Chromium con un tiempo total de 2 minutos 21 segundos.
+La suite de pruebas de aceptación de alf.io alcanza una tasa de éxito del 100% con un total de 22 tests ejecutados con Playwright: flujos completos de compra pública (OFFLINE, ON_SITE, validación de entradas, descarga de tickets) y flujos de administración (creación de eventos, gestión de reservas, autenticación, ciclos de acceso, vinculación de suscripciones). Todos los tests se ejecutaron en Chromium con un tiempo total de 2 minutos 21 segundos.
 
-Los flujos cubren los principales escenarios de uso del sistema: desde la navegación pública de eventos hasta la gestión administrativa completa, incluyendo autenticación, creación de eventos, compra de entradas con diferentes métodos de pago, y gestión de reservas. Los 7 flujos pasaron sin defectos, validando que el sistema cumple con los requisitos funcionales desde la perspectiva del usuario final.
+Los tests cubren los principales escenarios de uso del sistema: desde la navegación pública de eventos hasta la gestión administrativa completa, incluyendo autenticación, creación de eventos, compra de entradas con diferentes métodos de pago, y gestión de reservas. Los 22 tests pasaron sin defectos, validando que el sistema cumple con los requisitos funcionales desde la perspectiva del usuario final.
 
 Los reportes detallados de Playwright con traces, screenshots y videos están disponibles en [GitHub Pages](https://catarinas-ps-2026.github.io/alf.io/reports/playwright/index.html).
 
