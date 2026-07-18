@@ -75,8 +75,8 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class CheckInManager {
 
-<span class="nc" id="L78">    private static final Logger log = LoggerFactory.getLogger(CheckInManager.class);</span>
-<span class="nc" id="L79">    static final Pattern CYPHER_SPLITTER = Pattern.compile(&quot;\\|&quot;);</span>
+<span class="fc" id="L78">    private static final Logger log = LoggerFactory.getLogger(CheckInManager.class);</span>
+<span class="fc" id="L79">    static final Pattern CYPHER_SPLITTER = Pattern.compile(&quot;\\|&quot;);</span>
     private static final int SEARCH_ATTENDEES_LIMIT = 20;
     private final TicketRepository ticketRepository;
     private final EventRepository eventRepository;
@@ -542,10 +542,10 @@ public class CheckInManager {
 
     static Pair&lt;Cipher, SecretKeySpec&gt; getCypher(String key) {
         try {
-<span class="nc" id="L545">            SecretKeyFactory factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA1&quot;);</span>
-<span class="nc" id="L546">            int iterations = 1000;</span>
-<span class="nc" id="L547">            int keyLength = 256;</span>
-<span class="nc" id="L548">            PBEKeySpec spec =</span>
+<span class="fc" id="L545">            SecretKeyFactory factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA1&quot;);</span>
+<span class="fc" id="L546">            int iterations = 1000;</span>
+<span class="fc" id="L547">            int keyLength = 256;</span>
+<span class="fc" id="L548">            PBEKeySpec spec =</span>
 <span class="nc" id="L549">                    new PBEKeySpec(key.toCharArray(), key.getBytes(StandardCharsets.UTF_8), iterations, keyLength);</span>
 <span class="nc" id="L550">            SecretKey secretKey = factory.generateSecret(spec);</span>
 <span class="nc" id="L551">            SecretKeySpec secret = new SecretKeySpec(secretKey.getEncoded(), &quot;AES&quot;);</span>

@@ -32,26 +32,26 @@ import org.slf4j.LoggerFactory;
 
 public class SimpleHttpClient {
 
-<span class="nc" id="L35">    private static final Logger log = LoggerFactory.getLogger(SimpleHttpClient.class);</span>
-<span class="nc" id="L36">    private static final Set&lt;String&gt; NULL_REQUEST_BODY = Set.of(&quot;GET&quot;, &quot;HEAD&quot;);</span>
-<span class="nc" id="L37">    static final Path ALLOWED_TMP_FILE_DIR = Path.of(System.getProperty(&quot;java.io.tmpdir&quot;), &quot;alfio-extension&quot;);</span>
-<span class="nc" id="L38">    private static final Path OUTPUT_FILE_DIR = Path.of(System.getProperty(&quot;java.io.tmpdir&quot;), &quot;alfio-extension-output&quot;);</span>
+<span class="fc" id="L35">    private static final Logger log = LoggerFactory.getLogger(SimpleHttpClient.class);</span>
+<span class="fc" id="L36">    private static final Set&lt;String&gt; NULL_REQUEST_BODY = Set.of(&quot;GET&quot;, &quot;HEAD&quot;);</span>
+<span class="fc" id="L37">    static final Path ALLOWED_TMP_FILE_DIR = Path.of(System.getProperty(&quot;java.io.tmpdir&quot;), &quot;alfio-extension&quot;);</span>
+<span class="fc" id="L38">    private static final Path OUTPUT_FILE_DIR = Path.of(System.getProperty(&quot;java.io.tmpdir&quot;), &quot;alfio-extension-output&quot;);</span>
 
     static {
         // make sure input and output directories exist
         try {
-<span class="nc" id="L43">            Files.createDirectories(ALLOWED_TMP_FILE_DIR);</span>
-<span class="nc" id="L44">            Files.createDirectories(OUTPUT_FILE_DIR);</span>
+<span class="fc" id="L43">            Files.createDirectories(ALLOWED_TMP_FILE_DIR);</span>
+<span class="fc" id="L44">            Files.createDirectories(OUTPUT_FILE_DIR);</span>
 <span class="nc" id="L45">        } catch (IOException e) {</span>
 <span class="nc" id="L46">            throw new IllegalStateException(e);</span>
-<span class="nc" id="L47">        }</span>
-<span class="nc" id="L48">    }</span>
+<span class="fc" id="L47">        }</span>
+<span class="fc" id="L48">    }</span>
 
     private final HttpClient httpClient;
 
-<span class="nc" id="L52">    public SimpleHttpClient(HttpClient httpClient) {</span>
-<span class="nc" id="L53">        this.httpClient = httpClient;</span>
-<span class="nc" id="L54">    }</span>
+<span class="fc" id="L52">    public SimpleHttpClient(HttpClient httpClient) {</span>
+<span class="fc" id="L53">        this.httpClient = httpClient;</span>
+<span class="fc" id="L54">    }</span>
 
     public SimpleHttpClientResponse get(String url) throws IOException {
 <span class="nc" id="L57">        return get(url, Collections.emptyMap());</span>
@@ -170,8 +170,8 @@ public class SimpleHttpClient {
 
     private SimpleHttpClientResponse doRequest(
             String url, Map&lt;String, String&gt; headers, String method, Object requestBody) throws IOException {
-<span class="nc" id="L173">        HttpRequest request = buildUrlAndHeader(</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">                        url, headers, NULL_REQUEST_BODY.contains(method) ? null : HttpUtils.APPLICATION_JSON)</span>
+<span class="pc" id="L173">        HttpRequest request = buildUrlAndHeader(</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">                        url, headers, NULL_REQUEST_BODY.contains(method) ? null : HttpUtils.APPLICATION_JSON)</span>
 <span class="nc" id="L175">                .method(method, buildRequestBody(requestBody))</span>
 <span class="nc" id="L176">                .build();</span>
 <span class="nc" id="L177">        return callRemote(request);</span>
@@ -228,11 +228,11 @@ public class SimpleHttpClient {
 
     // Thanks to: https://stackoverflow.com/questions/54208945/java-11-httpclient-not-sending-basic-authentication
     public String basicCredentials(String username, String password) {
-<span class="nc" id="L231">        return HttpUtils.basicAuth(username, password);</span>
+<span class="fc" id="L231">        return HttpUtils.basicAuth(username, password);</span>
     }
 
     private static HttpRequest.Builder buildUrlAndHeader(String url, Map&lt;?, ?&gt; headers, String contentType) {
-<span class="nc" id="L235">        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();</span>
+<span class="fc" id="L235">        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();</span>
 <span class="nc" id="L236">        requestBuilder.uri(URI.create(url));</span>
 <span class="nc bnc" id="L237" title="All 2 branches missed.">        if (headers != null) {</span>
 <span class="nc" id="L238">            headers.forEach((k, v) -&gt; requestBuilder.header(String.valueOf(k), String.valueOf(v)));</span>

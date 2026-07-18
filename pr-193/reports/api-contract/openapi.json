@@ -27838,11 +27838,11 @@
           "refundedAmount" : {
             "type" : "string"
           },
-          "ticketAmount" : {
+          "priceInCents" : {
             "type" : "integer",
             "format" : "int32"
           },
-          "priceInCents" : {
+          "ticketAmount" : {
             "type" : "integer",
             "format" : "int32"
           },
@@ -27855,9 +27855,6 @@
           "notYetPaid" : {
             "type" : "boolean"
           },
-          "priceBeforeTaxes" : {
-            "type" : "string"
-          },
           "singleTicketOrder" : {
             "type" : "boolean"
           },
@@ -27869,6 +27866,9 @@
           },
           "displaySplitPaymentNote" : {
             "type" : "boolean"
+          },
+          "priceBeforeTaxes" : {
+            "type" : "string"
           }
         }
       },
@@ -27994,10 +27994,10 @@
           "pin" : {
             "type" : "string"
           },
-          "formattedValidityTo" : {
+          "formattedValidityFrom" : {
             "type" : "string"
           },
-          "formattedValidityFrom" : {
+          "formattedValidityTo" : {
             "type" : "string"
           }
         }
@@ -28548,12 +28548,12 @@
           "hasInvoiceNumber" : {
             "type" : "boolean"
           },
-          "pendingOfflinePayment" : {
-            "type" : "boolean"
-          },
           "promoCodeDiscountId" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "pendingOfflinePayment" : {
+            "type" : "boolean"
           },
           "registrationTimestamp" : {
             "type" : "string",
@@ -31593,14 +31593,12 @@
             "type" : "string",
             "enum" : [ "FREE", "PENDING", "TO_BE_PAID", "ACQUIRED", "CANCELLED", "CHECKED_IN", "EXPIRED", "INVALIDATED", "RELEASED", "PRE_RESERVED" ]
           },
-          "tags" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
           "uuid" : {
             "type" : "string"
+          },
+          "vatStatus" : {
+            "type" : "string",
+            "enum" : [ "NONE", "INCLUDED", "NOT_INCLUDED", "INCLUDED_EXEMPT", "NOT_INCLUDED_EXEMPT", "CUSTOM_INCLUDED_EXEMPT", "CUSTOM_NOT_INCLUDED_EXEMPT", "INCLUDED_NOT_CHARGED", "NOT_INCLUDED_NOT_CHARGED" ]
           },
           "extReference" : {
             "type" : "string"
@@ -31620,9 +31618,11 @@
           "ticketsReservationId" : {
             "type" : "string"
           },
-          "vatStatus" : {
-            "type" : "string",
-            "enum" : [ "NONE", "INCLUDED", "NOT_INCLUDED", "INCLUDED_EXEMPT", "NOT_INCLUDED_EXEMPT", "CUSTOM_INCLUDED_EXEMPT", "CUSTOM_NOT_INCLUDED_EXEMPT", "INCLUDED_NOT_CHARGED", "NOT_INCLUDED_NOT_CHARGED" ]
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           },
           "publicUuid" : {
             "type" : "string",
@@ -32804,13 +32804,13 @@
               "$ref" : "#/components/schemas/AdditionalField"
             }
           },
-          "fieldConfigurationAfterStandard" : {
+          "fieldConfigurationBeforeStandard" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/AdditionalField"
             }
           },
-          "fieldConfigurationBeforeStandard" : {
+          "fieldConfigurationAfterStandard" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/AdditionalField"
@@ -32862,14 +32862,14 @@
           "initialized" : {
             "type" : "boolean"
           },
+          "failed" : {
+            "type" : "boolean"
+          },
           "redirect" : {
             "type" : "boolean"
           },
           "gatewayIdOrNull" : {
             "type" : "string"
-          },
-          "failed" : {
-            "type" : "boolean"
           }
         }
       },
@@ -33081,11 +33081,11 @@
           "freeOfCharge" : {
             "type" : "boolean"
           },
-          "online" : {
-            "type" : "boolean"
-          },
           "privacyPolicyLinkOrNull" : {
             "type" : "string"
+          },
+          "online" : {
+            "type" : "boolean"
           },
           "free" : {
             "type" : "boolean"
@@ -34065,14 +34065,14 @@
             "type" : "integer",
             "format" : "int32"
           },
-          "online" : {
-            "type" : "boolean"
-          },
           "privacyPolicyLinkOrNull" : {
             "type" : "string"
           },
           "firstContentLanguage" : {
             "$ref" : "#/components/schemas/ContentLanguage_AdminPublicApi"
+          },
+          "online" : {
+            "type" : "boolean"
           },
           "free" : {
             "type" : "boolean"
@@ -34119,6 +34119,9 @@
           "formattedEnd" : {
             "type" : "string"
           },
+          "warningNeeded" : {
+            "type" : "boolean"
+          },
           "formattedBegin" : {
             "type" : "string"
           },
@@ -34126,9 +34129,6 @@
             "type" : "boolean"
           },
           "displayStatistics" : {
-            "type" : "boolean"
-          },
-          "warningNeeded" : {
             "type" : "boolean"
           },
           "addCategoryEnabled" : {
@@ -34293,12 +34293,6 @@
           "countryField" : {
             "type" : "boolean"
           },
-          "inputField" : {
-            "type" : "boolean"
-          },
-          "textareaField" : {
-            "type" : "boolean"
-          },
           "selectField" : {
             "type" : "boolean"
           },
@@ -34315,6 +34309,12 @@
             "type" : "boolean"
           },
           "textField" : {
+            "type" : "boolean"
+          },
+          "inputField" : {
+            "type" : "boolean"
+          },
+          "textareaField" : {
             "type" : "boolean"
           }
         }
@@ -34724,14 +34724,12 @@
             "type" : "string",
             "enum" : [ "FREE", "PENDING", "TO_BE_PAID", "ACQUIRED", "CANCELLED", "CHECKED_IN", "EXPIRED", "INVALIDATED", "RELEASED", "PRE_RESERVED" ]
           },
-          "tags" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
           "uuid" : {
             "type" : "string"
+          },
+          "vatStatus" : {
+            "type" : "string",
+            "enum" : [ "NONE", "INCLUDED", "NOT_INCLUDED", "INCLUDED_EXEMPT", "NOT_INCLUDED_EXEMPT", "CUSTOM_INCLUDED_EXEMPT", "CUSTOM_NOT_INCLUDED_EXEMPT", "INCLUDED_NOT_CHARGED", "NOT_INCLUDED_NOT_CHARGED" ]
           },
           "extReference" : {
             "type" : "string"
@@ -34751,9 +34749,11 @@
           "ticketsReservationId" : {
             "type" : "string"
           },
-          "vatStatus" : {
-            "type" : "string",
-            "enum" : [ "NONE", "INCLUDED", "NOT_INCLUDED", "INCLUDED_EXEMPT", "NOT_INCLUDED_EXEMPT", "CUSTOM_INCLUDED_EXEMPT", "CUSTOM_NOT_INCLUDED_EXEMPT", "INCLUDED_NOT_CHARGED", "NOT_INCLUDED_NOT_CHARGED" ]
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           },
           "publicUuid" : {
             "type" : "string",
@@ -35147,12 +35147,6 @@
           "countryField" : {
             "type" : "boolean"
           },
-          "inputField" : {
-            "type" : "boolean"
-          },
-          "textareaField" : {
-            "type" : "boolean"
-          },
           "selectField" : {
             "type" : "boolean"
           },
@@ -35169,6 +35163,12 @@
             "type" : "boolean"
           },
           "textField" : {
+            "type" : "boolean"
+          },
+          "inputField" : {
+            "type" : "boolean"
+          },
+          "textareaField" : {
             "type" : "boolean"
           }
         }
@@ -35238,14 +35238,12 @@
             "type" : "string",
             "enum" : [ "FREE", "PENDING", "TO_BE_PAID", "ACQUIRED", "CANCELLED", "CHECKED_IN", "EXPIRED", "INVALIDATED", "RELEASED", "PRE_RESERVED" ]
           },
-          "tags" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
           "uuid" : {
             "type" : "string"
+          },
+          "vatStatus" : {
+            "type" : "string",
+            "enum" : [ "NONE", "INCLUDED", "NOT_INCLUDED", "INCLUDED_EXEMPT", "NOT_INCLUDED_EXEMPT", "CUSTOM_INCLUDED_EXEMPT", "CUSTOM_NOT_INCLUDED_EXEMPT", "INCLUDED_NOT_CHARGED", "NOT_INCLUDED_NOT_CHARGED" ]
           },
           "extReference" : {
             "type" : "string"
@@ -35265,9 +35263,11 @@
           "ticketsReservationId" : {
             "type" : "string"
           },
-          "vatStatus" : {
-            "type" : "string",
-            "enum" : [ "NONE", "INCLUDED", "NOT_INCLUDED", "INCLUDED_EXEMPT", "NOT_INCLUDED_EXEMPT", "CUSTOM_INCLUDED_EXEMPT", "CUSTOM_NOT_INCLUDED_EXEMPT", "INCLUDED_NOT_CHARGED", "NOT_INCLUDED_NOT_CHARGED" ]
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           },
           "publicUuid" : {
             "type" : "string",
@@ -35565,14 +35565,6 @@
             "type" : "integer",
             "format" : "int32"
           },
-          "requestTimestamp" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "attempts" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
           "recipient" : {
             "type" : "string"
           },
@@ -35581,6 +35573,14 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "requestTimestamp" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "attempts" : {
+            "type" : "integer",
+            "format" : "int32"
           },
           "subject" : {
             "type" : "string"
@@ -35704,12 +35704,6 @@
               "type" : "string"
             }
           },
-          "inputField" : {
-            "type" : "boolean"
-          },
-          "textareaField" : {
-            "type" : "boolean"
-          },
           "selectField" : {
             "type" : "boolean"
           },
@@ -35736,6 +35730,12 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "inputField" : {
+            "type" : "boolean"
+          },
+          "textareaField" : {
+            "type" : "boolean"
           }
         }
       },
@@ -36908,6 +36908,9 @@
           "formattedEnd" : {
             "type" : "string"
           },
+          "warningNeeded" : {
+            "type" : "boolean"
+          },
           "formattedBegin" : {
             "type" : "string"
           },
@@ -36915,9 +36918,6 @@
             "type" : "boolean"
           },
           "displayStatistics" : {
-            "type" : "boolean"
-          },
-          "warningNeeded" : {
             "type" : "boolean"
           }
         }
@@ -36973,13 +36973,13 @@
       "PublicEventDescription" : {
         "type" : "object",
         "properties" : {
+          "shortDescription" : {
+            "type" : "string"
+          },
           "locale" : {
             "type" : "string"
           },
           "description" : {
-            "type" : "string"
-          },
-          "shortDescription" : {
             "type" : "string"
           }
         }
