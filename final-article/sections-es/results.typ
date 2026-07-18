@@ -13,7 +13,7 @@ La estrategia de pruebas cubrió todos los componentes principales del sistema a
     [Frontend Público], [Angular 17], [487], [100%],
     [Frontend Admin], [Lit 3], [167], [100%],
     [Integración Backend], [JUnit + Testcontainers], [354], [100%],
-    [Pruebas E2E], [Playwright], [88], [100%],
+    [Pruebas E2E], [Playwright], [78], [100%],
     [Pruebas Funcionales], [Manual], [120+], [97.5%],
   ),
   caption: [Componentes evaluados y sus resultados.],

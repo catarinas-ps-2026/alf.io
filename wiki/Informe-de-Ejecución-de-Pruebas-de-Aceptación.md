@@ -343,7 +343,7 @@ Conforme a la sección de Criterios de Finalización del [[Plan-de-Pruebas-de-Ac
 
 ## 8. Conclusión
 
-La suite de pruebas de aceptación de alf.io alcanza una tasa de éxito del 100% con un total de 7 flujos E2E ejecutados con Playwright: 4 flujos públicos de compra (OFFLINE, ON_SITE, validación de entradas, descarga de tickets) y 3 flujos de administración (creación de eventos, gestión de reservas, autenticación). Todos los flujos se ejecutaron en Chromium con un tiempo total de 1 minuto 52 segundos.
+La suite de pruebas de aceptación de alf.io alcanza una tasa de éxito del 100% con un total de 7 flujos E2E ejecutados con Playwright: 4 flujos públicos de compra (OFFLINE, ON_SITE, validación de entradas, descarga de tickets) y 3 flujos de administración (creación de eventos, gestión de reservas, autenticación). Todos los flujos se ejecutaron en Chromium con un tiempo total de 2 minutos 21 segundos.
 
 Los flujos cubren los principales escenarios de uso del sistema: desde la navegación pública de eventos hasta la gestión administrativa completa, incluyendo autenticación, creación de eventos, compra de entradas con diferentes métodos de pago, y gestión de reservas. Los 7 flujos pasaron sin defectos, validando que el sistema cumple con los requisitos funcionales desde la perspectiva del usuario final.
 

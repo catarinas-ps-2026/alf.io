@@ -13,7 +13,7 @@ The testing strategy covered all major components of the alf.io system across th
     [Public Frontend], [Angular 17], [487], [100%],
     [Admin Frontend], [Lit 3], [167], [100%],
     [Integration Backend], [JUnit + Testcontainers], [354], [100%],
-    [E2E Tests], [Playwright], [88], [100%],
+    [E2E Tests], [Playwright], [78], [100%],
     [Functional Tests], [Manual], [120+], [97.5%],
   ),
   caption: [Components tested and their results.],

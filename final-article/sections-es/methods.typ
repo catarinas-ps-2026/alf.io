@@ -69,7 +69,7 @@ La Tabla IV resume las herramientas utilizadas para las pruebas de sistema.
 
 Las pruebas de aceptación validaron flujos de trabajo completos desde la perspectiva del usuario final. La suite de pruebas de aceptación cubrió la interfaz del panel de administración, incluyendo autenticación, gestión de eventos, procesamiento de reservas y operaciones de check-in. Estas pruebas se ejecutaron contra una instancia de alf.io desplegada en un clúster de Kubernetes.
 
-Las pruebas de aceptación utilizaron Playwright para automatización de navegadores, probando contra navegadores Chromium y Firefox @playwright2024. Las pruebas validaron que el sistema cumplía con los criterios de aceptación especificados y funcionaba correctamente en un ambiente similar al de producción.
+Las pruebas de aceptación utilizaron Playwright para automatización de navegadores, probando contra el navegador Chromium @playwright2024. Las pruebas validaron que el sistema cumplía con los criterios de aceptación especificados y funcionaba correctamente en un ambiente similar al de producción.
 
 == Automatización CI/CD
 
