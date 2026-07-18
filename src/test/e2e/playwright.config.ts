@@ -40,29 +40,8 @@ export default defineConfig({
 
     projects: [
         {
-            name: "setup",
-            testMatch: /auth\.setup\.ts/,
-        },
-        {
             name: "chromium",
             use: { ...devices["Desktop Chrome"] },
-            dependencies: ["setup"],
-            testMatch: [
-                // "**/auth/*.spec.ts",
-                // "**/navigation/*.spec.ts",
-                // "**/permissions/*.spec.ts",
-                // "**/profile/*.spec.ts",
-                // "**/organizations/*.spec.ts",
-                // "**/users/*.spec.ts",
-                // "**/events/*.spec.ts",
-                // "**/subscriptions/*.spec.ts",
-                "**/path/*.spec.ts",
-            ],
         },
-        // {
-        //     name: "firefox",
-        //     use: { ...devices["Desktop Firefox"] },
-        //     dependencies: ["setup"],
-        // },
     ],
 });
