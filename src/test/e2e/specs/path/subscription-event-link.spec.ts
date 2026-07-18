@@ -1,4 +1,3 @@
-import path from "node:path";
 import { expect, test } from "../../fixtures/auth";
 import { deleteOrganizationViaApi } from "../../helpers/auth-helper";
 import { loginAs } from "../../flows/auth";
@@ -13,8 +12,8 @@ import {
     SubscriptionFormPage,
     SubscriptionsListPage,
 } from "../../pages/subscriptions";
-
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-logo.png");
+import { TEST_LOGO_PATH } from "./subscription-event-link.spec";
+export { TEST_LOGO_PATH } from "../../helpers/paths";
 
 test.describe("Path: subscription linked to event", () => {
     test("a subscription created for an organization can be linked to one of its events", async ({

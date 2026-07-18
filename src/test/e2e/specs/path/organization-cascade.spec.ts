@@ -1,4 +1,3 @@
-import path from "node:path";
 import { expect, test } from "../../fixtures/auth";
 import { deleteOrganizationViaApi } from "../../helpers/auth-helper";
 import { loginAs } from "../../flows/auth";
@@ -11,8 +10,7 @@ import {
 import { OrganizationsPage } from "../../pages/organizations/OrganizationsPage";
 import { CreateUserPage } from "../../pages/users/CreateUserPage";
 import { UsersPage } from "../../pages/users/UsersPage";
-
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-logo.png");
+import { TEST_LOGO_PATH } from "../../helpers/paths";
 
 // Organizations have no delete action in the admin UI (same gap as
 // Subscriptions), so this flow can't test an actual delete cascade. Instead

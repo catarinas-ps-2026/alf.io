@@ -1,4 +1,3 @@
-import path from "node:path";
 import { expect, test } from "../../fixtures/auth";
 import { deleteOrganizationViaApi } from "../../helpers/auth-helper";
 import { loginAs } from "../../flows/auth";
@@ -10,8 +9,7 @@ import {
 } from "../../pages/events";
 import { OrganizationsPage } from "../../pages/organizations/OrganizationsPage";
 import { PublicEventPage } from "../../pages/events";
-
-const TEST_LOGO_PATH = path.resolve(__dirname, "../../data/test-event.png");
+import { TEST_LOGO_PATH } from "../../helpers/paths";
 
 test.describe("Path: organization setup to public event", () => {
     test("admin sets up an organization, creates and publishes an event, and it becomes visible at its public URL", async ({
