@@ -230,6 +230,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-engine"
     testImplementation "org.junit.platform:junit-platform-engine"
     testImplementation "org.mockito:mockito-inline:5.2.0"
+    testImplementation "com.code-intelligence:jazzer-junit:0.30.0"
 
     testImplementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8"
     testImplementation "org.openapitools.openapidiff:openapi-diff-core:2.1.7", {
@@ -363,6 +364,7 @@ test {
     exclude '**/*E2ETest*'
     exclude '**/*ValidationTest*'
     exclude '**/NormalFlowE2ETest*'
+    exclude '**/*FuzzTest*'
 }
 
 tasks.register('integrationTest', Test) {
@@ -373,6 +375,29 @@ tasks.register('integrationTest', Test) {
     include '**/*E2ETest*'
     include '**/*ValidationTest*'
     include '**/NormalFlowE2ETest*'
+}
+
+tasks.register('fuzzTest', Test) {
+    description = 'Runs fuzz tests using Jazzer in JUnit mode (single-iteration, for coverage collection).'
+    group = 'verification'
+
+    include '**/fuzz/*FuzzTest*'
+
+    systemProperty 'jazzer.max_duration', '0s'
+
+    extensions.configure(JacocoTaskExtension) {
+        enabled = true
+    }
+}
+
+tasks.register('fuzzTestFuzz', Test) {
+    description = 'Runs fuzz tests using Jazzer in fuzzing mode (coverage-guided).'
+    group = 'verification'
+
+    include '**/fuzz/*FuzzTest*'
+
+    environment 'JAZZER_FUZZ', '1'
+    systemProperty 'jazzer.max_duration', System.getenv('JAZZER_MAX_DURATION') ?: '5m'
 }
 
 
@@ -456,6 +481,51 @@ jacocoTestReport {
         }))
     }
 }
+
+tasks.register('jacocoFuzzTestReport', JacocoReport) {
+    dependsOn fuzzTest
+    executionData(fuzzTest)
+    
+    sourceDirectories.setFrom(files(sourceSets.main.allSource.srcDirs))
+    classDirectories.setFrom(files(sourceSets.main.output.classesDirs))
+    
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = true
+    }
+}
+
+afterEvaluate {
+    jacocoFuzzTestReport.configure {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, include: [
+                'alfio/util/**/*.class',
+                'alfio/extension/**/*.class',
+                'alfio/model/ContentLanguage.class',
+                'alfio/model/CustomerName.class',
+                'alfio/model/PromoCodeDiscount.class',
+                'alfio/model/PurchaseContextFieldConfiguration.class',
+                'alfio/model/BillingDetails.class',
+                'alfio/model/TicketReservation.class',
+                'alfio/model/result/ValidationResult.class',
+                'alfio/model/Ticket.class',
+                'alfio/model/TicketCategory.class',
+                'alfio/model/Event.class',
+                'alfio/model/Event$EventFormat.class',
+                'alfio/model/TicketCategory$TicketAccessType.class',
+                'alfio/model/BillingDocument.class',
+                'alfio/model/BillingDocument$Type.class',
+                'alfio/model/BillingDocument$Status.class',
+                'alfio/model/TicketReservationInvoicingAdditionalInfo.class',
+                'alfio/model/TicketReservationInvoicingAdditionalInfo$ItalianEInvoicing.class',
+                'alfio/model/TicketReservationInvoicingAdditionalInfo$ItalianEInvoicing$ReferenceType.class',
+                'alfio/manager/CheckInManager.class',
+            ])
+        }))
+    }
+}
+
 
 tasks.register('dockerize', Copy) {
     from 'src/main/dist/Dockerfile'
