@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PurchaseContextFieldConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model</a> &gt; <span class="el_source">PurchaseContextFieldConfiguration.java</span></div><h1>PurchaseContextFieldConfiguration.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model;
+
+import alfio.util.Json;
+import alfio.util.JsonViews;
+import ch.digitalfondue.npjt.ConstructorAnnotationRowMapper.Column;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.google.gson.reflect.TypeToken;
+import java.util.*;
+import java.util.regex.Pattern;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+
+@Getter
+public class PurchaseContextFieldConfiguration {
+
+<span class="fc" id="L32">    public static final Set&lt;Context&gt; EVENT_RELATED_CONTEXTS =</span>
+<span class="fc" id="L33">            Set.copyOf(EnumSet.of(Context.ATTENDEE, Context.ADDITIONAL_SERVICE));</span>
+<span class="fc" id="L34">    private static final Pattern COLON_SPLITTER = Pattern.compile(&quot;:&quot;);</span>
+
+    public enum Context {
+        ATTENDEE,
+        ADDITIONAL_SERVICE,
+        SUBSCRIPTION
+    }
+
+    private final long id;
+
+    @JsonView(JsonViews.AdminApi.class)
+    private final Integer eventId;
+
+    @JsonView(JsonViews.AdminApi.class)
+    private final UUID subscriptionDescriptorId;
+
+    private final String name;
+    private final int order;
+    private final String type;
+    private final Integer maxLength;
+    private final Integer minLength;
+    private final boolean required;
+    private final boolean editable;
+    private final List&lt;String&gt; restrictedValues;
+    private final Context context;
+    private final Integer additionalServiceId;
+    private final List&lt;Integer&gt; categoryIds;
+    private final List&lt;String&gt; disabledValues;
+    private final boolean displayAtCheckIn;
+
+    public PurchaseContextFieldConfiguration(
+            @Column(&quot;id&quot;) int id,
+            @Column(&quot;event_id_fk&quot;) Integer eventId,
+            @Column(&quot;subscription_descriptor_id_fk&quot;) UUID subscriptionDescriptorId,
+            @Column(&quot;field_name&quot;) String name,
+            @Column(&quot;field_order&quot;) int order,
+            @Column(&quot;field_type&quot;) String type,
+            @Column(&quot;field_maxlength&quot;) Integer maxLength,
+            @Column(&quot;field_minlength&quot;) Integer minLength,
+            @Column(&quot;field_required&quot;) boolean required,
+            @Column(&quot;field_editable&quot;) boolean editable,
+            @Column(&quot;field_restricted_values&quot;) String restrictedValues,
+            @Column(&quot;context&quot;) Context context,
+            @Column(&quot;additional_service_id&quot;) Integer additionalServiceId,
+            @Column(&quot;ticket_category_ids&quot;) String ticketCategoryIds,
+            @Column(&quot;field_disabled_values&quot;) String disabledValues,
+<span class="fc" id="L80">            @Column(&quot;display_at_check_in&quot;) boolean displayAtCheckIn) {</span>
+<span class="fc" id="L81">        this.id = id;</span>
+<span class="fc" id="L82">        this.eventId = eventId;</span>
+<span class="fc" id="L83">        this.subscriptionDescriptorId = subscriptionDescriptorId;</span>
+<span class="fc" id="L84">        this.name = name;</span>
+<span class="fc" id="L85">        this.order = order;</span>
+<span class="fc" id="L86">        this.type = type;</span>
+<span class="fc" id="L87">        this.maxLength = maxLength;</span>
+<span class="fc" id="L88">        this.minLength = minLength;</span>
+<span class="fc" id="L89">        this.required = required;</span>
+<span class="fc" id="L90">        this.editable = editable;</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        this.restrictedValues = restrictedValues == null</span>
+<span class="nc" id="L92">                ? Collections.emptyList()</span>
+<span class="fc" id="L93">                : Json.GSON.fromJson(restrictedValues, new TypeToken&lt;List&lt;String&gt;&gt;() {}.getType());</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        this.disabledValues = disabledValues == null</span>
+<span class="nc" id="L95">                ? Collections.emptyList()</span>
+<span class="fc" id="L96">                : Json.GSON.fromJson(disabledValues, new TypeToken&lt;List&lt;String&gt;&gt;() {}.getType());</span>
+<span class="fc" id="L97">        this.context = context;</span>
+<span class="fc" id="L98">        this.additionalServiceId = additionalServiceId;</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        this.categoryIds = ticketCategoryIds == null</span>
+<span class="nc" id="L100">                ? Collections.emptyList()</span>
+<span class="fc" id="L101">                : Json.GSON.fromJson(ticketCategoryIds, new TypeToken&lt;List&lt;Integer&gt;&gt;() {}.getType());</span>
+<span class="fc" id="L102">        this.displayAtCheckIn = displayAtCheckIn;</span>
+<span class="fc" id="L103">    }</span>
+
+    public boolean isInputField() {
+<span class="nc" id="L106">        return type.startsWith(&quot;input:&quot;);</span>
+    }
+
+    public boolean isTextareaField() {
+<span class="nc" id="L110">        return &quot;textarea&quot;.equals(type);</span>
+    }
+
+    public boolean isCountryField() {
+<span class="nc" id="L114">        return &quot;country&quot;.equals(type);</span>
+    }
+
+    public boolean isSelectField() {
+<span class="nc" id="L118">        return &quot;select&quot;.equals(type);</span>
+    }
+
+    public boolean isCheckboxField() {
+<span class="nc" id="L122">        return &quot;checkbox&quot;.equals(type);</span>
+    }
+
+    public int getCount() {
+<span class="nc bnc" id="L126" title="All 4 branches missed.">        if (&quot;checkbox&quot;.equals(type) &amp;&amp; this.restrictedValues != null) {</span>
+<span class="nc" id="L127">            return Math.max(this.restrictedValues.size(), 1);</span>
+        } else {
+<span class="nc" id="L129">            return 1;</span>
+        }
+    }
+
+    public boolean isEuVat() {
+<span class="nc" id="L134">        return &quot;vat:eu&quot;.equals(type);</span>
+    }
+
+    public boolean isDateOfBirth() {
+<span class="nc" id="L138">        return &quot;input:dateOfBirth&quot;.equals(type);</span>
+    }
+
+    public String getInputType() {
+<span class="nc" id="L142">        String[] split = COLON_SPLITTER.split(type);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        return split.length == 2 ? split[1] : &quot;text&quot;;</span>
+    }
+
+    public boolean isMaxLengthDefined() {
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        return maxLength != null;</span>
+    }
+
+    public boolean hasDisabledValues() {
+<span class="nc" id="L151">        return CollectionUtils.isNotEmpty(disabledValues);</span>
+    }
+
+    public boolean isMinLengthDefined() {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        return minLength != null;</span>
+    }
+
+    public boolean rulesApply(Integer ticketCategoryId) {
+<span class="nc bnc" id="L159" title="All 4 branches missed.">        return categoryIds.isEmpty() || categoryIds.contains(ticketCategoryId);</span>
+    }
+
+    public boolean isReadOnly() {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        return !editable;</span>
+    }
+
+    public boolean isTextField() {
+<span class="nc bnc" id="L167" title="All 4 branches missed.">        return isInputField() || isTextareaField();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

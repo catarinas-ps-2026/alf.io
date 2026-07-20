@@ -1,0 +1,2641 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - CustomOfflineReservationFlowIntegrationTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>CustomOfflineReservationFlowIntegrationTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/alfio.controller.api.v2.user.reservation.html">alfio.controller.api.v2.user.reservation</a> &gt; CustomOfflineReservationFlowIntegrationTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">2</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">3.420s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+<li>
+<a href="#">Standard error</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">attemptPayWithUnavailablePaymentMethod()</td>
+<td class="success">0.271s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">payWithCustomPaymentMethod()</td>
+<td class="success">3.149s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2026-07-20T04:49:22.685Z  WARN 3045 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 109 (4f1c912a-b9fd-4ef5-900c-b75695c3ea69) initiated by user TEST
+2026-07-20T04:49:22.686Z  WARN 3045 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : deleting 1 events linked to organization 109
+2026-07-20T04:49:22.690Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field values
+2026-07-20T04:49:22.691Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field descriptions
+2026-07-20T04:49:22.692Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 0 field configurations
+2026-07-20T04:49:22.701Z  WARN 3045 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 2 user(s) from organization 109
+2026-07-20T04:49:22.702Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-20T04:49:22.702Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 auditing rows
+2026-07-20T04:49:22.703Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-20T04:49:22.703Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations
+2026-07-20T04:49:22.704Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-20T04:49:22.704Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-20T04:49:22.705Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-20T04:49:22.705Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-20T04:49:22.706Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-20T04:49:22.706Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-20T04:49:22.706Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-20T04:49:22.707Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-20T04:49:22.707Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 promo codes
+2026-07-20T04:49:22.709Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+2026-07-20T04:49:22.954Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_VALIDATE_CREATION
+2026-07-20T04:49:22.956Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_VALIDATE_CREATION&quot;}
+2026-07-20T04:49:22.956Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.017Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_CREATED
+2026-07-20T04:49:23.018Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_CREATED&quot;}
+2026-07-20T04:49:23.018Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.018Z  INFO 3045 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : created event. Here some debug info rhino js string EVENT_CREATED custom string {test=rhino js string, name=EVENT_CREATED}
+2026-07-20T04:49:23.025Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_CREATED
+2026-07-20T04:49:23.026Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_CREATED&quot;}
+2026-07-20T04:49:23.026Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.026Z  INFO 3045 --- [Alf.io] [    Test worker] a.e.ConsoleLogger                        : created event. Here some debug info rhino js string EVENT_CREATED custom string {test=rhino js string, name=EVENT_CREATED}
+2026-07-20T04:49:23.032Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_METADATA_UPDATE
+2026-07-20T04:49:23.033Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_METADATA_UPDATE&quot;}
+2026-07-20T04:49:23.033Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.239Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_STATUS_CHANGE
+2026-07-20T04:49:23.240Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_STATUS_CHANGE&quot;}
+2026-07-20T04:49:23.240Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.246Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: EVENT_STATUS_CHANGE
+2026-07-20T04:49:23.248Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;EVENT_STATUS_CHANGE&quot;}
+2026-07-20T04:49:23.248Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.409Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: WAITING_QUEUE_SUBSCRIBED
+2026-07-20T04:49:23.409Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;WAITING_QUEUE_SUBSCRIBED&quot;}
+2026-07-20T04:49:23.410Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.465Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:23.466Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:23.466Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.535Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-20T04:49:23.536Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-20T04:49:23.537Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.556Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:23.557Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:23.557Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.594Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-20T04:49:23.595Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-20T04:49:23.595Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.606Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:23.607Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:23.607Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.640Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-20T04:49:23.641Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-20T04:49:23.641Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.669Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:23.670Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:23.670Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.688Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-20T04:49:23.689Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-20T04:49:23.689Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.709Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:23.710Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:23.710Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.734Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-20T04:49:23.734Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-20T04:49:23.734Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.752Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:23.753Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:23.753Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.773Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:23.773Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:23.773Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.821Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-20T04:49:23.822Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-20T04:49:23.822Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.861Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-20T04:49:23.861Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-20T04:49:23.861Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.886Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-20T04:49:23.887Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-20T04:49:23.887Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.891Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-20T04:49:23.891Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-20T04:49:23.891Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.895Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-20T04:49:23.896Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-20T04:49:23.896Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.909Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-20T04:49:23.910Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-20T04:49:23.910Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.992Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-20T04:49:23.993Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-20T04:49:23.993Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.996Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-20T04:49:23.996Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-20T04:49:23.996Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:23.999Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-20T04:49:23.999Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-20T04:49:23.999Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.028Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CANCELLED
+2026-07-20T04:49:24.029Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CANCELLED&quot;}
+2026-07-20T04:49:24.029Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.041Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: DYNAMIC_DISCOUNT_APPLICATION
+2026-07-20T04:49:24.042Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;DYNAMIC_DISCOUNT_APPLICATION&quot;}
+2026-07-20T04:49:24.042Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.067Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-20T04:49:24.068Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-20T04:49:24.068Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.077Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-20T04:49:24.078Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-20T04:49:24.078Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.096Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-20T04:49:24.097Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-20T04:49:24.097Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.108Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-20T04:49:24.109Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-20T04:49:24.109Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.112Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-20T04:49:24.113Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-20T04:49:24.113Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.121Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_TAX_POLICY_APPLICATION
+2026-07-20T04:49:24.122Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_TAX_POLICY_APPLICATION&quot;}
+2026-07-20T04:49:24.122Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.135Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-20T04:49:24.136Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-20T04:49:24.136Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.138Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-20T04:49:24.139Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-20T04:49:24.139Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.164Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_VALIDATION
+2026-07-20T04:49:24.164Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_VALIDATION&quot;}
+2026-07-20T04:49:24.164Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.195Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-20T04:49:24.197Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-20T04:49:24.197Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.231Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-20T04:49:24.231Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-20T04:49:24.232Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.282Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED_GENERATE_METADATA
+2026-07-20T04:49:24.283Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED_GENERATE_METADATA&quot;}
+2026-07-20T04:49:24.283Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.291Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
+2026-07-20T04:49:24.292Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
+2026-07-20T04:49:24.292Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.296Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
+2026-07-20T04:49:24.296Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
+2026-07-20T04:49:24.296Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.320Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED
+2026-07-20T04:49:24.321Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED&quot;}
+2026-07-20T04:49:24.321Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.338Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-20T04:49:24.339Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-20T04:49:24.339Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.367Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: RESERVATION_CONFIRMED
+2026-07-20T04:49:24.368Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;RESERVATION_CONFIRMED&quot;}
+2026-07-20T04:49:24.368Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.398Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CONFIRMATION_MAIL_CUSTOM_TEXT
+2026-07-20T04:49:24.398Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CONFIRMATION_MAIL_CUSTOM_TEXT&quot;}
+2026-07-20T04:49:24.398Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:24.424Z  INFO 3045 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: email@email.com, cc: [], subject: You joined the waiting list for event display name, text: Hello first last,
+
+As requested, you joined the waiting list for the event event display name. We'll keep you posted if something comes up!
+
+Kind regards,
+
+02d89997-bad5-4eda-b5d9-bf4d4a144566 &lt;email@example.com&gt;
+, html: no html, attachments: 
+2026-07-20T04:49:24.427Z  INFO 3045 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: test@test.com, cc: [], subject: Your reservation n. E53AC877 for Event event display name, text: Hello full name,
+
+
+Your order for the event event display name has been placed. Please follow the payment instructions at http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang=en
+
+
+
+#### Reservation summary ####
+
+Category: default, Quantity: 1, Subtotal: 10.00 CHF
+
+Total 10.00 CHF
+
+context.event.vat at 1.00% included: 0.10 CHF
+
+WARNING: You must pay the amount of 10.00 CHF in order to attend the event
+
+context.event.vat number: 42
+
+Order information: e53ac877-082b-4c37-9866-08cf8540848d
+
+#### Event information ####
+
+As a reminder, the event will take place at:
+
+ muh location 
+
+on:
+
+ Saturday 25 July 2026  from  12:00 to  13:00 (CEST)
+
+
+Kind regards,
+
+02d89997-bad5-4eda-b5d9-bf4d4a144566 &lt;email@example.com&gt;
+, html: &lt;!doctype html&gt;
+&lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;&lt;/title&gt;
+    &lt;!--[if !mso]&gt;&lt;!--&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+    &lt;!--&lt;![endif]--&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      #outlook a { padding:0; }
+      body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }
+      table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }
+      img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }
+      p { display:block;margin:13px 0; }
+    &lt;/style&gt;
+    &lt;!--[if mso]&gt;
+    &lt;noscript&gt;
+    &lt;xml&gt;
+    &lt;o:OfficeDocumentSettings&gt;
+      &lt;o:AllowPNG/&gt;
+      &lt;o:PixelsPerInch&gt;96&lt;/o:PixelsPerInch&gt;
+    &lt;/o:OfficeDocumentSettings&gt;
+    &lt;/xml&gt;
+    &lt;/noscript&gt;
+    &lt;![endif]--&gt;
+    &lt;!--[if lte mso 11]&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      .mj-outlook-group-fix { width:100% !important; }
+    &lt;/style&gt;
+    &lt;![endif]--&gt;
+  &lt;!--[if !mso]&gt;&lt;!--&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css?family=Source+Sans+Pro&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+  &lt;/style&gt;
+  &lt;!--&lt;![endif]--&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (min-width:480px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+      .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+      .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+      .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+    }
+
+  &lt;/style&gt;
+  &lt;style media=&quot;screen and (min-width:480px)&quot;&gt;
+    .moz-text-html .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    .moz-text-html .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+    .moz-text-html .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+    .moz-text-html .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+
+  &lt;/style&gt;
+    
+    
+    &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (max-width:479px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+
+    
+    
+    &lt;/style&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+
+          body {
+            background: white;
+            color: #393939;
+          }
+
+          @media (prefers-color-scheme: dark) {
+            body {
+                background: black;
+                color: #ccc;
+            }
+          }
+	      a {
+	      	color: #0056b3;
+	      	text-decoration: none;
+	      }
+	      a:hover {
+	      	color: #0056b3;
+	      	text-decoration: underline;
+	      }
+	      tr {
+	      	line-height:2;
+	      	text-align:center;
+	      }
+
+	      tr .bottom-border {
+	      	border-bottom:2px solid #ecedee;
+	      }
+	    
+    
+    &lt;/style&gt;
+
+	    
+	    
+	    
+	      
+  &lt;/head&gt;
+  &lt;body style=&quot;word-spacing:normal;background-color:#e5e5e5;&quot;&gt;
+  &lt;div  aria-roledescription=&quot;email&quot; style=&quot;background-color:#e5e5e5;&quot; role=&quot;article&quot; lang=&quot;und&quot; dir=&quot;auto&quot; &gt;
+
+		    &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:300px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-50 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:250px;&quot; &gt;
+                      &lt;img  alt=&quot;event display name&quot; src=&quot;http://localhost:8080/file/&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;250&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Helvetica Neue;font-size:20px;font-weight:200;line-height:1;text-align:center;color:grey;&quot;&gt;event display name&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:left;color:#000000;&quot;&gt;Hello full name,&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:left;color:#000000;&quot;&gt;
+		            
+		            Your order for the event event display name has been placed. Please follow the payment instructions at &lt;a href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot;&gt;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang&amp;#x3D;en&lt;/a&gt;
+                    
+					&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:separate;line-height:100%;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View Reservation &lt;/a&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;#f8f8ff&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:#f8f8ff;background-color:#f8f8ff;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:#f8f8ff;background-color:#f8f8ff;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_calendar.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Reservation summary&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:0 15px;word-break:break-word;&quot;&gt;
+              &lt;table  cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; width=&quot;100%&quot; border=&quot;0&quot; style=&quot;color:#000000;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;&quot; &gt;
+
+			
+
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th class=&quot;header&quot;&gt;
+					    Category
+					    
+                    &lt;/th&gt;
+					&lt;td&gt;default&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th class=&quot;header&quot;&gt;Quantity&lt;/th&gt;
+					&lt;td&gt;1&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+				    &lt;th&gt;
+				        Subtotal
+                    	
+				    &lt;/th&gt;
+					&lt;td&gt;10.00 CHF&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+      			
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;Total&lt;/th&gt;
+					&lt;td&gt;10.00 CHF&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;context.event.vat at 1.00% included&lt;/th&gt;
+					&lt;td&gt;0.10 CHF&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+				
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;context.event.vat number&lt;/th&gt;
+					&lt;td&gt;42&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;Order information&lt;/th&gt;
+					&lt;td&gt;e53ac877-082b-4c37-9866-08cf8540848d&lt;/td&gt;
+				&lt;/tr&gt;
+			              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;WARNING: You must pay the amount of 10.00 CHF in order to attend the event&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:left;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_map.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Event information&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;This event will be held online&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Saturday 25 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+	
+            &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+	  &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+  , attachments: 
+2026-07-20T04:49:24.434Z  INFO 3045 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: email@example.com, cc: [], subject: Reservation complete E53AC877, text: full name&lt;test@test.com&gt; has completed the reservation E53AC877 for event display name
+
+Category: default, Quantity: 1, Subtotal: 10.00 CHF, Payment Method: CUSTOM_OFFLINE
+
+
+
+Total: 10.00 CHF 
+
+VAT INCL 1.00%: 0.10 CHF
+
+Reservation id: e53ac877-082b-4c37-9866-08cf8540848d.
+
+
+Ticket identifier:
+ - f8ff410b-f09b-4135-bb5b-72e8c5c0b7e0
+, html: &lt;!doctype html&gt;
+&lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;&lt;/title&gt;
+    &lt;!--[if !mso]&gt;&lt;!--&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+    &lt;!--&lt;![endif]--&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      #outlook a { padding:0; }
+      body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }
+      table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }
+      img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }
+      p { display:block;margin:13px 0; }
+    &lt;/style&gt;
+    &lt;!--[if mso]&gt;
+    &lt;noscript&gt;
+    &lt;xml&gt;
+    &lt;o:OfficeDocumentSettings&gt;
+      &lt;o:AllowPNG/&gt;
+      &lt;o:PixelsPerInch&gt;96&lt;/o:PixelsPerInch&gt;
+    &lt;/o:OfficeDocumentSettings&gt;
+    &lt;/xml&gt;
+    &lt;/noscript&gt;
+    &lt;![endif]--&gt;
+    &lt;!--[if lte mso 11]&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      .mj-outlook-group-fix { width:100% !important; }
+    &lt;/style&gt;
+    &lt;![endif]--&gt;
+  &lt;!--[if !mso]&gt;&lt;!--&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css?family=Source+Sans+Pro&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+  &lt;/style&gt;
+  &lt;!--&lt;![endif]--&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (min-width:480px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+      .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+      .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+    }
+
+  &lt;/style&gt;
+  &lt;style media=&quot;screen and (min-width:480px)&quot;&gt;
+    .moz-text-html .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    .moz-text-html .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+    .moz-text-html .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+
+  &lt;/style&gt;
+    
+    
+    &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (max-width:479px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+
+    
+    
+    &lt;/style&gt;
+
+	    
+	    
+        
+  &lt;/head&gt;
+  &lt;body style=&quot;word-spacing:normal;background-color:#e5e5e5;&quot;&gt;
+  &lt;div  aria-roledescription=&quot;email&quot; style=&quot;background-color:#e5e5e5;&quot; role=&quot;article&quot; lang=&quot;und&quot; dir=&quot;auto&quot; &gt;
+
+		    &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;#f8f8f8&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:#f8f8f8;background-color:#f8f8f8;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:#f8f8f8;background-color:#f8f8f8;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Helvetica Neue;font-size:20px;font-weight:200;line-height:1;text-align:center;color:grey;&quot;&gt;Good news!&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:30px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:15px;line-height:1;text-align:center;color:#000000;&quot;&gt;full name&lt;test@test.com&gt; has completed the reservation E53AC877 for event display name&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:0 15px;word-break:break-word;&quot;&gt;
+              &lt;table  cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; width=&quot;100%&quot; border=&quot;0&quot; style=&quot;color:#000000;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;&quot; &gt;
+
+					&lt;tr style=&quot;border-bottom:1px solid #ecedee;text-align:center;&quot;&gt;
+						&lt;th&gt;Category&lt;/th&gt;
+						&lt;th&gt;Quantity&lt;/th&gt;
+						&lt;th&gt;Payment Method&lt;/th&gt;
+						&lt;th style=&quot;text-align:right&quot;&gt;Subtotal&lt;/th&gt;
+					&lt;/tr&gt;
+					&lt;tr style=&quot;text-align:center; &quot;&gt;
+						&lt;td&gt;default&lt;/td&gt;
+						&lt;td&gt;1&lt;/td&gt;
+						&lt;td&gt;CUSTOM_OFFLINE&lt;/td&gt;
+						&lt;td style=&quot;text-align:right&quot;&gt;10.00 CHF&lt;/td&gt;
+					&lt;/tr&gt;
+					&lt;tr&gt;
+						&lt;td colspan=&quot;4&quot;&gt;&amp;nbsp;&lt;/td&gt;
+					&lt;/tr&gt;
+					
+					&lt;tr style=&quot;border-top:1px solid #ecedee;text-align:right;padding: 0 15px;&quot;&gt;
+						&lt;td colspan=&quot;3&quot; style=&quot;font-weight: bold;text-align:right;&quot;&gt;Total
+						&lt;/td&gt;
+						&lt;td&gt;10.00 CHF
+							&lt;/td&gt;
+					&lt;/tr&gt;
+					
+					&lt;tr style=&quot;border-top:1px solid #ecedee;text-align:right&quot;&gt;
+						&lt;td colspan=&quot;3&quot; style=&quot;font-weight: bold&quot;&gt;VAT INCL
+							1.00%&lt;/td&gt;
+						&lt;td&gt;0.10 CHF&lt;/td&gt;
+					&lt;/tr&gt;
+					
+				              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;Reservation id: e53ac877-082b-4c37-9866-08cf8540848d.&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:left;color:#000000;&quot;&gt;
+				&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:separate;line-height:100%;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View reservation &lt;/a&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;Tickets&quot; src=&quot;http://localhost:8080/resources/images/email/icon_ticket.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Tickets in reservation&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;
+					- f8ff410b-f09b-4135-bb5b-72e8c5c0b7e0
+					&lt;br&gt;
+				&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+	  &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+  , attachments: 
+2026-07-20T04:49:24.458Z  INFO 3045 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: tickettest@test.com, cc: [], subject: Your ticket for event event display name, text: Hello ticketfull ticketname,
+
+Thank you for registering. You're in!
+You are now confirmed for event display name.
+
+*********************************************
+Important information
+
+You can use the following link to join the event
+http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/check-in/d1b16ddda14032915003c872f5f86797eb8b912732bbdfa8d92ca24f50ce140b
+
+
+
+*********************************************
+
+You can modify/review your Ticket details at http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/update?lang=en
+
+#### Event information ####
+
+This event will be held online
+
+on:
+ Saturday 25 July 2026  from  12:00 to  13:00 (CEST)
+
+
+
+Kind regards,
+
+02d89997-bad5-4eda-b5d9-bf4d4a144566 &lt;email@example.com&gt;
+
+
+Proudly generated by Alf.io, the open source ticket reservation system., html: &lt;!doctype html&gt;
+&lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;&lt;/title&gt;
+    &lt;!--[if !mso]&gt;&lt;!--&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+    &lt;!--&lt;![endif]--&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      #outlook a { padding:0; }
+      body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }
+      table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }
+      img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }
+      p { display:block;margin:13px 0; }
+    &lt;/style&gt;
+    &lt;!--[if mso]&gt;
+    &lt;noscript&gt;
+    &lt;xml&gt;
+    &lt;o:OfficeDocumentSettings&gt;
+      &lt;o:AllowPNG/&gt;
+      &lt;o:PixelsPerInch&gt;96&lt;/o:PixelsPerInch&gt;
+    &lt;/o:OfficeDocumentSettings&gt;
+    &lt;/xml&gt;
+    &lt;/noscript&gt;
+    &lt;![endif]--&gt;
+    &lt;!--[if lte mso 11]&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      .mj-outlook-group-fix { width:100% !important; }
+    &lt;/style&gt;
+    &lt;![endif]--&gt;
+  &lt;!--[if !mso]&gt;&lt;!--&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css?family=Source+Sans+Pro&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+  &lt;/style&gt;
+  &lt;!--&lt;![endif]--&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (min-width:480px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+      .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+      .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+      .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+    }
+
+  &lt;/style&gt;
+  &lt;style media=&quot;screen and (min-width:480px)&quot;&gt;
+    .moz-text-html .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    .moz-text-html .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+    .moz-text-html .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+    .moz-text-html .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+
+  &lt;/style&gt;
+    
+    
+    &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (max-width:479px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+
+    
+    
+    &lt;/style&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+
+              body {
+                background: white;
+                color: #393939;
+              }
+              .content-section {
+                background: white;
+              }
+              a {
+                color: #0056b3;
+                text-decoration: none;
+              }
+              a:hover {
+                color: #0056b3;
+                text-decoration: underline;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                body {
+                  background: black;
+                  color: #ccc;
+                }
+                a {
+                  color: inherit;
+                  text-decoration: none;
+                }
+                a:hover {
+                  color: inherit;
+                  text-decoration: underline;
+                }
+              }
+
+              tr {
+                line-height:2;
+                text-align:center;
+              }
+
+              tr .bottom-border {
+                border-bottom:2px solid #ecedee;
+              }
+        
+    
+    &lt;/style&gt;
+
+	    
+	    
+        
+	      
+  &lt;/head&gt;
+  &lt;body style=&quot;word-spacing:normal;&quot;&gt;
+  &lt;div  aria-roledescription=&quot;email&quot; style=&quot;&quot; role=&quot;article&quot; lang=&quot;und&quot; dir=&quot;auto&quot; &gt;
+
+		    &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:300px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-50 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:250px;&quot; &gt;
+                      &lt;img  alt=&quot;event display name&quot; src=&quot;http://localhost:8080/file/&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;250&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Helvetica Neue;font-size:20px;font-weight:200;line-height:1;text-align:center;color:grey;&quot;&gt;event display name&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;Hello ticketfull ticketname,&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#000000;&quot;&gt;Thank you for registering. You're in!&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#000000;&quot;&gt;You are now confirmed for event display name.&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;#f8f8ff&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:#f8f8ff;background-color:#f8f8ff;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:#f8f8ff;background-color:#f8f8ff;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_link.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Important information&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;You can use the following link to join the event&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:separate;line-height:100%;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/check-in/d1b16ddda14032915003c872f5f86797eb8b912732bbdfa8d92ca24f50ce140b&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; Join Event &lt;/a&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;We look forward to seeing you there!&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_calendar.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Event information&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;This event will be held online&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Saturday 25 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:separate;line-height:100%;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  align=&quot;center&quot; bgcolor=&quot;#7C8B95&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#7C8B95;&quot; valign=&quot;middle&quot; &gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/update?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#7C8B95;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View / Modify Ticket &lt;/a&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+
+	        &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+
+	  &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+  , attachments: {filename:calendar.ics, contentType: text/calendar}
+2026-07-20T04:49:24.471Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
+2026-07-20T04:49:24.472Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
+2026-07-20T04:49:24.472Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.012Z  INFO 3045 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: test@test.com, cc: [], subject: Your reservation n. E53AC877 for Event event display name, text: Hello full name,
+
+Your reservation for the event event display name has been completed. You can modify/review it at http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang=en
+
+
+
+
+#### Reservation summary ####
+
+Category: default, Quantity: 1, Subtotal: 10.00 CHF
+
+Total 10.00 CHF
+
+context.event.vat at 1.00% included: 0.10 CHF
+
+
+
+context.event.vat number: 42
+
+Order information: e53ac877-082b-4c37-9866-08cf8540848d
+
+#### Event information ####
+
+As a reminder, the event will take place at:
+
+ muh location 
+
+on:
+
+ Saturday 25 July 2026  from  12:00 to  13:00 (CEST)
+
+
+Kind regards,
+
+02d89997-bad5-4eda-b5d9-bf4d4a144566 &lt;email@example.com&gt;
+, html: &lt;!doctype html&gt;
+&lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;&lt;/title&gt;
+    &lt;!--[if !mso]&gt;&lt;!--&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+    &lt;!--&lt;![endif]--&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      #outlook a { padding:0; }
+      body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }
+      table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }
+      img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }
+      p { display:block;margin:13px 0; }
+    &lt;/style&gt;
+    &lt;!--[if mso]&gt;
+    &lt;noscript&gt;
+    &lt;xml&gt;
+    &lt;o:OfficeDocumentSettings&gt;
+      &lt;o:AllowPNG/&gt;
+      &lt;o:PixelsPerInch&gt;96&lt;/o:PixelsPerInch&gt;
+    &lt;/o:OfficeDocumentSettings&gt;
+    &lt;/xml&gt;
+    &lt;/noscript&gt;
+    &lt;![endif]--&gt;
+    &lt;!--[if lte mso 11]&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      .mj-outlook-group-fix { width:100% !important; }
+    &lt;/style&gt;
+    &lt;![endif]--&gt;
+  &lt;!--[if !mso]&gt;&lt;!--&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css?family=Source+Sans+Pro&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+  &lt;/style&gt;
+  &lt;!--&lt;![endif]--&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (min-width:480px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+      .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+      .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+      .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+    }
+
+  &lt;/style&gt;
+  &lt;style media=&quot;screen and (min-width:480px)&quot;&gt;
+    .moz-text-html .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    .moz-text-html .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+    .moz-text-html .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+    .moz-text-html .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+
+  &lt;/style&gt;
+    
+    
+    &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (max-width:479px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+
+    
+    
+    &lt;/style&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+
+          body {
+            background: white;
+            color: #393939;
+          }
+
+          @media (prefers-color-scheme: dark) {
+            body {
+                background: black;
+                color: #ccc;
+            }
+          }
+	      a {
+	      	color: #0056b3;
+	      	text-decoration: none;
+	      }
+	      a:hover {
+	      	color: #0056b3;
+	      	text-decoration: underline;
+	      }
+	      tr {
+	      	line-height:2;
+	      	text-align:center;
+	      }
+
+	      tr .bottom-border {
+	      	border-bottom:2px solid #ecedee;
+	      }
+	    
+    
+    &lt;/style&gt;
+
+	    
+	    
+	    
+	      
+  &lt;/head&gt;
+  &lt;body style=&quot;word-spacing:normal;background-color:#e5e5e5;&quot;&gt;
+  &lt;div  aria-roledescription=&quot;email&quot; style=&quot;background-color:#e5e5e5;&quot; role=&quot;article&quot; lang=&quot;und&quot; dir=&quot;auto&quot; &gt;
+
+		    &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:300px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-50 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:250px;&quot; &gt;
+                      &lt;img  alt=&quot;event display name&quot; src=&quot;http://localhost:8080/file/&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;250&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Helvetica Neue;font-size:20px;font-weight:200;line-height:1;text-align:center;color:grey;&quot;&gt;event display name&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:left;color:#000000;&quot;&gt;Hello full name,&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:left;color:#000000;&quot;&gt;
+		            Your reservation for the event event display name has been completed. You can modify/review it at &lt;a href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot;&gt;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang&amp;#x3D;en&lt;/a&gt;
+		            
+                    
+					&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:separate;line-height:100%;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/reservation/e53ac877-082b-4c37-9866-08cf8540848d?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View Reservation &lt;/a&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;#f8f8ff&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:#f8f8ff;background-color:#f8f8ff;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:#f8f8ff;background-color:#f8f8ff;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_calendar.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Reservation summary&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:0 15px;word-break:break-word;&quot;&gt;
+              &lt;table  cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; width=&quot;100%&quot; border=&quot;0&quot; style=&quot;color:#000000;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;&quot; &gt;
+
+			
+
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th class=&quot;header&quot;&gt;
+					    Category
+					    
+                    &lt;/th&gt;
+					&lt;td&gt;default&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th class=&quot;header&quot;&gt;Quantity&lt;/th&gt;
+					&lt;td&gt;1&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+				    &lt;th&gt;
+				        Subtotal
+                    	
+				    &lt;/th&gt;
+					&lt;td&gt;10.00 CHF&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+      			
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;Total&lt;/th&gt;
+					&lt;td&gt;10.00 CHF&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;context.event.vat at 1.00% included&lt;/th&gt;
+					&lt;td&gt;0.10 CHF&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+				
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;context.event.vat number&lt;/th&gt;
+					&lt;td&gt;42&lt;/td&gt;
+				&lt;/tr&gt;
+				
+				
+				&lt;tr class=&quot;bottom-border&quot;&gt;
+					&lt;th&gt;Order information&lt;/th&gt;
+					&lt;td&gt;e53ac877-082b-4c37-9866-08cf8540848d&lt;/td&gt;
+				&lt;/tr&gt;
+			              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;left&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:left;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_map.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Event information&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;This event will be held online&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Saturday 25 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+	
+            &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+	  &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+  , attachments: {filename:receipt.pdf, contentType: application/pdf}
+2026-07-20T04:49:25.025Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
+2026-07-20T04:49:25.026Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
+2026-07-20T04:49:25.026Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.028Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
+2026-07-20T04:49:25.029Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
+2026-07-20T04:49:25.029Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.055Z  INFO 3045 --- [Alf.io] [    Test worker] a.m.s.MockMailer                         : Email: from: event display name, replyTo: null, to: tickettest@test.com, cc: [], subject: Your ticket for event event display name, text: Hello ticketfull ticketname,
+
+Thank you for registering. You're in!
+You are now confirmed for event display name.
+
+*********************************************
+Important information
+
+You can use the following link to join the event
+http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/check-in/d1b16ddda14032915003c872f5f86797eb8b912732bbdfa8d92ca24f50ce140b
+
+
+
+*********************************************
+
+You can modify/review your Ticket details at http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/update?lang=en
+
+#### Event information ####
+
+This event will be held online
+
+on:
+ Saturday 25 July 2026  from  12:00 to  13:00 (CEST)
+
+
+
+Kind regards,
+
+02d89997-bad5-4eda-b5d9-bf4d4a144566 &lt;email@example.com&gt;
+
+
+Proudly generated by Alf.io, the open source ticket reservation system., html: &lt;!doctype html&gt;
+&lt;html lang=&quot;und&quot; dir=&quot;auto&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:v=&quot;urn:schemas-microsoft-com:vml&quot; xmlns:o=&quot;urn:schemas-microsoft-com:office:office&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;&lt;/title&gt;
+    &lt;!--[if !mso]&gt;&lt;!--&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+    &lt;!--&lt;![endif]--&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      #outlook a { padding:0; }
+      body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }
+      table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }
+      img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }
+      p { display:block;margin:13px 0; }
+    &lt;/style&gt;
+    &lt;!--[if mso]&gt;
+    &lt;noscript&gt;
+    &lt;xml&gt;
+    &lt;o:OfficeDocumentSettings&gt;
+      &lt;o:AllowPNG/&gt;
+      &lt;o:PixelsPerInch&gt;96&lt;/o:PixelsPerInch&gt;
+    &lt;/o:OfficeDocumentSettings&gt;
+    &lt;/xml&gt;
+    &lt;/noscript&gt;
+    &lt;![endif]--&gt;
+    &lt;!--[if lte mso 11]&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      .mj-outlook-group-fix { width:100% !important; }
+    &lt;/style&gt;
+    &lt;![endif]--&gt;
+  &lt;!--[if !mso]&gt;&lt;!--&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css?family=Source+Sans+Pro&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+  &lt;/style&gt;
+  &lt;!--&lt;![endif]--&gt;
+  &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (min-width:480px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+      .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+      .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+      .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+    }
+
+  &lt;/style&gt;
+  &lt;style media=&quot;screen and (min-width:480px)&quot;&gt;
+    .moz-text-html .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    .moz-text-html .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+    .moz-text-html .mj-column-px-130 {
+        width: 130px !important;
+        max-width: 130px;
+      }
+    .moz-text-html .mj-column-px-350 {
+        width: 350px !important;
+        max-width: 350px;
+      }
+
+  &lt;/style&gt;
+    
+    
+    &lt;style type=&quot;text/css&quot;&gt;
+    @media only screen and (max-width:479px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+
+    
+    
+    &lt;/style&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+
+              body {
+                background: white;
+                color: #393939;
+              }
+              .content-section {
+                background: white;
+              }
+              a {
+                color: #0056b3;
+                text-decoration: none;
+              }
+              a:hover {
+                color: #0056b3;
+                text-decoration: underline;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                body {
+                  background: black;
+                  color: #ccc;
+                }
+                a {
+                  color: inherit;
+                  text-decoration: none;
+                }
+                a:hover {
+                  color: inherit;
+                  text-decoration: underline;
+                }
+              }
+
+              tr {
+                line-height:2;
+                text-align:center;
+              }
+
+              tr .bottom-border {
+                border-bottom:2px solid #ecedee;
+              }
+        
+    
+    &lt;/style&gt;
+
+	    
+	    
+        
+	      
+  &lt;/head&gt;
+  &lt;body style=&quot;word-spacing:normal;&quot;&gt;
+  &lt;div  aria-roledescription=&quot;email&quot; style=&quot;&quot; role=&quot;article&quot; lang=&quot;und&quot; dir=&quot;auto&quot; &gt;
+
+		    &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:300px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-50 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:250px;&quot; &gt;
+                      &lt;img  alt=&quot;event display name&quot; src=&quot;http://localhost:8080/file/&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;250&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Helvetica Neue;font-size:20px;font-weight:200;line-height:1;text-align:center;color:grey;&quot;&gt;event display name&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-break:break-word;&quot;&gt;
+              &lt;p  style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:100%;&quot; &gt;
+              &lt;/p&gt;
+              &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;border-top:solid 1px #f4f4f4;font-size:1px;margin:0px auto;width:600px;&quot; role=&quot;presentation&quot; width=&quot;600px&quot; &gt;&lt;tr&gt;&lt;td style=&quot;height:0;line-height:0;&quot;&gt; &amp;nbsp;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;Hello ticketfull ticketname,&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#000000;&quot;&gt;Thank you for registering. You're in!&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#000000;&quot;&gt;You are now confirmed for event display name.&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;#f8f8ff&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:#f8f8ff;background-color:#f8f8ff;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:#f8f8ff;background-color:#f8f8ff;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_link.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Important information&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;You can use the following link to join the event&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:separate;line-height:100%;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  align=&quot;center&quot; bgcolor=&quot;#28a745&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#28a745;&quot; valign=&quot;middle&quot; &gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/check-in/d1b16ddda14032915003c872f5f86797eb8b912732bbdfa8d92ca24f50ce140b&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#28a745;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; Join Event &lt;/a&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;We look forward to seeing you there!&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:130px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-130 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:collapse;border-spacing:0px;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  style=&quot;width:80px;&quot; &gt;
+                      &lt;img  alt=&quot;&quot; src=&quot;http://localhost:8080/resources/images/email/icon_calendar.png&quot; style=&quot;border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;&quot; width=&quot;80&quot; height=&quot;auto&quot; /&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:350px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-px-350 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:20px;line-height:1;text-align:center;color:#212529;&quot;&gt;Event information&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:14px;line-height:1;text-align:center;color:#000000;&quot;&gt;This event will be held online&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:16px;font-weight:bold;line-height:1;text-align:center;color:#000000;&quot;&gt; Saturday 25 July 2026  from  12:00 to  13:00 (CEST)&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+              &lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;border-collapse:separate;line-height:100%;&quot; &gt;
+                &lt;tbody&gt;
+                  &lt;tr&gt;
+                    &lt;td  align=&quot;center&quot; bgcolor=&quot;#7C8B95&quot; role=&quot;presentation&quot; style=&quot;border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#7C8B95;&quot; valign=&quot;middle&quot; &gt;
+                      &lt;a  href=&quot;http://localhost:8080/event/4f97c2bc-7249-44ba-bafb-2e5e3e68c64e/ticket/58ab45a2-2ddc-4b47-ae4e-62113edbe2f4/update?lang&amp;#x3D;en&quot; rel=&quot;notrack&quot; style=&quot;display:inline-block;background:#7C8B95;color:#ffffff;font-family:Source Sans Pro, Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;&quot; target=&quot;_blank&quot;&gt; View / Modify Ticket &lt;/a&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+
+	        &lt;!--[if mso | IE]&gt;&lt;table align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;&quot; role=&quot;presentation&quot; style=&quot;width:600px;&quot; width=&quot;600&quot; bgcolor=&quot;white&quot; &gt;&lt;tr&gt;&lt;td style=&quot;line-height:0px;font-size:0px;mso-line-height-rule:exactly;&quot;&gt;&lt;![endif]--&gt;
+    &lt;div  style=&quot;background:white;background-color:white;margin:0px auto;max-width:600px;&quot; &gt;
+      &lt;table  align=&quot;center&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;background:white;background-color:white;width:100%;&quot; &gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td  style=&quot;direction:ltr;font-size:0px;padding:20px 0;text-align:center;&quot; &gt;
+
+              &lt;!--[if mso | IE]&gt;&lt;table role=&quot;presentation&quot; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;&quot; style=&quot;vertical-align:top;width:600px;&quot; &gt;&lt;![endif]--&gt;
+&lt;div  class=&quot;mj-column-per-100 mj-outlook-group-fix&quot; style=&quot;font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;&quot;&gt;
+&lt;table  border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; role=&quot;presentation&quot; style=&quot;vertical-align:top;&quot; width=&quot;100%&quot;&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td  align=&quot;center&quot; style=&quot;font-size:0px;padding:10px 25px;word-break:break-word;&quot;&gt;
+&lt;div  style=&quot;font-family:Source Sans Pro, Helvetica;font-size:13px;line-height:1;text-align:center;color:#000000;&quot;&gt;&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+   &lt;!--[if mso | IE]&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;![endif]--&gt;
+
+	  &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+  , attachments: {filename:calendar.ics, contentType: text/calendar}
+2026-07-20T04:49:25.063Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_UPDATE_VALIDATION
+2026-07-20T04:49:25.064Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_UPDATE_VALIDATION&quot;}
+2026-07-20T04:49:25.064Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.074Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_MAIL_CUSTOM_TEXT
+2026-07-20T04:49:25.078Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_MAIL_CUSTOM_TEXT&quot;}
+2026-07-20T04:49:25.078Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.080Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: CUSTOM_ONLINE_JOIN_URL
+2026-07-20T04:49:25.081Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;CUSTOM_ONLINE_JOIN_URL&quot;}
+2026-07-20T04:49:25.081Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.115Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_ASSIGNED
+2026-07-20T04:49:25.116Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_ASSIGNED&quot;}
+2026-07-20T04:49:25.116Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.187Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
+2026-07-20T04:49:25.187Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
+2026-07-20T04:49:25.187Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.355Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: PDF_GENERATION
+2026-07-20T04:49:25.356Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;PDF_GENERATION&quot;}
+2026-07-20T04:49:25.357Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.437Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_CHECKED_IN
+2026-07-20T04:49:25.438Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_CHECKED_IN&quot;}
+2026-07-20T04:49:25.438Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.470Z  WARN 3045 --- [Alf.io] [    Test worker] a.c.a.a.CheckInApiController             : for event id : 98 and ticket : f8ff410b-f09b-4135-bb5b-72e8c5c0b7e0, a revert of the check in has been done by 4fec598a-30ae-4ac4-94b6-f78e029e6aee_owner
+2026-07-20T04:49:25.475Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_REVERT_CHECKED_IN
+2026-07-20T04:49:25.475Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_REVERT_CHECKED_IN&quot;}
+2026-07-20T04:49:25.476Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.480Z  WARN 3045 --- [Alf.io] [    Test worker] a.c.a.a.CheckInApiController             : for event id : 98 and ticket : f8ff410b-f09b-4135-bb5b-72e8c5c0b7e0, a revert of the check in has been done by 4fec598a-30ae-4ac4-94b6-f78e029e6aee_owner
+2026-07-20T04:49:25.584Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : hello from script with event: TICKET_CHECKED_IN
+2026-07-20T04:49:25.585Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.ScriptingExecutionService            : {&quot;test&quot;:&quot;rhino js string&quot;,&quot;name&quot;:&quot;TICKET_CHECKED_IN&quot;}
+2026-07-20T04:49:25.585Z  WARN 3045 --- [Alf.io] [    Test worker] a.e.JSON                                 : JSON.parse: Ignoring reviver param
+2026-07-20T04:49:25.819Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 1 field values
+2026-07-20T04:49:25.819Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 3 field descriptions
+2026-07-20T04:49:25.821Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.EventDeleterRepository               : deleted 3 field configurations
+2026-07-20T04:49:25.836Z  WARN 3045 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : Delete organization 110 (02d89997-bad5-4eda-b5d9-bf4d4a144566) initiated by user TEST
+2026-07-20T04:49:25.837Z  WARN 3045 --- [Alf.io] [    Test worker] a.m.OrganizationDeleter                  : removed 3 user(s) from organization 110
+2026-07-20T04:49:25.838Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 2 invoice sequences
+2026-07-20T04:49:25.838Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 44 auditing rows
+2026-07-20T04:49:25.840Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 groups and 0 members
+2026-07-20T04:49:25.840Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 configurations
+2026-07-20T04:49:25.841Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 configurations for purchase_contexts
+2026-07-20T04:49:25.841Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 resources
+2026-07-20T04:49:25.842Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 email messages
+2026-07-20T04:49:25.843Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 subscription descriptors and 0 subscriptions
+2026-07-20T04:49:25.843Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 transactions
+2026-07-20T04:49:25.844Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 billing documents
+2026-07-20T04:49:25.844Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 reservations
+2026-07-20T04:49:25.845Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 0 adminReservationRequests
+2026-07-20T04:49:25.845Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 promo codes
+2026-07-20T04:49:25.848Z  INFO 3045 --- [Alf.io] [    Test worker] a.r.OrganizationDeleterRepository        : deleted 1 empty organizations
+</pre>
+</span>
+</div>
+<div class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>com.openhtmltopdf.load INFO:: TIME: parse stylesheets 44ms
+com.openhtmltopdf.match INFO:: Matcher created with 170 selectors
+com.openhtmltopdf.load INFO:: Loading font(DejaVu Sans Mono) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(Monospaced) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(SansSerif) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(Serif) from PDFont supplier now.
+com.openhtmltopdf.general INFO:: Using fast-mode renderer. Prepare to fly.
+com.openhtmltopdf.load INFO:: TIME: parse stylesheets 0ms
+com.openhtmltopdf.match INFO:: Matcher created with 167 selectors
+com.openhtmltopdf.load INFO:: Loading font(DejaVu Sans Mono) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(Monospaced) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(SansSerif) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(Serif) from PDFont supplier now.
+com.openhtmltopdf.general INFO:: Using fast-mode renderer. Prepare to fly.
+com.openhtmltopdf.load INFO:: TIME: parse stylesheets 1ms
+com.openhtmltopdf.match INFO:: Matcher created with 170 selectors
+com.openhtmltopdf.load INFO:: Loading font(DejaVu Sans Mono) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(Monospaced) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(SansSerif) from PDFont supplier now.
+com.openhtmltopdf.load INFO:: Loading font(Serif) from PDFont supplier now.
+com.openhtmltopdf.general INFO:: Using fast-mode renderer. Prepare to fly.
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.14.4</a> at Jul 20, 2026, 4:50:59 AM</p>
+</div>
+</div>
+</body>
+</html>

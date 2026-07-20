@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">EventUtil.java</span></div><h1>EventUtil.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import static alfio.model.EventCheckInInfo.*;
+import static alfio.model.system.ConfigurationKeys.*;
+import static java.time.temporal.ChronoField.*;
+
+import alfio.controller.decorator.SaleableTicketCategory;
+import alfio.manager.PurchaseContextFieldManager;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.metadata.JoinLink;
+import alfio.model.metadata.OnlineConfiguration;
+import alfio.model.system.ConfigurationKeys;
+import alfio.model.user.Organization;
+import alfio.repository.AdditionalServiceItemRepository;
+import alfio.repository.TicketRepository;
+import biweekly.ICalVersion;
+import biweekly.ICalendar;
+import biweekly.component.VEvent;
+import biweekly.io.text.ICalWriter;
+import biweekly.property.Method;
+import biweekly.property.Organizer;
+import biweekly.property.Status;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.flywaydb.core.api.MigrationVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.util.Assert;
+import org.springframework.web.util.UriComponentsBuilder;
+
+public final class EventUtil {
+
+<span class="fc" id="L63">    private static final Logger log = LoggerFactory.getLogger(EventUtil.class);</span>
+
+    private EventUtil() {}
+
+<span class="fc" id="L67">    private static final DateTimeFormatter JSON_TIME_FORMATTER = new DateTimeFormatterBuilder()</span>
+<span class="fc" id="L68">            .appendValue(HOUR_OF_DAY, 2)</span>
+<span class="fc" id="L69">            .appendLiteral(':')</span>
+<span class="fc" id="L70">            .appendValue(MINUTE_OF_HOUR, 2)</span>
+<span class="fc" id="L71">            .optionalStart()</span>
+<span class="fc" id="L72">            .appendLiteral(':')</span>
+<span class="fc" id="L73">            .appendValue(SECOND_OF_MINUTE, 2)</span>
+<span class="fc" id="L74">            .toFormatter(Locale.ROOT);</span>
+
+<span class="fc" id="L76">    public static final DateTimeFormatter JSON_DATETIME_FORMATTER = new DateTimeFormatterBuilder()</span>
+<span class="fc" id="L77">            .parseCaseInsensitive()</span>
+<span class="fc" id="L78">            .append(DateTimeFormatter.ISO_LOCAL_DATE)</span>
+<span class="fc" id="L79">            .appendLiteral('T')</span>
+<span class="fc" id="L80">            .append(JSON_TIME_FORMATTER)</span>
+<span class="fc" id="L81">            .appendLiteral('Z')</span>
+<span class="fc" id="L82">            .toFormatter(Locale.ROOT);</span>
+
+    public static boolean displayWaitingQueueForm(
+            Event event,
+            List&lt;SaleableTicketCategory&gt; categories,
+            Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; confVal,
+            Predicate&lt;EventAndOrganizationId&gt; noTicketsAvailable) {
+<span class="nc" id="L89">        Assert.isTrue(</span>
+<span class="nc" id="L90">                confVal.keySet()</span>
+<span class="nc" id="L91">                        .containsAll(Set.of(</span>
+                                STOP_WAITING_QUEUE_SUBSCRIPTIONS, ENABLE_PRE_REGISTRATION, ENABLE_WAITING_QUEUE)),
+                &quot;Configuration must contains the specified key STOP_WAITING_QUEUE_SUBSCRIPTIONS, ENABLE_PRE_REGISTRATION, ENABLE_WAITING_QUEUE&quot;);
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        return !confVal.get(STOP_WAITING_QUEUE_SUBSCRIPTIONS).getValueAsBooleanOrDefault()</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                &amp;&amp; checkWaitingQueuePreconditions(event, categories, noTicketsAvailable, confVal);</span>
+    }
+
+    private static boolean checkWaitingQueuePreconditions(
+            Event event,
+            List&lt;SaleableTicketCategory&gt; categories,
+            Predicate&lt;EventAndOrganizationId&gt; noTicketsAvailable,
+            Map&lt;ConfigurationKeys, ConfigurationManager.MaybeConfiguration&gt; confVal) {
+<span class="nc" id="L103">        return findLastCategory(categories)</span>
+<span class="nc" id="L104">                .map(lastCategory -&gt; {</span>
+<span class="nc" id="L105">                    ZonedDateTime now = event.now(ClockProvider.clock());</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                    if (isPreSales(event, categories)) {</span>
+<span class="nc" id="L107">                        return confVal.get(ENABLE_PRE_REGISTRATION).getValueAsBooleanOrDefault();</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                    } else if (confVal.get(ENABLE_WAITING_QUEUE).getValueAsBooleanOrDefault()) {</span>
+<span class="nc bnc" id="L109" title="All 4 branches missed.">                        return now.isBefore(lastCategory.getZonedExpiration()) &amp;&amp; noTicketsAvailable.test(event);</span>
+                    }
+<span class="nc" id="L111">                    return false;</span>
+                })
+<span class="nc" id="L113">                .orElse(false);</span>
+    }
+
+    public static boolean checkWaitingQueuePreconditions(
+            Event event,
+            List&lt;SaleableTicketCategory&gt; categories,
+            ConfigurationManager configurationManager,
+            Predicate&lt;EventAndOrganizationId&gt; noTicketsAvailable) {
+<span class="nc" id="L121">        var confVal = configurationManager.getFor(</span>
+<span class="nc" id="L122">                List.of(ENABLE_PRE_REGISTRATION, ENABLE_WAITING_QUEUE), event.getConfigurationLevel());</span>
+<span class="nc" id="L123">        return checkWaitingQueuePreconditions(event, categories, noTicketsAvailable, confVal);</span>
+    }
+
+    private static Optional&lt;SaleableTicketCategory&gt; findLastCategory(List&lt;SaleableTicketCategory&gt; categories) {
+<span class="nc" id="L127">        return sortCategories(categories, (c1, c2) -&gt; c2.getUtcExpiration().compareTo(c1.getUtcExpiration()))</span>
+<span class="nc" id="L128">                .findFirst();</span>
+    }
+
+    private static Optional&lt;SaleableTicketCategory&gt; findFirstCategory(List&lt;SaleableTicketCategory&gt; categories) {
+<span class="nc" id="L132">        return sortCategories(categories, Comparator.comparing(SaleableTicketCategory::getUtcExpiration))</span>
+<span class="nc" id="L133">                .findFirst();</span>
+    }
+
+    private static Stream&lt;SaleableTicketCategory&gt; sortCategories(
+            List&lt;SaleableTicketCategory&gt; categories, Comparator&lt;SaleableTicketCategory&gt; comparator) {
+<span class="nc" id="L138">        return Optional.ofNullable(categories).orElse(Collections.emptyList()).stream()</span>
+<span class="nc" id="L139">                .sorted(comparator);</span>
+    }
+
+    public static boolean isPreSales(Event event, List&lt;SaleableTicketCategory&gt; categories) {
+<span class="nc" id="L143">        ZonedDateTime now = event.now(ClockProvider.clock());</span>
+<span class="nc" id="L144">        return findFirstCategory(categories)</span>
+<span class="nc" id="L145">                .map(c -&gt; now.isBefore(c.getZonedInception()))</span>
+<span class="nc" id="L146">                .orElse(false);</span>
+    }
+
+    public static Stream&lt;MapSqlParameterSource&gt; generateEmptyTickets(
+            EventAndOrganizationId event, Date creationDate, int limit, Ticket.TicketStatus ticketStatus) {
+<span class="nc" id="L151">        return generateStreamForTicketCreation(limit)</span>
+<span class="nc" id="L152">                .map(ps -&gt; buildTicketParams(event.getId(), creationDate, Optional.empty(), 0, ps, ticketStatus));</span>
+    }
+
+    public static Stream&lt;MapSqlParameterSource&gt; generateStreamForTicketCreation(int limit) {
+<span class="nc" id="L156">        return Stream.generate(MapSqlParameterSource::new).limit(limit);</span>
+    }
+
+    public static MapSqlParameterSource buildTicketParams(
+            int eventId, Date creation, Optional&lt;TicketCategory&gt; tc, int srcPriceCts, MapSqlParameterSource ps) {
+<span class="nc" id="L161">        return buildTicketParams(eventId, creation, tc, srcPriceCts, ps, Ticket.TicketStatus.FREE);</span>
+    }
+
+    private static MapSqlParameterSource buildTicketParams(
+            int eventId,
+            Date creation,
+            Optional&lt;TicketCategory&gt; tc,
+            int srcPriceCts,
+            MapSqlParameterSource ps,
+            Ticket.TicketStatus ticketStatus) {
+<span class="nc" id="L171">        return ps.addValue(&quot;uuid&quot;, UUID.randomUUID().toString())</span>
+<span class="nc" id="L172">                .addValue(&quot;publicUuid&quot;, UUID.randomUUID())</span>
+<span class="nc" id="L173">                .addValue(&quot;creation&quot;, creation)</span>
+<span class="nc" id="L174">                .addValue(&quot;categoryId&quot;, tc.map(TicketCategory::getId).orElse(null))</span>
+<span class="nc" id="L175">                .addValue(&quot;eventId&quot;, eventId)</span>
+<span class="nc" id="L176">                .addValue(&quot;status&quot;, ticketStatus.name())</span>
+<span class="nc" id="L177">                .addValue(&quot;srcPriceCts&quot;, srcPriceCts);</span>
+    }
+
+    public static int evaluatePrice(BigDecimal price, boolean freeOfCharge, String currencyCode) {
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">        return freeOfCharge</span>
+<span class="nc" id="L182">                ? 0</span>
+<span class="fc" id="L183">                : MonetaryUtil.unitToCents(Objects.requireNonNull(price), Objects.requireNonNull(currencyCode));</span>
+    }
+
+    public static int determineAvailableSeats(TicketCategoryStatisticView tc, EventStatisticView e) {
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        return tc.isBounded() ? tc.getNotSoldTicketsCount() : e.getDynamicAllocation();</span>
+    }
+
+    public static Optional&lt;byte[]&gt; getIcalForEvent(
+            Event event, TicketCategory ticketCategory, String description, Organization organization) {
+<span class="nc" id="L192">        ICalendar ical = new ICalendar();</span>
+<span class="nc" id="L193">        ical.setProductId(&quot;-//Alf.io//Alf.io v2.0//EN&quot;);</span>
+<span class="nc" id="L194">        ical.setMethod(Method.PUBLISH);</span>
+
+<span class="nc" id="L196">        VEvent vEvent = new VEvent();</span>
+<span class="nc" id="L197">        vEvent.setSummary(event.getDisplayName());</span>
+<span class="nc" id="L198">        vEvent.setDescription(MustacheCustomTag.renderToTextCommonmark(description));</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (!isAccessOnline(ticketCategory, event)) {</span>
+            // add location only if the attendee can access the location
+<span class="nc" id="L201">            vEvent.setLocation(RegExUtils.replacePattern(event.getLocation(), &quot;[\n\r\t]+&quot;, &quot; &quot;));</span>
+        }
+<span class="nc" id="L203">        ZonedDateTime begin = Optional.ofNullable(ticketCategory)</span>
+<span class="nc" id="L204">                .map(tc -&gt; tc.getTicketValidityStart(event.getZoneId()))</span>
+<span class="nc" id="L205">                .orElse(event.getBegin());</span>
+<span class="nc" id="L206">        ZonedDateTime end = Optional.ofNullable(ticketCategory)</span>
+<span class="nc" id="L207">                .map(tc -&gt; tc.getTicketValidityEnd(event.getZoneId()))</span>
+<span class="nc" id="L208">                .orElse(event.getEnd());</span>
+<span class="nc" id="L209">        vEvent.setDateStart(Date.from(begin.toInstant()));</span>
+<span class="nc" id="L210">        vEvent.setDateEnd(Date.from(end.toInstant()));</span>
+<span class="nc" id="L211">        vEvent.setUrl(event.getWebsiteUrl());</span>
+<span class="nc" id="L212">        vEvent.setStatus(Status.confirmed());</span>
+
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        if (organization != null) {</span>
+<span class="nc" id="L215">            vEvent.setOrganizer(new Organizer(organization.getName(), organization.getEmail()));</span>
+        }
+
+<span class="nc" id="L218">        ical.addEvent(vEvent);</span>
+<span class="nc" id="L219">        StringWriter strWriter = new StringWriter();</span>
+<span class="nc" id="L220">        try (ICalWriter writer = new ICalWriter(strWriter, ICalVersion.V2_0)) {</span>
+<span class="nc" id="L221">            writer.write(ical);</span>
+<span class="nc" id="L222">            return Optional.of(strWriter.toString().getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L223">        } catch (IOException e) {</span>
+<span class="nc" id="L224">            log.warn(&quot;was not able to generate iCal for event &quot; + event.getShortName(), e);</span>
+<span class="nc" id="L225">            return Optional.empty();</span>
+        }
+    }
+
+    public static Optional&lt;byte[]&gt; getIcalForEvent(Event event, TicketCategory ticketCategory, String description) {
+<span class="nc" id="L230">        return getIcalForEvent(event, ticketCategory, description, null);</span>
+    }
+
+    public static String getGoogleCalendarURL(Event event, TicketCategory category, String description) {
+<span class="nc" id="L234">        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyMMdd'T'HHmmss&quot;);</span>
+<span class="nc" id="L235">        ZonedDateTime validityStart = Optional.ofNullable(category)</span>
+<span class="nc" id="L236">                .map(TicketCategory::getTicketValidityStart)</span>
+<span class="nc" id="L237">                .map(d -&gt; d.withZoneSameInstant(event.getZoneId()))</span>
+<span class="nc" id="L238">                .orElse(event.getBegin());</span>
+<span class="nc" id="L239">        ZonedDateTime validityEnd = Optional.ofNullable(category)</span>
+<span class="nc" id="L240">                .map(TicketCategory::getTicketValidityEnd)</span>
+<span class="nc" id="L241">                .map(d -&gt; d.withZoneSameInstant(event.getZoneId()))</span>
+<span class="nc" id="L242">                .orElse(event.getEnd());</span>
+<span class="nc" id="L243">        return UriComponentsBuilder.fromUriString(&quot;https://www.google.com/calendar/event&quot;)</span>
+<span class="nc" id="L244">                .queryParam(&quot;action&quot;, &quot;TEMPLATE&quot;)</span>
+<span class="nc" id="L245">                .queryParam(&quot;dates&quot;, validityStart.format(formatter) + &quot;/&quot; + validityEnd.format(formatter))</span>
+<span class="nc" id="L246">                .queryParam(&quot;ctz&quot;, event.getTimeZone())</span>
+<span class="nc" id="L247">                .queryParam(&quot;text&quot;, event.getDisplayName())</span>
+<span class="nc" id="L248">                .queryParam(&quot;location&quot;, event.getLocation())</span>
+<span class="nc" id="L249">                .queryParam(</span>
+<span class="nc" id="L250">                        &quot;details&quot;, StringUtils.abbreviate(MustacheCustomTag.renderToTextCommonmark(description), 1024))</span>
+<span class="nc" id="L251">                .toUriString();</span>
+    }
+
+    public static BiFunction&lt;Ticket, Event, List&lt;FieldConfigurationDescriptionAndValue&gt;&gt; retrieveFieldValues(
+            TicketRepository ticketRepository,
+            PurchaseContextFieldManager purchaseContextFieldManager,
+            AdditionalServiceItemRepository additionalServiceItemRepository,
+            boolean formatValues) {
+<span class="nc" id="L259">        return (ticket, event) -&gt; {</span>
+<span class="nc" id="L260">            String reservationId = ticket.getTicketsReservationId();</span>
+<span class="nc" id="L261">            var additionalServiceItems = getBookedAdditionalServices(</span>
+                    ticketRepository, additionalServiceItemRepository, ticket, event, reservationId);
+<span class="nc" id="L263">            return purchaseContextFieldManager.getFieldDescriptionAndValues(</span>
+<span class="nc" id="L264">                    event, ticket, null, additionalServiceItems, ticket.getUserLanguage(), formatValues);</span>
+        };
+    }
+
+    private static List&lt;BookedAdditionalService&gt; getBookedAdditionalServices(
+            TicketRepository ticketRepository,
+            AdditionalServiceItemRepository additionalServiceItemRepository,
+            Ticket ticket,
+            Event event,
+            String reservationId) {
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        if (event.supportsLinkedAdditionalServices()) {</span>
+<span class="nc" id="L275">            return additionalServiceItemRepository.getAdditionalServicesBookedForTicket(</span>
+<span class="nc" id="L276">                    reservationId, ticket.getId(), ticket.getUserLanguage(), event.getId());</span>
+        } else {
+<span class="nc" id="L278">            var ticketsInReservation = ticketRepository.findFirstTicketIdInReservation(reservationId);</span>
+<span class="nc bnc" id="L279" title="All 4 branches missed.">            if (ticketsInReservation.filter(id -&gt; id == ticket.getId()).isPresent()) {</span>
+<span class="nc" id="L280">                return additionalServiceItemRepository.getAdditionalServicesBookedForReservation(</span>
+<span class="nc" id="L281">                        reservationId, ticket.getUserLanguage(), event.getId());</span>
+            }
+        }
+<span class="nc" id="L284">        return List.of();</span>
+    }
+
+    public static Optional&lt;String&gt; findMatchingLink(
+            ZoneId eventZoneId, OnlineConfiguration categoryConfiguration, OnlineConfiguration eventConfiguration) {
+<span class="nc" id="L289">        return firstMatchingCallLink(eventZoneId, categoryConfiguration, eventConfiguration)</span>
+<span class="nc" id="L290">                .map(JoinLink::getLink);</span>
+    }
+
+    public static Optional&lt;JoinLink&gt; firstMatchingCallLink(
+            ZoneId eventZoneId, OnlineConfiguration categoryConfiguration, OnlineConfiguration eventConfiguration) {
+<span class="nc" id="L295">        var now = ZonedDateTime.now(ClockProvider.clock().withZone(eventZoneId));</span>
+<span class="nc" id="L296">        return firstMatchingCallLink(categoryConfiguration, eventZoneId, now)</span>
+<span class="nc" id="L297">                .or(() -&gt; firstMatchingCallLink(eventConfiguration, eventZoneId, now));</span>
+    }
+
+    private static Optional&lt;JoinLink&gt; firstMatchingCallLink(
+            OnlineConfiguration onlineConfiguration, ZoneId zoneId, ZonedDateTime now) {
+<span class="nc" id="L302">        return Optional.ofNullable(onlineConfiguration).stream()</span>
+<span class="nc" id="L303">                .flatMap(configuration -&gt; configuration.getCallLinks().stream())</span>
+<span class="nc" id="L304">                .sorted(Comparator.comparing(JoinLink::getValidFrom).reversed())</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                .filter(joinLink -&gt; now.isBefore(joinLink.getValidTo().atZone(zoneId))</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                        &amp;&amp; now.plusSeconds(1).isAfter(joinLink.getValidFrom().atZone(zoneId)))</span>
+<span class="nc" id="L307">                .findFirst();</span>
+    }
+
+    public static boolean isAccessOnline(TicketCategory category, EventCheckInInfo event) {
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        return event.getFormat() == Event.EventFormat.ONLINE</span>
+<span class="nc bnc" id="L312" title="All 4 branches missed.">                || event.getFormat() == Event.EventFormat.HYBRID</span>
+                        &amp;&amp; category != null
+<span class="nc bnc" id="L314" title="All 2 branches missed.">                        &amp;&amp; category.getTicketAccessType() == TicketCategory.TicketAccessType.ONLINE;</span>
+    }
+
+    /**
+     * Returns the message in the desired languages, if present.
+     * If none of the languages are found, it returns the first available, if any.
+     * @param lang the desired language
+     * @param fallback fallback entity for detecting language
+     * @return link description in the desired language, or the first one if not found. Or {@code null} if the map is empty
+     */
+    public static String getLocalizedMessage(
+            Map&lt;String, String&gt; messagesByLang, String lang, LocalizedContent fallback) {
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (messagesByLang.isEmpty()) {</span>
+<span class="nc" id="L327">            return null;</span>
+        }
+
+<span class="nc bnc" id="L330" title="All 2 branches missed.">        if (messagesByLang.containsKey(lang)) {</span>
+<span class="nc" id="L331">            return messagesByLang.get(lang);</span>
+        }
+
+<span class="nc" id="L334">        var defaultLanguage = fallback.getFirstContentLanguage().getLanguage();</span>
+
+<span class="nc bnc" id="L336" title="All 2 branches missed.">        if (messagesByLang.containsKey(defaultLanguage)) {</span>
+<span class="nc" id="L337">            return messagesByLang.get(defaultLanguage);</span>
+        }
+
+<span class="nc" id="L340">        return messagesByLang.values().stream().findFirst().orElseThrow();</span>
+    }
+
+    public static boolean supportsCaseInsensitiveQRCode(String version) {
+<span class="pc bpc" id="L344" title="1 of 2 branches missed.">        return version != null</span>
+<span class="nc" id="L345">                &amp;&amp; MigrationVersion.fromVersion(version)</span>
+<span class="nc bnc" id="L346" title="All 2 branches missed.">                                .compareTo(MigrationVersion.fromVersion(VERSION_FOR_CODE_CASE_INSENSITIVE))</span>
+                        &gt;= 0;
+    }
+
+    public static boolean supportsLinkedAdditionalServices(String version) {
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">        return version != null</span>
+<span class="nc" id="L352">                &amp;&amp; MigrationVersion.fromVersion(version)</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">                                .compareTo(MigrationVersion.fromVersion(VERSION_FOR_LINKED_ADDITIONAL_SERVICE))</span>
+                        &gt;= 0;
+    }
+
+    public static boolean supportsAdditionalItemsOrdinal(String version) {
+<span class="pc bpc" id="L358" title="1 of 2 branches missed.">        return version != null</span>
+<span class="nc" id="L359">                &amp;&amp; MigrationVersion.fromVersion(version)</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">                                .compareTo(MigrationVersion.fromVersion(VERSION_FOR_ADDITIONAL_ITEMS_ORDINAL))</span>
+                        &gt;= 0;
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

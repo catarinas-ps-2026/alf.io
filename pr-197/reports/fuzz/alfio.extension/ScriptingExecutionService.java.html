@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScriptingExecutionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.extension</a> &gt; <span class="el_source">ScriptingExecutionService.java</span></div><h1>ScriptingExecutionService.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.extension;
+
+import static alfio.manager.system.AdminJobExecutor.JobName.EXECUTE_EXTENSION;
+
+import alfio.extension.exception.AlfioScriptingException;
+import alfio.extension.exception.InvalidScriptException;
+import alfio.extension.exception.OutOfBoundariesException;
+import alfio.extension.exception.ScriptRuntimeException;
+import alfio.extension.support.SandboxContextFactory;
+import alfio.manager.system.AdminJobManager;
+import alfio.repository.system.AdminJobQueueRepository;
+import alfio.util.ClockProvider;
+import alfio.util.Json;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import java.net.ConnectException;
+import java.net.http.HttpClient;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.mozilla.javascript.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+// table {path, name, hash, script content, params}
+// where (path, name) is unique, in our case can be:
+//
+// -
+// -organizationId
+// -organizationId-eventId
+
+@Service
+public class ScriptingExecutionService {
+
+    public static final String EXTENSION_NAME = &quot;extensionName&quot;;
+    public static final String EXTENSION_PATH = &quot;path&quot;;
+    public static final String EXTENSION_PARAMS = &quot;params&quot;;
+    public static final String EXTENSION_CONFIGURATION_PARAMETERS = &quot;extensionParameters&quot;;
+    static final String CONNECT_EXCEPTION_MESSAGE = &quot;Cannot connect to remote service. Please check your configuration&quot;;
+    static final String DEFAULT_ERROR_MESSAGE = &quot;Error while executing extension. Please retry.&quot;;
+<span class="nc" id="L63">    private static final Logger log = LoggerFactory.getLogger(ScriptingExecutionService.class);</span>
+
+    private final Supplier&lt;Executor&gt; executorSupplier;
+    private final ScriptableObject sealedScope;
+    private final AdminJobQueueRepository adminJobQueueRepository;
+
+<span class="nc" id="L69">    private final Cache&lt;String, Executor&gt; asyncExecutors = Caffeine.newBuilder()</span>
+<span class="nc" id="L70">            .expireAfterAccess(Duration.ofHours(12))</span>
+<span class="nc" id="L71">            .removalListener((String key, Executor value, RemovalCause cause) -&gt; {</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                if (value instanceof ExecutorService service) {</span>
+<span class="nc" id="L73">                    service.shutdown();</span>
+                }
+<span class="nc" id="L75">            })</span>
+<span class="nc" id="L76">            .build();</span>
+
+    static {
+<span class="nc" id="L79">        ContextFactory.initGlobal(new SandboxContextFactory());</span>
+<span class="nc" id="L80">    }</span>
+
+    public ScriptingExecutionService(
+            HttpClient httpClient,
+            AdminJobQueueRepository adminJobQueueRepository,
+<span class="nc" id="L85">            Supplier&lt;Executor&gt; executorSupplier) {</span>
+<span class="nc" id="L86">        this.executorSupplier = executorSupplier;</span>
+<span class="nc" id="L87">        this.adminJobQueueRepository = adminJobQueueRepository;</span>
+<span class="nc" id="L88">        var simpleHttpClient = new SimpleHttpClient(httpClient);</span>
+<span class="nc" id="L89">        Context cx = ContextFactory.getGlobal().enterContext();</span>
+        try {
+<span class="nc" id="L91">            sealedScope = cx.initSafeStandardObjects(null, true);</span>
+<span class="nc" id="L92">            sealedScope.put(&quot;log&quot;, sealedScope, log);</span>
+<span class="nc" id="L93">            sealedScope.put(&quot;GSON&quot;, sealedScope, Json.GSON);</span>
+<span class="nc" id="L94">            sealedScope.put(&quot;JSON&quot;, sealedScope, new NativeJavaClass(sealedScope, JSON.class));</span>
+<span class="nc" id="L95">            sealedScope.put(&quot;simpleHttpClient&quot;, sealedScope, simpleHttpClient);</span>
+<span class="nc" id="L96">            sealedScope.put(&quot;HashMap&quot;, sealedScope, new NativeJavaClass(sealedScope, HashMap.class));</span>
+<span class="nc" id="L97">            sealedScope.put(&quot;ExtensionUtils&quot;, sealedScope, new NativeJavaClass(sealedScope, ExtensionUtils.class));</span>
+        } finally {
+<span class="nc" id="L99">            Context.exit();</span>
+        }
+<span class="nc" id="L101">    }</span>
+
+    public &lt;T&gt; T executeScript(
+            String name,
+            String hash,
+            Supplier&lt;String&gt; scriptFetcher,
+            Map&lt;String, Object&gt; params,
+            Class&lt;T&gt; clazz,
+            ExtensionLogger extensionLogger) {
+<span class="nc" id="L110">        return executeScriptFinally(name, scriptFetcher.get(), params, clazz, extensionLogger);</span>
+    }
+
+    public void executeScriptAsync(
+            String path,
+            String name,
+            String hash,
+            Supplier&lt;String&gt; scriptFetcher,
+            Map&lt;String, Object&gt; params,
+            ExtensionLogger extensionLogger) {
+<span class="nc" id="L120">        Optional.ofNullable(asyncExecutors.get(path, key -&gt; executorSupplier.get()))</span>
+<span class="nc" id="L121">                .ifPresent(it -&gt; it.execute(() -&gt; {</span>
+                    try {
+<span class="nc" id="L123">                        executeScript(name, hash, scriptFetcher, params, Object.class, extensionLogger);</span>
+<span class="nc" id="L124">                    } catch (AlfioScriptingException | IllegalStateException ex) {</span>
+                        // we got an error while executing the script. We must now re-schedule the script to be executed
+                        // again
+                        // at a later time
+<span class="nc" id="L128">                        var paramsCopy = new HashMap&lt;&gt;(params);</span>
+                        // do not persist extension parameters because they could contain sensitive information
+<span class="nc" id="L130">                        paramsCopy.remove(EXTENSION_CONFIGURATION_PARAMETERS);</span>
+<span class="nc" id="L131">                        Map&lt;String, Object&gt; metadata = Map.of(</span>
+                                EXTENSION_NAME, name,
+                                EXTENSION_PATH, path,
+                                EXTENSION_PARAMS, paramsCopy);
+<span class="nc" id="L135">                        boolean scheduled = AdminJobManager.executionScheduler(</span>
+                                        EXECUTE_EXTENSION,
+                                        metadata,
+<span class="nc" id="L138">                                        ZonedDateTime.now(ClockProvider.clock()).plusSeconds(2L))</span>
+<span class="nc" id="L139">                                .apply(adminJobQueueRepository);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                        if (!scheduled) {</span>
+<span class="nc" id="L141">                            log.warn(&quot;Cannot schedule extension {} for retry&quot;, name);</span>
+                            // throw exception only if we can't schedule the extension for later execution
+<span class="nc" id="L143">                            throw ex;</span>
+                        } else {
+<span class="nc" id="L145">                            log.warn(</span>
+                                    &quot;Error while executing extension &quot; + name + &quot;, which has been scheduled for retry&quot;,
+                                    ex);
+                        }
+<span class="nc" id="L149">                    }</span>
+<span class="nc" id="L150">                }));</span>
+<span class="nc" id="L151">    }</span>
+
+    public &lt;T&gt; T executeScript(
+            String name, String script, Map&lt;String, Object&gt; params, Class&lt;T&gt; clazz, ExtensionLogger extensionLogger) {
+<span class="nc" id="L155">        return executeScriptFinally(name, script, params, clazz, extensionLogger);</span>
+    }
+
+    public static class JavaClassInterop {
+
+        private final Map&lt;String, Class&lt;?&gt;&gt; mapping;
+        private final Scriptable scope;
+
+<span class="nc" id="L163">        JavaClassInterop(Map&lt;String, Class&lt;?&gt;&gt; mapping, Scriptable scope) {</span>
+<span class="nc" id="L164">            this.mapping = mapping;</span>
+<span class="nc" id="L165">            this.scope = scope;</span>
+<span class="nc" id="L166">        }</span>
+
+        public NativeJavaClass type(String clazz) {
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            if (mapping.containsKey(clazz)) {</span>
+<span class="nc" id="L170">                return new NativeJavaClass(scope, mapping.get(clazz));</span>
+            } else {
+<span class="nc" id="L172">                throw new IllegalArgumentException(&quot;Type &quot; + clazz + &quot; is not recognized&quot;);</span>
+            }
+        }
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private &lt;T&gt; T executeScriptFinally(
+            String name, String script, Map&lt;String, Object&gt; params, Class&lt;T&gt; clazz, ExtensionLogger extensionLogger) {
+<span class="nc" id="L180">        try (var cx = Context.enter()) {</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">            if (params == null) {</span>
+<span class="nc" id="L182">                params = Collections.emptyMap();</span>
+            }
+
+<span class="nc" id="L185">            Scriptable scope = cx.newObject(sealedScope);</span>
+<span class="nc" id="L186">            scope.setPrototype(sealedScope);</span>
+<span class="nc" id="L187">            scope.setParentScope(null);</span>
+<span class="nc" id="L188">            scope.put(&quot;extensionLogger&quot;, scope, extensionLogger);</span>
+<span class="nc" id="L189">            scope.put(&quot;console&quot;, scope, new ConsoleLogger(extensionLogger));</span>
+
+            // retrocompatibility
+<span class="nc" id="L192">            scope.put(</span>
+                    &quot;Java&quot;,
+                    scope,
+<span class="nc" id="L195">                    new JavaClassInterop(Map.of(&quot;alfio.model.CustomerName&quot;, alfio.model.CustomerName.class), scope));</span>
+
+<span class="nc" id="L197">            scope.put(&quot;returnClass&quot;, scope, clazz);</span>
+
+<span class="nc bnc" id="L199" title="All 2 branches missed.">            for (var entry : params.entrySet()) {</span>
+<span class="nc" id="L200">                var value = entry.getValue();</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                if (entry.getKey().equals(EXTENSION_CONFIGURATION_PARAMETERS)) {</span>
+<span class="nc" id="L202">                    scope.put(entry.getKey(), scope, convertExtensionParameters(scope, value));</span>
+                } else {
+<span class="nc" id="L204">                    scope.put(entry.getKey(), scope, Context.javaToJS(value, scope));</span>
+                }
+<span class="nc" id="L206">            }</span>
+            Object res;
+<span class="nc" id="L208">            res = cx.evaluateString(scope, script, name, 1, null);</span>
+<span class="nc" id="L209">            extensionLogger.logSuccess(&quot;Script executed successfully.&quot;);</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            if (res instanceof NativeJavaObject nativeRes) {</span>
+<span class="nc" id="L211">                return (T) nativeRes.unwrap();</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            } else if (clazz.isInstance(res)) {</span>
+<span class="nc" id="L213">                return (T) res;</span>
+            } else {
+<span class="nc" id="L215">                return null;</span>
+            }
+<span class="nc bnc" id="L217" title="All 4 branches missed.">        } catch (EcmaError ex) {</span>
+<span class="nc" id="L218">            log.warn(&quot;Syntax error detected in script &quot; + name, ex);</span>
+<span class="nc" id="L219">            extensionLogger.logError(&quot;Syntax error while executing script: &quot; + ex.getMessage() + &quot;(&quot; + ex.lineNumber()</span>
+<span class="nc" id="L220">                    + &quot;:&quot; + ex.columnNumber() + &quot;)&quot;);</span>
+<span class="nc" id="L221">            throw new InvalidScriptException(&quot;Syntax error in script &quot; + name);</span>
+<span class="nc" id="L222">        } catch (WrappedException ex) {</span>
+<span class="nc" id="L223">            var actualException = ex.getWrappedException();</span>
+<span class="nc" id="L224">            var message = getErrorMessage(actualException);</span>
+<span class="nc" id="L225">            extensionLogger.logError(&quot;Error from script: &quot; + message);</span>
+<span class="nc" id="L226">            throw new AlfioScriptingException(message, actualException);</span>
+<span class="nc" id="L227">        } catch (JavaScriptException ex) {</span>
+            String message;
+<span class="nc bnc" id="L229" title="All 2 branches missed.">            if (ex.getValue() != null) {</span>
+<span class="nc" id="L230">                message = ex.details();</span>
+            } else {
+<span class="nc" id="L232">                message = ex.getMessage();</span>
+            }
+<span class="nc" id="L234">            extensionLogger.logError(message);</span>
+<span class="nc" id="L235">            throw new ScriptRuntimeException(message, ex);</span>
+<span class="nc" id="L236">        } catch (OutOfBoundariesException ex) {</span>
+<span class="nc" id="L237">            throw ex;</span>
+<span class="nc" id="L238">        } catch (Exception ex) { //</span>
+<span class="nc" id="L239">            extensionLogger.logError(&quot;Error while executing script: &quot; + ex.getMessage());</span>
+<span class="nc" id="L240">            throw new IllegalStateException(ex);</span>
+        }
+    }
+
+    String getErrorMessage(Throwable ex) {
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (ex.getMessage() != null) {</span>
+<span class="nc" id="L246">            return ex.getMessage();</span>
+        }
+<span class="nc" id="L248">        Throwable root = ex;</span>
+<span class="nc" id="L249">        String lastMessage = root.getMessage();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        while (root.getCause() != null) {</span>
+<span class="nc" id="L251">            root = root.getCause();</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">            if (root instanceof ConnectException) {</span>
+<span class="nc" id="L253">                return CONNECT_EXCEPTION_MESSAGE;</span>
+            }
+<span class="nc bnc" id="L255" title="All 2 branches missed.">            if (root.getMessage() != null) {</span>
+<span class="nc" id="L256">                lastMessage = root.getMessage();</span>
+            }
+        }
+<span class="nc" id="L259">        return Objects.requireNonNullElse(lastMessage, DEFAULT_ERROR_MESSAGE);</span>
+    }
+
+    private Object convertExtensionParameters(Scriptable context, Object extensionParameters) {
+<span class="nc" id="L263">        return ((Map&lt;?, ?&gt;) extensionParameters)</span>
+<span class="nc" id="L264">                .entrySet().stream()</span>
+<span class="nc" id="L265">                        .map(entry -&gt; Map.entry(entry.getKey(), ScriptRuntime.toObject(context, entry.getValue())))</span>
+<span class="nc" id="L266">                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

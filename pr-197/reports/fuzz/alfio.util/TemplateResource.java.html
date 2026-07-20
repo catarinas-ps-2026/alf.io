@@ -1,0 +1,1208 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TemplateResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">TemplateResource.java</span></div><h1>TemplateResource.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import static alfio.util.ImageUtil.createQRCode;
+import static alfio.util.MustacheCustomTag.SUBSCRIPTION_DESCRIPTOR_ATTRIBUTE;
+import static alfio.util.TemplateManager.ADDITIONAL_FIELDS_KEY;
+import static alfio.util.TemplateManager.METADATA_ATTRIBUTES_KEY;
+import static java.util.Objects.requireNonNullElse;
+import static org.springframework.http.MediaType.APPLICATION_PDF_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+
+import alfio.controller.api.support.AdditionalServiceWithData;
+import alfio.model.*;
+import alfio.model.PurchaseContext.PurchaseContextType;
+import alfio.model.api.v1.admin.subscription.SubscriptionConfiguration;
+import alfio.model.metadata.SubscriptionMetadata;
+import alfio.model.modification.SendCodeModification;
+import alfio.model.subscription.Subscription;
+import alfio.model.subscription.SubscriptionDescriptor;
+import alfio.model.subscription.SubscriptionDescriptor.SubscriptionValidityType;
+import alfio.model.transaction.PaymentProxy;
+import alfio.model.transaction.StaticPaymentMethods;
+import alfio.model.user.Organization;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Delegate;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+
+<span class="nc" id="L53">public enum TemplateResource {</span>
+<span class="nc" id="L54">    CONFIRMATION_EMAIL_FOR_ORGANIZER(</span>
+            &quot;/alfio/templates/confirmation-email-for-organizer&quot;,
+            TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE,
+            TemplateManager.TemplateOutput.HTML) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L61">            return prepareSampleDataForConfirmationEmail(organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L64">    SEND_RESERVED_CODE(</span>
+            &quot;/alfio/templates/send-reserved-code-txt.ms&quot;, TEXT_PLAIN_VALUE, TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L69">            return prepareModelForSendReservedCode(</span>
+                    organization,
+                    (Event) event,
+                    new SendCodeModification(&quot;CODE&quot;, &quot;Firstname Lastname&quot;, &quot;email@email.tld&quot;, &quot;en&quot;),
+                    &quot;http://your-domain.tld/event-page&quot;,
+                    &quot;Promotional&quot;);
+        }
+    },
+<span class="nc" id="L77">    CONFIRMATION_EMAIL(</span>
+            &quot;/alfio/templates/confirmation-email&quot;,
+            TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L84">            return prepareSampleDataForConfirmationEmail(organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L87">    CONFIRMATION_EMAIL_SUBSCRIPTION(</span>
+            &quot;/alfio/templates/confirmation-email-subscription&quot;,
+            TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L94">            var model = prepareSampleDataForConfirmationEmail(organization, (Event) event);</span>
+<span class="nc" id="L95">            model.put(&quot;pin&quot;, &quot;ABCDE&quot;);</span>
+<span class="nc" id="L96">            model.put(&quot;subscriptionId&quot;, UUID.randomUUID().toString());</span>
+<span class="nc" id="L97">            model.put(&quot;includePin&quot;, true);</span>
+<span class="nc" id="L98">            model.put(FULL_NAME, &quot;Firstname Lastname&quot;);</span>
+<span class="nc" id="L99">            return model;</span>
+        }
+    },
+<span class="nc" id="L102">    OFFLINE_RESERVATION_EXPIRED_EMAIL(</span>
+            &quot;/alfio/templates/offline-reservation-expired-email-txt.ms&quot;,
+            TEXT_PLAIN_VALUE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L109">            return prepareSampleDataForConfirmationEmail(organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L112">    CHARGE_ATTEMPT_FAILED_EMAIL(</span>
+            &quot;/alfio/templates/charge-failed-txt.ms&quot;, TEXT_PLAIN_VALUE, TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L117">            return prepareSampleDataForChargeFailed(organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L120">    CHARGE_ATTEMPT_FAILED_EMAIL_FOR_ORGANIZER(</span>
+            &quot;/alfio/templates/charge-failed-organizer-txt.ms&quot;, TEXT_PLAIN_VALUE, TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L125">            return prepareSampleDataForChargeFailed(organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L128">    CREDIT_NOTE_ISSUED_EMAIL(</span>
+            &quot;/alfio/templates/credit-note-issued-email-txt.ms&quot;, TEXT_PLAIN_VALUE, TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L133">            return prepareSampleDataForConfirmationEmail(organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L136">    OFFLINE_RESERVATION_EXPIRING_EMAIL_FOR_ORGANIZER(</span>
+            &quot;/alfio/templates/offline-reservation-expiring-email-for-organizer&quot;,
+            TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L143">            return prepareSampleModelForOfflineReservationExpiringEmailForOrganizer((Event) event);</span>
+        }
+    },
+<span class="nc" id="L146">    OFFLINE_PAYMENT_MATCHES_FOUND(</span>
+            &quot;/alfio/templates/offline-payment-matches-found-txt.ms&quot;,
+            TEXT_PLAIN_VALUE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L153">            return Map.of(</span>
+                    &quot;matchingCount&quot;,
+<span class="nc" id="L155">                    3,</span>
+                    EVENT_NAME,
+<span class="nc" id="L157">                    event.getDisplayName(),</span>
+                    &quot;pendingReviewMatches&quot;,
+<span class="nc" id="L159">                    true,</span>
+                    &quot;pendingReview&quot;,
+<span class="nc" id="L161">                    List.of(UUID.randomUUID().toString()),</span>
+                    &quot;automaticApprovedMatches&quot;,
+<span class="nc" id="L163">                    true,</span>
+                    &quot;automaticApproved&quot;,
+<span class="nc" id="L165">                    List.of(UUID.randomUUID().toString()),</span>
+                    &quot;automaticApprovalErrors&quot;,
+<span class="nc" id="L167">                    true,</span>
+                    &quot;approvalErrors&quot;,
+<span class="nc" id="L169">                    List.of(UUID.randomUUID().toString()));</span>
+        }
+    },
+<span class="nc" id="L172">    REMINDER_EMAIL(&quot;/alfio/templates/reminder-email-txt.ms&quot;, TEXT_PLAIN_VALUE, TemplateManager.TemplateOutput.TEXT) {</span>
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L176">            return prepareSampleDataForConfirmationEmail(organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L179">    REMINDER_TICKET_ADDITIONAL_INFO(</span>
+            &quot;/alfio/templates/reminder-ticket-additional-info.ms&quot;,
+            TEXT_PLAIN_VALUE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L186">            return prepareModelForReminderTicketAdditionalInfo(</span>
+<span class="nc" id="L187">                    organization, (Event) event, sampleTicket(event.getZoneId()), &quot;http://your-domain.tld/ticket-url&quot;);</span>
+        }
+    },
+<span class="nc" id="L190">    REMINDER_TICKETS_ASSIGNMENT_EMAIL(</span>
+            &quot;/alfio/templates/reminder-tickets-assignment-email-txt.ms&quot;,
+            TEXT_PLAIN_VALUE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L197">            return prepareSampleDataForConfirmationEmail(organization, (Event) event);</span>
+        }
+    },
+
+<span class="nc" id="L201">    TICKET_EMAIL(</span>
+            &quot;/alfio/templates/ticket-email&quot;,
+            TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext purchaseContext, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L208">            var result = buildTicket((Event) purchaseContext);</span>
+<span class="nc" id="L209">            return buildModelForTicketEmail(</span>
+                    organization,
+<span class="nc" id="L211">                    result.event(),</span>
+<span class="nc" id="L212">                    sampleTicketReservation(result.event().getZoneId()),</span>
+                    &quot;http://your-domain.tld&quot;,
+                    &quot;http://your-domain.tld/ticket-url&quot;,
+                    &quot;http://your-domain.tld/calendar-url&quot;,
+<span class="nc" id="L216">                    sampleTicket(result.event().getZoneId()),</span>
+<span class="nc" id="L217">                    result.ticketCategory(),</span>
+<span class="nc" id="L218">                    Map.of());</span>
+        }
+    },
+
+<span class="nc" id="L222">    TICKET_EMAIL_FOR_ONLINE_EVENT(</span>
+            &quot;/alfio/templates/ticket-email-online&quot;,
+            TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext purchaseContext, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L229">            var result = buildTicket((Event) purchaseContext);</span>
+<span class="nc" id="L230">            return buildModelForTicketEmail(</span>
+                    organization,
+                    result.event,
+<span class="nc" id="L233">                    sampleTicketReservation(result.event.getZoneId()),</span>
+                    &quot;http://your-domain.tld&quot;,
+                    &quot;http://your-domain.tld/ticket-url&quot;,
+                    &quot;http://your-domain.tld/calendar-url&quot;,
+<span class="nc" id="L237">                    sampleTicket(result.event.getZoneId()),</span>
+                    result.ticketCategory,
+<span class="nc" id="L239">                    Map.of(</span>
+                            &quot;onlineCheckInUrl&quot;,
+                            &quot;https://your-domain.tld/check-in&quot;,
+                            &quot;prerequisites&quot;,
+                            &quot;An internet connection is required to join the event&quot;));
+        }
+    },
+
+<span class="nc" id="L247">    TICKET_HAS_CHANGED_OWNER(</span>
+            &quot;/alfio/templates/ticket-has-changed-owner-txt.ms&quot;, TEXT_PLAIN_VALUE, TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L252">            return buildModelForTicketHasChangedOwner(</span>
+                    organization,
+                    (Event) event,
+<span class="nc" id="L255">                    sampleTicket(event.getZoneId()),</span>
+<span class="nc" id="L256">                    sampleTicket(&quot;NewFirstname&quot;, &quot;NewLastname&quot;, &quot;newemail@email.tld&quot;, event.getZoneId()),</span>
+                    &quot;http://your-domain.tld/ticket-url&quot;);
+        }
+    },
+
+<span class="nc" id="L261">    TICKET_HAS_BEEN_CANCELLED(</span>
+            &quot;/alfio/templates/ticket-has-been-cancelled-txt.ms&quot;,
+            TEXT_PLAIN_VALUE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L268">            return buildModelForTicketHasBeenCancelled(organization, (Event) event, sampleTicket(event.getZoneId()));</span>
+        }
+    },
+
+<span class="nc" id="L272">    TICKET_HAS_BEEN_CANCELLED_ADMIN(</span>
+            &quot;/alfio/templates/ticket-has-been-cancelled-admin-txt.ms&quot;,
+            TEXT_PLAIN_VALUE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L279">            return buildModelForTicketHasBeenCancelledAdmin(</span>
+                    organization,
+                    (Event) event,
+<span class="nc" id="L282">                    sampleTicket(event.getZoneId()),</span>
+                    &quot;Category&quot;,
+<span class="nc" id="L284">                    Collections.emptyList(),</span>
+<span class="nc" id="L285">                    asi -&gt; Optional.empty());</span>
+        }
+
+        @Override
+        public byte[] replaceTokens(byte[] raw) {
+<span class="nc" id="L290">            return replaceOldReferences(raw);</span>
+        }
+    },
+
+<span class="nc" id="L294">    TICKET_PDF(&quot;/alfio/templates/ticket.ms&quot;, APPLICATION_PDF_VALUE, TemplateManager.TemplateOutput.HTML) {</span>
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext purchaseContext, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L298">            Event event = (Event) purchaseContext;</span>
+<span class="nc" id="L299">            var now = event.now(ClockProvider.clock());</span>
+<span class="nc" id="L300">            TicketCategory ticketCategory = new TicketCategory(</span>
+                    0,
+                    now,
+                    now,
+                    42,
+                    &quot;Ticket&quot;,
+                    false,
+                    TicketCategory.Status.ACTIVE,
+<span class="nc" id="L308">                    event.getId(),</span>
+                    false,
+                    1000,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    &quot;CHF&quot;,
+<span class="nc" id="L317">                    0,</span>
+                    null,
+                    TicketCategory.TicketAccessType.INHERIT);
+<span class="nc" id="L320">            var ticketWithMetadata = TicketWithMetadataAttributes.build(sampleTicket(event.getZoneId()), null);</span>
+<span class="nc" id="L321">            return buildModelForTicketPDF(</span>
+                    organization,
+                    event,
+<span class="nc" id="L324">                    sampleTicketReservation(event.getZoneId()),</span>
+                    ticketCategory,
+                    ticketWithMetadata,
+                    imageData,
+                    &quot;ABCD&quot;,
+<span class="nc" id="L329">                    Collections.emptyMap(),</span>
+<span class="nc" id="L330">                    List.of());</span>
+        }
+
+        @Override
+        public byte[] replaceTokens(byte[] raw) {
+<span class="nc" id="L335">            return replaceOldReferences(raw);</span>
+        }
+    },
+<span class="nc" id="L338">    RECEIPT_PDF(&quot;/alfio/templates/receipt.ms&quot;, APPLICATION_PDF_VALUE, TemplateManager.TemplateOutput.HTML) {</span>
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L342">            return sampleBillingDocument(imageData, organization, (Event) event);</span>
+        }
+    },
+
+<span class="nc" id="L346">    INVOICE_PDF(&quot;/alfio/templates/invoice.ms&quot;, APPLICATION_PDF_VALUE, TemplateManager.TemplateOutput.HTML) {</span>
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L350">            return sampleBillingDocument(imageData, organization, (Event) event);</span>
+        }
+    },
+
+<span class="nc" id="L354">    CREDIT_NOTE_PDF(&quot;/alfio/templates/credit-note.ms&quot;, APPLICATION_PDF_VALUE, TemplateManager.TemplateOutput.HTML) {</span>
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L358">            return sampleBillingDocument(imageData, organization, (Event) event);</span>
+        }
+    },
+<span class="nc" id="L361">    SUBSCRIPTION_PDF(</span>
+            &quot;/alfio/templates/subscription.ms&quot;,
+            APPLICATION_PDF_VALUE,
+            TemplateManager.TemplateOutput.HTML,
+            PurchaseContextType.subscription) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext purchaseContext, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L369">            var subscriptionDescriptor = (SubscriptionDescriptor) purchaseContext;</span>
+<span class="nc" id="L370">            var zoneId = subscriptionDescriptor.getZoneId();</span>
+<span class="nc" id="L371">            var subscription = new Subscription(</span>
+<span class="nc" id="L372">                    UUID.randomUUID(),</span>
+                    &quot;firstName&quot;,
+                    &quot;lastName&quot;,
+                    &quot;email@example.org&quot;,
+<span class="nc" id="L376">                    subscriptionDescriptor.getId(),</span>
+                    RESERVATION_ID_VALUE,
+<span class="nc" id="L378">                    organization.getId(),</span>
+<span class="nc" id="L379">                    ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)),</span>
+<span class="nc" id="L380">                    ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)),</span>
+                    100,
+                    0,
+                    &quot;CHF&quot;,
+                    AllocationStatus.ACQUIRED,
+                    1,
+<span class="nc" id="L386">                    ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)),</span>
+<span class="nc" id="L387">                    ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)).plusDays(1),</span>
+<span class="nc" id="L388">                    ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)),</span>
+<span class="nc" id="L389">                    subscriptionDescriptor.getTimeZone());</span>
+<span class="nc" id="L390">            var subscriptionMetadata =</span>
+<span class="nc" id="L391">                    new SubscriptionMetadata(Map.of(&quot;key&quot;, &quot;value&quot;), SubscriptionConfiguration.defaultConfiguration());</span>
+<span class="nc" id="L392">            return buildModelForSubscriptionPDF(</span>
+                    subscription,
+                    subscriptionDescriptor,
+                    organization,
+                    subscriptionMetadata,
+                    imageData,
+                    RESERVATION_ID_VALUE,
+                    Locale.ENGLISH,
+<span class="nc" id="L400">                    sampleTicketReservation(zoneId),</span>
+<span class="nc" id="L401">                    List.of());</span>
+        }
+    },
+
+<span class="nc" id="L405">    WAITING_QUEUE_JOINED(</span>
+            &quot;/alfio/templates/waiting-queue-joined.ms&quot;, TEXT_PLAIN_VALUE, TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L410">            return buildModelForWaitingQueueJoined(</span>
+                    organization,
+                    (Event) event,
+<span class="nc" id="L413">                    new CustomerName(&quot;Firstname Lastname&quot;, &quot;Firstname&quot;, &quot;Lastname&quot;, event.mustUseFirstAndLastName()));</span>
+        }
+    },
+<span class="nc" id="L416">    WAITING_QUEUE_RESERVATION_EMAIL(</span>
+            &quot;/alfio/templates/waiting-queue-reservation-email-txt.ms&quot;,
+            TEXT_PLAIN_VALUE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext purchaseContext, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L423">            Event event = (Event) purchaseContext;</span>
+<span class="nc" id="L424">            var clock = ClockProvider.clock().withZone(event.getZoneId());</span>
+<span class="nc" id="L425">            WaitingQueueSubscription subscription = new WaitingQueueSubscription(</span>
+                    0,
+<span class="nc" id="L427">                    ZonedDateTime.now(clock),</span>
+<span class="nc" id="L428">                    event.getId(),</span>
+                    &quot;ACQUIRED&quot;,
+                    &quot;Firstname Lastname&quot;,
+                    &quot;Firstname&quot;,
+                    &quot;Lastname&quot;,
+                    &quot;email@email.tld&quot;,
+                    RESERVATION_ID_VALUE,
+                    &quot;en&quot;,
+                    null,
+                    WaitingQueueSubscription.Type.PRE_SALES);
+<span class="nc" id="L438">            return buildModelForWaitingQueueReservationEmail(</span>
+                    organization,
+                    event,
+                    subscription,
+                    &quot;http://your-domain.tld/reservation-url&quot;,
+<span class="nc" id="L443">                    ZonedDateTime.now(clock));</span>
+        }
+    },
+<span class="nc" id="L446">    CUSTOM_MESSAGE(</span>
+            &quot;/alfio/templates/custom-message&quot;,
+            TemplateResource.MULTIPART_ALTERNATIVE_MIMETYPE,
+            TemplateManager.TemplateOutput.TEXT) {
+        @Override
+        public Map&lt;String, Object&gt; prepareSampleModel(
+                Organization organization, PurchaseContext purchaseContext, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L453">            var result = buildTicket((Event) purchaseContext);</span>
+<span class="nc" id="L454">            var model = buildModelForTicketEmail(</span>
+                    organization,
+                    result.event,
+<span class="nc" id="L457">                    sampleTicketReservation(result.event.getZoneId()),</span>
+                    &quot;http://your-domain.tld&quot;,
+                    &quot;http://your-domain.tld/ticket-url&quot;,
+                    &quot;http://your-domain.tld/calendar-url&quot;,
+<span class="nc" id="L461">                    sampleTicket(result.event.getZoneId()),</span>
+                    result.ticketCategory,
+<span class="nc" id="L463">                    Map.of());</span>
+<span class="nc" id="L464">            model.put(&quot;message&quot;, &quot;This is your message&quot;);</span>
+<span class="nc" id="L465">            return model;</span>
+        }
+    };
+
+    public static final String FULL_NAME = &quot;fullName&quot;;
+    public static final String MULTIPART_ALTERNATIVE_MIMETYPE = &quot;multipart/alternative&quot;;
+
+    private static final String EVENT_NAME = &quot;eventName&quot;;
+    private static final String PLAIN_TEMPLATE_SUFFIX = &quot;-txt.ms&quot;;
+
+    private static final String HTML_TEMPLATE_SUFFIX = &quot;-html.ms&quot;;
+    private static final String TICKET_KEY = &quot;ticket&quot;;
+    private static final String RESERVATION_ID = &quot;reservationId&quot;;
+    private static final String RESERVATION_ID_VALUE = &quot;597e7e7b-c514-4dcb-be8c-46cf7fe2c36e&quot;;
+    private static final String IMAGE_WIDTH = &quot;imageWidth&quot;;
+    private static final String IMAGE_HEIGHT = &quot;imageHeight&quot;;
+    private static final String EVENT = &quot;event&quot;;
+    private static final String BASE_URL = &quot;baseUrl&quot;;
+    private static final String RESERVATION = &quot;reservation&quot;;
+    private static final String RESERVATION_URL = &quot;reservationUrl&quot;;
+    private static final String ORGANIZATION = &quot;organization&quot;;
+<span class="nc" id="L486">    private static final Pattern TICKET_UUID_FINDER =</span>
+<span class="nc" id="L487">            Pattern.compile(&quot;\\{\\{\\s*ticket\\.uuid\\s*}}&quot;, Pattern.MULTILINE);</span>
+<span class="nc" id="L488">    private static final UUID INTERNAL_UUID = UUID.fromString(&quot;aaaaaaaa-0000-0000-0000-000000000000&quot;);</span>
+<span class="nc" id="L489">    private static final UUID PUBLIC_UUID = UUID.fromString(&quot;bbbbbbbb-0000-0000-0000-000000000000&quot;);</span>
+
+<span class="nc" id="L491">    private record SampleData(Event event, TicketCategory ticketCategory) {}</span>
+
+    private static SampleData buildTicket(Event purchaseContext) {
+<span class="nc" id="L494">        var now = purchaseContext.now(ClockProvider.clock());</span>
+<span class="nc" id="L495">        TicketCategory ticketCategory = new TicketCategory(</span>
+                0,
+                now,
+                now,
+                42,
+                &quot;Ticket&quot;,
+                false,
+                TicketCategory.Status.ACTIVE,
+<span class="nc" id="L503">                purchaseContext.getId(),</span>
+                false,
+                1000,
+                null,
+                null,
+                null,
+                null,
+                null,
+                &quot;CHF&quot;,
+<span class="nc" id="L512">                0,</span>
+                null,
+                TicketCategory.TicketAccessType.INHERIT);
+<span class="nc" id="L515">        return new SampleData(purchaseContext, ticketCategory);</span>
+    }
+
+    private static byte[] replaceOldReferences(byte[] raw) {
+<span class="nc" id="L519">        var contentAsString = new String(raw, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L520">        return TICKET_UUID_FINDER</span>
+<span class="nc" id="L521">                .matcher(contentAsString)</span>
+<span class="nc" id="L522">                .replaceAll(&quot;{{ticket.publicUuid}}&quot;)</span>
+<span class="nc" id="L523">                .getBytes(StandardCharsets.UTF_8);</span>
+    }
+
+    private final String classPathUrl;
+    // currently not used, might be removed in the future
+    private final boolean overridable;
+    private final String renderedContentType;
+    private final TemplateManager.TemplateOutput templateOutput;
+    /**
+     * PurchaseContextType used for preview
+     */
+    private final PurchaseContextType purchaseContextType;
+
+    TemplateResource(String classPathUrl, String renderedContentType, TemplateManager.TemplateOutput templateOutput) {
+<span class="nc" id="L537">        this(classPathUrl, renderedContentType, templateOutput, PurchaseContextType.event);</span>
+<span class="nc" id="L538">    }</span>
+
+    TemplateResource(
+            String classPathUrl,
+            String renderedContentType,
+            TemplateManager.TemplateOutput templateOutput,
+<span class="nc" id="L544">            PurchaseContextType purchaseContextType) {</span>
+<span class="nc" id="L545">        this.classPathUrl = classPathUrl;</span>
+<span class="nc" id="L546">        this.overridable = true;</span>
+<span class="nc" id="L547">        this.renderedContentType = renderedContentType;</span>
+<span class="nc" id="L548">        this.templateOutput = templateOutput;</span>
+<span class="nc" id="L549">        this.purchaseContextType = purchaseContextType;</span>
+<span class="nc" id="L550">    }</span>
+
+    public String getSavedName(Locale locale) {
+<span class="nc" id="L553">        return name() + &quot;_&quot; + locale.getLanguage() + &quot;.ms&quot;;</span>
+    }
+
+    public boolean overridable() {
+<span class="nc" id="L557">        return overridable;</span>
+    }
+
+    public String classPath() {
+<span class="nc bnc" id="L561" title="All 2 branches missed.">        return isMultipart() ? classPathUrl + PLAIN_TEMPLATE_SUFFIX : classPathUrl;</span>
+    }
+
+    public String htmlClassPath() {
+<span class="nc bnc" id="L565" title="All 2 branches missed.">        return isMultipart() ? classPathUrl + HTML_TEMPLATE_SUFFIX : null;</span>
+    }
+
+    public boolean isMultipart() {
+<span class="nc" id="L569">        return MULTIPART_ALTERNATIVE_MIMETYPE.equals(renderedContentType);</span>
+    }
+
+    public String getRenderedContentType() {
+<span class="nc" id="L573">        return renderedContentType;</span>
+    }
+
+    public TemplateManager.TemplateOutput getTemplateOutput() {
+<span class="nc" id="L577">        return templateOutput;</span>
+    }
+
+    public PurchaseContextType getPurchaseContextType() {
+<span class="nc" id="L581">        return purchaseContextType;</span>
+    }
+
+    /*
+     * used by resources to replace old (renamed) tokens which might still be present in overridden templates.
+     * Default implementation is a no-op
+     */
+    public byte[] replaceTokens(byte[] raw) {
+<span class="nc" id="L589">        return raw;</span>
+    }
+
+    public Map&lt;String, Object&gt; prepareSampleModel(
+            Organization organization, PurchaseContext event, Optional&lt;ImageData&gt; imageData) {
+<span class="nc" id="L594">        return Collections.emptyMap();</span>
+    }
+
+    private static Ticket sampleTicket(ZoneId zoneId) {
+<span class="nc" id="L598">        return sampleTicket(&quot;Firstname&quot;, &quot;Lastname&quot;, &quot;email@email.tld&quot;, zoneId);</span>
+    }
+
+    private static Map&lt;String, Object&gt; sampleBillingDocument(
+            Optional&lt;ImageData&gt; imageData, Organization organization, Event event) {
+<span class="nc" id="L603">        Map&lt;String, Object&gt; model = prepareSampleDataForConfirmationEmail(organization, event);</span>
+<span class="nc" id="L604">        imageData.ifPresent(iData -&gt; {</span>
+<span class="nc" id="L605">            model.put(&quot;eventImage&quot;, iData.getEventImage());</span>
+<span class="nc" id="L606">            model.put(IMAGE_WIDTH, iData.getImageWidth());</span>
+<span class="nc" id="L607">            model.put(IMAGE_HEIGHT, iData.getImageHeight());</span>
+<span class="nc" id="L608">        });</span>
+<span class="nc" id="L609">        return model;</span>
+    }
+
+    private static TicketCategory sampleCategory(ZoneId zoneId) {
+<span class="nc" id="L613">        var clock = ClockProvider.clock().withZone(zoneId);</span>
+<span class="nc" id="L614">        return new TicketCategory(</span>
+                0,
+<span class="nc" id="L616">                ZonedDateTime.now(clock).minusDays(1),</span>
+<span class="nc" id="L617">                ZonedDateTime.now(clock).plusDays(1),</span>
+                100,
+                &quot;test category&quot;,
+                false,
+                TicketCategory.Status.ACTIVE,
+                0,
+                true,
+                100,
+                null,
+                null,
+                null,
+                null,
+                null,
+                &quot;CHF&quot;,
+<span class="nc" id="L631">                0,</span>
+                null,
+                TicketCategory.TicketAccessType.INHERIT);
+    }
+
+    private static Ticket sampleTicket(String firstName, String lastName, String email, ZoneId zoneId) {
+<span class="nc" id="L637">        return new Ticket(</span>
+                0,
+<span class="nc" id="L639">                INTERNAL_UUID.toString(),</span>
+                PUBLIC_UUID,
+<span class="nc" id="L641">                ZonedDateTime.now(ClockProvider.clock().withZone(zoneId)),</span>
+<span class="nc" id="L642">                0,</span>
+                &quot;ACQUIRED&quot;,
+                0,
+                RESERVATION_ID_VALUE,
+                firstName + &quot; &quot; + lastName,
+                firstName,
+                lastName,
+                email,
+                false,
+                &quot;en&quot;,
+                1000,
+                1000,
+                80,
+                0,
+                null,
+                &quot;CHF&quot;,
+<span class="nc" id="L658">                List.of(),</span>
+                null,
+                PriceContainer.VatStatus.INCLUDED);
+    }
+
+    private static TicketReservation sampleTicketReservation(ZoneId zoneId) {
+<span class="nc" id="L664">        var clock = ClockProvider.clock().withZone(zoneId);</span>
+<span class="nc" id="L665">        return new TicketReservation(</span>
+                RESERVATION_ID_VALUE,
+                new Date(),
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                &quot;Firstname Lastname&quot;,
+                &quot;FirstName&quot;,
+                &quot;Lastname&quot;,
+                &quot;email@email.tld&quot;,
+                &quot;billing address&quot;,
+<span class="nc" id="L674">                ZonedDateTime.now(clock),</span>
+<span class="nc" id="L675">                ZonedDateTime.now(clock),</span>
+                PaymentProxy.STRIPE,
+<span class="nc" id="L677">                true,</span>
+                null,
+                false,
+                &quot;en&quot;,
+                false,
+                null,
+                null,
+                null,
+                &quot;123456&quot;,
+                &quot;CH&quot;,
+                false,
+                new BigDecimal(&quot;8.00&quot;),
+<span class="nc" id="L689">                true,</span>
+<span class="nc" id="L690">                ZonedDateTime.now(clock).minusMinutes(1),</span>
+                &quot;PO-1234&quot;,
+<span class="nc" id="L692">                ZonedDateTime.now(clock),</span>
+<span class="nc" id="L693">                10000,</span>
+<span class="nc" id="L694">                10800,</span>
+<span class="nc" id="L695">                800,</span>
+<span class="nc" id="L696">                0,</span>
+                &quot;CHF&quot;);
+    }
+
+    private static Map&lt;String, Object&gt; prepareSampleDataForConfirmationEmail(Organization organization, Event event) {
+<span class="nc" id="L701">        TicketReservation reservation = sampleTicketReservation(event.getZoneId());</span>
+<span class="nc" id="L702">        Optional&lt;String&gt; vat = Optional.of(&quot;VAT-NR&quot;);</span>
+<span class="nc" id="L703">        List&lt;TicketWithCategory&gt; tickets = Collections.singletonList(</span>
+<span class="nc" id="L704">                new TicketWithCategory(sampleTicket(event.getZoneId()), sampleCategory(event.getZoneId())));</span>
+<span class="nc" id="L705">        OrderSummary orderSummary = new OrderSummary(</span>
+                new TotalPrice(1000, 80, 0, 0, &quot;CHF&quot;),
+<span class="nc" id="L707">                List.of(new SummaryRow(</span>
+                        &quot;Ticket&quot;,
+                        &quot;10.00&quot;,
+                        &quot;9.20&quot;,
+                        1,
+                        &quot;9.20&quot;,
+                        &quot;9.20&quot;,
+                        1000,
+                        SummaryRow.SummaryType.TICKET,
+                        null,
+                        PriceContainer.VatStatus.INCLUDED)),
+                false,
+                &quot;10.00&quot;,
+                &quot;0.80&quot;,
+                false,
+                false,
+                false,
+                &quot;8&quot;,
+                PriceContainer.VatStatus.INCLUDED,
+                &quot;1.00&quot;);
+<span class="nc" id="L727">        String baseUrl = &quot;http://your-domain.tld&quot;;</span>
+<span class="nc" id="L728">        String reservationUrl = baseUrl + &quot;/reservation-url/&quot;;</span>
+<span class="nc" id="L729">        String reservationShortId = &quot;597e7e7b&quot;;</span>
+<span class="nc" id="L730">        return prepareModelForConfirmationEmail(</span>
+                organization,
+                event,
+                reservation,
+                vat,
+                tickets,
+                orderSummary,
+                baseUrl,
+                reservationUrl,
+                reservationShortId,
+<span class="nc" id="L740">                Optional.of(&quot;My Invoice\nAddress&quot;),</span>
+<span class="nc" id="L741">                Optional.empty(),</span>
+<span class="nc" id="L742">                Optional.empty(),</span>
+<span class="nc" id="L743">                Map.of());</span>
+    }
+
+    private static Map&lt;String, Object&gt; prepareSampleDataForChargeFailed(Organization organization, Event event) {
+<span class="nc" id="L747">        TicketReservation reservation = sampleTicketReservation(event.getZoneId());</span>
+<span class="nc" id="L748">        return Map.of(</span>
+                RESERVATION_ID,
+<span class="nc" id="L750">                reservation.getId().substring(0, 8),</span>
+                &quot;reservationCancelled&quot;,
+<span class="nc" id="L752">                true,</span>
+                RESERVATION,
+                reservation,
+                EVENT_NAME,
+<span class="nc" id="L756">                event.getDisplayName(),</span>
+                &quot;provider&quot;,
+<span class="nc" id="L758">                StaticPaymentMethods.CREDIT_CARD.name(),</span>
+                &quot;reason&quot;,
+                &quot;this is the reason from the provider&quot;,
+                RESERVATION_URL,
+                &quot;http://your-domain.tld/reservation-url/&quot;,
+                ORGANIZATION,
+                organization);
+    }
+
+    // used by multiple enum:
+    // - CONFIRMATION_EMAIL_FOR_ORGANIZER
+    // - OFFLINE_RESERVATION_EXPIRED_EMAIL
+    // - REMINDER_TICKETS_ASSIGNMENT_EMAIL
+    // - CONFIRMATION_EMAIL
+    // - REMINDER_EMAIL
+    // - RECEIPT_PDF + ImageData
+    // - INVOICE_PDF + ImageData
+    public static Map&lt;String, Object&gt; prepareModelForConfirmationEmail(
+            Organization organization,
+            PurchaseContext purchaseContext,
+            TicketReservation reservation,
+            Optional&lt;String&gt; vat,
+            List&lt;TicketWithCategory&gt; tickets,
+            OrderSummary orderSummary,
+            String baseUrl,
+            String reservationUrl,
+            String reservationShortID,
+            Optional&lt;String&gt; invoiceAddress,
+            Optional&lt;String&gt; bankAccountNr,
+            Optional&lt;String&gt; bankAccountOwner,
+            Map&lt;String, Object&gt; additionalModelObjects) {
+<span class="nc" id="L789">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;(additionalModelObjects);</span>
+<span class="nc" id="L790">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L791">        model.put(EVENT, purchaseContext.event().orElse(null));</span>
+<span class="nc" id="L792">        model.put(&quot;purchaseContext&quot;, purchaseContext);</span>
+<span class="nc" id="L793">        model.put(&quot;purchaseContextTitle&quot;, purchaseContext.getTitle().get(reservation.getUserLanguage()));</span>
+<span class="nc" id="L794">        model.put(&quot;ticketReservation&quot;, reservation);</span>
+<span class="nc" id="L795">        model.put(&quot;hasVat&quot;, vat.isPresent());</span>
+<span class="nc" id="L796">        model.put(&quot;vatNr&quot;, vat.orElse(&quot;&quot;));</span>
+<span class="nc" id="L797">        model.put(&quot;tickets&quot;, tickets);</span>
+<span class="nc" id="L798">        model.put(&quot;orderSummary&quot;, orderSummary);</span>
+<span class="nc" id="L799">        model.put(&quot;publicId&quot;, reservationShortID);</span>
+<span class="nc" id="L800">        model.put(BASE_URL, baseUrl);</span>
+<span class="nc" id="L801">        model.put(RESERVATION_URL, reservationUrl);</span>
+<span class="nc" id="L802">        model.put(&quot;locale&quot;, reservation.getUserLanguage());</span>
+
+<span class="nc" id="L804">        model.put(&quot;hasRefund&quot;, StringUtils.isNotEmpty(orderSummary.getRefundedAmount()));</span>
+
+<span class="nc" id="L806">        var zoneId = purchaseContext.getZoneId();</span>
+<span class="nc" id="L807">        var clock = ClockProvider.clock().withZone(zoneId);</span>
+<span class="nc" id="L808">        ZonedDateTime creationTimestamp = ObjectUtils.firstNonNull(</span>
+<span class="nc" id="L809">                reservation.getRegistrationTimestamp(),</span>
+<span class="nc" id="L810">                reservation.getConfirmationTimestamp(),</span>
+<span class="nc" id="L811">                reservation.getCreationTimestamp(),</span>
+<span class="nc" id="L812">                ZonedDateTime.now(clock));</span>
+<span class="nc" id="L813">        model.put(&quot;confirmationDate&quot;, creationTimestamp.withZoneSameInstant(zoneId));</span>
+<span class="nc" id="L814">        model.put(&quot;now&quot;, ZonedDateTime.now(clock));</span>
+
+<span class="nc bnc" id="L816" title="All 2 branches missed.">        if (reservation.getValidity() != null) {</span>
+<span class="nc" id="L817">            model.put(</span>
+                    &quot;expirationDate&quot;,
+<span class="nc" id="L819">                    ZonedDateTime.ofInstant(reservation.getValidity().toInstant(), zoneId));</span>
+        }
+
+<span class="nc" id="L822">        model.put(&quot;reservationShortID&quot;, reservationShortID);</span>
+
+<span class="nc" id="L824">        model.put(&quot;hasInvoiceAddress&quot;, invoiceAddress.isPresent());</span>
+<span class="nc" id="L825">        invoiceAddress.ifPresent(addr -&gt; {</span>
+<span class="nc" id="L826">            model.put(&quot;invoiceAddress&quot;, StringUtils.replace(addr, &quot;\n&quot;, &quot;, &quot;));</span>
+<span class="nc" id="L827">            model.put(&quot;invoiceAddressAsList&quot;, Arrays.asList(StringUtils.split(addr, '\n')));</span>
+<span class="nc" id="L828">        });</span>
+
+<span class="nc" id="L830">        model.put(&quot;hasBankAccountNr&quot;, bankAccountNr.isPresent());</span>
+<span class="nc" id="L831">        bankAccountNr.ifPresent(nr -&gt; model.put(&quot;bankAccountNr&quot;, nr));</span>
+
+<span class="nc" id="L833">        model.put(</span>
+                &quot;isOfflinePayment&quot;,
+<span class="nc bnc" id="L835" title="All 2 branches missed.">                reservation.getStatus() == TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT);</span>
+<span class="nc" id="L836">        model.put(&quot;hasCustomerReference&quot;, StringUtils.isNotBlank(reservation.getCustomerReference()));</span>
+<span class="nc" id="L837">        model.put(&quot;paymentReason&quot;, reservationShortID);</span>
+<span class="nc" id="L838">        model.put(&quot;hasBankAccountOnwer&quot;, bankAccountOwner.isPresent());</span>
+<span class="nc" id="L839">        bankAccountOwner.ifPresent(owner -&gt; {</span>
+<span class="nc" id="L840">            model.put(&quot;bankAccountOnwer&quot;, StringUtils.replace(owner, &quot;\n&quot;, &quot;, &quot;));</span>
+<span class="nc" id="L841">            model.put(&quot;bankAccountOnwerAsList&quot;, Arrays.asList(StringUtils.split(owner, '\n')));</span>
+<span class="nc" id="L842">        });</span>
+
+<span class="nc" id="L844">        return model;</span>
+    }
+
+    // used by OFFLINE_RESERVATION_EXPIRING_EMAIL_FOR_ORGANIZER
+    public static Map&lt;String, Object&gt; prepareModelForOfflineReservationExpiringEmailForOrganizer(
+            Event event, List&lt;TicketReservationInfo&gt; reservations, String baseUrl) {
+<span class="nc" id="L850">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L851">        model.put(EVENT_NAME, event.getDisplayName());</span>
+<span class="nc" id="L852">        model.put(</span>
+                &quot;ticketReservations&quot;,
+<span class="nc" id="L854">                reservations.stream()</span>
+<span class="nc" id="L855">                        .map(r -&gt; new TicketReservationWithZonedExpiringDate(r, event))</span>
+<span class="nc" id="L856">                        .collect(Collectors.toList()));</span>
+<span class="nc" id="L857">        model.put(BASE_URL, baseUrl);</span>
+<span class="nc" id="L858">        model.put(&quot;eventShortName&quot;, event.getShortName());</span>
+<span class="nc" id="L859">        return model;</span>
+    }
+
+    private static Map&lt;String, Object&gt; prepareSampleModelForOfflineReservationExpiringEmailForOrganizer(Event event) {
+<span class="nc" id="L863">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L864">        model.put(EVENT_NAME, event.getDisplayName());</span>
+<span class="nc" id="L865">        model.put(</span>
+                &quot;ticketReservations&quot;,
+<span class="nc" id="L867">                Collections.singletonList(new TicketReservationInfo(</span>
+<span class="nc" id="L868">                        &quot;id&quot;, null, &quot;Firstname&quot;, &quot;Lastname&quot;, &quot;email@email.email&quot;, 1000, &quot;EUR&quot;, 42, new Date())));</span>
+<span class="nc" id="L869">        model.put(BASE_URL, &quot;http://base-url/&quot;);</span>
+<span class="nc" id="L870">        model.put(&quot;eventShortName&quot;, event.getShortName());</span>
+<span class="nc" id="L871">        return model;</span>
+    }
+
+    // used by SEND_RESERVED_CODE
+    public static Map&lt;String, Object&gt; prepareModelForSendReservedCode(
+            Organization organization,
+            Event event,
+            SendCodeModification m,
+            String eventPageUrl,
+            String promoCodeLabel) {
+<span class="nc" id="L881">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L882">        model.put(&quot;code&quot;, m.code());</span>
+<span class="nc" id="L883">        model.put(EVENT, event);</span>
+<span class="nc" id="L884">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L885">        model.put(&quot;eventPage&quot;, eventPageUrl);</span>
+<span class="nc" id="L886">        model.put(&quot;assignee&quot;, m.assignee());</span>
+<span class="nc" id="L887">        model.put(&quot;promoCodeDescription&quot;, promoCodeLabel);</span>
+<span class="nc" id="L888">        return model;</span>
+    }
+
+    // used by REMINDER_TICKET_ADDITIONAL_INFO
+    public static Map&lt;String, Object&gt; prepareModelForReminderTicketAdditionalInfo(
+            Organization organization, Event event, Ticket ticket, String ticketUrl) {
+<span class="nc" id="L894">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L895">        model.put(EVENT, event);</span>
+<span class="nc" id="L896">        model.put(FULL_NAME, ticket.getFullName());</span>
+<span class="nc" id="L897">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L898">        model.put(&quot;ticketURL&quot;, ticketUrl);</span>
+<span class="nc" id="L899">        return model;</span>
+    }
+
+    // used by TICKET_EMAIL
+    public static Map&lt;String, Object&gt; buildModelForTicketEmail(
+            Organization organization,
+            Event event,
+            TicketReservation ticketReservation,
+            String baseUrl,
+            String ticketURL,
+            String calendarURL,
+            Ticket ticket,
+            TicketCategory ticketCategory,
+            Map&lt;String, Object&gt; additionalOptions) {
+<span class="nc" id="L913">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;(additionalOptions);</span>
+<span class="nc" id="L914">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L915">        model.put(EVENT, event);</span>
+<span class="nc" id="L916">        model.put(&quot;ticketReservation&quot;, ticketReservation);</span>
+<span class="nc" id="L917">        model.put(BASE_URL, baseUrl);</span>
+<span class="nc" id="L918">        model.put(&quot;ticketUrl&quot;, ticketURL);</span>
+<span class="nc" id="L919">        model.put(TICKET_KEY, ticket);</span>
+<span class="nc" id="L920">        model.put(&quot;googleCalendarUrl&quot;, calendarURL);</span>
+<span class="nc" id="L921">        fillTicketValidity(event, ticketCategory, model);</span>
+<span class="nc" id="L922">        return model;</span>
+    }
+
+    public static void fillTicketValidity(Event event, TicketCategory ticketCategory, Map&lt;String, Object&gt; model) {
+<span class="nc" id="L926">        model.put(</span>
+                &quot;validityStart&quot;,
+<span class="nc" id="L928">                Optional.ofNullable(ticketCategory.getTicketValidityStart(event.getZoneId()))</span>
+<span class="nc" id="L929">                        .orElse(event.getBegin()));</span>
+<span class="nc" id="L930">        model.put(</span>
+                &quot;validityEnd&quot;,
+<span class="nc" id="L932">                Optional.ofNullable(ticketCategory.getTicketValidityEnd(event.getZoneId()))</span>
+<span class="nc" id="L933">                        .orElse(event.getEnd()));</span>
+<span class="nc" id="L934">    }</span>
+
+    // used by TICKET_HAS_CHANGED_OWNER
+    public static Map&lt;String, Object&gt; buildModelForTicketHasChangedOwner(
+            Organization organization, Event e, Ticket oldTicket, Ticket newTicket, String ticketUrl) {
+<span class="nc" id="L939">        Map&lt;String, Object&gt; emailModel = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L940">        emailModel.put(TICKET_KEY, oldTicket);</span>
+<span class="nc" id="L941">        emailModel.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L942">        emailModel.put(EVENT_NAME, e.getDisplayName());</span>
+<span class="nc" id="L943">        emailModel.put(&quot;previousEmail&quot;, oldTicket.getEmail());</span>
+<span class="nc" id="L944">        emailModel.put(&quot;newEmail&quot;, newTicket.getEmail());</span>
+<span class="nc" id="L945">        emailModel.put(&quot;ticketUrl&quot;, ticketUrl);</span>
+<span class="nc" id="L946">        return emailModel;</span>
+    }
+
+    // used by TICKET_HAS_BEEN_CANCELLED
+    public static Map&lt;String, Object&gt; buildModelForTicketHasBeenCancelled(
+            Organization organization, Event event, Ticket ticket) {
+<span class="nc" id="L952">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L953">        model.put(EVENT_NAME, event.getDisplayName());</span>
+<span class="nc" id="L954">        model.put(TICKET_KEY, ticket);</span>
+<span class="nc" id="L955">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L956">        return model;</span>
+    }
+
+    // used by TICKET_HAS_BEEN_CANCELLED_ADMIN
+    public static Map&lt;String, Object&gt; buildModelForTicketHasBeenCancelledAdmin(
+            Organization organization,
+            Event event,
+            Ticket ticket,
+            String ticketCategoryDescription,
+            List&lt;AdditionalServiceItem&gt; additionalServiceItems,
+            Function&lt;AdditionalServiceItem, Optional&lt;AdditionalServiceText&gt;&gt; titleFinder) {
+<span class="nc" id="L967">        Map&lt;String, Object&gt; model = buildModelForTicketHasBeenCancelled(organization, event, ticket);</span>
+<span class="nc" id="L968">        model.put(&quot;ticketCategoryDescription&quot;, ticketCategoryDescription);</span>
+<span class="nc bnc" id="L969" title="All 2 branches missed.">        model.put(&quot;hasAdditionalServices&quot;, !additionalServiceItems.isEmpty());</span>
+<span class="nc" id="L970">        model.put(</span>
+                &quot;additionalServices&quot;,
+<span class="nc" id="L972">                additionalServiceItems.stream()</span>
+<span class="nc" id="L973">                        .map(asi -&gt; {</span>
+<span class="nc" id="L974">                            Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L975">                            data.put(</span>
+                                    &quot;name&quot;,
+                                    titleFinder
+<span class="nc" id="L978">                                            .apply(asi)</span>
+<span class="nc" id="L979">                                            .map(AdditionalServiceText::getValue)</span>
+<span class="nc" id="L980">                                            .orElse(&quot;N/A&quot;));</span>
+<span class="nc" id="L981">                            data.put(</span>
+                                    &quot;amount&quot;,
+<span class="nc" id="L983">                                    MonetaryUtil.centsToUnit(asi.getFinalPriceCts(), asi.getCurrencyCode())</span>
+<span class="nc" id="L984">                                                    .toString()</span>
+<span class="nc" id="L985">                                            + event.getCurrency());</span>
+<span class="nc" id="L986">                            data.put(&quot;id&quot;, asi.getId());</span>
+<span class="nc" id="L987">                            return data;</span>
+                        })
+<span class="nc" id="L989">                        .collect(Collectors.toList()));</span>
+<span class="nc" id="L990">        return model;</span>
+    }
+
+    // used by TICKET_PDF
+    public static Map&lt;String, Object&gt; buildModelForTicketPDF(
+            Organization organization,
+            Event event,
+            TicketReservation ticketReservation,
+            TicketCategory ticketCategory,
+            TicketWithMetadataAttributes ticketWithMetadata,
+            Optional&lt;ImageData&gt; imageData,
+            String reservationId,
+            Map&lt;String, String&gt; additionalFields,
+            List&lt;AdditionalServiceWithData&gt; additionalServicesWithData) {
+<span class="nc" id="L1004">        String qrCodeText =</span>
+<span class="nc" id="L1005">                ticketWithMetadata.getTicket().ticketCode(event.getPrivateKey(), event.supportsQRCodeCaseInsensitive());</span>
+        //
+<span class="nc" id="L1007">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L1008">        model.put(TICKET_KEY, ticketWithMetadata.getTicket());</span>
+<span class="nc" id="L1009">        model.put(RESERVATION, ticketReservation);</span>
+<span class="nc" id="L1010">        model.put(&quot;ticketCategory&quot;, ticketCategory);</span>
+<span class="nc" id="L1011">        model.put(EVENT, event);</span>
+<span class="nc" id="L1012">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L1013">        model.put(RESERVATION_ID, reservationId);</span>
+<span class="nc" id="L1014">        model.put(ADDITIONAL_FIELDS_KEY, additionalFields);</span>
+<span class="nc" id="L1015">        model.put(METADATA_ATTRIBUTES_KEY, ticketWithMetadata.getAttributes());</span>
+<span class="nc" id="L1016">        fillTicketValidity(event, ticketCategory, model);</span>
+
+<span class="nc" id="L1018">        model.put(</span>
+                &quot;qrCodeDataUri&quot;,
+<span class="nc" id="L1020">                &quot;data:image/png;base64,&quot; + Base64.getEncoder().encodeToString(createQRCode(qrCodeText)));</span>
+
+<span class="nc" id="L1022">        imageData.ifPresent(iData -&gt; {</span>
+<span class="nc" id="L1023">            model.put(&quot;eventImage&quot;, iData.getEventImage());</span>
+<span class="nc" id="L1024">            model.put(IMAGE_WIDTH, iData.getImageWidth());</span>
+<span class="nc" id="L1025">            model.put(IMAGE_HEIGHT, iData.getImageHeight());</span>
+<span class="nc" id="L1026">        });</span>
+
+<span class="nc" id="L1028">        model.put(</span>
+                &quot;deskPaymentRequired&quot;,
+<span class="nc" id="L1030">                Optional.ofNullable(ticketReservation.getPaymentMethod())</span>
+<span class="nc" id="L1031">                        .orElse(PaymentProxy.STRIPE)</span>
+<span class="nc" id="L1032">                        .isDeskPaymentRequired());</span>
+<span class="nc" id="L1033">        fillAdditionalServices(ticketWithMetadata, additionalServicesWithData, model);</span>
+<span class="nc" id="L1034">        return model;</span>
+    }
+
+    private static void fillAdditionalServices(
+            TicketWithMetadataAttributes ticketWithMetadata,
+            List&lt;AdditionalServiceWithData&gt; additionalServicesWithData,
+            Map&lt;String, Object&gt; model) {
+<span class="nc bnc" id="L1041" title="All 2 branches missed.">        model.put(&quot;hasAdditionalServices&quot;, !additionalServicesWithData.isEmpty());</span>
+<span class="nc" id="L1042">        var byServiceId = additionalServicesWithData.stream()</span>
+<span class="nc" id="L1043">                .collect(Collectors.groupingBy(AdditionalServiceWithData::getServiceId));</span>
+<span class="nc" id="L1044">        var additionalServices = byServiceId.entrySet().stream()</span>
+<span class="nc" id="L1045">                .sorted(Map.Entry.comparingByKey())</span>
+<span class="nc" id="L1046">                .map(entry -&gt; {</span>
+<span class="nc" id="L1047">                    var first = entry.getValue().get(0);</span>
+<span class="nc" id="L1048">                    var userLanguage = ticketWithMetadata.getTicket().getUserLanguage();</span>
+<span class="nc" id="L1049">                    return new GroupedAdditionalServiceWithData(</span>
+<span class="nc" id="L1050">                            entry.getValue().size(),</span>
+<span class="nc" id="L1051">                            first.getTitle().get(userLanguage),</span>
+<span class="nc" id="L1052">                            entry.getValue().stream()</span>
+<span class="nc" id="L1053">                                    .flatMap(asw -&gt; asw.getTicketFieldConfiguration().stream()</span>
+<span class="nc" id="L1054">                                            .filter(tfc -&gt; StringUtils.isNotBlank(tfc.getValue()))</span>
+<span class="nc" id="L1055">                                            .map(tfc -&gt; {</span>
+<span class="nc" id="L1056">                                                String value = tfc.getRestrictedValues().stream()</span>
+<span class="nc" id="L1057">                                                        .filter(rv -&gt; rv.equals(tfc.getValue()))</span>
+<span class="nc" id="L1058">                                                        .findFirst()</span>
+<span class="nc" id="L1059">                                                        .orElse(tfc.getValue());</span>
+<span class="nc" id="L1060">                                                return new FieldNameAndValue(</span>
+<span class="nc" id="L1061">                                                        tfc.getDescription()</span>
+<span class="nc" id="L1062">                                                                .get(userLanguage)</span>
+<span class="nc" id="L1063">                                                                .getLabel(),</span>
+                                                        value);
+                                            }))
+<span class="nc" id="L1066">                                    .toList());</span>
+                })
+<span class="nc" id="L1068">                .toList();</span>
+<span class="nc" id="L1069">        model.put(&quot;additionalServices&quot;, additionalServices);</span>
+<span class="nc" id="L1070">    }</span>
+
+    public static Map&lt;String, Object&gt; buildModelForSubscriptionPDF(
+            Subscription subscription,
+            SubscriptionDescriptor subscriptionDescriptor,
+            Organization organization,
+            SubscriptionMetadata metadata,
+            Optional&lt;ImageData&gt; imageData,
+            String reservationId,
+            Locale locale,
+            TicketReservation reservation,
+            List&lt;FieldConfigurationDescriptionAndValue&gt; fields) {
+<span class="nc" id="L1082">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L1083">        model.put(&quot;title&quot;, subscriptionDescriptor.getLocalizedTitle(locale));</span>
+<span class="nc bnc" id="L1084" title="All 2 branches missed.">        model.put(&quot;validityTypeNotSet&quot;, subscriptionDescriptor.getValidityType() == SubscriptionValidityType.NOT_SET);</span>
+<span class="nc" id="L1085">        model.put(</span>
+<span class="nc bnc" id="L1086" title="All 2 branches missed.">                &quot;validityTypeStandard&quot;, subscriptionDescriptor.getValidityType() == SubscriptionValidityType.STANDARD);</span>
+<span class="nc bnc" id="L1087" title="All 2 branches missed.">        model.put(&quot;validityTypeCustom&quot;, subscriptionDescriptor.getValidityType() == SubscriptionValidityType.CUSTOM);</span>
+<span class="nc" id="L1088">        model.put(&quot;subscription&quot;, subscription);</span>
+<span class="nc" id="L1089">        model.put(SUBSCRIPTION_DESCRIPTOR_ATTRIBUTE, subscriptionDescriptor);</span>
+<span class="nc" id="L1090">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L1091">        model.put(RESERVATION, reservation);</span>
+<span class="nc" id="L1092">        model.put(RESERVATION_ID, reservationId);</span>
+<span class="nc" id="L1093">        model.put(METADATA_ATTRIBUTES_KEY, metadata.getProperties());</span>
+<span class="nc" id="L1094">        model.put(&quot;displayPin&quot;, metadata.getConfiguration().isDisplayPin());</span>
+<span class="nc" id="L1095">        imageData.ifPresent(iData -&gt; {</span>
+<span class="nc" id="L1096">            model.put(&quot;logo&quot;, iData.getEventImage());</span>
+<span class="nc" id="L1097">            model.put(IMAGE_WIDTH, iData.getImageWidth());</span>
+<span class="nc" id="L1098">            model.put(IMAGE_HEIGHT, iData.getImageHeight());</span>
+<span class="nc" id="L1099">        });</span>
+<span class="nc" id="L1100">        model.put(</span>
+                ADDITIONAL_FIELDS_KEY,
+<span class="nc" id="L1102">                fields.stream()</span>
+<span class="nc" id="L1103">                        .collect(Collectors.toMap(</span>
+                                FieldConfigurationDescriptionAndValue::getName,
+                                FieldConfigurationDescriptionAndValue::getValueDescription)));
+<span class="nc" id="L1106">        return model;</span>
+    }
+
+    // used by WAITING_QUEUE_JOINED
+    public static Map&lt;String, Object&gt; buildModelForWaitingQueueJoined(
+            Organization organization, Event event, CustomerName name) {
+<span class="nc" id="L1112">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L1113">        model.put(EVENT_NAME, event.getDisplayName());</span>
+<span class="nc" id="L1114">        model.put(FULL_NAME, name.getFullName());</span>
+<span class="nc" id="L1115">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L1116">        return model;</span>
+    }
+
+    // used by WAITING_QUEUE_RESERVATION_EMAIL
+    public static Map&lt;String, Object&gt; buildModelForWaitingQueueReservationEmail(
+            Organization organization,
+            Event event,
+            WaitingQueueSubscription subscription,
+            String reservationUrl,
+            ZonedDateTime expiration) {
+<span class="nc" id="L1126">        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L1127">        model.put(EVENT, event);</span>
+<span class="nc" id="L1128">        model.put(&quot;subscription&quot;, subscription);</span>
+<span class="nc" id="L1129">        model.put(RESERVATION_URL, reservationUrl);</span>
+<span class="nc" id="L1130">        model.put(&quot;reservationTimeout&quot;, expiration);</span>
+<span class="nc" id="L1131">        model.put(ORGANIZATION, organization);</span>
+<span class="nc" id="L1132">        return model;</span>
+    }
+
+    public static ImageData fillWithImageData(FileBlobMetadata m, byte[] image) {
+
+<span class="nc" id="L1137">        Map&lt;String, String&gt; attributes = m.getAttributes();</span>
+<span class="nc bnc" id="L1138" title="All 2 branches missed.">        if (attributes.containsKey(FileBlobMetadata.ATTR_IMG_WIDTH)</span>
+<span class="nc bnc" id="L1139" title="All 2 branches missed.">                &amp;&amp; attributes.containsKey(FileBlobMetadata.ATTR_IMG_HEIGHT)) {</span>
+<span class="nc" id="L1140">            final int width = Integer.parseInt(attributes.get(FileBlobMetadata.ATTR_IMG_WIDTH));</span>
+<span class="nc" id="L1141">            final int height = Integer.parseInt(attributes.get(FileBlobMetadata.ATTR_IMG_HEIGHT));</span>
+            // in the PDF the image can be maximum 300x150
+<span class="nc" id="L1143">            int resizedWidth = width;</span>
+<span class="nc" id="L1144">            int resizedHeight = height;</span>
+<span class="nc bnc" id="L1145" title="All 2 branches missed.">            if (resizedHeight &gt; 150) {</span>
+<span class="nc" id="L1146">                resizedHeight = 150;</span>
+<span class="nc" id="L1147">                resizedWidth = width * resizedHeight / height;</span>
+            }
+<span class="nc bnc" id="L1149" title="All 2 branches missed.">            if (resizedWidth &gt; 300) {</span>
+<span class="nc" id="L1150">                resizedWidth = 300;</span>
+<span class="nc" id="L1151">                resizedHeight = height * resizedWidth / width;</span>
+            }
+<span class="nc" id="L1153">            return new ImageData(</span>
+<span class="nc" id="L1154">                    &quot;data:&quot; + m.getContentType() + &quot;;base64,&quot;</span>
+<span class="nc" id="L1155">                            + Base64.getEncoder().encodeToString(image),</span>
+<span class="nc" id="L1156">                    resizedWidth,</span>
+<span class="nc" id="L1157">                    resizedHeight);</span>
+        }
+<span class="nc" id="L1159">        return new ImageData(null, null, null);</span>
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ImageData {
+        private final String eventImage;
+        private final Integer imageWidth;
+        private final Integer imageHeight;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class TicketReservationWithZonedExpiringDate {
+        @Delegate
+        private final TicketReservationInfo reservation;
+
+        private final Event event;
+
+        public ZonedDateTime getZonedExpiration() {
+<span class="nc" id="L1179">            return reservation.getValidity().toInstant().atZone(event.getZoneId());</span>
+        }
+    }
+
+    static class GroupedAdditionalServiceWithData {
+
+        private final int count;
+        private final String title;
+        private final List&lt;FieldNameAndValue&gt; fields;
+
+<span class="nc" id="L1189">        GroupedAdditionalServiceWithData(int count, String title, List&lt;FieldNameAndValue&gt; fields) {</span>
+<span class="nc" id="L1190">            this.count = count;</span>
+<span class="nc" id="L1191">            this.title = title;</span>
+<span class="nc" id="L1192">            this.fields = List.copyOf(requireNonNullElse(fields, List.of()));</span>
+<span class="nc" id="L1193">        }</span>
+
+        public int getCount() {
+<span class="nc" id="L1196">            return count;</span>
+        }
+
+        public String getTitle() {
+<span class="nc" id="L1200">            return title;</span>
+        }
+
+        public List&lt;FieldNameAndValue&gt; getFields() {
+<span class="nc" id="L1204">            return fields;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

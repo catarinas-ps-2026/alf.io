@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReservationUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">ReservationUtil.java</span></div><h1>ReservationUtil.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+
+import alfio.controller.decorator.SaleableTicketCategory;
+import alfio.controller.form.ReservationCreate;
+import alfio.manager.AdditionalServiceManager;
+import alfio.manager.EventManager;
+import alfio.manager.PromoCodeRequestManager;
+import alfio.manager.TicketReservationManager;
+import alfio.manager.support.reservation.*;
+import alfio.manager.support.response.ValidatedResponse;
+import alfio.manager.system.ConfigurationManager;
+import alfio.model.*;
+import alfio.model.modification.ASReservationWithOptionalCodeModification;
+import alfio.model.modification.AdditionalServiceReservationModification;
+import alfio.model.modification.ReservationRequest;
+import alfio.model.modification.TicketReservationWithOptionalCodeModification;
+import alfio.repository.TicketCategoryRepository;
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+
+public class ReservationUtil {
+
+<span class="fc" id="L51">    private static final Logger log = LoggerFactory.getLogger(ReservationUtil.class);</span>
+
+    private ReservationUtil() {}
+
+    public static &lt;T extends ReservationRequest&gt; Optional&lt;String&gt; checkPromoCode(
+            ReservationCreate&lt;T&gt; createRequest,
+            Event event,
+            PromoCodeRequestManager promoCodeRequestManager,
+            BindingResult bindingResult) {
+        Optional&lt;ValidatedResponse&lt;Pair&lt;Optional&lt;SpecialPrice&gt;, Optional&lt;PromoCodeDiscount&gt;&gt;&gt;&gt; codeCheck =
+<span class="fc" id="L61">                Optional.empty();</span>
+
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (StringUtils.trimToNull(createRequest.getPromoCode()) != null) {</span>
+<span class="fc" id="L64">            var resCheck = promoCodeRequestManager.checkCode(event, createRequest.getPromoCode());</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">            if (!resCheck.isSuccess()) {</span>
+<span class="fc" id="L66">                bindingResult.reject(ErrorsCode.STEP_1_CODE_NOT_FOUND, ErrorsCode.STEP_1_CODE_NOT_FOUND);</span>
+            }
+<span class="fc" id="L68">            codeCheck = Optional.of(resCheck);</span>
+        }
+
+<span class="fc" id="L71">        return codeCheck</span>
+<span class="fc" id="L72">                .map(ValidatedResponse::getValue)</span>
+<span class="fc" id="L73">                .flatMap(Pair::getRight)</span>
+<span class="fc" id="L74">                .map(PromoCodeDiscount::getPromoCode);</span>
+    }
+
+    public static Optional&lt;
+                    Pair&lt;
+                            List&lt;TicketReservationWithOptionalCodeModification&gt;,
+                            List&lt;ASReservationWithOptionalCodeModification&gt;&gt;&gt;
+            validateCreateRequest(
+                    ReservationCreate&lt;? extends ReservationRequest&gt; request,
+                    Errors bindingResult,
+                    TicketReservationManager tickReservationManager,
+                    EventManager eventManager,
+                    AdditionalServiceManager additionalServiceManager,
+                    String validatedPromoCodeDiscount,
+                    Event event) {
+
+<span class="fc" id="L90">        int selectionCount = ticketSelectionCount(request.getTickets());</span>
+
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (selectionCount &lt;= 0) {</span>
+<span class="fc" id="L93">            bindingResult.reject(ErrorsCode.STEP_1_SELECT_AT_LEAST_ONE);</span>
+<span class="fc" id="L94">            return Optional.empty();</span>
+        }
+
+<span class="fc" id="L97">        List&lt;Pair&lt;ReservationRequest, Integer&gt;&gt; maxTicketsByTicketReservation = selected(request.getTickets()).stream()</span>
+<span class="fc" id="L98">                .map(r -&gt; Pair.of(</span>
+                        (ReservationRequest) r,
+<span class="fc" id="L100">                        tickReservationManager.maxAmountOfTicketsForCategory(</span>
+<span class="fc" id="L101">                                event, r.getTicketCategoryId(), validatedPromoCodeDiscount)))</span>
+<span class="fc" id="L102">                .toList();</span>
+<span class="fc" id="L103">        Optional&lt;Pair&lt;ReservationRequest, Integer&gt;&gt; error = maxTicketsByTicketReservation.stream()</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">                .filter(p -&gt; p.getKey().getQuantity() &gt; p.getValue())</span>
+<span class="fc" id="L105">                .findAny();</span>
+
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (error.isPresent()) {</span>
+<span class="nc" id="L108">            bindingResult.reject(</span>
+<span class="nc" id="L109">                    ErrorsCode.STEP_1_OVER_MAXIMUM, new Object[] {error.get().getValue()}, null);</span>
+<span class="nc" id="L110">            return Optional.empty();</span>
+        }
+
+<span class="fc" id="L113">        final var selectedCategoryIds = selected(request.getTickets()).stream()</span>
+<span class="fc" id="L114">                .map(ReservationRequest::getTicketCategoryId)</span>
+<span class="fc" id="L115">                .collect(Collectors.toSet());</span>
+<span class="fc" id="L116">        final var availableCategoryIds = eventManager.findCategoriesById(selectedCategoryIds, event).stream()</span>
+<span class="fc" id="L117">                .map(TicketCategory::getId)</span>
+<span class="fc" id="L118">                .collect(Collectors.toSet());</span>
+<span class="fc" id="L119">        final boolean validCategorySelection = availableCategoryIds.equals(selectedCategoryIds);</span>
+
+<span class="fc" id="L121">        final List&lt;AdditionalServiceReservationModification&gt; additionalServices =</span>
+<span class="fc" id="L122">                selectedAdditionalServices(request.getAdditionalServices());</span>
+<span class="fc" id="L123">        final boolean validAdditionalServiceSelected = additionalServices.stream()</span>
+<span class="fc" id="L124">                .allMatch(asm -&gt; {</span>
+<span class="fc" id="L125">                    AdditionalService as = additionalServiceManager.getAdditionalServiceById(</span>
+<span class="fc" id="L126">                            asm.getAdditionalServiceId(), event.getId());</span>
+<span class="fc" id="L127">                    ZonedDateTime now = event.now(ClockProvider.clock());</span>
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">                    return as.getInception(event.getZoneId()).isBefore(now)</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">                            &amp;&amp; as.getExpiration(event.getZoneId()).isAfter(now)</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">                            &amp;&amp; asm.getQuantity() &gt;= 0</span>
+<span class="pc bpc" id="L131" title="2 of 4 branches missed.">                            &amp;&amp; ((as.fixPrice() &amp;&amp; asm.isQuantityValid(as, selectionCount))</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                                    || (!as.fixPrice()</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                                            &amp;&amp; asm.getAmount() != null</span>
+<span class="pc bnc" id="L134" title="All 2 branches missed.">                                            &amp;&amp; asm.getAmount().compareTo(BigDecimal.ZERO) &gt;= 0))</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">                            &amp;&amp; eventManager.eventExistsById(as.eventId());</span>
+                });
+
+<span class="pc bpc" id="L138" title="2 of 4 branches missed.">        if (!validCategorySelection || !validAdditionalServiceSelected) {</span>
+<span class="nc" id="L139">            bindingResult.reject(ErrorsCode.STEP_1_TICKET_CATEGORY_MUST_BE_SALEABLE);</span>
+<span class="nc" id="L140">            return Optional.empty();</span>
+        }
+
+<span class="fc" id="L143">        List&lt;TicketReservationWithOptionalCodeModification&gt; res = new ArrayList&lt;&gt;();</span>
+        //
+<span class="fc" id="L145">        Optional&lt;SpecialPrice&gt; specialCode = Optional.ofNullable(StringUtils.trimToNull(request.getPromoCode()))</span>
+<span class="fc" id="L146">                .flatMap(tickReservationManager::getSpecialPriceByCode);</span>
+        //
+<span class="fc" id="L148">        final ZonedDateTime now = event.now(ClockProvider.clock());</span>
+<span class="fc" id="L149">        maxTicketsByTicketReservation.forEach(pair -&gt; validateCategory(</span>
+                bindingResult,
+                tickReservationManager,
+                eventManager,
+                event,
+<span class="fc" id="L154">                pair.getRight(),</span>
+                res,
+                specialCode,
+                now,
+<span class="fc" id="L158">                pair.getLeft()));</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        return bindingResult.hasErrors()</span>
+<span class="fc" id="L160">                ? Optional.empty()</span>
+<span class="fc" id="L161">                : Optional.of(Pair.of(</span>
+                        res,
+<span class="fc" id="L163">                        additionalServices.stream()</span>
+<span class="fc" id="L164">                                .map(as -&gt; new ASReservationWithOptionalCodeModification(as, specialCode))</span>
+<span class="fc" id="L165">                                .toList()));</span>
+    }
+
+    private static &lt;T extends ReservationRequest&gt; int ticketSelectionCount(List&lt;T&gt; tickets) {
+<span class="fc" id="L169">        return selected(tickets).stream()</span>
+<span class="fc" id="L170">                .mapToInt(ReservationRequest::getQuantity)</span>
+<span class="fc" id="L171">                .sum();</span>
+    }
+
+    private static &lt;T extends ReservationRequest&gt; void validateCategory(
+            Errors bindingResult,
+            TicketReservationManager tickReservationManager,
+            EventManager eventManager,
+            Event event,
+            int maxAmountOfTicket,
+            List&lt;TicketReservationWithOptionalCodeModification&gt; res,
+            Optional&lt;SpecialPrice&gt; specialCode,
+            ZonedDateTime now,
+            T r) {
+<span class="fc" id="L184">        TicketCategory tc = eventManager.getTicketCategoryById(r.getTicketCategoryId(), event.getId());</span>
+<span class="fc" id="L185">        var categoryAvailability = tickReservationManager.countAvailableTickets(event, tc);</span>
+<span class="fc" id="L186">        SaleableTicketCategory ticketCategory =</span>
+                new SaleableTicketCategory(tc, now, event, categoryAvailability, maxAmountOfTicket, null);
+
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">        if (!ticketCategory.getSaleable()) {</span>
+<span class="nc" id="L190">            bindingResult.reject(ErrorsCode.STEP_1_TICKET_CATEGORY_MUST_BE_SALEABLE);</span>
+<span class="nc" id="L191">            return;</span>
+        }
+
+<span class="fc" id="L194">        res.add(new TicketReservationWithOptionalCodeModification(</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">                r, ticketCategory.isAccessRestricted() ? specialCode : Optional.empty()));</span>
+<span class="fc" id="L196">    }</span>
+
+    private static &lt;T extends ReservationRequest&gt; List&lt;T&gt; selected(List&lt;T&gt; reservation) {
+<span class="fc" id="L199">        return ofNullable(reservation).orElse(emptyList()).stream()</span>
+<span class="fc" id="L200">                .filter(e -&gt;</span>
+<span class="pc bpc" id="L201" title="4 of 8 branches missed.">                        e != null &amp;&amp; e.getQuantity() != null &amp;&amp; e.getTicketCategoryId() != null &amp;&amp; e.getQuantity() &gt; 0)</span>
+<span class="fc" id="L202">                .toList();</span>
+    }
+
+    private static List&lt;AdditionalServiceReservationModification&gt; selectedAdditionalServices(
+            List&lt;AdditionalServiceReservationModification&gt; additionalServices) {
+<span class="fc" id="L207">        return ofNullable(additionalServices).orElse(emptyList()).stream()</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">                .filter(e -&gt; e != null</span>
+<span class="pc bpc" id="L209" title="1 of 2 branches missed.">                        &amp;&amp; e.getQuantity() != null</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">                        &amp;&amp; e.getAdditionalServiceId() != null</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">                        &amp;&amp; e.getQuantity() &gt; 0)</span>
+<span class="fc" id="L212">                .toList();</span>
+    }
+
+    public static boolean hasPrivacyPolicy(PurchaseContext event) {
+<span class="fc" id="L216">        return StringUtils.isNotBlank(event.getPrivacyPolicyLinkOrNull());</span>
+    }
+
+    public static String ticketUpdateUrl(Event event, Ticket ticket, ConfigurationManager configurationManager) {
+<span class="fc" id="L220">        return configurationManager.baseUrl(event) + &quot;/event/&quot; + event.getShortName() + &quot;/ticket/&quot;</span>
+<span class="fc" id="L221">                + ticket.getPublicUuid().toString() + &quot;/update?lang=&quot; + ticket.getUserLanguage();</span>
+    }
+
+    public static String reservationUrl(
+            String baseUrl,
+            String reservationId,
+            PurchaseContext purchaseContext,
+            String userLanguage,
+            String additionalParams) {
+<span class="fc" id="L230">        var cleanParams = StringUtils.trimToNull(additionalParams);</span>
+<span class="fc" id="L231">        return StringUtils.removeEnd(baseUrl, &quot;/&quot;)</span>
+<span class="fc" id="L232">                + &quot;/&quot; + purchaseContext.getType()</span>
+<span class="fc" id="L233">                + &quot;/&quot; + purchaseContext.getPublicIdentifier()</span>
+                + &quot;/reservation/&quot; + reservationId
+                + &quot;?lang=&quot; + userLanguage
+<span class="fc bfc" id="L236" title="All 2 branches covered.">                + (cleanParams != null ? &quot;&amp;&quot; + cleanParams : &quot;&quot;);</span>
+    }
+
+    public static String reservationUrl(
+            String baseUrl, String reservationId, PurchaseContext purchaseContext, String userLanguage) {
+<span class="fc" id="L241">        return reservationUrl(baseUrl, reservationId, purchaseContext, userLanguage, null);</span>
+    }
+
+    public static String reservationUrl(
+            TicketReservation reservation, PurchaseContext purchaseContext, ConfigurationManager configurationManager) {
+<span class="fc" id="L246">        return reservationUrl(</span>
+<span class="fc" id="L247">                configurationManager.baseUrl(purchaseContext),</span>
+<span class="fc" id="L248">                reservation.getId(),</span>
+                purchaseContext,
+<span class="fc" id="L250">                reservation.getUserLanguage());</span>
+    }
+
+    public static List&lt;TicketWithCategory&gt; collectTicketsWithCategory(
+            Map&lt;Integer, List&lt;Ticket&gt;&gt; ticketsByCategory, TicketCategoryRepository ticketCategoryRepository) {
+        final List&lt;TicketWithCategory&gt; ticketsWithCategory;
+<span class="fc bfc" id="L256" title="All 2 branches covered.">        if (!ticketsByCategory.isEmpty()) {</span>
+<span class="fc" id="L257">            ticketsWithCategory = ticketCategoryRepository.findByIds(ticketsByCategory.keySet()).stream()</span>
+<span class="fc" id="L258">                    .flatMap(tc -&gt; ticketsByCategory.get(tc.getId()).stream().map(t -&gt; new TicketWithCategory(t, tc)))</span>
+<span class="fc" id="L259">                    .toList();</span>
+        } else {
+<span class="fc" id="L261">            ticketsWithCategory = Collections.emptyList();</span>
+        }
+<span class="fc" id="L263">        return ticketsWithCategory;</span>
+    }
+
+    public static Locale getReservationLocale(TicketReservation reservation) {
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">        return StringUtils.isEmpty(reservation.getUserLanguage())</span>
+<span class="nc" id="L268">                ? Locale.ENGLISH</span>
+<span class="fc" id="L269">                : LocaleUtil.forLanguageTag(reservation.getUserLanguage());</span>
+    }
+
+    public static Optional&lt;String&gt; handleReservationCreationErrors(
+            Supplier&lt;Optional&lt;String&gt;&gt; reservationCreationCall,
+            BindingResult bindingResult,
+            PurchaseContext.PurchaseContextType purchaseContextType) {
+        try {
+<span class="fc" id="L277">            return reservationCreationCall.get();</span>
+<span class="fc" id="L278">        } catch (NotEnoughTicketsException | NotEnoughItemsException nete) {</span>
+<span class="pc bpc" id="L279" title="1 of 2 branches missed.">            if (purchaseContextType == PurchaseContext.PurchaseContextType.event) {</span>
+<span class="fc" id="L280">                bindingResult.reject(ErrorsCode.STEP_1_NOT_ENOUGH_TICKETS);</span>
+            } else {
+<span class="nc" id="L282">                log.error(&quot;cannot acquire subscription&quot;, nete);</span>
+<span class="nc" id="L283">                bindingResult.reject(&quot;show-subscription.sold-out.message&quot;);</span>
+            }
+<span class="nc" id="L285">        } catch (MissingSpecialPriceTokenException missing) {</span>
+<span class="nc" id="L286">            bindingResult.reject(ErrorsCode.STEP_1_ACCESS_RESTRICTED);</span>
+<span class="nc" id="L287">        } catch (InvalidSpecialPriceTokenException invalid) {</span>
+<span class="nc" id="L288">            bindingResult.reject(ErrorsCode.STEP_1_CODE_NOT_FOUND);</span>
+<span class="nc" id="L289">        } catch (TooManyTicketsForDiscountCodeException tooMany) {</span>
+<span class="nc" id="L290">            bindingResult.reject(ErrorsCode.STEP_2_DISCOUNT_CODE_USAGE_EXCEEDED);</span>
+<span class="nc" id="L291">        } catch (CannotProceedWithPayment cannotProceedWithPayment) {</span>
+<span class="nc" id="L292">            bindingResult.reject(ErrorsCode.STEP_1_CATEGORIES_NOT_COMPATIBLE);</span>
+<span class="nc" id="L293">            log.error(&quot;missing payment methods&quot;, cannotProceedWithPayment);</span>
+<span class="pc" id="L294">        }</span>
+<span class="fc" id="L295">        return Optional.empty();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
