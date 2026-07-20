@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">HttpUtils.java</span></div><h1>HttpUtils.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Supplier;
+
+public final class HttpUtils {
+    private HttpUtils() {
+        // no-op
+    }
+
+    public static final String CONTENT_TYPE = &quot;Content-Type&quot;;
+    public static final String APPLICATION_JSON = &quot;application/json&quot;;
+    public static final String APPLICATION_JSON_UTF8 = &quot;application/json;charset=UTF-8&quot;;
+    public static final String APPLICATION_FORM_URLENCODED = &quot;application/x-www-form-urlencoded&quot;;
+    public static final String MULTIPART_FORM_DATA = &quot;multipart/form-data&quot;;
+    public static final String AUTHORIZATION = &quot;Authorization&quot;;
+
+    public static boolean callSuccessful(HttpResponse&lt;?&gt; response) {
+<span class="nc" id="L44">        return statusCodeIsSuccessful(response.statusCode());</span>
+    }
+
+    public static boolean statusCodeIsSuccessful(int statusCode) {
+<span class="pc bpc" id="L48" title="3 of 4 branches missed.">        return statusCode &gt;= 200 &amp;&amp; statusCode &lt; 300;</span>
+    }
+
+    public static HttpResponse&lt;String&gt; postForm(HttpClient httpClient, String url, Map&lt;String, String&gt; params)
+            throws IOException, InterruptedException {
+<span class="nc" id="L53">        HttpRequest request = HttpRequest.newBuilder()</span>
+<span class="nc" id="L54">                .uri(URI.create(url))</span>
+<span class="nc" id="L55">                .header(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;)</span>
+<span class="nc" id="L56">                .POST(HttpUtils.ofFormUrlEncodedBody(params))</span>
+<span class="nc" id="L57">                .build();</span>
+<span class="nc" id="L58">        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
+    }
+
+    public static String basicAuth(String username, String password) {
+<span class="fc" id="L62">        return &quot;Basic &quot;</span>
+<span class="fc" id="L63">                + Base64.getEncoder().encodeToString((username + &quot;:&quot; + password).getBytes(StandardCharsets.UTF_8));</span>
+    }
+
+    public static &lt;K, V&gt; HttpRequest.BodyPublisher ofFormUrlEncodedBody(Map&lt;K, V&gt; data) {
+<span class="fc" id="L67">        Objects.requireNonNull(data);</span>
+<span class="fc" id="L68">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L69">        data.forEach((k, v) -&gt; {</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if (sb.length() &gt; 0) {</span>
+<span class="nc" id="L71">                sb.append(&quot;&amp;&quot;);</span>
+            }
+<span class="nc" id="L73">            sb.append(URLEncoder.encode(k.toString(), StandardCharsets.UTF_8))</span>
+<span class="nc" id="L74">                    .append(&quot;=&quot;)</span>
+<span class="nc" id="L75">                    .append(URLEncoder.encode(v.toString(), StandardCharsets.UTF_8));</span>
+<span class="nc" id="L76">        });</span>
+<span class="fc" id="L77">        return HttpRequest.BodyPublishers.ofString(sb.toString());</span>
+    }
+
+    // https://stackoverflow.com/a/54675316
+<span class="nc" id="L81">    public static class MultiPartBodyPublisher {</span>
+<span class="nc" id="L82">        private final List&lt;PartsSpecification&gt; partsSpecificationList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L83">        private final String boundary = UUID.randomUUID().toString();</span>
+
+        public HttpRequest.BodyPublisher build() {
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (partsSpecificationList.size() == 0) {</span>
+<span class="nc" id="L87">                throw new IllegalStateException(&quot;Must have at least one part to build multipart message.&quot;);</span>
+            }
+<span class="nc" id="L89">            addFinalBoundaryPart();</span>
+<span class="nc" id="L90">            return HttpRequest.BodyPublishers.ofByteArrays(PartsIterator::new);</span>
+        }
+
+        public String getBoundary() {
+<span class="nc" id="L94">            return boundary;</span>
+        }
+
+        public MultiPartBodyPublisher addPart(String name, String value) {
+<span class="nc" id="L98">            PartsSpecification newPart = new PartsSpecification();</span>
+<span class="nc" id="L99">            newPart.type = PartsSpecification.TYPE.STRING;</span>
+<span class="nc" id="L100">            newPart.name = name;</span>
+<span class="nc" id="L101">            newPart.value = value;</span>
+<span class="nc" id="L102">            partsSpecificationList.add(newPart);</span>
+<span class="nc" id="L103">            return this;</span>
+        }
+
+        public MultiPartBodyPublisher addPart(
+                String name, Supplier&lt;InputStream&gt; value, String filename, String contentType) {
+<span class="nc" id="L108">            PartsSpecification newPart = new PartsSpecification();</span>
+<span class="nc" id="L109">            newPart.type = PartsSpecification.TYPE.STREAM;</span>
+<span class="nc" id="L110">            newPart.name = name;</span>
+<span class="nc" id="L111">            newPart.stream = value;</span>
+<span class="nc" id="L112">            newPart.filename = filename;</span>
+<span class="nc" id="L113">            newPart.contentType = contentType;</span>
+<span class="nc" id="L114">            partsSpecificationList.add(newPart);</span>
+<span class="nc" id="L115">            return this;</span>
+        }
+
+        private void addFinalBoundaryPart() {
+<span class="nc" id="L119">            PartsSpecification newPart = new PartsSpecification();</span>
+<span class="nc" id="L120">            newPart.type = PartsSpecification.TYPE.FINAL_BOUNDARY;</span>
+<span class="nc" id="L121">            newPart.value = &quot;--&quot; + boundary + &quot;--&quot;;</span>
+<span class="nc" id="L122">            partsSpecificationList.add(newPart);</span>
+<span class="nc" id="L123">        }</span>
+
+<span class="nc" id="L125">        static class PartsSpecification {</span>
+
+<span class="nc" id="L127">            public enum TYPE {</span>
+<span class="nc" id="L128">                STRING,</span>
+<span class="nc" id="L129">                STREAM,</span>
+<span class="nc" id="L130">                FINAL_BOUNDARY</span>
+            }
+
+            PartsSpecification.TYPE type;
+            String name;
+            String value;
+            Supplier&lt;InputStream&gt; stream;
+            String filename;
+            String contentType;
+        }
+
+        class PartsIterator implements Iterator&lt;byte[]&gt; {
+
+            private Iterator&lt;PartsSpecification&gt; iter;
+            private InputStream currentFileInput;
+
+            private boolean done;
+            private byte[] next;
+
+<span class="nc" id="L149">            PartsIterator() {</span>
+<span class="nc" id="L150">                iter = partsSpecificationList.iterator();</span>
+<span class="nc" id="L151">            }</span>
+
+            @Override
+            public boolean hasNext() {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                if (done) {</span>
+<span class="nc" id="L156">                    return false;</span>
+                }
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                if (next != null) {</span>
+<span class="nc" id="L159">                    return true;</span>
+                }
+                try {
+<span class="nc" id="L162">                    next = computeNext();</span>
+<span class="nc" id="L163">                } catch (IOException e) {</span>
+<span class="nc" id="L164">                    throw new UncheckedIOException(e);</span>
+<span class="nc" id="L165">                }</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                if (next == null) {</span>
+<span class="nc" id="L167">                    done = true;</span>
+<span class="nc" id="L168">                    return false;</span>
+                }
+<span class="nc" id="L170">                return true;</span>
+            }
+
+            @Override
+            public byte[] next() {
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                if (!hasNext()) {</span>
+<span class="nc" id="L176">                    throw new NoSuchElementException();</span>
+                }
+<span class="nc" id="L178">                byte[] res = next;</span>
+<span class="nc" id="L179">                next = null;</span>
+<span class="nc" id="L180">                return res;</span>
+            }
+
+            private byte[] computeNext() throws IOException {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                if (currentFileInput == null) {</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                    if (!iter.hasNext()) return null;</span>
+<span class="nc" id="L186">                    PartsSpecification nextPart = iter.next();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                    if (PartsSpecification.TYPE.STRING.equals(nextPart.type)) {</span>
+<span class="nc" id="L188">                        String part = &quot;--&quot; + boundary + &quot;\r\n&quot; + &quot;Content-Disposition: form-data; name=&quot;</span>
+                                + nextPart.name + &quot;\r\n&quot; + &quot;Content-Type: text/plain; charset=UTF-8\r\n\r\n&quot;
+                                + nextPart.value
+                                + &quot;\r\n&quot;;
+<span class="nc" id="L192">                        return part.getBytes(StandardCharsets.UTF_8);</span>
+                    }
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                    if (PartsSpecification.TYPE.FINAL_BOUNDARY.equals(nextPart.type)) {</span>
+<span class="nc" id="L195">                        return nextPart.value.getBytes(StandardCharsets.UTF_8);</span>
+                    }
+<span class="nc" id="L197">                    String filename = nextPart.filename;</span>
+<span class="nc" id="L198">                    String contentType = nextPart.contentType;</span>
+
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                    if (contentType == null) {</span>
+<span class="nc" id="L201">                        contentType = &quot;application/octet-stream&quot;;</span>
+                    }
+<span class="nc" id="L203">                    currentFileInput = nextPart.stream.get();</span>
+
+<span class="nc" id="L205">                    String partHeader = &quot;--&quot; + boundary + &quot;\r\n&quot; + &quot;Content-Disposition: form-data; name=&quot;</span>
+                            + nextPart.name + &quot;; filename=&quot; + filename + &quot;\r\n&quot; + &quot;Content-Type: &quot;
+                            + contentType + &quot;\r\n\r\n&quot;;
+<span class="nc" id="L208">                    return partHeader.getBytes(StandardCharsets.UTF_8);</span>
+                } else {
+<span class="nc" id="L210">                    byte[] buf = new byte[8192];</span>
+<span class="nc" id="L211">                    int r = currentFileInput.read(buf);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                    if (r &gt; 0) {</span>
+<span class="nc" id="L213">                        byte[] actualBytes = new byte[r];</span>
+<span class="nc" id="L214">                        System.arraycopy(buf, 0, actualBytes, 0, r);</span>
+<span class="nc" id="L215">                        return actualBytes;</span>
+                    } else {
+<span class="nc" id="L217">                        currentFileInput.close();</span>
+<span class="nc" id="L218">                        currentFileInput = null;</span>
+<span class="nc" id="L219">                        return &quot;\r\n&quot;.getBytes(StandardCharsets.UTF_8);</span>
+                    }
+                }
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

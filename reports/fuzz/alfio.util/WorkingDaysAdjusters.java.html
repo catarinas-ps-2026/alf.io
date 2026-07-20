@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkingDaysAdjusters.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.util</a> &gt; <span class="el_source">WorkingDaysAdjusters.java</span></div><h1>WorkingDaysAdjusters.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.util;
+
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAdjuster;
+import java.util.*;
+
+public class WorkingDaysAdjusters {
+
+<span class="fc" id="L28">    private static final Set&lt;DayOfWeek&gt; MON_FRI =</span>
+<span class="fc" id="L29">            EnumSet.complementOf(EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY));</span>
+<span class="fc" id="L30">    private static final List&lt;HoursRange&gt; ALL_DAY =</span>
+<span class="fc" id="L31">            Collections.singletonList(new HoursRange(LocalTime.of(8, 0, 0), LocalTime.of(20, 0, 0)));</span>
+
+    private WorkingDaysAdjusters() {}
+
+    public static TemporalAdjuster defaultWorkingDays() {
+<span class="nc" id="L36">        return temporal -&gt; adjust(temporal, MON_FRI, ALL_DAY);</span>
+    }
+
+    public static Temporal addDays(Temporal start, int days) {
+        // adjust start to make sure it is on a working day
+<span class="fc" id="L41">        var end = start;</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        for (int i = 0; i &lt; days; i++) {</span>
+<span class="nc" id="L43">            end = adjust(end.plus(1, ChronoUnit.DAYS), MON_FRI, ALL_DAY);</span>
+        }
+<span class="fc" id="L45">        return end;</span>
+    }
+
+    private static Temporal adjust(Temporal in, Set&lt;DayOfWeek&gt; dayOfWeeks, List&lt;HoursRange&gt; hoursRanges) {
+<span class="nc" id="L49">        DayOfWeek dayOfWeek = DayOfWeek.from(in);</span>
+<span class="nc" id="L50">        LocalTime localTime = LocalTime.from(in);</span>
+<span class="nc" id="L51">        boolean dayInRange = dayOfWeeks.contains(dayOfWeek);</span>
+<span class="nc" id="L52">        boolean hourInRange = hoursRanges.stream().anyMatch(hr -&gt; hr.includes(localTime));</span>
+<span class="nc bnc" id="L53" title="All 4 branches missed.">        if (dayInRange &amp;&amp; hourInRange) {</span>
+<span class="nc" id="L54">            return in;</span>
+        }
+<span class="nc" id="L56">        Temporal result = in;</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (!dayInRange) {</span>
+            do {
+<span class="nc" id="L59">                result = result.plus(1, ChronoUnit.DAYS);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            } while (!dayOfWeeks.contains(DayOfWeek.from(result)));</span>
+        }
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (!hourInRange) {</span>
+<span class="nc" id="L63">            OptionalInt distance = hoursRanges.stream()</span>
+<span class="nc" id="L64">                    .mapToInt(hr -&gt; hr.getDistanceInHours(localTime))</span>
+<span class="nc" id="L65">                    .sorted()</span>
+<span class="nc" id="L66">                    .findFirst();</span>
+<span class="nc" id="L67">            result = result.plus(distance.orElseThrow(IllegalStateException::new), ChronoUnit.HOURS);</span>
+        }
+<span class="nc" id="L69">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

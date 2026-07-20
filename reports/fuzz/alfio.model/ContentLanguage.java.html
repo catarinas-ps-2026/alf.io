@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ContentLanguage.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">alfio</a> &gt; <a href="index.source.html" class="el_package">alfio.model</a> &gt; <span class="el_source">ContentLanguage.java</span></div><h1>ContentLanguage.java</h1><pre class="source lang-java linenums">/**
+ * This file is part of alf.io.
+ *
+ * alf.io is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * alf.io is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with alf.io.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ */
+package alfio.model;
+
+import alfio.util.LocaleUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+<span class="fc" id="L25">public record ContentLanguage(Locale locale, int value, @JsonIgnore Locale displayLocale) {</span>
+
+    public static final int ENGLISH_IDENTIFIER = 0b00010;
+<span class="fc" id="L28">    public static final ContentLanguage ITALIAN = new ContentLanguage(Locale.ITALIAN, 0b00001, Locale.ITALIAN);</span>
+<span class="fc" id="L29">    public static final ContentLanguage ENGLISH =</span>
+            new ContentLanguage(Locale.ENGLISH, ENGLISH_IDENTIFIER, Locale.ENGLISH);
+<span class="fc" id="L31">    public static final ContentLanguage GERMAN = new ContentLanguage(Locale.GERMAN, 0b00100, Locale.GERMAN);</span>
+<span class="fc" id="L32">    public static final ContentLanguage DUTCH =</span>
+<span class="fc" id="L33">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;nl&quot;), 0b01000, LocaleUtil.forLanguageTag(&quot;nl&quot;));</span>
+<span class="fc" id="L34">    public static final ContentLanguage FRENCH = new ContentLanguage(Locale.FRENCH, 0b10000, Locale.FRENCH);</span>
+<span class="fc" id="L35">    public static final ContentLanguage ROMANIAN =</span>
+<span class="fc" id="L36">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;ro&quot;), 0b100000, LocaleUtil.forLanguageTag(&quot;ro&quot;));</span>
+<span class="fc" id="L37">    public static final ContentLanguage PORTUGUESE =</span>
+<span class="fc" id="L38">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;pt&quot;), 0b1000000, LocaleUtil.forLanguageTag(&quot;pt&quot;));</span>
+<span class="fc" id="L39">    public static final ContentLanguage TURKISH =</span>
+<span class="fc" id="L40">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;tr&quot;), 0b10000000, LocaleUtil.forLanguageTag(&quot;tr&quot;));</span>
+<span class="fc" id="L41">    public static final ContentLanguage SPANISH =</span>
+<span class="fc" id="L42">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;es&quot;), 0b100000000, LocaleUtil.forLanguageTag(&quot;es&quot;));</span>
+<span class="fc" id="L43">    public static final ContentLanguage POLISH =</span>
+<span class="fc" id="L44">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;pl&quot;), 0b1000000000, LocaleUtil.forLanguageTag(&quot;pl&quot;));</span>
+<span class="fc" id="L45">    public static final ContentLanguage DANISH =</span>
+<span class="fc" id="L46">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;da&quot;), 0b10000000000, LocaleUtil.forLanguageTag(&quot;da&quot;));</span>
+<span class="fc" id="L47">    public static final ContentLanguage BULGARIAN =</span>
+<span class="fc" id="L48">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;bg&quot;), 0b100000000000, LocaleUtil.forLanguageTag(&quot;bg&quot;));</span>
+<span class="fc" id="L49">    public static final ContentLanguage SWEDISH =</span>
+<span class="fc" id="L50">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;sv&quot;), 0b1000000000000, LocaleUtil.forLanguageTag(&quot;sv&quot;));</span>
+<span class="fc" id="L51">    public static final ContentLanguage CZECH =</span>
+<span class="fc" id="L52">            new ContentLanguage(LocaleUtil.forLanguageTag(&quot;cs&quot;), 0b10000000000000, LocaleUtil.forLanguageTag(&quot;cs&quot;));</span>
+
+<span class="fc" id="L54">    public static final List&lt;ContentLanguage&gt; ALL_LANGUAGES = List.of(</span>
+            ENGLISH,
+            SPANISH,
+            ITALIAN,
+            GERMAN,
+            DUTCH,
+            FRENCH,
+            ROMANIAN,
+            PORTUGUESE,
+            TURKISH,
+            POLISH,
+            DANISH,
+            BULGARIAN,
+            SWEDISH,
+            CZECH);
+<span class="fc" id="L69">    public static final int ALL_LANGUAGES_IDENTIFIER =</span>
+<span class="fc" id="L70">            ALL_LANGUAGES.stream().mapToInt(ContentLanguage::value).reduce(0, (a, b) -&gt; a | b);</span>
+
+    public static List&lt;ContentLanguage&gt; findAllFor(int bitMask) {
+<span class="fc" id="L73">        return ALL_LANGUAGES.stream()</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                .filter(cl -&gt; (cl.value() &amp; bitMask) == cl.value())</span>
+<span class="fc" id="L75">                .collect(Collectors.toList());</span>
+    }
+
+    public String getLanguage() {
+<span class="nc" id="L79">        return locale.getLanguage();</span>
+    }
+
+    public String getDisplayLanguage() {
+<span class="nc" id="L83">        return locale.getDisplayLanguage(displayLocale);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
