@@ -1,0 +1,38 @@
+@startuml ci-cd-pipeline
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+
+title CI/CD Pipeline - alf.io (Parallel Jobs)
+
+|#E8F5E9| PR Pipeline |
+start
+:Pull Request Created/Updated;
+
+|#E3F2FD| Parallel Jobs |
+split
+  :Format Code\n(Spotless + Biome);
+split again
+  :Checkstyle\n(Java Code Style);
+split again
+  :Backend Tests\n(JUnit 5 + JaCoCo);
+split again
+  :Frontend Tests\n(Vitest);
+split again
+  :E2E Tests\n(Playwright);
+split again
+  :Performance Tests\n(K6);
+split again
+  :Fuzzing Tests\n(Jazzer);
+split again
+  :Static Analysis\n(SonarQube);
+end split
+
+|#FFECB3| Post-Tests |
+:Deploy Coverage\nReports to\nGitHub Pages;
+:Post PR Comment\nwith Results;
+
+stop
+
+@enduml

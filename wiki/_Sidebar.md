@@ -16,3 +16,7 @@
 ## Pruebas de sistema
 - [[Plan de Pruebas de Sistema]]
 - [[Informe de Ejecución de Pruebas de Sistema]]
+
+## Pruebas de aceptación
+- [[Plan de Pruebas de Aceptación]]
+- [[Informe de Ejecución de Pruebas de Aceptación]]

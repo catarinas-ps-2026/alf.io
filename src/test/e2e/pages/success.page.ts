@@ -11,7 +11,10 @@ export class SuccessPage {
 
     async isSuccessVisible(): Promise<boolean> {
         try {
-            await this.successAlert.waitFor({ state: "visible", timeout: 10000 });
+            await this.successAlert.waitFor({
+                state: "visible",
+                timeout: 10000,
+            });
             return true;
         } catch {
             return false;

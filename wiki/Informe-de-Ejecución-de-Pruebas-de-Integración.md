@@ -55,11 +55,11 @@ Los elementos excluidos del alcance son: pruebas de rendimiento y carga, pruebas
 
 Las pruebas se ejecutan de manera remota mediante GitHub Actions, que ejecuta las suites de integración en cada Pull Request y en cada push a la rama `main`. Los reportes se publican automáticamente en GitHub Pages para su revisión.
 
-| Componente | Entorno |
-| :--- | :--- |
-| Backend (JUnit) | GitHub Actions, ubuntu-latest, JDK 17, Docker (Testcontainers) |
-| Playwright | GitHub Actions, ubuntu-latest, Node.js 22, PostgreSQL 16, Chromium + Firefox |
-| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit |
+| Componente | Entorno | Reporte |
+| :--- | :--- | :--- |
+| Backend (JUnit) | GitHub Actions, ubuntu-latest, JDK 17, Docker (Testcontainers) | **[Reporte de Integración – JUnit](https://catarinas-ps-2026.github.io/alf.io/reports/integration-tests/index.html)** |
+| Playwright (Acciones Singulares) | GitHub Actions, ubuntu-latest, Node.js 22, PostgreSQL 16, Chromium + Firefox | **[Reporte Playwright](https://catarinas-ps-2026.github.io/alf.io/reports/playwright/index.html)** |
+| Redoc/OpenAPI | Generado como parte de la suite de integración JUnit | **[Portal Redoc](https://catarinas-ps-2026.github.io/alf.io/reports/api-contract/index.html)** |
 
 ## 6. Configuración del entorno de ejecución
 
@@ -229,15 +229,15 @@ Se ejecuta tras un merge en `main`. Los mismos jobs que el workflow de PR, pero 
 | `event-creation.spec.ts` | 3 | Acceso a página de creación, 404 API, error en página pública |
 | `event-publication.spec.ts` | 7 | Visibilidad, nombre, categorías, botón continuar, selectores, estructura API |
 
-**Total Playwright (acciones singulares):** 88 tests (44 por navegador × 2 navegadores)
+**Total Playwright (acciones singulares):** 56 tests (28 por navegador × 2 navegadores)
 
 ### 7.4 Resumen de Resultados Playwright
 
 | Métrica | Valor |
 | :--- | :---: |
-| Tests totales | 88 |
+| Tests totales | 56 |
 | Navegadores | Chromium, Firefox |
-| Tests exitosos | 88 |
+| Tests exitosos | 56 |
 | Tests con fallo | 0 |
 | Tests flaky | 0 |
 | Tests skipped | 0 |

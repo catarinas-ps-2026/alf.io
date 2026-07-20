@@ -1,7 +1,10 @@
-import { test, expect } from "../../fixtures/test-fixtures";
+import { expect, test } from "../../fixtures/test-fixtures";
+import {
+    completeBasicConfigIfVisible,
+    loginViaUI,
+} from "../../helpers/auth-helper";
 import { AdminEventPage } from "../../pages/admin-event.page";
 import { PublicEventPage } from "../../pages/public-event.page";
-import { loginViaUI, completeBasicConfigIfVisible } from "../../helpers/auth-helper";
 
 test.describe("Event Creation: Admin → Create Event → Configure Categories", () => {
     test("admin can access the event creation page", async ({
@@ -15,7 +18,10 @@ test.describe("Event Creation: Admin → Create Event → Configure Categories",
             adminCredentials.password,
         );
         await page.waitForURL(/.*(admin).*/);
-        await completeBasicConfigIfVisible(page, baseURL || "http://localhost:8080");
+        await completeBasicConfigIfVisible(
+            page,
+            baseURL || "http://localhost:8080",
+        );
 
         const adminEventPage = new AdminEventPage(page);
         await adminEventPage.gotoCreateEvent();

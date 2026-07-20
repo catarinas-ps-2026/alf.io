@@ -1,7 +1,7 @@
 import { expect, test } from "../../fixtures/test-fixtures";
-import { LoginPage } from "../../pages/login.page";
-import { AdminPage } from "../../pages/admin.page";
 import { completeBasicConfigIfVisible } from "../../helpers/auth-helper";
+import { AdminPage } from "../../pages/admin.page";
+import { LoginPage } from "../../pages/login.page";
 
 test.describe("Authentication: Login Flows", () => {
     test("should log in successfully with admin credentials", async ({

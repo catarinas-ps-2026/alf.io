@@ -11,6 +11,11 @@ export interface UserStatus {
     prodMode: boolean;
 }
 
+export interface Credentials {
+    username: string;
+    password: string;
+}
+
 export interface CreatedUser {
     id: number;
     username: string;
@@ -25,6 +30,30 @@ export async function loginViaUI(
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login(username, password);
+    await page.waitForURL(/.*(admin).*/);
+}
+
+export async function loginAs(
+    page: Page,
+    credentials: Credentials,
+    baseURL: string,
+    options?: { dismissConfig?: boolean },
+): Promise<void> {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(credentials.username, credentials.password);
+    await page.waitForURL(/.*(admin).*/);
+    const status = await getCurrentUser(page);
+    if (!status?.authenticated || status.username !== credentials.username) {
+        throw new Error(
+            `loginAs("${credentials.username}") did not produce an authenticated session for that user. ` +
+                `authentication-status returned: ${JSON.stringify(status)}`,
+        );
+    }
+
+    if (options?.dismissConfig !== false) {
+        await completeBasicConfigIfVisible(page, baseURL);
+    }
 }
 
 export async function logoutViaUI(page: Page): Promise<void> {
@@ -32,6 +61,27 @@ export async function logoutViaUI(page: Page): Promise<void> {
     await adminPage.goto();
     if (await adminPage.isLoggedIn()) {
         await adminPage.logout();
+    }
+}
+
+export async function isSessionActive(page: Page): Promise<boolean> {
+    try {
+        const statusResponse = await page.request.get("/authentication-status");
+        if (!statusResponse.ok()) return false;
+        const status = await statusResponse.json();
+        return status.authenticated === true;
+    } catch {
+        return false;
+    }
+}
+
+export async function getCurrentUser(page: Page): Promise<UserStatus | null> {
+    try {
+        const statusResponse = await page.request.get("/authentication-status");
+        if (!statusResponse.ok()) return null;
+        return await statusResponse.json();
+    } catch {
+        return null;
     }
 }
 
@@ -64,7 +114,7 @@ export async function completeBasicConfigIfVisible(
         'h1:has-text("Basic Configuration")',
     );
     try {
-        await basicConfigHeader.waitFor({ state: "visible", timeout: 2000 });
+        await basicConfigHeader.waitFor({ state: "visible", timeout: 800 });
         const baseUrlInput = page.getByRole("textbox", {
             name: "Base application url",
         });
@@ -81,6 +131,20 @@ export async function completeBasicConfigIfVisible(
 function getBaseURL(page: Page): string {
     const url = new URL(page.url());
     return url.origin;
+}
+
+// Organizations have no delete action in the admin UI, so tests that create
+// one via the UI must clean up through the system API key instead.
+export async function deleteOrganizationViaApi(
+    page: Page,
+    organizationId: number,
+): Promise<void> {
+    const baseURL = getBaseURL(page);
+    const apiKey = process.env.E2E_SERVER_APIKEY || "e2e-test-api-key";
+    await page.request.delete(
+        `${baseURL}/api/v1/admin/system/organization/${organizationId}`,
+        { headers: { Authorization: `ApiKey ${apiKey}` } },
+    );
 }
 
 export async function getCurrentUserId(page: Page): Promise<number> {
@@ -166,6 +230,32 @@ export async function createUserViaPage(
         },
         { url: baseURL, userData: user },
     );
+}
+
+export async function createOrResetUser(
+    page: Page,
+    user: {
+        organizationId: number;
+        username: string;
+        firstName: string;
+        lastName: string;
+        emailAddress: string;
+        role: string;
+        type?: string;
+    },
+): Promise<string> {
+    try {
+        const created = await createUserViaPage(page, user);
+        return created.password;
+    } catch {
+        const existing = await findUserByUsername(page, user.username);
+        if (existing) {
+            return resetUserPassword(page, existing.id);
+        }
+        throw new Error(
+            `Could not create user "${user.username}" and no existing user with that name was found either.`,
+        );
+    }
 }
 
 export async function deleteUserViaPage(
@@ -257,6 +347,44 @@ export async function findUserByUsername(
     return resp;
 }
 
+const E2E_ORG_NAME = "E2E Org";
+
+export async function ensureE2eOrgExists(
+    request: APIRequestContext,
+): Promise<void> {
+    const baseURL =
+        process.env.ALFIO_OVERRIDE_SYSTEM_SETTINGS_BASE_URL ||
+        "http://localhost:8080";
+    const apiKey = process.env.E2E_SERVER_APIKEY || "e2e-test-api-key";
+    const listResp = await request.get(
+        `${baseURL}/api/v1/admin/system/organization/list`,
+        { headers: { Authorization: `ApiKey ${apiKey}` } },
+    );
+    if (listResp.ok()) {
+        const orgs = await listResp.json();
+        if (
+            Array.isArray(orgs) &&
+            orgs.some((o: { name: string }) => o.name === E2E_ORG_NAME)
+        ) {
+            return;
+        }
+    }
+    await request.post(
+        `${baseURL}/api/v1/admin/system/organization/create`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `ApiKey ${apiKey}`,
+            },
+            data: {
+                name: E2E_ORG_NAME,
+                email: "e2e@localhost",
+                description: "E2E Org",
+            },
+        },
+    );
+}
+
 export async function ensureOrganizationExists(page: Page): Promise<number> {
     const baseURL = getBaseURL(page);
     const orgName = `E2E Org ${Date.now()}`;
@@ -293,4 +421,44 @@ export async function ensureOrganizationExists(page: Page): Promise<number> {
         return resp[resp.length - 1].id;
     }
     throw new Error("No organizations found after creation");
+}
+
+export async function createDisposableUser(
+    page: Page,
+    role: string,
+): Promise<CreatedUser> {
+    const orgId = await getOrganizationIdViaPage(page);
+    const username = `e2e-${role.toLowerCase()}-${Date.now()}`;
+    return createUserViaPage(page, {
+        organizationId: orgId,
+        username,
+        firstName: "Test",
+        lastName: role.charAt(0) + role.slice(1).toLowerCase(),
+        emailAddress: `${username}@e2e.test`,
+        role,
+    });
+}
+
+export async function withDisposableUser(
+    page: Page,
+    adminCredentials: Credentials,
+    baseURL: string,
+    role: string,
+    run: (credentials: Credentials) => Promise<void>,
+): Promise<void> {
+    await loginAs(page, adminCredentials, baseURL);
+    const created = await createDisposableUser(page, role);
+    const credentials = {
+        username: created.username,
+        password: created.password,
+    };
+    try {
+        await logoutViaUI(page);
+        await loginAs(page, credentials, baseURL);
+        await run(credentials);
+    } finally {
+        await logoutViaUI(page);
+        await loginAs(page, adminCredentials, baseURL);
+        await deleteUserViaPage(page, created.id);
+    }
 }
