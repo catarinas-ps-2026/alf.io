@@ -373,6 +373,23 @@ tasks.register('integrationTest', Test) {
     include '**/*E2ETest*'
     include '**/*ValidationTest*'
     include '**/NormalFlowE2ETest*'
+
+    // Excluir tests marcados como defectos conocidos (ver wiki/defectos.md)
+    useJUnitPlatform {
+        excludeTags 'defect'
+    }
+}
+
+tasks.register('defectTests', Test) {
+    description = 'Runs known defect tests (expected to fail). Use to verify defect status.'
+    group = 'verification'
+    
+    include '**/*IntegrationTest*'
+
+    // Ejecutar SOLO los tests marcados como defectos
+    useJUnitPlatform {
+        includeTags 'defect'
+    }
 }
 
 

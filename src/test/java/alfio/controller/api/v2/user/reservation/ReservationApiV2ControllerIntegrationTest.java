@@ -20,6 +20,8 @@ import static alfio.test.util.IntegrationTestUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -77,6 +79,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -439,6 +442,7 @@ class ReservationApiV2ControllerIntegrationTest {
     void getReservationDetailsReturns404ForNonexistent() {
         var response = reservationApiV2Controller.getReservationInfo("nonexistent-id", null);
         assertEquals(404, response.getStatusCode().value());
+        assertNull(response.getBody());
     }
 
     // ========================================================================
@@ -460,6 +464,9 @@ class ReservationApiV2ControllerIntegrationTest {
                 new BeanPropertyBindingResult(contactForm, "paymentForm"),
                 null);
         assertEquals(422, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertTrue(response.getBody().getErrorCount() > 0);
     }
 
     // ========================================================================
@@ -485,6 +492,12 @@ class ReservationApiV2ControllerIntegrationTest {
                 new MockHttpServletRequest(),
                 null);
         assertEquals(200, response.getStatusCode().value());
+
+        var statusResponse = reservationApiV2Controller.getReservationStatus(reservationId);
+        assertEquals(200, statusResponse.getStatusCode().value());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.OFFLINE_PAYMENT,
+                statusResponse.getBody().getStatus());
     }
 
     @Test
@@ -504,6 +517,8 @@ class ReservationApiV2ControllerIntegrationTest {
                 new MockHttpServletRequest(),
                 null);
         assertEquals(422, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
     }
 
     // ========================================================================
@@ -511,6 +526,7 @@ class ReservationApiV2ControllerIntegrationTest {
     // ========================================================================
 
     @Test
+    @Tag("defect")
     void initBankTransferPayment() {
         var inPersonEvent = createInPersonEvent();
         String reservationId = createValidatedReservationForEvent(inPersonEvent);
@@ -519,6 +535,7 @@ class ReservationApiV2ControllerIntegrationTest {
         var response = reservationApiV2Controller.initTransaction(
                 reservationId, alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER.name(), allParams);
         assertNotNull(response);
+        assertEquals(201, response.getStatusCode().value());
     }
 
     // ========================================================================
@@ -534,6 +551,7 @@ class ReservationApiV2ControllerIntegrationTest {
                 reservationId, alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER.name());
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
     }
 
     // ========================================================================
@@ -557,6 +575,7 @@ class ReservationApiV2ControllerIntegrationTest {
     void pollReservationStatusReturns404ForNonexistent() {
         var response = reservationApiV2Controller.getReservationStatus("nonexistent-id");
         assertEquals(404, response.getStatusCode().value());
+        assertNull(response.getBody());
     }
 
     // ========================================================================
@@ -587,11 +606,130 @@ class ReservationApiV2ControllerIntegrationTest {
         var inPersonEvent = createInPersonEvent();
         String reservationId = createReservationForEvent(inPersonEvent);
 
+        // Verificar que la reservación existe antes de cancelar
+        var reservationBefore = ticketReservationRepository.findOptionalReservationById(reservationId);
+        assertTrue(reservationBefore.isPresent());
+        assertEquals(TicketReservation.TicketReservationStatus.PENDING, reservationBefore.get().getStatus());
+
         var response = reservationApiV2Controller.cancelPendingReservation(reservationId);
         assertEquals(200, response.getStatusCode().value());
+        assertTrue(response.getBody());
 
+        // Verificar en DB que la reservación fue eliminada
+        var reservationAfter = ticketReservationRepository.findOptionalReservationById(reservationId);
+        assertFalse(reservationAfter.isPresent());
+
+        // Verificar que el controller también indica 404
         var statusResponse = reservationApiV2Controller.getReservationStatus(reservationId);
         assertEquals(404, statusResponse.getStatusCode().value());
+    }
+
+    @Test
+    @Tag("defect")
+    void cancelNonexistentReservationReturns404() {
+        var response = reservationApiV2Controller.cancelPendingReservation("nonexistent-id");
+        assertEquals(404, response.getStatusCode().value());
+
+        // Verificar que no se creó ninguna reservación en DB
+        var reservation = ticketReservationRepository.findOptionalReservationById("nonexistent-id");
+        assertFalse(reservation.isPresent());
+    }
+
+    @Test
+    @Tag("defect")
+    void cancelConfirmedReservationShouldFailButReturnsSuccess() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createConfirmedReservationForEvent(inPersonEvent);
+
+        // Verificar estado BEFORE en DB
+        var reservationBefore = ticketReservationRepository.findOptionalReservationById(reservationId);
+        assertTrue(reservationBefore.isPresent());
+        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE, reservationBefore.get().getStatus());
+
+        // El endpoint público NO debería permitir cancelar reservaciones confirmadas.
+        // Solo el módulo admin puede cancelar reservaciones COMPLETE.
+        var response = reservationApiV2Controller.cancelPendingReservation(reservationId);
+        assertNotEquals(200, response.getStatusCode().value());
+
+        // Verificar en DB que la reservación NO fue cancelada
+        var reservationAfter = ticketReservationRepository.findOptionalReservationById(reservationId);
+        assertTrue(reservationAfter.isPresent());
+        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE, reservationAfter.get().getStatus());
+    }
+
+    // ========================================================================
+    // R5: POST /api/v2/public/reservation/{id}/validate-to-overview — Happy path
+    // ========================================================================
+
+    @Test
+    void validateToOverviewWithValidContactForm() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createReservationForEvent(inPersonEvent);
+        var tickets = ticketRepository.findTicketsInReservation(reservationId);
+
+        var contactForm = new ContactAndTicketsForm();
+        contactForm.setEmail("test@test.com");
+        contactForm.setFirstName("full");
+        contactForm.setLastName("name");
+
+        var ticketForm = new UpdateTicketOwnerForm();
+        ticketForm.setFirstName("ticketfull");
+        ticketForm.setLastName("ticketname");
+        ticketForm.setEmail("tickettest@test.com");
+        contactForm.setTickets(
+                Collections.singletonMap(tickets.get(0).getPublicUuid().toString(), ticketForm));
+
+        var response = reservationApiV2Controller.validateToOverview(
+                reservationId,
+                "en",
+                false,
+                contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"),
+                null);
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertTrue(response.getBody().getValue());
+
+        // Verificar en DB que la información del ticket fue guardada
+        var ticketAfter = ticketRepository.findByPublicUUID(UUID.fromString(tickets.get(0).getPublicUuid().toString()));
+        assertNotNull(ticketAfter);
+        assertEquals("tickettest@test.com", ticketAfter.getEmail());
+        assertEquals("ticketfull", ticketAfter.getFirstName());
+        assertEquals("ticketname", ticketAfter.getLastName());
+
+        // Verificar que el estado de validación se guardó
+        var statusAfter = reservationApiV2Controller.getReservationStatus(reservationId);
+        assertTrue(statusAfter.getBody().isValidatedBookingInformation());
+    }
+
+    // ========================================================================
+    // P1: POST /api/v2/public/reservation/{id}/payment/{method}/init — Error
+    // ========================================================================
+
+    @Test
+    void initPaymentForNonexistentReservationReturnsError() {
+        var allParams = new LinkedMultiValueMap<String, String>();
+        var response = reservationApiV2Controller.initTransaction(
+                "nonexistent-id", alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER.name(), allParams);
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+    // ========================================================================
+    // P2: GET /api/v2/public/reservation/{id}/payment/{method}/status — Pending
+    // ========================================================================
+
+    @Test
+    @Tag("defect")
+    void checkPaymentStatusForPendingPayment() {
+        var inPersonEvent = createInPersonEvent();
+        String reservationId = createValidatedReservationForEvent(inPersonEvent);
+
+        var response = reservationApiV2Controller.getTransactionStatus(
+                reservationId, alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER.name());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
     }
 
     // ========================================================================
