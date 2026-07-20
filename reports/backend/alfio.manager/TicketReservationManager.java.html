@@ -2739,8 +2739,8 @@ public class TicketReservationManager {
                 new PaymentContext(purchaseContext),
                 transactionRequest,
 <span class="fc" id="L2741">                List.of(WebhookHandler.class, ServerInitiatedTransaction.class));</span>
-<span class="fc bfc" id="L2742" title="All 2 branches covered.">        if (optionalProvider.isEmpty()) {</span>
-<span class="fc" id="L2743">            return Optional.empty();</span>
+<span class="pc bpc" id="L2742" title="1 of 2 branches missed.">        if (optionalProvider.isEmpty()) {</span>
+<span class="nc" id="L2743">            return Optional.empty();</span>
         }
 <span class="fc" id="L2745">        var messageSource = messageSourceManager.getMessageSourceFor(purchaseContext);</span>
 <span class="fc" id="L2746">        var provider = (ServerInitiatedTransaction) optionalProvider.get();</span>
