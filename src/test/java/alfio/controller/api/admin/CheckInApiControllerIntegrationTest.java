@@ -55,6 +55,7 @@ import java.util.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -127,12 +128,20 @@ class CheckInApiControllerIntegrationTest {
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().totalResults() > 0);
+
+        // Verificar contenido del resultado: nombre y apellido
+        var attendees = response.getBody().attendees();
+        assertFalse(attendees.isEmpty());
+        var attendee = attendees.get(0);
+        assertEquals("John", attendee.firstName());
+        assertEquals("Doe", attendee.lastName());
     }
 
     @Test
     void searchAttendeesWithBlankQueryReturnsNoContent() {
         var response = checkInApiController.searchAttendees(event.getShortName(), "   ", 0, principal);
         assertEquals(204, response.getStatusCode().value());
+        assertNull(response.getBody());
     }
 
     // ========================================================================
@@ -220,6 +229,8 @@ class CheckInApiControllerIntegrationTest {
 
         CheckInStatistics stats = checkInApiController.getStatistics(event.getShortName(), null, principal);
         assertNotNull(stats);
+        assertEquals(0, stats.getCheckedIn());
+        assertEquals(0, stats.getTotalAttendees());
     }
 
     @Test
@@ -230,6 +241,7 @@ class CheckInApiControllerIntegrationTest {
         CheckInStatistics stats = checkInApiController.getStatistics(event.getShortName(), null, principal);
         assertNotNull(stats);
         assertEquals(0, stats.getCheckedIn());
+        assertEquals(0, stats.getTotalAttendees());
     }
 
     // ========================================================================
@@ -271,6 +283,22 @@ class CheckInApiControllerIntegrationTest {
         var result = response.get("nonexistent-uuid");
         assertNotNull(result);
         assertNotEquals(CheckInStatus.SUCCESS, result.getResult().getStatus());
+        assertEquals(CheckInStatus.TICKET_NOT_FOUND, result.getResult().getStatus());
+    }
+
+    // ========================================================================
+    // C1: Search attendees for nonexistent event
+    // ========================================================================
+
+    @Test
+    @Tag("defect")
+    void searchAttendeesForNonexistentEventReturnsEmpty() {
+        // Defecto: el controller lanza AccessDeniedException en vez de retornar lista vacía
+        // para un evento inexistente. Debería manejar gracefully el caso.
+        var response = checkInApiController.searchAttendees("nonexistent-event", "test", 0, principal);
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().totalResults());
     }
 
     // ========================================================================

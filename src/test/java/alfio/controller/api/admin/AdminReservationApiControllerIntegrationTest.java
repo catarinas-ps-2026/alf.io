@@ -28,6 +28,7 @@ import alfio.controller.api.ControllerConfiguration;
 import alfio.manager.EventManager;
 import alfio.manager.TicketReservationManager;
 import alfio.manager.payment.PaymentSpecification;
+import alfio.manager.support.AccessDeniedException;
 import alfio.manager.support.PaymentResult;
 import alfio.manager.user.UserManager;
 import alfio.model.*;
@@ -100,6 +101,9 @@ class AdminReservationApiControllerIntegrationTest {
     @Autowired
     private AdminReservationApiController adminReservationApiController;
 
+    @Autowired
+    private TicketReservationRepository ticketReservationRepository;
+
     private Event event;
     private String username;
     private Principal principal;
@@ -117,33 +121,52 @@ class AdminReservationApiControllerIntegrationTest {
 
     @Test
     void listReservationsReturnsResults() {
-        createAndConfirmReservation();
+        String reservationId = createAndConfirmReservation();
 
         var response = adminReservationApiController.findAll(
                 PurchaseContextType.event, event.getShortName(), 0, null, null, principal);
         assertNotNull(response);
-        assertNotNull(response.getLeft());
-        assertFalse(response.getLeft().isEmpty());
+        var reservations = response.getLeft();
+        assertNotNull(reservations);
+        assertFalse(reservations.isEmpty());
+        assertEquals(1, reservations.size());
+
+        // Verificar que la reservación retornada coincide con la creada
+        var found = reservations.get(0);
+        assertEquals(reservationId, found.getId());
+        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE, found.getStatus());
+        assertEquals("email@example.com", found.getEmail());
     }
 
     @Test
     void listReservationsWithPaginationReturnsPageZero() {
         createAndConfirmReservation();
+        createAndConfirmReservation();
 
         var response = adminReservationApiController.findAll(
                 PurchaseContextType.event, event.getShortName(), 0, null, null, principal);
         assertNotNull(response);
-        assertTrue(response.getRight() > 0);
+        // Verificar count total
+        assertTrue(response.getRight() >= 2);
+        // Verificar que la lista tiene los elementos esperados
+        assertNotNull(response.getLeft());
+        assertEquals(2, response.getLeft().size());
     }
 
     @Test
     void listReservationsWithSearchFilter() {
         String reservationId = createAndConfirmReservation();
 
+        // Buscar por los primeros 5 caracteres del ID
         var response = adminReservationApiController.findAll(
                 PurchaseContextType.event, event.getShortName(), 0, reservationId.substring(0, 5), null, principal);
         assertNotNull(response);
-        assertNotNull(response.getLeft());
+        var reservations = response.getLeft();
+        assertNotNull(reservations);
+        assertFalse(reservations.isEmpty());
+
+        // Verificar que el filtro funciona: el resultado contiene la reservación buscada
+        assertTrue(reservations.stream().anyMatch(r -> r.getId().equals(reservationId)));
     }
 
     @Test
@@ -158,7 +181,13 @@ class AdminReservationApiControllerIntegrationTest {
                 List.of(TicketReservation.TicketReservationStatus.COMPLETE),
                 principal);
         assertNotNull(response);
-        assertNotNull(response.getLeft());
+        var reservations = response.getLeft();
+        assertNotNull(reservations);
+        assertFalse(reservations.isEmpty());
+
+        // Verificar que TODOS los resultados tienen el status filtrado
+        assertTrue(reservations.stream()
+                .allMatch(r -> r.getStatus() == TicketReservation.TicketReservationStatus.COMPLETE));
     }
 
     // ========================================================================
@@ -169,11 +198,22 @@ class AdminReservationApiControllerIntegrationTest {
     void refundPaidReservationSuccessfully() {
         String reservationId = createAndConfirmReservation();
 
+        // Verificar estado BEFORE en DB
+        var reservationBefore = ticketReservationRepository.findOptionalReservationById(reservationId);
+        assertTrue(reservationBefore.isPresent());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                reservationBefore.get().getStatus());
+
         var refundAmount = new AdminReservationApiController.RefundAmount("10.00");
         var response = adminReservationApiController.refund(
                 PurchaseContextType.event, event.getShortName(), reservationId, refundAmount, principal);
         assertNotNull(response);
         assertTrue(response.isSuccess());
+
+        // Para pagos OFFLINE, la reservación sigue existiendo después del reembolso
+        var reservationAfter = ticketReservationRepository.findOptionalReservationById(reservationId);
+        assertTrue(reservationAfter.isPresent());
     }
 
     @Test
@@ -185,6 +225,23 @@ class AdminReservationApiControllerIntegrationTest {
                 PurchaseContextType.event, event.getShortName(), reservationId, refundAmount, principal);
         assertNotNull(response);
         assertTrue(response.isSuccess());
+
+        // Verificar en DB que la reservación sigue existiendo con status COMPLETE
+        // (un reembolso parcial no cancela la reservación)
+        var reservationAfter = ticketReservationRepository.findOptionalReservationById(reservationId);
+        assertTrue(reservationAfter.isPresent());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                reservationAfter.get().getStatus());
+    }
+
+    @Test
+    void refundNonexistentReservationReturnsError() {
+        var refundAmount = new AdminReservationApiController.RefundAmount("10.00");
+        assertThrows(
+                AccessDeniedException.class,
+                () -> adminReservationApiController.refund(
+                        PurchaseContextType.event, event.getShortName(), "nonexistent-id", refundAmount, principal));
     }
 
     // ========================================================================

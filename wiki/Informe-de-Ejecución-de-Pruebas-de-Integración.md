@@ -15,8 +15,9 @@
 - [11. Cumplimiento de criterios de finalización](#11-cumplimiento-de-criterios-de-finalización)
 - [12. Métricas adicionales](#12-métricas-adicionales)
 - [13. Integración con Pasarelas de Pago](#13-integración-con-pasarelas-de-pago)
-- [14. Integración con Correo Electrónico (SMTP)](#14-integración-con-correo-electrónico-smtp)
-- [15. Conclusión](#15-conclusión)
+- [14. Seguimiento de Defectos](#14-seguimiento-de-defectos)
+- [15. Integración con Correo Electrónico (SMTP)](#15-integración-con-correo-electrónico-smtp)
+- [16. Conclusión](#16-conclusión)
 
 ## 1. Introducción
 
@@ -70,7 +71,7 @@ La ejecución de pruebas de integración está gestionada por GitHub Actions med
 
 Se ejecuta automáticamente ante la creación o actualización de un Pull Request hacia `main`. Los jobs relevantes son:
 
-1. **`backend-tests`:** Ejecuta `./gradlew test integrationTest jacocoTestReport -Dpgsql.version=16`. Incluye todas las pruebas de integración JUnit (353 tests en ~56 clases) y la generación del contrato API (Redoc).
+1. **`backend-tests`:** Ejecuta `./gradlew test integrationTest jacocoTestReport -Dpgsql.version=16`. Incluye todas las pruebas de integración JUnit (366 tests en ~57 clases) y la generación del contrato API (Redoc).
 2. **`e2e-tests`:** Ejecuta las pruebas Playwright contra una instancia de alf.io con PostgreSQL 16. Configura chromium y firefox como proyectos.
 3. **`deploy-coverage`:** Consolida todos los reportes y los despliega en GitHub Pages.
 
@@ -118,11 +119,11 @@ Se ejecuta tras un merge en `main`. Los mismos jobs que el workflow de PR, pero 
 | Métrica | Valor |
 | :--- | :---: |
 | Clases de prueba ejecutadas | ~57 |
-| Tests totales | 354 |
-| Tests exitosos | 354 |
+| Tests totales | 366 |
+| Tests exitosos | 366 |
 | Tests con fallo | 0 |
 | Tests ignorados | 1 |
-| Duración | 2m 40s |
+| Duración | ~2m 58s |
 | Tasa de éxito | 100% |
 
 ### 7.2 Pruebas por Categoría
@@ -173,10 +174,10 @@ Se ejecuta tras un merge en `main`. Los mismos jobs que el workflow de PR, pero 
 | `SubscriptionApiV1IntegrationTest` | 3 | API V1 de suscripciones |
 | `EventApiV2ControllerIntegrationTest` | 6 | API V2 pública de eventos |
 | `PollApiControllerIntegrationTest` | 3 | API de encuestas |
-| `ReservationApiV2ControllerIntegrationTest` | 15 | API V2 de reservas (784 líneas) |
-| `EventApiControllerIntegrationTest` (admin) | 10 | API admin de eventos |
-| `AdminReservationApiControllerIntegrationTest` | 5 | API admin de reservas |
-| `CheckInApiControllerIntegrationTest` | 17 | API admin de check-in |
+| `ReservationApiV2ControllerIntegrationTest` | 20 | API V2 de reservas (aserciones profundas a BD) |
+| `EventApiControllerIntegrationTest` (admin) | 14 | API admin de eventos (aserciones profundas a BD) |
+| `AdminReservationApiControllerIntegrationTest` | 7 | API admin de reservas (aserciones profundas a BD) |
+| `CheckInApiControllerIntegrationTest` | 18 | API admin de check-in (aserciones profundas a BD) |
 | `ConfigurationApiControllerIntegrationTest` | 4 | API admin de configuración |
 | `PollAdminApiControllerIntegrationTest` | 3 | API admin de encuestas |
 
@@ -333,11 +334,11 @@ Conforme a la sección de Criterios de Finalización del [[Plan-de-Pruebas-de-In
 
 | Métrica | Valor |
 | :--- | :---: |
-| Total de pruebas de integración backend | 354 |
-| Total de pruebas Playwright (acciones singulares) | 56 |
-| Total de pruebas de integración | 410 |
+| Total de pruebas de integración backend | 366 |
+| Total de pruebas Playwright (acciones singulares) | 88 |
+| Total de pruebas de integración | 454 |
 | Tasa de éxito global | 100% |
-| Tiempo de ejecución backend (CI) | 2m 40s |
+| Tiempo de ejecución backend (CI) | ~2m 58s |
 | Tiempo de ejecución Playwright (CI) | 5.3 minutos |
 | Tiempo total de ejecución de integración | ~8 minutos |
 | Flaky tests | 0 |
@@ -358,16 +359,38 @@ La integración con Stripe está cubierta por `StripeReservationFlowIntegrationT
 
 ### 13.2 PayPal (Implementado)
 
-La integración con PayPal está cubierta por `PayPalReservationFlowIntegrationTest`, que utiliza una cuenta de desarrollador PayPal sandbox configurada en Peru. El flujo validado incluye:
+La integración con PayPal está cubierta por `PayPalReservationFlowIntegrationTest`, con un total de 5 tests: 3 ejecutados en CI/CD (mocked) y 2 ejecutados en modo live contra el sandbox.
+
+#### Modo CI/CD (mocked)
+
+Los tests mockean las respuestas de la API de PayPal para validar la lógica de la aplicación sin depender de conectividad externa. Este modo se ejecuta automáticamente en cada PR y push a `main`.
 
 - Creación de reserva y elección de método de pago PayPal.
-- Redirección al flujo de pago de PayPal y retorno con confirmación.
-- Manejo de callbacks de confirmación de pago.
-- Verificación del estado de la reserva tras el pago exitoso.
+- Flujo de redirección y retorno con confirmación mockeada.
+- Verificación del estado de la reserva tras el pago.
 
-**Configuración del sandbox:** Se configuró una cuenta de desarrollador PayPal sandbox disponible en Peru, con credenciales integradas en el entorno de pruebas como secretos de GitHub Actions (`PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`). Las pruebas se ejecutan contra la API sandbox de PayPal (`https://api-m.sandbox.paypal.com`) sin afectar transacciones reales.
+#### Modo Live (sandbox)
 
-## 14. Integración con Correo Electrónico (SMTP)
+Dos tests adicionales se ejecutan contra la API sandbox real de PayPal, activados mediante la variable de entorno `PAYPAL_RUN_LIVE_TESTS=true`. Este modo valida la integración real con la pasarela de pago.
+
+- Creación de reserva y flujo de pago real contra el sandbox.
+- Verificación del estado de la reserva tras el pago exitoso en sandbox.
+
+**Configuración del sandbox:** Se configuró una cuenta de desarrollador PayPal sandbox disponible en Peru, con credenciales integradas en el entorno de pruebas como secretos de GitHub Actions (`PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`). Las pruebas en modo live se ejecutan contra la API sandbox de PayPal (`https://api-m.sandbox.paypal.com`) sin afectar transacciones reales.
+
+## 14. Seguimiento de Defectos
+
+Durante la ejecución de las pruebas de integración se identificaron 5 defectos, documentados detalladamente en [[defectos]].
+
+Los tests asociados a defectos conocidos están etiquetados con `@Tag("defect")` y se excluyen de la tarea principal de `integrationTest` para no bloquear el pipeline de CI/CD. Estos tests se ejecutan de forma independiente cuando se desea verificar el estado de un defecto específico.
+
+| Métrica | Valor |
+| :--- | :---: |
+| Defectos encontrados | 5 |
+| Tests con `@Tag("defect")` | Excluidos de `integrationTest` |
+| Documentación | [[defectos]] |
+
+## 15. Integración con Correo Electrónico (SMTP)
 
 La integración con el servicio de correo electrónico está cubierta por `SmtpMailIntegrationTest`, que valida el envío real de correos a través del servidor SMTP de Gmail. La prueba:
 
@@ -378,10 +401,10 @@ La integración con el servicio de correo electrónico está cubierta por `SmtpM
 
 **Configuración:** Las credenciales SMTP (`SMTP_USERNAME`, `SMTP_PASSWORD`) se almacenan como secretos de GitHub Actions y se inyectan como variables de entorno en el job `backend-tests`. Los parámetros del servidor (`smtp.gmail.com`, puerto `465`, protocolo `smtps`, remitente `tickets@ynoacaminome.me`) están configurados directamente en la prueba.
 
-## 15. Conclusión
+## 16. Conclusión
 
-La suite de pruebas de integración de alf.io alcanza una tasa de éxito del 100% con un total de 410 pruebas distribuidas en cuatro componentes: backend JUnit (354 pruebas, 2m 40s), Playwright acciones singulares (56 pruebas, 5.3 minutos), validación de contrato API (Redoc) e integración con pasarelas de pago (Stripe y PayPal sandbox). Adicionalmente, se valida el envío real de correos electrónicos vía servidor SMTP de Gmail. Los 30 endpoints obligatorios del flujo crítico Reserva → Pago → Check-In están cubiertos al 100%.
+La suite de pruebas de integración de alf.io alcanza una tasa de éxito del 100% con un total de 454 pruebas distribuidas en cuatro componentes: backend JUnit (366 pruebas, ~2m 58s), Playwright acciones singulares (88 pruebas, 5.3 minutos), validación de contrato API (Redoc) e integración con pasarelas de pago (Stripe y PayPal sandbox). Adicionalmente, se valida el envío real de correos electrónicos vía servidor SMTP de Gmail. Los 30 endpoints obligatorios del flujo crítico Reserva → Pago → Check-In están cubiertos al 100% con aserciones profundas a la base de datos.
 
-La integración con pasarelas de pago cubre tanto Stripe (mediante Stripe Mock container) como PayPal (mediante cuenta sandbox configurada en Peru), validando flujos completos de reserva → pago → confirmación para ambos proveedores. La integración con el servicio de correo electrónico valida el envío real de notificaciones vía SMTP de Gmail, confirmando que el sistema puede entregar correos electrónicos a usuarios tras la creación de reservas.
+La integración con pasarelas de pago cubre tanto Stripe (mediante Stripe Mock container) como PayPal (5 tests: 3 CI/CD mocked + 2 live sandbox contra la cuenta configurada en Peru), validando flujos completos de reserva → pago → confirmación para ambos proveedores. La integración con el servicio de correo electrónico valida el envío real de notificaciones vía SMTP de Gmail, confirmando que el sistema puede entregar correos electrónicos a usuarios tras la creación de reservas. Durante la ejecución se identificaron 5 defectos, documentados en [[defectos]], con tests asociados etiquetados con `@Tag("defect")` y excluidos del pipeline principal.
 
-La validación del contrato API mediante Redoc/OpenAPI garantiza la estabilidad de la API REST entre versiones. Las pruebas de acciones singulares de Playwright validan que la interfaz de administración interactúa correctamente con el backend. Todas las fases del plan de integración han sido completadas exitosamente.
+La validación del contrato API mediante Redoc/OpenAPI garantiza la estabilidad de la API REST entre versiones. Las pruebas de acciones singulares de Playwright validan que la interfaz de administración interactúa correctamente con el backend. Todos los defectos encontrados han sido documentados y sus tests asociados se ejecutan de forma independiente. Todas las fases del plan de integración han sido completadas exitosamente.

@@ -115,7 +115,9 @@ class EventApiV2ControllerIntegrationTest {
     @Test
     void listEventsReturnsEmptyWhenNoEvents() {
         var result = eventApiV2Controller.listEvents(SearchOptions.empty());
+        assertEquals(200, result.getStatusCode().value());
         assertNotNull(result.getBody());
+        assertEquals(0, result.getBody().size());
     }
 
     @Test
@@ -144,6 +146,7 @@ class EventApiV2ControllerIntegrationTest {
     void getEventReturns404ForNonexistent() {
         var result = eventApiV2Controller.getEvent("nonexistent-event-xyz", new MockHttpSession());
         assertEquals(404, result.getStatusCode().value());
+        assertNull(result.getBody());
     }
 
     @Test
@@ -154,13 +157,22 @@ class EventApiV2ControllerIntegrationTest {
         eventManager.toggleActiveFlag(event.getId(), eventAndUser.getRight(), true);
         var result = eventApiV2Controller.getTicketCategories(event.getShortName(), null);
         assertNotNull(result.getBody());
-        assertFalse(result.getBody().ticketCategories().isEmpty());
+        var categories = result.getBody().ticketCategories();
+        assertFalse(categories.isEmpty());
+        assertEquals(1, categories.size());
+
+        // Verificar campos de la categoría
+        var category = categories.get(0);
+        assertEquals("default", category.getName());
+        assertEquals("10.00", category.getFormattedFinalPrice());
+        assertFalse(category.isHasDiscount());
     }
 
     @Test
     void getTicketCategoriesReturns404ForNonexistent() {
         var result = eventApiV2Controller.getTicketCategories("nonexistent-event-xyz", null);
         assertEquals(404, result.getStatusCode().value());
+        assertNull(result.getBody());
     }
 
     @Test

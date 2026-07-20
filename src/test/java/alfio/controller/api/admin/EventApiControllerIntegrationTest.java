@@ -25,6 +25,7 @@ import static alfio.test.util.IntegrationTestUtil.owner;
 import static alfio.test.util.TestUtil.clockProvider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -340,7 +341,22 @@ class EventApiControllerIntegrationTest {
 
         var modification = buildEventModification(orgAndUser.getLeft().getId());
         String result = eventApiController.insertEvent(modification, principal);
-        assertNotNull(result);
+        assertEquals("OK", result);
+
+        // Verificar que se creó exactamente 1 evento en la organización
+        var events = eventRepository.findByOrganizationIds(
+                List.of(orgAndUser.getLeft().getId()));
+        assertEquals(1, events.size());
+
+        var createdEvent = events.get(0);
+        assertEquals(Event.EventFormat.IN_PERSON, createdEvent.getFormat());
+        assertEquals("Test Event Display Name", createdEvent.getDisplayName());
+        assertEquals("CHF", createdEvent.getCurrency());
+
+        // Verificar que se creó la categoría "default"
+        var categories = ticketCategoryRepository.findAllTicketCategories(createdEvent.getId());
+        assertEquals(1, categories.size());
+        assertEquals("default", categories.get(0).getName());
     }
 
     @Test
@@ -353,7 +369,18 @@ class EventApiControllerIntegrationTest {
         var modification = buildEventModificationWithMultipleCategories(
                 orgAndUser.getLeft().getId());
         String result = eventApiController.insertEvent(modification, principal);
-        assertNotNull(result);
+        assertEquals("OK", result);
+
+        // Verificar que se creó el evento con 2 categorías
+        var events = eventRepository.findByOrganizationIds(
+                List.of(orgAndUser.getLeft().getId()));
+        assertEquals(1, events.size());
+
+        var categories =
+                ticketCategoryRepository.findAllTicketCategories(events.get(0).getId());
+        assertEquals(2, categories.size());
+        assertTrue(categories.stream().anyMatch(c -> c.getName().equals("category-A")));
+        assertTrue(categories.stream().anyMatch(c -> c.getName().equals("category-B")));
     }
 
     // ========================================================================
@@ -392,6 +419,42 @@ class EventApiControllerIntegrationTest {
 
         var unpublishedEvent = eventRepository.findById(event.getId());
         assertEquals(Event.Status.DRAFT, unpublishedEvent.getStatus());
+    }
+
+    // ========================================================================
+    // A1: Formatos de evento
+    // ========================================================================
+
+    @Test
+    void createEventInPersonFormat() {
+        var eventAndUser = createEvent(Event.EventFormat.IN_PERSON);
+        event = eventAndUser.getKey();
+        assertEquals(Event.EventFormat.IN_PERSON, event.getFormat());
+    }
+
+    @Test
+    void createEventOnlineFormat() {
+        var eventAndUser = createEvent(Event.EventFormat.ONLINE);
+        event = eventAndUser.getKey();
+        assertEquals(Event.EventFormat.ONLINE, event.getFormat());
+    }
+
+    @Test
+    void createEventHybridFormat() {
+        var eventAndUser = createEvent(Event.EventFormat.HYBRID);
+        event = eventAndUser.getKey();
+        assertEquals(Event.EventFormat.HYBRID, event.getFormat());
+    }
+
+    // ========================================================================
+    // A2: Publicar evento inexistente
+    // ========================================================================
+
+    @Test
+    void publishNonexistentEventReturnsError() {
+        var principal = Mockito.mock(Authentication.class);
+        when(principal.getName()).thenReturn("admin");
+        assertThrows(Exception.class, () -> eventApiController.activateEvent(Integer.MAX_VALUE, true, principal));
     }
 
     private Pair<alfio.model.user.Organization, String> createOrgAndUser() {

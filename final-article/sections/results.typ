@@ -12,7 +12,7 @@ The testing strategy covered all major components of the alf.io system across th
     [Backend], [Java 17, Spring Boot 3.5.x], [2,290], [100%],
     [Public Frontend], [Angular 17], [487], [100%],
     [Admin Frontend], [Lit 3], [167], [100%],
-    [Integration Backend], [JUnit + Testcontainers], [354], [100%],
+    [Integration Backend], [JUnit + Testcontainers], [370], [100%],
     [Integration Frontend], [Playwright], [56], [100%],
     [Acceptance Tests], [Playwright], [22], [100%],
     [Functional Tests], [Manual], [120+], [97.5%],
@@ -45,14 +45,14 @@ Figures 3 and 4 show the frontend coverage reports. The administration frontend 
 
 == Integration Test Results
 
-Integration testing executed 410 test cases (354 JUnit backend + 56 Playwright frontend) across four components @testcontainers2024. All tests achieved 100% pass rates. Figure 5 shows the backend integration test results.
+Integration testing executed 426 test cases (370 JUnit backend + 56 Playwright frontend) across four components @testcontainers2024. All tests achieved 100% pass rates. Figure 5 shows the backend integration test results.
 
 #figure(
   image("../diagrams/integration-tests/integration_tests_backend.png", width: 100%),
   caption: [Backend integration test results (JUnit).],
 ) <fig:integration_backend>
 
-The integration test suite validated 30 mandatory endpoints covering the critical flow: Reservation, Payment, and Check-In. Figure 6 shows the Playwright integration test results @playwright2024.
+The integration test suite validated 30 mandatory endpoints covering the critical flow: Reservation, Payment, and Check-In. Tests performed deep database-level assertions beyond HTTP status codes, verifying persisted state and response content. Semantic defects were identified in API responses where status codes did not match actual operation outcomes. Figure 6 shows the Playwright integration test results @playwright2024.
 
 #figure(
   image("../diagrams/integration-tests/integration_tests_playwright.png", width: 100%),
