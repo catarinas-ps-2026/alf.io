@@ -88,7 +88,10 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - **Objetivo:** Validar el flujo completo de pago con pasarelas de pago reales en modo sandbox.
 - **Técnica:** Conexión con cuentas de desarrollador sandbox de Stripe y PayPal.
 - **Foco:** Flujo de reserva → pago → confirmación con Stripe y PayPal.
-- **Nota:** Proveedores no disponibles en Peru como Stripe solo se probarán mediante mocks, para las pruebas con Paypal, se configurará una cuenta de desarrollador sandbox.
+- **Modos de ejecución (PayPal):**
+  - **CI/CD:** Tests ejecutados con PayPal mock (por defecto).
+  - **Live:** Con `PAYPAL_RUN_LIVE_TESTS=true`, ejecuta llamadas reales a la API sandbox de PayPal.
+- **Credenciales:** Client ID y secret sandbox configurados en la base de datos.
 
 #### Subproceso 7 – Integración con Servicio de Correo Electrónico (SMTP)
 - **Objetivo:** Validar que el sistema envía correos electrónicos reales a través de un servidor SMTP después de una reserva.
@@ -108,6 +111,27 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 | Contrato API | Descriptor OpenAPI 3.1.0 generado por SpringDoc, comparación con referencia |
 | Frontend (Playwright) | Acciones singulares de UI: login, logout, sesión, control de acceso, contraseñas, eventos |
 | Correo Electrónico (SMTP) | Envío real de correos vía Gmail SMTP tras reserva administrativa |
+| Pasarelas de Pago | Integración con PayPal sandbox (credenciales configuradas en DB) |
+
+### Resumen de Pruebas de Integración
+
+| Suite de Pruebas | Cantidad | Descripción |
+| :--- | :---: | :--- |
+| `ReservationApiV2ControllerIntegrationTest` | 20 | Endpoints de reserva V2: creación, modificación, cancelación, estados |
+| `CheckInApiControllerIntegrationTest` | 18 | Flujo de check-in y validación de tickets |
+| `EventApiControllerIntegrationTest` | 14 | Endpoints de eventos: creación, consulta, publicación |
+| `EventApiV2ControllerIntegrationTest` | 9 | Endpoints V2 de eventos con assertions profundas |
+| `AdminReservationApiControllerIntegrationTest` | 7 | Gestión administrativa de reservas |
+| `PayPalReservationFlowIntegrationTest` | 5 | Flujo completo de reserva con PayPal (sandbox) |
+| Otras suites | ~237+ | Repositorios, managers, infraestructura, contrato API, SMTP |
+| **Total** | **~310+** | **Todas las pruebas de integración** |
+
+### Infraestructura de Pruebas
+
+- **Marcadores de defectos:** Se utiliza `@Tag("defect")` para marcar tests que identifican defectos conocidos (5 tests actualmente).
+- **Tarea Gradle:** `./gradlew defectTests` ejecuta únicamente los tests marcados con `@Tag("defect")`.
+- **PayPal Sandbox:** Credenciales de cliente y secret configuradas en la base de datos para pruebas en modo live.
+- **Defectos documentados:** Los defectos encontrados se registran en [[defectos]].
 
 ### Alcance de la Prueba
 
@@ -119,8 +143,9 @@ alf.io es una plataforma de venta de entradas y gestión de eventos. Para las pr
 - Pruebas de acciones singulares de la UI de administración con Playwright (login, logout, sesión, control de acceso, contraseñas, eventos).
 - Integración con la base de datos real para verificación de estado persistido.
 - Integración con Stripe Mock container para pruebas de flujo de pago.
-- Integración con PayPal sandbox para pruebas de flujo de pago.
+- Integración con PayPal sandbox para pruebas de flujo de pago (con credenciales configuradas en DB).
 - Integración con servidor SMTP real (Gmail) para envío de correos electrónicos tras reserva.
+- Marcador `@Tag("defect")` para tests que identifican defectos conocidos (5 defectos documentados en [[defectos]]).
 
 #### Elementos Excluidos
 - **Pruebas de rendimiento y carga:** No se valida el comportamiento bajo alta concurrencia (cubierto por pruebas de rendimiento con k6).
@@ -202,7 +227,7 @@ Se adopta la estrategia incremental por módulos, dividida en seis fases:
 | **Fase 3 – API y Contrato** | Validación del contrato REST de los 30 endpoints obligatorios del flujo crítico. | EventApiController, ConfigurationApiController, CheckInApiController, AdminReservationApiController, EventApiV2Controller, ReservationApiV2Controller, TicketApiV2Controller |
 | **Fase 4 – Contrato API (Redoc)** | Generación y validación estática del descriptor OpenAPI 3.1.0; comparación con referencia para detectar rupturas. | SpringDoc, CheckRestApiStabilityIntegrationTest |
 | **Fase 5 – Acciones Singulares UI** | Pruebas Playwright de acciones aisladas de la interfaz de administración contra el backend en ejecución. | auth-login, auth-logout, auth-password, auth-session, auth-access-control, event-creation, event-publication |
-| **Fase 6 – Pagos** | Integración con pasarelas de pago sandbox. | PayPalManager, StripeReservationFlowIntegrationTest |
+| **Fase 6 – Pagos** | Integración con pasarelas de pago sandbox (PayPal con credenciales en DB, Stripe Mock). | PayPalReservationFlowIntegrationTest, PayPalManager, StripeReservationFlowIntegrationTest |
 | **Fase 7 – Correo Electrónico** | Integración con servidor SMTP real para envío de notificaciones. | SmtpMailIntegrationTest, NotificationManager |
 
 Las fases son **secuenciales**: cada fase solo comienza cuando la anterior ha sido aprobada.
@@ -230,7 +255,7 @@ Las fases son **secuenciales**: cada fase solo comienza cuando la anterior ha si
 El proceso de pruebas de integración se dará por concluido cuando:
 
 1. **Todas las fases aprobadas:** Las seis fases de la estrategia incremental pasan al 100% en el pipeline de CI.
-2. **Sin defectos críticos abiertos:** No existen bugs de integración con severidad ≥ 12 (según la fórmula Probabilidad × Impacto) sin resolver.
+2. **Sin defectos críticos abiertos:** No existen bugs de integración con severidad ≥ 12 (según la fórmula Probabilidad × Impacto) sin resolver. Los defectos conocidos se registran en [[defectos]] con marcador `@Tag("defect")`.
 3. **Entregables completos:** El reporte de ejecución, el reporte de cobertura, el reporte de contrato API y la matriz de trazabilidad están publicados en la Wiki.
 4. **Aprobación del Tech Lead:** Cada suite debe estar revisada y aprobada mediante Pull Request por Christian Mestas.
 5. **Pipeline verde:** El workflow de GitHub Actions finaliza sin errores en todas las suites de integración (backend JUnit, Playwright acciones singulares, Redoc).
@@ -245,6 +270,7 @@ El proceso de pruebas de integración se dará por concluido cuando:
 | Estabilidad del contrato API | Diferencias detectadas entre descriptor actual y referencia | 0 rupturas |
 | Tiempo de ejecución de suite | Tiempo total de ejecución de todas las pruebas de integración en CI | ≤ 15 min |
 | Flaky tests | Número de pruebas con resultados inconsistentes (fallan entre ejecuciones) | 0 en `main` |
+| Defectos conocidos | Tests marcados con `@Tag("defect)` que identifican bugs conocidos | 5 (documentados en [[defectos]]) |
 
 ### Requisitos del Entorno de Pruebas
 
@@ -260,11 +286,13 @@ El proceso de pruebas de integración se dará por concluido cuando:
 - **Docker** (obligatorio para Testcontainers y Stripe Mock).
 - **Node.js 22 + pnpm 11.1.2** (para pruebas Playwright de acciones singulares).
 - **Playwright** (navegadores Chromium y Firefox).
+- **Credenciales PayPal sandbox** (configuradas en DB para pruebas live).
 
 #### Base de Datos y Servicios
 - **PostgreSQL 15** en contenedor efímero gestionado por Testcontainers (Fases 1-3).
 - **PostgreSQL 16** como servicio en GitHub Actions (Fase 5 – Playwright).
 - **Stripe Mock** en contenedor efímero gestionado por Testcontainers (Fase 2 – pagos).
+- **PayPal Sandbox** con credenciales configuradas en DB (Fase 6 – pagos).
 - **Chromium y Firefox** instalados vía Playwright CLI (Fase 5 – acciones singulares UI).
 
 ---
