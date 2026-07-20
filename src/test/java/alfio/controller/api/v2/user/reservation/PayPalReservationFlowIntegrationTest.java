@@ -137,8 +137,7 @@ class PayPalReservationFlowIntegrationTest {
     @Test
     void paypalIsConfiguredCorrectly() {
         var paymentContext = new PaymentContext(event);
-        assertTrue(payPalManager.isActive(paymentContext),
-                "PayPal should be active after sandbox configuration");
+        assertTrue(payPalManager.isActive(paymentContext), "PayPal should be active after sandbox configuration");
     }
 
     @Test
@@ -166,13 +165,18 @@ class PayPalReservationFlowIntegrationTest {
                 Collections.singletonMap(tickets.get(0).getPublicUuid().toString(), ticketForm));
 
         var validateResponse = reservationApiV2Controller.validateToOverview(
-                reservationId, "en", false, contactForm,
-                new BeanPropertyBindingResult(contactForm, "paymentForm"), null);
+                reservationId,
+                "en",
+                false,
+                contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"),
+                null);
         assertEquals(200, validateResponse.getStatusCode().value());
 
         // Verificar que la reservación está en estado PENDING antes del pago
         var statusBefore = reservationApiV2Controller.getReservationStatus(reservationId);
-        assertEquals(TicketReservation.TicketReservationStatus.PENDING,
+        assertEquals(
+                TicketReservation.TicketReservationStatus.PENDING,
                 statusBefore.getBody().getStatus());
 
         // Completar el pago con offline (simula el callback exitoso de PayPal)
@@ -180,19 +184,37 @@ class PayPalReservationFlowIntegrationTest {
                 ticketReservationManager.totalReservationCostWithVAT(reservationId);
         TotalPrice reservationCost = priceAndDiscount.getLeft();
         var specification = new alfio.manager.payment.PaymentSpecification(
-                reservationId, null, null, reservationCost.getPriceWithVAT(), event,
-                "test@example.com", new CustomerName("Test User", "Test", "User", false),
-                "billing", null, Locale.ENGLISH, true, false, null, "IT", "123456",
-                PriceContainer.VatStatus.INCLUDED, true, false);
+                reservationId,
+                null,
+                null,
+                reservationCost.getPriceWithVAT(),
+                event,
+                "test@example.com",
+                new CustomerName("Test User", "Test", "User", false),
+                "billing",
+                null,
+                Locale.ENGLISH,
+                true,
+                false,
+                null,
+                "IT",
+                "123456",
+                PriceContainer.VatStatus.INCLUDED,
+                true,
+                false);
         alfio.manager.support.PaymentResult paymentResult = ticketReservationManager.performPayment(
-                specification, reservationCost, PaymentProxy.OFFLINE,
-                alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER, null);
+                specification,
+                reservationCost,
+                PaymentProxy.OFFLINE,
+                alfio.model.transaction.StaticPaymentMethods.BANK_TRANSFER,
+                null);
         assertTrue(paymentResult.isSuccessful());
         ticketReservationManager.confirmOfflinePayment(event, reservationId, null, username);
 
         // Verificar que la reservación está COMPLETE
         var statusAfter = reservationApiV2Controller.getReservationStatus(reservationId);
-        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE,
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
                 statusAfter.getBody().getStatus());
 
         // Verificar que el ticket está ACQUIRED
@@ -225,8 +247,12 @@ class PayPalReservationFlowIntegrationTest {
                 Collections.singletonMap(tickets.get(0).getPublicUuid().toString(), ticketForm));
 
         reservationApiV2Controller.validateToOverview(
-                reservationId, "en", false, contactForm,
-                new BeanPropertyBindingResult(contactForm, "paymentForm"), null);
+                reservationId,
+                "en",
+                false,
+                contactForm,
+                new BeanPropertyBindingResult(contactForm, "paymentForm"),
+                null);
 
         var paymentForm = new PaymentForm();
         paymentForm.setPrivacyPolicyAccepted(true);
@@ -236,9 +262,12 @@ class PayPalReservationFlowIntegrationTest {
 
         // Este paso llama a PayPal sandbox real para crear la orden
         var confirmResponse = reservationApiV2Controller.confirmOverview(
-                reservationId, "en", paymentForm,
+                reservationId,
+                "en",
+                paymentForm,
                 new BeanPropertyBindingResult(paymentForm, "paymentForm"),
-                new MockHttpServletRequest(), null);
+                new MockHttpServletRequest(),
+                null);
         assertEquals(200, confirmResponse.getStatusCode().value());
 
         // Verificar que la reservación está esperando pago
@@ -252,8 +281,7 @@ class PayPalReservationFlowIntegrationTest {
     @Tag("live-paypal")
     void liveSandboxPayPalIsActive() {
         var paymentContext = new PaymentContext(event);
-        assertTrue(payPalManager.isActive(paymentContext),
-                "PayPalManager should be active with sandbox credentials");
+        assertTrue(payPalManager.isActive(paymentContext), "PayPalManager should be active with sandbox credentials");
     }
 
     // ========================================================================
@@ -279,11 +307,9 @@ class PayPalReservationFlowIntegrationTest {
                 TicketCategory.TicketAccessType.INHERIT,
                 AVAILABLE_SEATS,
                 new DateTimeModification(
-                        LocalDate.now(ClockProvider.clock()).minusDays(1),
-                        LocalTime.now(ClockProvider.clock())),
+                        LocalDate.now(ClockProvider.clock()).minusDays(1), LocalTime.now(ClockProvider.clock())),
                 new DateTimeModification(
-                        LocalDate.now(ClockProvider.clock()).plusDays(5),
-                        LocalTime.now(ClockProvider.clock())),
+                        LocalDate.now(ClockProvider.clock()).plusDays(5), LocalTime.now(ClockProvider.clock())),
                 DESCRIPTION,
                 BigDecimal.TEN,
                 false,

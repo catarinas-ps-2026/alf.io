@@ -25,11 +25,10 @@ import alfio.TestConfiguration;
 import alfio.config.DataSourceConfiguration;
 import alfio.config.Initializer;
 import alfio.controller.api.ControllerConfiguration;
-import alfio.manager.AccessService;
 import alfio.manager.EventManager;
 import alfio.manager.TicketReservationManager;
-import alfio.manager.support.AccessDeniedException;
 import alfio.manager.payment.PaymentSpecification;
+import alfio.manager.support.AccessDeniedException;
 import alfio.manager.support.PaymentResult;
 import alfio.manager.user.UserManager;
 import alfio.model.*;
@@ -202,7 +201,9 @@ class AdminReservationApiControllerIntegrationTest {
         // Verificar estado BEFORE en DB
         var reservationBefore = ticketReservationRepository.findOptionalReservationById(reservationId);
         assertTrue(reservationBefore.isPresent());
-        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE, reservationBefore.get().getStatus());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                reservationBefore.get().getStatus());
 
         var refundAmount = new AdminReservationApiController.RefundAmount("10.00");
         var response = adminReservationApiController.refund(
@@ -229,14 +230,18 @@ class AdminReservationApiControllerIntegrationTest {
         // (un reembolso parcial no cancela la reservación)
         var reservationAfter = ticketReservationRepository.findOptionalReservationById(reservationId);
         assertTrue(reservationAfter.isPresent());
-        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE, reservationAfter.get().getStatus());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                reservationAfter.get().getStatus());
     }
 
     @Test
     void refundNonexistentReservationReturnsError() {
         var refundAmount = new AdminReservationApiController.RefundAmount("10.00");
-        assertThrows(AccessDeniedException.class, () -> adminReservationApiController.refund(
-                PurchaseContextType.event, event.getShortName(), "nonexistent-id", refundAmount, principal));
+        assertThrows(
+                AccessDeniedException.class,
+                () -> adminReservationApiController.refund(
+                        PurchaseContextType.event, event.getShortName(), "nonexistent-id", refundAmount, principal));
     }
 
     // ========================================================================

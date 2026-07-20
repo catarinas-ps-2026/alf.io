@@ -19,8 +19,8 @@ package alfio.controller.api.v2.user.reservation;
 import static alfio.test.util.IntegrationTestUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -609,7 +609,9 @@ class ReservationApiV2ControllerIntegrationTest {
         // Verificar que la reservación existe antes de cancelar
         var reservationBefore = ticketReservationRepository.findOptionalReservationById(reservationId);
         assertTrue(reservationBefore.isPresent());
-        assertEquals(TicketReservation.TicketReservationStatus.PENDING, reservationBefore.get().getStatus());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.PENDING,
+                reservationBefore.get().getStatus());
 
         var response = reservationApiV2Controller.cancelPendingReservation(reservationId);
         assertEquals(200, response.getStatusCode().value());
@@ -644,7 +646,9 @@ class ReservationApiV2ControllerIntegrationTest {
         // Verificar estado BEFORE en DB
         var reservationBefore = ticketReservationRepository.findOptionalReservationById(reservationId);
         assertTrue(reservationBefore.isPresent());
-        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE, reservationBefore.get().getStatus());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                reservationBefore.get().getStatus());
 
         // El endpoint público NO debería permitir cancelar reservaciones confirmadas.
         // Solo el módulo admin puede cancelar reservaciones COMPLETE.
@@ -654,7 +658,9 @@ class ReservationApiV2ControllerIntegrationTest {
         // Verificar en DB que la reservación NO fue cancelada
         var reservationAfter = ticketReservationRepository.findOptionalReservationById(reservationId);
         assertTrue(reservationAfter.isPresent());
-        assertEquals(TicketReservation.TicketReservationStatus.COMPLETE, reservationAfter.get().getStatus());
+        assertEquals(
+                TicketReservation.TicketReservationStatus.COMPLETE,
+                reservationAfter.get().getStatus());
     }
 
     // ========================================================================
@@ -692,7 +698,8 @@ class ReservationApiV2ControllerIntegrationTest {
         assertTrue(response.getBody().getValue());
 
         // Verificar en DB que la información del ticket fue guardada
-        var ticketAfter = ticketRepository.findByPublicUUID(UUID.fromString(tickets.get(0).getPublicUuid().toString()));
+        var ticketAfter = ticketRepository.findByPublicUUID(
+                UUID.fromString(tickets.get(0).getPublicUuid().toString()));
         assertNotNull(ticketAfter);
         assertEquals("tickettest@test.com", ticketAfter.getEmail());
         assertEquals("ticketfull", ticketAfter.getFirstName());
