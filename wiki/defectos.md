@@ -63,11 +63,26 @@ El método `cancelPendingReservation` usa `getReservationWithPendingStatus(reser
 
 ---
 
+## Defecto 5: `searchAttendees` lanza excepción para evento inexistente
+
+**Archivo:** `src/main/java/alfio/controller/api/admin/CheckInApiController.java:277`
+**Test:** `CheckInApiControllerIntegrationTest.searchAttendeesForNonexistentEventReturnsEmpty()`
+
+**Comportamiento esperado:** Al buscar asistentes de un evento inexistente, el endpoint debería retornar HTTP **200 OK** con una lista vacía (totalResults = 0), ya que simplemente no hay asistentes para ese evento.
+
+**Comportamiento real:** El endpoint lanza `AccessDeniedException` porque `checkEventMembership` no encuentra el evento.
+
+**Por qué es un defecto:**
+El controller llama a `accessService.checkEventMembership()` que lanza excepción si el evento no existe. Sin embargo, buscar asistentes de un evento inexistente debería ser una operación segura que simplemente retorna resultados vacíos, no una excepción. El 403/AccessDenied es engañoso: indica que el usuario no tiene permiso, cuando en realidad el evento simplemente no existe.
+
+---
+
 ## Resumen
 
-| #   | Test                                                    | Status Actual    | Status Esperado           | Severidad |
-| --- | ------------------------------------------------------- | ---------------- | ------------------------- | --------- |
-| 1   | `cancelNonexistentReservationReturns404`                | 200              | 404                       | Media     |
-| 2   | `initBankTransferPayment`                               | 404              | 201                       | Media     |
-| 3   | `checkPaymentStatusForPendingPayment`                   | 404              | 200                       | Baja      |
-| 4   | `cancelConfirmedReservationShouldFailButReturnsSuccess` | 200 (sin efecto) | Error (rechazo explícito) | Alta      |
+| # | Test | Status Actual | Status Esperado | Severidad |
+|---|------|--------------|-----------------|-----------|
+| 1 | `cancelNonexistentReservationReturns404` | 200 | 404 | Media |
+| 2 | `initBankTransferPayment` | 404 | 201 | Media |
+| 3 | `checkPaymentStatusForPendingPayment` | 404 | 200 | Baja |
+| 4 | `cancelConfirmedReservationShouldFailButReturnsSuccess` | 200 (sin efecto) | Error (rechazo explícito) | Alta |
+| 5 | `searchAttendeesForNonexistentEventReturnsEmpty` | AccessDeniedException | 200 con lista vacía | Media |
