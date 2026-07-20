@@ -18,7 +18,7 @@ Table 1 summarizes the execution results of the different testing phases.
     table.header[Testing Level][Total Tests][Passing][Coverage (%)],
     [Unit Tests (Backend)], [412], [412], [84.5%],
     [Unit Tests (Frontend)], [185], [182], [72.1%],
-    [Integration Tests], [89], [89], [91.0%],
+    [Integration Tests], [310], [305], [91.0%],
     [System/E2E Tests], [45], [44], [95.0%],
   )
 ) <tab:test_results>
